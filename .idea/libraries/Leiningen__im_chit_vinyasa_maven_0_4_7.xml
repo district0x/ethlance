@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: im.chit/vinyasa.maven:0.4.7">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/im/chit/vinyasa.maven/0.4.7/vinyasa.maven-0.4.7.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

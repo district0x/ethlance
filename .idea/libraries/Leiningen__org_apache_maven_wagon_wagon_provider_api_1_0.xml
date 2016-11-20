@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.apache.maven.wagon/wagon-provider-api:1.0">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/maven/wagon/wagon-provider-api/1.0/wagon-provider-api-1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

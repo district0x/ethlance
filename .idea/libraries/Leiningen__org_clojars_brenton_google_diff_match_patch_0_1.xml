@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.clojars.brenton/google-diff-match-patch:0.1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/clojars/brenton/google-diff-match-patch/0.1/google-diff-match-patch-0.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

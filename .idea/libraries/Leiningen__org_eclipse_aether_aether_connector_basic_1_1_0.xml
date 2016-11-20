@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.eclipse.aether/aether-connector-basic:1.1.0">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/aether/aether-connector-basic/1.1.0/aether-connector-basic-1.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

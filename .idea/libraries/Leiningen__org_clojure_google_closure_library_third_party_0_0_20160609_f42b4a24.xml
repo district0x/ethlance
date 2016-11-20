@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.clojure/google-closure-library-third-party:0.0-20160609-f42b4a24">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/clojure/google-closure-library-third-party/0.0-20160609-f42b4a24/google-closure-library-third-party-0.0-20160609-f42b4a24.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.codehaus.plexus/plexus-component-annotations:1.5.5">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

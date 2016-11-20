@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.sonatype.sisu/sisu-guice:3.1.0:no_aop">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

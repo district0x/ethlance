@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.eclipse.aether/aether-transport-file:1.1.0">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/aether/aether-transport-file/1.1.0/aether-transport-file-1.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

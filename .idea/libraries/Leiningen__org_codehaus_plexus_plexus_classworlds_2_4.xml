@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.codehaus.plexus/plexus-classworlds:2.4">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

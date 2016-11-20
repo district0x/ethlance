@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: org.clojure/tools.namespace:0.2.4">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/clojure/tools.namespace/0.2.4/tools.namespace-0.2.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

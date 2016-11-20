@@ -1,0 +1,7 @@
+/*.log
+/target
+/*-init.clj
+/resources/public/js/compiled
+out
+/ethlance.iml
+/resources/public/contracts/build/

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: print-foo-cljs:2.0.3">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/print-foo-cljs/print-foo-cljs/2.0.3/print-foo-cljs-2.0.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

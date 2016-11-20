@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: fipp:0.6.6">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/fipp/fipp/0.6.6/fipp-0.6.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
