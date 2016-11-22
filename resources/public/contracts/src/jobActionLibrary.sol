@@ -64,10 +64,6 @@ library JobActionLibrary {
         return EternalStorage(_storage).getUIntValue(sha3("job-action/job", jobActionId));
     }
     
-    function getInvitation(address _storage, uint jobActionId) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("job-action/invitation", jobActionId));
-    }
-    
     function getProposalCreatedOn(address _storage, uint jobActionId) constant returns(uint) {
         return EternalStorage(_storage).getUIntValue(sha3("proposal/created-on", jobActionId));
     }
@@ -79,11 +75,41 @@ library JobActionLibrary {
     function getJobAction(address _storage, uint freelancerId, uint jobId) constant returns (uint) {
         return EternalStorage(_storage).getUIntValue(sha3("invitation/freelancer-job", freelancerId, jobId));
     }
+
+    function getFreelancer(address _storage, uint jobActionId) constant returns(uint) {
+        return EternalStorage(_storage).getUIntValue(sha3("job-action/freelancer", jobActionId));
+    }
+
+    function getRate(address _storage, uint jobActionId) constant returns(uint) {
+        return EternalStorage(_storage).getUIntValue(sha3("proposal/rate", jobActionId));
+    }
     
     function setFreelancerJobIndex(address _storage, uint jobActionId, uint freelancerId, uint jobId) {
         EternalStorage(_storage).setUIntValue(sha3("job-action/freelancer", jobActionId), freelancerId);
         EternalStorage(_storage).setUIntValue(sha3("job-action/job", jobActionId), jobId);
         EternalStorage(_storage).setUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId), jobActionId);
+    }
+
+    function getProposalList(address _storage, uint[] jobActionIds)
+        internal returns
+     (
+        uint[],
+        uint[] freelancerIds,
+        uint[] createdOns,
+        uint[] invitedOns,
+        uint[] statuses,
+        uint[] rates
+     )
+    {
+        for (uint i = 0; i < jobActionIds.length ; i++) {
+            var jobActionId = jobActionIds[i];
+            freelancerIds[i] = getFreelancer(_storage, jobActionId);
+            createdOns[i] = getProposalCreatedOn(_storage, jobActionId);
+            invitedOns[i] = getInvitationCreatedOn(_storage, jobActionId);
+            statuses[i] = getStatus(_storage, jobActionId);
+            rates[i] = getRate(_storage, jobActionId);
+        }
+        return (jobActionIds, freelancerIds, createdOns, invitedOns, statuses, rates);
     }
     
 }

@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="182e9f66-738c-46d4-b3f4-cfb0e73e02a3" name="Default" comment="" />
+    <list default="true" id="182e9f66-738c-46d4-b3f4-cfb0e73e02a3" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compile-solidity.sh" afterPath="$PROJECT_DIR$/compile-solidity.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/public/contracts/src/userLibrary.sol" afterPath="$PROJECT_DIR$/resources/public/contracts/src/userLibrary.sol" />
+    </list>
     <ignored path="ethlance.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,91 +31,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="jobLibrary.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="464">
-              <caret line="81" column="5" selection-start-line="81" selection-start-column="5" selection-end-line="81" selection-end-column="5" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="skillLibrary.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/skillLibrary.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="27" column="26" selection-start-line="27" selection-start-column="26" selection-end-line="27" selection-end-column="26" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="userLibrary.sol" pinned="false" current-in-tab="true">
+      <file leaf-file-name="userLibrary.sol" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/userLibrary.sol">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="870">
-              <caret line="361" column="90" selection-start-line="361" selection-start-column="90" selection-end-line="361" selection-end-column="90" />
+            <state relative-caret-position="761">
+              <caret line="108" column="53" selection-start-line="108" selection-start-column="9" selection-end-line="108" selection-end-column="53" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ethlance.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/ethlance.json">
+      <file leaf-file-name="EternalStorage.bin" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/EternalStorage.bin">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1951">
-              <caret line="0" column="35335" selection-start-line="0" selection-start-column="35335" selection-end-line="0" selection-end-column="35335" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="jobActionLibrary.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="695">
-              <caret line="74" column="16" selection-start-line="74" selection-start-column="16" selection-end-line="74" selection-end-column="26" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ethlance.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="726">
-              <caret line="166" column="33" selection-start-line="166" selection-start-column="33" selection-end-line="166" selection-end-column="33" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="categoryLibrary.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/categoryLibrary.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="21" column="48" selection-start-line="21" selection-start-column="48" selection-end-line="21" selection-end-column="48" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="invoiceLibrary.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="400">
-              <caret line="25" column="36" selection-start-line="25" selection-start-column="36" selection-end-line="25" selection-end-column="36" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="contractLibrary.sol" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="471">
-              <caret line="30" column="24" selection-start-line="30" selection-start-column="24" selection-end-line="30" selection-end-column="24" />
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -113,14 +54,87 @@
       <file leaf-file-name="eternalStorage.sol" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="566">
-              <caret line="98" column="5" selection-start-line="98" selection-start-column="5" selection-end-line="98" selection-end-column="5" />
+            <state relative-caret-position="502">
+              <caret line="305" column="0" selection-start-line="305" selection-start-column="0" selection-end-line="305" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="compile-solidity.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/compile-solidity.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="64">
+              <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Ethlance.bin" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/Ethlance.bin">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="53" selection-start-line="0" selection-start-column="53" selection-end-line="0" selection-end-column="53" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ethlance.sol" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="390">
+              <caret line="122" column="5" selection-start-line="122" selection-start-column="5" selection-end-line="122" selection-end-column="5" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="contractLibrary.sol" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1216">
+              <caret line="76" column="30" selection-start-line="76" selection-start-column="30" selection-end-line="76" selection-end-column="30" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="jobLibrary.sol" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="553">
+              <caret line="71" column="22" selection-start-line="71" selection-start-column="22" selection-end-line="71" selection-end-column="22" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="invoiceLibrary.sol" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="422">
+              <caret line="40" column="25" selection-start-line="40" selection-start-column="25" selection-end-line="40" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="jobActionLibrary.sol" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="550">
+              <caret line="93" column="16" selection-start-line="93" selection-start-column="16" selection-end-line="93" selection-end-column="16" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GradleLocalSettings">
     <option name="externalProjectsViewState">
@@ -130,8 +144,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/compile-solidity.sh" />
-        <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/project.clj" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/ownable.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/safeMath.sol" />
@@ -139,17 +151,21 @@
         <option value="$PROJECT_DIR$/resources/public/contracts/src/skillLibrary.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/categoryLibrary.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/configLibrary.sol" />
-        <option value="$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/sharedLibrary.sol" />
-        <option value="$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/proposalLibrary.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/invitationLibrary.sol" />
+        <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/resources/public/contracts/build/ethlance.json" />
-        <option value="$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol" />
-        <option value="$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol" />
-        <option value="$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol" />
-        <option value="$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/build/Ethlance.bin" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/build/EternalStorage.bin" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol" />
         <option value="$PROJECT_DIR$/resources/public/contracts/src/userLibrary.sol" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol" />
+        <option value="$PROJECT_DIR$/compile-solidity.sh" />
+        <option value="$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol" />
       </list>
     </option>
   </component>
@@ -254,7 +270,7 @@
       </profile-state>
     </entry>
   </component>
-  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
     <OptionsSetting value="true" id="Remove" />
     <OptionsSetting value="true" id="Checkout" />
@@ -297,6 +313,42 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="ethlance" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ethlance" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ethlance" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cljs" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ethlance" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ethlance" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ethlance" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -365,10 +417,6 @@
               <option name="myItemId" value="contracts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="build" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
@@ -379,6 +427,7 @@
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="FullScreen" value="true" />
+    <property name="prop_add_unversioned_files" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -682,7 +731,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1680" y="0" width="1920" height="1080" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
@@ -694,7 +743,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Leiningen" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.4960396" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.40095848" sideWeight="0.94653463" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.40095848" sideWeight="0.94653463" order="9" side_tool="true" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11341853" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -741,14 +790,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/project.clj">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="464">
@@ -756,14 +797,6 @@
           <folding>
             <marker date="1479335995000" expanded="true" signature="0:1619" ph="(defproject ethlance ...)" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compile-solidity.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="32">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="102" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -831,30 +864,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/categoryLibrary.sol">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="21" column="48" selection-start-line="21" selection-start-column="48" selection-end-line="21" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="566">
-          <caret line="98" column="5" selection-start-line="98" selection-start-column="5" selection-end-line="98" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="400">
-          <caret line="25" column="36" selection-start-line="25" selection-start-column="36" selection-end-line="25" selection-end-column="36" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/skillLibrary.sol">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="432">
@@ -863,50 +872,138 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="471">
-          <caret line="30" column="24" selection-start-line="30" selection-start-column="24" selection-end-line="30" selection-end-column="24" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/ethlance_compiled.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="416">
+          <caret line="1" column="368" selection-start-line="1" selection-start-column="368" selection-end-line="1" selection-end-column="368" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/categoryLibrary.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="448">
+          <caret line="28" column="5" selection-start-line="28" selection-start-column="5" selection-end-line="28" selection-end-column="5" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/ethlance.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1951">
-          <caret line="0" column="35335" selection-start-line="0" selection-start-column="35335" selection-end-line="0" selection-end-column="35335" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol">
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/devnet/UTC--2016-11-21T19-23-32.486628136Z--58b00aff65e2e3836deaef64395e53a09e6a9bae">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="726">
-          <caret line="166" column="33" selection-start-line="166" selection-start-column="33" selection-end-line="166" selection-end-column="33" />
+        <state relative-caret-position="0">
+          <caret line="0" column="25" selection-start-line="0" selection-start-column="25" selection-end-line="0" selection-end-column="25" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol">
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/UserLibrary.bin">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="695">
-          <caret line="74" column="16" selection-start-line="74" selection-start-column="16" selection-end-line="74" selection-end-column="26" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol">
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/JobLibrary.bin">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="464">
-          <caret line="81" column="5" selection-start-line="81" selection-start-column="5" selection-end-line="81" selection-end-column="5" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/Ethlance.bin">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="53" selection-start-line="0" selection-start-column="53" selection-end-line="0" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/build/EternalStorage.bin">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/invoiceLibrary.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="422">
+          <caret line="40" column="25" selection-start-line="40" selection-start-column="25" selection-end-line="40" selection-end-column="25" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/userLibrary.sol">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="870">
-          <caret line="361" column="90" selection-start-line="361" selection-start-column="90" selection-end-line="361" selection-end-column="90" />
+        <state relative-caret-position="761">
+          <caret line="108" column="53" selection-start-line="108" selection-start-column="9" selection-end-line="108" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobActionLibrary.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="550">
+          <caret line="93" column="16" selection-start-line="93" selection-start-column="16" selection-end-line="93" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/jobLibrary.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="553">
+          <caret line="71" column="22" selection-start-line="71" selection-start-column="22" selection-end-line="71" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/contractLibrary.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1216">
+          <caret line="76" column="30" selection-start-line="76" selection-start-column="30" selection-end-line="76" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/eternalStorage.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="502">
+          <caret line="305" column="0" selection-start-line="305" selection-start-column="0" selection-end-line="305" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compile-solidity.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="64">
+          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/public/contracts/src/ethlance.sol">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="122" column="5" selection-start-line="122" selection-start-column="5" selection-end-line="122" selection-end-column="5" />
           <folding />
         </state>
       </provider>

@@ -45,6 +45,10 @@ library ContractLibrary {
         EternalStorage(_storage).addUIntValue(sha3("contract/total-paid", contractId), amount);
     }
 
+    function getTotalPaid(address _storage, uint contractId) constant returns (uint) {
+        return EternalStorage(_storage).getUIntValue(sha3("contract/total-paid", contractId));
+    }
+
     function getFreelancer(address _storage, uint contractId) constant returns (uint) {
         return EternalStorage(_storage).getUIntValue(sha3("contract/freelancer", contractId));
     }
@@ -52,6 +56,14 @@ library ContractLibrary {
     function getEmployer(address _storage, uint contractId) constant returns (uint) {
         var jobId = EternalStorage(_storage).getUIntValue(sha3("contract/job", contractId));
         return JobLibrary.getEmployer(_storage, jobId);
+    }
+
+    function getJob(address _storage, uint jobActionId) constant returns(uint) {
+        return EternalStorage(_storage).getUIntValue(sha3("contract/job", jobActionId));
+    }
+
+    function getStatus(address _storage, uint contractId) constant returns (uint8) {
+        return EternalStorage(_storage).getUInt8Value(sha3("contract/status", contractId));
     }
 
     function addFreelancerFeedback(address _storage, uint contractId, string description, uint8 rating) {
@@ -80,5 +92,28 @@ library ContractLibrary {
     function setContractDone(address _storage, uint contractId) {
         EternalStorage(_storage).setUInt8Value(sha3("contract/status", contractId), 2);
         EternalStorage(_storage).setUIntValue(sha3("contract/done-on", contractId), now);
+    }
+
+    function getContractList(address _storage, uint[] contractIds)
+        internal returns
+    (
+        uint[],
+        uint[] jobIds,
+        uint[] freelancerIds,
+        uint[] totalPaids,
+        uint[] createdOns,
+        uint[] doneOns,
+        uint[] rates)
+    {
+        for (uint i = 0; i < contractIds.length ; i++) {
+            var contractId = contractIds[i];
+            jobIds[i] = getJob(_storage, contractId);
+            freelancerIds[i] = getFreelancer(_storage, contractId);
+            totalPaids[i] = getTotalPaid(_storage, contractId);
+            createdOns[i] = EternalStorage(_storage).getUIntValue(sha3("contract/created-on", contractId));
+            doneOns[i] = EternalStorage(_storage).getUIntValue(sha3("contract/done-on", contractId));
+            rates[i] = EternalStorage(_storage).getUIntValue(sha3("contract/rate", contractId));
+        }
+        return (contractIds, jobIds, freelancerIds, totalPaids, createdOns, doneOns, rates);
     }
 }

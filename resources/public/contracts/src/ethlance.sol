@@ -135,7 +135,8 @@ contract Ethlance is Ownable {
         uint limit
     )
         constant returns
-        (uint[] userIds,
+    (
+        uint[] userIds,
         bytes32[] descriptionKeys)
     {
         userIds = UserLibrary.searchFreelancers(eternalStorage, categoryId, skills, minAvgRating, minContractsCount,
@@ -159,7 +160,7 @@ contract Ethlance is Ownable {
         return UserLibrary.getUserDetail(eternalStorage, userId);
     }
 
-    function getFreelancerProposals(uint userId, uint8 jobActionsType)
+    function getFreelancerJobActions(uint userId, uint8 jobActionsType)
         public constant returns
     (
         uint[] jobIds,
@@ -173,5 +174,51 @@ contract Ethlance is Ownable {
         return UserLibrary.filterFreelancerJobActions(eternalStorage, userId, jobActionsType);
     }
 
+    function getContracts(uint id, bool isDone, bool byUser)
+        public constant returns
+    (
+        uint[] contractIds,
+        uint[] jobIds,
+        uint[] freelancerIds,
+        uint[] totalPaids,
+        uint[] createdOns,
+        uint[] doneOns,
+        uint[] rates)
+    {
+        if (byUser) {
+            contractIds = UserLibrary.getFreelancerContracts(eternalStorage, id, isDone);
+        } else {
+            contractIds = JobLibrary.getContracts(eternalStorage, id);
+        }
+        return ContractLibrary.getContractList(eternalStorage, contractIds);
+    }
 
+    function getEmployerJobs(uint userId, uint8 jobStatus)
+        public constant returns
+     (
+        uint[] jobIds,
+        uint8[] statuses,
+        uint[] createdOns,
+        uint[] doneOns,
+        uint[] totalPaids,
+        uint[] proposalsCounts,
+        uint[] contractsCounts
+     )
+    {
+        return JobLibrary.getEmployerJobList(eternalStorage, userId, jobStatus);
+    }
+
+    function getJobProposals(uint jobId)
+        public constant returns
+    (
+        uint[] jobActionIds,
+        uint[] freelancerIds,
+        uint[] createdOns,
+        uint[] invitedOns,
+        uint[] statuses,
+        uint[] rates
+    )
+    {
+        return JobActionLibrary.getProposalList(eternalStorage, JobLibrary.getProposals(eternalStorage, jobId));
+    }
 }

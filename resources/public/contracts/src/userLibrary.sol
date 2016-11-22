@@ -7,6 +7,7 @@ import "categoryLibrary.sol";
 import "skillLibrary.sol";
 import "jobActionLibrary.sol";
 import "jobLibrary.sol";
+import "contractLibrary.sol";
 
 library UserLibrary {
 
@@ -119,12 +120,12 @@ library UserLibrary {
         SharedLibrary.setUIntArray(_storage, userId, "user/languages", "user/languages-count", languages);
     }
 
-    function getEmployerJobsCount(address _storage, uint userId) constant returns(uint) {
-        return SharedLibrary.getArrayItemsCount(_storage, userId, "employer/jobs-count");
-    }
-
     function addEmployerJob(address _storage, uint userId, uint jobId) {
         SharedLibrary.addArrayItem(_storage, userId, "employer/jobs", "employer/jobs-count", jobId);
+    }
+
+    function getEmployerJobs(address _storage, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(_storage, userId, "employer/jobs", "employer/jobs-count");
     }
 
     function addFreelancerJobAction(address _storage, uint userId, uint jobActionId) {
@@ -141,6 +142,10 @@ library UserLibrary {
 
     function addFreelancerContract(address _storage, uint userId, uint contractId) {
         SharedLibrary.addArrayItem(_storage, userId, "freelancer/contracts", "freelancer/contracts-count", contractId);
+    }
+    
+    function getFreelancerContracts(address _storage, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(_storage, userId, "freelancer/contracts", "freelancer/contracts-count");
     }
     
     function addToAvgRating(address _storage, uint userId, string countKey, string key, uint8 rating) {
@@ -327,7 +332,7 @@ library UserLibrary {
             var jobActionId = allJobActions[i];
             var jobId = JobActionLibrary.getJob(_storage, jobActionId);
             if (JobActionLibrary.getStatus(_storage, jobActionId) == jobActionStatus &&
-                JobLibrary.hasStatus(_storage, jobId, jobStatus))
+                JobLibrary.getStatus(_storage, jobId) == jobStatus)
             {
                 jobActionIds[j] = jobActionId;
                 j++;
@@ -365,5 +370,30 @@ library UserLibrary {
         return (jobIds, proposalsCounts, invitationsCounts, proposedOns, invitedOns, jobCreatedOns);
     }
 
+    function getFreelancerContracts(address _storage, uint userId, bool isDone)
+        internal returns (uint[] contractIds){
+
+        uint[] memory allContracts = getFreelancerContracts(_storage, userId);
+        uint j = 0;
+        for (uint i = 0; i < allContracts.length ; i++) {
+            var contractId = allContracts[i];
+            var jobId = ContractLibrary.getJob(_storage, contractId);
+            var jobStatus = JobLibrary.getStatus(_storage, jobId);
+            if (isDone) {
+                if (ContractLibrary.getStatus(_storage, contractId) != 2 ||
+                    jobStatus != 1)
+                    {
+                        contractIds[j] = contractId;
+                    }
+            } else
+                if (ContractLibrary.getStatus(_storage, contractId) == 1 &&
+                    jobStatus == 1)
+                {
+                    contractIds[j] = contractId;
+
+                }
+        }
+        return contractIds;
+    }
 }
 

@@ -22,23 +22,23 @@ library JobLibrary {
         uint8[] uint8Items)
     {
         if (!EternalStorage(_storage).getBooleanValue(sha3("user/employer?", employerId))) throw;
-        var idx = SharedLibrary.createNext(_storage, "job/count");
-        EternalStorage(_storage).setUIntValue(sha3("job/employer", idx), employerId);
-        EternalStorage(_storage).setStringValue(sha3("job/title", idx), title);
-        EternalStorage(_storage).setStringValue(sha3("job/description", idx), description);
-        EternalStorage(_storage).setUIntValue(sha3("job/language", idx), language);
-        EternalStorage(_storage).setUIntValue(sha3("job/budget", idx), budget);
-        EternalStorage(_storage).setUIntValue(sha3("job/created-on", idx), now);
-        EternalStorage(_storage).setUInt8Value(sha3("job/category", idx), uint8Items[0]);
-        EternalStorage(_storage).setUInt8Value(sha3("job/payment-type", idx), uint8Items[1]);
-        EternalStorage(_storage).setUInt8Value(sha3("job/experience-level", idx), uint8Items[2]);
-        EternalStorage(_storage).setUInt8Value(sha3("job/estimated-duration", idx), uint8Items[3]);
-        EternalStorage(_storage).setUInt8Value(sha3("job/hours-per-week", idx), uint8Items[4]);
-        EternalStorage(_storage).setUInt8Value(sha3("job/freelancers-needed", idx), uint8Items[5]);
-        EternalStorage(_storage).setUInt8Value(sha3("job/status", idx), 1);
-        setSkills(_storage, idx, skills);
-        UserLibrary.addEmployerJob(_storage, employerId, idx);
-        CategoryLibrary.addJob(_storage, uint8Items[0], idx);
+        var jobId = SharedLibrary.createNext(_storage, "job/count");
+        EternalStorage(_storage).setUIntValue(sha3("job/employer", jobId), employerId);
+        EternalStorage(_storage).setStringValue(sha3("job/title", jobId), title);
+        EternalStorage(_storage).setStringValue(sha3("job/description", jobId), description);
+        EternalStorage(_storage).setUIntValue(sha3("job/language", jobId), language);
+        EternalStorage(_storage).setUIntValue(sha3("job/budget", jobId), budget);
+        EternalStorage(_storage).setUIntValue(sha3("job/created-on", jobId), now);
+        EternalStorage(_storage).setUInt8Value(sha3("job/category", jobId), uint8Items[0]);
+        EternalStorage(_storage).setUInt8Value(sha3("job/payment-type", jobId), uint8Items[1]);
+        EternalStorage(_storage).setUInt8Value(sha3("job/experience-level", jobId), uint8Items[2]);
+        EternalStorage(_storage).setUInt8Value(sha3("job/estimated-duration", jobId), uint8Items[3]);
+        EternalStorage(_storage).setUInt8Value(sha3("job/hours-per-week", jobId), uint8Items[4]);
+        EternalStorage(_storage).setUInt8Value(sha3("job/freelancers-needed", jobId), uint8Items[5]);
+        EternalStorage(_storage).setUInt8Value(sha3("job/status", jobId), 1);
+        setSkills(_storage, jobId, skills);
+        UserLibrary.addEmployerJob(_storage, employerId, jobId);
+        CategoryLibrary.addJob(_storage, uint8Items[0], jobId);
     }
 
     function setSkills(address _storage, uint jobId, uint[] skills) {
@@ -57,12 +57,20 @@ library JobLibrary {
         SharedLibrary.addArrayItem(_storage, jobId, "job/proposals", "job/proposals-count", proposalId);
     }
 
+    function getProposals(address _storage, uint jobId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(_storage, jobId, "job/proposals", "job/proposals-count");
+    }
+
     function getJobContractsCount(address _storage, uint jobId) constant returns(uint) {
         return SharedLibrary.getArrayItemsCount(_storage, jobId, "job/contracts-count");
     }
 
     function addJobContract(address _storage, uint jobId, uint contractId) {
         SharedLibrary.addArrayItem(_storage, jobId, "job/contracts", "job/contracts-count", contractId);
+    }
+    
+    function getContracts(address _storage, uint jobId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(_storage, jobId, "job/contracts", "job/contracts-count");
     }
     
     function getJobInvitationsCount(address _storage, uint jobId) constant returns(uint) {
@@ -81,12 +89,21 @@ library JobLibrary {
         return EternalStorage(_storage).getUIntValue(sha3("job/created-on", jobId));
     }
 
-    function setJobStatus(address _storage, uint jobId, uint8 status) {
+    function setStatus(address _storage, uint jobId, uint8 status) {
         EternalStorage(_storage).setUInt8Value(sha3("job/status", jobId), status);
     }
 
-    function hasStatus(address _storage, uint jobId, uint8 status) constant returns(bool) {
-        return status == EternalStorage(_storage).getUInt8Value(sha3("job/status", jobId));
+    function setJobDone(address _storage, uint jobId) {
+        setStatus(_storage, jobId, 2);
+        EternalStorage(_storage).setUIntValue(sha3("job/done-on", jobId), now);
+    }
+
+    function getStatus(address _storage, uint jobId) constant returns(uint8) {
+        return EternalStorage(_storage).getUInt8Value(sha3("job/status", jobId));
+    }
+
+    function addTotalPaid(address _storage, uint jobId, uint amount) {
+        EternalStorage(_storage).addUIntValue(sha3("job/total-paid", jobId), amount);
     }
 
     function hasMinBudget(address _storage, uint jobId, uint minBudget) constant returns(bool) {
@@ -141,7 +158,7 @@ library JobLibrary {
          for (uint i = 0; i < jobIds.length ; i++) {
             jobId = jobIds[i];
             employerId = getEmployer(_storage, jobId);
-            if (hasStatus(_storage, jobId, 1) &&
+            if (getStatus(_storage, jobId) == 1 &&
                 SharedLibrary.containsValue(_storage, jobId, "job/payment-type", uint8Filters[0]) &&
                 SharedLibrary.containsValue(_storage, jobId, "job/experience-level", uint8Filters[1]) &&
                 SharedLibrary.containsValue(_storage, jobId, "job/estimated-duration", uint8Filters[2]) &&
@@ -185,11 +202,34 @@ library JobLibrary {
         return (bytes32Items, uint8Items, uintItems, getSkills(_storage, jobId));
     }
 
-//    function getJobListValues(address _storage, uint[] jobIds) internal returns (uint[], bytes32[]) {
-//        bytes32[] memory titles;
-//         for (uint i = 0; i < jobIds.length ; i++) {
-//            titles[i] =
-//         }
-//        return (jobIds, titles);
-//    }
+    function getEmployerJobList(address _storage, uint userId, uint8 jobStatus)
+            internal returns
+     (
+        uint[] jobIds,
+        uint8[] statuses,
+        uint[] createdOns,
+        uint[] doneOns,
+        uint[] totalPaids,
+        uint[] proposalsCounts,
+        uint[] contractsCounts
+     )
+    {
+        uint[] memory allJobIds = UserLibrary.getEmployerJobs(_storage, userId);
+        uint j = 0;
+        for (uint i = allJobIds.length - 1; i >= 0; i--) {
+            var jobId = allJobIds[i];
+            var currentStatus = getStatus(_storage, jobId);
+            if (jobStatus == 0 || currentStatus == jobStatus) {
+                jobIds[j] = jobId;
+                statuses[j] = currentStatus;
+                createdOns[j] = getCreatedOn(_storage, jobId);
+                doneOns[j] = EternalStorage(_storage).getUIntValue(sha3("job/done-on", jobId));
+                totalPaids[j] = EternalStorage(_storage).getUIntValue(sha3("job/total-paid", jobId));
+                proposalsCounts[j] = getJobProposalsCount(_storage, jobId);
+                contractsCounts[j] = getJobContractsCount(_storage, jobId);
+            }
+        }
+        return (jobIds, statuses, createdOns, doneOns, totalPaids, proposalsCounts, contractsCounts);
+    }
+
 }

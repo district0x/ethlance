@@ -4,6 +4,7 @@ import "EternalStorage.sol";
 import "safeMath.sol";
 import "contractLibrary.sol";
 import "userLibrary.sol";
+import "jobLibrary.sol";
 
 library InvoiceLibrary {
 
@@ -25,7 +26,7 @@ library InvoiceLibrary {
         var freelancerId = ContractLibrary.getFreelancer(_storage, contractId);
         if (freelancerId != senderId) throw;
         var idx = SharedLibrary.createNext(_storage, "invoice/count");
-        EternalStorage(_storage).setUIntValue(sha3("invoice/contract-id", idx), contractId);
+        EternalStorage(_storage).setUIntValue(sha3("invoice/contract", idx), contractId);
         EternalStorage(_storage).setStringValue(sha3("invoice/description", idx), description);
         EternalStorage(_storage).setUIntValue(sha3("invoice/amount", idx), amount);
         EternalStorage(_storage).setUInt16Value(sha3("invoice/worked-hours", idx), workedHours);
@@ -37,24 +38,31 @@ library InvoiceLibrary {
     }
 
     function getContract(address _storage, uint invoiceId) constant returns (uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("invoice/contract-id", invoiceId));
+        return EternalStorage(_storage).getUIntValue(sha3("invoice/contract", invoiceId));
     }
 
-    function setInvoicePaid(address _storage, uint invoiceId) {
+    function setInvoicePaid(address _storage, address senderAddress, uint invoiceId) {
+        var senderId = UserLibrary.getUserId(_storage, senderAddress);
         var amount = EternalStorage(_storage).getUIntValue(sha3("invoice/amount", invoiceId));
         var contractId = getContract(_storage, invoiceId);
-        var employerAddress = ContractLibrary.getEmployer(_storage, contractId);
-        var freelancerAddress = ContractLibrary.getFreelancer(_storage, contractId);
+        var employerId = ContractLibrary.getEmployer(_storage, contractId);
+        var freelancerId = ContractLibrary.getFreelancer(_storage, contractId);
+        var jobId = ContractLibrary.getJob(_storage, contractId);
+        if (employerId != senderId) throw;
         EternalStorage(_storage).setUInt8Value(sha3("invoice/status", invoiceId), 2);
         EternalStorage(_storage).setUIntValue(sha3("invoice/paid-on", invoiceId), now);
         ContractLibrary.addTotalPaid(_storage, contractId, amount);
-        UserLibrary.addToFreelancerTotalEarned(_storage, freelancerAddress, amount);
-        UserLibrary.addToEmployerTotalPaid(_storage, employerAddress, amount);
+        UserLibrary.addToFreelancerTotalEarned(_storage, freelancerId, amount);
+        UserLibrary.addToEmployerTotalPaid(_storage, employerId, amount);
+        JobLibrary.addTotalPaid(_storage, jobId, amount);
     }
 
-    function setInvoiceCancelled(address _storage, uint invoiceId) {
-        var amount = EternalStorage(_storage).getUIntValue(sha3("invoice/amount", invoiceId));
+    function setInvoiceCancelled(address _storage, address senderAddress, uint invoiceId) {
+        var senderId = UserLibrary.getUserId(_storage, senderAddress);
         var contractId = getContract(_storage, invoiceId);
+        var freelancerId = ContractLibrary.getFreelancer(_storage, contractId);
+        var amount = EternalStorage(_storage).getUIntValue(sha3("invoice/amount", invoiceId));
+        if (freelancerId != senderId) throw;
         EternalStorage(_storage).setUInt8Value(sha3("invoice/status", invoiceId), 3);
         EternalStorage(_storage).setUIntValue(sha3("invoice/cancelled-on", invoiceId), now);
         ContractLibrary.subTotalInvoiced(_storage, contractId, amount);

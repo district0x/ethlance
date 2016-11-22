@@ -181,4 +181,150 @@ contract EternalStorage is Ownable {
     {
       delete IntStorage[record];
     }
+
+    function getEntity(bytes32[] records, uint8[] types)
+        public constant returns
+    (
+        bool[] bools,
+        uint8[] uint8s,
+        uint16[] uint16s,
+        uint[] uints,
+        address[] addresses,
+        bytes32[] bytes32s,
+        string str
+    )
+    {
+        for (uint i = 0; i < records.length ; i++) {
+            var recordType = types[i];
+            var record = records[i];
+            if (recordType == 1) {
+                bools[bools.length - 1] = getBooleanValue(record);
+            } else if (recordType == 2) {
+                uint8s[uint8s.length - 1] = getUInt8Value(record);
+
+            } else if (recordType == 3) {
+                uint16s[uint16s.length - 1] = getUInt16Value(record);
+
+            } else if (recordType == 4) {
+                uints[uints.length - 1] = getUIntValue(record);
+
+            } else if (recordType == 5) {
+                addresses[addresses.length - 1] = getAddressValue(record);
+
+            } else if (recordType == 6) {
+                bytes32s[bytes32s.length - 1] = getBytes32Value(record);
+
+            } else if (recordType == 7) {
+                str = getStringValue(record);
+            }
+        }
+        return (bools, uint8s, uint16s, uints, addresses, bytes32s, str);
+    }
+
+    function getEntity2(bytes32[] records, uint8[] types)
+        public constant returns
+    (
+        bool[] bools,
+        uint8[] uint8s,
+        uint16[] uint16s,
+        uint[] uints,
+        address[] addresses,
+        bytes32[] bytes32s,
+        int[] ints
+    )
+    {
+        for (uint i = 0; i < records.length ; i++) {
+            var recordType = types[i];
+            var record = records[i];
+            if (recordType == 1) {
+                bools[bools.length - 1] = getBooleanValue(record);
+            } else if (recordType == 2) {
+                uint8s[uint8s.length - 1] = getUInt8Value(record);
+
+            } else if (recordType == 3) {
+                uint16s[uint16s.length - 1] = getUInt16Value(record);
+
+            } else if (recordType == 4) {
+                uints[uints.length - 1] = getUIntValue(record);
+
+            } else if (recordType == 5) {
+                addresses[addresses.length - 1] = getAddressValue(record);
+
+            } else if (recordType == 6) {
+                bytes32s[bytes32s.length - 1] = getBytes32Value(record);
+
+            } else if (recordType == 7) {
+                ints[ints.length - 1] = getIntValue(record);
+            }
+        }
+        return (bools, uint8s, uint16s, uints, addresses, bytes32s, ints);
+    }
+
+    function getEntityStrings(bytes32[] records)
+            public constant returns
+    (
+        string string1,
+        string string2,
+        string string3,
+        string string4,
+        string string5,
+        string string6,
+        string string7
+    )
+    {
+        string1 = getStringValue(records[0]);
+        string2 = getStringValue(records[1]);
+        string3 = getStringValue(records[2]);
+        string4 = getStringValue(records[3]);
+        string5 = getStringValue(records[4]);
+        string6 = getStringValue(records[5]);
+        string7 = getStringValue(records[6]);
+        return (string1, string2, string3, string4, string5, string6, string7);
+    }
+
+    function booleanToUInt(bool x) constant returns (uint) {
+        if (x) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    function getUIntValue(bytes32 record, uint8 uintType) constant returns(uint) {
+        if (uintType == 1) {
+            booleanToUInt(getBooleanValue(record));
+        } else if (uintType == 2) {
+            uint(getUInt16Value(record));
+        } else if (uintType == 3) {
+            uint(getBytes32Value(record));
+        } else if (uintType == 4) {
+            uint(getUInt8Value(record));
+        } else {
+            getUIntValue(record);
+        }
+    }
+
+    function getEntityList(bytes32[] records, uint8[] uintTypes)
+            public constant returns
+    (
+        uint[] items1,
+        uint[] items2,
+        uint[] items3,
+        uint[] items4,
+        uint[] items5,
+        uint[] items6,
+        uint[] items7
+    )
+    {
+        for (uint i = 0; i < (records.length / 7); i++) {
+            items1[i] = getUIntValue(records[i * 7], uintTypes[i]);
+            items2[i] = getUIntValue(records[(i * 7) + 1], uintTypes[i + 1]);
+            items3[i] = getUIntValue(records[(i * 7) + 2], uintTypes[i + 2]);
+            items4[i] = getUIntValue(records[(i * 7) + 3], uintTypes[i + 3]);
+            items5[i] = getUIntValue(records[(i * 7) + 4], uintTypes[i + 4]);
+            items6[i] = getUIntValue(records[(i * 7) + 5], uintTypes[i + 5]);
+            items7[i] = getUIntValue(records[(i * 7) + 6], uintTypes[i + 6]);
+        }
+        return (items1, items2, items3, items4, items5, items6, items7);
+    }
 }
