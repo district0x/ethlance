@@ -13,24 +13,28 @@ library ContractLibrary {
 
     function addContract(
         address _storage,
-        address senderAddress,
-        uint proposalId,
-        uint freelancerId,
-        uint rate)
+        uint senderId,
+        uint jobActionId,
+        uint rate,
+        bool isHiringDone)
     {
-        var senderId = UserLibrary.getUserId(_storage, senderAddress);
-        var jobId = JobActionLibrary.getJob(_storage, proposalId);
+        var jobId = JobActionLibrary.getJob(_storage, jobActionId);
+        var freelancerId = JobActionLibrary.getFreelancer(_storage, jobActionId);
         var employerId = JobLibrary.getEmployer(_storage, jobId);
         if (senderId != employerId) throw;
+        if (senderId == freelancerId) throw;
         var idx = SharedLibrary.createNext(_storage, "contract/count");
         EternalStorage(_storage).setUIntValue(sha3("contract/job", idx), jobId);
         EternalStorage(_storage).setUIntValue(sha3("contract/freelancer", idx), freelancerId);
         EternalStorage(_storage).setUIntValue(sha3("contract/rate", idx), rate);
         EternalStorage(_storage).setUInt8Value(sha3("contract/status", idx), 1);
         EternalStorage(_storage).setUIntValue(sha3("contract/created-on", idx), now);
-        JobActionLibrary.setStatus(_storage, proposalId, 3);
+        JobActionLibrary.setStatus(_storage, jobActionId, 3);
         UserLibrary.addFreelancerContract(_storage, freelancerId, idx);
         JobLibrary.addJobContract(_storage, jobId, idx);
+        if (isHiringDone) {
+            JobLibrary.setHiringDone(_storage, jobId, senderId);
+        }
     }
 
     function addTotalInvoiced(address _storage, uint contractId, uint amount) {
@@ -39,6 +43,26 @@ library ContractLibrary {
 
     function subTotalInvoiced(address _storage, uint contractId, uint amount) {
         EternalStorage(_storage).subUIntValue(sha3("contract/total-invoiced", contractId), amount);
+    }
+
+    function addInvoice(address _storage, uint contractId, uint invoiceId, uint amount) {
+        SharedLibrary.addArrayItem(_storage, contractId, "contract/invoices", "contract/invoices-count", invoiceId);
+        addTotalPaid(_storage, contractId, amount);
+    }
+
+    function getInvoices(address _storage, uint contractId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(_storage, contractId, "contract/invoices", "contract/invoices-count");
+    }
+
+    function getInvoices(address _storage, uint[] contractIds) internal returns(uint[] invoiceIds) {
+        uint k = 0;
+        for (uint i = 0; i < contractIds.length ; i++) {
+            var contractInvoiceIds = getInvoices(_storage, contractIds[i]);
+            for (uint j = 0; j < contractInvoiceIds.length ; j++) {
+                invoiceIds[k] = contractInvoiceIds[j];
+                k++;
+            }
+        }
     }
 
     function addTotalPaid(address _storage, uint contractId, uint amount) {
@@ -89,31 +113,21 @@ library ContractLibrary {
         UserLibrary.addToAvgRating(_storage, userId, ratingsCountKey, avgRatingKey, rating);
     }
 
-    function setContractDone(address _storage, uint contractId) {
-        EternalStorage(_storage).setUInt8Value(sha3("contract/status", contractId), 2);
-        EternalStorage(_storage).setUIntValue(sha3("contract/done-on", contractId), now);
-    }
+    function addFeedback(address _storage, uint contractId, uint senderId, string feedback, uint8 rating) {
+        var freelancerId = getFreelancer(_storage, contractId);
+        var employerId = getEmployer(_storage, contractId);
+        if (senderId != freelancerId && senderId != employerId) throw;
 
-    function getContractList(address _storage, uint[] contractIds)
-        internal returns
-    (
-        uint[],
-        uint[] jobIds,
-        uint[] freelancerIds,
-        uint[] totalPaids,
-        uint[] createdOns,
-        uint[] doneOns,
-        uint[] rates)
-    {
-        for (uint i = 0; i < contractIds.length ; i++) {
-            var contractId = contractIds[i];
-            jobIds[i] = getJob(_storage, contractId);
-            freelancerIds[i] = getFreelancer(_storage, contractId);
-            totalPaids[i] = getTotalPaid(_storage, contractId);
-            createdOns[i] = EternalStorage(_storage).getUIntValue(sha3("contract/created-on", contractId));
-            doneOns[i] = EternalStorage(_storage).getUIntValue(sha3("contract/done-on", contractId));
-            rates[i] = EternalStorage(_storage).getUIntValue(sha3("contract/rate", contractId));
+        if (getStatus(_storage, contractId) == 1) {
+            EternalStorage(_storage).setUInt8Value(sha3("contract/status", contractId), 2);
+            EternalStorage(_storage).setUIntValue(sha3("contract/done-on", contractId), now);
         }
-        return (contractIds, jobIds, freelancerIds, totalPaids, createdOns, doneOns, rates);
+
+        if (senderId == freelancerId) {
+            EternalStorage(_storage).setBooleanValue(sha3("contract/done-by-freelancer?", contractId), true);
+            addFreelancerFeedback(_storage, contractId, feedback, rating);
+        } else {
+            addEmployerFeedback(_storage, contractId, feedback, rating);
+        }
     }
 }

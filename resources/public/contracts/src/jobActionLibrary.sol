@@ -17,6 +17,7 @@ library JobActionLibrary {
         string description,
         uint rate)
     {
+        if (freelancerId == JobLibrary.getEmployer(_storage, jobId)) throw;
         var jobActionId = getJobAction(_storage, freelancerId, jobId);
         if (jobActionId == 0) {
             jobActionId = SharedLibrary.createNext(_storage, "job-action/count");
@@ -33,15 +34,14 @@ library JobActionLibrary {
     
     function addInvitation(
         address _storage,
-        address senderAddress,
+        uint senderId,
         uint jobId,
         uint freelancerId,
-        string description
-        )
+        string description)
     {
-        var senderId = UserLibrary.getUserId(_storage, senderAddress);
         var employerId = JobLibrary.getEmployer(_storage, jobId);
         if (senderId != employerId) throw;
+        if (employerId == freelancerId) throw;
         if (getJobAction(_storage, freelancerId, jobId) != 0) throw;
         var jobActionId = SharedLibrary.createNext(_storage, "job-action/count");
         setFreelancerJobIndex(_storage, jobActionId, freelancerId, jobId);
@@ -89,27 +89,4 @@ library JobActionLibrary {
         EternalStorage(_storage).setUIntValue(sha3("job-action/job", jobActionId), jobId);
         EternalStorage(_storage).setUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId), jobActionId);
     }
-
-    function getProposalList(address _storage, uint[] jobActionIds)
-        internal returns
-     (
-        uint[],
-        uint[] freelancerIds,
-        uint[] createdOns,
-        uint[] invitedOns,
-        uint[] statuses,
-        uint[] rates
-     )
-    {
-        for (uint i = 0; i < jobActionIds.length ; i++) {
-            var jobActionId = jobActionIds[i];
-            freelancerIds[i] = getFreelancer(_storage, jobActionId);
-            createdOns[i] = getProposalCreatedOn(_storage, jobActionId);
-            invitedOns[i] = getInvitationCreatedOn(_storage, jobActionId);
-            statuses[i] = getStatus(_storage, jobActionId);
-            rates[i] = getRate(_storage, jobActionId);
-        }
-        return (jobActionIds, freelancerIds, createdOns, invitedOns, statuses, rates);
-    }
-    
 }

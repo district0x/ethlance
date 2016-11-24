@@ -59,8 +59,7 @@ library SharedLibrary {
         }
     }
 
-    function getRemovableArrayItems(address _storage, uint id, string key, string countKey, string keysKey
-    )
+    function getRemovableArrayItems(address _storage, uint id, string key, string countKey, string keysKey)
         internal returns (uint[] result)
     {
         var count = getArrayItemsCount(_storage, id, countKey);
@@ -136,5 +135,42 @@ library SharedLibrary {
             }
         }
         return (added, removed);
+    }
+    
+    function intersectCategoriesAndSkills
+    (
+        address _storage,
+        uint categoryId,
+        uint[] skills,
+        function(address, uint) returns (uint[] memory) getFromSkills,
+        function(address, uint) returns (uint[] memory) getFromCategories
+    )
+        internal returns (uint[]) 
+    {
+        uint[][] memory idArrays;
+        for (uint i = 0; i < skills.length ; i++) {
+            idArrays[i] = getFromSkills(_storage, skills[i]);
+        }
+        if (categoryId > 0) {
+            idArrays[idArrays.length - 1] = getFromCategories(_storage, categoryId);
+        }
+        return SharedLibrary.intersect(idArrays);
+    }
+
+    function filter(
+        address _storage,
+        function (address, uint[] memory, uint) returns (bool) f,
+        uint[] memory args,
+        uint[] memory items
+    )
+        internal returns (uint[] memory r)
+    {
+        uint j = 0;
+        for (uint i = 0; i < items.length; i++) {
+            if (f(_storage, args, items[i])) {
+                r[j] = items[i];
+                j++;
+            }
+        }
     }
 }

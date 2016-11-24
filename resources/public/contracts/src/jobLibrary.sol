@@ -5,6 +5,8 @@ import "safeMath.sol";
 import "skillLibrary.sol";
 import "userLibrary.sol";
 import "categoryLibrary.sol";
+import "invoiceLibrary.sol";
+import "sharedLibrary.sol";
 
 library JobLibrary {
 
@@ -93,9 +95,10 @@ library JobLibrary {
         EternalStorage(_storage).setUInt8Value(sha3("job/status", jobId), status);
     }
 
-    function setJobDone(address _storage, uint jobId) {
+    function setHiringDone(address _storage, uint jobId, uint senderId) {
+        if (getEmployer(_storage, jobId) != senderId) throw;
         setStatus(_storage, jobId, 2);
-        EternalStorage(_storage).setUIntValue(sha3("job/done-on", jobId), now);
+        EternalStorage(_storage).setUIntValue(sha3("job/hiring-done-on", jobId), now);
     }
 
     function getStatus(address _storage, uint jobId) constant returns(uint8) {
@@ -127,15 +130,9 @@ library JobLibrary {
         return minAvgRating <= UserLibrary.getEmployerAvgRating(_storage, employerId);
     }
 
-    function intersectCategoriesAndSkills(address _storage, uint categoryId, uint[] skills) internal returns (uint[]) {
-        uint[][] memory jobIdArrays;
-        for (uint i = 0; i < skills.length ; i++) {
-            jobIdArrays[i] = SkillLibrary.getJobs(_storage, skills[i]);
-        }
-        if (categoryId > 0) {
-            jobIdArrays[jobIdArrays.length - 1] = CategoryLibrary.getJobs(_storage, categoryId);
-        }
-        return SharedLibrary.intersect(jobIdArrays);
+    function statusPred(address _storage, uint[] args, uint jobId) internal returns(bool) {
+        var status = getStatus(_storage, jobId);
+        return status == 0 || status == args[0];
     }
 
     function searchJobs(address _storage,
@@ -144,7 +141,7 @@ library JobLibrary {
         uint8[][] uint8Filters,
         uint minBudget,
         uint8 minEmployerAvgRating,
-        uint16 countryId,
+        uint countryId,
         uint languageId
     )
         internal returns (uint[] result)
@@ -153,7 +150,8 @@ library JobLibrary {
         uint j = 0;
         uint jobId;
         uint employerId;
-        jobIds = intersectCategoriesAndSkills(_storage, categoryId, skills);
+        jobIds = SharedLibrary.intersectCategoriesAndSkills(_storage, categoryId, skills,
+            SkillLibrary.getJobs, CategoryLibrary.getJobs);
 
          for (uint i = 0; i < jobIds.length ; i++) {
             jobId = jobIds[i];
@@ -177,59 +175,22 @@ library JobLibrary {
         return result;
     }
 
-    function getJobDetail(address _storage, uint jobId)
-        internal returns (bytes32[] bytes32Items, uint8[] uint8Items, uint[] uintItems, uint[]) {
-        uint employerId = getEmployer(_storage, jobId);
-        bytes32Items[0] = sha3("job/title", jobId);
-        bytes32Items[1] = sha3("job/description", jobId);
-        bytes32Items[3] = EternalStorage(_storage).getBytes32Value(sha3("user/name", employerId));
-        bytes32Items[4] = EternalStorage(_storage).getBytes32Value(sha3("user/gravatar", employerId));
-
-        uint8Items[0] = EternalStorage(_storage).getUInt8Value(sha3("job/status", jobId));
-        uint8Items[1] = EternalStorage(_storage).getUInt8Value(sha3("job/payment-type", jobId));
-        uint8Items[2] = EternalStorage(_storage).getUInt8Value(sha3("job/experience-level", jobId));
-        uint8Items[3] = EternalStorage(_storage).getUInt8Value(sha3("job/hours-per-week", jobId));
-        uint8Items[4] = EternalStorage(_storage).getUInt8Value(sha3("job/freelancers-needed", jobId));
-        uint8Items[5] = UserLibrary.getEmployerAvgRating(_storage, employerId);
-
-        uintItems[0] = employerId;
-        uintItems[1] = EternalStorage(_storage).getUIntValue(sha3("job/budget", jobId));
-        uintItems[2] = EternalStorage(_storage).getUIntValue(sha3("job/category", jobId));
-        uintItems[3] = EternalStorage(_storage).getUIntValue(sha3("job/created-on", jobId));
-        uintItems[4] = SharedLibrary.getArrayItemsCount(_storage, jobId, "job/proposals-count");
-        uintItems[5] = SharedLibrary.getArrayItemsCount(_storage, jobId, "job/invitations-count");
-
-        return (bytes32Items, uint8Items, uintItems, getSkills(_storage, jobId));
-    }
-
-    function getEmployerJobList(address _storage, uint userId, uint8 jobStatus)
-            internal returns
-     (
-        uint[] jobIds,
-        uint8[] statuses,
-        uint[] createdOns,
-        uint[] doneOns,
-        uint[] totalPaids,
-        uint[] proposalsCounts,
-        uint[] contractsCounts
-     )
+    function getEmployerJobsByStatus(address _storage, uint userId, uint8 jobStatus)
+        internal returns (uint[] jobIds)
     {
-        uint[] memory allJobIds = UserLibrary.getEmployerJobs(_storage, userId);
-        uint j = 0;
-        for (uint i = allJobIds.length - 1; i >= 0; i--) {
-            var jobId = allJobIds[i];
-            var currentStatus = getStatus(_storage, jobId);
-            if (jobStatus == 0 || currentStatus == jobStatus) {
-                jobIds[j] = jobId;
-                statuses[j] = currentStatus;
-                createdOns[j] = getCreatedOn(_storage, jobId);
-                doneOns[j] = EternalStorage(_storage).getUIntValue(sha3("job/done-on", jobId));
-                totalPaids[j] = EternalStorage(_storage).getUIntValue(sha3("job/total-paid", jobId));
-                proposalsCounts[j] = getJobProposalsCount(_storage, jobId);
-                contractsCounts[j] = getJobContractsCount(_storage, jobId);
-            }
-        }
-        return (jobIds, statuses, createdOns, doneOns, totalPaids, proposalsCounts, contractsCounts);
+        uint[] memory args;
+        args[0] = jobStatus;
+        return SharedLibrary.filter(_storage, statusPred, UserLibrary.getEmployerJobs(_storage, userId), args);
     }
+
+    function getJobInvoicesByStatus(address _storage, uint jobId, uint8 invoiceStatus)
+        internal returns (uint[])
+    {
+        uint[] memory args;
+        args[0] = invoiceStatus;
+        return SharedLibrary.filter(_storage, InvoiceLibrary.statusPred,
+                    ContractLibrary.getInvoices(_storage, getContracts(_storage, jobId)), args);
+    }
+
 
 }

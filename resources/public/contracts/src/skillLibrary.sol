@@ -6,8 +6,8 @@ import "sharedLibrary.sol";
 library SkillLibrary {
 
     function addSkill(address _storage, bytes32 name) {
-        var idx = SharedLibrary.createNext(_storage, "skill/count");
-        EternalStorage(_storage).setBytes32Value(sha3("skill/name", idx), name);
+        var skillId = SharedLibrary.createNext(_storage, "skill/count");
+        EternalStorage(_storage).setBytes32Value(sha3("skill/name", skillId), name);
     }
 
     function addJob(address _storage, uint skillId, uint jobId) {
@@ -30,5 +30,14 @@ library SkillLibrary {
 
     function removeFreelancer(address _storage, uint[] skills, uint userId) {
         SharedLibrary.removeArrayItem(_storage, skills, "skill/freelancers", userId);
+    }
+    
+    function getNames(address _storage) internal returns (uint[] skillIds, bytes32[] names){
+        var count = EternalStorage(_storage).getUIntValue(sha3("skill/count"));
+        for (uint i = 1; i <= count ; i++) {
+            skillIds[i - 1] = i;
+            names[i - 1] = EternalStorage(_storage).getBytes32Value(sha3("skill/name", i));
+        }
+        return (skillIds, names);
     }
 }

@@ -1,12 +1,24 @@
 (defproject ethlance "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[camel-snake-kebab "0.4.0"]
+                 [cljs-react-material-ui "0.2.30"]
+                 [cljs-web3 "0.16.0-0"]
+                 [cljsjs/bignumber "2.1.4-1"]
+                 [cljsjs/react-flexbox-grid "0.10.2-0" :exclusions [cljsjs/react]]
+                 [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react]]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]
+                 [madvas.re-frame/google-analytics-fx "0.1.0"]
+                 [madvas.re-frame/web3-fx "0.1.0"]
+                 [medley "0.8.3"]
+                 [org.clojure/clojure "1.9.0-alpha10"]
                  [org.clojure/clojurescript "1.9.293"]
-                 [reagent "0.6.0"]
-                 [re-frame "0.8.0"]]
+                 [print-foo-cljs "2.0.3"]
+                 [re-frame "0.8.0"]
+                 [reagent "0.6.0" :exclusions [cljsjs/react]]]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.4"]
-            [lein-shell "0.5.0"]]
+            [lein-shell "0.5.0"]
+            [deraen/lein-less4j "0.5.0"]]
 
   :min-lein-version "2.5.3"
 
@@ -14,17 +26,27 @@
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
-  :figwheel {:css-dirs ["resources/public/css"]}
+  :figwheel {:css-dirs ["resources/public/css"]
+             :server-port 6229}
 
   :auto {"compile-solidity" {:file-pattern #"\.(sol)$"
                              :paths ["resources/public/contracts/src"]}}
 
   :aliases {"compile-solidity" ["shell" "./compile-solidity.sh"]}
 
+  :less {:source-paths ["resources/public/less"]
+         :target-path "resources/public/css"
+         :target-dir "resources/public/css"
+         :source-map true
+         :compression true}
+
   :profiles
   {:dev
-   {:dependencies [[binaryage/devtools "0.8.2"]]
-    :plugins [[lein-figwheel "0.5.7"]]}}
+   {:dependencies [[binaryage/devtools "0.8.3"]
+                   [com.cemerick/piggieback "0.2.1"]
+                   [figwheel-sidecar "0.5.8"]
+                   [org.clojure/tools.nrepl "0.2.11"]]
+    :plugins [[lein-figwheel "0.5.8"]]}}
 
   :cljsbuild
   {:builds
@@ -36,7 +58,8 @@
                 :output-dir "resources/public/js/compiled/out"
                 :asset-path "js/compiled/out"
                 :source-map-timestamp true
-                :preloads [devtools.preload]
+                :preloads [print.foo.preloads.devtools]
+                :closure-defines {goog.DEBUG true}
                 :external-config {:devtools/config {:features-to-install :all}}
                 }}
 

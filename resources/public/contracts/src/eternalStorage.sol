@@ -26,24 +26,6 @@ contract EternalStorage is Ownable {
       delete UInt8Storage[record];
     }
 
-    mapping(bytes32 => uint16) UInt16Storage;
-
-    function getUInt16Value(bytes32 record) constant returns (uint16){
-        return UInt16Storage[record];
-    }
-
-    function setUInt16Value(bytes32 record, uint16 value)
-    onlyOwner
-    {
-        UInt16Storage[record] = value;
-    }
-
-    function deleteUInt16Value(bytes32 record)
-    onlyOwner
-    {
-      delete UInt16Storage[record];
-    }
-
     mapping(bytes32 => uint) UIntStorage;
 
     function getUIntValue(bytes32 record) constant returns (uint){
@@ -187,10 +169,10 @@ contract EternalStorage is Ownable {
     (
         bool[] bools,
         uint8[] uint8s,
-        uint16[] uint16s,
         uint[] uints,
         address[] addresses,
         bytes32[] bytes32s,
+        int[] ints,
         string str
     )
     {
@@ -203,61 +185,22 @@ contract EternalStorage is Ownable {
                 uint8s[uint8s.length - 1] = getUInt8Value(record);
 
             } else if (recordType == 3) {
-                uint16s[uint16s.length - 1] = getUInt16Value(record);
-
-            } else if (recordType == 4) {
                 uints[uints.length - 1] = getUIntValue(record);
 
-            } else if (recordType == 5) {
+            } else if (recordType == 4) {
                 addresses[addresses.length - 1] = getAddressValue(record);
 
-            } else if (recordType == 6) {
+            } else if (recordType == 5) {
                 bytes32s[bytes32s.length - 1] = getBytes32Value(record);
+
+            } else if (recordType == 6) {
+                ints[ints.length - 1] = getIntValue(record);
 
             } else if (recordType == 7) {
                 str = getStringValue(record);
             }
         }
-        return (bools, uint8s, uint16s, uints, addresses, bytes32s, str);
-    }
-
-    function getEntity2(bytes32[] records, uint8[] types)
-        public constant returns
-    (
-        bool[] bools,
-        uint8[] uint8s,
-        uint16[] uint16s,
-        uint[] uints,
-        address[] addresses,
-        bytes32[] bytes32s,
-        int[] ints
-    )
-    {
-        for (uint i = 0; i < records.length ; i++) {
-            var recordType = types[i];
-            var record = records[i];
-            if (recordType == 1) {
-                bools[bools.length - 1] = getBooleanValue(record);
-            } else if (recordType == 2) {
-                uint8s[uint8s.length - 1] = getUInt8Value(record);
-
-            } else if (recordType == 3) {
-                uint16s[uint16s.length - 1] = getUInt16Value(record);
-
-            } else if (recordType == 4) {
-                uints[uints.length - 1] = getUIntValue(record);
-
-            } else if (recordType == 5) {
-                addresses[addresses.length - 1] = getAddressValue(record);
-
-            } else if (recordType == 6) {
-                bytes32s[bytes32s.length - 1] = getBytes32Value(record);
-
-            } else if (recordType == 7) {
-                ints[ints.length - 1] = getIntValue(record);
-            }
-        }
-        return (bools, uint8s, uint16s, uints, addresses, bytes32s, ints);
+        return (bools, uint8s, uints, addresses, bytes32s, ints, str);
     }
 
     function getEntityStrings(bytes32[] records)
@@ -294,10 +237,8 @@ contract EternalStorage is Ownable {
         if (uintType == 1) {
             booleanToUInt(getBooleanValue(record));
         } else if (uintType == 2) {
-            uint(getUInt16Value(record));
-        } else if (uintType == 3) {
             uint(getBytes32Value(record));
-        } else if (uintType == 4) {
+        } else if (uintType == 3) {
             uint(getUInt8Value(record));
         } else {
             getUIntValue(record);
