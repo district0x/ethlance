@@ -1,6 +1,6 @@
 pragma solidity ^0.4.4;
 
-import "EternalStorage.sol";
+import "ethlanceDB.sol";
 import "safeMath.sol";
 import "userLibrary.sol";
 import "jobLibrary.sol";
@@ -11,82 +11,86 @@ library JobActionLibrary {
 //    1: invited, 2: pending, 3: accepted
 
     function addProposal(
-        address _storage,
+        address db,
         uint jobId,
         uint freelancerId,
         string description,
-        uint rate)
+        uint rate
+    )
+        internal
     {
-        if (freelancerId == JobLibrary.getEmployer(_storage, jobId)) throw;
-        var jobActionId = getJobAction(_storage, freelancerId, jobId);
+        if (freelancerId == JobLibrary.getEmployer(db, jobId)) throw;
+        var jobActionId = getJobAction(db, freelancerId, jobId);
         if (jobActionId == 0) {
-            jobActionId = SharedLibrary.createNext(_storage, "job-action/count");
-            UserLibrary.addFreelancerJobAction(_storage, freelancerId, jobActionId);
-        } else if (getProposalCreatedOn(_storage, jobActionId) != 0) throw;
+            jobActionId = SharedLibrary.createNext(db, "job-action/count");
+            UserLibrary.addFreelancerJobAction(db, freelancerId, jobActionId);
+        } else if (getProposalCreatedOn(db, jobActionId) != 0) throw;
         
-        setFreelancerJobIndex(_storage, jobActionId, freelancerId, jobId);
-        EternalStorage(_storage).setUIntValue(sha3("proposal/rate", jobActionId), rate);
-        EternalStorage(_storage).setUIntValue(sha3("proposal/created-on", jobActionId), now);
-        EternalStorage(_storage).setStringValue(sha3("proposal/description", jobActionId), description);
-        setStatus(_storage, jobActionId, 2);
-        JobLibrary.addJobProposal(_storage, jobId, jobActionId);
+        setFreelancerJobIndex(db, jobActionId, freelancerId, jobId);
+        EthlanceDB(db).setUIntValue(sha3("proposal/rate", jobActionId), rate);
+        EthlanceDB(db).setUIntValue(sha3("proposal/created-on", jobActionId), now);
+        EthlanceDB(db).setStringValue(sha3("proposal/description", jobActionId), description);
+        setStatus(db, jobActionId, 2);
+        JobLibrary.addJobProposal(db, jobId, jobActionId);
     }
     
     function addInvitation(
-        address _storage,
+        address db,
         uint senderId,
         uint jobId,
         uint freelancerId,
-        string description)
+        string description
+    )
+        internal
     {
-        var employerId = JobLibrary.getEmployer(_storage, jobId);
+        var employerId = JobLibrary.getEmployer(db, jobId);
         if (senderId != employerId) throw;
         if (employerId == freelancerId) throw;
-        if (getJobAction(_storage, freelancerId, jobId) != 0) throw;
-        var jobActionId = SharedLibrary.createNext(_storage, "job-action/count");
-        setFreelancerJobIndex(_storage, jobActionId, freelancerId, jobId);
+        if (getJobAction(db, freelancerId, jobId) != 0) throw;
+        var jobActionId = SharedLibrary.createNext(db, "job-action/count");
+        setFreelancerJobIndex(db, jobActionId, freelancerId, jobId);
         
-        EternalStorage(_storage).setStringValue(sha3("invitation/description", jobActionId), description);
-        EternalStorage(_storage).setUIntValue(sha3("invitation/created-on", jobActionId), now);
-        setStatus(_storage, jobActionId, 1);
-        UserLibrary.addFreelancerJobAction(_storage, freelancerId, jobActionId);
+        EthlanceDB(db).setStringValue(sha3("invitation/description", jobActionId), description);
+        EthlanceDB(db).setUIntValue(sha3("invitation/created-on", jobActionId), now);
+        setStatus(db, jobActionId, 1);
+        UserLibrary.addFreelancerJobAction(db, freelancerId, jobActionId);
     }
 
-    function setStatus(address _storage, uint jobActionId, uint8 status) {
-        EternalStorage(_storage).setUInt8Value(sha3("job-action/status", jobActionId), status);
+    function setStatus(address db, uint jobActionId, uint8 status) internal {
+        EthlanceDB(db).setUInt8Value(sha3("job-action/status", jobActionId), status);
     }
 
-    function getStatus(address _storage, uint jobActionId) constant returns (uint8) {
-        return EternalStorage(_storage).getUInt8Value(sha3("job-action/status", jobActionId));
+    function getStatus(address db, uint jobActionId) internal returns (uint8) {
+        return EthlanceDB(db).getUInt8Value(sha3("job-action/status", jobActionId));
     }
 
-    function getJob(address _storage, uint jobActionId) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("job-action/job", jobActionId));
+    function getJob(address db, uint jobActionId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job-action/job", jobActionId));
     }
     
-    function getProposalCreatedOn(address _storage, uint jobActionId) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("proposal/created-on", jobActionId));
+    function getProposalCreatedOn(address db, uint jobActionId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("proposal/created-on", jobActionId));
     }
 
-    function getInvitationCreatedOn(address _storage, uint jobActionId) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("invitation/created-on", jobActionId));
+    function getInvitationCreatedOn(address db, uint jobActionId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("invitation/created-on", jobActionId));
     }
     
-    function getJobAction(address _storage, uint freelancerId, uint jobId) constant returns (uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("invitation/freelancer-job", freelancerId, jobId));
+    function getJobAction(address db, uint freelancerId, uint jobId) internal returns (uint) {
+        return EthlanceDB(db).getUIntValue(sha3("invitation/freelancer-job", freelancerId, jobId));
     }
 
-    function getFreelancer(address _storage, uint jobActionId) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("job-action/freelancer", jobActionId));
+    function getFreelancer(address db, uint jobActionId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job-action/freelancer", jobActionId));
     }
 
-    function getRate(address _storage, uint jobActionId) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("proposal/rate", jobActionId));
+    function getRate(address db, uint jobActionId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("proposal/rate", jobActionId));
     }
     
-    function setFreelancerJobIndex(address _storage, uint jobActionId, uint freelancerId, uint jobId) {
-        EternalStorage(_storage).setUIntValue(sha3("job-action/freelancer", jobActionId), freelancerId);
-        EternalStorage(_storage).setUIntValue(sha3("job-action/job", jobActionId), jobId);
-        EternalStorage(_storage).setUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId), jobActionId);
+    function setFreelancerJobIndex(address db, uint jobActionId, uint freelancerId, uint jobId) internal {
+        EthlanceDB(db).setUIntValue(sha3("job-action/freelancer", jobActionId), freelancerId);
+        EthlanceDB(db).setUIntValue(sha3("job-action/job", jobActionId), jobId);
+        EthlanceDB(db).setUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId), jobActionId);
     }
 }

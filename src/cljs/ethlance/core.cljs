@@ -1,22 +1,30 @@
 (ns ethlance.core
-    (:require [reagent.core :as reagent]
-              [re-frame.core :as re-frame]
-              [ethlance.events]
-              [ethlance.subs]
-              [ethlance.views :as views]
-              [ethlance.config :as config]))
-
-
-(defn dev-setup []
-  (when config/debug?
-    (enable-console-print!)
-    (println "dev mode")))
+  (:require
+    [bidi.bidi :as bidi]
+    [cljs-time.extend]
+    [cljs.spec :as s]
+    [cljsjs.bignumber]
+    [cljsjs.material-ui]
+    [cljsjs.react-flexbox-grid]
+    [cljsjs.web3]
+    [ethlance.components.main-panel :refer [main-panel]]
+    [ethlance.events]
+    [ethlance.routes :refer [routes]]
+    [ethlance.subs]
+    [ethlance.utils :as u]
+    [goog.string.format]
+    [madvas.re-frame.google-analytics-fx :as google-analytics-fx]
+    [print.foo :include-macros true]
+    [re-frame.core :refer [dispatch dispatch-sync]]
+    [reagent.core :as reagent]))
 
 (defn mount-root []
-  (reagent/render [views/main-panel]
-                  (.getElementById js/document "app")))
+  (s/check-asserts goog.DEBUG)
+  (google-analytics-fx/set-enabled! (not goog.DEBUG))
+  (.clear js/console)
+  (reagent/render [main-panel] (.getElementById js/document "app")))
 
 (defn ^:export init []
-  (re-frame/dispatch-sync [:initialize-db])
-  (dev-setup)
+  (dispatch-sync [:initialize])
+  (set! (.-onhashchange js/window) #(dispatch [:set-active-page (u/match-current-location)]))
   (mount-root))

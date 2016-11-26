@@ -3,9 +3,9 @@ pragma solidity ^0.4.4;
 import "Ownable.sol";
 import "safeMath.sol";
 
-contract EternalStorage is Ownable {
+contract EthlanceDB is Ownable {
 
-    function EternalStorage(){
+    function EthlanceDB(){
     }
     
     mapping(bytes32 => uint8) UInt8Storage;

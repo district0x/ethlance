@@ -1,34 +1,34 @@
 pragma solidity ^0.4.4;
 
-import "EternalStorage.sol";
+import "ethlanceDB.sol";
 import "sharedLibrary.sol";
 
 library CategoryLibrary {
 
-    function addCategory(address _storage, bytes32 name) {
-        var idx = SharedLibrary.createNext(_storage, "category/count");
-        EternalStorage(_storage).setBytes32Value(sha3("category/name", idx), name);
+    function addCategory(address db, bytes32 name) internal {
+        var idx = SharedLibrary.createNext(db, "category/count");
+        EthlanceDB(db).setBytes32Value(sha3("category/name", idx), name);
     }
 
-    function addJob(address _storage, uint categoryId, uint jobId) {
-        SharedLibrary.addArrayItem(_storage, categoryId, "category/jobs", "category/jobs-count", jobId);
+    function addJob(address db, uint categoryId, uint jobId) internal {
+        SharedLibrary.addArrayItem(db, categoryId, "category/jobs", "category/jobs-count", jobId);
     }
 
-    function getJobs(address _storage, uint categoryId) internal returns (uint[]) {
-        return SharedLibrary.getUIntArray(_storage, categoryId, "category/jobs", "category/jobs-count");
+    function getJobs(address db, uint categoryId) internal returns (uint[]) {
+        return SharedLibrary.getUIntArray(db, categoryId, "category/jobs", "category/jobs-count");
     }
 
-    function addFreelancer(address _storage, uint[] categories, uint userId) {
-        SharedLibrary.addRemovableArrayItem(_storage, categories, "category/freelancers", "category/freelancers-count",
+    function addFreelancer(address db, uint[] categories, uint userId) internal {
+        SharedLibrary.addRemovableArrayItem(db, categories, "category/freelancers", "category/freelancers-count",
             "category/freelancers-keys", userId);
     }
 
-    function getFreelancers(address _storage, uint categoryId) internal returns (uint[]) {
-        return SharedLibrary.getRemovableArrayItems(_storage, categoryId, "category/freelancers", "category/freelancers-count",
+    function getFreelancers(address db, uint categoryId) internal returns (uint[]) {
+        return SharedLibrary.getRemovableArrayItems(db, categoryId, "category/freelancers", "category/freelancers-count",
             "category/freelancers-keys");
     }
 
-    function removeFreelancer(address _storage, uint[] categories, uint userId) {
-        SharedLibrary.removeArrayItem(_storage, categories, "category/freelancers", userId);
+    function removeFreelancer(address db, uint[] categories, uint userId) internal {
+        SharedLibrary.removeArrayItem(db, categories, "category/freelancers", userId);
     }
 }

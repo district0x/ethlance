@@ -1,11 +1,16 @@
 (defproject ethlance "0.1.0-SNAPSHOT"
-  :dependencies [[camel-snake-kebab "0.4.0"]
+  :dependencies [[akiroz.re-frame/storage "0.1.1"]
+                 [bidi "2.0.14"]
+                 [camel-snake-kebab "0.4.0"]
+                 [cljs-ajax "0.5.8"]
                  [cljs-react-material-ui "0.2.30"]
                  [cljs-web3 "0.16.0-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/react-flexbox-grid "0.10.2-0" :exclusions [cljsjs/react]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react]]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
+                 [day8.re-frame/http-fx "0.0.4"]
+                 [kibu/pushy "0.3.6"]
                  [madvas.re-frame/google-analytics-fx "0.1.0"]
                  [madvas.re-frame/web3-fx "0.1.0"]
                  [medley "0.8.3"]
@@ -22,7 +27,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj"]
+  :source-paths ["src/clj" "src/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
@@ -69,6 +74,4 @@
                 :output-to "resources/public/js/compiled/app.js"
                 :optimizations :advanced
                 :closure-defines {goog.DEBUG false}
-                :pretty-print false}}]}
-
-  )
+                :pretty-print false}}]})

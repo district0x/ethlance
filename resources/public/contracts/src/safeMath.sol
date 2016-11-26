@@ -3,24 +3,24 @@ pragma solidity ^0.4.4;
 library SafeMath {
   //internals
 
-  function safeMul(uint a, uint b) constant returns (uint) {
+  function safeMul(uint a, uint b) internal returns (uint) {
     uint c = a * b;
     assert(a == 0 || c / a == b);
     return c;
   }
 
-  function safeSub(uint a, uint b) constant returns (uint) {
+  function safeSub(uint a, uint b) internal returns (uint) {
     assert(b <= a);
     return a - b;
   }
 
-  function safeAdd(uint a, uint b) constant returns (uint) {
+  function safeAdd(uint a, uint b) internal returns (uint) {
     uint c = a + b;
     assert(c>=a && c>=b);
     return c;
   }
 
-  function assert(bool assertion) {
+  function assert(bool assertion) internal {
     if (!assertion) throw;
   }
 }

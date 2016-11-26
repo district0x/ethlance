@@ -8,10 +8,10 @@ import "categoryLibrary.sol";
 import "skillLibrary.sol";
 
 contract EthlanceSearch {
-    address public eternalStorage;
+    address public ethlanceDB;
 
-    function EthlanceSearch(address _eternalStorage) {
-        eternalStorage = _eternalStorage;
+    function EthlanceSearch(address _ethlanceDB) {
+        ethlanceDB = _ethlanceDB;
     }
 
     function searchJobs(
@@ -35,7 +35,7 @@ contract EthlanceSearch {
         uint8Filters[1] = experienceLevels;
         uint8Filters[2] = estimatedDurations;
         uint8Filters[3] = hoursPerWeeks;
-        jobIds = JobLibrary.searchJobs(eternalStorage, categoryId, skills, uint8Filters, minBudget, minEmployerAvgRating, countryId, languageId);
+        jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, minBudget, minEmployerAvgRating, countryId, languageId);
         return SharedLibrary.getPage(jobIds, offset, limit);
     }
 
@@ -55,7 +55,7 @@ contract EthlanceSearch {
     (
         uint[] userIds)
     {
-        userIds = UserLibrary.searchFreelancers(eternalStorage, categoryId, skills, minAvgRating, minContractsCount,
+        userIds = UserLibrary.searchFreelancers(ethlanceDB, categoryId, skills, minAvgRating, minContractsCount,
             minHourlyRate, maxHourlyRate, countryId, languageId);
         userIds = SharedLibrary.getPage(userIds, offset, limit);
 

@@ -1,6 +1,6 @@
 pragma solidity ^0.4.4;
 
-import "EternalStorage.sol";
+import "ethlanceDB.sol";
 import "safeMath.sol";
 import "sharedLibrary.sol";
 import "categoryLibrary.sol";
@@ -15,152 +15,157 @@ library UserLibrary {
     //    status:
     //    1: active, 2: blocked
 
-    function getUserCount(address _storage) constant returns(uint) {
-        return EternalStorage(_storage).getUIntValue(sha3("user/count"));
+    function getUserCount(address db) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("user/count"));
     }
 
-    function getUserId(address _storage, address userAddress) constant returns(uint){
-        return EternalStorage(_storage).getUIntValue(sha3("user/ids", userAddress));
+    function getUserId(address db, address userAddress) internal returns(uint){
+        return EthlanceDB(db).getUIntValue(sha3("user/ids", userAddress));
     }
 
-    function getUserAddress(address _storage, uint userId) constant returns(address){
-        return EternalStorage(_storage).getAddressValue(sha3("user/address", userId));
+    function getUserAddress(address db, uint userId) internal returns(address){
+        return EthlanceDB(db).getAddressValue(sha3("user/address", userId));
     }
 
-    function setUser(address _storage,
+    function setUser(address db,
         address userAddress,
         bytes32 name,
         bytes32 gravatar,
         uint country,
-        uint[] languages)
-        returns (uint)
+        uint[] languages
+    )
+        internal returns (uint)
     {
         uint userId;
-        uint existingUserId = getUserId(_storage, userAddress);
+        uint existingUserId = getUserId(db, userAddress);
         if (existingUserId > 0) {
             userId = existingUserId;
         } else {
-            userId = SharedLibrary.createNext(_storage, "user/count");
+            userId = SharedLibrary.createNext(db, "user/count");
         }
-        EternalStorage(_storage).setAddressValue(sha3("user/address", userId), userAddress);
-        EternalStorage(_storage).setBytes32Value(sha3("user/name", userId), name);
-        EternalStorage(_storage).setBytes32Value(sha3("user/gravatar", userId), gravatar);
-        EternalStorage(_storage).setUIntValue(sha3("user/country", userId), country);
-        EternalStorage(_storage).setUInt8Value(sha3("user/status", userId), 1);
-        EternalStorage(_storage).setUIntValue(sha3("user/ids", userAddress), userId);
-        setUserLanguages(_storage, userId, languages);
+        EthlanceDB(db).setAddressValue(sha3("user/address", userId), userAddress);
+        EthlanceDB(db).setBytes32Value(sha3("user/name", userId), name);
+        EthlanceDB(db).setBytes32Value(sha3("user/gravatar", userId), gravatar);
+        EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
+        EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
+        EthlanceDB(db).setUIntValue(sha3("user/ids", userAddress), userId);
+        setUserLanguages(db, userId, languages);
         return userId;
     }
 
-    function setFreelancer(address _storage,
+    function setFreelancer(address db,
         uint userId,
         bool isAvailable,
         bytes32 jobTitle,
         uint hourlyRate,
         uint[] categories,
         uint[] skills,
-        string description)
+        string description
+    )
+        internal
     {
-        EternalStorage(_storage).setBooleanValue(sha3("user/freelancer?", userId), true);
-        EternalStorage(_storage).setBooleanValue(sha3("freelancer/available?", userId), isAvailable);
-        EternalStorage(_storage).setBytes32Value(sha3("freelancer/job-title", userId), jobTitle);
-        EternalStorage(_storage).setUIntValue(sha3("freelancer/hourly-rate", userId), hourlyRate);
-        EternalStorage(_storage).setStringValue(sha3("freelancer/description", userId), description);
-        setFreelancerSkills(_storage, userId, skills);
-        setFreelancerCategories(_storage, userId, categories);
+        EthlanceDB(db).setBooleanValue(sha3("user/freelancer?", userId), true);
+        EthlanceDB(db).setBooleanValue(sha3("freelancer/available?", userId), isAvailable);
+        EthlanceDB(db).setBytes32Value(sha3("freelancer/job-title", userId), jobTitle);
+        EthlanceDB(db).setUIntValue(sha3("freelancer/hourly-rate", userId), hourlyRate);
+        EthlanceDB(db).setStringValue(sha3("freelancer/description", userId), description);
+        setFreelancerSkills(db, userId, skills);
+        setFreelancerCategories(db, userId, categories);
     }
 
-    function setEmployer(address _storage,
+    function setEmployer(address db,
         uint userId,
-        string description)
+        string description
+    )
+        internal
     {
-        EternalStorage(_storage).setBooleanValue(sha3("user/employer?", userId), true);
-        EternalStorage(_storage).setStringValue(sha3("employer/description", userId), description);
+        EthlanceDB(db).setBooleanValue(sha3("user/employer?", userId), true);
+        EthlanceDB(db).setStringValue(sha3("employer/description", userId), description);
     }
 
-    function setStatus(address _storage, uint userId, uint8 status) {
-        EternalStorage(_storage).setUInt8Value(sha3("user/status", userId), status);
+    function setStatus(address db, uint userId, uint8 status) internal {
+        EthlanceDB(db).setUInt8Value(sha3("user/status", userId), status);
     }
 
-    function setFreelancerSkills(address _storage, uint userId, uint[] skills) {
+    function setFreelancerSkills(address db, uint userId, uint[] skills) internal {
         uint[] memory added;
         uint[] memory removed;
-        uint[] memory currentSkills = getFreelancerSkills(_storage, userId);
+        uint[] memory currentSkills = getFreelancerSkills(db, userId);
         (added, removed) = SharedLibrary.diff(currentSkills, skills);
-        SkillLibrary.addFreelancer(_storage, added, userId);
-        SkillLibrary.removeFreelancer(_storage, removed, userId);
-        SharedLibrary.setUIntArray(_storage, userId, "freelancer/skills", "freelancer/skills-count", skills);
+        SkillLibrary.addFreelancer(db, added, userId);
+        SkillLibrary.removeFreelancer(db, removed, userId);
+        SharedLibrary.setUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);
     }
     
-    function getFreelancerSkills(address _storage, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(_storage, userId, "freelancer/skills", "freelancer/skills-count");
+    function getFreelancerSkills(address db, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count");
     }
 
-    function setFreelancerCategories(address _storage, uint userId, uint[] categories) {
+    function setFreelancerCategories(address db, uint userId, uint[] categories) internal {
         uint[] memory added;
         uint[] memory removed;
-        uint[] memory currentCategories = getFreelancerCategories(_storage, userId);
+        uint[] memory currentCategories = getFreelancerCategories(db, userId);
         (added, removed) = SharedLibrary.diff(currentCategories, categories);
-        CategoryLibrary.addFreelancer(_storage, added, userId);
-        CategoryLibrary.removeFreelancer(_storage, removed, userId);
-        SharedLibrary.setUIntArray(_storage, userId, "freelancer/categories", "freelancer/categories-count", categories);
+        CategoryLibrary.addFreelancer(db, added, userId);
+        CategoryLibrary.removeFreelancer(db, removed, userId);
+        SharedLibrary.setUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count", categories);
     }
 
-    function getFreelancerCategories(address _storage, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(_storage, userId, "freelancer/categories", "freelancer/categories-count");
+    function getFreelancerCategories(address db, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count");
     }
 
-    function isActiveEmployer(address _storage, address userAddress) constant returns(bool) {
-        var userId = getUserId(_storage, userAddress);
-        return EternalStorage(_storage).getBooleanValue(sha3("user/employer?", userId)) &&
-               hasStatus(_storage, userId, 1);
+    function isActiveEmployer(address db, address userAddress) internal returns(bool) {
+        var userId = getUserId(db, userAddress);
+        return EthlanceDB(db).getBooleanValue(sha3("user/employer?", userId)) &&
+               hasStatus(db, userId, 1);
     }
     
-    function isActiveFreelancer(address _storage, address userAddress) constant returns(bool) {
-        var userId = getUserId(_storage, userAddress);
-        return EternalStorage(_storage).getBooleanValue(sha3("user/freelancer?", userId)) &&
-               hasStatus(_storage, userId, 1);
+    function isActiveFreelancer(address db, address userAddress) internal returns(bool) {
+        var userId = getUserId(db, userAddress);
+        return EthlanceDB(db).getBooleanValue(sha3("user/freelancer?", userId)) &&
+               hasStatus(db, userId, 1);
     }
     
-    function hasStatus(address _storage, uint userId, uint8 status) constant returns(bool) {
-        return status == EternalStorage(_storage).getUInt8Value(sha3("user/status", userId));
+    function hasStatus(address db, uint userId, uint8 status) internal returns(bool) {
+        return status == EthlanceDB(db).getUInt8Value(sha3("user/status", userId));
     }
 
-    function setUserLanguages(address _storage, uint userId, uint[] languages) {
-        SharedLibrary.setUIntArray(_storage, userId, "user/languages", "user/languages-count", languages);
+    function setUserLanguages(address db, uint userId, uint[] languages) internal {
+        SharedLibrary.setUIntArray(db, userId, "user/languages", "user/languages-count", languages);
     }
 
-    function addEmployerJob(address _storage, uint userId, uint jobId) {
-        SharedLibrary.addArrayItem(_storage, userId, "employer/jobs", "employer/jobs-count", jobId);
+    function addEmployerJob(address db, uint userId, uint jobId) internal {
+        SharedLibrary.addArrayItem(db, userId, "employer/jobs", "employer/jobs-count", jobId);
     }
 
-    function getEmployerJobs(address _storage, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(_storage, userId, "employer/jobs", "employer/jobs-count");
+    function getEmployerJobs(address db, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, userId, "employer/jobs", "employer/jobs-count");
     }
 
-    function addFreelancerJobAction(address _storage, uint userId, uint jobActionId) {
-        SharedLibrary.addArrayItem(_storage, userId, "freelancer/job-actions", "freelancer/job-actions-count", jobActionId);
+    function addFreelancerJobAction(address db, uint userId, uint jobActionId) internal {
+        SharedLibrary.addArrayItem(db, userId, "freelancer/job-actions", "freelancer/job-actions-count", jobActionId);
     }
 
-    function getFreelancerJobActions(address _storage, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(_storage, userId, "freelancer/job-actions", "freelancer/job-actions-count");
+    function getFreelancerJobActions(address db, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, userId, "freelancer/job-actions", "freelancer/job-actions-count");
     }
     
-    function getFreelancerContractsCount(address _storage, uint userId) constant returns(uint) {
-        return SharedLibrary.getArrayItemsCount(_storage, userId, "freelancer/contracts-count");
+    function getFreelancerContractsCount(address db, uint userId) internal returns(uint) {
+        return SharedLibrary.getArrayItemsCount(db, userId, "freelancer/contracts-count");
     }
 
-    function addFreelancerContract(address _storage, uint userId, uint contractId) {
-        SharedLibrary.addArrayItem(_storage, userId, "freelancer/contracts", "freelancer/contracts-count", contractId);
+    function addFreelancerContract(address db, uint userId, uint contractId) internal {
+        SharedLibrary.addArrayItem(db, userId, "freelancer/contracts", "freelancer/contracts-count", contractId);
     }
     
-    function getFreelancerContracts(address _storage, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(_storage, userId, "freelancer/contracts", "freelancer/contracts-count");
+    function getFreelancerContracts(address db, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, userId, "freelancer/contracts", "freelancer/contracts-count");
     }
     
-    function addToAvgRating(address _storage, uint userId, string countKey, string key, uint8 rating) {
-        var ratingsCount = EternalStorage(_storage).getUIntValue(sha3(countKey, userId));
-        var currentAvgRating = EternalStorage(_storage).getUInt8Value(sha3(key, userId));
+    function addToAvgRating(address db, uint userId, string countKey, string key, uint8 rating) internal {
+        var ratingsCount = EthlanceDB(db).getUIntValue(sha3(countKey, userId));
+        var currentAvgRating = EthlanceDB(db).getUInt8Value(sha3(key, userId));
         var newRatingsCount = SafeMath.safeAdd(ratingsCount, 1);
         uint newAvgRating;
         if (ratingsCount == 0) {
@@ -169,64 +174,64 @@ library UserLibrary {
             var newTotalRating = SafeMath.safeAdd(SafeMath.safeMul(currentAvgRating, ratingsCount), rating);
             newAvgRating = newTotalRating / newRatingsCount;
         }
-        EternalStorage(_storage).setUIntValue(sha3(countKey, userId), newRatingsCount);
-        EternalStorage(_storage).setUInt8Value(sha3(key, userId), uint8(newAvgRating));
+        EthlanceDB(db).setUIntValue(sha3(countKey, userId), newRatingsCount);
+        EthlanceDB(db).setUInt8Value(sha3(key, userId), uint8(newAvgRating));
     }
     
-    function addToFreelancerAvgRating(address _storage, uint userId, uint8 rating) {
-        addToAvgRating(_storage, userId, "freelancer/avg-rating-count", "freelancer/avg-rating", rating);
+    function addToFreelancerAvgRating(address db, uint userId, uint8 rating) internal {
+        addToAvgRating(db, userId, "freelancer/avg-rating-count", "freelancer/avg-rating", rating);
     }
 
-    function getFreelancerAvgRating(address _storage, uint userId) constant returns (uint8) {
-        EternalStorage(_storage).getUInt8Value(sha3("freelancer/avg-rating", userId));
+    function getFreelancerAvgRating(address db, uint userId) internal returns (uint8) {
+        EthlanceDB(db).getUInt8Value(sha3("freelancer/avg-rating", userId));
     }
 
-    function addToEmployerAvgRating(address _storage, uint userId, uint8 rating) {
-        addToAvgRating(_storage, userId, "employer/avg-rating-count", "employer/avg-rating", rating);
+    function addToEmployerAvgRating(address db, uint userId, uint8 rating) {
+        addToAvgRating(db, userId, "employer/avg-rating-count", "employer/avg-rating", rating);
     }
 
-    function getEmployerAvgRating(address _storage, uint userId) constant returns (uint8) {
-        EternalStorage(_storage).getUInt8Value(sha3("employer/avg-rating", userId));
+    function getEmployerAvgRating(address db, uint userId) internal returns (uint8) {
+        EthlanceDB(db).getUInt8Value(sha3("employer/avg-rating", userId));
     }
 
-    function addToFreelancerTotalEarned(address _storage, uint userId, uint amount) {
-        EternalStorage(_storage).addUIntValue(sha3("freelancer/total-earned", userId), amount);
+    function addToFreelancerTotalEarned(address db, uint userId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("freelancer/total-earned", userId), amount);
     }
 
-    function addToEmployerTotalPaid(address _storage, uint userId, uint amount) {
-        EternalStorage(_storage).addUIntValue(sha3("employer/total-paid", userId), amount);
+    function addToEmployerTotalPaid(address db, uint userId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("employer/total-paid", userId), amount);
     }
 
-    function isFromCountry(address _storage, uint userId, uint countryId) constant returns(bool) {
+    function isFromCountry(address db, uint userId, uint countryId) internal returns(bool) {
         if (countryId == 0) {
             return true;
         }
-        return countryId == EternalStorage(_storage).getUIntValue(sha3("user/country", userId));
+        return countryId == EthlanceDB(db).getUIntValue(sha3("user/country", userId));
     }
 
-    function hasMinRating(address _storage, uint userId, uint8 minAvgRating) constant returns(bool) {
+    function hasMinRating(address db, uint userId, uint8 minAvgRating) internal returns(bool) {
         if (minAvgRating == 0) {
             return true;
         }
-        return minAvgRating <= EternalStorage(_storage).getUInt8Value(sha3("freelancer/avg-rating", userId));
+        return minAvgRating <= EthlanceDB(db).getUInt8Value(sha3("freelancer/avg-rating", userId));
     }
 
-    function hasMinContractsCount(address _storage, uint userId, uint minContractsCount) constant returns(bool) {
+    function hasMinContractsCount(address db, uint userId, uint minContractsCount) internal returns(bool) {
         if (minContractsCount == 0) {
             return true;
         }
-        return minContractsCount <= getFreelancerContractsCount(_storage, userId);
+        return minContractsCount <= getFreelancerContractsCount(db, userId);
     }
 
-    function getFreelancerHourlyRate(address _storage, uint userId) constant returns (uint) {
-        EternalStorage(_storage).getUIntValue(sha3("freelancer/hourly-rate", userId));
+    function getFreelancerHourlyRate(address db, uint userId) internal returns (uint) {
+        EthlanceDB(db).getUIntValue(sha3("freelancer/hourly-rate", userId));
     }
 
-    function hasHourlyRateWithinRange(address _storage, uint userId, uint minHourlyRate, uint maxHourlyRate) constant returns(bool) {
+    function hasHourlyRateWithinRange(address db, uint userId, uint minHourlyRate, uint maxHourlyRate) internal returns(bool) {
         if (minHourlyRate == 0 && maxHourlyRate == 0) {
             return true;
         }
-        var hourlyRate = getFreelancerHourlyRate(_storage, userId);
+        var hourlyRate = getFreelancerHourlyRate(db, userId);
         if (minHourlyRate <= hourlyRate && maxHourlyRate == 0) {
             return true;
         }
@@ -234,25 +239,25 @@ library UserLibrary {
         return minHourlyRate <= hourlyRate && hourlyRate <= maxHourlyRate;
     }
 
-    function hasLanguage(address _storage, uint userId, uint languageId) constant returns (bool) {
+    function hasLanguage(address db, uint userId, uint languageId) internal returns (bool) {
         if (languageId == 0) {
             return true;
         }
-        var count = SharedLibrary.getArrayItemsCount(_storage, userId, "user/languages-count");
+        var count = SharedLibrary.getArrayItemsCount(db, userId, "user/languages-count");
         for (uint i = 0; i < count ; i++) {
-            if (languageId == EternalStorage(_storage).getUIntValue(sha3("user/languages", userId, i))) {
+            if (languageId == EthlanceDB(db).getUIntValue(sha3("user/languages", userId, i))) {
                 return true;
             }
         }
         return false;
     }
 
-    function isFreelancerAvailable(address _storage, uint userId) constant returns (bool) {
-        return EternalStorage(_storage).getBooleanValue(sha3("freelancer/available?", userId));
+    function isFreelancerAvailable(address db, uint userId) internal returns (bool) {
+        return EthlanceDB(db).getBooleanValue(sha3("freelancer/available?", userId));
     }
 
     function searchFreelancers(
-        address _storage,
+        address db,
         uint categoryId,
         uint[] skills,
         uint8 minAvgRating,
@@ -266,17 +271,17 @@ library UserLibrary {
     {
         uint[] memory allUserIds;
         uint j = 0;
-        allUserIds = SharedLibrary.intersectCategoriesAndSkills(_storage, categoryId, skills,
+        allUserIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
             SkillLibrary.getFreelancers, CategoryLibrary.getFreelancers);
         for (uint i = 0; i < allUserIds.length ; i++) {
             var userId = allUserIds[i];
-            if (isFreelancerAvailable(_storage, userId) &&
-                hasMinRating(_storage, userId, minAvgRating) &&
-                hasMinContractsCount(_storage, userId, minContractsCount) &&
-                hasHourlyRateWithinRange(_storage, userId, minHourlyRate, maxHourlyRate) &&
-                isFromCountry(_storage, userId, countryId) &&
-                hasLanguage(_storage, userId, languageId) &&
-                hasStatus(_storage, userId, 1)
+            if (isFreelancerAvailable(db, userId) &&
+                hasMinRating(db, userId, minAvgRating) &&
+                hasMinContractsCount(db, userId, minContractsCount) &&
+                hasHourlyRateWithinRange(db, userId, minHourlyRate, maxHourlyRate) &&
+                isFromCountry(db, userId, countryId) &&
+                hasLanguage(db, userId, languageId) &&
+                hasStatus(db, userId, 1)
             ) {
                 userIds[j] = userId;
                 j++;
@@ -285,49 +290,49 @@ library UserLibrary {
         return userIds;
     }
 
-    function freelancerJobActionsPred(address _storage, uint[] args, uint jobActionId) internal returns(bool) {
-        var jobId = JobActionLibrary.getJob(_storage, jobActionId);
+    function freelancerJobActionsPred(address db, uint[] args, uint jobActionId) internal returns(bool) {
+        var jobId = JobActionLibrary.getJob(db, jobActionId);
         var jobActionStatus = args[0];
         var jobStatus = args[1];
-        return (JobActionLibrary.getStatus(_storage, jobActionId) == jobActionStatus &&
-                JobLibrary.getStatus(_storage, jobId) == jobStatus);
+        return (JobActionLibrary.getStatus(db, jobActionId) == jobActionStatus &&
+                JobLibrary.getStatus(db, jobId) == jobStatus);
     }
 
-    function getFreelancerJobActionsByStatus(address _storage, uint userId, uint8 jobActionStatus, uint8 jobStatus)
+    function getFreelancerJobActionsByStatus(address db, uint userId, uint8 jobActionStatus, uint8 jobStatus)
         internal returns (uint[])
     {
         uint[] memory args;
         args[0] = jobActionStatus;
         args[1] = jobStatus;
-        return SharedLibrary.filter(_storage, freelancerJobActionsPred, getFreelancerJobActions(_storage, userId), args);
+        return SharedLibrary.filter(db, freelancerJobActionsPred, getFreelancerJobActions(db, userId), args);
     }
 
-    function getFreelancerInvoicesByStatus(address _storage, uint userId, uint8 invoiceStatus)
+    function getFreelancerInvoicesByStatus(address db, uint userId, uint8 invoiceStatus)
         internal returns (uint[])
     {
         uint[] memory args;
         args[0] = invoiceStatus;
-        return SharedLibrary.filter(_storage, InvoiceLibrary.statusPred,
-            ContractLibrary.getInvoices(_storage, getFreelancerContracts(_storage, userId)), args);
+        return SharedLibrary.filter(db, InvoiceLibrary.statusPred,
+            ContractLibrary.getInvoices(db, getFreelancerContracts(db, userId)), args);
     }
 
-    function getFreelancerContracts(address _storage, uint userId, bool isDone)
+    function getFreelancerContracts(address db, uint userId, bool isDone)
         internal returns (uint[] contractIds) {
 
-        uint[] memory allContracts = getFreelancerContracts(_storage, userId);
+        uint[] memory allContracts = getFreelancerContracts(db, userId);
         uint j = 0;
         for (uint i = 0; i < allContracts.length ; i++) {
             var contractId = allContracts[i];
-            var jobId = ContractLibrary.getJob(_storage, contractId);
-            var jobStatus = JobLibrary.getStatus(_storage, jobId);
+            var jobId = ContractLibrary.getJob(db, contractId);
+            var jobStatus = JobLibrary.getStatus(db, jobId);
             if (isDone) {
-                if (ContractLibrary.getStatus(_storage, contractId) != 2 ||
+                if (ContractLibrary.getStatus(db, contractId) != 2 ||
                     jobStatus != 1)
                     {
                         contractIds[j] = contractId;
                     }
             } else
-                if (ContractLibrary.getStatus(_storage, contractId) == 1 &&
+                if (ContractLibrary.getStatus(db, contractId) == 1 &&
                     jobStatus == 1)
                 {
                     contractIds[j] = contractId;
