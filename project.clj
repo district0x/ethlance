@@ -9,6 +9,7 @@
                  [cljsjs/react-flexbox-grid "0.10.2-0" :exclusions [cljsjs/react]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react]]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
+                 [day8.re-frame/async-flow-fx "0.0.6"]
                  [day8.re-frame/http-fx "0.0.4"]
                  [kibu/pushy "0.3.6"]
                  [madvas.re-frame/google-analytics-fx "0.1.0"]

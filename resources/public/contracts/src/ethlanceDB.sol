@@ -3,9 +3,84 @@ pragma solidity ^0.4.4;
 import "Ownable.sol";
 import "safeMath.sol";
 
+
 contract EthlanceDB is Ownable {
 
+    address[] public allowedContractsKeys;
+    mapping(address => bool) public allowedContracts;
+
+    modifier onlyAllowedContractOrOwner {
+      if (allowedContracts[msg.sender] != true && msg.sender != owner) throw;
+      _;
+    }
+
     function EthlanceDB(){
+    }
+
+    function addAllowedContracts(address[] addresses)
+    onlyOwner {
+        for (uint i = 0; i < addresses.length; i++) {
+            allowedContracts[addresses[i]] = true;
+            allowedContractsKeys.push(addresses[i]);
+        }
+    }
+
+    function removeAllowedContracts(address[] addresses)
+    onlyOwner {
+        for (uint i = 0; i < addresses.length; i++) {
+            allowedContracts[addresses[i]] = false;
+        }
+    }
+
+    function allowedContractsCount() constant returns(uint count) {
+        for (uint i = 0; i < allowedContractsKeys.length; i++) {
+            if (allowedContracts[allowedContractsKeys[i]]) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    function getAllowedContracts() constant returns(address[] addresses) {
+        addresses = new address[](allowedContractsCount());
+        for (uint i = 0; i < allowedContractsKeys.length; i++) {
+            if (allowedContracts[allowedContractsKeys[i]]) {
+                addresses[i] = allowedContractsKeys[i];
+            }
+        }
+        return addresses;
+    }
+
+    function sha(string key) constant returns(bytes32) {
+        return sha3(key);
+    }
+
+    function shaUserAddr() constant returns(bytes32) {
+        return sha3("user/address", 1);
+    }
+
+    function sha(string key, uint id) constant returns(bytes32) {
+        return sha3(key, id);
+    }
+
+    function shaBytes(bytes12 key, uint id) constant returns(bytes32) {
+        return sha3(key, id);
+    }
+
+    function shaBytes(bytes32 key) constant returns(bytes32) {
+        return sha3(key);
+    }
+
+    function a1() constant returns(bytes32) {
+        return sha3("a", 1);
+    }
+
+    function a() constant returns(bytes32) {
+        return sha3("a");
+    }
+
+    function userCount() constant returns(bytes32) {
+        return sha3("user/count");
     }
     
     mapping(bytes32 => uint8) UInt8Storage;
@@ -15,17 +90,18 @@ contract EthlanceDB is Ownable {
     }
 
     function setUInt8Value(bytes32 record, uint8 value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         UInt8Storage[record] = value;
     }
 
     function deleteUInt8Value(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete UInt8Storage[record];
     }
 
+//    bytes32[] public storageKeys;
     mapping(bytes32 => uint) UIntStorage;
 
     function getUIntValue(bytes32 record) constant returns (uint){
@@ -33,25 +109,25 @@ contract EthlanceDB is Ownable {
     }
 
     function setUIntValue(bytes32 record, uint value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         UIntStorage[record] = value;
     }
 
     function addUIntValue(bytes32 record, uint value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         UIntStorage[record] = SafeMath.safeAdd(UIntStorage[record], value);
     }
 
     function subUIntValue(bytes32 record, uint value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         UIntStorage[record] = SafeMath.safeSub(UIntStorage[record], value);
     }
 
     function deleteUIntValue(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete UIntStorage[record];
     }
@@ -63,13 +139,13 @@ contract EthlanceDB is Ownable {
     }
 
     function setStringValue(bytes32 record, string value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         StringStorage[record] = value;
     }
 
     function deleteStringValue(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete StringStorage[record];
     }
@@ -81,13 +157,13 @@ contract EthlanceDB is Ownable {
     }
 
     function setAddressValue(bytes32 record, address value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         AddressStorage[record] = value;
     }
 
     function deleteAddressValue(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete AddressStorage[record];
     }
@@ -99,13 +175,13 @@ contract EthlanceDB is Ownable {
     }
 
     function setBytesValue(bytes32 record, bytes value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         BytesStorage[record] = value;
     }
 
     function deleteBytesValue(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete BytesStorage[record];
     }
@@ -117,13 +193,13 @@ contract EthlanceDB is Ownable {
     }
 
     function setBytes32Value(bytes32 record, bytes32 value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         Bytes32Storage[record] = value;
     }
 
     function deleteBytes32Value(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete Bytes32Storage[record];
     }
@@ -135,13 +211,13 @@ contract EthlanceDB is Ownable {
     }
 
     function setBooleanValue(bytes32 record, bool value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         BooleanStorage[record] = value;
     }
 
     function deleteBooleanValue(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete BooleanStorage[record];
     }
@@ -153,15 +229,23 @@ contract EthlanceDB is Ownable {
     }
 
     function setIntValue(bytes32 record, int value)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
         IntStorage[record] = value;
     }
 
     function deleteIntValue(bytes32 record)
-    onlyOwner
+    onlyAllowedContractOrOwner
     {
       delete IntStorage[record];
+    }
+
+    function getTypesCounts(uint8[] types) constant returns(uint[]) {
+        var counts = new uint[](7);
+        for (uint i = 0; i < types.length ; i++) {
+            counts[types[i] - 1]++;
+        }
+        return counts;
     }
 
     function getEntity(bytes32[] records, uint8[] types)
@@ -176,25 +260,39 @@ contract EthlanceDB is Ownable {
         string str
     )
     {
-        for (uint i = 0; i < records.length ; i++) {
+        var counts = getTypesCounts(types);
+        bools = new bool[](counts[0]);
+        uint8s = new uint8[](counts[1]);
+        uints = new uint[](counts[2]);
+        addresses = new address[](counts[3]);
+        bytes32s = new bytes32[](counts[4]);
+        ints = new int[](counts[5]);
+        counts = new uint[](7);
+
+        for (uint i = 0; i < records.length; i++) {
             var recordType = types[i];
             var record = records[i];
             if (recordType == 1) {
-                bools[bools.length - 1] = getBooleanValue(record);
+                bools[counts[0]] = getBooleanValue(record);
+                counts[0]++;
             } else if (recordType == 2) {
-                uint8s[uint8s.length - 1] = getUInt8Value(record);
-
+                uint8s[counts[1]] = getUInt8Value(record);
+                counts[1]++;
             } else if (recordType == 3) {
-                uints[uints.length - 1] = getUIntValue(record);
+                uints[counts[2]] = getUIntValue(record);
+                counts[2]++;
 
             } else if (recordType == 4) {
-                addresses[addresses.length - 1] = getAddressValue(record);
+                addresses[counts[3]] = getAddressValue(record);
+                counts[3]++;
 
             } else if (recordType == 5) {
-                bytes32s[bytes32s.length - 1] = getBytes32Value(record);
+                bytes32s[counts[4]] = getBytes32Value(record);
+                counts[4]++;
 
             } else if (recordType == 6) {
-                ints[ints.length - 1] = getIntValue(record);
+                ints[counts[5]] = getIntValue(record);
+                counts[5]++;
 
             } else if (recordType == 7) {
                 str = getStringValue(record);
@@ -233,7 +331,7 @@ contract EthlanceDB is Ownable {
         }
     }
 
-    function getUIntValue(bytes32 record, uint8 uintType) constant returns(uint) {
+    function getUIntValueConverted(bytes32 record, uint8 uintType) constant returns(uint) {
         if (uintType == 1) {
             booleanToUInt(getBooleanValue(record));
         } else if (uintType == 2) {
@@ -258,13 +356,13 @@ contract EthlanceDB is Ownable {
     )
     {
         for (uint i = 0; i < (records.length / 7); i++) {
-            items1[i] = getUIntValue(records[i * 7], uintTypes[i]);
-            items2[i] = getUIntValue(records[(i * 7) + 1], uintTypes[i + 1]);
-            items3[i] = getUIntValue(records[(i * 7) + 2], uintTypes[i + 2]);
-            items4[i] = getUIntValue(records[(i * 7) + 3], uintTypes[i + 3]);
-            items5[i] = getUIntValue(records[(i * 7) + 4], uintTypes[i + 4]);
-            items6[i] = getUIntValue(records[(i * 7) + 5], uintTypes[i + 5]);
-            items7[i] = getUIntValue(records[(i * 7) + 6], uintTypes[i + 6]);
+            items1[i] = getUIntValueConverted(records[i * 7], uintTypes[i]);
+            items2[i] = getUIntValueConverted(records[(i * 7) + 1], uintTypes[i + 1]);
+            items3[i] = getUIntValueConverted(records[(i * 7) + 2], uintTypes[i + 2]);
+            items4[i] = getUIntValueConverted(records[(i * 7) + 3], uintTypes[i + 3]);
+            items5[i] = getUIntValueConverted(records[(i * 7) + 4], uintTypes[i + 4]);
+            items6[i] = getUIntValueConverted(records[(i * 7) + 5], uintTypes[i + 5]);
+            items7[i] = getUIntValueConverted(records[(i * 7) + 6], uintTypes[i + 6]);
         }
         return (items1, items2, items3, items4, items5, items6, items7);
     }

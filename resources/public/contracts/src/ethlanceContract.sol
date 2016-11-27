@@ -5,7 +5,8 @@ import "contractLibrary.sol";
 
 contract EthlanceContract is EthlanceSetter {
 
-    function Ethlance(address _ethlanceDB) {
+    function EthlanceContract(address _ethlanceDB) {
+        if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 

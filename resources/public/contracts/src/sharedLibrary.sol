@@ -41,7 +41,7 @@ library SharedLibrary {
         for (uint i = 0; i < array.length; i++) {
             EthlanceDB(db).setUIntValue(sha3(key, id, i), array[i]);
         }
-        EthlanceDB(db).setUIntValue(sha3(countKey, id), array.length);
+        EthlanceDB(db).setUIntValue(sha3(countKey, 1), array.length);
     }
     
     function getUIntArray(address db, uint id, string key, string countKey) internal returns(uint[] result) {
@@ -76,12 +76,13 @@ library SharedLibrary {
 
     function removeArrayItem(address db, uint[] ids, string key, uint val) internal {
         for (uint i = 0; i < ids.length; i++) {
-            EthlanceDB(db).setBooleanValue(sha3(key, ids[i], val), false);
+            EthlanceDB(db).deleteBooleanValue(sha3(key, ids[i], val));
         }
     }
 
     function getPage(uint[] array, uint offset, uint limit) internal returns (uint[] result) {
         uint j = 0;
+        result = new uint[](limit);
         for (uint i = offset; i < SafeMath.safeAdd(offset, limit); i++) {
             if (array[i] == 0) break;
             result[j] = array[i];
@@ -115,26 +116,38 @@ library SharedLibrary {
 
     function diff(uint[] _old, uint[] _new) internal returns(uint[] added, uint[] removed) {
         mapping (uint => uint8) _map;
+        var maxCount = _old.length + _new.length;
+        added = new uint[](maxCount);
+        removed = new uint[](maxCount);
+
         for (uint i = 0; i < _old.length; i++) {
             _map[_old[i]] = 1;
         }
-        uint j = 0;
+        uint addedCount = 0;
         for (i = 0; i < _new.length; i++) {
             if (_map[_new[i]] == 0) {
-                added[j] = _new[i];
-                j++;
+                added[addedCount] = _new[i];
+                addedCount++;
             } else {
                 _map[_new[i]] = 2;
             }
         }
-        j = 0;
+        uint removedCount = 0;
         for (i = 0; i < _old.length; i++) {
             if (_map[_old[i]] == 1) {
-                removed[j] = _old[i];
-                j++;
+                removed[removedCount] = _old[i];
+                removedCount++;
             }
         }
-        return (added, removed);
+        return (take(addedCount, added), take(removedCount, removed));
+    }
+
+    function take(uint n, uint[] array) internal returns(uint[] result) {
+        result = new uint[](n);
+        for (uint i = 0; i < n ; i++) {
+            result[i] = array[i];
+        }
+        return result;
     }
     
     function intersectCategoriesAndSkills

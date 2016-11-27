@@ -5,15 +5,17 @@ import "sharedLibrary.sol";
 
 library SkillLibrary {
 
-    function addSkillName(address db, bytes32 name) internal {
+    function addSkillName(address db, bytes32 name) internal returns(uint) {
         var skillId = SharedLibrary.createNext(db, "skill/count");
         EthlanceDB(db).setBytes32Value(sha3("skill/name", skillId), name);
+        return skillId;
     }
 
-    function addSkillNames(address db, bytes32[] names) internal {
+    function addSkillNames(address db, bytes32[] names) internal returns(uint[] skillIds) {
         for (uint i = 0; i < names.length ; i++) {
-            addSkillName(db, names[i]);
+            skillIds[i] = addSkillName(db, names[i]);
         }
+        return skillIds;
     }
 
     function addJob(address db, uint skillId, uint jobId) internal {

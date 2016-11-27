@@ -64,6 +64,7 @@ library UserLibrary {
     )
         internal
     {
+        if (userId == 0) throw;
         EthlanceDB(db).setBooleanValue(sha3("user/freelancer?", userId), true);
         EthlanceDB(db).setBooleanValue(sha3("freelancer/available?", userId), isAvailable);
         EthlanceDB(db).setBytes32Value(sha3("freelancer/job-title", userId), jobTitle);
@@ -79,6 +80,7 @@ library UserLibrary {
     )
         internal
     {
+        if (userId == 0) throw;
         EthlanceDB(db).setBooleanValue(sha3("user/employer?", userId), true);
         EthlanceDB(db).setStringValue(sha3("employer/description", userId), description);
     }

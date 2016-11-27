@@ -21,7 +21,7 @@
 (defn mount-root []
   (s/check-asserts goog.DEBUG)
   (google-analytics-fx/set-enabled! (not goog.DEBUG))
-  (.clear js/console)
+  ;(.clear js/console)
   (reagent/render [main-panel] (.getElementById js/document "app")))
 
 (defn ^:export init []

@@ -17,7 +17,7 @@
 
 (defn nsname [x]
   (when x
-    (str (when-let [n (namespace x)] (str n "")) (name x))))
+    (str (when-let [n (namespace x)] (str n "/")) (name x))))
 
 (defn match-current-location []
   (bidi/match-route routes (location-hash)))
@@ -33,3 +33,11 @@
      (if (<= string-len length)
        string
        (str (subs string 0 (- length suffix-len)) suffix)))))
+
+(defn sha3 [& args]
+  (apply js/SoliditySha3.sha3 (map #(if (keyword? %) (nsname %) %) args)))
+
+(defn big-num->num [x]
+  (if (aget x "toNumber")
+    (.toNumber x)
+    x))

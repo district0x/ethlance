@@ -5,7 +5,8 @@ import "invoiceLibrary.sol";
 
 contract EthlanceInvoice is EthlanceSetter {
 
-    function Ethlance(address _ethlanceDB) {
+    function EthlanceInvoice(address _ethlanceDB) {
+        if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 

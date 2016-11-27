@@ -11,6 +11,7 @@ contract EthlanceSearch {
     address public ethlanceDB;
 
     function EthlanceSearch(address _ethlanceDB) {
+        if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 

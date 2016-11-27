@@ -6,7 +6,8 @@ import "jobActionLibrary.sol";
 
 contract EthlanceJob is EthlanceSetter {
 
-    function Ethlance(address _ethlanceDB) {
+    function EthlanceJob(address _ethlanceDB) {
+        if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 

@@ -4,7 +4,8 @@ import "ethlanceSetter.sol";
 
 contract EthlanceUser is EthlanceSetter {
 
-    function Ethlance(address _ethlanceDB) {
+    function EthlanceUser(address _ethlanceDB) {
+        if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 
@@ -15,7 +16,7 @@ contract EthlanceUser is EthlanceSetter {
         UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, languages);
     }
 
-    function setFreelancer(bytes32 name, bytes32 gravatar, uint country, uint[] languages,
+    function registerFreelancer(bytes32 name, bytes32 gravatar, uint country, uint[] languages,
         bool isAvailable,
         bytes32 jobTitle,
         uint hourlyRate,
@@ -38,6 +39,7 @@ contract EthlanceUser is EthlanceSetter {
         string description
     )
         onlyActiveSmartContract
+        onlyActiveUser
     {
         if (categories.length > getConfig("max-freelancer-categories")) throw;
         if (skills.length > getConfig("max-freelancer-skills")) throw;
@@ -46,7 +48,7 @@ contract EthlanceUser is EthlanceSetter {
             skills, description);
     }
 
-    function setEmployer(bytes32 name, bytes32 gravatar, uint country, uint[] languages, string description)
+    function registerEmployer(bytes32 name, bytes32 gravatar, uint country, uint[] languages, string description)
     onlyActiveSmartContract
     {
         setUser(name, gravatar, country, languages);
@@ -55,17 +57,18 @@ contract EthlanceUser is EthlanceSetter {
 
     function setEmployer(string description)
     onlyActiveSmartContract
+    onlyActiveUser
     {
         if (bytes(description).length > getConfig("max-user-description")) throw;
         UserLibrary.setEmployer(ethlanceDB, getSenderUserId(), description);
     }
 
     function setUserStatus(
-        address userAddress,
+        uint userId,
         uint8 status
     )
         onlyOwner
     {
-        UserLibrary.setStatus(ethlanceDB, UserLibrary.getUserId(ethlanceDB, userAddress), status);
+        UserLibrary.setStatus(ethlanceDB, userId, status);
     }
 }

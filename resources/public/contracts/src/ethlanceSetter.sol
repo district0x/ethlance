@@ -39,7 +39,7 @@ contract EthlanceSetter is Ownable {
         return UserLibrary.getUserId(ethlanceDB, msg.sender);
     }
 
-    function getConfig(string key) constant returns(uint) {
+    function getConfig(bytes32 key) constant returns(uint) {
         return EthlanceDB(ethlanceDB).getUIntValue(sha3("config/", key));
     }
 }

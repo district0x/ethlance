@@ -13,6 +13,7 @@ contract EthlanceViews {
     address public ethlanceDB;
 
     function EthlanceViews(address _ethlanceDB) {
+        if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 
