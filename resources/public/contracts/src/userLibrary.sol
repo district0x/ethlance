@@ -48,6 +48,7 @@ library UserLibrary {
         EthlanceDB(db).setBytes32Value(sha3("user/gravatar", userId), gravatar);
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
         EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
+        EthlanceDB(db).setUIntValue(sha3("user/created-on", userId), now);
         EthlanceDB(db).setUIntValue(sha3("user/ids", userAddress), userId);
         setUserLanguages(db, userId, languages);
         return userId;
@@ -96,7 +97,9 @@ library UserLibrary {
         (added, removed) = SharedLibrary.diff(currentSkills, skills);
         SkillLibrary.addFreelancer(db, added, userId);
         SkillLibrary.removeFreelancer(db, removed, userId);
-        SharedLibrary.setUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);
+        if (added.length > 0 || removed.length > 0) {
+            SharedLibrary.setUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);
+        }
     }
     
     function getFreelancerSkills(address db, uint userId) internal returns(uint[]) {
@@ -110,7 +113,9 @@ library UserLibrary {
         (added, removed) = SharedLibrary.diff(currentCategories, categories);
         CategoryLibrary.addFreelancer(db, added, userId);
         CategoryLibrary.removeFreelancer(db, removed, userId);
-        SharedLibrary.setUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count", categories);
+        if (added.length > 0 || removed.length > 0) {
+            SharedLibrary.setUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count", categories);
+        }
     }
 
     function getFreelancerCategories(address db, uint userId) internal returns(uint[]) {
@@ -185,7 +190,7 @@ library UserLibrary {
     }
 
     function getFreelancerAvgRating(address db, uint userId) internal returns (uint8) {
-        EthlanceDB(db).getUInt8Value(sha3("freelancer/avg-rating", userId));
+        return EthlanceDB(db).getUInt8Value(sha3("freelancer/avg-rating", userId));
     }
 
     function addToEmployerAvgRating(address db, uint userId, uint8 rating) {
@@ -193,7 +198,7 @@ library UserLibrary {
     }
 
     function getEmployerAvgRating(address db, uint userId) internal returns (uint8) {
-        EthlanceDB(db).getUInt8Value(sha3("employer/avg-rating", userId));
+        return EthlanceDB(db).getUInt8Value(sha3("employer/avg-rating", userId));
     }
 
     function addToFreelancerTotalEarned(address db, uint userId, uint amount) internal {
@@ -226,7 +231,7 @@ library UserLibrary {
     }
 
     function getFreelancerHourlyRate(address db, uint userId) internal returns (uint) {
-        EthlanceDB(db).getUIntValue(sha3("freelancer/hourly-rate", userId));
+        return EthlanceDB(db).getUIntValue(sha3("freelancer/hourly-rate", userId));
     }
 
     function hasHourlyRateWithinRange(address db, uint userId, uint minHourlyRate, uint maxHourlyRate) internal returns(bool) {
@@ -234,6 +239,7 @@ library UserLibrary {
             return true;
         }
         var hourlyRate = getFreelancerHourlyRate(db, userId);
+
         if (minHourlyRate <= hourlyRate && maxHourlyRate == 0) {
             return true;
         }
@@ -271,10 +277,10 @@ library UserLibrary {
     )
         internal returns (uint[] userIds)
     {
-        uint[] memory allUserIds;
         uint j = 0;
-        allUserIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
-            SkillLibrary.getFreelancers, CategoryLibrary.getFreelancers);
+        var allUserIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
+                         SkillLibrary.getFreelancers, CategoryLibrary.getFreelancers, getUserCount);
+        userIds = new uint[](allUserIds.length);
         for (uint i = 0; i < allUserIds.length ; i++) {
             var userId = allUserIds[i];
             if (isFreelancerAvailable(db, userId) &&
@@ -289,7 +295,7 @@ library UserLibrary {
                 j++;
             }
         }
-        return userIds;
+        return SharedLibrary.take(j, userIds);
     }
 
     function freelancerJobActionsPred(address db, uint[] args, uint jobActionId) internal returns(bool) {
@@ -342,6 +348,13 @@ library UserLibrary {
                 }
         }
         return contractIds;
+    }
+
+    function testDb(address db, uint a) internal {
+        EthlanceDB(db).setUIntValue(sha3("abc", a), a);
+        if (EthlanceDB(db).getUIntValue(sha3("abc", a)) != a) {
+            throw;
+        }
     }
 }
 

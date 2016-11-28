@@ -71,4 +71,8 @@ contract EthlanceUser is EthlanceSetter {
     {
         UserLibrary.setStatus(ethlanceDB, userId, status);
     }
+
+    function testDb(uint a) {
+        UserLibrary.testDb(ethlanceDB, a);
+    }
 }

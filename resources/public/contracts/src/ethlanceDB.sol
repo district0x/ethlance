@@ -51,38 +51,6 @@ contract EthlanceDB is Ownable {
         return addresses;
     }
 
-    function sha(string key) constant returns(bytes32) {
-        return sha3(key);
-    }
-
-    function shaUserAddr() constant returns(bytes32) {
-        return sha3("user/address", 1);
-    }
-
-    function sha(string key, uint id) constant returns(bytes32) {
-        return sha3(key, id);
-    }
-
-    function shaBytes(bytes12 key, uint id) constant returns(bytes32) {
-        return sha3(key, id);
-    }
-
-    function shaBytes(bytes32 key) constant returns(bytes32) {
-        return sha3(key);
-    }
-
-    function a1() constant returns(bytes32) {
-        return sha3("a", 1);
-    }
-
-    function a() constant returns(bytes32) {
-        return sha3("a");
-    }
-
-    function userCount() constant returns(bytes32) {
-        return sha3("user/count");
-    }
-    
     mapping(bytes32 => uint8) UInt8Storage;
     
     function getUInt8Value(bytes32 record) constant returns (uint8){
@@ -101,7 +69,6 @@ contract EthlanceDB is Ownable {
       delete UInt8Storage[record];
     }
 
-//    bytes32[] public storageKeys;
     mapping(bytes32 => uint) UIntStorage;
 
     function getUIntValue(bytes32 record) constant returns (uint){
@@ -325,21 +292,23 @@ contract EthlanceDB is Ownable {
 
     function booleanToUInt(bool x) constant returns (uint) {
         if (x) {
-            return 0;
-        } else {
             return 1;
+        } else {
+            return 0;
         }
     }
 
     function getUIntValueConverted(bytes32 record, uint8 uintType) constant returns(uint) {
         if (uintType == 1) {
-            booleanToUInt(getBooleanValue(record));
+            return booleanToUInt(getBooleanValue(record));
         } else if (uintType == 2) {
-            uint(getBytes32Value(record));
+            return uint(getUInt8Value(record));
         } else if (uintType == 3) {
-            uint(getUInt8Value(record));
+            return getUIntValue(record);
+        } else if (uintType == 5) {
+            return uint(getBytes32Value(record));
         } else {
-            getUIntValue(record);
+            return 0;
         }
     }
 
@@ -355,14 +324,50 @@ contract EthlanceDB is Ownable {
         uint[] items7
     )
     {
-        for (uint i = 0; i < (records.length / 7); i++) {
-            items1[i] = getUIntValueConverted(records[i * 7], uintTypes[i]);
-            items2[i] = getUIntValueConverted(records[(i * 7) + 1], uintTypes[i + 1]);
-            items3[i] = getUIntValueConverted(records[(i * 7) + 2], uintTypes[i + 2]);
-            items4[i] = getUIntValueConverted(records[(i * 7) + 3], uintTypes[i + 3]);
-            items5[i] = getUIntValueConverted(records[(i * 7) + 4], uintTypes[i + 4]);
-            items6[i] = getUIntValueConverted(records[(i * 7) + 5], uintTypes[i + 5]);
-            items7[i] = getUIntValueConverted(records[(i * 7) + 6], uintTypes[i + 6]);
+        uint itemsCount = records.length / uintTypes.length;
+        uint typesLength = uintTypes.length;
+        items1 = new uint[](itemsCount);
+
+        if (typesLength > 1) {
+            items2 = new uint[](itemsCount);
+        }
+        if (typesLength > 2) {
+            items3 = new uint[](itemsCount);
+        }
+        if (typesLength > 3) {
+            items4 = new uint[](itemsCount);
+        }
+        if (typesLength > 4) {
+            items5 = new uint[](itemsCount);
+        }
+        if (typesLength > 5) {
+            items6 = new uint[](itemsCount);
+        }
+        if (typesLength > 6) {
+            items7 = new uint[](itemsCount);
+        }
+
+        for (uint i = 0; i < itemsCount; i++) {
+            items1[i] = getUIntValueConverted(records[i * itemsCount], uintTypes[i]);
+
+            if (typesLength > 1) {
+                items2[i] = getUIntValueConverted(records[(i * itemsCount) + 1], uintTypes[i + 1]);
+            }
+            if (typesLength > 2) {
+                items3[i] = getUIntValueConverted(records[(i * itemsCount) + 2], uintTypes[i + 2]);
+            }
+            if (typesLength > 3) {
+                items4[i] = getUIntValueConverted(records[(i * itemsCount) + 3], uintTypes[i + 3]);
+            }
+            if (typesLength > 4) {
+                items5[i] = getUIntValueConverted(records[(i * itemsCount) + 4], uintTypes[i + 4]);
+            }
+            if (typesLength > 5) {
+                items6[i] = getUIntValueConverted(records[(i * itemsCount) + 5], uintTypes[i + 5]);
+            }
+            if (typesLength > 6) {
+                items7[i] = getUIntValueConverted(records[(i * itemsCount) + 6], uintTypes[i + 6]);
+            }
         }
         return (items1, items2, items3, items4, items5, items6, items7);
     }

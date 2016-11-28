@@ -3,6 +3,7 @@ pragma solidity ^0.4.4;
 import "ethlanceDB.sol";
 import "sharedLibrary.sol";
 
+
 library CategoryLibrary {
 
     function addCategory(address db, bytes32 name) internal {

@@ -31,13 +31,13 @@ contract EthlanceSearch {
     )
         constant public returns (uint[] jobIds)
     {
-        uint8[][] memory uint8Filters; // To avoid compiler stack too deep error
+        uint8[][4] memory uint8Filters; // To avoid compiler stack too deep error
         uint8Filters[0] = paymentTypes;
         uint8Filters[1] = experienceLevels;
         uint8Filters[2] = estimatedDurations;
         uint8Filters[3] = hoursPerWeeks;
         jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, minBudget, minEmployerAvgRating, countryId, languageId);
-        return SharedLibrary.getPage(jobIds, offset, limit);
+        return  SharedLibrary.getPage(jobIds, offset, limit);
     }
 
     function searchFreelancers(

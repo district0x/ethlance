@@ -25,20 +25,10 @@ contract EthlanceViews {
         return UserLibrary.getFreelancerInvoicesByStatus(ethlanceDB, userId, invoiceStatus);
     }
     
-    function getFreelancerInvoicesList(uint freelancerId, uint8 invoiceStatus, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-    public constant returns (uint[], uint[], uint[], uint[], uint[], uint[], uint[]) {
-        return SharedLibrary.getEntityList(ethlanceDB, getFreelancerInvoices(freelancerId, invoiceStatus), fieldNames, uintTypes);
-    }
-
     function getFreelancerContracts(uint userId, bool isDone) public constant returns (uint[]) {
         return UserLibrary.getFreelancerContracts(ethlanceDB, userId, isDone);
     }
     
-    function getFreelancerContractsList(uint freelancerId, bool isDone, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-    public constant returns (uint[], uint[], uint[], uint[], uint[], uint[], uint[]) {
-        return SharedLibrary.getEntityList(ethlanceDB, getFreelancerContracts(freelancerId, isDone), fieldNames, uintTypes);
-    }
-
     function getJobContracts(uint userId) public constant returns (uint[]) {
         return JobLibrary.getContracts(ethlanceDB, userId);
     }

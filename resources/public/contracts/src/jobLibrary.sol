@@ -13,6 +13,10 @@ library JobLibrary {
     //    status:
     //    1: hiring, 2: hiringDone, 3: blocked
 
+    function getJobCount(address db) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job/count"));
+    }
+
     function addJob(
         address db,
         uint employerId,
@@ -47,6 +51,9 @@ library JobLibrary {
 
     function setSkills(address db, uint jobId, uint[] skills) internal {
         SharedLibrary.setUIntArray(db, jobId, "job/skills", "job/skills-count", skills);
+        for (uint i = 0; i < skills.length ; i++) {
+            SkillLibrary.addJob(db, skills[i], jobId);
+        }
     }
 
     function getSkills(address db, uint jobId) internal returns(uint[]) {
@@ -140,23 +147,22 @@ library JobLibrary {
     function searchJobs(address db,
         uint categoryId,
         uint[] skills,
-        uint8[][] uint8Filters,
+        uint8[][4] uint8Filters,
         uint minBudget,
         uint8 minEmployerAvgRating,
         uint countryId,
         uint languageId
     )
-        internal returns (uint[] result)
+        internal returns (uint[] jobIds)
     {
-        uint[] memory jobIds;
         uint j = 0;
         uint jobId;
         uint employerId;
-        jobIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
-            SkillLibrary.getJobs, CategoryLibrary.getJobs);
-
-         for (uint i = 0; i < jobIds.length ; i++) {
-            jobId = jobIds[i];
+        var allJobIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
+            SkillLibrary.getJobs, CategoryLibrary.getJobs, getJobCount);
+        jobIds = new uint[](allJobIds.length);
+        for (uint i = 0; i < allJobIds.length ; i++) {
+            jobId = allJobIds[i];
             employerId = getEmployer(db, jobId);
             if (getStatus(db, jobId) == 1 &&
                 SharedLibrary.containsValue(db, jobId, "job/payment-type", uint8Filters[0]) &&
@@ -170,11 +176,11 @@ library JobLibrary {
                 UserLibrary.hasStatus(db, employerId, 1)
                 )
             {
-                result[j] = jobId;
+                jobIds[j] = jobId;
                 j++;
             }
         }
-        return result;
+        return SharedLibrary.take(j, jobIds);
     }
 
     function getEmployerJobsByStatus(address db, uint userId, uint8 jobStatus)
