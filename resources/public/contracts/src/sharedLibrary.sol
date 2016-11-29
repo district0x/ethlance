@@ -197,8 +197,8 @@ library SharedLibrary {
     function filter(
         address db,
         function (address, uint[] memory, uint) returns (bool) f,
-        uint[] memory args,
-        uint[] memory items
+        uint[] memory items,
+        uint[] memory args
     )
         internal returns (uint[] memory r)
     {

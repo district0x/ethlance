@@ -29,43 +29,23 @@ contract EthlanceViews {
         return UserLibrary.getFreelancerContracts(ethlanceDB, userId, isDone);
     }
     
-    function getJobContracts(uint userId) public constant returns (uint[]) {
-        return JobLibrary.getContracts(ethlanceDB, userId);
+    function getJobContracts(uint jobId) public constant returns (uint[]) {
+        return JobLibrary.getContracts(ethlanceDB, jobId);
     }
     
-    function getJobContractsList(uint jobId, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-    public constant returns (uint[], uint[], uint[], uint[], uint[], uint[], uint[]) {
-        return SharedLibrary.getEntityList(ethlanceDB, getJobContracts(jobId), fieldNames, uintTypes);
-    }
-
     function getJobProposals(uint jobId) public constant returns (uint[]) {
         return JobLibrary.getProposals(ethlanceDB, jobId);
     }
     
-    function getJobProposalsList(uint jobId, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-    public constant returns (uint[], uint[], uint[], uint[], uint[], uint[], uint[]) {
-        return SharedLibrary.getEntityList(ethlanceDB, getJobProposals(jobId), fieldNames, uintTypes);
-    }
-
     function getJobInvoices(uint jobId, uint8 invoiceStatus) public constant returns (uint[]) {
         return JobLibrary.getJobInvoicesByStatus(ethlanceDB, jobId, invoiceStatus);
     }
     
-    function getJobInvoicesList(uint jobId, uint8 invoiceStatus, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-    public constant returns (uint[], uint[], uint[], uint[], uint[], uint[], uint[]) {
-        return SharedLibrary.getEntityList(ethlanceDB, getJobInvoices(jobId, invoiceStatus), fieldNames, uintTypes);
-    }
-
     function getEmployerJobs(uint userId, uint8 jobStatus) public constant returns (uint[]) {
         return JobLibrary.getEmployerJobsByStatus(ethlanceDB, userId, jobStatus);
     }
 
-    function getEmployerJobsList(uint userId, uint8 jobStatus, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-    public constant returns (uint[], uint[], uint[], uint[], uint[], uint[], uint[]) {
-        return SharedLibrary.getEntityList(ethlanceDB, getEmployerJobs(userId, jobStatus), fieldNames, uintTypes);
-    }
-
-    function getNames() constant returns (uint[] skillIds, bytes32[] names) {
+    function getSkillNames() constant returns (uint[] skillIds, bytes32[] names) {
         return SkillLibrary.getNames(ethlanceDB);
     }
 }

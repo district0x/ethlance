@@ -34,7 +34,7 @@ library InvoiceLibrary {
         EthlanceDB(db).setUIntValue(sha3("invoice/worked-from", invoiceId), workedFrom);
         EthlanceDB(db).setUIntValue(sha3("invoice/worked-to", invoiceId), workedTo);
         EthlanceDB(db).setUIntValue(sha3("invoice/created-on", invoiceId), now);
-        EthlanceDB(db).setUIntValue(sha3("invoice/status", invoiceId), 1);
+        EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 1);
         ContractLibrary.addInvoice(db, contractId, invoiceId, amount);
     }
 
@@ -59,6 +59,7 @@ library InvoiceLibrary {
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var jobId = ContractLibrary.getJob(db, contractId);
 
+        if (getStatus(db, invoiceId) != 1) throw;
         if (employerId != senderId) throw;
         if (amount != sentAmount) throw;
 
@@ -74,7 +75,10 @@ library InvoiceLibrary {
         var contractId = getContract(db, invoiceId);
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var amount = EthlanceDB(db).getUIntValue(sha3("invoice/amount", invoiceId));
+
         if (freelancerId != senderId) throw;
+        if (getStatus(db, invoiceId) != 1) throw;
+
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 3);
         EthlanceDB(db).setUIntValue(sha3("invoice/cancelled-on", invoiceId), now);
         ContractLibrary.subTotalInvoiced(db, contractId, amount);

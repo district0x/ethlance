@@ -348,25 +348,25 @@ contract EthlanceDB is Ownable {
         }
 
         for (uint i = 0; i < itemsCount; i++) {
-            items1[i] = getUIntValueConverted(records[i * itemsCount], uintTypes[i]);
+            items1[i] = getUIntValueConverted(records[i * typesLength], uintTypes[0]);
 
             if (typesLength > 1) {
-                items2[i] = getUIntValueConverted(records[(i * itemsCount) + 1], uintTypes[i + 1]);
+                items2[i] = getUIntValueConverted(records[(i * typesLength) + 1], uintTypes[1]);
             }
             if (typesLength > 2) {
-                items3[i] = getUIntValueConverted(records[(i * itemsCount) + 2], uintTypes[i + 2]);
+                items3[i] = getUIntValueConverted(records[(i * typesLength) + 2], uintTypes[2]);
             }
             if (typesLength > 3) {
-                items4[i] = getUIntValueConverted(records[(i * itemsCount) + 3], uintTypes[i + 3]);
+                items4[i] = getUIntValueConverted(records[(i * typesLength) + 3], uintTypes[3]);
             }
             if (typesLength > 4) {
-                items5[i] = getUIntValueConverted(records[(i * itemsCount) + 4], uintTypes[i + 4]);
+                items5[i] = getUIntValueConverted(records[(i * typesLength) + 4], uintTypes[4]);
             }
             if (typesLength > 5) {
-                items6[i] = getUIntValueConverted(records[(i * itemsCount) + 5], uintTypes[i + 5]);
+                items6[i] = getUIntValueConverted(records[(i * typesLength) + 5], uintTypes[5]);
             }
             if (typesLength > 6) {
-                items7[i] = getUIntValueConverted(records[(i * itemsCount) + 6], uintTypes[i + 6]);
+                items7[i] = getUIntValueConverted(records[(i * typesLength) + 6], uintTypes[6]);
             }
         }
         return (items1, items2, items3, items4, items5, items6, items7);

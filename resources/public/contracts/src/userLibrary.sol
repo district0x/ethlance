@@ -307,18 +307,18 @@ library UserLibrary {
     }
 
     function getFreelancerJobActionsByStatus(address db, uint userId, uint8 jobActionStatus, uint8 jobStatus)
-        internal returns (uint[])
+        internal returns (uint[] result)
     {
-        uint[] memory args;
+        var args = new uint[](2);
         args[0] = jobActionStatus;
         args[1] = jobStatus;
         return SharedLibrary.filter(db, freelancerJobActionsPred, getFreelancerJobActions(db, userId), args);
     }
 
     function getFreelancerInvoicesByStatus(address db, uint userId, uint8 invoiceStatus)
-        internal returns (uint[])
+        internal returns (uint[] result)
     {
-        uint[] memory args;
+        var args = new uint[](1);
         args[0] = invoiceStatus;
         return SharedLibrary.filter(db, InvoiceLibrary.statusPred,
             ContractLibrary.getInvoices(db, getFreelancerContracts(db, userId)), args);
@@ -327,7 +327,9 @@ library UserLibrary {
     function getFreelancerContracts(address db, uint userId, bool isDone)
         internal returns (uint[] contractIds) {
 
-        uint[] memory allContracts = getFreelancerContracts(db, userId);
+        var maxCount = getFreelancerContractsCount(db, userId);
+        var allContracts = getFreelancerContracts(db, userId);
+        contractIds = new uint[](maxCount);
         uint j = 0;
         for (uint i = 0; i < allContracts.length ; i++) {
             var contractId = allContracts[i];
@@ -338,16 +340,17 @@ library UserLibrary {
                     jobStatus != 1)
                     {
                         contractIds[j] = contractId;
+                        j++;
                     }
             } else
                 if (ContractLibrary.getStatus(db, contractId) == 1 &&
                     jobStatus == 1)
                 {
                     contractIds[j] = contractId;
-
+                    j++;
                 }
         }
-        return contractIds;
+        return SharedLibrary.take(j, contractIds);
     }
 
     function testDb(address db, uint a) internal {

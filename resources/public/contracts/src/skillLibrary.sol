@@ -12,6 +12,7 @@ library SkillLibrary {
     }
 
     function addSkillNames(address db, bytes32[] names) internal returns(uint[] skillIds) {
+        skillIds = new uint[](names.length);
         for (uint i = 0; i < names.length ; i++) {
             skillIds[i] = addSkillName(db, names[i]);
         }
@@ -47,7 +48,7 @@ library SkillLibrary {
     function getNames(address db) internal returns (uint[] skillIds, bytes32[] names){
         var count = EthlanceDB(db).getUIntValue(sha3("skill/count"));
         for (uint i = 1; i <= count ; i++) {
-            if (!EthlanceDB(db).getBooleanValue(sha3("skill/blocked", i))) {
+            if (!EthlanceDB(db).getBooleanValue(sha3("skill/blocked?", i))) {
                 skillIds[i - 1] = i;
                 names[i - 1] = EthlanceDB(db).getBytes32Value(sha3("skill/name", i));
             }

@@ -29,7 +29,7 @@ contract EthlanceConfig is EthlanceSetter {
         return (keys, values);
     }
 
-    function addSkillNames(
+    function addSkills(
         bytes32[] names
     )
         onlyActiveSmartContract

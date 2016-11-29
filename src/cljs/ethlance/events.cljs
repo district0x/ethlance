@@ -48,6 +48,12 @@
 (defn storage-keys [& args]
   (apply web3-eth/contract-call (get-instance @re-frame.db/app-db :ethlance-db) :storage-keys args))
 
+(defn get-args [values args-order]
+  (into [] ((apply juxt args-order) values)))
+
+(defn get-ethlance-db []
+  (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance]))
+
 (comment
   (dispatch [:initialize])
   (dispatch [:print-db])
@@ -68,37 +74,24 @@
   (dispatch [:contract/call :ethlance-db :get-bytes32-value (u/sha3 :user/name 1)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :freelancer/hourly-rate 1)])
   (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :freelancer/description 1)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job-action/freelancer-job 1 1)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
-  (get-entity 1 [:user/address :user/gravatar :user/name :user/country :user/status :user/freelancer?
-                 :freelancer/available? :user/employer? :freelancer/job-title
-                 :freelancer/hourly-rate :employer/description :freelancer/skills-count :freelancer/categories-count]
-              (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance]))
+  (get-entity 1 (keys ethlance-db/member-schema) (get-ethlance-db))
 
-  (get-entity 1 [:job/employer
-                 :job/title
-                 :job/language
-                 :job/budget
-                 :job/created-on
-                 :job/category
-                 :job/payment-type
-                 :job/experience-level
-                 :job/estimated-duration
-                 :job/hours-per-week
-                 :job/freelancers-needed
-                 :job/status
-                 :job/skills-count
-                 :job/proposals-count
-                 :job/contracts-count
-                 :job/invitations-count
-                 :job/hiring-done-on
-                 :job/total-paid]
-              (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance]))
+  (get-entity 2 (keys ethlance-db/member-schema) (get-ethlance-db))
 
-  (get-entity 1 [:freelancer/job-title :user/name :user/gravatar]
-              (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance]))
+  (get-entity 1 (keys ethlance-db/job-action-schema) (get-ethlance-db))
+  (get-entity 1 (keys ethlance-db/job-schema) (get-ethlance-db))
 
-  (get-entity-list [1] [:user/name :user/country :user/freelancer?]
-              (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance]))
+  (get-entity 1 (keys ethlance-db/contract-schema) (get-ethlance-db))
+
+  (get-entity 1 (keys ethlance-db/invoice-schema) (get-ethlance-db))
+
+  (get-entity 1 [:freelancer/job-title :user/name :user/gravatar] (get-ethlance-db))
+
+  (get-entity-list [1 2] [:user/name :user/country :user/freelancer?] (get-ethlance-db))
+
+  (get-entity-list [2 3 1 1 1 1] [:skill/name] (get-ethlance-db))
 
   (dispatch [:contract.user/register-freelancer {:user/name "Mataaa"
                                                  :user/gravatar "abc"
@@ -153,6 +146,18 @@
                                          :search/offset 0
                                          :search/limit 10}])
   (dispatch [:contract/state-call :ethlance-user :test-db 5])
+
+  (dispatch [:contract.views/get-freelancer-job-actions {:user/id 1
+                                                         :job-action/status 1
+                                                         :job/status 1}])
+
+  (dispatch [:contract.views/get-freelancer-invoices {:user/id 1 :invoice/status 1}])
+  (dispatch [:contract.views/get-freelancer-contracts {:user/id 1 :contract/done? true}])
+  (dispatch [:contract.views/get-job-contracts {:job/id 1}])
+  (dispatch [:contract.views/get-job-proposals {:job/id 1}])
+  (dispatch [:contract.views/get-job-invoices {:job/id 1 :invoice/status 3}])
+  (dispatch [:contract.views/get-employer-jobs {:user/id 2 :job/status 2}])
+
   )
 (reg-event-fx
   :initialize
@@ -320,14 +325,50 @@
     (let [{:keys [ethlance-config-values web3 active-address]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
-        :db-path [:contract.config/set-configs]
+        :db-path [:contract/state-fns]
         :fns [[(get-instance db :ethlance-config)
-               :set-configs (keys ethlance-config-values) (vals ethlance-config-values)
+               :set-configs
+               (keys ethlance-config-values)
+               (vals ethlance-config-values)
                {:gas max-gas
                 :from active-address}
                :contract/transaction-sent
                :contract/transaction-error
                [:contract/transaction-receipt :set-configs max-gas :generate-db false]]]}})))
+
+(reg-event-fx
+  :contract.config/add-skills
+  interceptors
+  (fn [{:keys [db]}]
+    (let [{:keys [ethlance-config-values web3 active-address]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [[(get-instance db :ethlance-config)
+               :add-skills (keys ethlance-config-values) (vals ethlance-config-values)
+               {:gas max-gas
+                :from active-address}
+               :contract/transaction-sent
+               :contract/transaction-error
+               [:contract/transaction-receipt :set-configs max-gas :generate-db false]]]}})))
+
+(reg-event-fx
+  :contract.config/add-skills
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-config)
+                 :add-skills]
+                (get-args values ethlance-db/add-skills-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :add-skills max-gas false :log-error]])]}})))
 
 (reg-event-fx
   :contract.db/add-allowed-contracts
@@ -338,7 +379,7 @@
       (let [{:keys [web3 active-address contracts]} db]
         {:web3-fx.contract/state-fns
          {:web3 web3
-          :db-path [:contract.db/add-allowed-contracts]
+          :db-path [:contract/state-fns]
           :fns [[(get-instance db :ethlance-db)
                  :add-allowed-contracts
                  (map :address (vals (select-keys contracts contract-keys)))
@@ -355,18 +396,17 @@
 (reg-event-fx
   :contract.user/register-freelancer
   interceptors
-  (fn [{:keys [db]} [values]]
-    (let [{:keys [web3 active-address contracts]} db
-          args ((apply juxt ethlance-db/register-freelancer-args) values)]
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
-        :db-path [:contract.user/register-freelancer]
+        :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-user)
                  :register-freelancer]
-                (remove nil? args)
+                (remove nil? (get-args values ethlance-db/register-freelancer-args))
                 [{:gas max-gas
-                  :from active-address}
+                  :from (or address active-address)}
                  :contract/transaction-sent
                  :contract/transaction-error
                  [:contract/transaction-receipt :register-freelancer max-gas false :log-error]])]}})))
@@ -374,19 +414,21 @@
 (reg-event-fx
   :contract.user/register-employer
   interceptors
-  (fn [{:keys [db]} [values update?]]
+  (fn [{:keys [db]} [values address]]
     (let [{:keys [web3 active-address contracts]} db
-          args ((apply juxt ethlance-db/register-employer-args) values)
-          method (if update? :set-employer :register-employer)]
+          args (remove nil? (get-args values ethlance-db/register-employer-args))
+          method (if (= (count args) (count ethlance-db/register-employer-args))
+                   :register-employer
+                   :set-employer)]
       {:web3-fx.contract/state-fns
        {:web3 web3
-        :db-path [:contract.user/register-employer]
+        :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-user)
                  method]
                 (remove nil? args)
                 [{:gas max-gas
-                  :from active-address}
+                  :from (or address active-address)}
                  :contract/transaction-sent
                  :contract/transaction-error
                  [:contract/transaction-receipt method max-gas false :log-error]])]}})))
@@ -395,47 +437,249 @@
   :contract.user/search-freelancers
   interceptors
   (fn [{:keys [db]} [values]]
-    (let [{:keys [web3 active-address contracts]} db
-          args ((apply juxt ethlance-db/search-freelancers-args) values)]
+    (let [{:keys [web3 active-address contracts]} db]
       {:web3-fx.contract/constant-fns
        {:fns [(concat
                 [(get-instance db :ethlance-search)
                  :search-freelancers]
-                args
+                (get-args values ethlance-db/search-freelancers-args)
                 [:log :log-error])]}})))
 
 (reg-event-fx
   :contract.user/search-jobs
   interceptors
   (fn [{:keys [db]} [values]]
-    (let [{:keys [web3 active-address contracts]} db
-          args ((apply juxt ethlance-db/search-jobs-args) values)]
+    (let [{:keys [web3 active-address contracts]} db]
       {:web3-fx.contract/constant-fns
        {:fns [(concat
                 [(get-instance db :ethlance-search)
                  :search-jobs]
-                args
+                (get-args values ethlance-db/search-jobs-args)
                 [:log :log-error])]}})))
 
 (reg-event-fx
   :contract.job/add
   interceptors
-  (fn [{:keys [db]} [values]]
+  (fn [{:keys [db]} [values address]]
     (let [{:keys [web3 active-address contracts]} db
-          args (into [] ((apply juxt ethlance-db/add-job-args) values))
-          nested-args ((apply juxt ethlance-db/add-job-nested-args) values)]
+          args (get-args values ethlance-db/add-job-args)
+          nested-args (get-args values ethlance-db/add-job-nested-args)]
       {:web3-fx.contract/state-fns
        {:web3 web3
-        :db-path [:contract.job/add]
+        :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-job)
                  :add-job]
                 (conj args nested-args)
                 [{:gas max-gas
-                  :from active-address}
+                  :from (or address active-address)}
                  :contract/transaction-sent
                  :contract/transaction-error
                  [:contract/transaction-receipt :add-job max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.job/add-invitation
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-job)
+                 :add-job-invitation]
+                (get-args values ethlance-db/add-invitation-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :add-job-invitation max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.job/add-proposal
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-job)
+                 :add-job-proposal]
+                (get-args values ethlance-db/add-proposal-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :add-job-proposal max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.contract/add
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-contract)
+                 :add-job-contract]
+                (get-args values ethlance-db/add-contract-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :add-job-contract max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.contract/add-feedback
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-contract)
+                 :add-job-contract-feedback]
+                (get-args values ethlance-db/add-contract-feedback-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :add-job-contract-feedback max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.invoice/add
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-invoice)
+                 :add-invoice]
+                (get-args values ethlance-db/add-invoice-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :add-invoice max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.invoice/pay
+  interceptors
+  (fn [{:keys [db]} [values amount address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-invoice)
+                 :pay-invoice]
+                (get-args values ethlance-db/pay-invoice-args)
+                [{:gas max-gas
+                  :value amount
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :pay-invoice max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.invoice/cancel
+  interceptors
+  (fn [{:keys [db]} [values address]]
+    (let [{:keys [web3 active-address contracts]} db]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-invoice)
+                 :cancel-invoice]
+                (get-args values ethlance-db/cancel-invoice-args)
+                [{:gas max-gas
+                  :from (or address active-address)}
+                 :contract/transaction-sent
+                 :contract/transaction-error
+                 [:contract/transaction-receipt :cancel-invoice max-gas false :log-error]])]}})))
+
+(reg-event-fx
+  :contract.views/get-freelancer-job-actions
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-freelancer-job-actions]
+              (get-args values ethlance-db/get-freelancer-job-actions-args)
+              [:log :log-error])]}}))
+
+(reg-event-fx
+  :contract.views/get-freelancer-invoices
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-freelancer-invoices]
+              (get-args values ethlance-db/get-freelancer-invoices-args)
+              [:log :log-error])]}}))
+
+(reg-event-fx
+  :contract.views/get-freelancer-contracts
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-freelancer-contracts]
+              (get-args values ethlance-db/get-freelancer-contracts-args)
+              [:log :log-error])]}}))
+
+(reg-event-fx
+  :contract.views/get-job-contracts
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-job-contracts]
+              (get-args values ethlance-db/get-job-contracts-args)
+              [:log :log-error])]}}))
+
+(reg-event-fx
+  :contract.views/get-job-proposals
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-job-proposals]
+              (get-args values ethlance-db/get-job-proposals-args)
+              [:log :log-error])]}}))
+
+(reg-event-fx
+  :contract.views/get-job-invoices
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-job-invoices]
+              (get-args values ethlance-db/get-job-invoices-args)
+              [:log :log-error])]}}))
+
+(reg-event-fx
+  :contract.views/get-employer-jobs
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :get-employer-jobs]
+              (get-args values ethlance-db/get-employer-jobs-args)
+              [:log :log-error])]}}))
 
 (reg-event-fx
   :contract/call
@@ -450,7 +694,7 @@
   (fn [{:keys [db]} [contract-key method & args]]
     {:web3-fx.contract/state-fns
      {:web3 (:web3 db)
-      :db-path [:contract/state-call]
+      :db-path [:contract/state-fns]
       :fns [(concat [(get-instance db contract-key)
                      method]
                     args
@@ -464,7 +708,7 @@
   :contract/transaction-sent
   interceptors
   (fn [_ [tx-hash]]
-    #_ (console :log tx-hash)))
+    #_(console :log tx-hash)))
 
 (reg-event-fx
   :contract/transaction-error

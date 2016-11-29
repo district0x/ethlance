@@ -186,7 +186,7 @@ library JobLibrary {
     function getEmployerJobsByStatus(address db, uint userId, uint8 jobStatus)
         internal returns (uint[] jobIds)
     {
-        uint[] memory args;
+        var args = new uint[](1);
         args[0] = jobStatus;
         return SharedLibrary.filter(db, statusPred, UserLibrary.getEmployerJobs(db, userId), args);
     }
@@ -194,7 +194,7 @@ library JobLibrary {
     function getJobInvoicesByStatus(address db, uint jobId, uint8 invoiceStatus)
         internal returns (uint[])
     {
-        uint[] memory args;
+        var args = new uint[](1);
         args[0] = invoiceStatus;
         return SharedLibrary.filter(db, InvoiceLibrary.statusPred,
                     ContractLibrary.getInvoices(db, getContracts(db, jobId)), args);

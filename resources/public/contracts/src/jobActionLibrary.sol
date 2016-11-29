@@ -77,7 +77,7 @@ library JobActionLibrary {
     }
     
     function getJobAction(address db, uint freelancerId, uint jobId) internal returns (uint) {
-        return EthlanceDB(db).getUIntValue(sha3("invitation/freelancer-job", freelancerId, jobId));
+        return EthlanceDB(db).getUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId));
     }
 
     function getFreelancer(address db, uint jobActionId) internal returns(uint) {
