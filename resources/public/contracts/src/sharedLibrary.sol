@@ -2,6 +2,7 @@ pragma solidity ^0.4.4;
 
 import "ethlanceDB.sol";
 import "safeMath.sol";
+import "strings.sol";
 
 library SharedLibrary {
     function getCount(address db, string countKey) internal returns(uint) {
@@ -218,67 +219,5 @@ library SharedLibrary {
             }
         }
         return take(j, r);
-    }
-
-    function bytes32ToString(bytes32 x) internal returns (string) {
-        bytes memory bytesString = new bytes(32);
-        uint charCount = 0;
-        for (uint j = 0; j < 32; j++) {
-            byte char = byte(bytes32(uint(x) * 2 ** (8 * j)));
-            if (char != 0) {
-                bytesString[charCount] = char;
-                charCount++;
-            }
-        }
-        bytes memory bytesStringTrimmed = new bytes(charCount);
-        for (j = 0; j < charCount; j++) {
-            bytesStringTrimmed[j] = bytesString[j];
-        }
-        return string(bytesStringTrimmed);
-    }
-
-    function booleanToUInt(bool x) internal returns (uint) {
-        if (x) {
-            return 0;
-        } else {
-            return 1;
-        }
-    }
-
-    function getUIntValue(address db, bytes32 record, uint8 uintType) internal returns(uint) {
-        if (uintType == 1) {
-            return booleanToUInt(EthlanceDB(db).getBooleanValue(record));
-        } else if (uintType == 2) {
-            return uint(EthlanceDB(db).getBytes32Value(record));
-        } else if (uintType == 3) {
-            return uint(EthlanceDB(db).getUInt8Value(record));
-        } else {
-            return EthlanceDB(db).getUIntValue(record);
-        }
-    }
-
-    function getEntityList(address db, uint[] ids, bytes32[] fieldNames, uint8[] uintTypes)
-            internal returns
-    (
-        uint[] items1,
-        uint[] items2,
-        uint[] items3,
-        uint[] items4,
-        uint[] items5,
-        uint[] items6,
-        uint[] items7
-    )
-    {
-        for (uint i = 0; i < ids.length; i++) {
-            items1[i] = ids[i];
-            items2[i] = getUIntValue(db, sha3(bytes32ToString(fieldNames[1]), ids[i]), uintTypes[1]);
-            items3[i] = getUIntValue(db, sha3(bytes32ToString(fieldNames[2]), ids[i]), uintTypes[2]);
-            items4[i] = getUIntValue(db, sha3(bytes32ToString(fieldNames[3]), ids[i]), uintTypes[3]);
-            items5[i] = getUIntValue(db, sha3(bytes32ToString(fieldNames[4]), ids[i]), uintTypes[4]);
-            items6[i] = getUIntValue(db, sha3(bytes32ToString(fieldNames[5]), ids[i]), uintTypes[5]);
-            items7[i] = getUIntValue(db, sha3(bytes32ToString(fieldNames[6]), ids[i]), uintTypes[6]);
-        }
-
-        return (items1, items2, items3, items4, items5, items6, items7);
     }
 }

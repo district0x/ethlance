@@ -1,7 +1,9 @@
 (ns ethlance.styles
   (:require [cljs-react-material-ui.core :refer [color get-mui-theme]]))
 
-(def palette {:primary1-color (color :indigo500)})
+(def primary1-color (color :indigo500))
+
+(def palette {:primary1-color primary1-color})
 
 (def mui-theme (get-mui-theme {:palette palette}))
 
@@ -9,10 +11,10 @@
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
 
 (def app-bar-left
-  {:background-color (:primary1-color palette)})
+  {:background-color primary1-color})
 
 (def app-bar-right
-  {:background-color (:primary1-color palette)})
+  {:background-color primary1-color})
 
 (def nav-list
   {:padding-top 0})
@@ -44,4 +46,34 @@
     {:text-align :right}))
 
 (def star-rating
-  {:color (:primary1-color palette)})
+  {:color primary1-color})
+
+(def job-title
+  {:color primary1-color
+   :font-weight 500})
+
+(def job-info
+  (merge fade-text
+    {:font-weight 600
+     :font-size "0.9em"}))
+
+(def job-description
+  {})
+
+(def more-text
+  {:color primary1-color
+   :cursor :pointer})
+
+(def row-no-margin
+  {:margin-left 0
+   :margin-right 0})
+
+(def skill-chips-row
+  (merge
+    row-no-margin
+    {:padding-top 5
+     :padding-bottom 5}))
+
+(def skill-chip
+  {:margin-left 3
+   :margin-right 3})

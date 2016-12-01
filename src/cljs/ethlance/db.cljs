@@ -30,7 +30,11 @@
    :active-address nil
    :address->user-id {}
    :app/users {}
+   :app/jobs {}
+   :app/job-actions {}
    :app/skills {}
+
+   :list/search-job {:items [] :loading? false}
 
    :form/search-job {:search/category 0
                      :search/skills []

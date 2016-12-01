@@ -10,6 +10,7 @@
                          "employer" :employer/invoices}]
         ["search/" {"jobs" :search/jobs
                     "freelancers" :search/freelancers}]
-        [["freelancer/" :address] :freelancer/profile]
-        [["employer/" :address] :employer/profile]
+        [["freelancer/" :address] :freelancer/detail]
+        [["employer/" :address] :employer/detail]
+        [["job/" :job/id] :job/detail]
         [true :home]]])

@@ -52,6 +52,14 @@
     (:form/search-job db)))
 
 (reg-sub
+  :list/search-job
+  (fn [db]
+    (let [jobs (:list/search-job db)]
+      (-> jobs
+        (update :items (partial map #(get-in db [:app/jobs %])))
+        (update :items (partial filter :job/id))))))
+
+(reg-sub
   :form/search-job-skills
   (fn [db]
     (:search/skills (:form/search-job db))))

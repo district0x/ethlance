@@ -6,8 +6,10 @@
     [ethlance.components.country-select-field :refer [country-select-field]]
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
+    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.components.checkbox-group :refer [checkbox-group]]
     [ethlance.components.layout :refer [col row paper]]
+    [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.components.chip-input :refer [chip-input]]
     [ethlance.styles :as styles]
@@ -20,9 +22,9 @@
    2 "Fixed"})
 
 (def experience-levels-opts
-  {1 "Beginner - $"
-   2 "Intermediate - $$"
-   3 "Expert - $$$"})
+  {1 "Beginner ($)"
+   2 "Intermediate ($$)"
+   3 "Expert ($$$)"})
 
 (def estimated-durations-opts
   {1 "Hours or Days"
@@ -36,6 +38,7 @@
 
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-job])]
+    (dispatch [:contract.search/search-jobs-initiate @form-data])
     (fn []
       (let [{:keys [:search/category :search/min-employer-avg-rating :search/country
                     :search/language :search/experience-levels :search/payment-types
@@ -86,18 +89,42 @@
 
          ]))))
 
-
-
 (defn search-results []
-  (fn []
-    [paper "Results"]))
+  (let [list-search-jobs (subscribe [:list/search-job])]
+    (fn []
+      (let [{:keys [items loading?]} @list-search-jobs]
+        [paper
+         {:loading? loading?}
+         (if (seq items)
+           (for [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
+                         :job/experience-level :job/hours-per-week :job/created-on
+                         :job/description :job/budget :job/skills]} items]
+             [:div {:key id}
+              [:h2
+               (u/anchor {:style styles/job-title} title :job/detail {:job/id id})]
+              [:div {:style styles/job-info}
+               [:span (u/time-ago created-on)]
+               [:span " - " (payment-types-opts payment-type)]
+               [:span " - " (experience-levels-opts experience-level)]
+               [:span " - Est. Time: " (estimated-durations-opts estimated-duration)]
+               [:span " - " (hours-per-weeks-opts hours-per-week)]
+               (when (.greaterThan budget 0)
+                 [:span " - Budget: " (.toNumber budget) " ETH"])]
+              [:div {:style styles/job-description}
+               [truncated-text description]]
+              [skills-chips skills]
+              [:hr]])
+           [row {:center "xs" :middle "xs"
+                 :style {:min-height 200}}
+            (when-not loading?
+              [:h3 "No jobs match your search criteria :("])])]))))
 
 (defn skills-input []
   (let [skills (subscribe [:app/skills])
         selected-skills (subscribe [:form/search-job-skills])]
     (fn []
-      (let [skills-data-source (u/create-data-source @skills)
-            selected-skills-ds (u/create-data-source (select-keys @skills @selected-skills))]
+      (let [skills-data-source (u/create-data-source @skills :skill/name)
+            selected-skills-ds (u/create-data-source (select-keys @skills @selected-skills) :skill/name)]
         [paper
          [chip-input
           {:default-value selected-skills-ds

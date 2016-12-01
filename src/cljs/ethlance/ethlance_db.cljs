@@ -18,13 +18,14 @@
 (def string 7)
 (def big-num 8)
 (def uint-coll 9)
+(def date 10)
 
 (def user-schema
   {:user/address addr
    :user/name string
    :user/gravatar bytes32
    :user/country uint
-   :user/created-on uint
+   :user/created-on date
    :user/status uint8
    :user/freelancer? bool
    :user/employer? bool
@@ -67,7 +68,7 @@
    :job/description string
    :job/language uint
    :job/budget big-num
-   :job/created-on uint
+   :job/created-on date
    :job/category uint8
    :job/payment-type uint8
    :job/experience-level uint8
@@ -79,7 +80,7 @@
    :job/proposals-count uint
    :job/contracts-count uint
    :job/invitations-count uint
-   :job/hiring-done-on uint
+   :job/hiring-done-on date
    :job/total-paid big-num
    :job/skills uint-coll
    :job/proposals uint-coll
@@ -91,7 +92,7 @@
    :job-action/job uint
    :job-action/freelancer uint
    :proposal/rate big-num
-   :proposal/created-on uint
+   :proposal/created-on date
    :proposal/description string
    :invitation/description string
    :invitation/created-on uint})
@@ -101,17 +102,17 @@
    :contract/freelancer uint
    :contract/rate big-num
    :contract/status uint8
-   :contract/created-on uint
+   :contract/created-on date
    :contract/total-invoiced big-num
    :contract/total-paid big-num
    :contract/freelancer-feedback string
    :contract/freelancer-feedback-rating uint8
-   :contract/freelancer-feedback-on uint
+   :contract/freelancer-feedback-on date
    :contract/employer-feedback string
    :contract/employer-feedback-rating uint8
-   :contract/employer-feedback-on uint
+   :contract/employer-feedback-on date
    :contract/done-by-freelancer? bool
-   :contract/done-on uint
+   :contract/done-on date
    :contract/invoices-count uint
    :contract/invoices uint-coll})
 
@@ -122,15 +123,15 @@
    :invoice/worked-hours uint
    :invoice/worked-from uint
    :invoice/worked-to uint
-   :invoice/created-on uint
-   :invoice/paid-on uint
-   :invoice/cancelled-on uint
+   :invoice/created-on date
+   :invoice/paid-on date
+   :invoice/cancelled-on date
    :invoice/status uint8})
 
 (def skill-schema
   {:skill/name bytes32
    :skill/creator uint
-   :skill/created-on uint
+   :skill/created-on date
    :skill/jobs-count uint
    :skill/jobs uint-coll
    :skill/blocked? bool
@@ -232,8 +233,8 @@
     invoice-schema
     skill-schema))
 
-(defn replace-big-num-types [types]
-  (map #(if (= % big-num) uint %) types))
+(defn replace-special-types [types]
+  (map #(if (or (= % date) (= % big-num)) uint %) types))
 
 (defn create-types-map [fields types]
   (reduce
@@ -254,7 +255,7 @@
 
 (defn parse-entity [fields result]
   (let [types (map schema fields)
-        types-map (create-types-map fields (replace-big-num-types types))]
+        types-map (create-types-map fields (replace-special-types types))]
     (reduce (fn [acc [i results-of-type]]
               (let [result-type (inc i)
                     results-of-type (if (= result-type string)
@@ -278,57 +279,89 @@
     bool (if (.eq val 0) false true)
     bytes32 (web3/to-ascii (web3/from-decimal val))
     addr (web3/from-decimal val)
+    date (u/big-num->date-time val)
     big-num val
     (.toNumber val)))
 
-(defn parse-entities [fields result]
-  (let [uint-fields (remove #(= string (schema %)) fields)
+(defn parse-entities [ids fields result]
+  (let [ids (vec ids)
+        uint-fields (remove #(= string (schema %)) fields)
         string-fields (filter #(= string (schema %)) fields)
         uint-fields-count (count uint-fields)]
     (let [parsed-result
           (reduce (fn [acc [i result-item]]
                     (let [entity-index (js/Math.floor (/ i uint-fields-count))
                           field-name (nth uint-fields (mod i uint-fields-count))]
-                      (assoc-in acc [entity-index field-name]
+                      (assoc-in acc [(nth ids entity-index) field-name]
                                 (uint->value result-item (schema field-name)))))
-                  [] (medley/indexed (first result)))]
+                  {} (medley/indexed (first result)))]
       (reduce (fn [acc [entity-index entity-strings]]
                 (reduce (fn [acc [string-index string-value]]
                           (let [field-name (nth string-fields string-index)]
-                            (assoc-in acc [entity-index field-name] string-value)))
+                            (if (seq ids)
+                              (assoc-in acc [(nth ids entity-index) field-name] string-value)
+                              acc)))
                         acc (medley/indexed (string/split entity-strings str-delimiter))))
               parsed-result (medley/indexed (string/split (second result) list-delimiter))))))
 
-(defn log-entities [fields err res]
+(defn parse-entities-field-items [ids+sub-ids field result]
+  (reduce (fn [acc [i result-item]]
+            (let [[id] (nth ids+sub-ids i)]
+              (update-in acc [id field] conj (uint->value result-item uint))))
+          {} (medley/indexed (first result))))
+
+(defn log-entities [ids fields err res]
   (if err
     (console :error err)
-    (console :log (parse-entities fields res))))
+    (console :log (parse-entities ids fields res))))
 
 (defn get-entity-args [id fields]
   (let [fields (remove #(= (schema %) uint-coll) fields)
         records (map #(u/sha3 % id) fields)
-        types (replace-big-num-types (map schema fields))]
+        types (replace-special-types (map schema fields))]
     [fields records types]))
 
 (defn get-entity [id fields instance]
   (let [[fields records types] (get-entity-args id fields)]
-    (web3-eth/contract-call instance :get-entity records (replace-big-num-types types) (partial log-entity fields))))
+    (web3-eth/contract-call instance :get-entity records (replace-special-types types) (partial log-entity fields))))
 
 (defn get-entities-args [ids fields]
   (let [fields (remove #(= (schema %) uint-coll) fields)
         records (flatten (for [id ids]
                            (for [field fields]
                              (u/sha3 field id))))
-        types (replace-big-num-types (map schema fields))]
+        types (replace-special-types (map schema fields))]
     [fields records types]))
+
+(defn id-counts->ids [id-counts]
+  (reduce (fn [acc [id count]]
+            (concat acc (map #(vec [id %]) (range count))))
+          [] id-counts))
+
+(defn get-entities-field-items-args [id-counts field]
+  (let [ids+sub-ids (id-counts->ids id-counts)
+        records (map (fn [[id sub-id]]
+                       (u/sha3 field id sub-id)) ids+sub-ids)]
+    [ids+sub-ids field records [uint]]))
 
 (defn get-entities [ids fields instance]
   (let [[fields records types] (get-entities-args ids fields)]
-    (web3-eth/contract-call instance :get-entity-list records (replace-big-num-types types) (partial log-entities fields))))
+    (web3-eth/contract-call instance :get-entity-list records
+                            (replace-special-types types)
+                            (partial log-entities ids fields))))
+
+(defn get-entities-field-items [id-counts field instance]
+  (let [[ids+sub-ids field records types] (get-entities-field-items-args id-counts field)]
+    (web3-eth/contract-call instance :get-entity-list records types
+                            (fn [err result]
+                              (when err
+                                (console :error err))
+                              (console :log (parse-entities-field-items ids+sub-ids field result))))))
 
 (comment
   (create-types-map [:a :b :c] [1 2 1])
-  (get-entity 1 [:user/address :user/name :user/gravatar :user/country :user/status :user/freelancer?
-                 :user/employer? :user/employer? :freelancer/available? :freelancer/job-title
-                 :freelancer/hourly-rate :freelancer/description :employer/description]
-              (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])))
+  (get-entity 1 (keys account-schema)
+              (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
+  (get-entities [1 2] (keys account-schema) (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
+  (get-entities-field-items {1 3} :freelancer/skills
+                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])))

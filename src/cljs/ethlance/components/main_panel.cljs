@@ -24,11 +24,11 @@
   {:employer/create employer-create-page
    :employer/invoices employer-invoices-page
    :employer/jobs employer-jobs-page
-   :employer/profile employer-profile
+   :employer/detail employer-profile
    :freelancer/create freelancer-create-page
    :freelancer/invoices freelancer-invoices-page
    :freelancer/jobs freelancer-jobs-page
-   :freelancer/profile freelancer-profile
+   :freelancer/detail freelancer-profile
    :home home-page
    :my-profile my-profile-page
    :search/freelancers search-freelancers-page
