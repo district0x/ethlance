@@ -45,7 +45,7 @@
 
 (def nav-items-employer
   [["My Jobs" :employer/jobs (icons/hardware-laptop-mac)]
-   ["My Invoices" :freelancer/invoices (icons/action-assignment)]])
+   ["My Invoices" :employer/invoices (icons/action-assignment)]])
 
 (defn create-menu-items [items]
   (for [[label handler icon] items]
@@ -72,28 +72,37 @@
 
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
-        drawer-open? (subscribe [:db/drawer-open?])]
+        drawer-open? (subscribe [:db/drawer-open?])
+        user (subscribe [:db/active-user])]
     (fn []
-      [ui/mui-theme-provider
-       {:mui-theme (get-mui-theme {:palette styles/palette})}
-       [:div
-        [ui/drawer
-         {:docked true
-          :open @drawer-open?}
-         [ui/app-bar
-          {:title "ethlance"
-           :show-menu-icon-button false}]
-         [ui/selectable-list
-          {:value (u/nsname (:handler @current-page))
-           :style styles/nav-list
-           :on-change (fn [])}
-          (create-menu-items nav-items)
-          [ui/subheader "Freelancer"]
-          (create-menu-items nav-items-freelancers)
-          [ui/subheader "Employer"]
-          (create-menu-items nav-items-employer)]]
-        [ui/app-bar
-         {:show-menu-icon-button false
-          :icon-element-right (r/as-element [my-addresses-select-field])}]
-        (when-let [page (route->component (:handler @current-page))]
-          [page])]])))
+      (let [{:keys [:user/freelancer? :user/employer?]} @user]
+        [ui/mui-theme-provider
+         {:mui-theme styles/mui-theme}
+         [:div
+          [ui/drawer
+           {:docked true
+            :open @drawer-open?}
+           [ui/app-bar
+            {:title "ethlance"
+             :show-menu-icon-button false
+             :style styles/app-bar-left}]
+           [ui/selectable-list
+            {:value (u/nsname (:handler @current-page))
+             :style styles/nav-list
+             :on-change (fn [])}
+            (create-menu-items nav-items)
+            (when (and freelancer? employer?)
+              [ui/subheader "Freelancer"])
+            (when freelancer?
+              (create-menu-items nav-items-freelancers))
+            (when (and freelancer? employer?)
+              [ui/subheader "Employer"])
+            (when employer?
+              (create-menu-items nav-items-employer))]]
+          [ui/app-bar
+           {:show-menu-icon-button false
+            :icon-element-right (r/as-element [my-addresses-select-field])
+            :style styles/app-bar-right}]
+          (when-let [page (route->component (:handler @current-page))]
+            [:div {:style styles/content-wrap}
+             [page]])]]))))

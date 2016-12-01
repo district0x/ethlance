@@ -132,11 +132,18 @@ library JobLibrary {
         return languageId == EthlanceDB(db).getUIntValue(sha3("job/language", jobId));
    }
 
-    function hasEmployerMinRating(address db, uint employerId, uint8 minAvgRating) internal returns(bool) {
+    function hasEmployerMinRating(address db, uint employerId, uint minAvgRating) internal returns(bool) {
         if (minAvgRating == 0) {
             return true;
         }
         return minAvgRating <= UserLibrary.getEmployerAvgRating(db, employerId);
+    }
+
+    function hasEmployerMinRatingsCount(address db, uint employerId, uint minRatingsCount) internal returns(bool) {
+        if (minRatingsCount == 0) {
+            return true;
+        }
+        return minRatingsCount <= EthlanceDB(db).getUIntValue(sha3("employer/ratings-count", employerId));
     }
 
     function statusPred(address db, uint[] args, uint jobId) internal returns(bool) {
@@ -148,10 +155,7 @@ library JobLibrary {
         uint categoryId,
         uint[] skills,
         uint8[][4] uint8Filters,
-        uint minBudget,
-        uint8 minEmployerAvgRating,
-        uint countryId,
-        uint languageId
+        uint[] uintArgs
     )
         internal returns (uint[] jobIds)
     {
@@ -169,10 +173,11 @@ library JobLibrary {
                 SharedLibrary.containsValue(db, jobId, "job/experience-level", uint8Filters[1]) &&
                 SharedLibrary.containsValue(db, jobId, "job/estimated-duration", uint8Filters[2]) &&
                 SharedLibrary.containsValue(db, jobId, "job/hours-per-week", uint8Filters[3]) &&
-                hasMinBudget(db, jobId, minBudget) &&
-                hasEmployerMinRating(db, jobId, minEmployerAvgRating) &&
-                UserLibrary.isFromCountry(db, jobId, countryId) &&
-                hasLanguage(db, jobId, languageId) &&
+                hasMinBudget(db, jobId, uintArgs[0]) &&
+                hasEmployerMinRating(db, jobId, uintArgs[1]) &&
+                hasEmployerMinRatingsCount(db, employerId, uintArgs[2]) &&
+                UserLibrary.isFromCountry(db, jobId, uintArgs[3]) &&
+                hasLanguage(db, jobId, uintArgs[4]) &&
                 UserLibrary.hasStatus(db, employerId, 1)
                 )
             {

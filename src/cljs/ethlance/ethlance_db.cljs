@@ -1,11 +1,13 @@
 (ns ethlance.ethlance-db
   (:refer-clojure :exclude [int])
   (:require
+    [cljs-web3.core :as web3]
     [cljs-web3.eth :as web3-eth]
+    [clojure.string :as string]
     [ethlance.utils :as u]
-    [re-frame.core :refer [console dispatch]]
     [medley.core :as medley]
-    [cljs-web3.core :as web3]))
+    [re-frame.core :refer [console dispatch]]
+    ))
 
 (def bool 1)
 (def uint8 2)
@@ -19,7 +21,7 @@
 
 (def user-schema
   {:user/address addr
-   :user/name bytes32
+   :user/name string
    :user/gravatar bytes32
    :user/country uint
    :user/created-on uint
@@ -31,7 +33,7 @@
 
 (def freelancer-schema
   {:freelancer/available? bool
-   :freelancer/job-title bytes32
+   :freelancer/job-title string
    :freelancer/hourly-rate big-num
    :freelancer/description string
    :freelancer/skills-count uint
@@ -54,7 +56,7 @@
    :employer/jobs uint-coll
    :employer/ratings-count uint})
 
-(def member-schema
+(def account-schema
   (merge user-schema
          freelancer-schema
          employer-schema))
@@ -127,6 +129,8 @@
 
 (def skill-schema
   {:skill/name bytes32
+   :skill/creator uint
+   :skill/created-on uint
    :skill/jobs-count uint
    :skill/jobs uint-coll
    :skill/blocked? bool
@@ -162,8 +166,11 @@
 
 (def search-jobs-args
   [:search/category :search/skills :search/payment-types :search/experience-levels :search/estimated-durations
-   :search/hours-per-weeks :search/min-budget :search/min-employer-avg-rating :search/country :search/language
-   :search/offset :search/limit])
+   :search/hours-per-weeks])
+
+(def search-jobs-nested-args
+  [:search/min-budget :search/min-employer-avg-rating :search/min-employer-ratings-count
+   :search/country :search/language :search/offset :search/limit])
 
 (def add-invitation-args
   [:job-action/job :job-action/freelancer :invitation/description])
@@ -211,6 +218,9 @@
 (def get-employer-jobs-args
   [:user/id :job/status])
 
+(def get-users-args
+  [:user/addresses])
+
 (def schema
   (merge
     user-schema
@@ -239,20 +249,23 @@
     uint8 (.toNumber val)
     val))
 
+(def str-delimiter "99--DELIMITER--11")
+(def list-delimiter "99--DELIMITER-LIST--11")
+
 (defn parse-entity [fields result]
   (let [types (map schema fields)
         types-map (create-types-map fields (replace-big-num-types types))]
     (reduce (fn [acc [i results-of-type]]
-              (let [result-type (inc i)]
+              (let [result-type (inc i)
+                    results-of-type (if (= result-type string)
+                                      (string/split results-of-type str-delimiter)
+                                      results-of-type)]
                 (merge acc
-                       (if (= result-type string)
-                         (when-let [string-field-name (get-in types-map [result-type 0])]
-                           {string-field-name results-of-type})
-                         (into {}
-                               (for [[j res] (medley/indexed results-of-type)]
-                                 (when-let [field-name (get-in types-map [result-type j])]
-                                   {field-name
-                                    (parse-value res (schema field-name))})))))))
+                       (into {}
+                             (for [[j res] (medley/indexed results-of-type)]
+                               (when-let [field-name (get-in types-map [result-type j])]
+                                 {field-name
+                                  (parse-value res (schema field-name))}))))))
             {} (medley/indexed result))))
 
 (defn log-entity [fields err res]
@@ -262,37 +275,55 @@
 
 (defn uint->value [val val-type]
   (condp = val-type
-    bool (if (= val 0) false true)
+    bool (if (.eq val 0) false true)
     bytes32 (web3/to-ascii (web3/from-decimal val))
+    addr (web3/from-decimal val)
     big-num val
     (.toNumber val)))
 
 (defn parse-entities [fields result]
-  (reduce (fn [acc [field-index results-of-field]]
-            (reduce (fn [acc [item-index result-field]]
-                      (let [field-name (nth fields field-index)]
-                        (assoc-in acc
-                                  [item-index field-name]
-                                  (uint->value result-field (schema field-name)))))
-                    acc (medley/indexed results-of-field)))
-          [] (medley/indexed result)))
+  (let [uint-fields (remove #(= string (schema %)) fields)
+        string-fields (filter #(= string (schema %)) fields)
+        uint-fields-count (count uint-fields)]
+    (let [parsed-result
+          (reduce (fn [acc [i result-item]]
+                    (let [entity-index (js/Math.floor (/ i uint-fields-count))
+                          field-name (nth uint-fields (mod i uint-fields-count))]
+                      (assoc-in acc [entity-index field-name]
+                                (uint->value result-item (schema field-name)))))
+                  [] (medley/indexed (first result)))]
+      (reduce (fn [acc [entity-index entity-strings]]
+                (reduce (fn [acc [string-index string-value]]
+                          (let [field-name (nth string-fields string-index)]
+                            (assoc-in acc [entity-index field-name] string-value)))
+                        acc (medley/indexed (string/split entity-strings str-delimiter))))
+              parsed-result (medley/indexed (string/split (second result) list-delimiter))))))
 
 (defn log-entities [fields err res]
   (if err
     (console :error err)
     (console :log (parse-entities fields res))))
 
-(defn get-entity [id fields instance]
+(defn get-entity-args [id fields]
   (let [fields (remove #(= (schema %) uint-coll) fields)
         records (map #(u/sha3 % id) fields)
-        types (map schema fields)]
+        types (replace-big-num-types (map schema fields))]
+    [fields records types]))
+
+(defn get-entity [id fields instance]
+  (let [[fields records types] (get-entity-args id fields)]
     (web3-eth/contract-call instance :get-entity records (replace-big-num-types types) (partial log-entity fields))))
 
-(defn get-entity-list [ids fields instance]
-  (let [records (flatten (for [id ids]
+(defn get-entities-args [ids fields]
+  (let [fields (remove #(= (schema %) uint-coll) fields)
+        records (flatten (for [id ids]
                            (for [field fields]
                              (u/sha3 field id))))
-        types (map schema fields)]
+        types (replace-big-num-types (map schema fields))]
+    [fields records types]))
+
+(defn get-entities [ids fields instance]
+  (let [[fields records types] (get-entities-args ids fields)]
     (web3-eth/contract-call instance :get-entity-list records (replace-big-num-types types) (partial log-entities fields))))
 
 (comment
@@ -300,4 +331,4 @@
   (get-entity 1 [:user/address :user/name :user/gravatar :user/country :user/status :user/freelancer?
                  :user/employer? :user/employer? :freelancer/available? :freelancer/job-title
                  :freelancer/hourly-rate :freelancer/description :employer/description]
-              (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance])))
+              (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])))

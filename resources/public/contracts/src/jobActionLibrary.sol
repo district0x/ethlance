@@ -77,7 +77,7 @@ library JobActionLibrary {
     }
     
     function getJobAction(address db, uint freelancerId, uint jobId) internal returns (uint) {
-        return EthlanceDB(db).getUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId));
+        return EthlanceDB(db).getUIntValue(sha3("job-action/freelancer+job->job-action", freelancerId, jobId));
     }
 
     function getFreelancer(address db, uint jobActionId) internal returns(uint) {
@@ -91,6 +91,6 @@ library JobActionLibrary {
     function setFreelancerJobIndex(address db, uint jobActionId, uint freelancerId, uint jobId) internal {
         EthlanceDB(db).setUIntValue(sha3("job-action/freelancer", jobActionId), freelancerId);
         EthlanceDB(db).setUIntValue(sha3("job-action/job", jobActionId), jobId);
-        EthlanceDB(db).setUIntValue(sha3("job-action/freelancer-job", freelancerId, jobId), jobActionId);
+        EthlanceDB(db).setUIntValue(sha3("job-action/freelancer+job->job-action", freelancerId, jobId), jobActionId);
     }
 }

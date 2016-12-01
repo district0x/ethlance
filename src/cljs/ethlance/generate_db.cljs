@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx trim-v after reg-fx console dispatch]]))
 
 (def freelancer1
-  {:user/name "Mataaa"
+  {:user/name "Matúš Lešťan"
    :user/gravatar "abc"
    :user/country 1
    :user/languages [1]
@@ -11,17 +11,17 @@
    :freelancer/hourly-rate 8
    :freelancer/categories [1 2]
    :freelancer/skills [3 4 5]
-   :freelancer/description "asdasdasd" #_(doall (reduce str (range 100)))})
+   :freelancer/description "My name is Matúš Lešťan asdasdasd" #_(doall (reduce str (range 100)))})
 
 (def employer1
   {:user/name "Employerr"
    :user/gravatar "aaaabbb"
-   :user/country 1
+   :user/country 2
    :user/languages [1]
    :employer/description "hahaha"})
 
 (def job1
-  {:job/title "This is Job 1"
+  {:job/title "This is Job 1 šššččč"
    :job/description "Asdkaas  aspokd aps asopdk ap"
    :job/skills [2 3 4]
    :job/budget 10
@@ -78,7 +78,7 @@
   (nth (:my-addresses @re-frame.db/app-db) n))
 
 (def skills1
-  {:skill/names ["Clojurescript" "Ethereum" "Solidity"]})
+  {:skill/names ["Clojurescript" "Ethereum" "Solidity" "škill" "key" "codes" "used" "to" "determine" "when" "to" "create" "a" "new" "chip"]})
 
 (reg-event-fx
   :generate-db
@@ -88,15 +88,15 @@
      :dispatch-later [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}
                       {:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}
                       {:ms 20 :dispatch [:contract.job/add job1 (get-address 1)]}
-                      {:ms 30 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
-                      {:ms 40 :dispatch [:contract.job/add-proposal proposal1 (get-address 0)]}
-                      {:ms 50 :dispatch [:contract.contract/add contract1 (get-address 1)]}
-                      {:ms 60 :dispatch [:contract.invoice/add invoice1 (get-address 0)]}
-                      {:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
-                      {:ms 80 :dispatch [:contract.invoice/add invoice2 (get-address 0)]}
-                      {:ms 90 :dispatch [:contract.invoice/cancel {:invoice/id 2} (get-address 0)]}
-                      {:ms 100 :dispatch [:contract.contract/add-feedback feedback1 (get-address 0)]}
-                      {:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}
+                      ;{:ms 30 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
+                      ;{:ms 40 :dispatch [:contract.job/add-proposal proposal1 (get-address 0)]}
+                      ;{:ms 50 :dispatch [:contract.contract/add contract1 (get-address 1)]}
+                      ;{:ms 60 :dispatch [:contract.invoice/add invoice1 (get-address 0)]}
+                      ;{:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
+                      ;{:ms 80 :dispatch [:contract.invoice/add invoice2 (get-address 0)]}
+                      ;{:ms 90 :dispatch [:contract.invoice/cancel {:invoice/id 2} (get-address 0)]}
+                      ;{:ms 100 :dispatch [:contract.contract/add-feedback feedback1 (get-address 0)]}
+                      ;{:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}
                       ]}))
 
 

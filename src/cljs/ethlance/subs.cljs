@@ -28,3 +28,35 @@
   :db/my-addresses
   (fn [db _]
     (:my-addresses db)))
+
+(reg-sub
+  :db/active-user-id
+  (fn [db]
+    ((:address->user-id db) (:active-address db))))
+
+(reg-sub
+  :app/users
+  (fn [db]
+    (:app/users db)))
+
+(reg-sub
+  :db/active-user
+  :<- [:db/active-user-id]
+  :<- [:app/users]
+  (fn [[active-user-id users]]
+    (get users active-user-id)))
+
+(reg-sub
+  :form/search-job
+  (fn [db]
+    (:form/search-job db)))
+
+(reg-sub
+  :form/search-job-skills
+  (fn [db]
+    (:search/skills (:form/search-job db))))
+
+(reg-sub
+  :app/skills
+  (fn [db]
+    (:app/skills db)))

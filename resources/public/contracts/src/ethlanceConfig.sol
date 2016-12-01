@@ -35,7 +35,7 @@ contract EthlanceConfig is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveUser
     {
-        var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names);
+        var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names, getSenderUserId());
         onSkillsAdded(skillIds, names);
     }
 

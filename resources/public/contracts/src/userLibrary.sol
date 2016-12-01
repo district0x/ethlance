@@ -23,13 +23,22 @@ library UserLibrary {
         return EthlanceDB(db).getUIntValue(sha3("user/ids", userAddress));
     }
 
+    function getUserIds(address db, address[] addresses) internal returns(uint[] result) {
+        uint j;
+        result = new uint[](addresses.length);
+        for (uint i = 0; i < addresses.length ; i++) {
+            result[i] = getUserId(db, addresses[i]);
+        }
+        return result;
+    }
+
     function getUserAddress(address db, uint userId) internal returns(address){
         return EthlanceDB(db).getAddressValue(sha3("user/address", userId));
     }
 
     function setUser(address db,
         address userAddress,
-        bytes32 name,
+        string name,
         bytes32 gravatar,
         uint country,
         uint[] languages
@@ -44,7 +53,7 @@ library UserLibrary {
             userId = SharedLibrary.createNext(db, "user/count");
         }
         EthlanceDB(db).setAddressValue(sha3("user/address", userId), userAddress);
-        EthlanceDB(db).setBytes32Value(sha3("user/name", userId), name);
+        EthlanceDB(db).setStringValue(sha3("user/name", userId), name);
         EthlanceDB(db).setBytes32Value(sha3("user/gravatar", userId), gravatar);
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
         EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
@@ -57,7 +66,7 @@ library UserLibrary {
     function setFreelancer(address db,
         uint userId,
         bool isAvailable,
-        bytes32 jobTitle,
+        string jobTitle,
         uint hourlyRate,
         uint[] categories,
         uint[] skills,
@@ -68,12 +77,13 @@ library UserLibrary {
         if (userId == 0) throw;
         EthlanceDB(db).setBooleanValue(sha3("user/freelancer?", userId), true);
         EthlanceDB(db).setBooleanValue(sha3("freelancer/available?", userId), isAvailable);
-        EthlanceDB(db).setBytes32Value(sha3("freelancer/job-title", userId), jobTitle);
+        EthlanceDB(db).setStringValue(sha3("freelancer/job-title", userId), jobTitle);
         EthlanceDB(db).setUIntValue(sha3("freelancer/hourly-rate", userId), hourlyRate);
         EthlanceDB(db).setStringValue(sha3("freelancer/description", userId), description);
         setFreelancerSkills(db, userId, skills);
         setFreelancerCategories(db, userId, categories);
     }
+
 
     function setEmployer(address db,
         uint userId,

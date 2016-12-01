@@ -172,13 +172,20 @@ library SharedLibrary {
         internal returns (uint[] result)
     {
         var maxCount = getMaxCount(db);
+        uint i;
         if (maxCount == 0) {
             return result;
+        }
+        if (skills.length == 0 && categoryId == 0) {
+            result = new uint[](maxCount);
+            for (i = 0; i < maxCount ; i++) {
+                result[i] = i + 1;
+            }
         }
 
         if (skills.length > 0) {
             result = getFromSkills(db, skills[0]);
-            for (uint i = 1; i < skills.length ; i++) {
+            for (i = 1; i < skills.length ; i++) {
                 result = intersect(result, getFromSkills(db, skills[i]));
             }
         }

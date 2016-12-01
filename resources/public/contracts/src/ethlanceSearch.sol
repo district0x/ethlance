@@ -22,12 +22,7 @@ contract EthlanceSearch {
         uint8[] experienceLevels,
         uint8[] estimatedDurations,
         uint8[] hoursPerWeeks,
-        uint minBudget,
-        uint8 minEmployerAvgRating,
-        uint countryId,
-        uint languageId,
-        uint offset,
-        uint limit
+        uint[] uintArgs
     )
         constant public returns (uint[] jobIds)
     {
@@ -36,8 +31,8 @@ contract EthlanceSearch {
         uint8Filters[1] = experienceLevels;
         uint8Filters[2] = estimatedDurations;
         uint8Filters[3] = hoursPerWeeks;
-        jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, minBudget, minEmployerAvgRating, countryId, languageId);
-        return  SharedLibrary.getPage(jobIds, offset, limit);
+        jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, uintArgs);
+        return  SharedLibrary.getPage(jobIds, uintArgs[5], uintArgs[6]);
     }
 
     function searchFreelancers(

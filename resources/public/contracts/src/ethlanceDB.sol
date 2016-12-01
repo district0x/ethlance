@@ -2,9 +2,11 @@ pragma solidity ^0.4.4;
 
 import "Ownable.sol";
 import "safeMath.sol";
+import "strings.sol";
 
 
 contract EthlanceDB is Ownable {
+    using strings for *;
 
     address[] public allowedContractsKeys;
     mapping(address => bool) public allowedContracts;
@@ -262,32 +264,11 @@ contract EthlanceDB is Ownable {
                 counts[5]++;
 
             } else if (recordType == 7) {
-                str = getStringValue(record);
+                str = str.toSlice().concat(getStringValue(record).toSlice());
+                str = str.toSlice().concat("99--DELIMITER--11".toSlice());
             }
         }
         return (bools, uint8s, uints, addresses, bytes32s, ints, str);
-    }
-
-    function getEntityStrings(bytes32[] records)
-            public constant returns
-    (
-        string string1,
-        string string2,
-        string string3,
-        string string4,
-        string string5,
-        string string6,
-        string string7
-    )
-    {
-        string1 = getStringValue(records[0]);
-        string2 = getStringValue(records[1]);
-        string3 = getStringValue(records[2]);
-        string4 = getStringValue(records[3]);
-        string5 = getStringValue(records[4]);
-        string6 = getStringValue(records[5]);
-        string7 = getStringValue(records[6]);
-        return (string1, string2, string3, string4, string5, string6, string7);
     }
 
     function booleanToUInt(bool x) constant returns (uint) {
@@ -305,6 +286,8 @@ contract EthlanceDB is Ownable {
             return uint(getUInt8Value(record));
         } else if (uintType == 3) {
             return getUIntValue(record);
+        } else if (uintType == 4) {
+            return uint(bytes32(getAddressValue(record)));
         } else if (uintType == 5) {
             return uint(getBytes32Value(record));
         } else {
@@ -312,63 +295,101 @@ contract EthlanceDB is Ownable {
         }
     }
 
-    function getEntityList(bytes32[] records, uint8[] uintTypes)
-            public constant returns
+    function getUIntTypesCount(uint8[] types) constant returns(uint count) {
+        count = 0;
+        for (uint i = 0; i < types.length ; i++) {
+            if (types[i] != 7) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    function getEntityList(bytes32[] records, uint8[] types)
+        public constant returns
     (
-        uint[] items1,
-        uint[] items2,
-        uint[] items3,
-        uint[] items4,
-        uint[] items5,
-        uint[] items6,
-        uint[] items7
+        uint[] items,
+        string strs
     )
     {
-        uint itemsCount = records.length / uintTypes.length;
-        uint typesLength = uintTypes.length;
-        items1 = new uint[](itemsCount);
+        uint uintTypesCount = getUIntTypesCount(types);
+        uint itemsCount = records.length / types.length;
 
-        if (typesLength > 1) {
-            items2 = new uint[](itemsCount);
-        }
-        if (typesLength > 2) {
-            items3 = new uint[](itemsCount);
-        }
-        if (typesLength > 3) {
-            items4 = new uint[](itemsCount);
-        }
-        if (typesLength > 4) {
-            items5 = new uint[](itemsCount);
-        }
-        if (typesLength > 5) {
-            items6 = new uint[](itemsCount);
-        }
-        if (typesLength > 6) {
-            items7 = new uint[](itemsCount);
-        }
-
+        items = new uint[](itemsCount * uintTypesCount);
+        uint k;
         for (uint i = 0; i < itemsCount; i++) {
-            items1[i] = getUIntValueConverted(records[i * typesLength], uintTypes[0]);
-
-            if (typesLength > 1) {
-                items2[i] = getUIntValueConverted(records[(i * typesLength) + 1], uintTypes[1]);
+            for (uint j = 0; j < types.length; j++) {
+                uint r_i = (i * types.length) + j;
+                if (types[j] == 7) {
+                    strs = strs.toSlice().concat(getStringValue(records[r_i]).toSlice());
+                    strs = strs.toSlice().concat("99--DELIMITER--11".toSlice());
+                } else {
+                    items[k] = getUIntValueConverted(records[r_i], types[j]);
+                    k++;
+                }
             }
-            if (typesLength > 2) {
-                items3[i] = getUIntValueConverted(records[(i * typesLength) + 2], uintTypes[2]);
-            }
-            if (typesLength > 3) {
-                items4[i] = getUIntValueConverted(records[(i * typesLength) + 3], uintTypes[3]);
-            }
-            if (typesLength > 4) {
-                items5[i] = getUIntValueConverted(records[(i * typesLength) + 4], uintTypes[4]);
-            }
-            if (typesLength > 5) {
-                items6[i] = getUIntValueConverted(records[(i * typesLength) + 5], uintTypes[5]);
-            }
-            if (typesLength > 6) {
-                items7[i] = getUIntValueConverted(records[(i * typesLength) + 6], uintTypes[6]);
-            }
+            strs = strs.toSlice().concat("99--DELIMITER-LIST--11".toSlice());
         }
-        return (items1, items2, items3, items4, items5, items6, items7);
+        return (items, strs);
     }
+
+//    function getEntityList(bytes32[] records, uint8[] uintTypes)
+//            public constant returns
+//    (
+//        uint[] items1,
+//        uint[] items2,
+//        uint[] items3,
+//        uint[] items4,
+//        uint[] items5,
+//        uint[] items6,
+//        uint[] items7
+//    )
+//    {
+//        uint itemsCount = records.length / uintTypes.length;
+//        uint typesLength = uintTypes.length;
+//        items1 = new uint[](itemsCount);
+//
+//        if (typesLength > 1) {
+//            items2 = new uint[](itemsCount);
+//        }
+//        if (typesLength > 2) {
+//            items3 = new uint[](itemsCount);
+//        }
+//        if (typesLength > 3) {
+//            items4 = new uint[](itemsCount);
+//        }
+//        if (typesLength > 4) {
+//            items5 = new uint[](itemsCount);
+//        }
+//        if (typesLength > 5) {
+//            items6 = new uint[](itemsCount);
+//        }
+//        if (typesLength > 6) {
+//            items7 = new uint[](itemsCount);
+//        }
+//
+//        for (uint i = 0; i < itemsCount; i++) {
+//            items1[i] = getUIntValueConverted(records[i * typesLength], uintTypes[0]);
+//
+//            if (typesLength > 1) {
+//                items2[i] = getUIntValueConverted(records[(i * typesLength) + 1], uintTypes[1]);
+//            }
+//            if (typesLength > 2) {
+//                items3[i] = getUIntValueConverted(records[(i * typesLength) + 2], uintTypes[2]);
+//            }
+//            if (typesLength > 3) {
+//                items4[i] = getUIntValueConverted(records[(i * typesLength) + 3], uintTypes[3]);
+//            }
+//            if (typesLength > 4) {
+//                items5[i] = getUIntValueConverted(records[(i * typesLength) + 4], uintTypes[4]);
+//            }
+//            if (typesLength > 5) {
+//                items6[i] = getUIntValueConverted(records[(i * typesLength) + 5], uintTypes[5]);
+//            }
+//            if (typesLength > 6) {
+//                items7[i] = getUIntValueConverted(records[(i * typesLength) + 6], uintTypes[6]);
+//            }
+//        }
+//        return (items1, items2, items3, items4, items5, items6, items7);
+//    }
 }

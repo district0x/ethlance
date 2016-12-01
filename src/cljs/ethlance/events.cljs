@@ -10,7 +10,7 @@
     [day8.re-frame.async-flow-fx]
     [day8.re-frame.http-fx]
     [ethlance.db :refer [default-db]]
-    [ethlance.ethlance-db :as ethlance-db :refer [get-entity get-entity-list]]
+    [ethlance.ethlance-db :as ethlance-db :refer [get-entity get-entities]]
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [goog.string.format]
@@ -40,10 +40,10 @@
 (def max-gas 4700000)
 
 (defn get-contract [db key]
-  (get-in db [:contracts key]))
+  (get-in db [:eth/contracts key]))
 
 (defn get-instance [db key]
-  (get-in db [:contracts key :instance]))
+  (get-in db [:eth/contracts key :instance]))
 
 (defn storage-keys [& args]
   (apply web3-eth/contract-call (get-instance @re-frame.db/app-db :ethlance-db) :storage-keys args))
@@ -52,124 +52,30 @@
   (into [] ((apply juxt args-order) values)))
 
 (defn get-ethlance-db []
-  (get-in @re-frame.db/app-db [:contracts :ethlance-db :instance]))
+  (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
 
-(comment
-  (dispatch [:initialize])
-  (dispatch [:print-db])
-  (dispatch [:deploy-contracts])
-  (dispatch [:estimate-contracts])
-  (dispatch [:clean-localstorage true])
-  (dispatch [:print-localstorage])
-  (dispatch [:contract.config/set-configs])
-  (dispatch [:contract.db/add-allowed-contracts])
-  (dispatch [:contract/call :ethlance-db :get-allowed-contracts])
-  (dispatch [:contract/call :ethlance-db :allowed-contracts-keys 5])
-  (dispatch [:contract/call :ethlance-user :get-config "max-user-languages"])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :user/count)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job/count)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :category/jobs-count 1)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :skill/jobs-count 5)])
-  (dispatch [:contract/call :ethlance-db :get-address-value (u/sha3 :user/address 1)])
-  (dispatch [:contract/call :ethlance-db :get-bytes32-value (u/sha3 :user/name 1)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :freelancer/hourly-rate 1)])
-  (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :freelancer/description 1)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job-action/freelancer-job 1 1)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
-  (get-entity 1 (keys ethlance-db/member-schema) (get-ethlance-db))
+(defn get-entity-fn [instance id fields on-success on-failure]
+  (let [[fields records types] (ethlance-db/get-entity-args id fields)]
+    [instance :get-entity records types [:entity-loaded fields on-success] on-failure]))
 
-  (get-entity 2 (keys ethlance-db/member-schema) (get-ethlance-db))
+(defn get-entities-fn [instance ids fields on-success on-failure]
+  (let [[fields records types] (ethlance-db/get-entities-args ids fields)]
+    [instance :get-entity-list records types [:entities-loaded fields on-success] on-failure]))
 
-  (get-entity 1 (keys ethlance-db/job-action-schema) (get-ethlance-db))
-  (get-entity 1 (keys ethlance-db/job-schema) (get-ethlance-db))
 
-  (get-entity 1 (keys ethlance-db/contract-schema) (get-ethlance-db))
-
-  (get-entity 1 (keys ethlance-db/invoice-schema) (get-ethlance-db))
-
-  (get-entity 1 [:freelancer/job-title :user/name :user/gravatar] (get-ethlance-db))
-
-  (get-entity-list [1 2] [:user/name :user/country :user/freelancer?] (get-ethlance-db))
-
-  (get-entity-list [2 3 1 1 1 1] [:skill/name] (get-ethlance-db))
-
-  (dispatch [:contract.user/register-freelancer {:user/name "Mataaa"
-                                                 :user/gravatar "abc"
-                                                 :user/country 1
-                                                 :user/languages [1]
-                                                 :freelancer/available? true
-                                                 :freelancer/job-title "Cljs dev"
-                                                 :freelancer/hourly-rate 10
-                                                 :freelancer/categories [1 2]
-                                                 :freelancer/skills [3 4 5]
-                                                 :freelancer/description "asdasdasd" #_(doall (reduce str (range 100)))}])
-
-  (dispatch [:contract.user/register-employer {:user/name "Mataaa"
-                                               :user/gravatar "abc"
-                                               :user/country 1
-                                               :user/languages [1]
-                                               :employer/description "employdescribptions"}])
-
-  (dispatch [:contract.user/search-freelancers {:search/category 1
-                                                :search/skills [3]
-                                                :search/min-avg-rating 0
-                                                :search/min-contracts-count 0
-                                                :search/min-hourly-rate 0
-                                                :search/max-hourly-rate 1
-                                                :search/country 0
-                                                :search/language 0
-                                                :search/offset 0
-                                                :search/limit 10}])
-
-  (dispatch [:contract.job/add {:job/title "This is Job 1"
-                                :job/description "Asdkaas  aspokd aps asopdk ap"
-                                :job/skills [3 4 5]
-                                :job/budget 10
-                                :job/language 1
-                                :job/category 1
-                                :job/payment-type 1
-                                :job/experience-level 1
-                                :job/estimated-duration 1
-                                :job/hours-per-week 1
-                                :job/freelancers-needed 2}])
-
-  (dispatch [:contract.user/search-jobs {:search/category 0
-                                         :search/skills []
-                                         :search/payment-types []
-                                         :search/experience-levels []
-                                         :search/estimated-durations []
-                                         :search/hours-per-weeks []
-                                         :search/min-budget 0
-                                         :search/min-employer-avg-rating 0
-                                         :search/country 0
-                                         :search/language 0
-                                         :search/offset 0
-                                         :search/limit 10}])
-  (dispatch [:contract/state-call :ethlance-user :test-db 5])
-
-  (dispatch [:contract.views/get-freelancer-job-actions {:user/id 1
-                                                         :job-action/status 1
-                                                         :job/status 1}])
-
-  (dispatch [:contract.views/get-freelancer-invoices {:user/id 1 :invoice/status 1}])
-  (dispatch [:contract.views/get-freelancer-contracts {:user/id 1 :contract/done? true}])
-  (dispatch [:contract.views/get-job-contracts {:job/id 1}])
-  (dispatch [:contract.views/get-job-proposals {:job/id 1}])
-  (dispatch [:contract.views/get-job-invoices {:job/id 1 :invoice/status 3}])
-  (dispatch [:contract.views/get-employer-jobs {:user/id 2 :job/status 2}])
-
-  )
 (reg-event-fx
   :initialize
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
     (let [{:keys [web3 provides-web3?]} default-db]
-      (.clear js/console)
+      ;(.clear js/console)
       (merge
         {:db (merge-with (partial merge-with merge) default-db localstorage)
          :async-flow {:first-dispatch [:load-contracts]
-                      :rules [{:when :seen? :events [:contracts-loaded :blockchain/my-addresses-loaded]
-                               :dispatch [:boot-success]}]}}
+                      :rules [{:when :seen?
+                               :events [:contracts-loaded :blockchain/my-addresses-loaded]
+                               :dispatch-n [[:contract.views/load-my-user-ids]]
+                               :halt? true}]}}
         (when provides-web3?
           {:web3-fx.blockchain/fns
            {:web3 web3
@@ -180,7 +86,7 @@
   interceptors
   (fn [{:keys [db]}]
     {:http-xhrio
-     (for [[key {:keys [name]}] (:contracts db)]
+     (for [[key {:keys [name]}] (:eth/contracts db)]
        (for [code-type (if goog.DEBUG [:abi :bin] [:abi])]
          (contract-xhrio name code-type [:contract/loaded key code-type] [:log-error])))}))
 
@@ -188,7 +94,7 @@
   :deploy-contracts
   interceptors
   (fn [{:keys [db]}]
-    (let [ethance-db (get-in db [:contracts :ethlance-db])]
+    (let [ethance-db (get-in db [:eth/contracts :ethlance-db])]
       {:web3-fx.blockchain/fns
        {:web3 (:web3 db)
         :fns [[web3-eth/contract-new
@@ -205,11 +111,11 @@
   (fn [{:keys [db localstorage]} [instance]]
     (when-let [db-address (aget instance "address")]
       (console :log :ethlance-db " deployed at " db-address)
-      {:db (update-in db [:contracts :ethlance-db] merge {:address db-address :instance instance})
-       :localstorage (assoc-in localstorage [:contracts :ethlance-db] {:address db-address})
+      {:db (update-in db [:eth/contracts :ethlance-db] merge {:address db-address :instance instance})
+       :localstorage (assoc-in localstorage [:eth/contracts :ethlance-db] {:address db-address})
        :web3-fx.blockchain/fns
        {:web3 (:web3 db)
-        :fns (for [[key {:keys [abi bin]}] (dissoc (:contracts db) :ethlance-db)]
+        :fns (for [[key {:keys [abi bin]}] (dissoc (:eth/contracts db) :ethlance-db)]
                [web3-eth/contract-new
                 abi
                 db-address
@@ -226,9 +132,9 @@
     (when-let [contract-address (aget instance "address")]
       (console :log key " deployed at " contract-address)
       (merge
-        {:db (update-in db [:contracts key] merge {:address contract-address
-                                                   :instance instance})
-         :localstorage (assoc-in localstorage [:contracts key] {:address contract-address})}
+        {:db (update-in db [:eth/contracts key] merge {:address contract-address
+                                                       :instance instance})
+         :localstorage (assoc-in localstorage [:eth/contracts key] {:address contract-address})}
         (when (:setter? (get-contract db key))
           {:dispatch [:contract.db/add-allowed-contracts [key]]})))))
 
@@ -238,7 +144,7 @@
   (fn [{:keys [db]}]
     {:web3-fx.blockchain/fns
      {:web3 (:web3 db)
-      :fns (for [[key {:keys [abi bin]}] (:contracts db)]
+      :fns (for [[key {:keys [abi bin]}] (:eth/contracts db)]
              [web3-eth/estimate-gas
               {:data bin}
               [:contract/estimate-gas-result key]
@@ -259,19 +165,24 @@
 
 (reg-event-fx
   :set-active-address
-  interceptors
-  (fn [{:keys [db]} [address]]
-    {:db (assoc db :active-address address)}))
+  [interceptors (inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [address]]
+    {:db (-> db
+           (assoc :active-address address))
+     :localstorage (assoc localstorage :active-address address)}))
 
 (reg-event-fx
   :blockchain/my-addresses-loaded
-  interceptors
-  (fn [{:keys [db]} [addresses]]
-    (let [addresses-map (reduce #(assoc %1 %2 {:address %2}) {} addresses)]
+  [interceptors (inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [addresses]]
+    (let [addresses-map (reduce #(assoc %1 %2 {:address %2}) {} addresses)
+          active-address (if (contains? (set addresses) (:active-address localstorage))
+                           (:active-address localstorage)
+                           (first addresses))]
       (merge
         {:db (-> db
                (assoc :my-addresses addresses)
-               (assoc :active-address (first addresses))
+               (assoc :active-address active-address)
                (update :accounts merge addresses-map))
          :web3-fx.blockchain/balances
          {:web3 (:web3 db)
@@ -294,58 +205,35 @@
     (let [code (if (= code-type :abi) (clj->js code) code)]
       (let [new-db (cond-> db
                      true
-                     (assoc-in [:contracts contract-key code-type] code)
+                     (assoc-in [:eth/contracts contract-key code-type] code)
 
                      (= code-type :abi)
-                     (assoc-in [:contracts contract-key :instance]
+                     (assoc-in [:eth/contracts contract-key :instance]
                                (when-let [address (:address (get-contract db contract-key))]
                                  (web3-eth/contract-at (:web3 db) code address))))]
         (merge
           {:db new-db}
-          (when (every? #(and (:abi %) (:bin %)) (vals (:contracts new-db)))
+          (when (every? #(and (:abi %) (:bin %)) (vals (:eth/contracts new-db)))
             {:dispatch [:contracts-loaded]}))))))
 
 (reg-event-fx
   :contracts-loaded
   interceptors
   (fn [{:keys [db]}]
-    ))
-
-(reg-event-fx
-  :boot-success
-  interceptors
-  (fn [{:keys [db]}]
-    (when (some nil? (map :address (vals (:contracts db))))
-      {:dispatch [:deploy-contracts]})))
+    {:dispatch [:contract.views/get-skill-names]}))
 
 (reg-event-fx
   :contract.config/set-configs
   interceptors
   (fn [{:keys [db]}]
-    (let [{:keys [ethlance-config-values web3 active-address]} db]
+    (let [{:keys [eth/config web3 active-address]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [[(get-instance db :ethlance-config)
                :set-configs
-               (keys ethlance-config-values)
-               (vals ethlance-config-values)
-               {:gas max-gas
-                :from active-address}
-               :contract/transaction-sent
-               :contract/transaction-error
-               [:contract/transaction-receipt :set-configs max-gas :generate-db false]]]}})))
-
-(reg-event-fx
-  :contract.config/add-skills
-  interceptors
-  (fn [{:keys [db]}]
-    (let [{:keys [ethlance-config-values web3 active-address]} db]
-      {:web3-fx.contract/state-fns
-       {:web3 web3
-        :db-path [:contract/state-fns]
-        :fns [[(get-instance db :ethlance-config)
-               :add-skills (keys ethlance-config-values) (vals ethlance-config-values)
+               (keys config)
+               (vals config)
                {:gas max-gas
                 :from active-address}
                :contract/transaction-sent
@@ -356,7 +244,7 @@
   :contract.config/add-skills
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -374,9 +262,9 @@
   :contract.db/add-allowed-contracts
   interceptors
   (fn [{:keys [db]} [contract-keys]]
-    (let [contract-keys (if-not contract-keys (keys (medley/filter-vals :setter? (:contracts db)))
+    (let [contract-keys (if-not contract-keys (keys (medley/filter-vals :setter? (:eth/contracts db)))
                                               contract-keys)]
-      (let [{:keys [web3 active-address contracts]} db]
+      (let [{:keys [web3 active-address eth/contracts]} db]
         {:web3-fx.contract/state-fns
          {:web3 web3
           :db-path [:contract/state-fns]
@@ -397,7 +285,7 @@
   :contract.user/register-freelancer
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -415,7 +303,7 @@
   :contract.user/register-employer
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db
+    (let [{:keys [web3 active-address eth/contracts]} db
           args (remove nil? (get-args values ethlance-db/register-employer-args))
           method (if (= (count args) (count ethlance-db/register-employer-args))
                    :register-employer
@@ -434,10 +322,10 @@
                  [:contract/transaction-receipt method max-gas false :log-error]])]}})))
 
 (reg-event-fx
-  :contract.user/search-freelancers
+  :contract.search/search-freelancers
   interceptors
   (fn [{:keys [db]} [values]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/constant-fns
        {:fns [(concat
                 [(get-instance db :ethlance-search)
@@ -446,22 +334,23 @@
                 [:log :log-error])]}})))
 
 (reg-event-fx
-  :contract.user/search-jobs
+  :contract.search/search-jobs
   interceptors
   (fn [{:keys [db]} [values]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3]} db]
       {:web3-fx.contract/constant-fns
        {:fns [(concat
                 [(get-instance db :ethlance-search)
                  :search-jobs]
-                (get-args values ethlance-db/search-jobs-args)
+                (conj (get-args values ethlance-db/search-jobs-args)
+                      (get-args values ethlance-db/search-jobs-nested-args))
                 [:log :log-error])]}})))
 
 (reg-event-fx
   :contract.job/add
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db
+    (let [{:keys [web3 active-address eth/contracts]} db
           args (get-args values ethlance-db/add-job-args)
           nested-args (get-args values ethlance-db/add-job-nested-args)]
       {:web3-fx.contract/state-fns
@@ -481,7 +370,7 @@
   :contract.job/add-invitation
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -499,7 +388,7 @@
   :contract.job/add-proposal
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -517,7 +406,7 @@
   :contract.contract/add
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -535,7 +424,7 @@
   :contract.contract/add-feedback
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -553,7 +442,7 @@
   :contract.invoice/add
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -571,7 +460,7 @@
   :contract.invoice/pay
   interceptors
   (fn [{:keys [db]} [values amount address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -590,7 +479,7 @@
   :contract.invoice/cancel
   interceptors
   (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address contracts]} db]
+    (let [{:keys [web3 active-address eth/contracts]} db]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -682,6 +571,59 @@
               [:log :log-error])]}}))
 
 (reg-event-fx
+  :contract.views/get-skill-names
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [[(get-instance db :ethlance-views)
+             :get-skill-names
+             :contract.views/skill-names-loaded
+             :log-error]]}}))
+
+(reg-event-db
+  :contract.views/skill-names-loaded
+  interceptors
+  (fn [db [[ids names]]]
+    (update db :app/skills merge (zipmap (u/big-nums->nums ids)
+                                         (map web3/to-ascii names)))))
+
+(reg-event-fx
+  :contract.views/load-my-user-ids
+  interceptors
+  (fn [{:keys [db]}]
+    (let [addresses (:my-addresses db)]
+      {:web3-fx.contract/constant-fns
+       {:fns [[(get-instance db :ethlance-views)
+               :get-users
+               addresses
+               [:contract.views/my-user-ids-loaded addresses]
+               :log-error]]}})))
+
+(reg-event-fx
+  :contract.views/my-user-ids-loaded
+  interceptors
+  (fn [{:keys [db]} [addresses user-ids]]
+    (let [user-ids (u/big-nums->nums user-ids)
+          address->user-id (medley/remove-vals zero? (zipmap addresses user-ids))
+          instance (get-instance db :ethlance-db)]
+      {:db (update db :address->user-id merge address->user-id)
+       :web3-fx.contract/constant-fns
+       {:fns (for [user-id (vals address->user-id)]
+               (get-entity-fn instance user-id (keys ethlance-db/user-schema)
+                              [:contract.views/user-loaded user-id]
+                              :log-error))}})))
+
+(reg-event-fx
+  :contract.views/user-loaded
+  interceptors
+  (fn [{:keys [db]} [user-id user]]
+    (when-not (u/empty-user? user)
+      {:db
+       (-> db
+         (update-in [:app/users user-id] merge (assoc user :user/id user-id))
+         (assoc-in [:address->user-id (:user/address user)] user-id))})))
+
+(reg-event-fx
   :contract/call
   interceptors
   (fn [{:keys [db]} [contract-key & args]]
@@ -703,6 +645,26 @@
                      :contract/transaction-sent
                      :contract/transaction-error
                      [:contract/transaction-receipt method max-gas nil nil]])]}}))
+
+(reg-event-fx
+  :form/search-job-changed
+  interceptors
+  (fn [{:keys [db]} [key value]]
+    (let [new-db (assoc-in db [:form/search-job key] value)]
+      {:db new-db
+       :dispatch [:contract.search/search-jobs (:form/search-job new-db)]})))
+
+(reg-event-fx
+  :entity-loaded
+  interceptors
+  (fn [_ [fields on-success result]]
+    {:dispatch (conj (u/ensure-vec on-success) (ethlance-db/parse-entity fields result))}))
+
+(reg-event-fx
+  :entities-loaded
+  interceptors
+  (fn [_ [fields on-success result]]
+    {:dispatch [on-success (ethlance-db/parse-entities fields result)]}))
 
 (reg-event-fx
   :contract/transaction-sent
@@ -731,11 +693,20 @@
 (reg-event-fx
   :clean-localstorage
   interceptors
+  (fn [_]
+    {:localstorage nil}))
+
+(reg-event-fx
+  :reintialize
+  interceptors
   (fn [_ [initialize?]]
-    (merge
-      {:localstorage nil}
-      (when initialize?
-        {:dispatch [:initialize]}))))
+    {:async-flow {:first-dispatch [:load-contracts]
+                  :rules [{:when :seen?
+                           :events [:contracts-loaded]
+                           :dispatch-n [[:deploy-contracts]]
+                           :halt? true}]}}))
+
+
 
 (reg-event-db
   :print-db
@@ -770,3 +741,113 @@
     (apply console :error errors)
     db))
 
+
+
+
+(comment
+  (dispatch [:initialize])
+  (dispatch [:print-db])
+  (dispatch [:deploy-contracts])
+  (dispatch [:estimate-contracts])
+  (dispatch [:clean-localstorage true])
+  (dispatch [:print-localstorage])
+  (dispatch [:contract.config/set-configs])
+  (dispatch [:contract.db/add-allowed-contracts])
+  (dispatch [:contract/call :ethlance-db :get-allowed-contracts])
+  (dispatch [:contract/call :ethlance-db :allowed-contracts-keys 5])
+  (dispatch [:contract/call :ethlance-user :get-config "max-user-languages"])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :user/count)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job/count)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :category/jobs-count 1)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :skill/jobs-count 5)])
+  (dispatch [:contract/call :ethlance-db :get-address-value (u/sha3 :user/address 1)])
+  (dispatch [:contract/call :ethlance-db :get-bytes32-value (u/sha3 :user/name 1)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :freelancer/hourly-rate 1)])
+  (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :freelancer/description 1)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job-action/freelancer-job 1 1)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
+  (get-entity 3 (keys ethlance-db/account-schema) (get-ethlance-db))
+
+  (get-entity 1 (keys ethlance-db/account-schema) (get-ethlance-db))
+
+  (get-entity 1 (keys ethlance-db/job-action-schema) (get-ethlance-db))
+  (get-entity 1 (keys ethlance-db/job-schema) (get-ethlance-db))
+
+  (get-entity 1 (keys ethlance-db/contract-schema) (get-ethlance-db))
+
+  (get-entity 1 (keys ethlance-db/invoice-schema) (get-ethlance-db))
+
+  (get-entity 1 [:freelancer/job-title :user/name :user/gravatar] (get-ethlance-db))
+
+  (get-entities [1 2] [:user/name :user/country :user/freelancer?] (get-ethlance-db))
+
+  (get-entities [2 3 1 1 1 1] [:skill/name] (get-ethlance-db))
+
+  (dispatch [:contract.user/register-freelancer {:user/name "Mataaa"
+                                                 :user/gravatar "abc"
+                                                 :user/country 1
+                                                 :user/languages [1]
+                                                 :freelancer/available? true
+                                                 :freelancer/job-title "Cljs dev"
+                                                 :freelancer/hourly-rate 10
+                                                 :freelancer/categories [1 2]
+                                                 :freelancer/skills [3 4 5]
+                                                 :freelancer/description "asdasdasd" #_(doall (reduce str (range 100)))}])
+
+  (dispatch [:contract.user/register-employer {:user/name "Mataaa"
+                                               :user/gravatar "abc"
+                                               :user/country 1
+                                               :user/languages [1]
+                                               :employer/description "employdescribptions"}])
+
+  (dispatch [:contract.search/search-freelancers {:search/category 1
+                                                  :search/skills [3]
+                                                  :search/min-avg-rating 0
+                                                  :search/min-contracts-count 0
+                                                  :search/min-hourly-rate 0
+                                                  :search/max-hourly-rate 1
+                                                  :search/country 0
+                                                  :search/language 0
+                                                  :search/offset 0
+                                                  :search/limit 10}])
+
+  (dispatch [:contract.job/add {:job/title "This is Job 1"
+                                :job/description "Asdkaas  aspokd aps asopdk ap"
+                                :job/skills [3 4 5]
+                                :job/budget 10
+                                :job/language 1
+                                :job/category 1
+                                :job/payment-type 1
+                                :job/experience-level 1
+                                :job/estimated-duration 1
+                                :job/hours-per-week 1
+                                :job/freelancers-needed 2}])
+
+  (dispatch [:contract.search/search-jobs {:search/category 0
+                                           :search/skills []
+                                           :search/payment-types []
+                                           :search/experience-levels []
+                                           :search/estimated-durations []
+                                           :search/hours-per-weeks []
+                                           :search/min-budget 0
+                                           :search/min-employer-avg-rating 0
+                                           :search/min-employer-ratings-count 0
+                                           :search/country 0
+                                           :search/language 0
+                                           :search/offset 0
+                                           :search/limit 10}])
+  (dispatch [:contract/state-call :ethlance-user :test-db 5])
+
+  (dispatch [:contract.views/get-freelancer-job-actions {:user/id 1
+                                                         :job-action/status 1
+                                                         :job/status 1}])
+
+  (dispatch [:contract.views/get-freelancer-invoices {:user/id 1 :invoice/status 1}])
+  (dispatch [:contract.views/get-freelancer-contracts {:user/id 1 :contract/done? true}])
+  (dispatch [:contract.views/get-job-contracts {:job/id 1}])
+  (dispatch [:contract.views/get-job-proposals {:job/id 1}])
+  (dispatch [:contract.views/get-job-invoices {:job/id 1 :invoice/status 3}])
+  (dispatch [:contract.views/get-employer-jobs {:user/id 2 :job/status 2}])
+  (dispatch [:contract.views/load-my-user-ids {:user/addresses (:my-addresses @re-frame.db/app-db)}])
+
+  )

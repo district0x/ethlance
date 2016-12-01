@@ -48,4 +48,8 @@ contract EthlanceViews {
     function getSkillNames() constant returns (uint[] skillIds, bytes32[] names) {
         return SkillLibrary.getNames(ethlanceDB);
     }
+
+    function getUsers(address[] addresses) constant returns(uint[]) {
+        return UserLibrary.getUserIds(ethlanceDB, addresses);
+    }
 }
