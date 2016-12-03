@@ -22,40 +22,40 @@
 
 (def user-schema
   {:user/address addr
-   :user/name string
-   :user/gravatar bytes32
    :user/country uint
    :user/created-on date
-   :user/status uint8
-   :user/freelancer? bool
    :user/employer? bool
+   :user/freelancer? bool
+   :user/gravatar bytes32
+   :user/languages uint-coll
    :user/languages-count uint
-   :user/languages uint-coll})
+   :user/name string
+   :user/status uint8})
 
 (def freelancer-schema
   {:freelancer/available? bool
-   :freelancer/job-title string
-   :freelancer/hourly-rate big-num
-   :freelancer/description string
-   :freelancer/skills-count uint
-   :freelancer/categories-count uint
-   :freelancer/job-actions-count uint
-   :freelancer/contracts-count uint
    :freelancer/avg-rating uint8
-   :freelancer/total-earned big-num
-   :freelancer/skills uint-coll
    :freelancer/categories uint-coll
-   :freelancer/job-actions uint-coll
+   :freelancer/categories-count uint
    :freelancer/contracts uint-coll
-   :freelancer/ratings-count uint})
+   :freelancer/contracts-count uint
+   :freelancer/description string
+   :freelancer/hourly-rate big-num
+   :freelancer/job-actions uint-coll
+   :freelancer/job-actions-count uint
+   :freelancer/job-title string
+   :freelancer/ratings-count uint
+   :freelancer/skills uint-coll
+   :freelancer/skills-count uint
+   :freelancer/total-earned big-num})
 
 (def employer-schema
-  {:employer/description string
-   :employer/jobs-count uint
-   :employer/avg-rating uint8
-   :employer/total-paid big-num
+  {:employer/avg-rating uint8
+   :employer/description string
    :employer/jobs uint-coll
-   :employer/ratings-count uint})
+   :employer/jobs-count uint
+   :employer/ratings-count uint
+   :employer/total-paid big-num})
 
 (def account-schema
   (merge user-schema
@@ -155,7 +155,7 @@
   (concat set-user-args set-employer-args))
 
 (def search-freelancers-args
-  [:search/category :search/skills :search/min-avg-rating :search/min-contracts-count :search/min-hourly-rate
+  [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count :search/min-hourly-rate
    :search/max-hourly-rate :search/country :search/language :search/offset :search/limit])
 
 (def add-job-args
@@ -362,6 +362,7 @@
   (create-types-map [:a :b :c] [1 2 1])
   (get-entity 1 (keys account-schema)
               (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
-  (get-entities [1 2] (keys account-schema) (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
-  (get-entities-field-items {1 3} :freelancer/skills
-                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])))
+  (get-entities [1] (keys account-schema) (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
+  (get-entities-field-items {1 8} :freelancer/skills
+                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
+  (id-counts->ids {1 0}))

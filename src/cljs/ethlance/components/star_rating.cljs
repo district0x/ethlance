@@ -1,28 +1,26 @@
 (ns ethlance.components.star-rating
-  (:require [cljsjs.react-star-rating-component]
-            [cljs-react-material-ui.icons :as icons]
+  (:require [cljs-react-material-ui.icons :as icons]
             [reagent.core :as r]
             [cljs-react-material-ui.reagent :as ui]
+            [ethlance.components.misc :refer [col row row-plain]]
             [ethlance.styles :as styles]))
 
-(def star-rating* (r/adapt-react-class js/ReactStarRatingComponent))
-
-(defn star-rating [props]
-  [star-rating*
-   (merge
-     {:name "star-rating"
-      :star-count 5
-      :render-star-icon (fn [index value]
-                          (if (and (<= (- index 0.5) value) (> index value))
-                            (icons/toggle-star-half {:style styles/star-rating})
-                            (if (<= index value)
-                              (icons/toggle-star {:style styles/star-rating})
-                              (icons/toggle-star-border {:style styles/star-rating}))))}
-     props
-     {:on-star-click (fn [next-val prev-val]
-                       (let [next-val (if (= next-val prev-val)
-                                        (dec next-val)
-                                        next-val)]
-                         (when-let [on-star-click (:on-star-click props)]
-                           (on-star-click next-val prev-val))))})])
-
+(defn star-rating []
+  (fn [{:keys [value star-count star-style on-star-click display-number?]
+        :or {star-count 5}
+        :as props}]
+    [row-plain
+     (dissoc props :value :star-count :star-style :on-star-click :display-number?)
+     (for [i (range 1 (inc star-count))]
+       (let [star-props {:key i
+                         :style (assoc (merge styles/star-rating star-style)
+                                  :cursor (if on-star-click :pointer :auto))
+                         :on-touch-tap (fn []
+                                         (let [next-val (if (= i value) (dec i) i)]
+                                           (when on-star-click
+                                             (on-star-click next-val))))}]
+         (if (and (<= (- i 0.5) value) (> i value))
+           (icons/toggle-star-half star-props)
+           (if (<= i value)
+             (icons/toggle-star star-props)
+             (icons/toggle-star-border star-props)))))]))

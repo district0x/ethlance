@@ -1,7 +1,7 @@
 (ns ethlance.components.skills-chips
   (:require
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.components.layout :refer [col row paper]]
+    [ethlance.components.misc :refer [col row paper-thin]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
@@ -13,12 +13,13 @@
 (defn skills-chips []
   (let [all-skills (subscribe [:app/skills])
         show-all? (r/atom false)]
-    (fn [selected-skills]
+    (fn [{:keys [selected-skills on-chip-touch-tap always-show-all?]}]
       [row
        {:middle "xs"
         :style styles/skill-chips-row}
        (for [skill-id (if (and (< max-count (count selected-skills))
-                               (not @show-all?))
+                               (not @show-all?)
+                               (not always-show-all?))
                         (take max-count selected-skills)
                         selected-skills)]
          [ui/chip

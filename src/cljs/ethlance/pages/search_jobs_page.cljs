@@ -3,148 +3,183 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.category-select-field :refer [category-select-field]]
+    [ethlance.components.checkbox-group :refer [checkbox-group]]
     [ethlance.components.country-select-field :refer [country-select-field]]
     [ethlance.components.language-select-field :refer [language-select-field]]
-    [ethlance.components.slider-with-counter :refer [slider-with-counter]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
-    [ethlance.components.checkbox-group :refer [checkbox-group]]
-    [ethlance.components.layout :refer [col row paper]]
+    [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a]]
+    [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.skills-chips :refer [skills-chips]]
+    [ethlance.components.slider-with-counter :refer [slider-with-counter]]
     [ethlance.components.star-rating :refer [star-rating]]
-    [ethlance.components.chip-input :refer [chip-input]]
+    [ethlance.components.truncated-text :refer [truncated-text]]
+    [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]))
 
-(def payment-types-opts
-  {1 "Hourly"
-   2 "Fixed"})
-
-(def experience-levels-opts
-  {1 "Beginner ($)"
-   2 "Intermediate ($$)"
-   3 "Expert ($$$)"})
-
-(def estimated-durations-opts
-  {1 "Hours or Days"
-   2 "Weeks"
-   3 "Months"
-   4 "> 6 months"})
-
-(def hours-per-weeks-opts
-  {1 "Part Time"
-   2 "Full Time"})
-
 (defn filter-sidebar []
-  (let [form-data (subscribe [:form/search-job])]
-    (dispatch [:contract.search/search-jobs-initiate @form-data])
+  (let [form-data (subscribe [:form/search-jobs])]
+    (dispatch [:contract/initiate-load :contract.search/search-jobs @form-data])
     (fn []
       (let [{:keys [:search/category :search/min-employer-avg-rating :search/country
                     :search/language :search/experience-levels :search/payment-types
-                    :search/estimated-durations :search/hours-per-weeks :search/min-budget]} @form-data]
-        [paper
+                    :search/estimated-durations :search/hours-per-weeks :search/min-budget
+                    :search/min-employer-ratings-count]} @form-data]
+        [paper-thin
          [category-select-field
           {:value category
            :full-width true
-           :on-change #(dispatch [:form/search-job-changed :search/category %3])}]
+           :on-change #(dispatch [:form/search-jobs-changed :search/category %3])}]
          [u/subheader "Min. Employer Rating"]
-         [star-rating {:value min-employer-avg-rating
-                       :on-star-click #(dispatch [:form/search-job-changed :search/min-employer-avg-rating %1])}]
+         [star-rating
+          {:value (u/rating->star min-employer-avg-rating)
+           :on-star-click #(dispatch [:form/search-jobs-changed :search/min-employer-avg-rating (u/star->rating %1)])}]
          [u/subheader "Payment Type"]
          [checkbox-group
-          {:options payment-types-opts
+          {:options constants/payment-types
            :values payment-types
-           :on-change #(dispatch [:form/search-job-changed :search/payment-types %2])}]
+           :on-change #(dispatch [:form/search-jobs-changed :search/payment-types %2])}]
          [u/subheader "Experience Level"]
          [checkbox-group
-          {:options experience-levels-opts
+          {:options constants/experience-levels
            :values experience-levels
-           :on-change #(dispatch [:form/search-job-changed :search/experience-levels %2])}]
+           :on-change #(dispatch [:form/search-jobs-changed :search/experience-levels %2])}]
          [u/subheader "Project Length"]
          [checkbox-group
-          {:options estimated-durations-opts
+          {:options constants/estimated-durations
            :values estimated-durations
-           :on-change #(dispatch [:form/search-job-changed :search/estimated-durations %2])}]
+           :on-change #(dispatch [:form/search-jobs-changed :search/estimated-durations %2])}]
          [u/subheader "Availability"]
          [checkbox-group
-          {:options hours-per-weeks-opts
+          {:options constants/hours-per-weeks
            :values hours-per-weeks
-           :on-change #(dispatch [:form/search-job-changed :search/hours-per-weeks %2])}]
+           :on-change #(dispatch [:form/search-jobs-changed :search/hours-per-weeks %2])}]
+         [ui/text-field
+          {:floating-label-text "Min. Budget"
+           :type :number
+           :default-value min-budget
+           :full-width true
+           :min 0
+           :on-change #(dispatch [:form/search-jobs-changed :search/min-budget %2])}]
+         [ui/text-field
+          {:floating-label-text "Min. Number of Feedbacks"
+           :type :number
+           :default-value min-employer-ratings-count
+           :full-width true
+           :min 0
+           :on-change #(dispatch [:form/search-jobs-changed :search/min-employer-ratings-count %2])}]
          [country-select-field
           {:value country
            :full-width true
-           :on-new-request #(dispatch [:form/search-job-changed :search/country %2])}]
+           :on-new-request #(dispatch [:form/search-jobs-changed :search/country %2])}]
          [language-select-field
           {:value language
            :full-width true
-           :on-new-request #(dispatch [:form/search-job-changed :search/language %2])}]
-         [u/subheader "Min Budget"]
-         [slider-with-counter
+           :on-new-request #(dispatch [:form/search-jobs-changed :search/language %2])}]
+         #_ [u/subheader "Min Budget"]
+         #_ [slider-with-counter
           {:max 200
            :step 5
            :value min-budget
-           :on-change #(dispatch [:form/search-job-changed :search/min-budget %2])}
+           :on-change #(dispatch [:form/search-jobs-changed :search/min-budget %2])}
           (str min-budget " ETH")]
 
          ]))))
 
+(defn search-results-employer [{:keys [:employer/jobs-count :employer/avg-rating :employer/total-paid
+                                       :user/name :job/employer :employer/ratings-count :user/country]}]
+  [:div {:style styles/employer-info-wrap}
+   (when-not (empty? name)
+     [row-plain
+      {:middle "xs"
+       :style styles/employer-info}
+      [:span [a {:route :employer/detail
+                 :route-params {:user/id employer}} name]]
+      [star-rating
+       {:value (u/rating->star avg-rating)
+        :star-style styles/star-rating-small
+        :style styles/employer-rating-search}]
+      [:span
+       {:style styles/employer-info-item}
+       ratings-count (u/pluralize " feedback" ratings-count)]
+      [:span
+       {:style styles/employer-info-item}
+       [:span {:style styles/dark-text} (u/eth total-paid)] " spent"]
+      [misc/country-marker
+       {:country country
+        :row-props {:style styles/employer-info-item}}]])])
+
+
+(defn pagination []
+  (let [form-data (subscribe [:form/search-jobs])]
+    (fn [items-count]
+      (let [{:keys [:search/limit :search/offset]} @form-data]
+        [row-plain {:end "xs"}
+         (when (pos? offset)
+           [ui/flat-button
+            {:secondary true
+             :label "Newer"
+             :icon (icons/navigation-chevron-left)
+             :on-touch-tap #(dispatch [:form/search-jobs-changed :search/offset (- offset limit)])}])
+         (when (= items-count limit)
+           [ui/flat-button
+            {:secondary true
+             :label "Older"
+             :label-position :before
+             :icon (icons/navigation-chevron-right)
+             :on-touch-tap #(dispatch [:form/search-jobs-changed :search/offset (+ offset limit)])}])]))))
+
 (defn search-results []
-  (let [list-search-jobs (subscribe [:list/search-job])]
+  (let [list (subscribe [:list/search-jobs])]
     (fn []
-      (let [{:keys [items loading?]} @list-search-jobs]
-        [paper
+      (let [loading? (or (:loading? @list) (some nil? (:items @list)))
+            items (remove nil? (:items @list))]
+        [paper-thin
          {:loading? loading?}
          (if (seq items)
-           (for [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
-                         :job/experience-level :job/hours-per-week :job/created-on
-                         :job/description :job/budget :job/skills]} items]
-             [:div {:key id}
-              [:h2
-               (u/anchor {:style styles/job-title} title :job/detail {:job/id id})]
-              [:div {:style styles/job-info}
-               [:span (u/time-ago created-on)]
-               [:span " - " (payment-types-opts payment-type)]
-               [:span " - " (experience-levels-opts experience-level)]
-               [:span " - Est. Time: " (estimated-durations-opts estimated-duration)]
-               [:span " - " (hours-per-weeks-opts hours-per-week)]
-               (when (.greaterThan budget 0)
-                 [:span " - Budget: " (.toNumber budget) " ETH"])]
-              [:div {:style styles/job-description}
-               [truncated-text description]]
-              [skills-chips skills]
-              [:hr]])
+           [:div
+            (for [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
+                          :job/experience-level :job/hours-per-week :job/created-on
+                          :job/description :job/budget :job/skills] :as item} items]
+              [:div {:key id}
+               [:h2
+                {:style styles/job-list-title}
+                [a {:style styles/primary-text
+                    :route :job/detail
+                    :route-params {:job/id id}} title]]
+               [:div {:style styles/job-info}
+                [:span (u/time-ago created-on)]
+                [:span " - " (constants/payment-types payment-type)]
+                [:span " - " (constants/experience-levels experience-level)]
+                [:span " - Est. Time: " (constants/estimated-durations estimated-duration)]
+                [:span " - " (constants/hours-per-weeks hours-per-week)]
+                [:span " - Budget: " (u/eth budget)]
+                #_(when (.greaterThan budget 0)
+                    [:span " - Budget: " (.toNumber budget) " ETH"])]
+               [:div {:style styles/job-list-description}
+                [truncated-text description]]
+               [skills-chips
+                {:selected-skills skills}]
+               [search-results-employer item]
+               [misc/hr-small]])
+            [pagination (count items)]]
            [row {:center "xs" :middle "xs"
                  :style {:min-height 200}}
             (when-not loading?
               [:h3 "No jobs match your search criteria :("])])]))))
 
 (defn skills-input []
-  (let [skills (subscribe [:app/skills])
-        selected-skills (subscribe [:form/search-job-skills])]
+  (let [selected-skills (subscribe [:form/search-job-skills])]
     (fn []
-      (let [skills-data-source (u/create-data-source @skills :skill/name)
-            selected-skills-ds (u/create-data-source (select-keys @skills @selected-skills) :skill/name)]
-        [paper
-         [chip-input
-          {:default-value selected-skills-ds
-           :dataSource skills-data-source
-           :dataSourceConfig u/data-source-config
-           :new-chip-key-codes []
-           :full-width true
-           :floating-label-text "Skills"
-           :max-search-results 10
-           :hint-text "Type skills required for a job"
-           :on-change #(dispatch [:form/search-job-changed :search/skills (u/data-source-values %1)])}]]))))
+      [paper-thin
+       [skills-chip-input
+        {:value @selected-skills
+         :hint-text "Type skills required for a job"
+         :on-change #(dispatch [:form/search-jobs-changed :search/skills %1])}]])))
 
 (defn search-jobs-page []
-  (fn []
-    [row
-     [col {:xs 4}
-      [filter-sidebar]]
-     [col {:xs 8}
-      [row
-       [col {:xs 12}
-        [skills-input]]
-       [col {:xs 12}
-        [search-results]]]]]))
+  [misc/search-layout
+   [filter-sidebar]
+   [skills-input]
+   [search-results]])

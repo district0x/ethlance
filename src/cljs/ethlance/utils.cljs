@@ -1,6 +1,7 @@
 (ns ethlance.utils
   (:require
     [bidi.bidi :as bidi]
+    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [cljs-time.coerce :refer [to-date-time to-long to-local-date-time]]
     [cljs-time.core :as t :refer [date-time to-default-time-zone]]
@@ -8,8 +9,12 @@
     [clojure.core.async :refer [chan <! >!]]
     [clojure.string :as string]
     [ethlance.routes :refer [routes]]
+    [ethlance.constants :as constants]
+    [goog.string.format]
+    [goog.string :as gstring]
     [ethlance.styles :as styles]
-    [medley.core :as medley])
+    [medley.core :as medley]
+    [reagent.core :as r])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn path-for [& args]
@@ -104,23 +109,16 @@
 (defn data-source-values [values]
   (set (map :value (js->clj values :keywordize-keys true))))
 
-(defn anchor
-  ([body route route-params]
-   (anchor {} body route route-params))
-  ([props body route route-params]
-   [:a (merge
-         {:style {:color (:primary1-color styles/palette)}
-          :href (when-not (some nil? (vals route-params))
-                  (medley/mapply path-for route route-params))
-          :on-click #(.stopPropagation %)}
-         props) body]))
-
 (defn assoc-key-as-value [key-name m]
   (into {} (map (fn [[k v]]
                   {k (assoc v key-name k)}) m)))
 
+(defn big-num-pos? [x]
+  (.greaterThan x 0))
+
 (defn big-num->date-time [big-num]
-  (to-default-time-zone (to-date-time (* (.toNumber big-num) 1000))))
+  (when (big-num-pos? big-num)
+    (to-default-time-zone (to-date-time (* (.toNumber big-num) 1000)))))
 
 (defn format-date [date]
   (time-format/unparse-local (time-format/formatters :rfc822) date))
@@ -148,3 +146,49 @@
   (if (map? props)
     [props children]
     [nil (concat [props] children)]))
+
+(defn round
+  ([d] (round d 2))
+  ([d precision]
+   (let [factor (js/Math.pow 10 precision)]
+     (/ (js/Math.round (* d factor)) factor))))
+
+(defn eth [x]
+  (str (round (if x (.toNumber x) 0)) " Ξ"))
+
+(defn pluralize [text count]
+  (str text (when (not= count 1) "s")))
+
+(defn country-name [country-id]
+  (when (pos? country-id)
+    (nth constants/countries (dec country-id))))
+
+(defn rating->star [rating]
+  (/ (or rating 0) 20))
+
+(defn star->rating [star]
+  (* (or star 0) 20))
+
+(defn rand-str [n]
+  (let [chars-between #(map char (range (.charCodeAt %1) (inc (.charCodeAt %2))))
+        chars (concat (chars-between \0 \9)
+                      (chars-between \a \z)
+                      (chars-between \A \Z)
+                      [\_])
+        password (take n (repeatedly #(rand-nth chars)))]
+    (reduce str password)))
+
+(defn create-with-default-props [component default-props]
+  (fn [props & children]
+    (let [[props children] (parse-props-children props children)]
+      (into [] (concat
+                 [component (r/merge-props default-props props)]
+                 children)))))
+
+(defn gravatar-url [hash]
+  (gstring/format "http://s.gravatar.com/avatar/%s?s=80" hash))
+
+(comment
+  (rand-str 10)
+  (fixed-length-password 5))
+

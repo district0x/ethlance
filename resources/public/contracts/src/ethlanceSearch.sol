@@ -39,7 +39,7 @@ contract EthlanceSearch {
         uint categoryId,
         uint[] skills,
         uint8 minAvgRating,
-        uint minContractsCount,
+        uint minRatingsCount,
         uint minHourlyRate,
         uint maxHourlyRate,
         uint countryId,
@@ -51,7 +51,7 @@ contract EthlanceSearch {
     (
         uint[] userIds)
     {
-        userIds = UserLibrary.searchFreelancers(ethlanceDB, categoryId, skills, minAvgRating, minContractsCount,
+        userIds = UserLibrary.searchFreelancers(ethlanceDB, categoryId, skills, minAvgRating, minRatingsCount,
             minHourlyRate, maxHourlyRate, countryId, languageId);
         userIds = SharedLibrary.getPage(userIds, offset, limit);
 

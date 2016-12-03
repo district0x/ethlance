@@ -129,7 +129,7 @@ library ContractLibrary {
     }
 
     function addUserFeedback(address db, uint contractId, uint userId, string feedbackKey,
-        string ratingKey, string dateKey, string avgRatingKey, string ratingsCountKey, string description,
+        string ratingKey, string dateKey, string ratingsCountKey, string avgRatingKey, string description,
         uint8 rating) internal {
         EthlanceDB(db).setStringValue(sha3(feedbackKey, contractId), description);
         EthlanceDB(db).setUInt8Value(sha3(ratingKey, contractId), rating);

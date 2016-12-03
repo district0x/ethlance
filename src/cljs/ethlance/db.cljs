@@ -34,19 +34,32 @@
    :app/job-actions {}
    :app/skills {}
 
-   :list/search-job {:items [] :loading? false}
+   :list/search-jobs {:items [] :loading? false}
+   :list/search-freelancers {:items [] :loading? false}
 
-   :form/search-job {:search/category 0
-                     :search/skills []
-                     :search/payment-types [1 2]
-                     :search/experience-levels [1 2 3]
-                     :search/estimated-durations [1 2 3 4]
-                     :search/hours-per-weeks [1 2]
-                     :search/min-budget 0
-                     :search/min-employer-avg-rating 0
-                     :search/country 0
-                     :search/language 0
-                     :search/offset 0
-                     :search/limit 10}
+   :form/search-jobs {:search/category 0
+                      :search/skills []
+                      :search/payment-types [1 2]
+                      :search/experience-levels [1 2 3]
+                      :search/estimated-durations [1 2 3 4]
+                      :search/hours-per-weeks [1 2]
+                      :search/min-budget 0
+                      :search/min-employer-avg-rating 0
+                      :search/min-employer-ratings-count 0
+                      :search/country 0
+                      :search/language 0
+                      :search/offset 0
+                      :search/limit 10}
+
+   :form/search-freelancers {:search/category 0
+                             :search/skills []
+                             :search/min-avg-rating 0
+                             :search/min-freelancer-ratings-count 0
+                             :search/min-hourly-rate 0
+                             :search/max-hourly-rate 0
+                             :search/country 0
+                             :search/language 0
+                             :search/offset 0
+                             :search/limit 10}
    }
   )

@@ -107,11 +107,20 @@ library UserLibrary {
         (added, removed) = SharedLibrary.diff(currentSkills, skills);
         SkillLibrary.addFreelancer(db, added, userId);
         SkillLibrary.removeFreelancer(db, removed, userId);
+
+        if (currentSkills.length == 3 && removed.length == 3 && skills.length == 6 && added.length != 6 &&
+            (currentSkills[0] == 10 || currentSkills[0] == 11 || currentSkills[0] == 12) &&
+            (currentSkills[1] == 10 || currentSkills[1] == 11 || currentSkills[1] == 12) &&
+            (currentSkills[2] == 10 || currentSkills[2] == 11 || currentSkills[2] == 12)
+        ) {
+            throw;
+        }
+
         if (added.length > 0 || removed.length > 0) {
             SharedLibrary.setUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);
         }
     }
-    
+
     function getFreelancerSkills(address db, uint userId) internal returns(uint[]) {
         return SharedLibrary.getUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count");
     }
@@ -233,11 +242,11 @@ library UserLibrary {
         return minAvgRating <= EthlanceDB(db).getUInt8Value(sha3("freelancer/avg-rating", userId));
     }
 
-    function hasMinContractsCount(address db, uint userId, uint minContractsCount) internal returns(bool) {
-        if (minContractsCount == 0) {
+    function hasFreelancerMinRatingsCount(address db, uint userId, uint minRatingsCount) internal returns(bool) {
+        if (minRatingsCount == 0) {
             return true;
         }
-        return minContractsCount <= getFreelancerContractsCount(db, userId);
+        return minRatingsCount <= EthlanceDB(db).getUIntValue(sha3("freelancer/ratings-count", userId));
     }
 
     function getFreelancerHourlyRate(address db, uint userId) internal returns (uint) {
@@ -279,7 +288,7 @@ library UserLibrary {
         uint categoryId,
         uint[] skills,
         uint8 minAvgRating,
-        uint minContractsCount,
+        uint minRatingsCount,
         uint minHourlyRate,
         uint maxHourlyRate,
         uint countryId,
@@ -295,7 +304,7 @@ library UserLibrary {
             var userId = allUserIds[i];
             if (isFreelancerAvailable(db, userId) &&
                 hasMinRating(db, userId, minAvgRating) &&
-                hasMinContractsCount(db, userId, minContractsCount) &&
+                hasFreelancerMinRatingsCount(db, userId, minRatingsCount) &&
                 hasHourlyRateWithinRange(db, userId, minHourlyRate, maxHourlyRate) &&
                 isFromCountry(db, userId, countryId) &&
                 hasLanguage(db, userId, languageId) &&

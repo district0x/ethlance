@@ -12,6 +12,7 @@
     [ethlance.pages.freelancer-jobs-page :refer [freelancer-jobs-page]]
     [ethlance.pages.freelancer-profile :refer [freelancer-profile]]
     [ethlance.pages.home-page :refer [home-page]]
+    [ethlance.pages.job-detail-page :refer [job-detail-page]]
     [ethlance.pages.my-profile-page :refer [my-profile-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
@@ -22,14 +23,15 @@
 
 (def route->component
   {:employer/create employer-create-page
+   :employer/detail employer-profile
    :employer/invoices employer-invoices-page
    :employer/jobs employer-jobs-page
-   :employer/detail employer-profile
    :freelancer/create freelancer-create-page
+   :freelancer/detail freelancer-profile
    :freelancer/invoices freelancer-invoices-page
    :freelancer/jobs freelancer-jobs-page
-   :freelancer/detail freelancer-profile
    :home home-page
+   :job/detail job-detail-page
    :my-profile my-profile-page
    :search/freelancers search-freelancers-page
    :search/jobs search-jobs-page})

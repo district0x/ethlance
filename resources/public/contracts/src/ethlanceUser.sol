@@ -1,6 +1,7 @@
 pragma solidity ^0.4.4;
 
 import "ethlanceSetter.sol";
+import "sharedLibrary.sol";
 
 contract EthlanceUser is EthlanceSetter {
 
@@ -50,6 +51,7 @@ contract EthlanceUser is EthlanceSetter {
             skills, description);
     }
 
+
     function registerEmployer(string name, bytes32 gravatar, uint country, uint[] languages, string description)
     onlyActiveSmartContract
     {
@@ -74,7 +76,16 @@ contract EthlanceUser is EthlanceSetter {
         UserLibrary.setStatus(ethlanceDB, userId, status);
     }
 
-    function testDb(uint a) {
-        UserLibrary.testDb(ethlanceDB, a);
-    }
+//    function diff(uint[] _old, uint[] _new) constant returns(uint[] added, uint[] removed) {
+//        return SharedLibrary.diff(_old, _new);
+//    }
+//
+//    function sort(uint[] array) constant returns(uint[]) {
+//        return SharedLibrary.sort(array);
+//    }
+//
+//    function intersect(uint[] a, uint[] b) constant returns(uint[] c) {
+//        return SharedLibrary.intersect(a, b);
+//    }
+
 }

@@ -34,14 +34,28 @@ library JobLibrary {
         EthlanceDB(db).setUIntValue(sha3("job/employer", jobId), employerId);
         EthlanceDB(db).setStringValue(sha3("job/title", jobId), title);
         EthlanceDB(db).setStringValue(sha3("job/description", jobId), description);
+
+        if (language == 0) throw;
         EthlanceDB(db).setUIntValue(sha3("job/language", jobId), language);
         EthlanceDB(db).setUIntValue(sha3("job/budget", jobId), budget);
         EthlanceDB(db).setUIntValue(sha3("job/created-on", jobId), now);
+
+        if (uint8Items[0] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/category", jobId), uint8Items[0]);
+
+        if (uint8Items[1] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/payment-type", jobId), uint8Items[1]);
+
+        if (uint8Items[2] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/experience-level", jobId), uint8Items[2]);
+
+        if (uint8Items[3] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/estimated-duration", jobId), uint8Items[3]);
+
+        if (uint8Items[4] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/hours-per-week", jobId), uint8Items[4]);
+
+        if (uint8Items[5] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/freelancers-needed", jobId), uint8Items[5]);
         EthlanceDB(db).setUInt8Value(sha3("job/status", jobId), 1);
         setSkills(db, jobId, skills);
@@ -174,9 +188,9 @@ library JobLibrary {
                 SharedLibrary.containsValue(db, jobId, "job/estimated-duration", uint8Filters[2]) &&
                 SharedLibrary.containsValue(db, jobId, "job/hours-per-week", uint8Filters[3]) &&
                 hasMinBudget(db, jobId, uintArgs[0]) &&
-                hasEmployerMinRating(db, jobId, uintArgs[1]) &&
+                hasEmployerMinRating(db, employerId, uintArgs[1]) &&
                 hasEmployerMinRatingsCount(db, employerId, uintArgs[2]) &&
-                UserLibrary.isFromCountry(db, jobId, uintArgs[3]) &&
+                UserLibrary.isFromCountry(db, employerId, uintArgs[3]) &&
                 hasLanguage(db, jobId, uintArgs[4]) &&
                 UserLibrary.hasStatus(db, employerId, 1)
                 )

@@ -59,10 +59,13 @@ library SharedLibrary {
             return;
         }
         for (uint i = 0; i < ids.length; i++) {
-            addArrayItem(db, ids[i], keysKey, countKey, val);
-            EthlanceDB(db).setBooleanValue(sha3(key, ids[i], val), true);
+            if (EthlanceDB(db).getUInt8Value(sha3(key, ids[i], val)) == 0) { // never seen before
+                addArrayItem(db, ids[i], keysKey, countKey, val);
+            }
+            EthlanceDB(db).setUInt8Value(sha3(key, ids[i], val), 1); // 1 == active
         }
     }
+
 
     function getRemovableArrayItems(address db, uint id, string key, string countKey, string keysKey)
         internal returns (uint[] result)
@@ -72,7 +75,7 @@ library SharedLibrary {
         uint j = 0;
         for (uint i = 0; i < count; i++) {
             var itemId = EthlanceDB(db).getUIntValue(sha3(keysKey, id, i));
-            if (EthlanceDB(db).getBooleanValue(sha3(key, id, itemId))) {
+            if (EthlanceDB(db).getUInt8Value(sha3(key, id, itemId)) == 1) { // 1 == active
                 result[j] = itemId;
                 j++;
             }
@@ -85,9 +88,10 @@ library SharedLibrary {
             return;
         }
         for (uint i = 0; i < ids.length; i++) {
-            EthlanceDB(db).deleteBooleanValue(sha3(key, ids[i], val));
+            EthlanceDB(db).setUInt8Value(sha3(key, ids[i], val), 2); // 2 == blocked
         }
     }
+
 
     function getPage(uint[] array, uint offset, uint limit) internal returns (uint[] result) {
         uint j = 0;
@@ -97,61 +101,101 @@ library SharedLibrary {
 
         result = new uint[](limit);
         for (uint i = offset; i < (offset + limit); i++) {
-            result[j] = array[i];
-            j++;
-            if (array.length == j) {
+            if (array.length == i) {
                 break;
             }
+            result[j] = array[i];
+            j++;
         }
         return take(j, result);
     }
 
     function intersect(uint[] a, uint[] b) internal returns(uint[] c) {
-        mapping (uint => bool) _map;
         if (a.length == 0 || b.length == 0) {
             return c;
         }
         c = new uint[](a.length);
-        for (uint i = 0; i < a.length; i++) {
-            _map[a[i]] = true;
-        }
+//        a = sort(a);
+//        b = sort(b);
+        uint i = 0;
         uint j = 0;
-        for (i = 0; i < b.length; i++) {
-            if (_map[b[i]]) {
-                c[j] = b[i];
+        uint k = 0;
+        while (i < a.length && j < b.length) {
+            if (a[i] > b[j]) {
                 j++;
+            } else if (a[i] < b[j]) {
+                i++;
+            } else {
+                c[k] = a[i];
+                i++;
+                j++;
+                k++;
             }
         }
-        return take(j, c);
+        return take(k, c);
     }
-
+    
     function diff(uint[] _old, uint[] _new) internal returns(uint[] added, uint[] removed) {
-        mapping (uint => uint8) _map;
+        if (_old.length == 0 && _new.length == 0) {
+            return (added, removed);
+        }
         var maxCount = _old.length + _new.length;
         added = new uint[](maxCount);
         removed = new uint[](maxCount);
-
-        for (uint i = 0; i < _old.length; i++) {
-            _map[_old[i]] = 1;
-        }
-        uint addedCount = 0;
-        for (i = 0; i < _new.length; i++) {
-            if (_map[_new[i]] == 0) {
-                added[addedCount] = _new[i];
-                addedCount++;
+        
+        _old = sort(_old);
+        _new = sort(_new);
+        uint ol_i = 0;
+        uint ne_i = 0;
+        uint ad_i = 0;
+        uint re_i = 0;
+        while (ol_i < _old.length && ne_i < _new.length) {
+            if (_old[ol_i] > _new[ne_i]) {
+                added[ad_i] = _new[ne_i];
+                ne_i++;
+                ad_i++;
+            } else if (_old[ol_i] < _new[ne_i]) {
+                removed[re_i] = _old[ol_i];
+                ol_i++;
+                re_i++;
             } else {
-                _map[_new[i]] = 2;
+                ol_i++;
+                ne_i++;
             }
         }
-        uint removedCount = 0;
-        for (i = 0; i < _old.length; i++) {
-            if (_map[_old[i]] == 1) {
-                removed[removedCount] = _old[i];
-                removedCount++;
+        if (_old.length > ol_i) {
+            while (ol_i < _old.length) {
+                removed[re_i] = _old[ol_i];
+                ol_i++;
+                re_i++;
             }
         }
-        return (take(addedCount, added), take(removedCount, removed));
+        if (_new.length > ne_i) {
+            while (ne_i < _new.length) {
+                added[ad_i] = _new[ne_i];
+                ne_i++;
+                ad_i++;
+            }
+        }
+        return (take(ad_i, added), take(re_i, removed));
+    }    
+
+    function sort(uint[] array) internal returns(uint[]) {
+        uint n = array.length;
+        if (array.length == 0) {
+            return array;
+        }
+
+        for (uint c = 0 ; c < ( n - 1 ); c++) {
+            for (uint d = 0 ; d < n - c - 1; d++) {
+                if (array[d] >= array[d + 1]) {
+                    (array[d], array[d + 1]) = (array[d + 1], array[d]);
+                }
+            }
+        }
+        return array;
     }
+
 
     function take(uint n, uint[] array) internal returns(uint[] result) {
         result = new uint[](n);
@@ -185,14 +229,14 @@ library SharedLibrary {
         }
 
         if (skills.length > 0) {
-            result = getFromSkills(db, skills[0]);
+            result = sort(getFromSkills(db, skills[0]));
             for (i = 1; i < skills.length ; i++) {
-                result = intersect(result, getFromSkills(db, skills[i]));
+                result = intersect(result, sort(getFromSkills(db, skills[i])));
             }
         }
 
         if (categoryId > 0) {
-            var catResult = getFromCategories(db, categoryId);
+            var catResult = sort(getFromCategories(db, categoryId));
             if (skills.length == 0) {
                 result = catResult;
             } else {

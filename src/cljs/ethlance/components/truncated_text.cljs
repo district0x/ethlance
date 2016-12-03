@@ -1,7 +1,7 @@
 (ns ethlance.components.truncated-text
   (:require
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.components.layout :refer [col row paper]]
+    [ethlance.components.misc :refer [col row paper-thin]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [reagent.core :as r]))
