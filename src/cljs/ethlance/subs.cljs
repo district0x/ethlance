@@ -5,6 +5,11 @@
     [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
+  :db
+  (fn [db]
+    db))
+
+(reg-sub
   :name
   (fn [db]
     (:name db)))
@@ -45,6 +50,11 @@
     (:app/jobs db)))
 
 (reg-sub
+  :app/contracts
+  (fn [db]
+    (:app/contracts db)))
+
+(reg-sub
   :db/active-page
   (fn [db]
     (:active-page db)))
@@ -72,7 +82,8 @@
     (let [jobs (:list/search-jobs db)]
       (-> jobs
         (update :items (partial map #(get-in db [:app/jobs %])))
-        (update :items (partial map #(merge % (get-in db [:app/users (:job/employer %)]))))))))
+        (update :items (partial map #(merge % (get-in db [:app/users (:job/employer %)]))))
+        (u/list-filter-loaded :job/title)))))
 
 (reg-sub
   :form/search-job-skills
@@ -84,7 +95,8 @@
   (fn [db]
     (let [jobs (:list/search-freelancers db)]
       (-> jobs
-        (update :items (partial map #(get-in db [:app/users %])))))))
+        (update :items (partial map #(get-in db [:app/users %])))
+        (u/list-filter-loaded :freelancer/skills)))))
 
 (reg-sub
   :form/search-freelancer-skills
@@ -97,11 +109,45 @@
     (:app/skills db)))
 
 (reg-sub
-  :job/detail
+  :job/route-job-id
   :<- [:db/active-page]
+  (fn [{:keys [route-params]}]
+    (js/parseInt (:job/id route-params))))
+
+(reg-sub
+  :job/my-job?
+  :<- [:job/route-job-id]
+  :<- [:db/active-user-id]
+  :<- [:app/jobs]
+  (fn [[job-id user-id jobs]]
+    (when-let [employer-id (get-in jobs [job-id :job/employer])]
+      (= employer-id user-id))))
+
+(reg-sub
+  :job/detail
+  :<- [:job/route-job-id]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[{:keys [route-params]} jobs users]]
-    (-> (get jobs (js/parseInt (:job/id route-params)))
+  (fn [[job-id jobs users]]
+    (-> (get jobs job-id)
       (update :job/employer #(get users %)))))
+
+(reg-sub
+  :list.ids/job-contracts
+  (fn [db]
+    (get-in db [:list/job-contracts :items])))
+
+(reg-sub
+  :list/job-contracts
+  :<- [:db]
+  :<- [:app/contracts]
+  :<- [:app/users]
+  (fn [[db contracts users]]
+    (let [job-contracts (:list/job-contracts db)
+          {:keys [offset limit]} job-contracts]
+      (-> job-contracts
+        (update :items #(u/paginate % offset limit))
+        (update :items (partial map #(get contracts %)))
+        (update :items (partial map #(update % :contract/freelancer (partial get users))))
+        (u/list-filter-loaded (comp :user/name :contract/freelancer))))))
 

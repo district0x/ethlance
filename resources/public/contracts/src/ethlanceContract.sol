@@ -11,14 +11,15 @@ contract EthlanceContract is EthlanceSetter {
     }
 
     function addJobContract(
-        uint jobActionId,
+        uint contractId,
         uint rate,
+        string description,
         bool isHiringDone
     )
         onlyActiveSmartContract
         onlyActiveEmployer
     {
-        ContractLibrary.addContract(ethlanceDB, getSenderUserId(), jobActionId, rate, isHiringDone);
+        ContractLibrary.addContract(ethlanceDB, getSenderUserId(), contractId, rate, description, isHiringDone);
     }
 
     function addJobContractFeedback(
@@ -32,5 +33,27 @@ contract EthlanceContract is EthlanceSetter {
         if (bytes(feedback).length > getConfig("max-feedback")) throw;
         if (rating > 100) throw;
         ContractLibrary.addFeedback(ethlanceDB, contractId, getSenderUserId(), feedback, rating);
+    }
+
+    function addJobProposal(
+        uint jobId,
+        string description,
+        uint rate
+    )
+        onlyActiveSmartContract
+        onlyActiveFreelancer
+    {
+        ContractLibrary.addProposal(ethlanceDB, jobId, getSenderUserId(), description, rate);
+    }
+
+    function addJobInvitation(
+        uint jobId,
+        uint freelancerId,
+        string description
+    )
+        onlyActiveSmartContract
+        onlyActiveEmployer
+    {
+        ContractLibrary.addInvitation(ethlanceDB, getSenderUserId(), jobId, freelancerId, description);
     }
 }

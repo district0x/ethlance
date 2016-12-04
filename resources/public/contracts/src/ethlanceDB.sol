@@ -306,6 +306,31 @@ contract EthlanceDB is Ownable {
         return count;
     }
 
+//    function getEntityListArrayItems(
+//        bytes32[] arrayItemsFields,
+//        uint[] arrayItemsIds,
+//        bytes32[] arrayItemsCountRecords
+//    )
+//        public constant returns
+//    (
+//        uint[] arrayItems
+//    )
+//    {
+//        var arrayItemsCounts = new uint[](arrayItemsCountRecords.length);
+//        uint arrayItemsTotalCount;
+//        for (uint i = 0; i < arrayItemsCountRecords.length; i++) {
+//            var count = getUIntValue(arrayItemsCountRecords[i]);
+//            arrayItemsTotalCount += count;
+//        }
+//        arrayItems = new uint[](arrayItemsTotalCount);
+//        uint k;
+//        for (i = 0; i < arrayItemsCounts.length; i++) {
+//            for (uint j = 0; j < arrayItemsCounts[i]; j++) {
+//
+//            }
+//        }
+//    }
+
     function getEntityList(bytes32[] records, uint8[] types)
         public constant returns
     (

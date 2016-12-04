@@ -41,8 +41,6 @@
    :freelancer/contracts-count uint
    :freelancer/description string
    :freelancer/hourly-rate big-num
-   :freelancer/job-actions uint-coll
-   :freelancer/job-actions-count uint
    :freelancer/job-title string
    :freelancer/ratings-count uint
    :freelancer/skills uint-coll
@@ -63,58 +61,55 @@
          employer-schema))
 
 (def job-schema
-  {:job/employer uint
-   :job/title string
-   :job/description string
-   :job/language uint
-   :job/budget big-num
-   :job/created-on date
+  {:job/budget big-num
    :job/category uint8
-   :job/payment-type uint8
-   :job/experience-level uint8
-   :job/estimated-duration uint8
-   :job/hours-per-week uint8
-   :job/freelancers-needed uint8
-   :job/status uint8
-   :job/skills-count uint
-   :job/proposals-count uint
-   :job/contracts-count uint
-   :job/invitations-count uint
-   :job/hiring-done-on date
-   :job/total-paid big-num
-   :job/skills uint-coll
-   :job/proposals uint-coll
    :job/contracts uint-coll
-   :job/invitations uint-coll})
+   :job/contracts-count uint
+   :job/created-on date
+   :job/description string
+   :job/employer uint
+   :job/estimated-duration uint8
+   :job/experience-level uint8
+   :job/freelancers-needed uint8
+   :job/hiring-done-on date
+   :job/hours-per-week uint8
+   :job/language uint
+   :job/payment-type uint8
+   :job/skills uint-coll
+   :job/skills-count uint
+   :job/status uint8
+   :job/title string
+   :job/total-paid big-num})
 
-(def job-action-schema
-  {:job-action/status uint8
-   :job-action/job uint
-   :job-action/freelancer uint
-   :proposal/rate big-num
+(def proposal+invitation-schema
+  {:contract/freelancer uint
+   :contract/job uint
+   :contract/status uint8
+   :invitation/created-on date
+   :invitation/description string
    :proposal/created-on date
    :proposal/description string
-   :invitation/description string
-   :invitation/created-on uint})
+   :proposal/rate big-num})
 
 (def contract-schema
-  {:contract/job uint
-   :contract/freelancer uint
-   :contract/rate big-num
-   :contract/status uint8
-   :contract/created-on date
-   :contract/total-invoiced big-num
-   :contract/total-paid big-num
-   :contract/freelancer-feedback string
-   :contract/freelancer-feedback-rating uint8
-   :contract/freelancer-feedback-on date
-   :contract/employer-feedback string
-   :contract/employer-feedback-rating uint8
-   :contract/employer-feedback-on date
+  {:contract/created-on date
+   :contract/description string
    :contract/done-by-freelancer? bool
    :contract/done-on date
+   :contract/employer-feedback string
+   :contract/employer-feedback-on date
+   :contract/employer-feedback-rating uint8
+   :contract/freelancer uint
+   :contract/freelancer-feedback string
+   :contract/freelancer-feedback-on date
+   :contract/freelancer-feedback-rating uint8
+   :contract/invoices uint-coll
    :contract/invoices-count uint
-   :contract/invoices uint-coll})
+   :contract/job uint
+   :contract/rate big-num
+   :contract/status uint8
+   :contract/total-invoiced big-num
+   :contract/total-paid big-num})
 
 (def invoice-schema
   {:invoice/contract uint
@@ -174,10 +169,10 @@
    :search/country :search/language :search/offset :search/limit])
 
 (def add-invitation-args
-  [:job-action/job :job-action/freelancer :invitation/description])
+  [:contract/job :contract/freelancer :invitation/description])
 
 (def add-proposal-args
-  [:job-action/job :proposal/description :proposal/rate])
+  [:contract/job :proposal/description :proposal/rate])
 
 (def add-contract-args
   [:contract/job :contract/rate :contract/hiring-done?])
@@ -198,9 +193,6 @@
 (def add-skills-args
   [:skill/names])
 
-(def get-freelancer-job-actions-args
-  [:user/id :job-action/status :job/status])
-
 (def get-freelancer-invoices-args
   [:user/id :invoice/status])
 
@@ -208,9 +200,6 @@
   [:user/id :contract/done?])
 
 (def get-job-contracts-args
-  [:job/id])
-
-(def get-job-proposals-args
   [:job/id])
 
 (def get-job-invoices-args
@@ -228,7 +217,7 @@
     freelancer-schema
     employer-schema
     job-schema
-    job-action-schema
+    proposal+invitation-schema
     contract-schema
     invoice-schema
     skill-schema))

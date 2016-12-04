@@ -3,10 +3,14 @@
             [ethlance.utils :as u]
             [cljs-web3.eth :as web3-eth]
             [clojure.data :as data]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [ethlance.constants :as constants]))
+
+(defn rand-id [n]
+  (inc (rand-int n)))
 
 (defn rand-uint-coll [max-n max-int]
-  (repeatedly (inc (rand-int max-n)) #(inc (rand-int max-int))))
+  (repeatedly (rand-id max-n) #(rand-id max-int)))
 
 (defn rand-text [max-chars]
   (let [c (inc (rand-int (/ max-chars (inc (rand-int 8)))))]
@@ -41,12 +45,12 @@
 (defn gen-freelancer []
   {:user/name (rand-text 40)
    :user/gravatar (u/rand-str 32)
-   :user/country (rand-int 200)
+   :user/country (rand-id (count constants/countries))
    :user/languages (set (rand-uint-coll 6 200))
    :freelancer/available? true
    :freelancer/job-title (rand-text 40)
    :freelancer/hourly-rate (rand-int 100)
-   :freelancer/categories (set (rand-uint-coll 6 6))
+   :freelancer/categories (set (rand-uint-coll 6 (count constants/categories)))
    :freelancer/skills (set (rand-uint-coll 10 29))
    :freelancer/description (rand-text 300)})
 
@@ -55,12 +59,12 @@
    :job/description (rand-text 300)
    :job/skills (set (rand-uint-coll 6 29))
    :job/budget (rand-int 100)
-   :job/language (inc (rand-int 200))
-   :job/category (inc (rand-int 7))
-   :job/payment-type (inc (rand-int 2))
-   :job/experience-level (inc (rand-int 3))
-   :job/estimated-duration (inc (rand-int 3))
-   :job/hours-per-week (inc (rand-int 2))
+   :job/language (rand-id (count constants/languages))
+   :job/category (rand-id (count constants/categories))
+   :job/payment-type (rand-id (count constants/payment-types))
+   :job/experience-level (rand-id (count constants/experience-levels))
+   :job/estimated-duration (rand-id (count constants/estimated-durations))
+   :job/hours-per-week (rand-id (count constants/hours-per-weeks))
    :job/freelancers-needed (inc (rand-int 10))})
 
 (def employer1
@@ -97,14 +101,24 @@
    :job/freelancers-needed 1})
 
 (def invitation1
-  {:job-action/job 1
-   :job-action/freelancer 1
+  {:contract/job 1
+   :contract/freelancer 1
    :invitation/description "Hello come here"})
 
+(defn gen-invitation [& [job-id]]
+  {:contract/job (or job-id (rand-id 10))
+   :contract/freelancer (rand-id 10)
+   :invitation/description (rand-text 200)})
+
 (def proposal1
-  {:job-action/job 1
+  {:contract/job 1
    :proposal/rate 100
    :proposal/description "Hello I'm here"})
+
+(defn gen-proposal [& [job-id]]
+  {:contract/job (or job-id (rand-id 10))
+   :proposal/rate (rand-int 100)
+   :proposal/description (rand-text 200)})
 
 (def contract1
   {:contract/job 1
@@ -151,11 +165,12 @@
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
                        [{:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}]
-                       ;[{:ms 20 :dispatch [:contract.user/register-freelancer freelancer3 (get-address 0)]}]
-                       ;[{:ms 30 :dispatch [:contract.user/register-freelancer freelancer4 (get-address 0)]}]
-                       (map #(hash-map :ms 15 :dispatch [:contract.job/add (gen-job) (get-address 1)]) (range 2 10))
+                       (map #(hash-map :ms 15 :dispatch [:contract.job/add (gen-job) (get-address 1)]) (range 2 11))
                        (map #(hash-map :ms 20 :dispatch [:contract.user/register-freelancer (gen-freelancer) (get-address %)]) (range 2 10))
-                       [{:ms 30 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
+                       (map #(hash-map :ms 30 :dispatch [:contract.job/add-invitation (gen-invitation 1) (get-address 1)]) (range 5))
+                       (map #(hash-map :ms 40 :dispatch [:contract.job/add-proposal (gen-proposal 1) (get-address %)]) (range 2 10))
+
+                       #_ [{:ms 30 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
                         {:ms 40 :dispatch [:contract.job/add-proposal proposal1 (get-address 0)]}
                         {:ms 50 :dispatch [:contract.contract/add contract1 (get-address 1)]}
                         {:ms 60 :dispatch [:contract.invoice/add invoice1 (get-address 0)]}

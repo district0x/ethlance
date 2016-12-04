@@ -3,6 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.styles :as styles]
+    [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.utils :as u]
     [reagent.core :as r]
     [medley.core :as medley]))
@@ -10,6 +11,13 @@
 (def col (r/adapt-react-class js/ReactFlexboxGrid.Col))
 (def row (r/adapt-react-class js/ReactFlexboxGrid.Row))
 (def grid (r/adapt-react-class js/ReactFlexboxGrid.Grid))
+
+(u/set-default-props! (aget js/MaterialUI "TableHeader") {:adjust-for-checkbox false
+                                                          :display-select-all false})
+(u/set-default-props! (aget js/MaterialUI "TableBody") {:display-row-checkbox false})
+(u/set-default-props! (aget js/MaterialUI "TableRow") {:selectable false})
+(u/set-default-props! (aget js/MaterialUI "Table") {:selectable false})
+(u/set-default-props! (aget js/MaterialUI "TableFooter") {:adjust-for-checkbox false})
 
 (def row-plain (u/create-with-default-props row {:style styles/row-no-margin}))
 
@@ -52,11 +60,9 @@
 
 (defn line
   ([body]
-    [:div {:style styles/line} body])
+   [:div {:style styles/line} body])
   ([label body]
-   [:div {:style styles/line} [:b label ": "] body]))
-
-
+   [:div {:style styles/line} [:span label ": "] [:b body]]))
 
 (defn a
   ([{:keys [route-params route] :as props} body]
@@ -67,3 +73,16 @@
                (medley/mapply u/path-for route route-params))
        :on-click #(.stopPropagation %)}
       (dissoc props :route-params :route)) body]))
+
+(defn create-table-pagination [list-pagination-props]
+  [ui/table-footer
+   [ui/table-row
+    [ui/table-row-column
+     {:col-span 99
+      :style {:text-align :right :padding-right 0}}
+     [list-pagination list-pagination-props]]]])
+
+(defn center-layout [& children]
+  [row {:center "xs"}
+   (into [] (concat [col {:lg 8 :style styles/text-left}]
+                    children))])

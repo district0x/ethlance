@@ -68,8 +68,7 @@
 (defn search-results []
   (let [list (subscribe [:list/search-freelancers])]
     (fn []
-      (let [loading? (or (:loading? @list) (some nil? (:items @list)))
-            items (remove nil? (:items @list))]
+      (let [{:keys [loading? items]} @list]
         [paper-thin
          {:loading? loading?}
          (if (seq items)

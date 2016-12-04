@@ -4,39 +4,127 @@ import "ethlanceDB.sol";
 import "userLibrary.sol";
 import "jobLibrary.sol";
 import "sharedLibrary.sol";
-import "jobActionLibrary.sol";
 
 library ContractLibrary {
 
     //    status:
-    //    1: running, 2: done
+    //    1: invited, 2: pending proposal, 3: accepted, 4: finished
+
+    function addInvitation(
+        address db,
+        uint senderId,
+        uint jobId,
+        uint freelancerId,
+        string description
+    )
+        internal
+    {
+        var employerId = JobLibrary.getEmployer(db, jobId);
+        if (senderId != employerId) throw;
+        if (employerId == freelancerId) throw;
+        if (getContract(db, freelancerId, jobId) != 0) throw;
+        var contractId = SharedLibrary.createNext(db, "contract/count");
+        setFreelancerJobIndex(db, contractId, freelancerId, jobId);
+        
+        EthlanceDB(db).setStringValue(sha3("invitation/description", contractId), description);
+        EthlanceDB(db).setUIntValue(sha3("invitation/created-on", contractId), now);
+        setStatus(db, contractId, 1);
+        UserLibrary.addFreelancerContract(db, freelancerId, contractId);
+        JobLibrary.addContract(db, jobId, contractId);
+    }
+    
+    function addProposal(
+        address db,
+        uint jobId,
+        uint freelancerId,
+        string description,
+        uint rate
+    )
+        internal
+    {
+        if (freelancerId == JobLibrary.getEmployer(db, jobId)) throw;
+        if (freelancerId == 0) throw;
+        var contractId = getContract(db, freelancerId, jobId);
+        if (contractId == 0) {
+            contractId = SharedLibrary.createNext(db, "contract/count");
+            UserLibrary.addFreelancerContract(db, freelancerId, contractId);
+            JobLibrary.addContract(db, jobId, contractId);
+        } else if (getProposalCreatedOn(db, contractId) != 0) throw;
+        
+        setFreelancerJobIndex(db, contractId, freelancerId, jobId);
+        EthlanceDB(db).setUIntValue(sha3("proposal/rate", contractId), rate);
+        EthlanceDB(db).setUIntValue(sha3("proposal/created-on", contractId), now);
+        EthlanceDB(db).setStringValue(sha3("proposal/description", contractId), description);
+        setStatus(db, contractId, 2);
+    }
 
     function addContract(
         address db,
         uint senderId,
-        uint jobActionId,
+        uint contractId,
         uint rate,
+        string description,
         bool isHiringDone
     )
         internal
     {
-        var jobId = JobActionLibrary.getJob(db, jobActionId);
-        var freelancerId = JobActionLibrary.getFreelancer(db, jobActionId);
+        var jobId = getJob(db, contractId);
+        var freelancerId = getFreelancer(db, contractId);
         var employerId = JobLibrary.getEmployer(db, jobId);
         if (senderId != employerId) throw;
         if (senderId == freelancerId) throw;
-        var contractId = SharedLibrary.createNext(db, "contract/count");
-        EthlanceDB(db).setUIntValue(sha3("contract/job", contractId), jobId);
-        EthlanceDB(db).setUIntValue(sha3("contract/freelancer", contractId), freelancerId);
         EthlanceDB(db).setUIntValue(sha3("contract/rate", contractId), rate);
-        EthlanceDB(db).setUInt8Value(sha3("contract/status", contractId), 1);
         EthlanceDB(db).setUIntValue(sha3("contract/created-on", contractId), now);
-        JobActionLibrary.setStatus(db, jobActionId, 3);
+        EthlanceDB(db).setStringValue(sha3("contract/description", contractId), description);
+        setStatus(db, contractId, 3);
         UserLibrary.addFreelancerContract(db, freelancerId, contractId);
-        JobLibrary.addJobContract(db, jobId, contractId);
+        JobLibrary.addContract(db, jobId, contractId);
         if (isHiringDone) {
             JobLibrary.setHiringDone(db, jobId, senderId);
         }
+    }
+
+    function addFeedback(address db, uint contractId, uint senderId, string feedback, uint8 rating) internal {
+        var freelancerId = getFreelancer(db, contractId);
+        var employerId = getEmployer(db, contractId);
+        if (senderId != freelancerId && senderId != employerId) throw;
+
+        if (getStatus(db, contractId) == 1) {
+            setStatus(db, contractId, 4);
+            EthlanceDB(db).setUIntValue(sha3("contract/done-on", contractId), now);
+        }
+
+        if (senderId == freelancerId) {
+            if (getFreelancerFeedbackOn(db, contractId) > 0) throw;
+            EthlanceDB(db).setBooleanValue(sha3("contract/done-by-freelancer?", contractId), true);
+            addFreelancerFeedback(db, contractId, feedback, rating);
+        } else {
+            if (getEmployerFeedbackOn(db, contractId) > 0) throw;
+            addEmployerFeedback(db, contractId, feedback, rating);
+        }
+    }
+
+    function addUserFeedback(address db, uint contractId, uint userId, string feedbackKey,
+        string ratingKey, string dateKey, string ratingsCountKey, string avgRatingKey, string description,
+        uint8 rating) internal {
+        EthlanceDB(db).setStringValue(sha3(feedbackKey, contractId), description);
+        EthlanceDB(db).setUInt8Value(sha3(ratingKey, contractId), rating);
+        EthlanceDB(db).setUIntValue(sha3(dateKey, contractId), now);
+        UserLibrary.addToAvgRating(db, userId, ratingsCountKey, avgRatingKey, rating);
+    }
+
+    function addFreelancerFeedback(address db, uint contractId, string description, uint8 rating) internal {
+        var userId = getFreelancer(db, contractId);
+        addUserFeedback(db, contractId, userId, "contract/freelancer-feedback",
+            "contract/freelancer-feedback-rating", "contract/freelancer-feedback-on", "freelancer/ratings-count",
+            "freelancer/avg-rating", description, rating);
+    }
+
+    function addEmployerFeedback(address db, uint contractId, string description, uint8 rating) internal {
+        var userId = getEmployer(db, contractId);
+        addUserFeedback(db, contractId, userId, "contract/employer-feedback",
+            "contract/employer-feedback-rating", "contract/employer-feedback-on", "employer/ratings-count",
+            "employer/avg-rating", description, rating);
     }
 
     function addTotalInvoiced(address db, uint contractId, uint amount) internal {
@@ -94,7 +182,7 @@ library ContractLibrary {
     }
 
     function getEmployer(address db, uint contractId) internal returns (uint) {
-        var jobId = EthlanceDB(db).getUIntValue(sha3("contract/job", contractId));
+        var jobId = getJob(db, contractId);
         return JobLibrary.getEmployer(db, jobId);
     }
 
@@ -102,22 +190,12 @@ library ContractLibrary {
         return EthlanceDB(db).getUIntValue(sha3("contract/job", contractId));
     }
 
-    function getStatus(address db, uint contractId) internal returns (uint8) {
-        return EthlanceDB(db).getUInt8Value(sha3("contract/status", contractId));
+    function setStatus(address db, uint contractId, uint8 status) internal {
+        EthlanceDB(db).setUInt8Value(sha3("contract/status", contractId), status);
     }
 
-    function addFreelancerFeedback(address db, uint contractId, string description, uint8 rating) internal {
-        var userId = getFreelancer(db, contractId);
-        addUserFeedback(db, contractId, userId, "contract/freelancer-feedback",
-            "contract/freelancer-feedback-rating", "contract/freelancer-feedback-on", "freelancer/ratings-count",
-            "freelancer/avg-rating", description, rating);
-    }
-    
-    function addEmployerFeedback(address db, uint contractId, string description, uint8 rating) internal {
-        var userId = getEmployer(db, contractId);
-        addUserFeedback(db, contractId, userId, "contract/employer-feedback",
-            "contract/employer-feedback-rating", "contract/employer-feedback-on", "employer/ratings-count",
-            "employer/avg-rating", description, rating);
+    function getStatus(address db, uint contractId) internal returns (uint8) {
+        return EthlanceDB(db).getUInt8Value(sha3("contract/status", contractId));
     }
 
     function getFreelancerFeedbackOn(address db, uint contractId) internal returns(uint) {
@@ -128,32 +206,25 @@ library ContractLibrary {
         return EthlanceDB(db).getUIntValue(sha3("contract/employer-feedback-on", contractId));
     }
 
-    function addUserFeedback(address db, uint contractId, uint userId, string feedbackKey,
-        string ratingKey, string dateKey, string ratingsCountKey, string avgRatingKey, string description,
-        uint8 rating) internal {
-        EthlanceDB(db).setStringValue(sha3(feedbackKey, contractId), description);
-        EthlanceDB(db).setUInt8Value(sha3(ratingKey, contractId), rating);
-        EthlanceDB(db).setUIntValue(sha3(dateKey, contractId), now);
-        UserLibrary.addToAvgRating(db, userId, ratingsCountKey, avgRatingKey, rating);
+    function getProposalCreatedOn(address db, uint contractId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("proposal/created-on", contractId));
     }
 
-    function addFeedback(address db, uint contractId, uint senderId, string feedback, uint8 rating) internal {
-        var freelancerId = getFreelancer(db, contractId);
-        var employerId = getEmployer(db, contractId);
-        if (senderId != freelancerId && senderId != employerId) throw;
+    function getInvitationCreatedOn(address db, uint contractId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("invitation/created-on", contractId));
+    }
+    
+    function getContract(address db, uint freelancerId, uint jobId) internal returns (uint) {
+        return EthlanceDB(db).getUIntValue(sha3("contract/freelancer+job", freelancerId, jobId));
+    }
 
-        if (getStatus(db, contractId) == 1) {
-            EthlanceDB(db).setUInt8Value(sha3("contract/status", contractId), 2);
-            EthlanceDB(db).setUIntValue(sha3("contract/done-on", contractId), now);
-        }
-
-        if (senderId == freelancerId) {
-            if (getFreelancerFeedbackOn(db, contractId) > 0) throw;
-            EthlanceDB(db).setBooleanValue(sha3("contract/done-by-freelancer?", contractId), true);
-            addFreelancerFeedback(db, contractId, feedback, rating);
-        } else {
-            if (getEmployerFeedbackOn(db, contractId) > 0) throw;
-            addEmployerFeedback(db, contractId, feedback, rating);
-        }
+    function getRate(address db, uint contractId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("proposal/rate", contractId));
+    }
+    
+    function setFreelancerJobIndex(address db, uint contractId, uint freelancerId, uint jobId) internal {
+        EthlanceDB(db).setUIntValue(sha3("contract/freelancer", contractId), freelancerId);
+        EthlanceDB(db).setUIntValue(sha3("contract/job", contractId), jobId);
+        EthlanceDB(db).setUIntValue(sha3("contract/freelancer+job", freelancerId, jobId), contractId);
     }
 }

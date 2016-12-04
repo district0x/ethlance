@@ -40,6 +40,7 @@ library SharedLibrary {
 
     function setUIntArray(address db, uint id, string key, string countKey, uint[] array) internal{
         for (uint i = 0; i < array.length; i++) {
+            if (array[i] == 0) throw;
             EthlanceDB(db).setUIntValue(sha3(key, id, i), array[i]);
         }
         EthlanceDB(db).setUIntValue(sha3(countKey, id), array.length);
@@ -97,6 +98,9 @@ library SharedLibrary {
         uint j = 0;
         if (offset >= array.length) {
             return result;
+        }
+        if (limit == 0) {
+            return array;
         }
 
         result = new uint[](limit);

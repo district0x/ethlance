@@ -92,6 +92,9 @@
   {:color primary1-color
    :cursor :pointer})
 
+(def clickable
+  {:cursor :pointer})
+
 (def row-no-margin
   {:margin-left 0
    :margin-right 0})
@@ -172,8 +175,17 @@
   {1 (color :amber500)
    2 (color :amber800)})
 
+(def contract-status-colors
+  {1 (color :deep-purple300)
+   2 (color :indigo500)
+   3 (color :green500)
+   4 (color :red800)})
+
 (def budget-chip-color
   (color :brown500))
 
 (def line
   {:line-height "1.2em"})
+
+(def pagination-button
+  {:min-width 36})

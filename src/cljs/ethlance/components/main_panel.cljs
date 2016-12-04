@@ -12,6 +12,7 @@
     [ethlance.pages.freelancer-jobs-page :refer [freelancer-jobs-page]]
     [ethlance.pages.freelancer-profile :refer [freelancer-profile]]
     [ethlance.pages.home-page :refer [home-page]]
+    [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
     [ethlance.pages.my-profile-page :refer [my-profile-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
@@ -31,6 +32,7 @@
    :freelancer/invoices freelancer-invoices-page
    :freelancer/jobs freelancer-jobs-page
    :home home-page
+   :contract/detail contract-detail-page
    :job/detail job-detail-page
    :my-profile my-profile-page
    :search/freelancers search-freelancers-page
@@ -54,7 +56,7 @@
     [ui/list-item
      {:primary-text label
       :left-icon icon
-      :value (u/nsname handler)
+      :value (u/ns+name handler)
       :href (u/path-for handler)
       :key handler}]))
 
@@ -89,7 +91,7 @@
              :show-menu-icon-button false
              :style styles/app-bar-left}]
            [ui/selectable-list
-            {:value (u/nsname (:handler @current-page))
+            {:value (u/ns+name (:handler @current-page))
              :style styles/nav-list
              :on-change (fn [])}
             (create-menu-items nav-items)

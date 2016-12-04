@@ -5,7 +5,6 @@ import "safeMath.sol";
 import "sharedLibrary.sol";
 import "categoryLibrary.sol";
 import "skillLibrary.sol";
-import "jobActionLibrary.sol";
 import "jobLibrary.sol";
 import "contractLibrary.sol";
 import "invoiceLibrary.sol";
@@ -55,6 +54,8 @@ library UserLibrary {
         EthlanceDB(db).setAddressValue(sha3("user/address", userId), userAddress);
         EthlanceDB(db).setStringValue(sha3("user/name", userId), name);
         EthlanceDB(db).setBytes32Value(sha3("user/gravatar", userId), gravatar);
+
+        if (country == 0) throw;
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
         EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
         EthlanceDB(db).setUIntValue(sha3("user/created-on", userId), now);
@@ -169,14 +170,6 @@ library UserLibrary {
         return SharedLibrary.getUIntArray(db, userId, "employer/jobs", "employer/jobs-count");
     }
 
-    function addFreelancerJobAction(address db, uint userId, uint jobActionId) internal {
-        SharedLibrary.addArrayItem(db, userId, "freelancer/job-actions", "freelancer/job-actions-count", jobActionId);
-    }
-
-    function getFreelancerJobActions(address db, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, userId, "freelancer/job-actions", "freelancer/job-actions-count");
-    }
-    
     function getFreelancerContractsCount(address db, uint userId) internal returns(uint) {
         return SharedLibrary.getArrayItemsCount(db, userId, "freelancer/contracts-count");
     }
@@ -317,21 +310,21 @@ library UserLibrary {
         return SharedLibrary.take(j, userIds);
     }
 
-    function freelancerJobActionsPred(address db, uint[] args, uint jobActionId) internal returns(bool) {
-        var jobId = JobActionLibrary.getJob(db, jobActionId);
-        var jobActionStatus = args[0];
+    function freelancerContractsPred(address db, uint[] args, uint contractId) internal returns(bool) {
+        var jobId = ContractLibrary.getJob(db, contractId);
+        var contractStatus = args[0];
         var jobStatus = args[1];
-        return (JobActionLibrary.getStatus(db, jobActionId) == jobActionStatus &&
+        return (ContractLibrary.getStatus(db, contractId) == contractStatus &&
                 JobLibrary.getStatus(db, jobId) == jobStatus);
     }
 
-    function getFreelancerJobActionsByStatus(address db, uint userId, uint8 jobActionStatus, uint8 jobStatus)
+    function getFreelancerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)
         internal returns (uint[] result)
     {
         var args = new uint[](2);
-        args[0] = jobActionStatus;
+        args[0] = contractStatus;
         args[1] = jobStatus;
-        return SharedLibrary.filter(db, freelancerJobActionsPred, getFreelancerJobActions(db, userId), args);
+        return SharedLibrary.filter(db, freelancerContractsPred, getFreelancerContracts(db, userId), args);
     }
 
     function getFreelancerInvoicesByStatus(address db, uint userId, uint8 invoiceStatus)
@@ -343,40 +336,33 @@ library UserLibrary {
             ContractLibrary.getInvoices(db, getFreelancerContracts(db, userId)), args);
     }
 
-    function getFreelancerContracts(address db, uint userId, bool isDone)
-        internal returns (uint[] contractIds) {
-
-        var maxCount = getFreelancerContractsCount(db, userId);
-        var allContracts = getFreelancerContracts(db, userId);
-        contractIds = new uint[](maxCount);
-        uint j = 0;
-        for (uint i = 0; i < allContracts.length ; i++) {
-            var contractId = allContracts[i];
-            var jobId = ContractLibrary.getJob(db, contractId);
-            var jobStatus = JobLibrary.getStatus(db, jobId);
-            if (isDone) {
-                if (ContractLibrary.getStatus(db, contractId) != 2 ||
-                    jobStatus != 1)
-                    {
-                        contractIds[j] = contractId;
-                        j++;
-                    }
-            } else
-                if (ContractLibrary.getStatus(db, contractId) == 1 &&
-                    jobStatus == 1)
-                {
-                    contractIds[j] = contractId;
-                    j++;
-                }
-        }
-        return SharedLibrary.take(j, contractIds);
-    }
-
-    function testDb(address db, uint a) internal {
-        EthlanceDB(db).setUIntValue(sha3("abc", a), a);
-        if (EthlanceDB(db).getUIntValue(sha3("abc", a)) != a) {
-            throw;
-        }
-    }
+//    function getFreelancerContracts(address db, uint userId, bool isDone)
+//        internal returns (uint[] contractIds) {
+//
+//        var maxCount = getFreelancerContractsCount(db, userId);
+//        var allContracts = getFreelancerContracts(db, userId);
+//        contractIds = new uint[](maxCount);
+//        uint j = 0;
+//        for (uint i = 0; i < allContracts.length ; i++) {
+//            var contractId = allContracts[i];
+//            var jobId = ContractLibrary.getJob(db, contractId);
+//            var jobStatus = JobLibrary.getStatus(db, jobId);
+//            if (isDone) {
+//                if (ContractLibrary.getStatus(db, contractId) != 2 ||
+//                    jobStatus != 1)
+//                    {
+//                        contractIds[j] = contractId;
+//                        j++;
+//                    }
+//            } else
+//                if (ContractLibrary.getStatus(db, contractId) == 1 &&
+//                    jobStatus == 1)
+//                {
+//                    contractIds[j] = contractId;
+//                    j++;
+//                }
+//        }
+//        return SharedLibrary.take(j, contractIds);
+//    }
 }
 

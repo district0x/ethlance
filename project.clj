@@ -9,6 +9,7 @@
                  [cljsjs/material-ui-chip-input "0.11.1-0"]
                  [cljsjs/react-flexbox-grid "0.10.2-1" :exclusions [cljsjs/react]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react]]
+                 [cljsjs/react-ultimate-pagination "0.8.0-0" :exclusions [cljsjs/react]]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
                  [day8.re-frame/http-fx "0.0.4"]

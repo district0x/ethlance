@@ -9,6 +9,12 @@
    2 "Paid"
    3 "Cancelled"})
 
+(def contract-statuses
+  {1 "Invited"
+   2 "Pending"
+   3 "Hired"
+   4 "Finished"})
+
 (def payment-types
   {1 "Hourly"
    2 "Fixed"})

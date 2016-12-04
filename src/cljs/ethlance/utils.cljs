@@ -1,6 +1,8 @@
 (ns ethlance.utils
   (:require
     [bidi.bidi :as bidi]
+    [camel-snake-kebab.core :as cs :include-macros true]
+    [camel-snake-kebab.extras :refer [transform-keys]]
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [cljs-time.coerce :refer [to-date-time to-long to-local-date-time]]
@@ -8,11 +10,11 @@
     [cljs-time.format :as time-format]
     [clojure.core.async :refer [chan <! >!]]
     [clojure.string :as string]
-    [ethlance.routes :refer [routes]]
     [ethlance.constants :as constants]
-    [goog.string.format]
-    [goog.string :as gstring]
+    [ethlance.routes :refer [routes]]
     [ethlance.styles :as styles]
+    [goog.string :as gstring]
+    [goog.string.format]
     [medley.core :as medley]
     [reagent.core :as r])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
@@ -29,7 +31,13 @@
                (string/replace "#" ""))]
     (if (empty? hash) "/" hash)))
 
-(defn nsname [x]
+(defn set-location-hash! [s]
+  (set! (.-hash js/location) s))
+
+(defn nav-to! [route route-params]
+  (set-location-hash! (medley/mapply path-for route route-params)))
+
+(defn ns+name [x]
   (when x
     (str (when-let [n (namespace x)] (str n "/")) (name x))))
 
@@ -49,7 +57,7 @@
        (str (subs string 0 (- length suffix-len)) suffix)))))
 
 (defn sha3 [& args]
-  (apply js/SoliditySha3.sha3 (map #(if (keyword? %) (nsname %) %) args)))
+  (apply js/SoliditySha3.sha3 (map #(if (keyword? %) (ns+name %) %) args)))
 
 (defn big-num->num [x]
   (if (aget x "toNumber")
@@ -67,6 +75,9 @@
 
 (defn empty-job? [job]
   (zero? (:job/created-on job)))
+
+(defn empty-contract? [contract]
+  (zero? (:contract/job contract)))
 
 (defn subheader [title]
   [ui/subheader {:style styles/subheader} title])
@@ -124,23 +135,24 @@
   (time-format/unparse-local (time-format/formatters :rfc822) date))
 
 (defn time-ago [time]
-  (let [units [{:name "second" :limit 60 :in-second 1}
-               {:name "minute" :limit 3600 :in-second 60}
-               {:name "hour" :limit 86400 :in-second 3600}
-               {:name "day" :limit 604800 :in-second 86400}
-               {:name "week" :limit 2629743 :in-second 604800}
-               {:name "month" :limit 31556926 :in-second 2629743}
-               {:name "year" :limit nil :in-second 31556926}]
-        diff (t/in-seconds (t/interval time (t/now)))]
-    (if (< diff 5)
-      "just now"
-      (let [unit (first (drop-while #(or (>= diff (:limit %))
-                                         (not (:limit %)))
-                                    units))]
-        (-> (/ diff (:in-second unit))
-          js/Math.floor
-          int
-          (#(str % " " (:name unit) (when (> % 1) "s") " ago")))))))
+  (when time
+    (let [units [{:name "second" :limit 60 :in-second 1}
+                 {:name "minute" :limit 3600 :in-second 60}
+                 {:name "hour" :limit 86400 :in-second 3600}
+                 {:name "day" :limit 604800 :in-second 86400}
+                 {:name "week" :limit 2629743 :in-second 604800}
+                 {:name "month" :limit 31556926 :in-second 2629743}
+                 {:name "year" :limit nil :in-second 31556926}]
+          diff (t/in-seconds (t/interval time (t/now)))]
+      (if (< diff 5)
+        "just now"
+        (let [unit (first (drop-while #(or (>= diff (:limit %))
+                                           (not (:limit %)))
+                                      units))]
+          (-> (/ diff (:in-second unit))
+            js/Math.floor
+            int
+            (#(str % " " (:name unit) (when (> % 1) "s") " ago"))))))))
 
 (defn parse-props-children [props children]
   (if (map? props)
@@ -188,7 +200,29 @@
 (defn gravatar-url [hash]
   (gstring/format "http://s.gravatar.com/avatar/%s?s=80" hash))
 
-(comment
-  (rand-str 10)
-  (fixed-length-password 5))
+(defn list-filter-loaded [list empty-pred]
+  (-> list
+    (assoc :loading (or (:loading? list) (some (complement empty-pred) (:items list))))
+    (update :items (partial filter empty-pred))))
+
+(defn paginate [coll offset limit]
+  (->> coll
+    (drop offset)
+    (take limit)))
+
+
+(defn set-default-props! [react-class default-props]
+  (let [current-defaults (-> (aget react-class "defaultProps")
+                           (js->clj :keywordize-keys true))
+        new-props (merge current-defaults (transform-keys cs/->camelCase default-props))]
+    (aset react-class "defaultProps" (clj->js new-props))))
+
+(defn table-cell-clicked? [e]
+  "Sometimes .stopPropagation doesn't work in material-ui tables"
+  (instance? js/HTMLTableCellElement (aget e "target")))
+
+(defn table-row-nav-to-fn [& args]
+  (fn [e]
+    (when (table-cell-clicked? e)
+      (apply nav-to! args))))
 

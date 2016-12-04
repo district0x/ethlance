@@ -74,36 +74,16 @@ library JobLibrary {
         return SharedLibrary.getUIntArray(db, jobId, "job/skills", "job/skills-count");
     }
     
-    function getJobProposalsCount(address db, uint jobId) internal returns(uint) {
-        return SharedLibrary.getArrayItemsCount(db, jobId, "job/proposals-count");
+    function addContract(address db, uint jobId, uint contractId) internal {
+        SharedLibrary.addArrayItem(db, jobId, "job/contracts", "job/contracts-count", contractId);
     }
 
-    function addJobProposal(address db, uint jobId, uint proposalId) internal {
-        SharedLibrary.addArrayItem(db, jobId, "job/proposals", "job/proposals-count", proposalId);
-    }
-
-    function getProposals(address db, uint jobId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, jobId, "job/proposals", "job/proposals-count");
+    function getContracts(address db, uint jobId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, jobId, "job/contracts", "job/contracts-count");
     }
 
     function getJobContractsCount(address db, uint jobId) internal returns(uint) {
         return SharedLibrary.getArrayItemsCount(db, jobId, "job/contracts-count");
-    }
-
-    function addJobContract(address db, uint jobId, uint contractId) internal {
-        SharedLibrary.addArrayItem(db, jobId, "job/contracts", "job/contracts-count", contractId);
-    }
-    
-    function getContracts(address db, uint jobId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, jobId, "job/contracts", "job/contracts-count");
-    }
-    
-    function getJobInvitationsCount(address db, uint jobId) internal returns(uint) {
-        return SharedLibrary.getArrayItemsCount(db, jobId, "job/invitations-count");
-    }
-
-    function addJobInvitation(address db, uint jobId, uint invitationId) internal {
-        SharedLibrary.addArrayItem(db, jobId, "job/invitations", "job/invitations-count", invitationId);
     }
 
     function getEmployer(address db, uint jobId) internal returns(uint) {

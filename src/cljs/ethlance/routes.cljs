@@ -13,4 +13,5 @@
         [["freelancer/" :user/id] :freelancer/detail]
         [["employer/" :user/id] :employer/detail]
         [["job/" :job/id] :job/detail]
+        [["contract/" :contract/id] :contract/detail]
         [true :home]]])

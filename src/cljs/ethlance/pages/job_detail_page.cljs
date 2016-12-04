@@ -5,62 +5,113 @@
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
+    [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [ethlance.ethlance-db :as ethlance-db]))
 
-
-(defn job-activity []
-  (let [job (subscribe [:job/detail])]
-    (fn []
-      (let [{:keys [:job/freelancers-needed :job/contracts-count
-                    :job/invitations-count :job/proposals-count]} @job]
-
-        [:div
-         [line "Proposals" proposals-count]
-         [line "Invitations" invitations-count]
-         [line "Freelancers Needed" freelancers-needed]
-         [line "Hires" contracts-count]]))))
 
 (defn employer-details []
   (let [job (subscribe [:job/detail])]
     (fn []
       (let [{:keys [:user/name :user/gravatar :user/id :employer/avg-rating
-                    :employer/total-paid :employer/ratings-count]} (:job/employer @job)]
-
+                    :employer/total-paid :employer/ratings-count :user/country]} (:job/employer @job)
+            route-props {:route :employer/detail
+                         :route-params {:user/id id}}]
         [row
          {:middle "xs"}
          [col
           {:md 2}
-          [ui/avatar
-           {:size 80
-            :src (u/gravatar-url gravatar)}]]
+          [a route-props
+           [ui/avatar
+            {:size 100
+             :src (u/gravatar-url gravatar)}]]]
          [col
-          [:h2 [a {:route :employer/detail
-                   :route-params {:user/id id}} name]]
+          [:h2 [a route-props name]]
           [row-plain
            {:middle "xs"}
            [star-rating
             {:value (u/rating->star avg-rating)
              :star-style styles/star-rating-small}]
-           [:h4 {:style {:margin-left 5
-                         :color styles/primary1-color}} (u/round (u/rating->star avg-rating))]]
+           (when (pos? avg-rating)
+             [:h4 {:style {:margin-left 5
+                           :color styles/primary1-color}} (u/round (u/rating->star avg-rating))])]
           [line (str (u/eth total-paid) " spent")]
           [line (str ratings-count " " (u/pluralize "feedback" ratings-count))]
-          ]]))))
+          [misc/country-marker
+           {:country country}]]]))))
+
+(defn job-contracts []
+  (let [list (subscribe [:list/job-contracts])
+        job-id (subscribe [:job/route-job-id])
+        job (subscribe [:job/detail])
+        my-job? (subscribe [:job/my-job?])
+        active-user-id (subscribe [:db/active-user-id])]
+    (dispatch [:contract/initiate-load :contract.views/load-job-contracts {:job/id @job-id}])
+    (fn []
+      (let [{:keys [loading? items offset limit]} @list
+            {:keys [:job/payment-type]} @job]
+        [paper
+         {:loading? loading?}
+         [:h2 "Job Proposals"]
+         [ui/table
+          [ui/table-header
+           [ui/table-row
+            [ui/table-header-column "Freelancer"]
+            [ui/table-header-column "Bid"]
+            [ui/table-header-column "Time"]
+            [ui/table-header-column "Status"]]]
+          [ui/table-body
+           {:show-row-hover @my-job?}
+           (if (seq items)
+             (for [item items]
+               (let [{:keys [:contract/freelancer :contract/id :contract/status :proposal/rate]} item
+                     my-contract? (= @active-user-id (:user/id freelancer))]
+                 [ui/table-row
+                  {:key id
+                   :style (when (or @my-job? my-contract?) styles/clickable)
+                   :on-touch-tap (when (or @my-job? my-contract?)
+                                   (u/table-row-nav-to-fn :contract/detail {:contract/id id}))}
+                  [ui/table-row-column
+                   [a
+                    {:route-params {:user/id (:user/id freelancer)}
+                     :route :freelancer/detail}
+                    (:user/name freelancer)]]
+                  [ui/table-row-column
+                   (if (= status 1) "-" (str (u/eth rate)
+                                             (when (= 1 payment-type)
+                                               " / hr")))]
+                  [ui/table-row-column
+                   (if (= status 1)
+                     (u/time-ago (:invitation/created-on item))
+                     (u/time-ago (:proposal/created-on item)))]
+                  [ui/table-row-column
+                   [misc/status-chip
+                    {:background-color (styles/contract-status-colors status)}
+                    (constants/contract-statuses status)]]]))
+
+             [ui/table-row "No items"])]
+          (misc/create-table-pagination
+            {:all-subscribe [:list.ids/job-contracts]
+             :list-db-path [:list/job-contracts]
+             :load-dispatch [:contract.db/load-contracts (dissoc ethlance-db/proposal+invitation-schema
+                                                                 :proposal/description
+                                                                 :invitation/description)]
+             :offset offset
+             :limit limit})]]))))
 
 (defn job-details []
   (let [job (subscribe [:job/detail])
-        active-page (subscribe [:db/active-page])]
-    (dispatch [:contract/initiate-load :contract.db/load-jobs
-               [(js/parseInt (get-in @active-page [:route-params :job/id]))]])
+        job-id (subscribe [:job/route-job-id])]
+    (dispatch [:contract/initiate-load :contract.db/load-jobs [@job-id]])
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                     :job/experience-level :job/hours-per-week :job/created-on
                     :job/description :job/budget :job/skills :job/category
-                    :job/status :job/hiring-done-on]} @job]
+                    :job/status :job/hiring-done-on :job/freelancers-needed]} @job]
         [paper
          {:loading? (empty? title)}
          (when id
@@ -97,15 +148,10 @@
              {:selected-skills skills
               :always-show-all? true}]
             [misc/hr]
-            [job-activity]
-            [misc/hr]
             [employer-details]
             ])]))))
 
 (defn job-detail-page []
-  [row
-   {:center "xs"}
-   [col
-    {:lg 8
-     :style styles/text-left}
-    [job-details]]])
+  [misc/center-layout
+   [job-details]
+   [job-contracts]])

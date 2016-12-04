@@ -31,11 +31,12 @@
    :address->user-id {}
    :app/users {}
    :app/jobs {}
-   :app/job-actions {}
+   :app/contracts {}
    :app/skills {}
 
    :list/search-jobs {:items [] :loading? false}
    :list/search-freelancers {:items [] :loading? false}
+   :list/job-contracts {:items [] :loading? false :params {} :offset 0 :limit 4}
 
    :form/search-jobs {:search/category 0
                       :search/skills []

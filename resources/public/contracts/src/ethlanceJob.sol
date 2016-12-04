@@ -2,7 +2,6 @@ pragma solidity ^0.4.4;
 
 import "ethlanceSetter.sol";
 import "jobLibrary.sol";
-import "jobActionLibrary.sol";
 
 contract EthlanceJob is EthlanceSetter {
 
@@ -26,28 +25,6 @@ contract EthlanceJob is EthlanceSetter {
         if (bytes(title).length > getConfig("max-job-title")) throw;
         if (skills.length > getConfig("max-job-skills")) throw;
         JobLibrary.addJob(ethlanceDB, getSenderUserId(), title, description, skills, language, budget, uint8Items);
-    }
-
-    function addJobProposal(
-        uint jobId,
-        string description,
-        uint rate
-    )
-        onlyActiveSmartContract
-        onlyActiveFreelancer
-    {
-        JobActionLibrary.addProposal(ethlanceDB, jobId, getSenderUserId(), description, rate);
-    }
-
-    function addJobInvitation(
-        uint jobId,
-        uint freelancerId,
-        string description
-    )
-        onlyActiveSmartContract
-        onlyActiveEmployer
-    {
-        JobActionLibrary.addInvitation(ethlanceDB, getSenderUserId(), jobId, freelancerId, description);
     }
 
     function setJobStatus(

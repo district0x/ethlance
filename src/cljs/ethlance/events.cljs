@@ -78,6 +78,14 @@
 (defn all-contracts-loaded? [db]
   (every? #(and (:abi %) (if goog.DEBUG true (:bin %))) (vals (:eth/contracts db))))
 
+
+(defn init-list-load [db db-path params]
+  (cond-> db
+    (not= (get-in db [db-path :params]) params)
+    (assoc-in [db-path :items] [])
+
+    true (assoc-in [db-path :loading?] true)))
+
 (reg-event-fx
   :initialize
   (inject-cofx :localstorage)
@@ -540,7 +548,7 @@
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
-                [(get-instance db :ethlance-job)
+                [(get-instance db :ethlance-contract)
                  :add-job-invitation]
                 (get-args values ethlance-db/add-invitation-args)
                 [{:gas max-gas
@@ -558,7 +566,7 @@
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
-                [(get-instance db :ethlance-job)
+                [(get-instance db :ethlance-contract)
                  :add-job-proposal]
                 (get-args values ethlance-db/add-proposal-args)
                 [{:gas max-gas
@@ -659,17 +667,6 @@
                  [:contract/transaction-receipt :cancel-invoice max-gas false :log-error]])]}})))
 
 (reg-event-fx
-  :contract.views/get-freelancer-job-actions
-  interceptors
-  (fn [{:keys [db]} [values]]
-    {:web3-fx.contract/constant-fns
-     {:fns [(concat
-              [(get-instance db :ethlance-views)
-               :get-freelancer-job-actions]
-              (get-args values ethlance-db/get-freelancer-job-actions-args)
-              [:log :log-error])]}}))
-
-(reg-event-fx
   :contract.views/get-freelancer-invoices
   interceptors
   (fn [{:keys [db]} [values]]
@@ -691,27 +688,60 @@
               (get-args values ethlance-db/get-freelancer-contracts-args)
               [:log :log-error])]}}))
 
+
+;; ============contracts
+
 (reg-event-fx
-  :contract.views/get-job-contracts
+  :contract.views/load-job-contracts
   interceptors
   (fn [{:keys [db]} [values]]
-    {:web3-fx.contract/constant-fns
+    {:db (init-list-load db :list/job-contracts values)
+     :web3-fx.contract/constant-fns
      {:fns [(concat
               [(get-instance db :ethlance-views)
                :get-job-contracts]
               (get-args values ethlance-db/get-job-contracts-args)
-              [:log :log-error])]}}))
+              [:contract/job-contracts-loaded
+               :log-error])]}}))
 
 (reg-event-fx
-  :contract.views/get-job-proposals
+  :contract/job-contracts-loaded
   interceptors
-  (fn [{:keys [db]} [values]]
+  (fn [{:keys [db]} [contract-ids]]
+    (let [contract-ids (u/big-nums->nums contract-ids)]
+      {:db (update db :list/job-contracts merge {:items contract-ids :loading? false})
+       :dispatch [:contract.db/load-contracts
+                  (dissoc ethlance-db/proposal+invitation-schema :proposal/description :invitation/description)
+                  contract-ids]})))
+
+(reg-event-fx
+  :contract.db/load-contracts
+  interceptors
+  (fn [{:keys [db]} [schema contract-ids]]
     {:web3-fx.contract/constant-fns
-     {:fns [(concat
-              [(get-instance db :ethlance-views)
-               :get-job-proposals]
-              (get-args values ethlance-db/get-job-proposals-args)
-              [:log :log-error])]}}))
+     {:fns (entities-fns (get-instance db :ethlance-db)
+                         contract-ids
+                         (keys schema)
+                         :contract/contracts-loaded
+                         :log-error)}}))
+
+(reg-event-fx
+  :contract/contracts-loaded
+  interceptors
+  (fn [{:keys [db]} [contracts]]
+    (let [contracts (->> contracts
+                 (remove u/empty-contract?)
+                 (u/assoc-key-as-value :contract/id))]
+      {:db (-> db
+             (update :app/contracts merge contracts))
+       :web3-fx.contract/constant-fns
+       {:fns [(get-entities-fn
+                (get-instance db :ethlance-db)
+                (set (vals (medley/map-vals :contract/freelancer contracts)))
+                (keys ethlance-db/user-schema)
+                :contract/users-loaded
+                :log-error)]}})))
+
 
 (reg-event-fx
   :contract.views/get-job-invoices
@@ -790,6 +820,12 @@
     (let [new-db (assoc-in db [:form/search-freelancers key] value)]
       {:db new-db
        :dispatch [:contract.search/search-freelancers (:form/search-freelancers new-db)]})))
+
+(reg-event-db
+  :list/set-offset
+  interceptors
+  (fn [db [list-db-path offset]]
+    (assoc-in db (conj list-db-path :offset) offset)))
 
 (reg-event-fx
   :entity-loaded
@@ -907,7 +943,7 @@
   (dispatch [:contract/call :ethlance-db :get-bytes32-value (u/sha3 :user/name 1)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :freelancer/hourly-rate 1)])
   (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :freelancer/description 1)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job-action/freelancer-job 1 1)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :contract/freelancer+job 1 1)])
 
   (dispatch [:contract/call :ethlance-user :diff #{10 11 12} #{1 2 3 4 5 6}])
   (dispatch [:contract/call :ethlance-user :diff [10 11 12] [1 2 3 4 5 6]])
@@ -924,7 +960,7 @@
                                            :freelancer/description
                                            :employer/description)) (get-ethlance-db))
 
-  (get-entity 1 (keys ethlance-db/job-action-schema) (get-ethlance-db))
+  (get-entity 1 (keys ethlance-db/proposal+invitation-schema) (get-ethlance-db))
   (get-entity 1 (keys ethlance-db/job-schema) (get-ethlance-db))
 
   (get-entity 1 (keys ethlance-db/contract-schema) (get-ethlance-db))
@@ -1003,14 +1039,14 @@
                                            :search/limit 10}])
   (dispatch [:contract/state-call :ethlance-user :test-db 5])
 
-  (dispatch [:contract.views/get-freelancer-job-actions {:user/id 1
-                                                         :job-action/status 1
+  (dispatch [:contract.views/get-freelancer-contracts {:user/id 1
+                                                         :contract/status 1
                                                          :job/status 1}])
 
   (dispatch [:contract.views/get-freelancer-invoices {:user/id 1 :invoice/status 1}])
   (dispatch [:contract.views/get-freelancer-contracts {:user/id 1 :contract/done? true}])
   (dispatch [:contract.views/get-job-contracts {:job/id 1}])
-  (dispatch [:contract.views/get-job-proposals {:job/id 1}])
+  (dispatch [:contract.views/load-contracts {:job/id 1}])
   (dispatch [:contract.views/get-job-invoices {:job/id 1 :invoice/status 3}])
   (dispatch [:contract.views/get-employer-jobs {:user/id 2 :job/status 2}])
   (dispatch [:contract.views/load-my-user-ids {:user/addresses (:my-addresses @re-frame.db/app-db)}])
