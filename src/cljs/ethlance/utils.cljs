@@ -79,6 +79,9 @@
 (defn empty-contract? [contract]
   (zero? (:contract/job contract)))
 
+(defn empty-invoice? [invoice]
+  (zero? (:invoice/created-on invoice)))
+
 (defn subheader [title]
   [ui/subheader {:style styles/subheader} title])
 
@@ -125,14 +128,16 @@
                   {k (assoc v key-name k)}) m)))
 
 (defn big-num-pos? [x]
-  (.greaterThan x 0))
+  (when x
+    (.greaterThan x 0)))
 
 (defn big-num->date-time [big-num]
   (when (big-num-pos? big-num)
     (to-default-time-zone (to-date-time (* (.toNumber big-num) 1000)))))
 
 (defn format-date [date]
-  (time-format/unparse-local (time-format/formatters :rfc822) date))
+  (when date
+    (time-format/unparse-local (time-format/formatters :rfc822) date)))
 
 (defn time-ago [time]
   (when time
@@ -168,6 +173,12 @@
 (defn eth [x]
   (str (round (if x (.toNumber x) 0)) " Ξ"))
 
+(defn format-rate [rate payment-type]
+  (when rate
+    (str (eth rate)
+         (when (= 1 payment-type)
+           " / hr"))))
+
 (defn pluralize [text count]
   (str text (when (not= count 1) "s")))
 
@@ -200,10 +211,10 @@
 (defn gravatar-url [hash]
   (gstring/format "http://s.gravatar.com/avatar/%s?s=80" hash))
 
-(defn list-filter-loaded [list empty-pred]
+(defn list-filter-loaded [list non-empty-pred]
   (-> list
-    (assoc :loading (or (:loading? list) (some (complement empty-pred) (:items list))))
-    (update :items (partial filter empty-pred))))
+    (assoc :loading? (or (:loading? list) (some (complement non-empty-pred) (:items list))))
+    (update :items (partial filter non-empty-pred))))
 
 (defn paginate [coll offset limit]
   (->> coll
@@ -226,3 +237,9 @@
     (when (table-cell-clicked? e)
       (apply nav-to! args))))
 
+(def first-word
+  (memoize (fn [x]
+             (first (string/split x #" ")))))
+
+(defn sort-by-desc [key-fn coll]
+  (sort-by key-fn #(compare %2 %1) coll))

@@ -65,10 +65,11 @@
    [:div {:style styles/line} [:span label ": "] [:b body]]))
 
 (defn a
-  ([{:keys [route-params route] :as props} body]
+  ([{:keys [route-params route underline-hover?] :as props} body]
    [:a
-    (merge
+    (r/merge-props
       {:style {:color (:primary1-color styles/palette)}
+       :class (when underline-hover? "hoverable")
        :href (when-not (some nil? (vals route-params))
                (medley/mapply u/path-for route route-params))
        :on-click #(.stopPropagation %)}
@@ -81,6 +82,12 @@
      {:col-span 99
       :style {:text-align :right :padding-right 0}}
      [list-pagination list-pagination-props]]]])
+
+(defn create-no-items-row [text & [loading?]]
+  [ui/table-row
+   [ui/table-row-column
+    {:col-span 99 :style styles/text-center}
+    (if-not loading? text "Loading...")]])
 
 (defn center-layout [& children]
   [row {:center "xs"}

@@ -2,16 +2,18 @@
   (:require
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.invoices-table :refer [invoices-table]]
+    [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
-    [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.constants :as constants]
+    [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [ethlance.ethlance-db :as ethlance-db]))
+    ))
 
 
 (defn employer-details []
@@ -55,7 +57,8 @@
       (let [{:keys [loading? items offset limit]} @list
             {:keys [:job/payment-type]} @job]
         [paper
-         {:loading? loading?}
+         {:loading? loading?
+          :style styles/paper-section-main}
          [:h2 "Job Proposals"]
          [ui/table
           [ui/table-header
@@ -81,9 +84,7 @@
                      :route :freelancer/detail}
                     (:user/name freelancer)]]
                   [ui/table-row-column
-                   (if (= status 1) "-" (str (u/eth rate)
-                                             (when (= 1 payment-type)
-                                               " / hr")))]
+                   (if (= status 1) "-" (u/format-rate rate payment-type))]
                   [ui/table-row-column
                    (if (= status 1)
                      (u/time-ago (:invitation/created-on item))
@@ -92,28 +93,27 @@
                    [misc/status-chip
                     {:background-color (styles/contract-status-colors status)}
                     (constants/contract-statuses status)]]]))
-
-             [ui/table-row "No items"])]
+             (misc/create-no-items-row "There are no proposals for this job yet" loading?))]
           (misc/create-table-pagination
             {:all-subscribe [:list.ids/job-contracts]
              :list-db-path [:list/job-contracts]
-             :load-dispatch [:contract.db/load-contracts (dissoc ethlance-db/proposal+invitation-schema
-                                                                 :proposal/description
-                                                                 :invitation/description)]
+             :load-dispatch [:contract.db/load-contracts
+                             (ethlance-db/without-strings ethlance-db/proposal+invitation-schema)]
              :offset offset
              :limit limit})]]))))
 
 (defn job-details []
   (let [job (subscribe [:job/detail])
         job-id (subscribe [:job/route-job-id])]
-    (dispatch [:contract/initiate-load :contract.db/load-jobs [@job-id]])
+    (dispatch [:contract/initiate-load :contract.db/load-jobs ethlance-db/job-schema [@job-id]])
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                     :job/experience-level :job/hours-per-week :job/created-on
                     :job/description :job/budget :job/skills :job/category
                     :job/status :job/hiring-done-on :job/freelancers-needed]} @job]
         [paper
-         {:loading? (empty? title)}
+         {:loading? (empty? title)
+          :style styles/paper-section-main}
          (when id
            [:div
             [:h1 title]
@@ -151,7 +151,19 @@
             [employer-details]
             ])]))))
 
+(defn job-invoices []
+  (let [job-id (subscribe [:job/route-job-id])]
+    (fn []
+      [invoices-table
+       {:list-subscribe [:list/job-invoices]
+        :initial-dispatch [:contract.views/load-job-invoices {:job/id @job-id :invoice/status 0}]
+        :show-freelancer? true
+        :pagination-props {:all-subscribe [:list.ids/job-invoices]
+                           :list-db-path [:list/job-invoices]
+                           :load-dispatch [:contract.db/load-invoices ethlance-db/invoices-table-schema]}}])))
+
 (defn job-detail-page []
   [misc/center-layout
    [job-details]
-   [job-contracts]])
+   [job-contracts]
+   [job-invoices]])

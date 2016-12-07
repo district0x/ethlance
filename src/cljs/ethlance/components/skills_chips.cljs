@@ -28,5 +28,6 @@
           (get-in @all-skills [skill-id :skill/name])])
        (when (and (< max-count (count selected-skills))
                   (not @show-all?))
-         [:span {:style styles/more-text
+         [:span {:style (merge styles/more-text
+                               {:color styles/primary1-color})
                  :on-click #(reset! show-all? true)} "More"])])))

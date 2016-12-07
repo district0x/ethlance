@@ -106,22 +106,24 @@
    :contract/invoices uint-coll
    :contract/invoices-count uint
    :contract/job uint
-   :contract/rate big-num
    :contract/status uint8
    :contract/total-invoiced big-num
    :contract/total-paid big-num})
 
 (def invoice-schema
-  {:invoice/contract uint
-   :invoice/description string
-   :invoice/amount big-num
-   :invoice/worked-hours uint
-   :invoice/worked-from uint
-   :invoice/worked-to uint
-   :invoice/created-on date
-   :invoice/paid-on date
+  {:invoice/amount big-num
    :invoice/cancelled-on date
-   :invoice/status uint8})
+   :invoice/contract uint
+   :invoice/created-on date
+   :invoice/description string
+   :invoice/paid-on date
+   :invoice/status uint8
+   :invoice/worked-from date
+   :invoice/worked-hours uint
+   :invoice/worked-to date})
+
+(def invoices-table-schema
+  (select-keys invoice-schema [:invoice/contract :invoice/amount :invoice/created-on :invoice/status]))
 
 (def skill-schema
   {:skill/name bytes32
@@ -175,7 +177,7 @@
   [:contract/job :proposal/description :proposal/rate])
 
 (def add-contract-args
-  [:contract/job :contract/rate :contract/hiring-done?])
+  [:contract/id :contract/description :contract/hiring-done?])
 
 (def add-contract-feedback-args
   [:contract/id :contract/feedback :contract/rating])
@@ -202,7 +204,7 @@
 (def get-job-contracts-args
   [:job/id])
 
-(def get-job-invoices-args
+(def load-job-invoices-args
   [:job/id :invoice/status])
 
 (def get-employer-jobs-args
@@ -221,6 +223,12 @@
     contract-schema
     invoice-schema
     skill-schema))
+
+(defn without-strings [schema]
+  (medley/remove-vals (partial = string) schema))
+
+(defn remove-uint-coll-fields [fields]
+  (remove #(= (schema %) uint-coll) fields))
 
 (defn replace-special-types [types]
   (map #(if (or (= % date) (= % big-num)) uint %) types))
@@ -305,7 +313,7 @@
     (console :log (parse-entities ids fields res))))
 
 (defn get-entity-args [id fields]
-  (let [fields (remove #(= (schema %) uint-coll) fields)
+  (let [fields (remove-uint-coll-fields fields)
         records (map #(u/sha3 % id) fields)
         types (replace-special-types (map schema fields))]
     [fields records types]))
@@ -315,8 +323,8 @@
     (web3-eth/contract-call instance :get-entity records (replace-special-types types) (partial log-entity fields))))
 
 (defn get-entities-args [ids fields]
-  (let [fields (remove #(= (schema %) uint-coll) fields)
-        records (flatten (for [id ids]
+  (let [fields (remove-uint-coll-fields fields)
+        records (flatten (for [id (set ids)]
                            (for [field fields]
                              (u/sha3 field id))))
         types (replace-special-types (map schema fields))]

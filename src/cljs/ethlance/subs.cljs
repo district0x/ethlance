@@ -55,6 +55,11 @@
     (:app/contracts db)))
 
 (reg-sub
+  :app/invoices
+  (fn [db]
+    (:app/invoices db)))
+
+(reg-sub
   :db/active-page
   (fn [db]
     (:active-page db)))
@@ -115,6 +120,12 @@
     (js/parseInt (:job/id route-params))))
 
 (reg-sub
+  :invoice/route-invoice-id
+  :<- [:db/active-page]
+  (fn [{:keys [route-params]}]
+    (js/parseInt (:invoice/id route-params))))
+
+(reg-sub
   :job/my-job?
   :<- [:job/route-job-id]
   :<- [:db/active-user-id]
@@ -138,6 +149,11 @@
     (get-in db [:list/job-contracts :items])))
 
 (reg-sub
+  :list.ids/job-invoices
+  (fn [db]
+    (get-in db [:list/job-invoices :items])))
+
+(reg-sub
   :list/job-contracts
   :<- [:db]
   :<- [:app/contracts]
@@ -147,7 +163,99 @@
           {:keys [offset limit]} job-contracts]
       (-> job-contracts
         (update :items #(u/paginate % offset limit))
-        (update :items (partial map #(get contracts %)))
-        (update :items (partial map #(update % :contract/freelancer (partial get users))))
+        (update :items (partial map contracts))
+        (update :items (partial map #(update % :contract/freelancer users)))
         (u/list-filter-loaded (comp :user/name :contract/freelancer))))))
 
+(reg-sub
+  :list/job-invoices
+  :<- [:db]
+  :<- [:app/invoices]
+  :<- [:app/contracts]
+  :<- [:app/users]
+  (fn [[db invoices contracts users]]
+    (let [job-invoices (:list/job-invoices db)
+          {:keys [offset limit]} job-invoices]
+      (-> job-invoices
+        (update :items #(u/paginate % offset limit))
+        (update :items (partial map invoices))
+        (update :items (partial map #(update % :invoice/contract (partial get contracts))))
+        (update :items (partial map #(update-in % [:invoice/contract :contract/freelancer]
+                                                (partial get users))))
+        (u/list-filter-loaded (comp :user/name :contract/freelancer :invoice/contract))))))
+
+(reg-sub
+  :contract/route-contract-id
+  :<- [:db/active-page]
+  (fn [{:keys [route-params]}]
+    (js/parseInt (:contract/id route-params))))
+
+(defn- remove-unallowed-contract-data [contract active-user-id]
+  (if-not (or (= (get-in contract [:contract/freelancer :user/id]) active-user-id)
+              (= (get-in contract [:contract/job :job/employer :user/id]) active-user-id))
+    (merge contract {:invitation/description ""
+                     :proposal/description ""
+                     :contract/description ""})
+    contract))
+
+(reg-sub
+  :contract/detail
+  :<- [:contract/route-contract-id]
+  :<- [:app/contracts]
+  :<- [:app/jobs]
+  :<- [:app/users]
+  :<- [:db/active-user-id]
+  (fn [[contract-id contracts jobs users active-user-id]]
+    (-> (get contracts contract-id)
+      (update :contract/job jobs)
+      (update-in [:contract/job :job/employer] users)
+      (update :contract/freelancer users)
+      (remove-unallowed-contract-data active-user-id))))
+
+(defn- remove-unallowed-invoice-data [invoice active-user-id]
+  (if-not (or (= (get-in invoice [:invoice/contract :contract/freelancer :user/id]) active-user-id)
+              (= (get-in invoice [:invoice/contract :contract/job :job/employer :user/id]) active-user-id))
+    (merge invoice {:invoice/description ""})
+    invoice))
+
+(reg-sub
+  :invoice/detail
+  :<- [:invoice/route-invoice-id]
+  :<- [:app/invoices]
+  :<- [:app/contracts]
+  :<- [:app/jobs]
+  :<- [:app/users]
+  :<- [:db/active-user-id]
+  (fn [[invoice-id invoices contracts jobs users active-user-id]]
+    (-> (get invoices invoice-id)
+      (update :invoice/contract contracts)
+      (update-in [:invoice/contract :contract/freelancer] users)
+      (update-in [:invoice/contract :contract/job] jobs)
+      (update-in [:invoice/contract :contract/job :job/employer] users)
+      (remove-unallowed-invoice-data active-user-id))))
+
+(reg-sub
+  :invoice/by-me?
+  :<- [:invoice/detail]
+  :<- [:db/active-user-id]
+  (fn [[invoice active-user-id]]
+    (and active-user-id
+         (= active-user-id (get-in invoice [:invoice/contract :contract/freelancer :user/id])))))
+
+(reg-sub
+  :invoice/for-me?
+  :<- [:invoice/detail]
+  :<- [:db/active-user-id]
+  (fn [[invoice active-user-id]]
+    (and active-user-id
+         (= active-user-id (get-in invoice [:invoice/contract :contract/job :job/employer :user/id])))))
+
+(reg-sub
+  :form.invoice/pay
+  (fn [db]
+    (:form.invoice/pay db)))
+
+(reg-sub
+  :form.invoice/cancel
+  (fn [db]
+    (:form.invoice/cancel db)))

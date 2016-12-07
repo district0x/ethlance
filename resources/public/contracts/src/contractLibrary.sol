@@ -42,7 +42,9 @@ library ContractLibrary {
     )
         internal
     {
-        if (freelancerId == JobLibrary.getEmployer(db, jobId)) throw;
+        var employerId = JobLibrary.getEmployer(db, jobId);
+        if (employerId == 0) throw;
+        if (freelancerId == employerId) throw;
         if (freelancerId == 0) throw;
         var contractId = getContract(db, freelancerId, jobId);
         if (contractId == 0) {
@@ -62,7 +64,6 @@ library ContractLibrary {
         address db,
         uint senderId,
         uint contractId,
-        uint rate,
         string description,
         bool isHiringDone
     )
@@ -71,14 +72,12 @@ library ContractLibrary {
         var jobId = getJob(db, contractId);
         var freelancerId = getFreelancer(db, contractId);
         var employerId = JobLibrary.getEmployer(db, jobId);
+        if (employerId == 0) throw;
         if (senderId != employerId) throw;
         if (senderId == freelancerId) throw;
-        EthlanceDB(db).setUIntValue(sha3("contract/rate", contractId), rate);
         EthlanceDB(db).setUIntValue(sha3("contract/created-on", contractId), now);
         EthlanceDB(db).setStringValue(sha3("contract/description", contractId), description);
         setStatus(db, contractId, 3);
-        UserLibrary.addFreelancerContract(db, freelancerId, contractId);
-        JobLibrary.addContract(db, jobId, contractId);
         if (isHiringDone) {
             JobLibrary.setHiringDone(db, jobId, senderId);
         }

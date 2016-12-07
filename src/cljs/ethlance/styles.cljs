@@ -10,9 +10,6 @@
 (def desktop-gutter (aget js/MaterialUIStyles "spacing" "desktopGutter"))
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
 
-(def green-chip-color (color :green500))
-(def red-chip-color (color :red500))
-
 (def app-bar-left
   {:background-color primary1-color})
 
@@ -24,10 +21,13 @@
 
 (def fade-color
   "rgba(0, 0, 0, 0.45)"
-  #_ (aget mui-theme "subheader" "color"))
+  #_(aget mui-theme "subheader" "color"))
 
 (def fade-text
   {:color fade-color})
+
+(def fader-text
+  {:color "rgba(0, 0, 0, 0.35)"})
 
 (def dark-text
   {:color (color :black)})
@@ -37,6 +37,15 @@
 
 (def text-left
   {:text-align :left})
+
+(def text-right
+  {:text-align :right})
+
+(def text-center
+  {:text-align :center})
+
+(def full-width
+  {:width "100%"})
 
 (def content-wrap
   {:padding desktop-gutter
@@ -49,6 +58,15 @@
 (def paper-secton
   {:padding desktop-gutter
    :margin-bottom desktop-gutter})
+
+(def margin-bottom-gutter
+  {:margin-bottom desktop-gutter})
+
+(def margin-bottom-gutter-less
+  {:margin-bottom desktop-gutter-less})
+
+(def paper-section-main
+  {:min-height 300})
 
 (def subheader
   {:padding-left 0})
@@ -84,13 +102,13 @@
   {:overflow :hidden
    :margin-bottom 5})
 
-(def job-list-title
+(def overflow-ellipsis
   {:overflow :auto
    :text-overflow :ellipsis})
 
 (def more-text
-  {:color primary1-color
-   :cursor :pointer})
+  {:cursor :pointer
+   :font-style :italic})
 
 (def clickable
   {:cursor :pointer})
@@ -128,6 +146,14 @@
     {:font-weight 600
      :font-size "0.9em"}))
 
+(def bold-fader-text
+  (merge {:font-weight 600}
+         fader-text))
+
+(def message-bubble-time
+  (merge bold-fader-text
+         {:margin-bottom 10}))
+
 (def employer-info-wrap
   {:min-height 24})
 
@@ -152,9 +178,13 @@
 (def detail-description
   {:white-space :pre-wrap})
 
+(def success-color (color :green500))
+(def danger-color (color :red500))
+(def pending-color (color :yellow800))
+
 (def job-status-colors
-  {1 green-chip-color
-   2 red-chip-color})
+  {1 success-color
+   2 danger-color})
 
 (def job-payment-type-colors
   {1 (color :blue500)
@@ -177,9 +207,14 @@
 
 (def contract-status-colors
   {1 (color :deep-purple300)
-   2 (color :indigo500)
-   3 (color :green500)
-   4 (color :red800)})
+   2 pending-color
+   3 success-color
+   4 (color :red800)})                                      ;; change this
+
+(def invoice-status-colors
+  {1 pending-color
+   2 success-color
+   3 danger-color})
 
 (def budget-chip-color
   (color :brown500))
@@ -189,3 +224,27 @@
 
 (def pagination-button
   {:min-width 36})
+
+(def message-bubble
+  {:white-space :pre-wrap
+   :border-radius "12px"
+   :word-wrap :break-word
+   :padding desktop-gutter-less})
+
+(def message-bubble-row
+  {:margin-bottom desktop-gutter-less})
+
+(def message-bubble-right
+  (merge message-bubble
+         {:background-color "#407fff"
+          :color "#FFF"}))
+
+(def message-bubble-left
+  (merge message-bubble
+         {:background-color "#f1f0f0"}))
+
+(def italic-text
+  {:font-style :italic})
+
+(def contract-activity-row
+  {:margin-bottom (* 2 desktop-gutter)})

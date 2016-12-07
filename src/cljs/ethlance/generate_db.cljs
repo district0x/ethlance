@@ -22,26 +22,6 @@
 (defn get-instance [key]
   (get-in @re-frame.db/app-db [:eth/contracts key :instance]))
 
-(def freelancer1
-  {:user/name "Matúš Lešťan"
-   :user/gravatar "bfdb252fe9d0ab9759f41e3c26d7700e"
-   :user/country 1
-   :user/languages [1]
-   :freelancer/available? true
-   :freelancer/job-title "Clojure(script), Ethereum developer"
-   :freelancer/hourly-rate 8
-   :freelancer/categories [1 2]
-   :freelancer/skills [1 2 3 4 5]
-   :freelancer/description "My name is Matúš Lešťan asdasdasd" #_(doall (reduce str (range 100)))})
-
-(def freelancer3
-  #_(assoc freelancer1 :freelancer/skills #{4 6 9 25 28})
-  (assoc freelancer1 :freelancer/skills #{10 11 12}))
-
-(def freelancer4
-  ;(assoc freelancer1 :freelancer/skills #{14 16 1 13 8 12 9 15}))
-  (assoc freelancer1 :freelancer/skills #{1 2 3 4 5 6}))
-
 (defn gen-freelancer []
   {:user/name (rand-text 40)
    :user/gravatar (u/rand-str 32)
@@ -53,6 +33,12 @@
    :freelancer/categories (set (rand-uint-coll 6 (count constants/categories)))
    :freelancer/skills (set (rand-uint-coll 10 29))
    :freelancer/description (rand-text 300)})
+
+(def freelancer1
+  (merge (gen-freelancer)
+         {:user/name "Matúš Lešťan"
+          :user/gravatar "bfdb252fe9d0ab9759f41e3c26d7700e"
+          :freelancer/job-title "Clojure(script), Ethereum developer"}))
 
 (defn gen-job []
   {:job/title (rand-text 90)
@@ -103,7 +89,7 @@
 (def invitation1
   {:contract/job 1
    :contract/freelancer 1
-   :invitation/description "Hello come here"})
+   :invitation/description (rand-text 100)})
 
 (defn gen-invitation [& [job-id]]
   {:contract/job (or job-id (rand-id 10))
@@ -112,32 +98,24 @@
 
 (def proposal1
   {:contract/job 1
-   :proposal/rate 100
-   :proposal/description "Hello I'm here"})
+   :proposal/rate (rand-int 200)
+   :proposal/description (rand-text 100)})
 
 (defn gen-proposal [& [job-id]]
   {:contract/job (or job-id (rand-id 10))
    :proposal/rate (rand-int 100)
    :proposal/description (rand-text 200)})
 
-(def contract1
-  {:contract/job 1
-   :contract/rate 10
+(defn gen-contract [& [contract-id]]
+  {:contract/id (or contract-id (rand-id 10))
+   :contract/description (rand-text 200)
    :contract/hiring-done? true})
 
-(def invoice1
-  {:invoice/contract 1
-   :invoice/description "Pay me"
-   :invoice/amount 10
-   :invoice/worked-hours 5
-   :invoice/worked-from 10
-   :invoice/worked-to 10})
-
-(def invoice2
-  {:invoice/contract 1
-   :invoice/description "Pay me again"
-   :invoice/amount 5
-   :invoice/worked-hours 100
+(defn gen-invoice [& [contract-id]]
+  {:invoice/contract (or contract-id (rand-id 10))
+   :invoice/description (rand-text 100)
+   :invoice/amount (rand-int 500)
+   :invoice/worked-hours (rand-int 200)
    :invoice/worked-from 1480407621
    :invoice/worked-to 1480407621})
 
@@ -165,18 +143,18 @@
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
                        [{:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}]
-                       (map #(hash-map :ms 15 :dispatch [:contract.job/add (gen-job) (get-address 1)]) (range 2 11))
-                       (map #(hash-map :ms 20 :dispatch [:contract.user/register-freelancer (gen-freelancer) (get-address %)]) (range 2 10))
-                       (map #(hash-map :ms 30 :dispatch [:contract.job/add-invitation (gen-invitation 1) (get-address 1)]) (range 5))
-                       (map #(hash-map :ms 40 :dispatch [:contract.job/add-proposal (gen-proposal 1) (get-address %)]) (range 2 10))
-
-                       #_ [{:ms 30 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
-                        {:ms 40 :dispatch [:contract.job/add-proposal proposal1 (get-address 0)]}
-                        {:ms 50 :dispatch [:contract.contract/add contract1 (get-address 1)]}
-                        {:ms 60 :dispatch [:contract.invoice/add invoice1 (get-address 0)]}
-                        {:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
-                        {:ms 80 :dispatch [:contract.invoice/add invoice2 (get-address 0)]}
-                        {:ms 90 :dispatch [:contract.invoice/cancel {:invoice/id 2} (get-address 0)]}
+                       (map #(hash-map :ms 15 :dispatch [:contract.job/add (gen-job) (get-address 1)]) (range 10))
+                       [{:ms 20 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
+                        {:ms 30 :dispatch [:contract.job/add-proposal proposal1 (get-address 0)]}
+                        {:ms 40 :dispatch [:contract.contract/add (gen-contract 1) (get-address 1)]}]
+                       (map #(hash-map :ms 50 :dispatch [:contract.user/register-freelancer (gen-freelancer) (get-address %)]) (range 2 10))
+                       (map #(hash-map :ms 60 :dispatch [:contract.job/add-invitation (gen-invitation 1) (get-address 1)]) (range 5))
+                       (map #(hash-map :ms 70 :dispatch [:contract.job/add-proposal (gen-proposal 1) (get-address %)]) (range 2 10))
+                       ;{:ms 60 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
+                       ;{:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
+                       ;{:ms 80 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
+                       (map #(hash-map :ms 80 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]) (range 10))
+                       [{:ms 90 :dispatch [:contract.invoice/cancel {:invoice/id 2} (get-address 0)]}
                         {:ms 100 :dispatch [:contract.contract/add-feedback feedback1 (get-address 0)]}
                         {:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}])
 

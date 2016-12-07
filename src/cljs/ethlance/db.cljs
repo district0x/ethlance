@@ -17,7 +17,10 @@
                 :max-feedback 1000
                 :max-job-title 100
                 :max-user-name 40
-                :max-freelancer-job-title 50}
+                :max-freelancer-job-title 50
+                :max-contract-desc 500
+                :max-proposal-desc 500
+                :max-invitation-desc 500}
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true}
                    :ethlance-job {:name "EthlanceJob" :setter? true}
                    :ethlance-contract {:name "EthlanceContract" :setter? true}
@@ -32,11 +35,16 @@
    :app/users {}
    :app/jobs {}
    :app/contracts {}
+   :app/invoices {}
    :app/skills {}
 
-   :list/search-jobs {:items [] :loading? false}
-   :list/search-freelancers {:items [] :loading? false}
-   :list/job-contracts {:items [] :loading? false :params {} :offset 0 :limit 4}
+   :list/search-jobs {:items [] :loading? true}
+   :list/search-freelancers {:items [] :loading? true}
+   :list/job-contracts {:items [] :loading? true :params {} :offset 0 :limit 4}
+   :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :desc? true}
+
+   :form.invoice/pay {:loading? false}
+   :form.invoice/cancel {:loading? false}
 
    :form/search-jobs {:search/category 0
                       :search/skills []

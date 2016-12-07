@@ -3,6 +3,7 @@
     [cljs-react-material-ui.core :refer [get-mui-theme]]
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
     [ethlance.pages.employer-create-page :refer [employer-create-page]]
     [ethlance.pages.employer-invoices-page :refer [employer-invoices-page]]
     [ethlance.pages.employer-jobs-page :refer [employer-jobs-page]]
@@ -12,7 +13,7 @@
     [ethlance.pages.freelancer-jobs-page :refer [freelancer-jobs-page]]
     [ethlance.pages.freelancer-profile :refer [freelancer-profile]]
     [ethlance.pages.home-page :refer [home-page]]
-    [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
+    [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
     [ethlance.pages.my-profile-page :refer [my-profile-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
@@ -24,6 +25,7 @@
 
 (def route->component
   {:employer/create employer-create-page
+   :contract/detail contract-detail-page
    :employer/detail employer-profile
    :employer/invoices employer-invoices-page
    :employer/jobs employer-jobs-page
@@ -32,7 +34,7 @@
    :freelancer/invoices freelancer-invoices-page
    :freelancer/jobs freelancer-jobs-page
    :home home-page
-   :contract/detail contract-detail-page
+   :invoice/detail invoice-detail-page
    :job/detail job-detail-page
    :my-profile my-profile-page
    :search/freelancers search-freelancers-page

@@ -90,8 +90,6 @@ library InvoiceLibrary {
     
     function statusPred(address db, uint[] args, uint jobId) internal returns(bool) {
         var status = getStatus(db, jobId);
-        return status == 0 || status == args[0];
+        return args[0] == 0 || status == args[0];
     }
-
-
 }

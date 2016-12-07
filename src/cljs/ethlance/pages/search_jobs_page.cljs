@@ -143,7 +143,7 @@
                           :job/description :job/budget :job/skills] :as item} items]
               [:div {:key id}
                [:h2
-                {:style styles/job-list-title}
+                {:style styles/overflow-ellipsis}
                 [a {:style styles/primary-text
                     :route :job/detail
                     :route-params {:job/id id}} title]]
@@ -157,7 +157,9 @@
                 #_(when (.greaterThan budget 0)
                     [:span " - Budget: " (.toNumber budget) " ETH"])]
                [:div {:style styles/job-list-description}
-                [truncated-text description]]
+                [truncated-text
+                 {:more-text-props {:style {:color styles/primary1-color}}}
+                 description]]
                [skills-chips
                 {:selected-skills skills}]
                [search-results-employer item]

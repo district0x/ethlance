@@ -13,5 +13,7 @@
         [["freelancer/" :user/id] :freelancer/detail]
         [["employer/" :user/id] :employer/detail]
         [["job/" :job/id] :job/detail]
-        [["contract/" :contract/id] :contract/detail]
+        [["job-proposal/" :contract/id] :contract/detail]
+        [["contract/" :contract/id "/invoices"] :contract/invoices]
+        [["invoice/" :invoice/id] :invoice/detail]
         [true :home]]])
