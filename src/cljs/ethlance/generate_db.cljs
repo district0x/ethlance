@@ -121,13 +121,13 @@
 
 (def feedback1
   {:contract/id 1
-   :contract/feedback "good employer"
-   :contract/rating 98})
+   :contract/feedback (rand-text 200)
+   :contract/rating (rand-int 100)})
 
 (def feedback2
   {:contract/id 1
-   :contract/feedback "good freelancer"
-   :contract/rating 95})
+   :contract/feedback (rand-text 200)
+   :contract/rating (rand-int 100)})
 
 (defn get-address [n]
   (nth (:my-addresses @re-frame.db/app-db) n))

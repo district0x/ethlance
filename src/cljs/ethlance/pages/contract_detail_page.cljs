@@ -122,10 +122,10 @@
 (defn contract-detail-page []
   (let [contract (subscribe [:contract/detail])
         contract-id (subscribe [:contract/route-contract-id])]
-    (dispatch [:contract/initiate-load :contract.db/load-contracts
-               ethlance-db/contract-schema
+    (dispatch [:after-eth-contracts-loaded :contract.db/load-contracts
+               (merge ethlance-db/contract-schema ethlance-db/feedback-schema)
                [@contract-id]])
-    (dispatch [:contract/initiate-load :contract.db/load-contracts
+    (dispatch [:after-eth-contracts-loaded :contract.db/load-contracts
                ethlance-db/proposal+invitation-schema
                [@contract-id]])
     (fn []

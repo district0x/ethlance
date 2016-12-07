@@ -8,7 +8,6 @@ import "categoryLibrary.sol";
 import "skillLibrary.sol";
 import "sharedLibrary.sol";
 
-
 contract EthlanceViews {
     address public ethlanceDB;
 
@@ -21,18 +20,34 @@ contract EthlanceViews {
         return UserLibrary.getFreelancerContractsByStatus(ethlanceDB, userId, contractStatus, jobStatus);
     }
 
+    function getEmployerContracts(uint userId, uint8 contractStatus, uint8 jobStatus) public constant returns (uint[]) {
+        return UserLibrary.getEmployerContractsByStatus(ethlanceDB, userId, contractStatus, jobStatus);
+    }
+
     function getFreelancerInvoices(uint userId, uint8 invoiceStatus) public constant returns (uint[]) {
         return UserLibrary.getFreelancerInvoicesByStatus(ethlanceDB, userId, invoiceStatus);
     }
     
-    function getJobContracts(uint jobId) public constant returns (uint[]) {
-        return JobLibrary.getContracts(ethlanceDB, jobId);
+    function getEmployerInvoices(uint userId, uint8 invoiceStatus) public constant returns (uint[]) {
+        return UserLibrary.getEmployerInvoicesByStatus(ethlanceDB, userId, invoiceStatus);
+    }
+    
+    function getJobContracts(uint jobId, uint8 contractStatus) public constant returns (uint[]) {
+        return JobLibrary.getContractsByStatus(ethlanceDB, jobId, contractStatus);
     }
     
     function getJobInvoices(uint jobId, uint8 invoiceStatus) public constant returns (uint[]) {
         return JobLibrary.getJobInvoicesByStatus(ethlanceDB, jobId, invoiceStatus);
     }
-    
+
+    function getFreelancersJobContracts(uint[] userIds, uint jobId) public constant returns (uint[]) {
+        return ContractLibrary.getContracts(ethlanceDB, userIds, jobId);
+    }
+
+    function getContractInvoices(uint contractId, uint8 invoiceStatus) public constant returns (uint[]) {
+        return ContractLibrary.getInvoicesByStatus(ethlanceDB, contractId, invoiceStatus);
+    }
+
     function getEmployerJobs(uint userId, uint8 jobStatus) public constant returns (uint[]) {
         return JobLibrary.getEmployerJobsByStatus(ethlanceDB, userId, jobStatus);
     }

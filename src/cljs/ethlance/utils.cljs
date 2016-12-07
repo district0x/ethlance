@@ -243,3 +243,11 @@
 
 (defn sort-by-desc [key-fn coll]
   (sort-by key-fn #(compare %2 %1) coll))
+
+(defn sort-desc [coll]
+  (sort #(compare %2 %1) coll))
+
+(defn sort-in-dir [dir coll]
+  (if (= dir :desc)
+    (sort-desc coll)
+    (sort coll)))

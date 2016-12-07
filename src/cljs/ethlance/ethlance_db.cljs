@@ -96,19 +96,28 @@
    :contract/description string
    :contract/done-by-freelancer? bool
    :contract/done-on date
-   :contract/employer-feedback string
-   :contract/employer-feedback-on date
-   :contract/employer-feedback-rating uint8
    :contract/freelancer uint
-   :contract/freelancer-feedback string
-   :contract/freelancer-feedback-on date
-   :contract/freelancer-feedback-rating uint8
    :contract/invoices uint-coll
    :contract/invoices-count uint
    :contract/job uint
    :contract/status uint8
    :contract/total-invoiced big-num
    :contract/total-paid big-num})
+
+(def feedback-schema
+  {:contract/employer-feedback string
+   :contract/employer-feedback-on date
+   :contract/employer-feedback-rating uint8
+   :contract/freelancer uint
+   :contract/freelancer-feedback string
+   :contract/freelancer-feedback-on date
+   :contract/freelancer-feedback-rating uint8
+   :contract/job uint})
+
+(def contract-all-schema
+  (merge proposal+invitation-schema
+         contract-schema
+         feedback-schema))
 
 (def invoice-schema
   {:invoice/amount big-num
@@ -202,10 +211,16 @@
   [:user/id :contract/done?])
 
 (def get-job-contracts-args
-  [:job/id])
+  [:job/id :contract/status])
 
 (def load-job-invoices-args
   [:job/id :invoice/status])
+
+(def load-contract-invoices-args
+  [:contract/id :invoice/status])
+
+(def load-my-users-contracts
+  [:user/ids :job/id])
 
 (def get-employer-jobs-args
   [:user/id :job/status])
@@ -215,14 +230,15 @@
 
 (def schema
   (merge
-    user-schema
-    freelancer-schema
+    contract-schema
     employer-schema
+    feedback-schema
+    freelancer-schema
+    invoice-schema
     job-schema
     proposal+invitation-schema
-    contract-schema
-    invoice-schema
-    skill-schema))
+    skill-schema
+    user-schema))
 
 (defn without-strings [schema]
   (medley/remove-vals (partial = string) schema))

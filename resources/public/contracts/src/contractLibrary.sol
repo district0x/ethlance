@@ -4,6 +4,7 @@ import "ethlanceDB.sol";
 import "userLibrary.sol";
 import "jobLibrary.sol";
 import "sharedLibrary.sol";
+import "invoiceLibrary.sol";
 
 library ContractLibrary {
 
@@ -30,6 +31,7 @@ library ContractLibrary {
         EthlanceDB(db).setUIntValue(sha3("invitation/created-on", contractId), now);
         setStatus(db, contractId, 1);
         UserLibrary.addFreelancerContract(db, freelancerId, contractId);
+        UserLibrary.addEmployerContract(db, employerId, contractId);
         JobLibrary.addContract(db, jobId, contractId);
     }
     
@@ -50,6 +52,7 @@ library ContractLibrary {
         if (contractId == 0) {
             contractId = SharedLibrary.createNext(db, "contract/count");
             UserLibrary.addFreelancerContract(db, freelancerId, contractId);
+            UserLibrary.addEmployerContract(db, employerId, contractId);
             JobLibrary.addContract(db, jobId, contractId);
         } else if (getProposalCreatedOn(db, contractId) != 0) throw;
         
@@ -75,6 +78,7 @@ library ContractLibrary {
         if (employerId == 0) throw;
         if (senderId != employerId) throw;
         if (senderId == freelancerId) throw;
+        if (getStatus(db, contractId) != 2) throw;
         EthlanceDB(db).setUIntValue(sha3("contract/created-on", contractId), now);
         EthlanceDB(db).setStringValue(sha3("contract/description", contractId), description);
         setStatus(db, contractId, 3);
@@ -83,22 +87,25 @@ library ContractLibrary {
         }
     }
 
+
     function addFeedback(address db, uint contractId, uint senderId, string feedback, uint8 rating) internal {
         var freelancerId = getFreelancer(db, contractId);
         var employerId = getEmployer(db, contractId);
+        var status = getStatus(db, contractId);
         if (senderId != freelancerId && senderId != employerId) throw;
+        if ((status != 3) && (status != 4)) throw;
 
-        if (getStatus(db, contractId) == 1) {
+        if (status == 3) {
             setStatus(db, contractId, 4);
             EthlanceDB(db).setUIntValue(sha3("contract/done-on", contractId), now);
         }
 
         if (senderId == freelancerId) {
-            if (getFreelancerFeedbackOn(db, contractId) > 0) throw;
+            if (getFreelancerFeedbackOn(db, contractId) != 0) throw;
             EthlanceDB(db).setBooleanValue(sha3("contract/done-by-freelancer?", contractId), true);
             addFreelancerFeedback(db, contractId, feedback, rating);
         } else {
-            if (getEmployerFeedbackOn(db, contractId) > 0) throw;
+            if (getEmployerFeedbackOn(db, contractId) != 0) throw;
             addEmployerFeedback(db, contractId, feedback, rating);
         }
     }
@@ -145,6 +152,12 @@ library ContractLibrary {
 
     function getInvoicesCount(address db, uint contractId) internal returns(uint) {
         return SharedLibrary.getArrayItemsCount(db, contractId, "contract/invoices-count");
+    }
+
+    function getInvoicesByStatus(address db, uint contractId, uint8 invoiceStatus) internal returns(uint[]) {
+        var args = new uint[](1);
+        args[0] = invoiceStatus;
+        return SharedLibrary.filter(db, InvoiceLibrary.statusPred, getInvoices(db, contractId), args);
     }
 
     function getInvoices(address db, uint[] contractIds) internal returns(uint[] invoiceIds) {
@@ -217,8 +230,21 @@ library ContractLibrary {
         return EthlanceDB(db).getUIntValue(sha3("contract/freelancer+job", freelancerId, jobId));
     }
 
+    function getContracts(address db, uint[] freelancerIds, uint jobId) internal returns (uint[] result) {
+        result = new uint[](freelancerIds.length);
+        for (uint i = 0; i < freelancerIds.length ; i++) {
+            result[i] = getContract(db, freelancerIds[i], jobId);
+        }
+        return result;
+    }
+
     function getRate(address db, uint contractId) internal returns(uint) {
         return EthlanceDB(db).getUIntValue(sha3("proposal/rate", contractId));
+    }
+
+    function statusPred(address db, uint[] args, uint contractId) internal returns(bool) {
+        var status = getStatus(db, contractId);
+        return args[0] == 0 || status == args[0];
     }
     
     function setFreelancerJobIndex(address db, uint contractId, uint freelancerId, uint jobId) internal {

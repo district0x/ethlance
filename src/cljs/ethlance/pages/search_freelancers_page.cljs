@@ -20,7 +20,7 @@
 
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-freelancers])]
-    (dispatch [:contract/initiate-load :contract.search/search-freelancers @form-data])
+    (dispatch [:after-eth-contracts-loaded :contract.search/search-freelancers @form-data])
     (fn []
       (let [{:keys [:search/category :search/skills :search/min-avg-rating
                     :search/min-freelancer-ratings-count :search/min-hourly-rate :search/max-hourly-rate
@@ -96,7 +96,7 @@
                 {:middle "xs"}
                 [star-rating
                  {:value (u/rating->star avg-rating)
-                  :star-style styles/star-rating-small}]
+                  :small? true}]
                 [:span [:span {:style (merge styles/dark-text
                                              styles/freelancer-info-item)}
                         (u/eth hourly-rate)] " per hour"]

@@ -2,6 +2,7 @@
   (:require
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
@@ -37,22 +38,21 @@
            {:middle "xs"}
            [star-rating
             {:value (u/rating->star avg-rating)
-             :star-style styles/star-rating-small}]
-           (when (pos? avg-rating)
-             [:h4 {:style {:margin-left 5
-                           :color styles/primary1-color}} (u/round (u/rating->star avg-rating))])]
+             :small? true
+             :display-number? true}]]
           [line (str (u/eth total-paid) " spent")]
           [line (str ratings-count " " (u/pluralize "feedback" ratings-count))]
           [misc/country-marker
            {:country country}]]]))))
 
-(defn job-contracts []
-  (let [list (subscribe [:list/job-contracts])
+(defn job-proposals []
+  (let [list (subscribe [:list/job-proposals])
         job-id (subscribe [:job/route-job-id])
         job (subscribe [:job/detail])
         my-job? (subscribe [:job/my-job?])
         active-user-id (subscribe [:db/active-user-id])]
-    (dispatch [:contract/initiate-load :contract.views/load-job-contracts {:job/id @job-id}])
+    (dispatch [:after-eth-contracts-loaded :contract.views/load-job-proposals
+               {:job/id @job-id :contract/status 0}])
     (fn []
       (let [{:keys [loading? items offset limit]} @list
             {:keys [:job/payment-type]} @job]
@@ -95,8 +95,8 @@
                     (constants/contract-statuses status)]]]))
              (misc/create-no-items-row "There are no proposals for this job yet" loading?))]
           (misc/create-table-pagination
-            {:all-subscribe [:list.ids/job-contracts]
-             :list-db-path [:list/job-contracts]
+            {:all-subscribe [:list.ids/job-proposals]
+             :list-db-path [:list/job-proposals]
              :load-dispatch [:contract.db/load-contracts
                              (ethlance-db/without-strings ethlance-db/proposal+invitation-schema)]
              :offset offset
@@ -105,7 +105,7 @@
 (defn job-details []
   (let [job (subscribe [:job/detail])
         job-id (subscribe [:job/route-job-id])]
-    (dispatch [:contract/initiate-load :contract.db/load-jobs ethlance-db/job-schema [@job-id]])
+    (dispatch [:after-eth-contracts-loaded :contract.db/load-jobs ethlance-db/job-schema [@job-id]])
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                     :job/experience-level :job/hours-per-week :job/created-on
@@ -162,8 +162,20 @@
                            :list-db-path [:list/job-invoices]
                            :load-dispatch [:contract.db/load-invoices ethlance-db/invoices-table-schema]}}])))
 
+(defn job-feedbacks []
+  (let [job-id (subscribe [:job/route-job-id])]
+    (fn []
+      [feedback-list
+       {:list-subscribe [:list/job-feedbacks]
+        :initial-dispatch [:contract.views/load-job-feedbacks
+                           {:job/id @job-id :contract/status 4}]}])))
+
 (defn job-detail-page []
-  [misc/center-layout
-   [job-details]
-   [job-contracts]
-   [job-invoices]])
+  (let [job-id (subscribe [:job/route-job-id])]
+    (dispatch [:after-my-users-loaded :contract.views/load-my-users-contracts {:job/id @job-id}])
+    (fn []
+      [misc/center-layout
+       [job-details]
+       [job-proposals]
+       [job-invoices]
+       [job-feedbacks]])))

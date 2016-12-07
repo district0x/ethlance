@@ -32,6 +32,9 @@
 (def dark-text
   {:color (color :black)})
 
+(def white-text
+  {:color (color :white)})
+
 (def address-select-field-label
   {:color "#FFF"})
 
@@ -83,9 +86,19 @@
 (def star-rating
   {:color primary1-color})
 
+(def star-rating-number
+  {:color primary1-color})
+
+(def star-rating-number-small
+  {:margin-left 3
+   :font-size "0.95em"})
+
 (def star-rating-small
   {:width 18
    :height 18})
+
+(def feedback-style-rating
+  {:margin-bottom 3})
 
 (def primary-text
   {:color primary1-color

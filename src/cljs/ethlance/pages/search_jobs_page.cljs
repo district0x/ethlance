@@ -20,7 +20,7 @@
 
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-jobs])]
-    (dispatch [:contract/initiate-load :contract.search/search-jobs @form-data])
+    (dispatch [:after-eth-contracts-loaded :contract.search/search-jobs @form-data])
     (fn []
       (let [{:keys [:search/category :search/min-employer-avg-rating :search/country
                     :search/language :search/experience-levels :search/payment-types
@@ -77,13 +77,13 @@
           {:value language
            :full-width true
            :on-new-request #(dispatch [:form/search-jobs-changed :search/language %2])}]
-         #_ [u/subheader "Min Budget"]
-         #_ [slider-with-counter
-          {:max 200
-           :step 5
-           :value min-budget
-           :on-change #(dispatch [:form/search-jobs-changed :search/min-budget %2])}
-          (str min-budget " ETH")]
+         #_[u/subheader "Min Budget"]
+         #_[slider-with-counter
+            {:max 200
+             :step 5
+             :value min-budget
+             :on-change #(dispatch [:form/search-jobs-changed :search/min-budget %2])}
+            (str min-budget " ETH")]
 
          ]))))
 
@@ -98,7 +98,7 @@
                  :route-params {:user/id employer}} name]]
       [star-rating
        {:value (u/rating->star avg-rating)
-        :star-style styles/star-rating-small
+        :small? true
         :style styles/employer-rating-search}]
       [:span
        {:style styles/employer-info-item}

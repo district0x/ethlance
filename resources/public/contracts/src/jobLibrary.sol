@@ -82,10 +82,6 @@ library JobLibrary {
         return SharedLibrary.getUIntArray(db, jobId, "job/contracts", "job/contracts-count");
     }
 
-    function getJobContractsCount(address db, uint jobId) internal returns(uint) {
-        return SharedLibrary.getArrayItemsCount(db, jobId, "job/contracts-count");
-    }
-
     function getEmployer(address db, uint jobId) internal returns(uint) {
         return EthlanceDB(db).getUIntValue(sha3("job/employer", jobId));
     }
@@ -199,5 +195,16 @@ library JobLibrary {
                     ContractLibrary.getInvoices(db, getContracts(db, jobId)), args);
     }
 
-
+    function getContractsByStatus
+    (
+        address db,
+        uint jobId,
+        uint8 contractStatus
+    )
+        internal returns (uint[] result)
+    {
+        var args = new uint[](1);
+        args[0] = contractStatus;
+        return SharedLibrary.filter(db, ContractLibrary.statusPred, getContracts(db, jobId), args);
+    }
 }

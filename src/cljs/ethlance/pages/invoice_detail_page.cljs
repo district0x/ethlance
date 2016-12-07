@@ -52,7 +52,7 @@
         for-me (subscribe [:invoice/for-me?])
         form-pay (subscribe [:form.invoice/pay])
         form-cancel (subscribe [:form.invoice/cancel])]
-    (dispatch [:contract/initiate-load :contract.db/load-invoices
+    (dispatch [:after-eth-contracts-loaded :contract.db/load-invoices
                ethlance-db/invoice-schema
                [@invoice-id]])
     (fn []

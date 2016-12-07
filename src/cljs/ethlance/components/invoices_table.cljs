@@ -2,7 +2,6 @@
   (:require
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
@@ -14,13 +13,13 @@
 
 (defn invoices-table [{:keys [list-subscribe initial-dispatch]}]
   (let [list (subscribe list-subscribe)]
-    (dispatch (into [:contract/initiate-load] initial-dispatch))
+    (dispatch (into [:after-eth-contracts-loaded] initial-dispatch))
     (fn [{:keys [title show-freelancer? show-job? pagination-props]}]
       (let [{:keys [loading? items offset limit]} @list]
         [paper
          {:loading? loading?
           :style styles/paper-section-main}
-         [:h2 (or "Invoices" title)]
+         [:h2 (or title "Invoices")]
          [ui/table
           [ui/table-header
            [ui/table-row
@@ -49,8 +48,8 @@
                       (:user/name freelancer)]])
                   (when show-job?
                     [ui/table-row-column
-                     [a {:route-params {:job/id (:job/id freelancer)}
-                         :route :freelancer/detail}
+                     [a {:route-params {:job/id (:job/id job)}
+                         :route :job/detail}
                       (:job/title job)]])
                   [ui/table-row-column
                    (u/eth amount)]

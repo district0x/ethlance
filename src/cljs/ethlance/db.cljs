@@ -1,12 +1,17 @@
 (ns ethlance.db
   (:require [cljs-web3.core :as web3]
-            [ethlance.utils :as u]))
+            [ethlance.utils :as u]
+            [re-frame.core :refer [dispatch]]))
 
 (def default-db
   {:web3 (web3/create-web3 "http://localhost:8545/")
    :active-page (u/match-current-location)
    :provides-web3? (boolean (or (aget js/window "web3") goog.DEBUG))
    :drawer-open? true
+   :snackbar {:open? false
+              :message ""
+              :auto-hide-duration 5000
+              :on-request-close #(dispatch [:snackbar/close])}
    :eth/config {:max-user-languages 10
                 :max-freelancer-categories 20
                 :max-freelancer-skills 15
@@ -38,13 +43,16 @@
    :app/invoices {}
    :app/skills {}
 
-   :list/search-jobs {:items [] :loading? true}
+   :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4}
+   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/search-freelancers {:items [] :loading? true}
-   :list/job-contracts {:items [] :loading? true :params {} :offset 0 :limit 4}
-   :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :desc? true}
+   :list/search-jobs {:items [] :loading? true}
+   :list/user-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
 
-   :form.invoice/pay {:loading? false}
-   :form.invoice/cancel {:loading? false}
+   :form.invoice/pay {:loading? false :gas-limit 200000}
+   :form.invoice/cancel {:loading? false :gas-limit 200000}
 
    :form/search-jobs {:search/category 0
                       :search/skills []

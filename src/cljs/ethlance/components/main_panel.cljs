@@ -4,6 +4,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
+    [ethlance.pages.contract-invoices-page :refer [contract-invoices-page]]
     [ethlance.pages.employer-create-page :refer [employer-create-page]]
     [ethlance.pages.employer-invoices-page :refer [employer-invoices-page]]
     [ethlance.pages.employer-jobs-page :refer [employer-jobs-page]]
@@ -21,11 +22,13 @@
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [clojure.set :as set]))
 
 (def route->component
   {:employer/create employer-create-page
    :contract/detail contract-detail-page
+   :contract/invoices contract-invoices-page
    :employer/detail employer-profile
    :employer/invoices employer-invoices-page
    :employer/jobs employer-jobs-page
@@ -79,7 +82,8 @@
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
-        user (subscribe [:db/active-user])]
+        user (subscribe [:db/active-user])
+        snackbar (subscribe [:db/snackbar])]
     (fn []
       (let [{:keys [:user/freelancer? :user/employer?]} @user]
         [ui/mui-theme-provider
@@ -109,6 +113,10 @@
            {:show-menu-icon-button false
             :icon-element-right (r/as-element [my-addresses-select-field])
             :style styles/app-bar-right}]
+          [ui/snackbar (-> @snackbar
+                         (set/rename-keys {:open? :open})
+                         (update :message #(r/as-element %))
+                         (update :action #(if % (r/as-element %) nil)))]
           (when-let [page (route->component (:handler @current-page))]
             [:div {:style styles/content-wrap}
              [page]])]]))))

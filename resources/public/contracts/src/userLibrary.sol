@@ -182,6 +182,14 @@ library UserLibrary {
         return SharedLibrary.getUIntArray(db, userId, "freelancer/contracts", "freelancer/contracts-count");
     }
     
+    function addEmployerContract(address db, uint userId, uint contractId) internal {
+        SharedLibrary.addArrayItem(db, userId, "employer/contracts", "employer/contracts-count", contractId);
+    }
+    
+    function getEmployerContracts(address db, uint userId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, userId, "employer/contracts", "employer/contracts-count");
+    }
+    
     function addToAvgRating(address db, uint userId, string countKey, string key, uint8 rating) internal {
         var ratingsCount = EthlanceDB(db).getUIntValue(sha3(countKey, userId));
         var currentAvgRating = EthlanceDB(db).getUInt8Value(sha3(key, userId));
@@ -314,55 +322,66 @@ library UserLibrary {
         var jobId = ContractLibrary.getJob(db, contractId);
         var contractStatus = args[0];
         var jobStatus = args[1];
-        return (ContractLibrary.getStatus(db, contractId) == contractStatus &&
-                JobLibrary.getStatus(db, jobId) == jobStatus);
+        return ((contractStatus == 0 ||
+                ContractLibrary.getStatus(db, contractId) == contractStatus)
+                &&
+                (jobStatus == 0 ||
+                JobLibrary.getStatus(db, jobId) == jobStatus));
     }
 
-    function getFreelancerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)
+    function getUserContractsByStatus
+    (
+        address db,
+        uint userId,
+        uint8 contractStatus,
+        uint8 jobStatus,
+        function(address, uint) returns (uint[] memory) getContracts
+    )
         internal returns (uint[] result)
     {
         var args = new uint[](2);
         args[0] = contractStatus;
         args[1] = jobStatus;
-        return SharedLibrary.filter(db, freelancerContractsPred, getFreelancerContracts(db, userId), args);
+        return SharedLibrary.filter(db, freelancerContractsPred, getContracts(db, userId), args);
     }
 
-    function getFreelancerInvoicesByStatus(address db, uint userId, uint8 invoiceStatus)
+    function getFreelancerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)
+        internal returns (uint[] result)
+    {
+        return getUserContractsByStatus(db, userId, contractStatus, jobStatus, getFreelancerContracts);
+    }
+
+    function getEmployerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)
+        internal returns (uint[] result)
+    {
+        return getUserContractsByStatus(db, userId, contractStatus, jobStatus, getEmployerContracts);
+    }
+
+    function getUserInvoicesByStatus
+    (
+        address db, 
+        uint userId, 
+        uint8 invoiceStatus,
+        function(address, uint) returns (uint[] memory) getContracts
+    )
         internal returns (uint[] result)
     {
         var args = new uint[](1);
         args[0] = invoiceStatus;
         return SharedLibrary.filter(db, InvoiceLibrary.statusPred,
-            ContractLibrary.getInvoices(db, getFreelancerContracts(db, userId)), args);
+            ContractLibrary.getInvoices(db, getContracts(db, userId)), args);
     }
 
-//    function getFreelancerContracts(address db, uint userId, bool isDone)
-//        internal returns (uint[] contractIds) {
-//
-//        var maxCount = getFreelancerContractsCount(db, userId);
-//        var allContracts = getFreelancerContracts(db, userId);
-//        contractIds = new uint[](maxCount);
-//        uint j = 0;
-//        for (uint i = 0; i < allContracts.length ; i++) {
-//            var contractId = allContracts[i];
-//            var jobId = ContractLibrary.getJob(db, contractId);
-//            var jobStatus = JobLibrary.getStatus(db, jobId);
-//            if (isDone) {
-//                if (ContractLibrary.getStatus(db, contractId) != 2 ||
-//                    jobStatus != 1)
-//                    {
-//                        contractIds[j] = contractId;
-//                        j++;
-//                    }
-//            } else
-//                if (ContractLibrary.getStatus(db, contractId) == 1 &&
-//                    jobStatus == 1)
-//                {
-//                    contractIds[j] = contractId;
-//                    j++;
-//                }
-//        }
-//        return SharedLibrary.take(j, contractIds);
-//    }
+    function getFreelancerInvoicesByStatus(address db, uint userId, uint8 invoiceStatus)
+        internal returns (uint[] result)
+    {
+        return getUserInvoicesByStatus(db, userId, invoiceStatus, getFreelancerContracts);
+    }
+    
+    function getEmployerInvoicesByStatus(address db, uint userId, uint8 invoiceStatus)
+        internal returns (uint[] result)
+    {
+        return getUserInvoicesByStatus(db, userId, invoiceStatus, getEmployerContracts);
+    }
 }
 
