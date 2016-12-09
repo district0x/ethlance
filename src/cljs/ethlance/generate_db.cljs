@@ -4,7 +4,8 @@
             [cljs-web3.eth :as web3-eth]
             [clojure.data :as data]
             [clojure.string :as string]
-            [ethlance.constants :as constants]))
+            [ethlance.constants :as constants]
+            [cljs-web3.core :as web3]))
 
 (defn rand-id [n]
   (inc (rand-int n)))
@@ -15,9 +16,6 @@
 (defn rand-text [max-chars]
   (let [c (inc (rand-int (/ max-chars (inc (rand-int 8)))))]
     (u/truncate (string/join " " (repeatedly c #(u/rand-str (inc (rand-int 12))))) max-chars "")))
-
-(comment
-  (rand-text 300))
 
 (defn get-instance [key]
   (get-in @re-frame.db/app-db [:eth/contracts key :instance]))
@@ -44,7 +42,7 @@
   {:job/title (rand-text 90)
    :job/description (rand-text 300)
    :job/skills (set (rand-uint-coll 6 29))
-   :job/budget (rand-int 100)
+   :job/budget (web3/to-wei (rand-int 100) :ether)
    :job/language (rand-id (count constants/languages))
    :job/category (rand-id (count constants/categories))
    :job/payment-type (rand-id (count constants/payment-types))
@@ -103,18 +101,18 @@
 
 (defn gen-proposal [& [job-id]]
   {:contract/job (or job-id (rand-id 10))
-   :proposal/rate (rand-int 100)
+   :proposal/rate (web3/to-wei (rand-int 100) :ether)
    :proposal/description (rand-text 200)})
 
 (defn gen-contract [& [contract-id]]
   {:contract/id (or contract-id (rand-id 10))
    :contract/description (rand-text 200)
-   :contract/hiring-done? true})
+   :contract/hiring-done? false})
 
 (defn gen-invoice [& [contract-id]]
   {:invoice/contract (or contract-id (rand-id 10))
    :invoice/description (rand-text 100)
-   :invoice/amount (rand-int 500)
+   :invoice/amount (web3/to-wei (rand-int 10) :ether)
    :invoice/worked-hours (rand-int 200)
    :invoice/worked-from 1480407621
    :invoice/worked-to 1480407621})
@@ -122,12 +120,12 @@
 (def feedback1
   {:contract/id 1
    :contract/feedback (rand-text 200)
-   :contract/rating (rand-int 100)})
+   :contract/feedback-rating (rand-int 100)})
 
 (def feedback2
   {:contract/id 1
    :contract/feedback (rand-text 200)
-   :contract/rating (rand-int 100)})
+   :contract/feedback-rating (rand-int 100)})
 
 (defn get-address [n]
   (nth (:my-addresses @re-frame.db/app-db) n))
@@ -145,11 +143,11 @@
                        [{:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}]
                        (map #(hash-map :ms 15 :dispatch [:contract.job/add (gen-job) (get-address 1)]) (range 10))
                        [{:ms 20 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
-                        {:ms 30 :dispatch [:contract.job/add-proposal proposal1 (get-address 0)]}
-                        {:ms 40 :dispatch [:contract.contract/add (gen-contract 1) (get-address 1)]}]
+                        {:ms 30 :dispatch [:contract.contract/add-proposal proposal1 (get-address 0)]}
+                        {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]
                        (map #(hash-map :ms 50 :dispatch [:contract.user/register-freelancer (gen-freelancer) (get-address %)]) (range 2 10))
                        (map #(hash-map :ms 60 :dispatch [:contract.job/add-invitation (gen-invitation 1) (get-address 1)]) (range 5))
-                       (map #(hash-map :ms 70 :dispatch [:contract.job/add-proposal (gen-proposal 1) (get-address %)]) (range 2 10))
+                       (map #(hash-map :ms 70 :dispatch [:contract.contract/add-proposal (gen-proposal 1) (get-address %)]) (range 2 5))
                        ;{:ms 60 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
                        ;{:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
                        ;{:ms 80 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
@@ -179,4 +177,4 @@
     ;(print.foo/look correct-removed)
     ;(print.foo/look correct-added)
     [(= added (vec correct-added)) (= removed correct-removed)
-     (= (print.foo/look intersection) corrent-intersection)]))
+     (= intersection corrent-intersection)]))

@@ -87,10 +87,12 @@
 
     true (update db-path merge {:loading? true :params params})))
 
-(defn find-needed-fields [required-fields items ids]
+(defn find-needed-fields [required-fields items ids & [editable-fields]]
   (reduce (fn [acc id]
             (let [item (get items id)
-                  needed-fields (set/difference (set required-fields) (set (keys item)))]
+                  needed-fields (set/difference (set required-fields)
+                                                (set/difference (set (keys item))
+                                                                (set editable-fields)))]
               (cond-> acc
                 (seq needed-fields) (update :ids conj id)
                 true (update :fields set/union needed-fields))))
@@ -434,7 +436,11 @@
   :contract.db/load-jobs
   interceptors
   (fn [{:keys [db]} [schema job-ids]]
-    (let [{:keys [fields ids]} (find-needed-fields (keys schema) (:app/jobs db) job-ids)]
+    (let [{:keys [fields ids]} (find-needed-fields
+                                 (keys schema)
+                                 (:app/jobs db)
+                                 job-ids
+                                 ethlance-db/job-editable-fields)]
       {:web3-fx.contract/constant-fns
        {:fns (entities-fns 1
                            (get-instance db :ethlance-db)
@@ -507,11 +513,15 @@
   :contract.db/load-users
   interceptors
   (fn [{:keys [db]} [schema user-ids]]
-    (let []
+    (let [user-ids (u/big-nums->nums user-ids)
+          {:keys [fields ids]} (find-needed-fields (keys schema)
+                                                   (:app/users db)
+                                                   user-ids
+                                                   ethlance-db/user-editable-fields)]
       {:web3-fx.contract/constant-fns
        {:fns (entities-fns (get-instance db :ethlance-db)
-                           user-ids
-                           (keys schema)
+                           ids
+                           fields
                            :contract/users-loaded
                            :log-error)}})))
 
@@ -591,6 +601,36 @@
                  [:contract/transaction-receipt :add-job max-gas false :log-error]])]}})))
 
 (reg-event-fx
+  :contract.job/set-hiring-done
+  interceptors
+  (fn [{:keys [db]} [form-data amount address]]
+    (let [{:keys [:web3 :active-address :form.job/set-hiring-done]} db
+          {:keys [:gas-limit]} set-hiring-done]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns [(concat
+                [(get-instance db :ethlance-job)
+                 :set-job-hiring-done]
+                (get-args form-data ethlance-db/job-set-hiring-done-args)
+                [{:gas gas-limit
+                  :from (or address active-address)}
+                 [:form/start-loading :form.job/set-hiring-done]
+                 :contract/transaction-error
+                 [:contract.job/set-hiring-done-receipt gas-limit form-data]])]}})))
+
+(reg-event-fx
+  :contract.job/set-hiring-done-receipt
+  [interceptors log-used-gas]
+  (fn [{:keys [db]} [{:keys [:job/id]} {:keys [success?]}]]
+    (merge
+      {:db (cond-> db
+             success? (assoc-in [:app/jobs id :job/status] 2)
+             true (assoc-in [:form.job/set-hiring-done :loading?] false))}
+      (when-not success?
+        {:dispatch [:snackbar/show-error]}))))
+
+(reg-event-fx
   :contract.job/add-invitation
   interceptors
   (fn [{:keys [db]} [values address]]
@@ -609,58 +649,103 @@
                  [:contract/transaction-receipt :add-job-invitation max-gas false :log-error]])]}})))
 
 (reg-event-fx
-  :contract.job/add-proposal
+  :contract.contract/add-proposal
   interceptors
-  (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address eth/contracts]} db]
+  (fn [{:keys [db]} [form-data address]]
+    (let [{:keys [:web3 :active-address :form.contract/add-proposal]} db
+          {:keys [:gas-limit]} add-proposal]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-contract)
                  :add-job-proposal]
-                (get-args values ethlance-db/add-proposal-args)
-                [{:gas max-gas
+                (get-args form-data ethlance-db/add-proposal-args)
+                [{:gas gas-limit
                   :from (or address active-address)}
-                 :contract/transaction-sent
+                 [:form/start-loading :form.contract/add-proposal]
                  :contract/transaction-error
-                 [:contract/transaction-receipt :add-job-proposal max-gas false :log-error]])]}})))
+                 [:contract.contract/add-proposal-receipt gas-limit form-data]])]}})))
 
 (reg-event-fx
-  :contract.contract/add
+  :contract.contract/add-proposal-receipt
+  [interceptors log-used-gas]
+  (fn [{:keys [db]} [form-data {:keys [success?]}]]
+    (merge
+      {:db (assoc-in db [:form.contract/add-proposal :loading?] false)}
+      (if success?
+        {:dispatch-n [[:snackbar/show-message "Your proposal was successfully sent!"]
+                      [:contract.views/load-job-proposals (:params (:list/job-proposals db))]]}
+        {:dispatch [:snackbar/show-error]}))))
+
+(reg-event-fx
+  :contract.contract/add-contract
   interceptors
-  (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address eth/contracts]} db]
+  (fn [{:keys [db]} [form-data address]]
+    (let [{:keys [:web3 :active-address :form.contract/add-contract]} db
+          {:keys [:gas-limit]} add-contract]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-contract)
                  :add-job-contract]
-                (get-args values ethlance-db/add-contract-args)
-                [{:gas max-gas
+                (get-args form-data ethlance-db/add-contract-args)
+                [{:gas gas-limit
                   :from (or address active-address)}
-                 :contract/transaction-sent
+                 [:form/start-loading :form.contract/add-contract]
                  :contract/transaction-error
-                 [:contract/transaction-receipt :add-job-contract max-gas false :log-error]])]}})))
+                 [:contract.contract/add-contract-receipt gas-limit form-data]])]}})))
+
+(reg-event-fx
+  :contract.contract/add-contract-receipt
+  [interceptors log-used-gas]
+  (fn [{:keys [db]} [form-data {:keys [success?]}]]
+    (merge
+      {:db (assoc-in db [:form.contract/add-contract :loading?] false)}
+      (if success?
+        {:dispatch [:contract.db/load-contracts (select-keys ethlance-db/contract-schema
+                                                             [:contract/description
+                                                              :contract/created-on
+                                                              :contract/status])
+                    [(:contract/id form-data)]]}
+        {:dispatch [:snackbar/show-error]}))))
 
 (reg-event-fx
   :contract.contract/add-feedback
   interceptors
-  (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address eth/contracts]} db]
+  (fn [{:keys [db]} [form-data address]]
+    (let [{:keys [:web3 :active-address :form.contract/add-feedback]} db
+          {:keys [:gas-limit]} add-feedback]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-contract)
                  :add-job-contract-feedback]
-                (get-args values ethlance-db/add-contract-feedback-args)
-                [{:gas max-gas
+                (get-args form-data ethlance-db/add-contract-feedback-args)
+                [{:gas gas-limit
                   :from (or address active-address)}
-                 :contract/transaction-sent
+                 [:form/start-loading :form.contract/add-feedback]
                  :contract/transaction-error
-                 [:contract/transaction-receipt :add-job-contract-feedback max-gas false :log-error]])]}})))
+                 [:contract.contract/add-feedback-receipt gas-limit form-data]])]}})))
+
+(reg-event-fx
+  :contract.contract/add-feedback-receipt
+  [interceptors log-used-gas]
+  (fn [{:keys [db]} [form-data {:keys [success?]}]]
+    (let [{:keys [:contract/freelancer]} (get (:app/contracts db) (:contract/id form-data))
+          schema (if (= freelancer (:user/id (get-active-user db)))
+                   ethlance-db/freelancer-feedback-schema
+                   ethlance-db/employer-feedback-schema)]
+      (merge
+        {:db (assoc-in db [:form.contract/add-feedback :loading?] false)}
+        (if success?
+          {:dispatch [:contract.db/load-contracts (merge schema (select-keys ethlance-db/contract-schema
+                                                                             [:contract/status
+                                                                              :contract/done-by-freelancer?]))
+                      [(:contract/id form-data)]]}
+          {:dispatch [:snackbar/show-error]})))))
 
 (reg-event-fx
   :contract.invoice/add
@@ -684,8 +769,8 @@
   :contract.invoice/pay
   interceptors
   (fn [{:keys [db]} [form-data amount address]]
-    (let [{:keys [web3 active-address :eth/contracts :form.invoice/pay]} db
-          {:keys [gas-limit]} pay]
+    (let [{:keys [:web3 :active-address :form.invoice/pay]} db
+          {:keys [:gas-limit]} pay]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -704,8 +789,8 @@
   :contract.invoice/cancel
   interceptors
   (fn [{:keys [db]} [form-data address]]
-    (let [{:keys [web3 active-address :eth/contracts :form.invoice/cancel]} db
-          {:keys [gas-limit]} cancel]
+    (let [{:keys [:web3 :active-address :form.invoice/cancel]} db
+          {:keys [:gas-limit]} cancel]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -784,11 +869,12 @@
   :contract/job-proposals-loaded
   interceptors
   (fn [{:keys [db]} [contract-ids]]
-    (let [contract-ids (u/big-nums->nums contract-ids)]
+    (let [contract-ids (u/big-nums->nums contract-ids)
+          job-proposals-list (:list/job-proposals db)]
       {:db (update db :list/job-proposals merge {:items contract-ids :loading? false})
        :dispatch [:contract.db/load-contracts
                   (ethlance-db/without-strings ethlance-db/proposal+invitation-schema)
-                  contract-ids]})))
+                  (u/sort-paginate-ids job-proposals-list contract-ids)]})))
 
 (reg-event-fx
   :contract.views/load-job-feedbacks
@@ -807,21 +893,30 @@
   :contract/job-feedbacks-loaded
   interceptors
   (fn [{:keys [db]} [contract-ids]]
-    (let [contract-ids (u/big-nums->nums contract-ids)]
+    (let [contract-ids (u/big-nums->nums contract-ids)
+          job-feedbacks-list (:list/job-feedbacks db)]
       {:db (update db :list/job-feedbacks merge {:items contract-ids :loading? false})
-       :dispatch [:contract.db/load-contracts ethlance-db/feedback-schema contract-ids 1]})))
+       :dispatch [:contract.db/load-contracts
+                  ethlance-db/feedback-schema
+                  (u/sort-paginate-ids job-feedbacks-list contract-ids)
+                  1]})))
 
 (reg-event-fx
   :contract.db/load-contracts
   interceptors
   (fn [{:keys [db]} [schema contract-ids parts-count]]
-    {:web3-fx.contract/constant-fns
-     {:fns (entities-fns (if parts-count parts-count (count contract-ids))
-                         (get-instance db :ethlance-db)
-                         (print.foo/look (u/big-nums->nums contract-ids))
-                         (keys schema)
-                         :contract/contracts-loaded
-                         :log-error)}}))
+    (let [contract-ids (u/big-nums->nums contract-ids)
+          {:keys [fields ids]} (find-needed-fields (keys schema)
+                                                   (:app/contracts db)
+                                                   contract-ids
+                                                   ethlance-db/contract-editable-fields)]
+      {:web3-fx.contract/constant-fns
+       {:fns (entities-fns (if parts-count parts-count (count contract-ids))
+                           (get-instance db :ethlance-db)
+                           ids
+                           fields
+                           :contract/contracts-loaded
+                           :log-error)}})))
 
 (reg-event-fx
   :contract/contracts-loaded
@@ -846,13 +941,17 @@
     (let [user-ids (->> (get-my-users db)
                      (filter :user/freelancer?)
                      (map :user/id))]
-      (when (seq (print.foo/look user-ids))
+      (when (seq user-ids)
         {:web3-fx.contract/constant-fns
          {:fns [(concat
                   [(get-instance db :ethlance-views)
                    :get-freelancers-job-contracts]
                   (get-args (merge {:user/ids user-ids} values) ethlance-db/load-my-users-contracts)
-                  [[:contract.db/load-contracts ethlance-db/contract-all-schema]
+                  [[:contract.db/load-contracts
+                    (select-keys ethlance-db/contract-all-schema [:contract/job
+                                                                  :contract/freelancer
+                                                                  :contract/status
+                                                                  :contract/freelancer-feedback-on])]
                    :log-error])]}}))))
 
 ;; ============invoices
@@ -874,9 +973,12 @@
   :contract/job-invoices-loaded
   interceptors
   (fn [{:keys [db]} [invoice-ids]]
-    (let [invoice-ids (u/big-nums->nums invoice-ids)]
+    (let [invoice-ids (u/big-nums->nums invoice-ids)
+          job-invoices-list (:list/job-invoices db)]
       {:db (update db :list/job-invoices merge {:items invoice-ids :loading? false})
-       :dispatch [:contract.db/load-invoices ethlance-db/invoices-table-schema invoice-ids]})))
+       :dispatch [:contract.db/load-invoices
+                  ethlance-db/invoices-table-schema
+                  (u/sort-paginate-ids job-invoices-list invoice-ids)]})))
 
 (reg-event-fx
   :contract.views/load-contract-invoices
@@ -897,16 +999,21 @@
   (fn [{:keys [db]} [invoice-ids]]
     (let [invoice-ids (u/big-nums->nums invoice-ids)]
       {:db (update db :list/contract-invoices merge {:items invoice-ids :loading? false})
-       :dispatch [:contract.db/load-invoices ethlance-db/invoices-table-schema invoice-ids]})))
+       :dispatch [:contract.db/load-invoices
+                  ethlance-db/invoices-table-schema
+                  (u/sort-paginate-ids (:list/contract-invoices db) invoice-ids)]})))
 
 (reg-event-fx
   :contract.db/load-invoices
   interceptors
   (fn [{:keys [db]} [schema invoice-ids]]
-    (let [{:keys [fields ids]} (find-needed-fields (keys schema) (:app/invoices db) invoice-ids)]
+    (let [{:keys [fields ids]} (find-needed-fields (keys schema)
+                                                   (:app/invoices db)
+                                                   invoice-ids
+                                                   ethlance-db/invoice-editable-fields)]
       {:web3-fx.contract/constant-fns
        {:fns (entities-fns (get-instance db :ethlance-db)
-                           invoice-ids
+                           ids
                            fields
                            :contract/invoices-loaded
                            :log-error)}})))
@@ -991,6 +1098,12 @@
        :dispatch [:contract.search/search-freelancers (:form/search-freelancers new-db)]})))
 
 (reg-event-db
+  :form/value-changed
+  interceptors
+  (fn [db [form-key field-key value]]
+    (assoc-in db [form-key :data field-key] value)))
+
+(reg-event-db
   :list/set-offset
   interceptors
   (fn [db [list-db-path offset]]
@@ -1027,12 +1140,26 @@
     (assoc-in db [form-key :loading?] false)))
 
 (reg-event-db
+  :form/set-invalid
+  interceptors
+  (fn [db [form-key invalid?]]
+    (assoc-in db [form-key :invalid?] invalid?)))
+
+(reg-event-db
   :snackbar/show-error
   interceptors
   (fn [db [error-text]]
     (update db :snackbar merge
             {:open? true
              :message (or error-text "Oops, we got an error while saving to blockchain")})))
+
+(reg-event-db
+  :snackbar/show-message
+  interceptors
+  (fn [db [message]]
+    (update db :snackbar merge
+            {:open? true
+             :message message})))
 
 (reg-event-db
   :snackbar/close
@@ -1101,7 +1228,7 @@
   :log
   interceptors
   (fn [db result]
-    (apply console :log (u/big-nums->nums (print.foo/look result)))))
+    (apply console :log (u/big-nums->nums result))))
 
 (reg-event-fx
   :do-nothing

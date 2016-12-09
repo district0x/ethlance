@@ -261,3 +261,11 @@
 
 (def contract-activity-row
   {:margin-bottom (* 2 desktop-gutter)})
+
+(def form-item
+  {:margin-top desktop-gutter-less})
+
+(def profile-picture-name
+  (merge overflow-ellipsis
+         text-center
+         {:max-height 50}))

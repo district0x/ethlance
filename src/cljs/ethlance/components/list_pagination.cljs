@@ -8,7 +8,7 @@
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]))
 
-(defn list-pagination [{:keys [all-subscribe offset limit load-dispatch]}]
+(defn list-pagination [{:keys [all-subscribe]}]
   (let [all-ids (subscribe all-subscribe)]
     (fn [{:keys [offset limit load-dispatch list-db-path]}]
       (when (pos? (count @all-ids))
@@ -18,6 +18,6 @@
           :on-change (fn [page]
                        (let [offset (* (max (dec page) 0) limit)]
                          (dispatch [:list/set-offset list-db-path offset])
-                         (dispatch (conj load-dispatch (u/paginate @all-ids offset limit)))))}]))))
+                         (dispatch (conj load-dispatch (u/paginate offset limit @all-ids)))))}]))))
 
 

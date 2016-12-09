@@ -27,6 +27,16 @@ contract EthlanceJob is EthlanceSetter {
         JobLibrary.addJob(ethlanceDB, getSenderUserId(), title, description, skills, language, budget, uint8Items);
     }
 
+    function setJobHiringDone
+    (
+        uint jobId
+    )
+        onlyActiveSmartContract
+        onlyActiveEmployer
+    {
+        JobLibrary.setHiringDone(ethlanceDB, jobId, getSenderUserId());
+    }
+
     function setJobStatus(
         uint jobId,
         uint8 status

@@ -96,6 +96,7 @@ library JobLibrary {
 
     function setHiringDone(address db, uint jobId, uint senderId) internal {
         if (getEmployer(db, jobId) != senderId) throw;
+        if (getStatus(db, jobId) != 1) throw;
         setStatus(db, jobId, 2);
         EthlanceDB(db).setUIntValue(sha3("job/hiring-done-on", jobId), now);
     }

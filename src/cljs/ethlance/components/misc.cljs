@@ -2,11 +2,14 @@
   (:require
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.styles :as styles]
+    [cljs-web3.core :as web3]
     [ethlance.components.list-pagination :refer [list-pagination]]
+    [ethlance.styles :as styles]
     [ethlance.utils :as u]
+    [medley.core :as medley]
+    [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [medley.core :as medley]))
+    ))
 
 (def col (r/adapt-react-class js/ReactFlexboxGrid.Col))
 (def row (r/adapt-react-class js/ReactFlexboxGrid.Row))
@@ -93,3 +96,48 @@
   [row {:center "xs"}
    (into [] (concat [col {:lg 8 :style styles/text-left}]
                     children))])
+
+(defn ether-field [{:keys [:on-change :default-value :form-key] :as props}]
+  (let [valid? u/pos-or-zero?]
+    [ui/text-field
+     (merge
+       (dissoc props :form-key)
+       (when on-change
+         {:on-change (fn [e val]
+                       (let [val (u/parse-float val)]
+                         (dispatch [:form/set-invalid form-key (not (valid? val))])
+                         (on-change e (web3/to-wei val :ether))))})
+       (when default-value
+         {:default-value (web3/from-wei default-value :ether)
+          :error-text (when-not (valid? default-value)
+                        "Invalid number")}))]))
+
+(defn textarea [{:keys [:max-length-key] :as props}]
+  (let [eth-config (subscribe [:eth/config])
+        valid? #(< (count %1) (get %2 max-length-key))]
+    (fn [{:keys [:default-value :on-change :form-key]}]
+      [ui/text-field
+       (merge
+         {:rows 4
+          :full-width true
+          :multi-line true}
+         (dissoc props :max-length-key :form-key)
+         (when default-value
+           {:error-text (when-not (valid? default-value @eth-config)
+                          "Text is too long")})
+         (when on-change
+           {:on-change (fn [e val]
+                         (dispatch [:form/set-invalid form-key (not (valid? default-value @eth-config))])
+                         (on-change e val))}))])))
+
+(defn send-button [props]
+  [row-plain
+   {:end "xs"
+    :style styles/form-item}
+   [ui/raised-button
+    (merge
+      {:label "Send"
+       :icon (icons/content-send)
+       :label-position :before
+       :primary true}
+      props)]])

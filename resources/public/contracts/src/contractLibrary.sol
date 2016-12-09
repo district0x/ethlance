@@ -24,6 +24,7 @@ library ContractLibrary {
         if (senderId != employerId) throw;
         if (employerId == freelancerId) throw;
         if (getContract(db, freelancerId, jobId) != 0) throw;
+        if (JobLibrary.getStatus(db, jobId) != 1) throw;
         var contractId = SharedLibrary.createNext(db, "contract/count");
         setFreelancerJobIndex(db, contractId, freelancerId, jobId);
         
@@ -48,6 +49,7 @@ library ContractLibrary {
         if (employerId == 0) throw;
         if (freelancerId == employerId) throw;
         if (freelancerId == 0) throw;
+        if (JobLibrary.getStatus(db, jobId) != 1) throw;
         var contractId = getContract(db, freelancerId, jobId);
         if (contractId == 0) {
             contractId = SharedLibrary.createNext(db, "contract/count");
@@ -79,6 +81,8 @@ library ContractLibrary {
         if (senderId != employerId) throw;
         if (senderId == freelancerId) throw;
         if (getStatus(db, contractId) != 2) throw;
+        if (JobLibrary.getStatus(db, jobId) != 1) throw;
+
         EthlanceDB(db).setUIntValue(sha3("contract/created-on", contractId), now);
         EthlanceDB(db).setStringValue(sha3("contract/description", contractId), description);
         setStatus(db, contractId, 3);
@@ -87,13 +91,14 @@ library ContractLibrary {
         }
     }
 
-
     function addFeedback(address db, uint contractId, uint senderId, string feedback, uint8 rating) internal {
         var freelancerId = getFreelancer(db, contractId);
         var employerId = getEmployer(db, contractId);
         var status = getStatus(db, contractId);
+        var jobId = getJob(db, contractId);
         if (senderId != freelancerId && senderId != employerId) throw;
         if ((status != 3) && (status != 4)) throw;
+        if (JobLibrary.getStatus(db, jobId) == 3) throw;
 
         if (status == 3) {
             setStatus(db, contractId, 4);

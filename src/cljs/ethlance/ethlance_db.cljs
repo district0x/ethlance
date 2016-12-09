@@ -7,7 +7,7 @@
     [ethlance.utils :as u]
     [medley.core :as medley]
     [re-frame.core :refer [console dispatch]]
-    ))
+    [clojure.set :as set]))
 
 (def bool 1)
 (def uint8 2)
@@ -104,15 +104,23 @@
    :contract/total-invoiced big-num
    :contract/total-paid big-num})
 
-(def feedback-schema
+(def employer-feedback-schema
   {:contract/employer-feedback string
    :contract/employer-feedback-on date
-   :contract/employer-feedback-rating uint8
-   :contract/freelancer uint
-   :contract/freelancer-feedback string
+   :contract/employer-feedback-rating uint8})
+
+(def freelancer-feedback-schema
+  {:contract/freelancer-feedback string
    :contract/freelancer-feedback-on date
-   :contract/freelancer-feedback-rating uint8
-   :contract/job uint})
+   :contract/freelancer-feedback-rating uint8})
+
+(def feedback-schema
+  (merge employer-feedback-schema
+         freelancer-feedback-schema
+         (select-keys contract-schema
+                      [:contract/freelancer
+                       :contract/job
+                       :contract/done-by-freelancer?])))
 
 (def contract-all-schema
   (merge proposal+invitation-schema
@@ -143,6 +151,25 @@
    :skill/blocked? bool
    :skill/freelancers-count uint
    :skill/freelancers uint-coll})
+
+(def user-editable-fields
+  (set/difference (set (keys account-schema)) #{:user/address :user/created-on}))
+
+(def job-editable-fields
+  #{:job/status
+    :job/contracts-count
+    :job/contracts
+    :job/total-paid})
+
+(def contract-editable-fields
+  #{:contract/status
+    :contract/invoices-count
+    :contract/invoices
+    :contract/total-invoiced
+    :contract/total-paid})
+
+(def invoice-editable-fields
+  #{:invoice/status})
 
 (def set-user-args
   [:user/name :user/gravatar :user/country :user/languages])
@@ -179,6 +206,9 @@
   [:search/min-budget :search/min-employer-avg-rating :search/min-employer-ratings-count
    :search/country :search/language :search/offset :search/limit])
 
+(def job-set-hiring-done-args
+  [:job/id])
+
 (def add-invitation-args
   [:contract/job :contract/freelancer :invitation/description])
 
@@ -189,7 +219,7 @@
   [:contract/id :contract/description :contract/hiring-done?])
 
 (def add-contract-feedback-args
-  [:contract/id :contract/feedback :contract/rating])
+  [:contract/id :contract/feedback :contract/feedback-rating])
 
 (def add-invoice-args
   [:invoice/contract :invoice/description :invoice/amount :invoice/worked-hours :invoice/worked-from

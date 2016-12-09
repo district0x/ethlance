@@ -19,6 +19,5 @@
         {:size 80
          :src (u/gravatar-url gravatar)}]]
       [col {:xs 12
-            :style (merge styles/overflow-ellipsis
-                          styles/text-center)}
+            :style styles/profile-picture-name}
        name]]]))

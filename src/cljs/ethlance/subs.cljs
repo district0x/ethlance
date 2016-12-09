@@ -35,9 +35,21 @@
     (:my-addresses db)))
 
 (reg-sub
+  :eth/config
+  (fn [db _]
+    (:eth/config db)))
+
+(reg-sub
   :db/active-user-id
   (fn [db]
     ((:address->user-id db) (:active-address db))))
+
+(reg-sub
+  :db/active-user
+  :<- [:db/active-user-id]
+  :<- [:app/users]
+  (fn [[user-id users]]
+    (users user-id)))
 
 (reg-sub
   :app/users
@@ -149,20 +161,38 @@
       (update :job/employer #(get users %)))))
 
 (reg-sub
+  :db/active-freelancer-job-detail-contract
+  :<- [:db/active-user-id]
+  :<- [:job/route-job-id]
+  :<- [:app/contracts]
+  (fn [[user-id job-id contracts]]
+    (medley/find-first #(and (= (:contract/job %) job-id)
+                             (= (:contract/freelancer %) user-id))
+                       (vals contracts))))
+
+(reg-sub
   :list.ids/job-proposals
   (fn [db]
-    (get-in db [:list/job-proposals :items])))
+    (let [{:keys [items sort-dir]} (:list/job-proposals db)]
+      (u/sort-in-dir sort-dir items))))
 
 (reg-sub
   :list.ids/job-invoices
   (fn [db]
-    (get-in db [:list/job-invoices :items])))
+    (let [{:keys [items sort-dir]} (:list/job-invoices db)]
+      (u/sort-in-dir sort-dir items))))
+
+(reg-sub
+  :list.ids/job-feedbacks
+  (fn [db]
+    (let [{:keys [items sort-dir]} (:list/job-feedbacks db)]
+      (u/sort-in-dir sort-dir items))))
 
 (reg-sub
   :list.ids/contract-invoices
   (fn [db]
-    (get-in db [:list/contract-invoices :items])))
-
+    (let [{:keys [items sort-dir]} (:list/contract-invoices db)]
+      (u/sort-in-dir sort-dir items))))
 
 (reg-sub
   :contract/route-contract-id
@@ -184,11 +214,9 @@
     (update-in [:contract/job :job/employer] users)
     (update :contract/freelancer users)))
 
-(defn contract-ids->contracts-list [{:keys [offset limit sort-dir] :as contracts-list}
-                                  contracts jobs users]
+(defn contract-ids->contracts-list [contracts-list contracts jobs users]
   (-> contracts-list
-    (update :items (partial u/sort-in-dir sort-dir))
-    (update :items #(u/paginate % offset limit))
+    (update :items (partial u/sort-paginate-ids contracts-list))
     (update :items (partial map #(contract-id->contract % contracts jobs users)))
     (u/list-filter-loaded (comp :user/name :contract/freelancer))))
 
@@ -244,11 +272,10 @@
     (update-in [:invoice/contract :contract/job] jobs)
     (update-in [:invoice/contract :contract/job :job/employer] users)))
 
-(defn invoice-ids->invoices-list [{:keys [offset limit sort-dir] :as invoices-list}
+(defn invoice-ids->invoices-list [invoices-list
                                   invoices contracts jobs users]
   (-> invoices-list
-    (update :items (partial u/sort-in-dir sort-dir))
-    (update :items #(u/paginate % offset limit))
+    (update :items (partial u/sort-paginate-ids invoices-list))
     (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users)))
     (u/list-filter-loaded (comp :user/name :contract/freelancer :invoice/contract))))
 
@@ -310,3 +337,24 @@
   :form.invoice/cancel
   (fn [db]
     (:form.invoice/cancel db)))
+
+(reg-sub
+  :form.contract/add-proposal
+  (fn [db]
+    (:form.contract/add-proposal db)))
+
+(reg-sub
+  :form.contract/add-contract
+  (fn [db]
+    (:form.contract/add-contract db)))
+
+(reg-sub
+  :form.contract/add-feedback
+  (fn [db]
+    (:form.contract/add-feedback db)))
+
+(reg-sub
+  :form.job/set-hiring-done
+  (fn [db]
+    (:form.job/set-hiring-done db)))
+

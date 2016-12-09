@@ -59,7 +59,7 @@
         [paper
          {:loading? loading?
           :style styles/paper-section-main}
-         [:h2 "Job Proposals"]
+         [:h2 "Proposals"]
          [ui/table
           [ui/table-header
            [ui/table-row
@@ -102,9 +102,74 @@
              :offset offset
              :limit limit})]]))))
 
+(defn new-proposal-allowed? [{:keys [:contract/status]}]
+  (or (not status) (= status 1)))
+
+(defn job-action-buttons [contract form-open?]
+  (let [{:keys [:contract/status :contract/id]} contract]
+    [row-plain
+     {:end "xs"}
+     (when (and (not @form-open?) (new-proposal-allowed? contract))
+       [ui/raised-button
+        {:label "Write Proposal"
+         :primary true
+         :on-touch-tap #(reset! form-open? true)
+         :icon (icons/content-create)}])
+     (when (= status 1)
+       [ui/raised-button
+        {:label "You were invited!"
+         :style {:margin-left 10}
+         :href (u/path-for :contract/detail :contract/id id)
+         :secondary true}])
+     (when (>= status 2)
+       [ui/raised-button
+        {:label "My Proposal"
+         :href (u/path-for :contract/detail :contract/id id)
+         :primary true
+         :icon (icons/content-create)}])]))
+
+(defn job-proposal-form []
+  (let [form-open? (r/atom false)
+        form (subscribe [:form.contract/add-proposal])
+        job (subscribe [:job/detail])
+        active-user (subscribe [:db/active-user])
+        contract (subscribe [:db/active-freelancer-job-detail-contract])]
+    (fn []
+      (let [{:keys [:loading? :invalid? :data]} @form
+            {:keys [:proposal/description :proposal/rate]} data]
+        (when (and (= (:job/status @job) 1) (:user/freelancer? @active-user))
+          [paper
+           {:loading? loading?}
+           [row
+            [col {:xs 6}
+             (when (and @form-open? (new-proposal-allowed? @contract))
+               [:h2 "New Proposal"])]
+            [col {:xs 6}
+             [job-action-buttons @contract form-open?]]]
+           (when (and @form-open? (new-proposal-allowed? @contract))
+             [:div
+              [misc/ether-field
+               {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate in Ether")
+                :default-value rate
+                :form-key :form.contract/add-proposal
+                :on-change #(dispatch [:form/value-changed :form.contract/add-proposal :proposal/rate %2])}]
+              [misc/textarea
+               {:floating-label-text "Proposal Text"
+                :form-key :form.contract/add-proposal
+                :max-length-key :max-proposal-desc
+                :default-value description
+                :on-change #(dispatch [:form/value-changed :form.contract/add-proposal :proposal/description %2])}]
+              [misc/send-button
+               {:disabled (or loading? invalid?)
+                :on-touch-tap #(dispatch [:contract.contract/add-proposal
+                                          (merge data {:contract/job (:job/id @job)})])}]])
+           ])))))
+
 (defn job-details []
   (let [job (subscribe [:job/detail])
-        job-id (subscribe [:job/route-job-id])]
+        job-id (subscribe [:job/route-job-id])
+        my-job? (subscribe [:job/my-job?])
+        set-hiring-done-form (subscribe [:form.job/set-hiring-done])]
     (dispatch [:after-eth-contracts-loaded :contract.db/load-jobs ethlance-db/job-schema [@job-id]])
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
@@ -112,7 +177,7 @@
                     :job/description :job/budget :job/skills :job/category
                     :job/status :job/hiring-done-on :job/freelancers-needed]} @job]
         [paper
-         {:loading? (empty? title)
+         {:loading? (or (empty? title) (:loading @set-hiring-done-form))
           :style styles/paper-section-main}
          (when id
            [:div
@@ -149,7 +214,13 @@
               :always-show-all? true}]
             [misc/hr]
             [employer-details]
-            ])]))))
+            (when (and @my-job? (= status 1))
+              [row-plain
+               {:end "xs"}
+               [ui/raised-button
+                {:label "Close Hiring"
+                 :secondary true
+                 :on-touch-tap #(dispatch [:contract.job/set-hiring-done {:job/id id}])}]])])]))))
 
 (defn job-invoices []
   (let [job-id (subscribe [:job/route-job-id])]
@@ -176,6 +247,7 @@
     (fn []
       [misc/center-layout
        [job-details]
+       [job-proposal-form]
        [job-proposals]
        [job-invoices]
        [job-feedbacks]])))

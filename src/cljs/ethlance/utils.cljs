@@ -16,7 +16,8 @@
     [goog.string :as gstring]
     [goog.string.format]
     [medley.core :as medley]
-    [reagent.core :as r])
+    [reagent.core :as r]
+    [cljs-web3.core :as web3])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn path-for [& args]
@@ -60,7 +61,7 @@
   (apply js/SoliditySha3.sha3 (map #(if (keyword? %) (ns+name %) %) args)))
 
 (defn big-num->num [x]
-  (if (aget x "toNumber")
+  (if (and x (aget x "toNumber"))
     (.toNumber x)
     x))
 
@@ -171,7 +172,7 @@
      (/ (js/Math.round (* d factor)) factor))))
 
 (defn eth [x]
-  (str (round (if x (.toNumber x) 0)) " Ξ"))
+  (str (round (web3/from-wei (if x (.toNumber x) 0) :ether)) " Ξ"))
 
 (defn format-rate [rate payment-type]
   (when rate
@@ -216,7 +217,7 @@
     (assoc :loading? (or (:loading? list) (some (complement non-empty-pred) (:items list))))
     (update :items (partial filter non-empty-pred))))
 
-(defn paginate [coll offset limit]
+(defn paginate [offset limit coll]
   (->> coll
     (drop offset)
     (take limit)))
@@ -251,3 +252,14 @@
   (if (= dir :desc)
     (sort-desc coll)
     (sort coll)))
+
+(defn sort-paginate-ids [{:keys [offset limit sort-dir]} ids]
+  (->> ids
+    (sort-in-dir sort-dir)
+    (paginate offset limit)))
+
+(defn pos-or-zero? [x]
+  (or (pos? x) (zero? x)))
+
+(defn parse-float [number]
+  (js/parseFloat (string/replace number \, \.)))

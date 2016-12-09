@@ -45,7 +45,7 @@
 
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4}
-   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 1 :show-more-limit 10 :sort-dir :desc}
    :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/search-freelancers {:items [] :loading? true}
    :list/search-jobs {:items [] :loading? true}
@@ -53,6 +53,22 @@
 
    :form.invoice/pay {:loading? false :gas-limit 200000}
    :form.invoice/cancel {:loading? false :gas-limit 200000}
+   :form.job/set-hiring-done {:loading? false :gas-limit 200000}
+   :form.contract/add-proposal {:loading? false
+                                :invalid? true
+                                :gas-limit 700000
+                                :data {:proposal/description ""
+                                       :proposal/rate 0}}
+
+   :form.contract/add-contract {:loading? false
+                                :gas-limit 700000
+                                :data {:contract/description ""
+                                       :contract/hiring-done? false}}
+
+   :form.contract/add-feedback {:loading? false
+                                :gas-limit 700000
+                                :data {:contract/feedback ""
+                                       :contract/feedback-rating 0}}
 
    :form/search-jobs {:search/category 0
                       :search/skills []
