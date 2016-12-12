@@ -190,6 +190,22 @@ library UserLibrary {
         return SharedLibrary.getUIntArray(db, userId, "employer/contracts", "employer/contracts-count");
     }
     
+    function addFreelancerTotalInvoiced(address db, uint userId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("freelancer/total-invoiced", userId), amount);
+    }
+    
+    function subFreelancerTotalInvoiced(address db, uint userId, uint amount) internal {
+        EthlanceDB(db).subUIntValue(sha3("freelancer/total-invoiced", userId), amount);
+    }
+    
+    function addEmployerTotalInvoiced(address db, uint userId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("employer/total-invoiced", userId), amount);
+    }
+    
+    function subEmployerTotalInvoiced(address db, uint userId, uint amount) internal {
+        EthlanceDB(db).subUIntValue(sha3("employer/total-invoiced", userId), amount);
+    }
+    
     function addToAvgRating(address db, uint userId, string countKey, string key, uint8 rating) internal {
         var ratingsCount = EthlanceDB(db).getUIntValue(sha3(countKey, userId));
         var currentAvgRating = EthlanceDB(db).getUInt8Value(sha3(key, userId));

@@ -6,16 +6,17 @@
     [ethlance.components.pagination :refer [pagination]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
-    [re-frame.core :refer [subscribe dispatch]]
+    [re-frame.core :refer [subscribe dispatch dispatch-sync]]
     [reagent.core :as r]))
 
-(defn show-more-pagination [{:keys [all-subscribe]}]
-  (let [all-ids (subscribe all-subscribe)]
-    (fn [{:keys [offset limit show-more-limit load-dispatch list-db-path load-parts-count]}]
+(defn show-more-pagination [{:keys [all-ids-subscribe offset initial-limit list-db-path]}]
+  (let [all-ids (subscribe all-ids-subscribe)
+        load-offset (r/atom initial-limit)]
+    (dispatch-sync [:list/set-offset-limit list-db-path 0 initial-limit])
+    (fn [{:keys [limit show-more-limit load-dispatch list-db-path load-per loading?]}]
       (let [all-ids-count (count @all-ids)]
-        (when (or (and (zero? offset)
-                       (< all-ids-count limit))
-                  (< all-ids-count (+ offset show-more-limit)))
+        (when (and (not loading?)
+                   (> all-ids-count limit))
           [row-plain
            {:style styles/full-width
             :center "xs"}
@@ -23,6 +24,9 @@
             {:primary true
              :label "Show more"
              :on-touch-tap (fn []
-                             (let [offset (+ offset (if (zero? offset) limit show-more-limit))]
-                               (dispatch [:list/set-offset list-db-path offset])
-                               (dispatch (into load-dispatch [(u/paginate offset limit @all-ids) load-parts-count]))))}]])))))
+                             (swap! load-offset + (dec limit))
+                             (let [new-limit (+ @load-offset show-more-limit)]
+                               (dispatch [:list/set-limit list-db-path new-limit])
+                               (dispatch (into load-dispatch [(u/paginate @load-offset
+                                                                          (- new-limit @load-offset)
+                                                                          @all-ids) load-per]))))}]])))))

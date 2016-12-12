@@ -2,6 +2,7 @@
   (:require
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.contracts-table :refer [contracts-table]]
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.list-pagination :refer [list-pagination]]
@@ -45,62 +46,30 @@
           [misc/country-marker
            {:country country}]]]))))
 
+(defn my-contract? [active-user-id {:keys [:contract/freelancer]}]
+  (= active-user-id (:user/id freelancer)))
+
 (defn job-proposals []
-  (let [list (subscribe [:list/job-proposals])
-        job-id (subscribe [:job/route-job-id])
-        job (subscribe [:job/detail])
-        my-job? (subscribe [:job/my-job?])
-        active-user-id (subscribe [:db/active-user-id])]
-    (dispatch [:after-eth-contracts-loaded :contract.views/load-job-proposals
-               {:job/id @job-id :contract/status 0}])
-    (fn []
-      (let [{:keys [loading? items offset limit]} @list
-            {:keys [:job/payment-type]} @job]
-        [paper
-         {:loading? loading?
-          :style styles/paper-section-main}
-         [:h2 "Proposals"]
-         [ui/table
-          [ui/table-header
-           [ui/table-row
-            [ui/table-header-column "Freelancer"]
-            [ui/table-header-column "Bid"]
-            [ui/table-header-column "Time"]
-            [ui/table-header-column "Status"]]]
-          [ui/table-body
-           {:show-row-hover @my-job?}
-           (if (seq items)
-             (for [item items]
-               (let [{:keys [:contract/freelancer :contract/id :contract/status :proposal/rate]} item
-                     my-contract? (= @active-user-id (:user/id freelancer))]
-                 [ui/table-row
-                  {:key id
-                   :style (when (or @my-job? my-contract?) styles/clickable)
-                   :on-touch-tap (when (or @my-job? my-contract?)
-                                   (u/table-row-nav-to-fn :contract/detail {:contract/id id}))}
-                  [ui/table-row-column
-                   [a
-                    {:route-params {:user/id (:user/id freelancer)}
-                     :route :freelancer/detail}
-                    (:user/name freelancer)]]
-                  [ui/table-row-column
-                   (if (= status 1) "-" (u/format-rate rate payment-type))]
-                  [ui/table-row-column
-                   (if (= status 1)
-                     (u/time-ago (:invitation/created-on item))
-                     (u/time-ago (:proposal/created-on item)))]
-                  [ui/table-row-column
-                   [misc/status-chip
-                    {:background-color (styles/contract-status-colors status)}
-                    (constants/contract-statuses status)]]]))
-             (misc/create-no-items-row "There are no proposals for this job yet" loading?))]
-          (misc/create-table-pagination
-            {:all-subscribe [:list.ids/job-proposals]
-             :list-db-path [:list/job-proposals]
-             :load-dispatch [:contract.db/load-contracts
-                             (ethlance-db/without-strings ethlance-db/proposal+invitation-schema)]
-             :offset offset
-             :limit limit})]]))))
+  (let [active-user-id (subscribe [:db/active-user-id])]
+    (fn [job-id]
+      (when job-id
+        [contracts-table
+         {:list-subscribe [:list/job-proposals]
+          :show-freelancer? true
+          :show-invitation-or-proposal-time? true
+          :show-rate? true
+          :show-status? true
+          :highlight-row-pred (partial my-contract? @active-user-id)
+          :initial-dispatch {:list-key :list/job-proposals
+                             :fn-key :views/get-job-contracts
+                             :load-dispatch-key :contract.db/load-contracts
+                             :schema (select-keys ethlance-db/contract-all-schema
+                                                  [:contract/freelancer :proposal/rate :proposal/created-on
+                                                   :invitation/created-on :contract/status])
+                             :args {:job/id job-id :contract/status 0}}
+          :all-ids-subscribe [:list.ids/job-proposals]
+          :title "Proposals"
+          :no-items-text "No proposals for this job"}]))))
 
 (defn new-proposal-allowed? [{:keys [:contract/status]}]
   (or (not status) (= status 1)))
@@ -135,7 +104,7 @@
         active-user (subscribe [:db/active-user])
         contract (subscribe [:db/active-freelancer-job-detail-contract])]
     (fn []
-      (let [{:keys [:loading? :invalid? :data]} @form
+      (let [{:keys [:loading? :errors :data]} @form
             {:keys [:proposal/description :proposal/rate]} data]
         (when (and (= (:job/status @job) 1) (:user/freelancer? @active-user))
           [paper
@@ -152,15 +121,15 @@
                {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate in Ether")
                 :default-value rate
                 :form-key :form.contract/add-proposal
-                :on-change #(dispatch [:form/value-changed :form.contract/add-proposal :proposal/rate %2])}]
+                :field-key :proposal/rate}]
               [misc/textarea
                {:floating-label-text "Proposal Text"
                 :form-key :form.contract/add-proposal
+                :field-key :proposal/description
                 :max-length-key :max-proposal-desc
-                :default-value description
-                :on-change #(dispatch [:form/value-changed :form.contract/add-proposal :proposal/description %2])}]
+                :default-value description}]
               [misc/send-button
-               {:disabled (or loading? invalid?)
+               {:disabled (or loading? (boolean (seq errors)))
                 :on-touch-tap #(dispatch [:contract.contract/add-proposal
                                           (merge data {:contract/job (:job/id @job)})])}]])
            ])))))
@@ -170,22 +139,23 @@
         job-id (subscribe [:job/route-job-id])
         my-job? (subscribe [:job/my-job?])
         set-hiring-done-form (subscribe [:form.job/set-hiring-done])]
-    (dispatch [:after-eth-contracts-loaded :contract.db/load-jobs ethlance-db/job-schema [@job-id]])
+    (dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-schema [@job-id]]])
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                     :job/experience-level :job/hours-per-week :job/created-on
                     :job/description :job/budget :job/skills :job/category
-                    :job/status :job/hiring-done-on :job/freelancers-needed]} @job]
+                    :job/status :job/hiring-done-on :job/freelancers-needed
+                    :job/employer]} @job]
         [paper
-         {:loading? (or (empty? title) (:loading @set-hiring-done-form))
+         {:loading? (or (empty? (:user/name employer)) (:loading @set-hiring-done-form))
           :style styles/paper-section-main}
          (when id
            [:div
             [:h1 title]
             [:h3 {:style {:margin-top 5}} (constants/categories category)]
-            [:h4 {:style styles/fade-text} "Posted on " (u/format-date created-on)]
+            [:h4 {:style styles/fade-text} "Posted on " (u/format-datetime created-on)]
             (when hiring-done-on
-              [:h4 {:style styles/fade-text} "Hiring done on " (u/format-date hiring-done-on)])
+              [:h4 {:style styles/fade-text} "Hiring done on " (u/format-datetime hiring-done-on)])
             [row-plain
              {:style {:margin-top 20}}
              [misc/status-chip
@@ -208,7 +178,7 @@
                 {:background-color styles/budget-chip-color}
                 "Budget " (u/eth budget)])]
             [:p {:style styles/detail-description} description]
-            [u/subheader "Required Skills"]
+            [misc/subheader "Required Skills"]
             [skills-chips
              {:selected-skills skills
               :always-show-all? true}]
@@ -227,27 +197,33 @@
     (fn []
       [invoices-table
        {:list-subscribe [:list/job-invoices]
-        :initial-dispatch [:contract.views/load-job-invoices {:job/id @job-id :invoice/status 0}]
         :show-freelancer? true
-        :pagination-props {:all-subscribe [:list.ids/job-invoices]
-                           :list-db-path [:list/job-invoices]
-                           :load-dispatch [:contract.db/load-invoices ethlance-db/invoices-table-schema]}}])))
+        :show-status? true
+        :initial-dispatch {:list-key :list/job-invoices
+                           :fn-key :views/get-job-invoices
+                           :load-dispatch-key :contract.db/load-invoices
+                           :schema ethlance-db/invoices-table-schema
+                           :args {:job/id @job-id :invoice/status 0}}
+        :all-ids-subscribe [:list.ids/job-invoices]}])))
 
 (defn job-feedbacks []
   (let [job-id (subscribe [:job/route-job-id])]
     (fn []
       [feedback-list
        {:list-subscribe [:list/job-feedbacks]
-        :initial-dispatch [:contract.views/load-job-feedbacks
-                           {:job/id @job-id :contract/status 4}]}])))
+        :initial-dispatch [:list/load-ids {:list-key :list/job-feedbacks
+                                           :fn-key :views/get-job-contracts
+                                           :load-dispatch-key :contract.db/load-contracts
+                                           :schema ethlance-db/feedback-schema
+                                           :args {:job/id @job-id :contract/status 4}}]}])))
 
 (defn job-detail-page []
   (let [job-id (subscribe [:job/route-job-id])]
-    (dispatch [:after-my-users-loaded :contract.views/load-my-users-contracts {:job/id @job-id}])
+    (dispatch [:after-my-users-loaded [:contract.views/load-my-freelancers-contracts-for-job {:job/id @job-id}]])
     (fn []
       [misc/center-layout
        [job-details]
        [job-proposal-form]
-       [job-proposals]
+       [job-proposals @job-id]
        [job-invoices]
        [job-feedbacks]])))

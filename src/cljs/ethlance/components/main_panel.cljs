@@ -9,12 +9,14 @@
     [ethlance.pages.employer-invoices-page :refer [employer-invoices-page]]
     [ethlance.pages.employer-jobs-page :refer [employer-jobs-page]]
     [ethlance.pages.employer-profile :refer [employer-profile]]
+    [ethlance.pages.freelancer-contracts-page :refer [freelancer-contracts-page]]
     [ethlance.pages.freelancer-create-page :refer [freelancer-create-page]]
     [ethlance.pages.freelancer-invoices-page :refer [freelancer-invoices-page]]
-    [ethlance.pages.freelancer-jobs-page :refer [freelancer-jobs-page]]
     [ethlance.pages.freelancer-profile :refer [freelancer-profile]]
     [ethlance.pages.home-page :refer [home-page]]
+    [ethlance.pages.invoice-create-page :refer [invoice-create-page]]
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
+    [ethlance.pages.job-create-page :refer [job-create-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
     [ethlance.pages.my-profile-page :refer [my-profile-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
@@ -35,9 +37,11 @@
    :freelancer/create freelancer-create-page
    :freelancer/detail freelancer-profile
    :freelancer/invoices freelancer-invoices-page
-   :freelancer/jobs freelancer-jobs-page
+   :freelancer/contracts freelancer-contracts-page
    :home home-page
+   :invoice/create invoice-create-page
    :invoice/detail invoice-detail-page
+   :job/create job-create-page
    :job/detail job-detail-page
    :my-profile my-profile-page
    :search/freelancers search-freelancers-page
@@ -49,12 +53,12 @@
    ["My Profile" :my-profile (icons/social-person)]])
 
 (def nav-items-freelancers
-  [["My Jobs" :freelancer/jobs (icons/hardware-laptop-mac)]
+  [["My Contracts" :freelancer/contracts (icons/hardware-laptop-mac)]
    ["My Invoices" :freelancer/invoices (icons/action-assignment)]])
 
 (def nav-items-employer
   [["My Jobs" :employer/jobs (icons/hardware-laptop-mac)]
-   ["My Invoices" :employer/invoices (icons/action-assignment)]])
+   ["Invoices" :employer/invoices (icons/action-assignment)]])
 
 (defn create-menu-items [items]
   (for [[label handler icon] items]

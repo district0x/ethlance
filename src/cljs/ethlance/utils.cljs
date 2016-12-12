@@ -83,9 +83,6 @@
 (defn empty-invoice? [invoice]
   (zero? (:invoice/created-on invoice)))
 
-(defn subheader [title]
-  [ui/subheader {:style styles/subheader} title])
-
 (defn debounce-ch
   ([c ms] (debounce-ch (chan) c ms false))
   ([c ms instant] (debounce-ch (chan) c ms instant))
@@ -132,13 +129,23 @@
   (when x
     (.greaterThan x 0)))
 
+(defn timestamp-js->sol [x]
+  (/ x 1000))
+
+(defn timestamp-sol->js [x]
+  (* x 1000))
+
 (defn big-num->date-time [big-num]
   (when (big-num-pos? big-num)
-    (to-default-time-zone (to-date-time (* (.toNumber big-num) 1000)))))
+    (to-default-time-zone (to-date-time (timestamp-sol->js (.toNumber big-num))))))
+
+(defn format-datetime [date]
+  (when date
+    (time-format/unparse-local (time-format/formatters :rfc822) date)))
 
 (defn format-date [date]
   (when date
-    (time-format/unparse-local (time-format/formatters :rfc822) date)))
+    (time-format/unparse-local (time-format/formatter "EEE, dd MMM yyyy Z") date)))
 
 (defn time-ago [time]
   (when time
@@ -254,12 +261,20 @@
     (sort coll)))
 
 (defn sort-paginate-ids [{:keys [offset limit sort-dir]} ids]
-  (->> ids
-    (sort-in-dir sort-dir)
-    (paginate offset limit)))
+  (if (and offset limit)
+    (->> ids
+      (sort-in-dir sort-dir)
+      (paginate offset limit))
+    ids))
 
 (defn pos-or-zero? [x]
   (or (pos? x) (zero? x)))
 
 (defn parse-float [number]
   (js/parseFloat (string/replace number \, \.)))
+
+(defn get-time [x]
+  (.getTime x))
+
+(defn week-ago []
+  (t/minus (t/today-at-midnight) (t/weeks 1)))

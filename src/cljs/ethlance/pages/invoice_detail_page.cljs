@@ -35,15 +35,18 @@
       [line "Job" [a {:route-params (select-keys job [:job/id])
                       :route :job/detail}
                    (:job/title job)]]
+      [line "Proposal" [a {:route-params (select-keys contract [:contract/id])
+                           :route :contract/detail}
+                        (:contract/id contract)]]
       [line "Amount" (u/eth amount)]
-      [line "Created on" (u/format-date created-on)]
+      [line "Created on" (u/format-datetime created-on)]
       [line "Worked hours" worked-hours]
       [line "Worked from" (u/format-date worked-from)]
       [line "Worked to" (u/format-date worked-to)]
       (when paid-on
-        [line "Paid on" (u/format-date paid-on)])
+        [line "Paid on" (u/format-datetime paid-on)])
       (when cancelled-on
-        [line "Cancelled on" (u/format-date cancelled-on)])]]))
+        [line "Cancelled on" (u/format-datetime cancelled-on)])]]))
 
 (defn invoice-detail-page []
   (let [invoice (subscribe [:invoice/detail])
@@ -52,9 +55,7 @@
         for-me (subscribe [:invoice/for-me?])
         form-pay (subscribe [:form.invoice/pay])
         form-cancel (subscribe [:form.invoice/cancel])]
-    (dispatch [:after-eth-contracts-loaded :contract.db/load-invoices
-               ethlance-db/invoice-schema
-               [@invoice-id]])
+    (dispatch [:after-eth-contracts-loaded [:contract.db/load-invoices ethlance-db/invoice-schema [@invoice-id]]])
     (fn []
       (let [{:keys [:invoice/contract :invoice/id :invoice/created-on :invoice/status
                     :invoice/amount]} @invoice

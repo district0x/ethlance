@@ -25,7 +25,9 @@ library InvoiceLibrary {
         internal
     {
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
+        var employerId = ContractLibrary.getEmployer(db, contractId);
         if (freelancerId != senderId) throw;
+        if (ContractLibrary.getStatus(db, contractId) != 3) throw;
         var invoiceId = SharedLibrary.createNext(db, "invoice/count");
         EthlanceDB(db).setUIntValue(sha3("invoice/contract", invoiceId), contractId);
         EthlanceDB(db).setStringValue(sha3("invoice/description", invoiceId), description);
@@ -36,6 +38,8 @@ library InvoiceLibrary {
         EthlanceDB(db).setUIntValue(sha3("invoice/created-on", invoiceId), now);
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 1);
         ContractLibrary.addInvoice(db, contractId, invoiceId, amount);
+        UserLibrary.addFreelancerTotalInvoiced(db, freelancerId, amount);
+        UserLibrary.addEmployerTotalInvoiced(db, employerId, amount);
     }
 
     function getContract(address db, uint invoiceId) internal returns (uint) {
@@ -68,12 +72,14 @@ library InvoiceLibrary {
         ContractLibrary.addTotalPaid(db, contractId, amount);
         UserLibrary.addToFreelancerTotalEarned(db, freelancerId, amount);
         UserLibrary.addToEmployerTotalPaid(db, employerId, amount);
+        UserLibrary.subEmployerTotalInvoiced(db, employerId, amount);
         JobLibrary.addTotalPaid(db, jobId, amount);
     }
 
     function setInvoiceCancelled(address db, uint senderId, uint invoiceId) internal {
         var contractId = getContract(db, invoiceId);
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
+        var employerId = ContractLibrary.getEmployer(db, contractId);
         var amount = EthlanceDB(db).getUIntValue(sha3("invoice/amount", invoiceId));
 
         if (freelancerId != senderId) throw;
@@ -82,6 +88,8 @@ library InvoiceLibrary {
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 3);
         EthlanceDB(db).setUIntValue(sha3("invoice/cancelled-on", invoiceId), now);
         ContractLibrary.subTotalInvoiced(db, contractId, amount);
+        UserLibrary.subFreelancerTotalInvoiced(db, freelancerId, amount);
+        UserLibrary.subEmployerTotalInvoiced(db, employerId, amount);
     }
     
     function getStatus(address db, uint invoiceId) internal returns(uint8) {

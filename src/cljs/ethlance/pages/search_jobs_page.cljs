@@ -20,7 +20,7 @@
 
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-jobs])]
-    (dispatch [:after-eth-contracts-loaded :contract.search/search-jobs @form-data])
+    (dispatch [:after-eth-contracts-loaded [:contract.search/search-jobs @form-data]])
     (fn []
       (let [{:keys [:search/category :search/min-employer-avg-rating :search/country
                     :search/language :search/experience-levels :search/payment-types
@@ -31,26 +31,26 @@
           {:value category
            :full-width true
            :on-change #(dispatch [:form/search-jobs-changed :search/category %3])}]
-         [u/subheader "Min. Employer Rating"]
+         [misc/subheader "Min. Employer Rating"]
          [star-rating
           {:value (u/rating->star min-employer-avg-rating)
            :on-star-click #(dispatch [:form/search-jobs-changed :search/min-employer-avg-rating (u/star->rating %1)])}]
-         [u/subheader "Payment Type"]
+         [misc/subheader "Payment Type"]
          [checkbox-group
           {:options constants/payment-types
            :values payment-types
            :on-change #(dispatch [:form/search-jobs-changed :search/payment-types %2])}]
-         [u/subheader "Experience Level"]
+         [misc/subheader "Experience Level"]
          [checkbox-group
           {:options constants/experience-levels
            :values experience-levels
            :on-change #(dispatch [:form/search-jobs-changed :search/experience-levels %2])}]
-         [u/subheader "Project Length"]
+         [misc/subheader "Project Length"]
          [checkbox-group
           {:options constants/estimated-durations
            :values estimated-durations
            :on-change #(dispatch [:form/search-jobs-changed :search/estimated-durations %2])}]
-         [u/subheader "Availability"]
+         [misc/subheader "Availability"]
          [checkbox-group
           {:options constants/hours-per-weeks
            :values hours-per-weeks
@@ -77,7 +77,7 @@
           {:value language
            :full-width true
            :on-new-request #(dispatch [:form/search-jobs-changed :search/language %2])}]
-         #_[u/subheader "Min Budget"]
+         #_[misc/subheader "Min Budget"]
          #_[slider-with-counter
             {:max 200
              :step 5

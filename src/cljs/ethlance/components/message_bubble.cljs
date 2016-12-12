@@ -13,7 +13,7 @@
     {:center "xs"
      :style styles/message-bubble-time}
     [col {:xs 12}
-     "- " (u/format-date date) " -"]]])
+     "- " (u/format-datetime date) " -"]]])
 
 (defn message-bubble* [{:keys [side truncate?]} body]
   [col

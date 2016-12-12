@@ -15,6 +15,7 @@ contract EthlanceUser is EthlanceSetter {
     {
         if (languages.length > getConfig("max-user-languages")) throw;
         if (bytes(name).length > getConfig("max-user-name")) throw;
+        if (bytes(name).length < getConfig("min-user-name")) throw;
         UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, languages);
     }
 

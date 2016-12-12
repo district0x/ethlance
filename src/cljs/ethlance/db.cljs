@@ -1,7 +1,8 @@
 (ns ethlance.db
   (:require [cljs-web3.core :as web3]
             [ethlance.utils :as u]
-            [re-frame.core :refer [dispatch]]))
+            [re-frame.core :refer [dispatch]]
+            [cljs-time.core :as t]))
 
 (def default-db
   {:web3 (web3/create-web3 "http://localhost:8545/")
@@ -18,10 +19,14 @@
                 :max-job-skills 7
                 :max-user-description 1000
                 :max-job-description 1000
+                :min-job-description 0 #_ 100
                 :max-invoice-description 500
                 :max-feedback 1000
+                :min-feedback 0 #_ 50
                 :max-job-title 100
+                :min-job-title 0 #_ 10
                 :max-user-name 40
+                :min-user-name 0 #_ 5
                 :max-freelancer-job-title 50
                 :max-contract-desc 500
                 :max-proposal-desc 500
@@ -45,30 +50,67 @@
 
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4}
-   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 1 :show-more-limit 10 :sort-dir :desc}
+   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
    :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/search-freelancers {:items [] :loading? true}
-   :list/search-jobs {:items [] :loading? true}
+   :list/employer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/employer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 10}
+   :list/search-jobs {:items [] :loading? true :params {} :offset 0 :limit 10}
    :list/user-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-invitations {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-proposals {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-my-open-contracts {:items [] :loading? true :params {}}
 
    :form.invoice/pay {:loading? false :gas-limit 200000}
    :form.invoice/cancel {:loading? false :gas-limit 200000}
    :form.job/set-hiring-done {:loading? false :gas-limit 200000}
+   :form.job/add-job {:loading? false
+                      :gas-limit 700000
+                      :data {:job/title ""
+                             :job/description ""
+                             :job/skills []
+                             :job/language 40
+                             :job/budget 0
+                             :job/category 0
+                             :job/payment-type 1
+                             :job/experience-level 1
+                             :job/estimated-duration 1
+                             :job/hours-per-week 1
+                             :job/freelancers-needed 1}
+                      :errors #{:job/title :job/description :job/skills :job/category}}
    :form.contract/add-proposal {:loading? false
-                                :invalid? true
                                 :gas-limit 700000
                                 :data {:proposal/description ""
-                                       :proposal/rate 0}}
+                                       :proposal/rate 0}
+                                :errors #{:proposal/description}}
 
    :form.contract/add-contract {:loading? false
                                 :gas-limit 700000
                                 :data {:contract/description ""
-                                       :contract/hiring-done? false}}
+                                       :contract/hiring-done? false}
+                                :errors #{}}
 
    :form.contract/add-feedback {:loading? false
                                 :gas-limit 700000
                                 :data {:contract/feedback ""
-                                       :contract/feedback-rating 0}}
+                                       :contract/feedback-rating 0}
+                                :errors #{:contract/feedback}}
+
+   :form.invoice/add-invoice {:loading? false
+                              :gas-limit 700000
+                              :data {:invoice/contract nil
+                                     :invoice/description ""
+                                     :invoice/amount 0
+                                     :invoice/worked-hours 0
+                                     :invoice/worked-from (u/timestamp-js->sol (u/get-time (u/week-ago)))
+                                     :invoice/worked-to (u/timestamp-js->sol (u/get-time (t/today-at-midnight)))}
+                              :errors #{:invoice/contract}}
 
    :form/search-jobs {:search/category 0
                       :search/skills []

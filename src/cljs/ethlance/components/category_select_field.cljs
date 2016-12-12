@@ -3,12 +3,12 @@
             [ethlance.constants :refer [categories]]))
 
 (defn category-select-field []
-  (fn [props]
+  (fn [{:keys [:no-all-categories?] :as props}]
     [ui/select-field
      (merge
        {:floating-label-text "Category"}
-       props)
-     (for [[id name] categories]
+       (dissoc props :no-all-categories?))
+     (for [[id name] (if no-all-categories? (dissoc categories 0) categories)]
        [ui/menu-item
         {:value id
          :primary-text name

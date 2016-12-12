@@ -20,7 +20,7 @@
 
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-freelancers])]
-    (dispatch [:after-eth-contracts-loaded :contract.search/search-freelancers @form-data])
+    (dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers @form-data]])
     (fn []
       (let [{:keys [:search/category :search/skills :search/min-avg-rating
                     :search/min-freelancer-ratings-count :search/min-hourly-rate :search/max-hourly-rate
@@ -30,7 +30,7 @@
           {:value category
            :full-width true
            :on-change #(dispatch [:form/search-freelancers-changed :search/category %3])}]
-         [u/subheader "Min. Rating"]
+         [misc/subheader "Min. Rating"]
          [star-rating
           {:value (u/rating->star min-avg-rating)
            :on-star-click #(dispatch [:form/search-freelancers-changed :search/min-avg-rating

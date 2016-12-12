@@ -45,7 +45,8 @@
    :freelancer/ratings-count uint
    :freelancer/skills uint-coll
    :freelancer/skills-count uint
-   :freelancer/total-earned big-num})
+   :freelancer/total-earned big-num
+   :freelancer/total-invoiced big-num})
 
 (def employer-schema
   {:employer/avg-rating uint8
@@ -53,7 +54,9 @@
    :employer/jobs uint-coll
    :employer/jobs-count uint
    :employer/ratings-count uint
-   :employer/total-paid big-num})
+   :employer/total-paid big-num
+   :employer/total-invoiced big-num
+   })
 
 (def account-schema
   (merge user-schema
@@ -140,7 +143,7 @@
    :invoice/worked-to date})
 
 (def invoices-table-schema
-  (select-keys invoice-schema [:invoice/contract :invoice/amount :invoice/created-on :invoice/status]))
+  (select-keys invoice-schema [:invoice/contract :invoice/amount :invoice/created-on :invoice/status :invoice/paid-on]))
 
 (def skill-schema
   {:skill/name bytes32
@@ -159,17 +162,23 @@
   #{:job/status
     :job/contracts-count
     :job/contracts
-    :job/total-paid})
+    :job/total-paid
+    :job/hiring-done-on})
 
 (def contract-editable-fields
   #{:contract/status
     :contract/invoices-count
     :contract/invoices
     :contract/total-invoiced
-    :contract/total-paid})
+    :contract/total-paid
+    :contract/done-on
+    :proposal/created-on
+    :invitation/created-on
+    :contract/created-on})
 
 (def invoice-editable-fields
-  #{:invoice/status})
+  #{:invoice/status :invoice/paid-on :invoice/cancelled-on})
+
 
 (def set-user-args
   [:user/name :user/gravatar :user/country :user/languages])
@@ -234,22 +243,25 @@
 (def add-skills-args
   [:skill/names])
 
-(def get-freelancer-invoices-args
+(def get-user-invoices-args
   [:user/id :invoice/status])
 
-(def get-freelancer-contracts-args
-  [:user/id :contract/done?])
+(def get-user-contracts-args
+  [:user/id :contract/status :job/status])
 
 (def get-job-contracts-args
   [:job/id :contract/status])
 
-(def load-job-invoices-args
+(def get-job-invoices-args
   [:job/id :invoice/status])
+
+(def get-contract-invoices-args
+  [:contract/id :invoice/status])
 
 (def load-contract-invoices-args
   [:contract/id :invoice/status])
 
-(def load-my-users-contracts
+(def get-freelancers-job-contracts-args
   [:user/ids :job/id])
 
 (def get-employer-jobs-args
@@ -257,6 +269,23 @@
 
 (def get-users-args
   [:user/addresses])
+
+(def contract-views-fns
+  {:views/get-freelancer-contracts get-user-contracts-args
+   :views/get-employer-contracts get-user-contracts-args
+   :views/get-freelancer-invoices get-user-invoices-args
+   :views/get-employer-invoices get-user-invoices-args
+   :views/get-job-contracts get-job-contracts-args
+   :views/get-job-invoices get-job-invoices-args
+   :views/get-freelancers-job-contracts get-freelancers-job-contracts-args
+   :views/get-contract-invoices get-contract-invoices-args
+   :views/get-employer-jobs get-employer-jobs-args
+   :views/get-skill-names #{}
+   :views/get-users get-users-args
+   :search/search-freelancers search-freelancers-args
+   :search/search-jobs (conj search-jobs-args search-jobs-nested-args)
+   :search/freelancers search-freelancers-args
+   })
 
 (def schema
   (merge
@@ -270,7 +299,7 @@
     skill-schema
     user-schema))
 
-(defn without-strings [schema]
+(defn without-strs [schema]
   (medley/remove-vals (partial = string) schema))
 
 (defn remove-uint-coll-fields [fields]

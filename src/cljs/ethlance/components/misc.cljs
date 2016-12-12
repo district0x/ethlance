@@ -7,6 +7,7 @@
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [medley.core :as medley]
+    [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
     ))
@@ -97,38 +98,41 @@
    (into [] (concat [col {:lg 8 :style styles/text-left}]
                     children))])
 
-(defn ether-field [{:keys [:on-change :default-value :form-key] :as props}]
-  (let [valid? u/pos-or-zero?]
+(defn ether-field [{:keys [:on-change :default-value :form-key :field-key] :as props}]
+  (let [validator u/pos-or-zero?]
     [ui/text-field
-     (merge
-       (dissoc props :form-key)
-       (when on-change
-         {:on-change (fn [e val]
-                       (let [val (u/parse-float val)]
-                         (dispatch [:form/set-invalid form-key (not (valid? val))])
-                         (on-change e (web3/to-wei val :ether))))})
-       (when default-value
-         {:default-value (web3/from-wei default-value :ether)
-          :error-text (when-not (valid? default-value)
-                        "Invalid number")}))]))
+     (r/merge-props
+       (dissoc props :form-key :field-key)
+       {:on-change (fn [e val]
+                     (let [val (web3/to-wei (u/parse-float val) :ether)]
+                       (dispatch [:form/value-changed form-key field-key val validator])))
+        :error-text (when-not (validator default-value)
+                      "Invalid number")
+        :default-value (web3/from-wei default-value :ether)})]))
 
-(defn textarea [{:keys [:max-length-key] :as props}]
-  (let [eth-config (subscribe [:eth/config])
-        valid? #(< (count %1) (get %2 max-length-key))]
-    (fn [{:keys [:default-value :on-change :form-key]}]
-      [ui/text-field
-       (merge
-         {:rows 4
-          :full-width true
-          :multi-line true}
-         (dissoc props :max-length-key :form-key)
-         (when default-value
-           {:error-text (when-not (valid? default-value @eth-config)
-                          "Text is too long")})
-         (when on-change
-           {:on-change (fn [e val]
-                         (dispatch [:form/set-invalid form-key (not (valid? default-value @eth-config))])
-                         (on-change e val))}))])))
+(defn text-field [{:keys [:max-length-key :min-length-key] :as props}]
+  (let [eth-config (subscribe [:eth/config])]
+    (fn [{:keys [:default-value :on-change :form-key :field-key]}]
+      (let [min-length (get @eth-config min-length-key 0)
+            max-length (get @eth-config max-length-key)
+            validator #(<= min-length (count %1) max-length)
+            valid? (validator default-value)]
+        [ui/text-field
+         (r/merge-props
+           {:on-change #(dispatch [:form/value-changed form-key field-key %2 validator])
+            :error-text (when-not valid?
+                          (if (pos? min-length)
+                            (gstring/format "Write between %s and %s characters" min-length max-length)
+                            "Text is too long"))}
+           (dissoc props :max-length-key :form-key :field-key :min-length-key))]))))
+
+(defn textarea [props]
+  [text-field
+   (r/merge-props
+     {:rows 4
+      :full-width true
+      :multi-line true}
+     props)])
 
 (defn send-button [props]
   [row-plain
@@ -141,3 +145,62 @@
        :label-position :before
        :primary true}
       props)]])
+
+(defn register-required-body [text label href]
+  [center-layout
+   [paper
+    [row
+     {:middle "xs" :center "xs"}
+     [col {:xs 12}
+      text]
+     [col {:xs 12}
+      [ui/raised-button
+       {:primary true
+        :href href
+        :label label
+        :style styles/margin-top-gutter-less}]]]]])
+
+(defn register-freelancer-required []
+  )
+
+(defn register-employer-required []
+  )
+
+(defmulti register-required identity)
+
+(defmethod register-required :user/employer? []
+  [register-required-body
+   "Your address must be registered as an employer to see this page "
+   "Become Employer"
+   (u/path-for :employer/create)])
+
+(defmethod register-required :user/freelancer? []
+  [register-required-body
+   "Your address must be registered as a freelancer to see this page "
+   "Become Freelancer"
+   (u/path-for :freelancer/create)])
+
+(defn user-only-page []
+  (let [prev-user-id (r/atom nil)
+        user (subscribe [:db/active-user])]
+    (fn [{:keys [:user-role-pred :on-user-change]} & children]
+      (let [{:keys [:user/id]} @user]
+        (when-not (= @prev-user-id id)
+          (reset! prev-user-id id)
+          (when on-user-change
+            (on-user-change id)))
+        (when id
+          (if (get @user user-role-pred)
+            (into [:div] children)
+            (register-required user-role-pred)))))))
+
+(defn freelancer-only-page [props & children]
+  (let [[props children] (u/parse-props-children props children)]
+    (into [user-only-page (merge {:user-role-pred :user/freelancer?} props)] children)))
+
+(defn employer-only-page [props & children]
+  (let [[props children] (u/parse-props-children props children)]
+    (into [user-only-page (merge {:user-role-pred :user/employer?} props)] children)))
+
+(defn subheader [title]
+  [ui/subheader {:style styles/subheader} title])

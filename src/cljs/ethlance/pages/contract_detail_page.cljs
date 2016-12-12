@@ -128,7 +128,7 @@
     (fn []
       (let [{:keys [:contract/status :contract/job :contract/id]} @contract
             {:keys [:job/employer]} job
-            {:keys [:loading? :invalid? :data]} @form
+            {:keys [:loading? :errors :data]} @form
             {:keys [:contract/description :contract/hiring-done?]} data]
         (when (and (= status 2) (= (:user/id employer) @active-user-id)
                    (= (:job/status job) 1))
@@ -137,16 +137,16 @@
            [misc/textarea
             {:floating-label-text "Message"
              :form-key :form.contract/add-contract
+             :field-key :contract/description
              :max-length-key :max-contract-desc
-             :default-value description
-             :on-change #(dispatch [:form/value-changed :form.contract/add-contract :contract/description %2])}]
+             :default-value description}]
            [ui/checkbox
             {:label "Close hiring for this job"
              :default-checked hiring-done?
              :style styles/form-item
              :on-check #(dispatch [:form/value-changed :form.contract/add-contract :contract/hiring-done? %2])}]
            [misc/send-button
-            {:disabled (or loading? invalid?)
+            {:disabled (or loading? (boolean (seq errors)))
              :on-touch-tap #(dispatch [:contract.contract/add-contract (merge data {:contract/id id})])}]])))))
 
 (defn add-feedback-form []
@@ -157,7 +157,7 @@
       (let [{:keys [:contract/status :contract/job :contract/id :contract/freelancer
                     :contract/employer-feedback-on :contract/freelancer-feedback-on]} @contract
             {:keys [:job/employer]} job
-            {:keys [:loading? :invalid? :data]} @form
+            {:keys [:loading? :errors :data]} @form
             {:keys [:contract/feedback :contract/feedback-rating]} data]
         (when (and (or (= status 3)
                        (= status 4))
@@ -176,25 +176,27 @@
            [misc/textarea
             {:floating-label-text "Feedback"
              :form-key :form.contract/add-feedback
+             :field-key :contract/feedback
              :max-length-key :max-feedback
-             :default-value feedback
-             :on-change #(dispatch [:form/value-changed :form.contract/add-feedback :contract/feedback %2])}]
+             :default-value feedback}]
            (when (= status 3)
              [:div {:style styles/form-item}
               "Note, by leaving feedback you will end this contract. That means no more invoices can be sent."])
            [misc/send-button
-            {:disabled (or loading? invalid?)
+            {:disabled (or loading? (boolean (seq errors)))
              :on-touch-tap #(dispatch [:contract.contract/add-feedback (merge data {:contract/id id})])}]])))))
 
 (defn contract-detail-page []
   (let [contract (subscribe [:contract/detail])
         contract-id (subscribe [:contract/route-contract-id])]
-    (dispatch [:after-eth-contracts-loaded :contract.db/load-contracts
-               (merge ethlance-db/contract-schema ethlance-db/feedback-schema)
-               [@contract-id]])
-    (dispatch [:after-eth-contracts-loaded :contract.db/load-contracts
-               ethlance-db/proposal+invitation-schema
-               [@contract-id]])
+    (dispatch [:after-eth-contracts-loaded
+               [:contract.db/load-contracts
+                (merge ethlance-db/contract-schema ethlance-db/feedback-schema)
+                [@contract-id]]])
+    (dispatch [:after-eth-contracts-loaded
+               [:contract.db/load-contracts
+                ethlance-db/proposal+invitation-schema
+                [@contract-id]]])
     (fn []
       (let [{:keys [:contract/job :contract/done-by-freelancer? :contract/id]} @contract
             {:keys [:job/employer :job/title]} job]

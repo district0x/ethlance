@@ -68,6 +68,13 @@
 (def margin-bottom-gutter-less
   {:margin-bottom desktop-gutter-less})
 
+(def margin-top-gutter
+  {:margin-top desktop-gutter})
+
+(def margin-top-gutter-less
+  {:margin-top desktop-gutter-less})
+
+
 (def paper-section-main
   {:min-height 300})
 
@@ -116,7 +123,7 @@
    :margin-bottom 5})
 
 (def overflow-ellipsis
-  {:overflow :auto
+  {:overflow :hidden
    :text-overflow :ellipsis})
 
 (def more-text
@@ -269,3 +276,6 @@
   (merge overflow-ellipsis
          text-center
          {:max-height 50}))
+
+(def table-highlighted-row
+  {:background-color (color :indigo50)})

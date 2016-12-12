@@ -31,6 +31,7 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveUser
     {
         if (bytes(feedback).length > getConfig("max-feedback")) throw;
+        if (bytes(feedback).length < getConfig("min-feedback")) throw;
         if (rating > 100) throw;
         ContractLibrary.addFeedback(ethlanceDB, contractId, getSenderUserId(), feedback, rating);
     }
