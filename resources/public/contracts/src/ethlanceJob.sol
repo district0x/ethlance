@@ -26,6 +26,7 @@ contract EthlanceJob is EthlanceSetter {
         if (bytes(title).length > getConfig("max-job-title")) throw;
         if (bytes(title).length < getConfig("min-job-title")) throw;
         if (skills.length > getConfig("max-job-skills")) throw;
+        if (skills.length < getConfig("min-job-skills")) throw;
         JobLibrary.addJob(ethlanceDB, getSenderUserId(), title, description, skills, language, budget, uint8Items);
     }
 

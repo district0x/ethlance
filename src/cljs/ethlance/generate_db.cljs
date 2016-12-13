@@ -141,7 +141,7 @@
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
                        [{:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}]
-                       (map #(hash-map :ms 15 :dispatch [:contract.job/add (gen-job) (get-address 1)]) (range 10))
+                       (map #(hash-map :ms 15 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
                        [{:ms 20 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
                         {:ms 30 :dispatch [:contract.contract/add-proposal proposal1 (get-address 0)]}
                         {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]

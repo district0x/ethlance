@@ -17,20 +17,23 @@
                 :max-freelancer-categories 20
                 :max-freelancer-skills 15
                 :max-job-skills 7
+                :min-job-skills 1
                 :max-user-description 1000
                 :max-job-description 1000
-                :min-job-description 0 #_ 100
+                :min-job-description 0 #_100
                 :max-invoice-description 500
                 :max-feedback 1000
-                :min-feedback 0 #_ 50
+                :min-feedback 0 #_50
                 :max-job-title 100
-                :min-job-title 0 #_ 10
+                :min-job-title 0 #_10
                 :max-user-name 40
-                :min-user-name 0 #_ 5
+                :min-user-name 0 #_5
                 :max-freelancer-job-title 50
                 :max-contract-desc 500
                 :max-proposal-desc 500
-                :max-invitation-desc 500}
+                :max-invitation-desc 500
+                :max-skills-create-at-once 10
+                :adding-skills-enabled? 1}
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true}
                    :ethlance-job {:name "EthlanceJob" :setter? true}
                    :ethlance-contract {:name "EthlanceContract" :setter? true}
@@ -111,6 +114,11 @@
                                      :invoice/worked-from (u/timestamp-js->sol (u/get-time (u/week-ago)))
                                      :invoice/worked-to (u/timestamp-js->sol (u/get-time (t/today-at-midnight)))}
                               :errors #{:invoice/contract}}
+
+   :form.config/add-skills {:loading? false
+                            :gas-limit 700000
+                            :data {:skill/names []}
+                            :errors #{:skill/names}}
 
    :form/search-jobs {:search/category 0
                       :search/skills []

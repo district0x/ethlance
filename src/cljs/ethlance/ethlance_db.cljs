@@ -201,11 +201,9 @@
    :search/max-hourly-rate :search/country :search/language :search/offset :search/limit])
 
 (def add-job-args
-  [:job/title :job/description :job/skills :job/language :job/budget])
-
-(def add-job-nested-args
-  [:job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
-   :job/freelancers-needed])
+  [:job/title :job/description :job/skills :job/language :job/budget
+   [:job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
+    :job/freelancers-needed]])
 
 (def search-jobs-args
   [:search/category :search/skills :search/payment-types :search/experience-levels :search/estimated-durations

@@ -21,6 +21,7 @@
     [ethlance.pages.my-profile-page :refer [my-profile-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
+    [ethlance.pages.skills-create-page :refer [skills-create-page]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
@@ -28,16 +29,16 @@
     [clojure.set :as set]))
 
 (def route->component
-  {:employer/create employer-create-page
-   :contract/detail contract-detail-page
+  {:contract/detail contract-detail-page
    :contract/invoices contract-invoices-page
+   :employer/create employer-create-page
    :employer/detail employer-profile
    :employer/invoices employer-invoices-page
    :employer/jobs employer-jobs-page
+   :freelancer/contracts freelancer-contracts-page
    :freelancer/create freelancer-create-page
    :freelancer/detail freelancer-profile
    :freelancer/invoices freelancer-invoices-page
-   :freelancer/contracts freelancer-contracts-page
    :home home-page
    :invoice/create invoice-create-page
    :invoice/detail invoice-detail-page
@@ -45,6 +46,7 @@
    :job/detail job-detail-page
    :my-profile my-profile-page
    :search/freelancers search-freelancers-page
+   :skills/create skills-create-page
    :search/jobs search-jobs-page})
 
 (def nav-items

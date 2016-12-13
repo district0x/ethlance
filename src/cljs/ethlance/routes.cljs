@@ -22,4 +22,5 @@
         [["contract/" :contract/id "/invoices"] :contract/invoices]
         ["invoice/create" :invoice/create]
         [["invoice/" :invoice/id] :invoice/detail]
+        ["skills/create" :skills/create]
         [true :home]]])

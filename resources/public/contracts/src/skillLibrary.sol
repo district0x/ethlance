@@ -48,8 +48,10 @@ library SkillLibrary {
         SharedLibrary.removeArrayItem(db, skills, "skill/freelancers", userId);
     }
 
-    function blockSkill(address db, uint skillId) internal {
-        EthlanceDB(db).setBooleanValue(sha3("skill/blocked?", skillId), true);
+    function blockSkills(address db, uint[] skillIds) internal {
+        for (uint i = 0; i < skillIds.length ; i++) {
+            EthlanceDB(db).setBooleanValue(sha3("skill/blocked?", skillIds[i]), true);
+        }
     }
     
     function getNames(address db) internal returns (uint[] skillIds, bytes32[] names){

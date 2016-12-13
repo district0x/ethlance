@@ -477,3 +477,8 @@
   (fn [db]
     (:form.job/add-job db)))
 
+(reg-sub
+  :form.config/add-skills
+  (fn [db]
+    (:form.config/add-skills db)))
+

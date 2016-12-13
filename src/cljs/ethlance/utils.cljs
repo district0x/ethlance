@@ -278,3 +278,9 @@
 
 (defn week-ago []
   (t/minus (t/today-at-midnight) (t/weeks 1)))
+
+(defn remove-zero-chars [s]
+  (string/join (take-while #(< 0 (.charCodeAt % 0)) s)))
+
+(defn alphanumeric? [x]
+  (re-matches #"[a-zA-Z0-9 ]*" x))

@@ -292,7 +292,7 @@
   :eth-contracts-loaded
   interceptors
   (fn [{:keys [db]}]
-    {:dispatch [:contract.views/get-skill-names]}))
+    {:dispatch [:contract.views/load-skill-names]}))
 
 (reg-event-fx
   :contract.config/set-configs
@@ -315,20 +315,34 @@
 (reg-event-fx
   :contract.config/add-skills
   interceptors
-  (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address eth/contracts]} db]
+  (fn [{:keys [db]} [form-data address]]
+    (let [{:keys [:web3 :active-address :form.config/add-skills]} db
+          {:keys [:gas-limit]} add-skills]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-config)
                  :add-skills]
-                (args-map->vec values ethlance-db/add-skills-args)
-                [{:gas max-gas
+                (args-map->vec form-data ethlance-db/add-skills-args)
+                [{:gas gas-limit
                   :from (or address active-address)}
-                 :contract/transaction-sent
+                 [:form/start-loading :form.config/add-skills]
                  :contract/transaction-error
-                 [:contract/transaction-receipt :add-skills max-gas false :log-error]])]}})))
+                 [:contract.config/add-skills-receipt gas-limit form-data]])]}})))
+
+(reg-event-fx
+  :contract.config/add-skills-receipt
+  [interceptors log-used-gas]
+  (fn [{:keys [db]} [_ {:keys [success?]}]]
+    (merge
+      {:db (-> db
+             (assoc-in [:form.config/add-skills :loading?] false)
+             (assoc-in [:form.config/add-skills :data :skill/names] []))}
+      (if success?
+        {:dispatch-n [[:snackbar/show-message "Skills were successfully added!"]
+                      [:contract.views/load-skill-names]]}
+        {:dispatch [:snackbar/show-error]}))))
 
 (reg-event-fx
   :contract.db/add-allowed-contracts
@@ -576,24 +590,34 @@
 ;;============jobs
 
 (reg-event-fx
-  :contract.job/add
+  :contract.job/add-job
   interceptors
-  (fn [{:keys [db]} [values address]]
-    (let [{:keys [web3 active-address eth/contracts]} db
-          args (args-map->vec values ethlance-db/add-job-args)
-          nested-args (args-map->vec values ethlance-db/add-job-nested-args)]
+  (fn [{:keys [db]} [form-data address]]
+    (let [{:keys [:web3 :active-address :form.job/add-job]} db
+          {:keys [:gas-limit]} add-job]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
         :fns [(concat
                 [(get-instance db :ethlance-job)
                  :add-job]
-                (conj args nested-args)
-                [{:gas max-gas
+                (args-map->vec form-data ethlance-db/add-job-args)
+                [{:gas gas-limit
                   :from (or address active-address)}
-                 :contract/transaction-sent
+                 [:form/start-loading :form.job/add-job]
                  :contract/transaction-error
-                 [:contract/transaction-receipt :add-job max-gas false :log-error]])]}})))
+                 [:contract.job/add-job-receipt gas-limit form-data]])]}})))
+
+(reg-event-fx
+  :contract.job/add-job-receipt
+  [interceptors log-used-gas]
+  (fn [{:keys [db]} [_ {:keys [success?]}]]
+    (merge
+      {:db (assoc-in db [:form.job/add-job :loading?] false)}
+      (if success?
+        {:location/set-hash [:employer/jobs]
+         :dispatch [:snackbar/show-message "Job has been successfully created"]}
+        {:dispatch [:snackbar/show-error]}))))
 
 (reg-event-fx
   :contract.job/set-hiring-done
@@ -995,7 +1019,7 @@
        :dispatch [load-dispatch-key schema (u/sort-paginate-ids items-list ids) load-per]})))
 
 (reg-event-fx
-  :contract.views/get-skill-names
+  :contract.views/load-skill-names
   interceptors
   (fn [{:keys [db]} [values]]
     {:web3-fx.contract/constant-fns
@@ -1009,7 +1033,7 @@
   interceptors
   (fn [db [[ids names]]]
     (update db :app/skills merge (zipmap (u/big-nums->nums ids)
-                                         (map (comp (partial hash-map :skill/name) web3/to-ascii) names)))))
+                                         (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names)))))
 
 (reg-event-fx
   :contract/call
@@ -1063,10 +1087,22 @@
 
         (or (and validator (validator value))
             (nil? validator))
-        (update-in [form-key :errors] (partial remove #{field-key}))
+        (update-in [form-key :errors] (comp set (partial remove #{field-key})))
 
         (and validator (not (validator value)))
         (update-in [form-key :errors] conj field-key)))))
+
+(reg-event-db
+  :form/add-error
+  interceptors
+  (fn [db [form-key error]]
+    (update-in db [form-key :errors] conj error)))
+
+(reg-event-db
+  :form/remove-error
+  interceptors
+  (fn [db [form-key error]]
+    (update-in db [form-key :errors] (comp set (partial remove #{error})))))
 
 (reg-event-db
   :list/set-offset
@@ -1307,7 +1343,7 @@
                                                   :search/offset 0
                                                   :search/limit 10}])
 
-  (dispatch [:contract.job/add {:job/title "This is Job 1"
+  (dispatch [:contract.job/add-job {:job/title "This is Job 1"
                                 :job/description "Asdkaas  aspokd aps asopdk ap"
                                 :job/skills [3 4 5]
                                 :job/budget 10
