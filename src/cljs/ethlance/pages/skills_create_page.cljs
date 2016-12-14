@@ -43,17 +43,22 @@
                                (add-error :not-alphanumeric)
                                (do
                                  (remove-error :not-alphanumeric)
-                                 (if (contains? existing-skill-names (string/lower-case skill-name))
-                                   (add-error :skill-already-exists)
+                                 (if (< 32 (count skill-name))
+                                   (add-error :max-skill-name-length)
                                    (do
-                                     (remove-error :skill-already-exists)
-                                     (let [skill-names (into [] (conj names skill-name))]
-                                       (dispatch [:form/value-changed :form.config/add-skills :skill/names skill-names])
-                                       (when (< max-skills-create-at-once (count skill-names))
-                                         (add-error :max-skills-create-at-once))))))))
+                                     (remove-error :max-skill-name-length)
+                                     (if (contains? existing-skill-names (string/lower-case skill-name))
+                                       (add-error :skill-already-exists)
+                                       (do
+                                         (remove-error :skill-already-exists)
+                                         (let [skill-names (into [] (conj names skill-name))]
+                                           (dispatch [:form/value-changed :form.config/add-skills :skill/names skill-names])
+                                           (when (< max-skills-create-at-once (count skill-names))
+                                             (add-error :max-skills-create-at-once))))))))))
            :on-request-delete (fn [skill-name]
                                 (remove-error :not-alphanumeric)
                                 (remove-error :skill-already-exists)
+                                (remove-error :max-skill-name-length)
                                 (when (contains? (set names) skill-name)
                                   (let [skill-names (into [] (remove (partial = skill-name) names))]
                                     (dispatch [:form/value-changed :form.config/add-skills :skill/names skill-names])
@@ -62,6 +67,9 @@
            :error-text (cond
                          (contains? errors :not-alphanumeric)
                          "You can use only alphanumeric characters"
+
+                         (contains? errors :max-skill-name-length)
+                         "Maximum length is 32 characters"
 
                          (contains? errors :skill-already-exists)
                          "Such skill already exists"

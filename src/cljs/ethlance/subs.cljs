@@ -131,6 +131,12 @@
     (:app/skills db)))
 
 (reg-sub
+  :user/route-user-id
+  :<- [:db/active-page]
+  (fn [{:keys [route-params]}]
+    (js/parseInt (:user/id route-params))))
+
+(reg-sub
   :job/route-job-id
   :<- [:db/active-page]
   (fn [{:keys [route-params]}]
@@ -160,6 +166,13 @@
     (update :items (partial u/sort-paginate-ids jobs-list))
     (update :items (partial map #(job-id->job % jobs users)))
     (u/list-filter-loaded :job/title)))
+
+(reg-sub
+  :user/detail
+  :<- [:user/route-user-id]
+  :<- [:app/users]
+  (fn [[user-id users]]
+    (get users user-id)))
 
 (reg-sub
   :job/detail
@@ -210,6 +223,7 @@
 (reg-sub :list.ids/freelancer-proposals (create-list-ids-fn :list/freelancer-proposals))
 (reg-sub :list.ids/freelancer-contracts-open (create-list-ids-fn :list/freelancer-contracts-open))
 (reg-sub :list.ids/freelancer-contracts-done (create-list-ids-fn :list/freelancer-contracts-done))
+(reg-sub :list.ids/freelancer-contracts (create-list-ids-fn :list/freelancer-contracts))
 (reg-sub :list.ids/employer-jobs-open (create-list-ids-fn :list/employer-jobs-open))
 (reg-sub :list.ids/employer-jobs-done (create-list-ids-fn :list/employer-jobs-done))
 (reg-sub :list.ids/job-feedbacks (create-list-ids-fn :list/job-feedbacks))
@@ -303,6 +317,15 @@
     (contract-ids->contracts-list-job (:list/freelancer-proposals db) contracts jobs users)))
 
 (reg-sub
+  :list/freelancer-contracts
+  :<- [:db]
+  :<- [:app/contracts]
+  :<- [:app/jobs]
+  :<- [:app/users]
+  (fn [[db contracts jobs users]]
+    (contract-ids->contracts-list-job (:list/freelancer-contracts db) contracts jobs users)))
+
+(reg-sub
   :list/freelancer-contracts-open
   :<- [:db]
   :<- [:app/contracts]
@@ -321,13 +344,22 @@
     (contract-ids->contracts-list-job (:list/freelancer-contracts-done db) contracts jobs users)))
 
 (reg-sub
-  :list/user-feedbacks
+  :list/freelancer-feedbacks
   :<- [:db]
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
   (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list (:list/user-feedbacks db) contracts jobs users)))
+    (contract-ids->contracts-list (:list/freelancer-feedbacks db) contracts jobs users)))
+
+(reg-sub
+  :list/employer-feedbacks
+  :<- [:db]
+  :<- [:app/contracts]
+  :<- [:app/jobs]
+  :<- [:app/users]
+  (fn [[db contracts jobs users]]
+    (contract-ids->contracts-list (:list/employer-feedbacks db) contracts jobs users)))
 
 (defn- remove-unallowed-invoice-data [invoice active-user-id]
   (if-not (or (= (get-in invoice [:invoice/contract :contract/freelancer :user/id]) active-user-id)

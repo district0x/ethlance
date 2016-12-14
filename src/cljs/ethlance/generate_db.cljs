@@ -27,7 +27,7 @@
    :user/languages (set (rand-uint-coll 6 200))
    :freelancer/available? true
    :freelancer/job-title (rand-text 40)
-   :freelancer/hourly-rate (rand-int 100)
+   :freelancer/hourly-rate (web3/to-wei (rand-int 100) :ether)
    :freelancer/categories (set (rand-uint-coll 6 (count constants/categories)))
    :freelancer/skills (set (rand-uint-coll 10 29))
    :freelancer/description (rand-text 300)})

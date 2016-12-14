@@ -16,7 +16,7 @@
     (fn [{:keys [selected-skills on-chip-touch-tap always-show-all?]}]
       [row
        {:middle "xs"
-        :style styles/skill-chips-row}
+        :style styles/chip-list-row}
        (for [skill-id (if (and (< max-count (count selected-skills))
                                (not @show-all?)
                                (not always-show-all?))
@@ -24,7 +24,7 @@
                         selected-skills)]
          [ui/chip
           {:key skill-id
-           :style styles/skill-chip}
+           :style styles/chip-in-list}
           (get-in @all-skills [skill-id :skill/name])])
        (when (and (< max-count (count selected-skills))
                   (not @show-all?))

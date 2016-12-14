@@ -40,7 +40,7 @@
            [star-rating
             {:value (u/rating->star avg-rating)
              :small? true
-             :display-number? true}]]
+             :show-number? true}]]
           [line (str (u/eth total-paid) " spent")]
           [line (str ratings-count " " (u/pluralize "feedback" ratings-count))]
           [misc/country-marker

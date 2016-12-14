@@ -174,6 +174,7 @@
    "Lebanon"
    "Lesotho"
    "Liberia"
+   "Liberland"
    "Libyan Arab Jamahiriya"
    "Liechtenstein"
    "Lithuania"

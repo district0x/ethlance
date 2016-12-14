@@ -474,30 +474,14 @@
                  (u/assoc-key-as-value :job/id))]
       {:db (-> db
              (update :app/jobs (partial merge-with merge) jobs))
-       :dispatch-n [[:contract.db/load-job-skills jobs]
+       :dispatch-n [[:contract.db/load-field-items {:items jobs
+                                                    :count-key :job/skills-count
+                                                    :items-key :app/jobs
+                                                    :field-key :job/skills}]
                     [:contract.db/load-users
                      (merge (ethlance-db/without-strs ethlance-db/employer-schema)
                             ethlance-db/user-schema)
                      (map :job/employer (vals jobs))]]})))
-
-(reg-event-fx
-  :contract.db/load-job-skills
-  interceptors
-  (fn [{:keys [db]} [jobs]]
-    {:web3-fx.contract/constant-fns
-     {:fns [(entities-field-items-fn
-              (get-instance db :ethlance-db)
-              (medley/map-vals :job/skills-count jobs)
-              :job/skills
-              :contract/jobs-skills-loaded
-              :log-error)]}}))
-
-(reg-event-fx
-  :contract/jobs-skills-loaded
-  interceptors
-  (fn [{:keys [db]} [jobs-skills]]
-    {:db (-> db
-           (update :app/jobs (partial merge-with merge) jobs-skills))}))
 
 ;; ============users
 
@@ -570,22 +554,55 @@
       {:db (-> db
              (update :app/users (partial merge-with merge) users)
              (update :address->user-id merge address->user-id))
-       :web3-fx.contract/constant-fns
-       {:fns [(entities-field-items-fn
-                (get-instance db :ethlance-db)
-                (->> users
-                  (medley/map-vals :freelancer/skills-count)
-                  (medley/remove-vals nil?))
-                :freelancer/skills
-                :contract/freelancer-skills-loaded
-                :log-error)]}})))
+       :dispatch [:contract.db/load-freelancer-skills users]})))
 
 (reg-event-fx
-  :contract/freelancer-skills-loaded
+  :contract.db/load-field-items
   interceptors
-  (fn [{:keys [db]} [freelancer-skills]]
+  (fn [{:keys [db]} [{:keys [items count-key items-key field-key]}]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(entities-field-items-fn
+              (get-instance db :ethlance-db)
+              (->> items
+                (medley/map-vals count-key)
+                (medley/remove-vals nil?))
+              field-key
+              [:contract/field-items-loaded items-key]
+              :log-error)]}}))
+
+(reg-event-fx
+  :contract.db/load-freelancer-skills
+  interceptors
+  (fn [{:keys [db]} [users]]
+    {:dispatch [:contract.db/load-field-items {:items users
+                                               :count-key :freelancer/skills-count
+                                               :items-key :app/users
+                                               :field-key :freelancer/skills}]}))
+
+(reg-event-fx
+  :contract.db/load-freelancer-categories
+  interceptors
+  (fn [{:keys [db]} [users]]
+    {:dispatch [:contract.db/load-field-items {:items users
+                                               :count-key :freelancer/categories-count
+                                               :items-key :app/users
+                                               :field-key :freelancer/categories}]}))
+
+(reg-event-fx
+  :contract.db/load-user-languages
+  interceptors
+  (fn [{:keys [db]} [users]]
+    {:dispatch [:contract.db/load-field-items {:items users
+                                               :count-key :user/languages-count
+                                               :items-key :app/users
+                                               :field-key :user/languages}]}))
+
+(reg-event-fx
+  :contract/field-items-loaded
+  interceptors
+  (fn [{:keys [db]} [items-key loaded-items]]
     {:db (-> db
-           (update :app/users (partial merge-with merge) freelancer-skills))}))
+           (update items-key (partial merge-with merge) loaded-items))}))
 
 ;;============jobs
 
@@ -908,7 +925,7 @@
   [interceptors log-used-gas]
   (fn [{:keys [db]} [{:keys [:invoice/id]} {:keys [success?]}]]
     (merge
-      {:db (assoc-in db[:form.invoice/add-invoice :loading?] false)}
+      {:db (assoc-in db [:form.invoice/add-invoice :loading?] false)}
       (if success?
         {:location/set-hash [:freelancer/invoices]
          :dispatch [:snackbar/show-message "Invoice has been successfully created"]}
@@ -1344,16 +1361,16 @@
                                                   :search/limit 10}])
 
   (dispatch [:contract.job/add-job {:job/title "This is Job 1"
-                                :job/description "Asdkaas  aspokd aps asopdk ap"
-                                :job/skills [3 4 5]
-                                :job/budget 10
-                                :job/language 1
-                                :job/category 1
-                                :job/payment-type 1
-                                :job/experience-level 1
-                                :job/estimated-duration 1
-                                :job/hours-per-week 1
-                                :job/freelancers-needed 2}])
+                                    :job/description "Asdkaas  aspokd aps asopdk ap"
+                                    :job/skills [3 4 5]
+                                    :job/budget 10
+                                    :job/language 1
+                                    :job/category 1
+                                    :job/payment-type 1
+                                    :job/experience-level 1
+                                    :job/estimated-duration 1
+                                    :job/hours-per-week 1
+                                    :job/freelancers-needed 2}])
 
   (dispatch [:contract.search/search-jobs {:search/category 0
                                            :search/skills []

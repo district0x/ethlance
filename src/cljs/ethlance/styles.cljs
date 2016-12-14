@@ -94,7 +94,9 @@
   {:color primary1-color})
 
 (def star-rating-number
-  {:color primary1-color})
+  {:color primary1-color
+   :font-size "1em"
+   :margin-left 6})
 
 (def star-rating-number-small
   {:margin-left 3
@@ -137,14 +139,14 @@
   {:margin-left 0
    :margin-right 0})
 
-(def skill-chips-row
+(def chip-list-row
   (merge
     row-no-margin
     {:padding-top 5
      :padding-bottom 5
      :min-height 45}))
 
-(def skill-chip
+(def chip-in-list
   {:margin-left 3
    :margin-right 3
    :margin-bottom 3})
@@ -192,6 +194,13 @@
 (def job-detail-title
   {:word-break :break-word})
 
+(def inline
+  {:display :inline})
+
+(def user-detail-h2-line
+  {:display :inline
+   :margin-left "5px"})
+
 (def paper-title
   )
 
@@ -235,6 +244,10 @@
   {1 pending-color
    2 success-color
    3 danger-color})
+
+(def freelancer-available?-color
+  {true success-color
+   false danger-color})
 
 (def budget-chip-color
   (color :brown500))

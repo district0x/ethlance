@@ -12,7 +12,7 @@
     [ethlance.pages.freelancer-contracts-page :refer [freelancer-contracts-page]]
     [ethlance.pages.freelancer-create-page :refer [freelancer-create-page]]
     [ethlance.pages.freelancer-invoices-page :refer [freelancer-invoices-page]]
-    [ethlance.pages.freelancer-profile :refer [freelancer-profile]]
+    [ethlance.pages.freelancer-detail-page :refer [freelancer-detail-page]]
     [ethlance.pages.home-page :refer [home-page]]
     [ethlance.pages.invoice-create-page :refer [invoice-create-page]]
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
@@ -37,7 +37,7 @@
    :employer/jobs employer-jobs-page
    :freelancer/contracts freelancer-contracts-page
    :freelancer/create freelancer-create-page
-   :freelancer/detail freelancer-profile
+   :freelancer/detail freelancer-detail-page
    :freelancer/invoices freelancer-invoices-page
    :home home-page
    :invoice/create invoice-create-page

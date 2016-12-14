@@ -217,7 +217,7 @@
                  children)))))
 
 (defn gravatar-url [hash]
-  (gstring/format "http://s.gravatar.com/avatar/%s?s=80" hash))
+  (gstring/format "http://s.gravatar.com/avatar/%s?s=130" hash))
 
 (defn list-filter-loaded [list non-empty-pred]
   (-> list

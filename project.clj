@@ -6,7 +6,7 @@
                  [cljs-react-material-ui "0.2.33"]
                  [cljs-web3 "0.16.0-0"]
                  [cljsjs/bignumber "2.1.4-1"]
-                 [cljsjs/material-ui-chip-input "0.11.1-0"]
+                 [cljsjs/material-ui-chip-input "0.11.2-0"]
                  [cljsjs/react-flexbox-grid "0.10.2-1" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-ultimate-pagination "0.8.0-0" :exclusions [cljsjs/react cljsjs/react-dom]]

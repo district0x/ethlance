@@ -204,3 +204,15 @@
 
 (defn subheader [title]
   [ui/subheader {:style styles/subheader} title])
+
+(defn elegant-line [label body]
+  [:div [:h3 {:style styles/user-detail-h2-line} label] [:h2 {:style styles/user-detail-h2-line} body]])
+
+(defn call-on-change [{:keys [:args :load-on-mount?]}]
+  (let [prev-args (r/atom (when-not load-on-mount? args))]
+    (fn [{:keys [:on-change :args]} body]
+      (when-not (= @prev-args args)
+        (reset! prev-args args)
+        (when (fn? on-change)
+          (on-change args)))
+      body)))

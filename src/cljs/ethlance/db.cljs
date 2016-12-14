@@ -61,9 +61,11 @@
    :list/freelancer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 10}
    :list/search-jobs {:items [] :loading? true :params {} :offset 0 :limit 10}
-   :list/user-feedbacks {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
+   :list/employer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
    :list/freelancer-invitations {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-proposals {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-contracts {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}

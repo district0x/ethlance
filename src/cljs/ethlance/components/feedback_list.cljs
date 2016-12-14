@@ -21,7 +21,7 @@
    {:value (u/rating->star rating)
     :small? true
     :star-style style
-    :display-number? true
+    :show-number? true
     :rating-number-style style
     :style styles/feedback-style-rating}])
 
@@ -29,67 +29,70 @@
   (remove #(and (not (:contract/freelancer-feedback-on %))
                 (not (:contract/employer-feedback-on %))) items))
 
-(defn feedback-list [{:keys [list-subscribe initial-dispatch]}]
+(defn feedback-list [{:keys [list-subscribe]}]
   (let [list (subscribe list-subscribe)]
-    (dispatch (conj [:after-eth-contracts-loaded] initial-dispatch))
-    (fn [{:keys [title pagination-props]}]
+    (fn [{:keys [title pagination-props initial-dispatch]}]
       (let [{:keys [loading? items offset limit show-more-limit initial-limit]} @list
             items (remove-without-feedback items)]
-        [paper
-         {:loading? loading?}
-         [:h2 {:style styles/margin-bottom-gutter} (or title "Feedback")]
-         (if (seq items)
-           (for [item items]
-             (let [{:keys [:contract/employer-feedback :contract/employer-feedback-rating
-                           :contract/employer-feedback-on :contract/freelancer
-                           :contract/freelancer-feedback :contract/freelancer-feedback-on
-                           :contract/freelancer-feedback-rating
-                           :contract/job :contract/done-by-freelancer? :contract/id]} item
-                   {:keys [:job/employer]} job
-                   employer-bubble [message-bubble
-                                    {:side :right
-                                     :user employer
-                                     :date employer-feedback-on}
-                                    (if employer-feedback-on
-                                      [:div
-                                       [feedback-star-rating
-                                        {:rating employer-feedback-rating
-                                         :style styles/white-text}]
-                                       [truncated-text employer-feedback]]
-                                      [:div {:style styles/italic-text} "(Employer hasn't left feedback yet)"])]
-                   freelancer-bubble [message-bubble
-                                      {:side :left
-                                       :user freelancer
-                                       :date freelancer-feedback-on}
-                                      (if freelancer-feedback-on
-                                        [:div
-                                         [feedback-star-rating
-                                          {:rating freelancer-feedback-rating
-                                           :style styles/dark-text}]
-                                         [truncated-text freelancer-feedback]]
-                                        [:div {:style styles/italic-text} "(Freelancer hasn't left feedback yet)"])]]
-               [:div
-                {:key id}
-                (if done-by-freelancer?
-                  [:div
-                   freelancer-bubble
-                   employer-bubble]
-                  [:div
-                   employer-bubble
-                   freelancer-bubble])
-                (when-not (= item (last items))
-                  [misc/hr])]))
-           (when-not loading?
-             [row-plain
-              {:center "xs"}
-              "No feedback left yet"]))
-         [show-more-pagination
-          {:all-ids-subscribe [:list.ids/job-feedbacks]
-           :list-db-path [:list/job-feedbacks]
-           :load-dispatch [:contract.db/load-contracts ethlance-db/feedback-schema]
-           :load-per 1
-           :offset offset
-           :initial-limit initial-limit
-           :limit limit
-           :loading? loading?
-           :show-more-limit show-more-limit}]]))))
+        [misc/call-on-change
+         {:args initial-dispatch
+          :on-change #(dispatch (conj [:after-eth-contracts-loaded] %))
+          :load-on-mount? true}
+         [paper
+          {:loading? loading?}
+          [:h2 {:style styles/margin-bottom-gutter} (or title "Feedback")]
+          (if (seq items)
+            (for [item items]
+              (let [{:keys [:contract/employer-feedback :contract/employer-feedback-rating
+                            :contract/employer-feedback-on :contract/freelancer
+                            :contract/freelancer-feedback :contract/freelancer-feedback-on
+                            :contract/freelancer-feedback-rating
+                            :contract/job :contract/done-by-freelancer? :contract/id]} item
+                    {:keys [:job/employer]} job
+                    employer-bubble [message-bubble
+                                     {:side :right
+                                      :user employer
+                                      :date employer-feedback-on}
+                                     (if employer-feedback-on
+                                       [:div
+                                        [feedback-star-rating
+                                         {:rating employer-feedback-rating
+                                          :style styles/white-text}]
+                                        [truncated-text employer-feedback]]
+                                       [:div {:style styles/italic-text} "(Employer hasn't left feedback yet)"])]
+                    freelancer-bubble [message-bubble
+                                       {:side :left
+                                        :user freelancer
+                                        :date freelancer-feedback-on}
+                                       (if freelancer-feedback-on
+                                         [:div
+                                          [feedback-star-rating
+                                           {:rating freelancer-feedback-rating
+                                            :style styles/dark-text}]
+                                          [truncated-text freelancer-feedback]]
+                                         [:div {:style styles/italic-text} "(Freelancer hasn't left feedback yet)"])]]
+                [:div
+                 {:key id}
+                 (if done-by-freelancer?
+                   [:div
+                    freelancer-bubble
+                    employer-bubble]
+                   [:div
+                    employer-bubble
+                    freelancer-bubble])
+                 (when-not (= item (last items))
+                   [misc/hr])]))
+            (when-not loading?
+              [row-plain
+               {:center "xs"}
+               "No feedback left yet"]))
+          [show-more-pagination
+           {:all-ids-subscribe [:list.ids/job-feedbacks]
+            :list-db-path [:list/job-feedbacks]
+            :load-dispatch [:contract.db/load-contracts ethlance-db/feedback-schema]
+            :load-per 1
+            :offset offset
+            :initial-limit initial-limit
+            :limit limit
+            :loading? loading?
+            :show-more-limit show-more-limit}]]]))))
