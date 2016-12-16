@@ -174,7 +174,9 @@
     :contract/done-on
     :proposal/created-on
     :invitation/created-on
-    :contract/created-on})
+    :contract/created-on
+    :contract/freelancer-feedback-on
+    :contract/employer-feedback-on})
 
 (def invoice-editable-fields
   #{:invoice/status :invoice/paid-on :invoice/cancelled-on})
@@ -213,19 +215,19 @@
   [:search/min-budget :search/min-employer-avg-rating :search/min-employer-ratings-count
    :search/country :search/language :search/offset :search/limit])
 
-(def job-set-hiring-done-args
+(def set-job-hiring-done-args
   [:job/id])
 
-(def add-invitation-args
+(def add-job-invitation-args
   [:contract/job :contract/freelancer :invitation/description])
 
-(def add-proposal-args
+(def add-job-proposal-args
   [:contract/job :proposal/description :proposal/rate])
 
-(def add-contract-args
+(def add-job-contract-args
   [:contract/id :contract/description :contract/hiring-done?])
 
-(def add-contract-feedback-args
+(def add-job-contract-feedback-args
   [:contract/id :contract/feedback :contract/feedback-rating])
 
 (def add-invoice-args
@@ -256,9 +258,6 @@
 (def get-contract-invoices-args
   [:contract/id :invoice/status])
 
-(def load-contract-invoices-args
-  [:contract/id :invoice/status])
-
 (def get-freelancers-job-contracts-args
   [:user/ids :job/id])
 
@@ -268,21 +267,39 @@
 (def get-users-args
   [:user/addresses])
 
-(def contract-views-fns
-  {:views/get-freelancer-contracts get-user-contracts-args
-   :views/get-employer-contracts get-user-contracts-args
-   :views/get-freelancer-invoices get-user-invoices-args
-   :views/get-employer-invoices get-user-invoices-args
-   :views/get-job-contracts get-job-contracts-args
-   :views/get-job-invoices get-job-invoices-args
-   :views/get-freelancers-job-contracts get-freelancers-job-contracts-args
-   :views/get-contract-invoices get-contract-invoices-args
-   :views/get-employer-jobs get-employer-jobs-args
-   :views/get-skill-names #{}
-   :views/get-users get-users-args
-   :search/search-freelancers search-freelancers-args
-   :search/search-jobs (conj search-jobs-args search-jobs-nested-args)
-   :search/freelancers search-freelancers-args
+(def get-employer-jobs-for-freelancer-invite
+  [:employer/id :freelancer/id])
+
+(def eth-contracts-fns
+  {:ethlance-views/get-freelancer-contracts get-user-contracts-args
+   :ethlance-views/get-employer-contracts get-user-contracts-args
+   :ethlance-views/get-freelancer-invoices get-user-invoices-args
+   :ethlance-views/get-employer-invoices get-user-invoices-args
+   :ethlance-views/get-job-contracts get-job-contracts-args
+   :ethlance-views/get-job-invoices get-job-invoices-args
+   :ethlance-views/get-freelancers-job-contracts get-freelancers-job-contracts-args
+   :ethlance-views/get-contract-invoices get-contract-invoices-args
+   :ethlance-views/get-employer-jobs get-employer-jobs-args
+   :ethlance-views/get-skill-names #{}
+   :ethlance-views/get-users get-users-args
+   :ethlance-views/get-employer-jobs-for-freelancer-invite get-employer-jobs-for-freelancer-invite
+   :ethlance-search/search-freelancers search-freelancers-args
+   :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
+   :ethlance-config/add-skills add-skills-args
+   :ethlance-invoice/cancel-invoice cancel-invoice-args
+   :ethlance-invoice/pay-invoice pay-invoice-args
+   :ethlance-invoice/add-invoice add-invoice-args
+   :ethlance-contract/add-job-invitation add-job-invitation-args
+   :ethlance-contract/add-job-contract add-job-contract-args
+   :ethlance-contract/add-job-proposal add-job-proposal-args
+   :ethlance-contract/add-job-contract-feedback add-job-contract-feedback-args
+   :ethlance-job/add-job add-job-args
+   :ethlance-job/set-job-hiring-done set-job-hiring-done-args
+   :ethlance-user/register-freelancer register-freelancer-args
+   :ethlance-user/register-employer register-employer-args
+   :ethlance-user/set-freelancer set-freelancer-args
+   :ethlance-user/set-employer set-employer-args
+   :ethlance-user/set-user set-user-args
    })
 
 (def schema

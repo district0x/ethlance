@@ -187,6 +187,14 @@ library JobLibrary {
         return SharedLibrary.filter(db, statusPred, UserLibrary.getEmployerJobs(db, userId), args);
     }
 
+    function getEmployerJobsForFreelancerInvite(address db, uint employerId, uint freelancerId)
+        internal returns (uint[] jobIds)
+    {
+        var args = new uint[](1);
+        args[0] = freelancerId;
+        return SharedLibrary.filter(db, ContractLibrary.notContractPred, getEmployerJobsByStatus(db, employerId, 1), args);
+    }
+
     function getJobInvoicesByStatus(address db, uint jobId, uint8 invoiceStatus)
         internal returns (uint[])
     {

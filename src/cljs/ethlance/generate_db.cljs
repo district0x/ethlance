@@ -141,26 +141,27 @@
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
                        [{:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}]
-                       (map #(hash-map :ms 15 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
-                       [{:ms 20 :dispatch [:contract.job/add-invitation invitation1 (get-address 1)]}
-                        {:ms 30 :dispatch [:contract.contract/add-proposal proposal1 (get-address 0)]}
+                       (map #(hash-map :ms 25 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
+                       [{:ms 20 :dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)]}
+                        {:ms 30 :dispatch [:contract.contract/add-job-proposal proposal1 (get-address 0)]}
                         {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]
                        (map #(hash-map :ms 50 :dispatch [:contract.user/register-freelancer (gen-freelancer) (get-address %)]) (range 2 10))
-                       (map #(hash-map :ms 60 :dispatch [:contract.job/add-invitation (gen-invitation 1) (get-address 1)]) (range 5))
-                       (map #(hash-map :ms 70 :dispatch [:contract.contract/add-proposal (gen-proposal 1) (get-address %)]) (range 2 5))
+                       (map #(hash-map :ms 60 :dispatch [:contract.contract/add-job-invitation (gen-invitation 1) (get-address 1)]) (range 5))
+                       (map #(hash-map :ms 70 :dispatch [:contract.contract/add-job-proposal (gen-proposal 1) (get-address %)]) (range 2 5))
                        ;{:ms 60 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
                        ;{:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
                        ;{:ms 80 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
-                       (map #(hash-map :ms 80 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]) (range 10))
-                       [{:ms 90 :dispatch [:contract.invoice/cancel {:invoice/id 2} (get-address 0)]}
+                       (map #(hash-map :ms 80 :dispatch [:contract.invoice/add-invoice (gen-invoice 1) (get-address 0)]) (range 10))
+                       [{:ms 90 :dispatch [:contract.invoice/cancel-invoice {:invoice/id 2} (get-address 0)]}
                         {:ms 100 :dispatch [:contract.contract/add-feedback feedback1 (get-address 0)]}
-                        {:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}])
+                        {:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}]
+                       )
 
      }))
 
 
 (comment
-  (dispatch [:contract.job/add-invitation invitation1 (get-address 1)])
+  (dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)])
 
   (let [coll1 (set (rand-uint-coll 50 100))
         coll2 (set (rand-uint-coll 50 100))

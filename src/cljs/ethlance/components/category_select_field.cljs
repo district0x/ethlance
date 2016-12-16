@@ -6,7 +6,8 @@
   (fn [{:keys [:no-all-categories?] :as props}]
     [ui/select-field
      (merge
-       {:floating-label-text "Category"}
+       {:floating-label-text "Category"
+        :hint-text "Choose Category"}
        (dissoc props :no-all-categories?))
      (for [[id name] (if no-all-categories? (dissoc categories 0) categories)]
        [ui/menu-item

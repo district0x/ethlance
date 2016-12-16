@@ -15,12 +15,14 @@
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
-    [ethlance.constants :as constants]))
+    [ethlance.constants :as constants]
+    [reagent.core :as r]))
 
 (defn freelancer-info [{:keys [:user/gravatar :user/name :user/country :freelancer/job-title :freelancer/avg-rating
                                :freelancer/ratings-count :freelancer/hourly-rate :freelancer/total-earned
                                :freelancer/available? :user/created-on :freelancer/description
-                               :freelancer/skills :freelancer/categories :user/languages :user/id] :as user}]
+                               :freelancer/skills :freelancer/categories :user/languages :user/id
+                               :user/status] :as user}]
   (when (seq name)
     [:div
      [row
@@ -44,11 +46,15 @@
             :style styles/text-right}
        [row-plain
         {:end "xs"}
-        [misc/status-chip
-         {:background-color (styles/freelancer-available?-color available?)}
-         (if available?
-           "available for hire!"
-           "not available for hire")]]
+        (case status
+          1 [misc/status-chip
+             {:background-color (styles/freelancer-available?-color available?)}
+             (if available?
+               "available for hire!"
+               "not available for hire")]
+          2 [misc/status-chip
+             {:background-color styles/danger-color}
+             "this user has been blocked"])]
        [misc/elegant-line "rate per hour" (u/eth hourly-rate)]
        [misc/elegant-line "earned" (u/eth total-earned)]]]
      [misc/hr]
@@ -102,30 +108,88 @@
 
 (defn freelancer-contracts [{:keys [:user/id]}]
   [contracts-table
-   {:list-subscribe [:list/freelancer-contracts]
+   {:list-subscribe [:list/contracts :list/freelancer-contracts]
     :show-rate? true
     :show-total-paid? true
     :show-job? true
     :show-status? true
     :initial-dispatch {:list-key :list/freelancer-contracts
-                       :fn-key :views/get-freelancer-contracts
+                       :fn-key :ethlance-views/get-freelancer-contracts
                        :load-dispatch-key :contract.db/load-contracts
                        :schema (select-keys ethlance-db/contract-all-schema
                                             [:contract/job :contract/created-on :proposal/rate :contract/total-paid
                                              :contract/status])
                        :args {:user/id id :contract/status 0 :job/status 0}}
-    :all-ids-subscribe [:list.ids/freelancer-contracts]
+    :all-ids-subscribe [:list/ids :list/freelancer-contracts]
     :title "Job Activity"
     :no-items-text "Freelancer has no job activity"}])
 
 (defn freelancer-feedback [{:keys [:user/id]}]
   [feedback-list
-   {:list-subscribe [:list/freelancer-feedbacks]
+   {:list-subscribe [:list/contracts :list/freelancer-feedbacks]
     :initial-dispatch [:list/load-ids {:list-key :list/freelancer-feedbacks
-                                       :fn-key :views/get-freelancer-contracts
+                                       :fn-key :ethlance-views/get-freelancer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
                                        :schema ethlance-db/feedback-schema
                                        :args {:user/id id :contract/status 4 :job/status 0}}]}])
+
+(defn employer-jobs-select-field [jobs-list {:keys [:contract/job]} freelancer active-user]
+  [misc/call-on-change
+   {:args (:user/id active-user)
+    :load-on-mount? true
+    :on-change #(dispatch [:contract.views/load-employer-jobs-for-freelancer-invite
+                           {:employer/id % :freelancer/id (:user/id freelancer)}])}
+   [ui/select-field
+    {:floating-label-text "Job"
+     :hint-text "Choose Job"
+     :value (when (pos? job) job)
+     :auto-width true
+     :style styles/overflow-ellipsis
+     :on-change #(dispatch [:form/value-changed :form.contract/add-invitation :contract/job %3])}
+    (for [{:keys [:job/id :job/title]} (:items jobs-list)]
+      [ui/menu-item
+       {:value id
+        :primary-text (gstring/format "%s (#%s)" title id)
+        :key id}])]])
+
+(defn invite-freelancer-form []
+  (let [form-open? (r/atom false)
+        active-user (subscribe [:db/active-user])
+        form (subscribe [:form.contract/add-invitation])
+        jobs-list (subscribe [:list/jobs :list/employer-jobs-open-select-field])]
+    (fn [user]
+      (let [{:keys [:loading? :errors :data]} @form
+            {:keys [:invitation/description :contract/job]} data
+            {:keys [:user/employer?]} @active-user]
+        (when (and employer?
+                   (= (:user/status @active-user) 1)
+                   (= (:user/status user) 1))
+          [paper
+           {:loading? (or loading? (:loading? @jobs-list))}
+           [row
+            [col {:xs 6}
+             (when @form-open?
+               [:h2 "New Invitation"])]
+            [col {:xs 6 :style styles/text-right}
+             (when-not @form-open?
+               [ui/raised-button
+                {:label "Write Invitation"
+                 :primary true
+                 :on-touch-tap #(reset! form-open? true)
+                 :icon (icons/content-create)}])]]
+           (when @form-open?
+             [:div
+              [employer-jobs-select-field @jobs-list data user @active-user]
+              [misc/textarea
+               {:floating-label-text "Invitation Text"
+                :form-key :form.contract/add-invitation
+                :field-key :invitation/description
+                :max-length-key :max-invitation-desc
+                :default-value description}]
+              [misc/send-button
+               {:disabled (or loading? (boolean (seq errors)))
+                :on-touch-tap #(dispatch [:contract.contract/add-job-invitation
+                                          (merge data {:contract/freelancer (:user/id user)})])}]])])))))
 
 (defn freelancer-detail-page []
   (let [user-id (subscribe [:user/route-user-id])
@@ -135,6 +199,7 @@
     (fn []
       [center-layout
        [freelancer-detail @user]
+       [invite-freelancer-form @user]
        (when (:user/freelancer? @user)
          [:div
           [freelancer-contracts @user]

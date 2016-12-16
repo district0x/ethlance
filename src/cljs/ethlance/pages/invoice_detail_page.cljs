@@ -53,8 +53,8 @@
         invoice-id (subscribe [:invoice/route-invoice-id])
         by-me? (subscribe [:invoice/by-me?])
         for-me (subscribe [:invoice/for-me?])
-        form-pay (subscribe [:form.invoice/pay])
-        form-cancel (subscribe [:form.invoice/cancel])]
+        form-pay (subscribe [:form.invoice/pay-invoice])
+        form-cancel (subscribe [:form.invoice/cancel-invoice])]
     (dispatch [:after-eth-contracts-loaded [:contract.db/load-invoices ethlance-db/invoice-schema [@invoice-id]]])
     (fn []
       (let [{:keys [:invoice/contract :invoice/id :invoice/created-on :invoice/status
@@ -84,10 +84,10 @@
                  {:secondary true
                   :label "Cancel Invoice"
                   :disabled (:loading? @form-cancel)
-                  :on-touch-tap #(dispatch [:contract.invoice/cancel {:invoice/id id}])}])
+                  :on-touch-tap #(dispatch [:contract.invoice/cancel-invoice {:invoice/id id}])}])
               (when (and (= status 1) @for-me)
                 [ui/raised-button
                  {:primary true
                   :label "Pay Invoice"
                   :disabled (:loading? @form-pay)
-                  :on-touch-tap #(dispatch [:contract.invoice/pay {:invoice/id id} amount])}])]])]]))))
+                  :on-touch-tap #(dispatch [:contract.invoice/pay-invoice {:invoice/id id} amount])}])]])]]))))

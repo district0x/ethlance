@@ -16,13 +16,13 @@
 (defn employer-jobs-open [{:keys [:user/id]}]
   (when id
     [jobs-table
-     {:list-subscribe [:list/employer-jobs-open]
+     {:list-subscribe [:list/jobs :list/employer-jobs-open]
       :initial-dispatch {:list-key :list/employer-jobs-open
-                         :fn-key :views/get-employer-jobs
+                         :fn-key :ethlance-views/get-employer-jobs
                          :load-dispatch-key :contract.db/load-jobs
                          :schema schema-to-load
                          :args {:user/id id :job/status 1}}
-      :all-ids-subscribe [:list.ids/employer-jobs-open]
+      :all-ids-subscribe [:list/ids :list/employer-jobs-open]
       :title [row
               [col {:xs 12 :md 6}
                [:h2 "Open Hiring Jobs"]]
@@ -38,14 +38,14 @@
 (defn employer-jobs-done [{:keys [:user/id]}]
   (when id
     [jobs-table
-     {:list-subscribe [:list/employer-jobs-done]
+     {:list-subscribe [:list/jobs :list/employer-jobs-done]
       :show-hiring-done-on? true
       :initial-dispatch {:list-key :list/employer-jobs-done
-                         :fn-key :views/get-employer-jobs
+                         :fn-key :ethlance-views/get-employer-jobs
                          :load-dispatch-key :contract.db/load-jobs
                          :schema schema-to-load
                          :args {:user/id id :job/status 2}}
-      :all-ids-subscribe [:list.ids/employer-jobs-done]
+      :all-ids-subscribe [:list/ids :list/employer-jobs-done]
       :title "Closed Hiring Jobs"
       :no-items-text "You have closed hiring jobs"}]))
 

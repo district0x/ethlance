@@ -15,12 +15,13 @@
     [goog.string.format]
     [madvas.re-frame.google-analytics-fx :as google-analytics-fx]
     [print.foo :include-macros true]
-    [re-frame.core :refer [dispatch dispatch-sync]]
+    [re-frame.core :refer [dispatch dispatch-sync clear-subscription-cache!]]
     [reagent.core :as reagent]))
 
 (defn mount-root []
   (s/check-asserts goog.DEBUG)
   (google-analytics-fx/set-enabled! (not goog.DEBUG))
+  (clear-subscription-cache!)
   ;(.clear js/console)
   (reagent/render [main-panel] (.getElementById js/document "app")))
 

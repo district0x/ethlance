@@ -31,30 +31,30 @@
 
 (defn freelancer-pending-invoices [{:keys [:user/id]}]
   [invoices-table
-   {:list-subscribe [:list/freelancer-invoices-pending]
+   {:list-subscribe [:list/invoices :list/freelancer-invoices-pending]
     :show-job? true
     :show-contract? true
     :initial-dispatch {:list-key :list/freelancer-invoices-pending
-                       :fn-key :views/get-freelancer-invoices
+                       :fn-key :ethlance-views/get-freelancer-invoices
                        :load-dispatch-key :contract.db/load-invoices
                        :schema ethlance-db/invoices-table-schema
                        :args {:user/id id :invoice/status 1}}
-    :all-ids-subscribe [:list.ids/freelancer-invoices-pending]
+    :all-ids-subscribe [:list/ids :list/freelancer-invoices-pending]
     :title "Pending Invoices"
     :no-items-text "You have no pending invoices"}])
 
 (defn freelancer-paid-invoices [{:keys [:user/id]}]
   [invoices-table
-   {:list-subscribe [:list/freelancer-invoices-paid]
+   {:list-subscribe [:list/invoices :list/freelancer-invoices-paid]
     :show-job? true
     :show-paid-on? true
     :show-contract? true
     :initial-dispatch {:list-key :list/freelancer-invoices-paid
-                       :fn-key :views/get-freelancer-invoices
+                       :fn-key :ethlance-views/get-freelancer-invoices
                        :load-dispatch-key :contract.db/load-invoices
                        :schema ethlance-db/invoices-table-schema
                        :args {:user/id id :invoice/status 2}}
-    :all-ids-subscribe [:list.ids/freelancer-invoices-paid]
+    :all-ids-subscribe [:list/ids :list/freelancer-invoices-paid]
     :title "Paid Invoices"
     :no-items-text "You have no paid invoices"}])
 

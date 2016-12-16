@@ -32,7 +32,7 @@
                 :max-contract-desc 500
                 :max-proposal-desc 500
                 :max-invitation-desc 500
-                :max-skills-create-at-once 10
+                :max-skills-create-at-once 50 #_ 10
                 :adding-skills-enabled? 1}
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true}
                    :ethlance-job {:name "EthlanceJob" :setter? true}
@@ -71,12 +71,13 @@
    :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-my-open-contracts {:items [] :loading? true :params {}}
+   :list/employer-jobs-open-select-field {:items [] :loading? false :params {}}
 
-   :form.invoice/pay {:loading? false :gas-limit 200000}
-   :form.invoice/cancel {:loading? false :gas-limit 200000}
+   :form.invoice/pay-invoice {:loading? false :gas-limit 200000}
+   :form.invoice/cancel-invoice {:loading? false :gas-limit 200000}
    :form.job/set-hiring-done {:loading? false :gas-limit 200000}
    :form.job/add-job {:loading? false
-                      :gas-limit 700000
+                      :gas-limit 1400000
                       :data {:job/title ""
                              :job/description ""
                              :job/skills []
@@ -89,6 +90,12 @@
                              :job/hours-per-week 1
                              :job/freelancers-needed 1}
                       :errors #{:job/title :job/description :job/skills :job/category}}
+   :form.contract/add-invitation {:loading? false
+                                  :gas-limit 700000
+                                  :data {:invitation/description ""
+                                         :contract/job 0}
+                                  :errors #{:contract/job}}
+
    :form.contract/add-proposal {:loading? false
                                 :gas-limit 700000
                                 :data {:proposal/description ""
@@ -118,7 +125,7 @@
                               :errors #{:invoice/contract}}
 
    :form.config/add-skills {:loading? false
-                            :gas-limit 700000
+                            :gas-limit 4000000
                             :data {:skill/names []}
                             :errors #{:skill/names}}
 

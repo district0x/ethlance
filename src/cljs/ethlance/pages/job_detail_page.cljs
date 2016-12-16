@@ -54,20 +54,20 @@
     (fn [job-id]
       (when job-id
         [contracts-table
-         {:list-subscribe [:list/job-proposals]
+         {:list-subscribe [:list/contracts :list/job-proposals {:loading-till-freelancer? true}]
           :show-freelancer? true
           :show-invitation-or-proposal-time? true
           :show-rate? true
           :show-status? true
           :highlight-row-pred (partial my-contract? @active-user-id)
           :initial-dispatch {:list-key :list/job-proposals
-                             :fn-key :views/get-job-contracts
+                             :fn-key :ethlance-views/get-job-contracts
                              :load-dispatch-key :contract.db/load-contracts
                              :schema (select-keys ethlance-db/contract-all-schema
                                                   [:contract/freelancer :proposal/rate :proposal/created-on
                                                    :invitation/created-on :contract/status])
                              :args {:job/id job-id :contract/status 0}}
-          :all-ids-subscribe [:list.ids/job-proposals]
+          :all-ids-subscribe [:list/ids :list/job-proposals]
           :title "Proposals"
           :no-items-text "No proposals for this job"}]))))
 
@@ -130,7 +130,7 @@
                 :default-value description}]
               [misc/send-button
                {:disabled (or loading? (boolean (seq errors)))
-                :on-touch-tap #(dispatch [:contract.contract/add-proposal
+                :on-touch-tap #(dispatch [:contract.contract/add-job-proposal
                                           (merge data {:contract/job (:job/id @job)})])}]])
            ])))))
 
@@ -196,23 +196,23 @@
   (let [job-id (subscribe [:job/route-job-id])]
     (fn []
       [invoices-table
-       {:list-subscribe [:list/job-invoices]
+       {:list-subscribe [:list/invoices :list/job-invoices]
         :show-freelancer? true
         :show-status? true
         :initial-dispatch {:list-key :list/job-invoices
-                           :fn-key :views/get-job-invoices
+                           :fn-key :ethlance-views/get-job-invoices
                            :load-dispatch-key :contract.db/load-invoices
                            :schema ethlance-db/invoices-table-schema
                            :args {:job/id @job-id :invoice/status 0}}
-        :all-ids-subscribe [:list.ids/job-invoices]}])))
+        :all-ids-subscribe [:list/ids :list/job-invoices]}])))
 
 (defn job-feedbacks []
   (let [job-id (subscribe [:job/route-job-id])]
     (fn []
       [feedback-list
-       {:list-subscribe [:list/job-feedbacks]
+       {:list-subscribe [:list/contracts :list/job-feedbacks {:loading-till-freelancer? true}]
         :initial-dispatch [:list/load-ids {:list-key :list/job-feedbacks
-                                           :fn-key :views/get-job-contracts
+                                           :fn-key :ethlance-views/get-job-contracts
                                            :load-dispatch-key :contract.db/load-contracts
                                            :schema ethlance-db/feedback-schema
                                            :args {:job/id @job-id :contract/status 4}}]}])))

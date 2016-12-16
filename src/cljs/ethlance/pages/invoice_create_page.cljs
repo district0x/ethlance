@@ -16,13 +16,13 @@
   (dispatch [:form/value-changed :form.invoice/add-invoice :invoice/contract 0 false])
   (dispatch [:after-eth-contracts-loaded
              [:list/load-ids {:list-key :list/freelancer-my-open-contracts
-                              :fn-key :views/get-freelancer-contracts
+                              :fn-key :ethlance-views/get-freelancer-contracts
                               :load-dispatch-key :contract.db/load-contracts
                               :schema (select-keys ethlance-db/contract-schema [:contract/job #_:contract/freelancer])
                               :args {:user/id user-id :contract/status 3 :job/status 0}}]]))
 
 (defn add-invoice-form []
-  (let [contracts-list (subscribe [:list/freelancer-my-open-contracts])
+  (let [contracts-list (subscribe [:list/contracts :list/freelancer-my-open-contracts])
         form (subscribe [:form.invoice/add-invoice])]
     (fn []
       (let [{:keys [:data :loading? :errors]} @form
@@ -33,7 +33,7 @@
          [:div
           [ui/select-field
            {:floating-label-text "Job"
-            :value contract
+            :value (when (pos? contract) contract)
             :auto-width true
             :style styles/overflow-ellipsis
             :on-change #(dispatch [:form/value-changed :form.invoice/add-invoice :invoice/contract %3])}
@@ -77,7 +77,7 @@
            :default-value description}]
          [misc/send-button
           {:disabled (or loading? (boolean (seq errors)))
-           :on-touch-tap #(dispatch [:contract.invoice/add data])}]]))))
+           :on-touch-tap #(dispatch [:contract.invoice/add-invoice data])}]]))))
 
 (defn invoice-create-page []
   (fn []

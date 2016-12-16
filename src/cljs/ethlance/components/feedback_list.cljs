@@ -87,7 +87,7 @@
                {:center "xs"}
                "No feedback left yet"]))
           [show-more-pagination
-           {:all-ids-subscribe [:list.ids/job-feedbacks]
+           {:all-ids-subscribe [:list/ids :list/job-feedbacks]
             :list-db-path [:list/job-feedbacks]
             :load-dispatch [:contract.db/load-contracts ethlance-db/feedback-schema]
             :load-per 1

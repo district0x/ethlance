@@ -251,6 +251,10 @@ library ContractLibrary {
         var status = getStatus(db, contractId);
         return args[0] == 0 || status == args[0];
     }
+
+    function notContractPred(address db, uint[] args, uint jobId) internal returns(bool) {
+        return getContract(db, args[0], jobId) == 0;
+    }
     
     function setFreelancerJobIndex(address db, uint contractId, uint freelancerId, uint jobId) internal {
         EthlanceDB(db).setUIntValue(sha3("contract/freelancer", contractId), freelancerId);

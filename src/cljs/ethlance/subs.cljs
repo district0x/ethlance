@@ -99,15 +99,6 @@
     (:form/search-freelancers db)))
 
 (reg-sub
-  :list/search-jobs
-  (fn [db]
-    (let [jobs (:list/search-jobs db)]
-      (-> jobs
-        (update :items (partial map #(get-in db [:app/jobs %])))
-        (update :items (partial map #(merge % (get-in db [:app/users (:job/employer %)]))))
-        (u/list-filter-loaded :job/title)))))
-
-(reg-sub
   :form/search-job-skills
   (fn [db]
     (:search/skills (:form/search-jobs db))))
@@ -161,12 +152,6 @@
   (-> (get jobs job-id)
     (update :job/employer #(get users %))))
 
-(defn job-ids->jobs-list [jobs-list jobs users]
-  (-> jobs-list
-    (update :items (partial u/sort-paginate-ids jobs-list))
-    (update :items (partial map #(job-id->job % jobs users)))
-    (u/list-filter-loaded :job/title)))
-
 (reg-sub
   :user/detail
   :<- [:user/route-user-id]
@@ -183,20 +168,27 @@
     (job-id->job job-id jobs users)))
 
 (reg-sub
-  :list/employer-jobs-open
+  :list/search-jobs
   :<- [:db]
   :<- [:app/jobs]
   :<- [:app/users]
   (fn [[db jobs users]]
-    (job-ids->jobs-list (:list/employer-jobs-open db) jobs users)))
+    (let [jobs-list (:list/search-jobs db)]
+      (-> jobs-list
+        (update :items (partial map #(job-id->job % jobs users)))
+        (u/list-filter-loaded :job/title)))))
 
 (reg-sub
-  :list/employer-jobs-done
+  :list/jobs
   :<- [:db]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db jobs users]]
-    (job-ids->jobs-list (:list/employer-jobs-done db) jobs users)))
+  (fn [[db jobs users] [_ list-key]]
+    (let [jobs-list (get db list-key)]
+      (-> jobs-list
+        (update :items (partial u/sort-paginate-ids jobs-list))
+        (update :items (partial map #(job-id->job % jobs users)))
+        (u/list-filter-loaded :job/title)))))
 
 (reg-sub
   :db/active-freelancer-job-detail-contract
@@ -208,27 +200,11 @@
                              (= (:contract/freelancer %) user-id))
                        (vals contracts))))
 
-(defn create-list-ids-fn [list-key]
-  (fn [db]
+(reg-sub
+  :list/ids
+  (fn [db [_ list-key]]
     (let [{:keys [items sort-dir]} (get db list-key)]
       (u/sort-in-dir sort-dir items))))
-
-(reg-sub :list.ids/job-proposals (create-list-ids-fn :list/job-proposals))
-(reg-sub :list.ids/job-invoices (create-list-ids-fn :list/job-invoices))
-(reg-sub :list.ids/employer-invoices-pending (create-list-ids-fn :list/employer-invoices-pending))
-(reg-sub :list.ids/employer-invoices-paid (create-list-ids-fn :list/employer-invoices-paid))
-(reg-sub :list.ids/freelancer-invoices-pending (create-list-ids-fn :list/freelancer-invoices-pending))
-(reg-sub :list.ids/freelancer-invoices-paid (create-list-ids-fn :list/freelancer-invoices-paid))
-(reg-sub :list.ids/freelancer-invitations (create-list-ids-fn :list/freelancer-invitations))
-(reg-sub :list.ids/freelancer-proposals (create-list-ids-fn :list/freelancer-proposals))
-(reg-sub :list.ids/freelancer-contracts-open (create-list-ids-fn :list/freelancer-contracts-open))
-(reg-sub :list.ids/freelancer-contracts-done (create-list-ids-fn :list/freelancer-contracts-done))
-(reg-sub :list.ids/freelancer-contracts (create-list-ids-fn :list/freelancer-contracts))
-(reg-sub :list.ids/employer-jobs-open (create-list-ids-fn :list/employer-jobs-open))
-(reg-sub :list.ids/employer-jobs-done (create-list-ids-fn :list/employer-jobs-done))
-(reg-sub :list.ids/job-feedbacks (create-list-ids-fn :list/job-feedbacks))
-(reg-sub :list.ids/contract-invoices (create-list-ids-fn :list/contract-invoices))
-(reg-sub :list.ids/job-proposals (create-list-ids-fn :list/job-proposals))
 
 
 (reg-sub
@@ -251,14 +227,6 @@
     (update-in [:contract/job :job/employer] users)
     (update :contract/freelancer users)))
 
-(defn contract-ids->contracts-list [contracts-list contracts jobs users & [non-empty-pred]]
-  (-> contracts-list
-    (update :items (partial u/sort-paginate-ids contracts-list))
-    (update :items (partial map #(contract-id->contract % contracts jobs users)))
-    (u/list-filter-loaded (or non-empty-pred (comp :user/name :contract/freelancer)))))
-
-(def contract-ids->contracts-list-job #(contract-ids->contracts-list %1 %2 %3 %4 (comp :job/title :contract/job)))
-
 (reg-sub
   :contract/detail
   :<- [:contract/route-contract-id]
@@ -272,94 +240,19 @@
       (remove-unallowed-contract-data active-user-id))))
 
 (reg-sub
-  :list/job-proposals
+  :list/contracts
   :<- [:db]
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list (:list/job-proposals db) contracts jobs users)))
-
-(reg-sub
-  :list/job-feedbacks
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list (:list/job-feedbacks db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-my-open-contracts
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list-job (:list/freelancer-my-open-contracts db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-invitations
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list-job (:list/freelancer-invitations db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-proposals
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list-job (:list/freelancer-proposals db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-contracts
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list-job (:list/freelancer-contracts db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-contracts-open
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list-job (:list/freelancer-contracts-open db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-contracts-done
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list-job (:list/freelancer-contracts-done db) contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-feedbacks
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list (:list/freelancer-feedbacks db) contracts jobs users)))
-
-(reg-sub
-  :list/employer-feedbacks
-  :<- [:db]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db contracts jobs users]]
-    (contract-ids->contracts-list (:list/employer-feedbacks db) contracts jobs users)))
+  (fn [[db contracts jobs users] [_ list-key {:keys [:loading-till-freelancer?]}]]
+    (let [contracts-list (get db list-key)
+          non-empty-pred (if loading-till-freelancer? (comp :user/name :contract/freelancer)
+                                                      (comp :job/title :contract/job))]
+      (-> contracts-list
+        (update :items (partial u/sort-paginate-ids contracts-list))
+        (update :items (partial map #(contract-id->contract % contracts jobs users)))
+        (u/list-filter-loaded non-empty-pred)))))
 
 (defn- remove-unallowed-invoice-data [invoice active-user-id]
   (if-not (or (= (get-in invoice [:invoice/contract :contract/freelancer :user/id]) active-user-id)
@@ -374,71 +267,19 @@
     (update-in [:invoice/contract :contract/job] jobs)
     (update-in [:invoice/contract :contract/job :job/employer] users)))
 
-(defn invoice-ids->invoices-list [invoices-list invoices contracts jobs users]
-  (-> invoices-list
-    (update :items (partial u/sort-paginate-ids invoices-list))
-    (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users)))
-    (u/list-filter-loaded (comp :user/name :contract/freelancer :invoice/contract))))
-
 (reg-sub
-  :list/job-invoices
+  :list/invoices
   :<- [:db]
   :<- [:app/invoices]
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db invoices contracts jobs users]]
-    (invoice-ids->invoices-list (:list/job-invoices db) invoices contracts jobs users)))
-
-(reg-sub
-  :list/employer-invoices-pending
-  :<- [:db]
-  :<- [:app/invoices]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db invoices contracts jobs users]]
-    (invoice-ids->invoices-list (:list/employer-invoices-pending db) invoices contracts jobs users)))
-
-(reg-sub
-  :list/employer-invoices-paid
-  :<- [:db]
-  :<- [:app/invoices]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db invoices contracts jobs users]]
-    (invoice-ids->invoices-list (:list/employer-invoices-paid db) invoices contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-invoices-pending
-  :<- [:db]
-  :<- [:app/invoices]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db invoices contracts jobs users]]
-    (invoice-ids->invoices-list (:list/freelancer-invoices-pending db) invoices contracts jobs users)))
-
-(reg-sub
-  :list/freelancer-invoices-paid
-  :<- [:db]
-  :<- [:app/invoices]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db invoices contracts jobs users]]
-    (invoice-ids->invoices-list (:list/freelancer-invoices-paid db) invoices contracts jobs users)))
-
-(reg-sub
-  :list/contract-invoices
-  :<- [:db]
-  :<- [:app/invoices]
-  :<- [:app/contracts]
-  :<- [:app/jobs]
-  :<- [:app/users]
-  (fn [[db invoices contracts jobs users]]
-    (invoice-ids->invoices-list (:list/contract-invoices db) invoices contracts jobs users)))
+  (fn [[db invoices contracts jobs users] [_ list-key]]
+    (let [invoices-list (get db list-key)]
+      (-> invoices-list
+        (update :items (partial u/sort-paginate-ids invoices-list))
+        (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users)))
+        (u/list-filter-loaded (comp :user/name :contract/freelancer :invoice/contract))))))
 
 (reg-sub
   :invoice/detail
@@ -470,14 +311,14 @@
          (= active-user-id (get-in invoice [:invoice/contract :contract/job :job/employer :user/id])))))
 
 (reg-sub
-  :form.invoice/pay
+  :form.invoice/pay-invoice
   (fn [db]
-    (:form.invoice/pay db)))
+    (:form.invoice/pay-invoice db)))
 
 (reg-sub
-  :form.invoice/cancel
+  :form.invoice/cancel-invoice
   (fn [db]
-    (:form.invoice/cancel db)))
+    (:form.invoice/cancel-invoice db)))
 
 (reg-sub
   :form.invoice/add-invoice
@@ -498,6 +339,11 @@
   :form.contract/add-feedback
   (fn [db]
     (:form.contract/add-feedback db)))
+
+(reg-sub
+  :form.contract/add-invitation
+  (fn [db]
+    (:form.contract/add-invitation db)))
 
 (reg-sub
   :form.job/set-hiring-done

@@ -59,4 +59,8 @@ contract EthlanceViews {
     function getUsers(address[] addresses) constant returns(uint[]) {
         return UserLibrary.getUserIds(ethlanceDB, addresses);
     }
+
+    function getEmployerJobsForFreelancerInvite(uint employerId, uint freelancerId) constant returns(uint[]) {
+        return JobLibrary.getEmployerJobsForFreelancerInvite(ethlanceDB, employerId, freelancerId);
+    }
 }

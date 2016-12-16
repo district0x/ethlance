@@ -18,16 +18,16 @@
         [center-layout
          [invoices-table
           {:title "Contract Invoices"
-           :list-subscribe [:list/contract-invoices]
+           :list-subscribe [:list/invoices :list/contract-invoices]
            :initial-dispatch {:list-key :list/contract-invoices
-                              :fn-key :views/get-contract-invoices
+                              :fn-key :ethlance-views/get-contract-invoices
                               :load-dispatch-key :contract.db/load-invoices
                               :schema ethlance-db/invoices-table-schema
                               :args {:contract/id @contract-id :invoice/status 0}}
            :show-freelancer? true
            :show-job? true
            :show-status? true
-           :all-ids-subscribe [:list.ids/contract-invoices]}
+           :all-ids-subscribe [:list/ids :list/contract-invoices]}
           [row
            [col {:xs 12
                  :style styles/margin-top-gutter-less}

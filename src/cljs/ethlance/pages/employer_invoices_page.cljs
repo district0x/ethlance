@@ -21,30 +21,30 @@
 
 (defn employer-pending-invoices [{:keys [:user/id]}]
   [invoices-table
-   {:list-subscribe [:list/employer-invoices-pending]
+   {:list-subscribe [:list/invoices :list/employer-invoices-pending]
     :show-freelancer? true
     :show-job? true
     :initial-dispatch {:list-key :list/employer-invoices-pending
-                       :fn-key :views/get-employer-invoices
+                       :fn-key :ethlance-views/get-employer-invoices
                        :load-dispatch-key :contract.db/load-invoices
                        :schema ethlance-db/invoices-table-schema
                        :args {:user/id id :invoice/status 1}}
-    :all-ids-subscribe [:list.ids/employer-invoices-pending]
+    :all-ids-subscribe [:list/ids :list/employer-invoices-pending]
     :title "Pending Invoices"
     :no-items-text "You have no invoices to pay"}])
 
 (defn employer-paid-invoices [{:keys [:user/id]}]
   [invoices-table
-   {:list-subscribe [:list/employer-invoices-paid]
+   {:list-subscribe [:list/invoices :list/employer-invoices-paid]
     :show-freelancer? true
     :show-job? true
     :show-paid-on? true
     :initial-dispatch {:list-key :list/employer-invoices-paid
-                       :fn-key :views/get-employer-invoices
+                       :fn-key :ethlance-views/get-employer-invoices
                        :load-dispatch-key :contract.db/load-invoices
                        :schema ethlance-db/invoices-table-schema
                        :args {:user/id id :invoice/status 2}}
-    :all-ids-subscribe [:list.ids/employer-invoices-paid]
+    :all-ids-subscribe [:list/ids :list/employer-invoices-paid]
     :title "Paid Invoices"
     :no-items-text "You have no paid invoices"}])
 

@@ -48,7 +48,7 @@
             :default-value title}]
           [:div
            [category-select-field
-            {:value category
+            {:value (when (pos? category) category)
              :no-all-categories? true
              :on-change #(dispatch [:form/value-changed :form.job/add-job :job/category %3])}]]
           [:div
