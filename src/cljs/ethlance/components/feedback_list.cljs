@@ -29,10 +29,11 @@
   (remove #(and (not (:contract/freelancer-feedback-on %))
                 (not (:contract/employer-feedback-on %))) items))
 
-(defn feedback-list [{:keys [list-subscribe]}]
+(defn feedback-list [{:keys [:list-subscribe]}]
   (let [list (subscribe list-subscribe)]
     (fn [{:keys [title pagination-props initial-dispatch]}]
-      (let [{:keys [loading? items offset limit show-more-limit initial-limit]} @list
+      (let [{:keys [:loading? :items :offset :limit :show-more-limit :initial-limit :lines-in-message]
+             :or {lines-in-message 5}} @list
             items (remove-without-feedback items)]
         [misc/call-on-change
          {:args initial-dispatch
@@ -52,24 +53,24 @@
                     employer-bubble [message-bubble
                                      {:side :right
                                       :user employer
-                                      :date employer-feedback-on}
+                                      :date employer-feedback-on
+                                      :lines lines-in-message
+                                      :header [feedback-star-rating
+                                               {:rating employer-feedback-rating
+                                                :style styles/white-text}]}
                                      (if employer-feedback-on
-                                       [:div
-                                        [feedback-star-rating
-                                         {:rating employer-feedback-rating
-                                          :style styles/white-text}]
-                                        [truncated-text employer-feedback]]
+                                       employer-feedback
                                        [:div {:style styles/italic-text} "(Employer hasn't left feedback yet)"])]
                     freelancer-bubble [message-bubble
                                        {:side :left
                                         :user freelancer
-                                        :date freelancer-feedback-on}
+                                        :date freelancer-feedback-on
+                                        :lines lines-in-message
+                                        :header [feedback-star-rating
+                                                 {:rating freelancer-feedback-rating
+                                                  :style styles/dark-text}]}
                                        (if freelancer-feedback-on
-                                         [:div
-                                          [feedback-star-rating
-                                           {:rating freelancer-feedback-rating
-                                            :style styles/dark-text}]
-                                          [truncated-text freelancer-feedback]]
+                                         freelancer-feedback
                                          [:div {:style styles/italic-text} "(Freelancer hasn't left feedback yet)"])]]
                 [:div
                  {:key id}

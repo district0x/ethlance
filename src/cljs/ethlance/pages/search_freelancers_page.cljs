@@ -29,11 +29,11 @@
          [category-select-field
           {:value category
            :full-width true
-           :on-change #(dispatch [:form/search-freelancers-changed :search/category %3])}]
+           :on-change #(dispatch [:form.search-freelancers/set-value :search/category %3])}]
          [misc/subheader "Min. Rating"]
          [star-rating
           {:value (u/rating->star min-avg-rating)
-           :on-star-click #(dispatch [:form/search-freelancers-changed :search/min-avg-rating
+           :on-star-click #(dispatch [:form.search-freelancers/set-value :search/min-avg-rating
                                       (u/star->rating %1)])}]
          [ui/text-field
           {:floating-label-text "Min. Hourly Rate"
@@ -41,32 +41,33 @@
            :default-value min-hourly-rate
            :full-width true
            :min 0
-           :on-change #(dispatch [:form/search-freelancers-changed :search/min-hourly-rate %2])}]
+           :on-change #(dispatch [:form.search-freelancers/set-value :search/min-hourly-rate %2])}]
          [ui/text-field
           {:floating-label-text "Max. Hourly Rate"
            :type :number
            :default-value max-hourly-rate
            :full-width true
            :min 0
-           :on-change #(dispatch [:form/search-freelancers-changed :search/max-hourly-rate %2])}]
+           :on-change #(dispatch [:form.search-freelancers/set-value :search/max-hourly-rate %2])}]
          [ui/text-field
           {:floating-label-text "Min. Number of Feedbacks"
            :type :number
            :default-value min-freelancer-ratings-count
            :full-width true
            :min 0
-           :on-change #(dispatch [:form/search-freelancers-changed :search/min-freelancer-ratings-count %2])}]
+           :on-change #(dispatch [:form.search-freelancers/set-value :search/min-freelancer-ratings-count %2])}]
          [country-auto-complete
           {:value country
            :full-width true
-           :on-new-request #(dispatch [:form/search-freelancers-changed :search/country %2])}]
+           :on-new-request #(dispatch [:form.search-freelancers/set-value :search/country %2])}]
          [language-select-field
           {:value language
            :full-width true
-           :on-new-request #(dispatch [:form/search-freelancers-changed :search/language %2])}]]))))
+           :on-new-request #(dispatch [:form.search-freelancers/set-value :search/language %2])}]]))))
 
 (defn search-results []
-  (let [list (subscribe [:list/search-freelancers])]
+  (let [list (subscribe [:list/search-freelancers])
+        selected-skills (subscribe [:form/search-freelancer-skills])]
     (fn []
       (let [{:keys [loading? items]} @list]
         [paper-thin
@@ -82,7 +83,7 @@
                {:md 1}
                [ui/avatar
                 {:size 55
-                 :src (u/gravatar-url gravatar)}]]
+                 :src (u/gravatar-url gravatar id)}]]
               [col
                [:h2 [a {:style styles/primary-text
                         :route :freelancer/detail
@@ -108,12 +109,16 @@
                   :row-props {:style styles/freelancer-info-item}}]]
                [:div
                 [skills-chips
-                 {:selected-skills skills}]]
+                 {:selected-skills skills
+                  :on-touch-tap (fn [skill-id]
+                                  (when-not (contains? (set @selected-skills) skill-id)
+                                    (dispatch [:form.search-freelancers/set-value :search/skills
+                                               (conj (into [] @selected-skills) skill-id)])))}]]
                [misc/hr-small]]])
            [row {:center "xs" :middle "xs"
                  :style {:min-height 200}}
             (when-not loading?
-              [:h3 "No freelancers match your search criteria :("])])]))))
+              [:div "No freelancers match your search criteria"])])]))))
 
 (defn skills-input []
   (let [selected-skills (subscribe [:form/search-freelancer-skills])]
@@ -122,7 +127,7 @@
        [skills-chip-input
         {:value @selected-skills
          :hint-text "Type skills you want a freelancer to have"
-         :on-change #(dispatch [:form/search-freelancers-changed :search/skills %1])}]])))
+         :on-change #(dispatch [:form.search-freelancers/set-value :search/skills %1])}]])))
 
 (defn search-freelancers-page []
   [misc/search-layout

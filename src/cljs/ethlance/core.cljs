@@ -7,6 +7,7 @@
     [cljsjs.material-ui]
     [cljsjs.react-flexbox-grid]
     [cljsjs.web3]
+    [cljsjs.react-truncate]
     [ethlance.components.main-panel :refer [main-panel]]
     [ethlance.events]
     [ethlance.routes :refer [routes]]

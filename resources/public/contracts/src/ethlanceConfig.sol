@@ -22,24 +22,26 @@ contract EthlanceConfig is EthlanceSetter {
         }
     }
 
-    function getConfigs(bytes32[] keys) constant returns (bytes32[], uint[] values) {
+    function getConfigs(bytes32[] keys) constant returns (uint[] values) {
+        values = new uint[](keys.length);
         for (uint i = 0; i < keys.length; i++) {
             values[i] = EthlanceDB(ethlanceDB).getUIntValue(sha3("config/", keys[i]));
         }
-        return (keys, values);
+        return values;
     }
 
     function addSkills(
         bytes32[] names
     )
         onlyActiveSmartContract
-        onlyActiveUser
     {
+        var userId = getSenderUserId();
         if (msg.sender != owner) {
             if (0 == getConfig("adding-skills-enabled?")) throw;
             if (names.length > getConfig("max-skills-create-at-once")) throw;
+//            if (0 == userId) throw;
         }
-        var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names, getSenderUserId());
+        var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names, userId);
         onSkillsAdded(skillIds, names);
     }
 

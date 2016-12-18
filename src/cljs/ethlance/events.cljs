@@ -145,7 +145,8 @@
          :async-flow {:first-dispatch [:load-eth-contracts]
                       :rules [{:when :seen?
                                :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
-                               :dispatch-n [[:contract.views/load-my-users]]
+                               :dispatch-n [[:contract.config/get-configs {:config/keys (keys (:eth/config default-db))}]
+                                            [:contract.views/load-my-users]]
                                :halt? true}]}}
         (when provides-web3?
           {:web3-fx.blockchain/fns
@@ -311,6 +312,26 @@
                [:contract/transaction-receipt :set-configs max-gas :generate-db false]]]}})))
 
 (reg-event-fx
+  :contract.config/get-configs
+  interceptors
+  (fn [{:keys [db]} [values]]
+    (let [fn-key :ethlance-config/get-configs]
+      {:web3-fx.contract/constant-fns
+       {:fns [[(get-instance db (keyword (namespace fn-key)))
+               fn-key
+               (:config/keys values)
+               [:contract.config/get-configs-loaded (:config/keys values)]
+               :log-error]]}})))
+
+(reg-event-fx
+  :contract.config/get-configs-loaded
+  interceptors
+  (fn [{:keys [db]} [config-keys config-values]]
+    (if (seq config-values)
+      {:db (update db :eth/config merge (zipmap config-keys (u/big-nums->nums config-values)))}
+      {:db (assoc db :contracts-not-found? true)})))
+
+(reg-event-fx
   :contract.config/add-skills
   interceptors
   (fn [{:keys [db]} [form-data address]]
@@ -321,13 +342,7 @@
                  :form-key :form.config/add-skills
                  :receipt-dispatch-n [[:snackbar/show-message "Skills were successfully added!"]
                                       [:contract.views/load-skill-names]
-                                      [:contract.config/add-skills-receipt]]}]}))
-
-(reg-event-db
-  :contract.config/add-skills-receipt
-  interceptors
-  (fn [db]
-    (assoc-in db [:form.config/add-skills :data :skill/names] [])))
+                                      [:form/set-value :form.config/add-skills :skill/names [] false]]}]}))
 
 (reg-event-fx
   :contract.db/add-allowed-contracts
@@ -503,7 +518,8 @@
                                                     :field-key :job/skills}]
                     [:contract.db/load-users
                      (merge (ethlance-db/without-strs ethlance-db/employer-schema)
-                            ethlance-db/user-schema)
+                            ethlance-db/user-schema
+                            ethlance-db/user-balance-schema)
                      (map :job/employer (vals jobs))]]})))
 
 ;; ============users
@@ -939,18 +955,18 @@
                      [:contract/transaction-receipt method max-gas nil nil]])]}}))
 
 (reg-event-fx
-  :form/search-jobs-changed
+  :form.search-jobs/set-value
   interceptors
-  (fn [{:keys [db]} [key value]]
-    (let [new-db (assoc-in db [:form/search-jobs key] value)]
+  (fn [{:keys [db]} [field-key field-value]]
+    (let [new-db (assoc-in db [:form/search-jobs field-key] field-value)]
       {:db new-db
        :dispatch [:contract.search/search-jobs (:form/search-jobs new-db)]})))
 
 (reg-event-fx
-  :form/search-freelancers-changed
+  :form.search-freelancers/set-value
   interceptors
-  (fn [{:keys [db]} [key value]]
-    (let [new-db (assoc-in db [:form/search-freelancers key] value)]
+  (fn [{:keys [db]} [field-key field-value]]
+    (let [new-db (assoc-in db [:form/search-freelancers field-key] field-value)]
       {:db new-db
        :dispatch [:contract.search/search-freelancers (:form/search-freelancers new-db)]})))
 

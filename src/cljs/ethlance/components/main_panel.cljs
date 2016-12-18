@@ -1,5 +1,6 @@
 (ns ethlance.components.main-panel
   (:require
+    [cljsjs.material-ui-chip-input]
     [cljs-react-material-ui.core :refer [get-mui-theme]]
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
@@ -18,7 +19,7 @@
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
     [ethlance.pages.job-create-page :refer [job-create-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
-    [ethlance.components.misc :as misc]
+    [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows]]
     [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
@@ -92,13 +93,61 @@
            :primary-text (u/truncate address 25)
            :key address}])])))
 
+(defn user-anchor [{:keys [:user]} body]
+  (let [{:keys [:user/freelancer? :user/id]} user]
+    [a
+     {:route (if freelancer? :freelancer/detail :employer/detail)
+      :route-params {:user/id id}}
+     body]))
+
+(defn app-bar-right-elements []
+  (let [active-address-balance (subscribe [:db/active-address-balance])
+        active-user (subscribe [:db/active-user])
+        my-users-loading? (subscribe [:db/my-users-loading?])
+        active-address-registered? (subscribe [:db/active-address-registered?])]
+    (fn []
+      [row-plain
+       {:middle "xs"}
+       (when (or @my-users-loading?
+                 (and (not @active-user)
+                      @active-address-registered?))
+         [row-plain
+          {:middle "xs"
+           :style styles/app-bar-user}
+          [ui/circular-progress
+           {:size 30
+            :color "#FFF"
+            :thickness 2}]])
+       (when @active-user
+         [row-plain
+          {:middle "xs"
+           :style styles/app-bar-user}
+          [user-anchor
+           {:user @active-user}
+           [:h3 {:style styles/app-bar-user}
+            (u/first-word (:user/name @active-user))]]
+          [user-anchor
+           {:user @active-user}
+           [ui/avatar
+            {:size 35
+             :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))}]]])
+       (when @active-address-balance
+         [:h2 {:style styles/app-bar-balance}
+          (u/eth @active-address-balance)])
+       [my-addresses-select-field]])))
+
+(defn contracts-not-found-page []
+  [centered-rows
+   [:h3 "Looks like we couldn't find Ethlance smart contracts. Are you sure you are connected to Ethereum Mainnet?"]])
+
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
         active-user (subscribe [:db/active-user])
         snackbar (subscribe [:db/snackbar])
         active-address-registered? (subscribe [:db/active-address-registered?])
-        my-users-loading? (subscribe [:db/my-users-loading?])]
+        my-users-loading? (subscribe [:db/my-users-loading?])
+        contracts-not-found? (subscribe [:db/contracts-not-found?])]
     (fn []
       (let [{:keys [:user/freelancer? :user/employer?]} @active-user]
         [ui/mui-theme-provider
@@ -130,7 +179,7 @@
               (create-menu-items nav-items-employer))]]
           [ui/app-bar
            {:show-menu-icon-button false
-            :icon-element-right (r/as-element [my-addresses-select-field])
+            :icon-element-right (r/as-element [app-bar-right-elements])
             :style styles/app-bar-right}]
           [ui/snackbar (-> @snackbar
                          (set/rename-keys {:open? :open})
@@ -138,4 +187,6 @@
                          (update :action #(if % (r/as-element %) nil)))]
           (when-let [page (route->component (:handler @current-page))]
             [:div {:style styles/content-wrap}
-             [page]])]]))))
+             (if @contracts-not-found?
+               [contracts-not-found-page]
+               [page])])]]))))

@@ -32,7 +32,7 @@
           [a route-props
            [ui/avatar
             {:size 100
-             :src (u/gravatar-url gravatar)}]]]
+             :src (u/gravatar-url gravatar id)}]]]
          [col
           [:h2 [a route-props name]]
           [row-plain
@@ -179,7 +179,8 @@
                [misc/status-chip
                 {:background-color styles/budget-chip-color}
                 "Budget " (u/eth budget)])]
-            [:p {:style styles/detail-description} description]
+            [misc/detail-description
+             description]
             [misc/subheader "Required Skills"]
             [skills-chips
              {:selected-skills skills

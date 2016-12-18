@@ -9,6 +9,7 @@
   {:web3 (web3/create-web3 "http://localhost:8545/")
    :active-page (u/match-current-location)
    :provides-web3? (boolean (or (aget js/window "web3") goog.DEBUG))
+   :contracts-not-found? false
    :drawer-open? true
    :snackbar {:open? false
               :message ""
@@ -18,8 +19,8 @@
                 :min-user-languages 1
                 :max-freelancer-categories (dec (count constants/categories))
                 :min-freelancer-categories 0
-                :max-freelancer-skills 15
-                :min-freelancer-skills 1
+                :max-freelancer-skills 10
+                :min-freelancer-skills 0
                 :max-job-skills 7
                 :min-job-skills 1
                 :max-user-description 1000
@@ -84,7 +85,7 @@
    :form.invoice/cancel-invoice {:loading? false :gas-limit 200000}
    :form.job/set-hiring-done {:loading? false :gas-limit 200000}
    :form.job/add-job {:loading? false
-                      :gas-limit 1400000
+                      :gas-limit 2000000
                       :data {:job/title ""
                              :job/description ""
                              :job/skills []
@@ -132,7 +133,7 @@
                               :errors #{:invoice/contract}}
 
    :form.config/add-skills {:loading? false
-                            :gas-limit 4000000
+                            :gas-limit 4500000
                             :data {:skill/names []}
                             :errors #{:skill/names}}
 
@@ -154,7 +155,7 @@
                             :open? false}
 
    :form.user/register-freelancer {:loading? false
-                                   :gas-limit 1500000
+                                   :gas-limit 2000000
                                    :open? true
                                    :data {:user/name ""
                                           :user/gravatar ""
@@ -171,7 +172,7 @@
                                                    :freelancer/description}}
 
    :form.user/register-employer {:loading? false
-                                 :gas-limit 1500000
+                                 :gas-limit 2000000
                                  :open? true
                                  :data {:user/name ""
                                         :user/gravatar ""

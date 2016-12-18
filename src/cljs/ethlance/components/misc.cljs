@@ -4,10 +4,11 @@
     [cljs-react-material-ui.reagent :as ui]
     [cljs-web3.core :as web3]
     [ethlance.components.list-pagination :refer [list-pagination]]
+    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
-    [medley.core :as medley]
     [goog.string :as gstring]
+    [medley.core :as medley]
     [re-frame.core :refer [subscribe dispatch dispatch-sync]]
     [reagent.core :as r]
     ))
@@ -58,7 +59,6 @@
 (def status-chip (u/create-with-default-props ui/chip {:label-style {:color "#FFF" :font-weight :bold}
                                                        :style {:margin-right 5 :margin-bottom 5}}))
 
-
 (def hr-small (u/create-with-default-props :div {:style styles/hr-small}))
 (def hr (u/create-with-default-props :div {:style styles/hr}))
 
@@ -68,16 +68,15 @@
   ([label body]
    [:div {:style styles/line} [:span label ": "] [:b body]]))
 
-(defn a
-  ([{:keys [route-params route underline-hover?] :as props} body]
-   [:a
-    (r/merge-props
-      {:style {:color (:primary1-color styles/palette)}
-       :class (when underline-hover? "hoverable")
-       :href (when-not (some nil? (vals route-params))
-               (medley/mapply u/path-for route route-params))
-       :on-click #(.stopPropagation %)}
-      (dissoc props :route-params :route)) body]))
+(defn a [{:keys [route-params route underline-hover?] :as props} body]
+  [:a
+   (r/merge-props
+     {:style {:color (:primary1-color styles/palette)}
+      :class (when underline-hover? "hoverable")
+      :href (when-not (some nil? (vals route-params))
+              (medley/mapply u/path-for route route-params))
+      :on-click #(.stopPropagation %)}
+     (dissoc props :route-params :route)) body])
 
 (defn create-table-pagination [list-pagination-props]
   [ui/table-footer
@@ -195,13 +194,13 @@
   [register-required-body
    "Your address must be registered as an employer to see this page "
    "Become Employer"
-   (u/path-for :employer/create)])
+   (u/path-for :user/edit)])
 
 (defmethod register-required :user/freelancer? []
   [register-required-body
    "Your address must be registered as a freelancer to see this page "
    "Become Freelancer"
-   (u/path-for :freelancer/create)])
+   (u/path-for :user/edit)])
 
 (defn user-only-page []
   (let [prev-user-id (r/atom nil)
@@ -260,14 +259,14 @@
   (if @(subscribe [:db/active-address-registered?])
     (into [:div] children)
     (when-not @(subscribe [:db/my-users-loading?])
-      #_ [center-layout
-       [paper
-        {:loading? true}
-        [row-plain
-         {:middle "xs"
-          :center "xs"
-          :style styles/paper-section-main}
-         [:h2 "Loading your accounts..."]]]]
+      #_[center-layout
+         [paper
+          {:loading? true}
+          [row-plain
+           {:middle "xs"
+            :center "xs"
+            :style styles/paper-section-main}
+           [:h2 "Loading your accounts..."]]]]
       [centered-rows
        "You must register your address first"
        [ui/raised-button
@@ -291,3 +290,12 @@
        :label "My Profile"
        :style styles/margin-top-gutter-less}]]
     (into [:div] children)))
+
+(defn detail-description [body]
+  [truncated-text
+   {:lines 30
+    :allow-whitespace? true}
+   body])
+
+(defn search-result-skill-chips []
+  )

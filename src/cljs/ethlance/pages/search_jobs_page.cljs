@@ -30,72 +30,72 @@
          [category-select-field
           {:value category
            :full-width true
-           :on-change #(dispatch [:form/search-jobs-changed :search/category %3])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/category %3])}]
          [misc/subheader "Min. Employer Rating"]
          [star-rating
           {:value (u/rating->star min-employer-avg-rating)
-           :on-star-click #(dispatch [:form/search-jobs-changed :search/min-employer-avg-rating (u/star->rating %1)])}]
+           :on-star-click #(dispatch [:form.search-jobs/set-value :search/min-employer-avg-rating (u/star->rating %1)])}]
          [misc/subheader "Payment Type"]
          [checkbox-group
           {:options constants/payment-types
            :values payment-types
-           :on-change #(dispatch [:form/search-jobs-changed :search/payment-types %2])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/payment-types %2])}]
          [misc/subheader "Experience Level"]
          [checkbox-group
           {:options constants/experience-levels
            :values experience-levels
-           :on-change #(dispatch [:form/search-jobs-changed :search/experience-levels %2])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/experience-levels %2])}]
          [misc/subheader "Project Length"]
          [checkbox-group
           {:options constants/estimated-durations
            :values estimated-durations
-           :on-change #(dispatch [:form/search-jobs-changed :search/estimated-durations %2])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/estimated-durations %2])}]
          [misc/subheader "Availability"]
          [checkbox-group
           {:options constants/hours-per-weeks
            :values hours-per-weeks
-           :on-change #(dispatch [:form/search-jobs-changed :search/hours-per-weeks %2])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/hours-per-weeks %2])}]
          [ui/text-field
           {:floating-label-text "Min. Budget"
            :type :number
            :default-value min-budget
            :full-width true
            :min 0
-           :on-change #(dispatch [:form/search-jobs-changed :search/min-budget %2])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/min-budget %2])}]
          [ui/text-field
           {:floating-label-text "Min. Number of Feedbacks"
            :type :number
            :default-value min-employer-ratings-count
            :full-width true
            :min 0
-           :on-change #(dispatch [:form/search-jobs-changed :search/min-employer-ratings-count %2])}]
+           :on-change #(dispatch [:form.search-jobs/set-value :search/min-employer-ratings-count %2])}]
          [country-auto-complete
           {:value country
            :full-width true
-           :on-new-request #(dispatch [:form/search-jobs-changed :search/country %2])}]
+           :on-new-request #(dispatch [:form.search-jobs/set-value :search/country %2])}]
          [language-select-field
           {:value language
            :full-width true
-           :on-new-request #(dispatch [:form/search-jobs-changed :search/language %2])}]
+           :on-new-request #(dispatch [:form.search-jobs/set-value :search/language %2])}]
          #_[misc/subheader "Min Budget"]
          #_[slider-with-counter
             {:max 200
              :step 5
              :value min-budget
-             :on-change #(dispatch [:form/search-jobs-changed :search/min-budget %2])}
+             :on-change #(dispatch [:form.search-jobs/set-value :search/min-budget %2])}
             (str min-budget " ETH")]
 
          ]))))
 
 (defn search-results-employer [{:keys [:employer/jobs-count :employer/avg-rating :employer/total-paid
-                                       :user/name :job/employer :employer/ratings-count :user/country]}]
+                                       :user/name :user/id :employer/ratings-count :user/country :user/balance]}]
   [:div {:style styles/employer-info-wrap}
-   (when-not (empty? name)
+   (when (seq name)
      [row-plain
       {:middle "xs"
        :style styles/employer-info}
       [:span [a {:route :employer/detail
-                 :route-params {:user/id employer}} name]]
+                 :route-params {:user/id id}} name]]
       [star-rating
        {:value (u/rating->star avg-rating)
         :small? true
@@ -106,6 +106,9 @@
       [:span
        {:style styles/employer-info-item}
        [:span {:style styles/dark-text} (u/eth total-paid)] " spent"]
+      [:span
+       {:style styles/employer-info-item}
+       [:span {:style styles/dark-text} (u/eth balance)] " balance"]
       [misc/country-marker
        {:country country
         :row-props {:style styles/employer-info-item}}]])])
@@ -121,17 +124,18 @@
             {:secondary true
              :label "Newer"
              :icon (icons/navigation-chevron-left)
-             :on-touch-tap #(dispatch [:form/search-jobs-changed :search/offset (- offset limit)])}])
+             :on-touch-tap #(dispatch [:form.search-jobs/set-value :search/offset (- offset limit)])}])
          (when (= items-count limit)
            [ui/flat-button
             {:secondary true
              :label "Older"
              :label-position :before
              :icon (icons/navigation-chevron-right)
-             :on-touch-tap #(dispatch [:form/search-jobs-changed :search/offset (+ offset limit)])}])]))))
+             :on-touch-tap #(dispatch [:form.search-jobs/set-value :search/offset (+ offset limit)])}])]))))
 
 (defn search-results []
-  (let [list (subscribe [:list/search-jobs])]
+  (let [list (subscribe [:list/search-jobs])
+        selected-skills (subscribe [:form/search-job-skills])]
     (fn []
       (let [{:keys [loading? items]} @list]
         [paper-thin
@@ -153,22 +157,26 @@
                 [:span " - " (constants/experience-levels experience-level)]
                 [:span " - Est. Time: " (constants/estimated-durations estimated-duration)]
                 [:span " - " (constants/hours-per-weeks hours-per-week)]
-                [:span " - Budget: " (u/eth budget)]
+                [:span " - Budget: " [:span {:style styles/dark-text} (u/eth budget)]]
                 #_(when (.greaterThan budget 0)
                     [:span " - Budget: " (.toNumber budget) " ETH"])]
                [:div {:style styles/job-list-description}
                 [truncated-text
-                 {:more-text-props {:style {:color styles/primary1-color}}}
+                 {:lines 2}
                  description]]
                [skills-chips
-                {:selected-skills skills}]
-               [search-results-employer item]
+                {:selected-skills skills
+                 :on-touch-tap (fn [skill-id]
+                                 (when-not (contains? (set @selected-skills) skill-id)
+                                   (dispatch [:form.search-jobs/set-value :search/skills
+                                              (conj (into [] @selected-skills) skill-id)])))}]
+               [search-results-employer (:job/employer item)]
                [misc/hr-small]])
             [pagination (count items)]]
            [row {:center "xs" :middle "xs"
                  :style {:min-height 200}}
             (when-not loading?
-              [:h3 "No jobs match your search criteria :("])])]))))
+              [:div "No jobs match your search criteria"])])]))))
 
 (defn skills-input []
   (let [selected-skills (subscribe [:form/search-job-skills])]
@@ -177,7 +185,7 @@
        [skills-chip-input
         {:value @selected-skills
          :hint-text "Type skills required for a job"
-         :on-change #(dispatch [:form/search-jobs-changed :search/skills %1])}]])))
+         :on-change #(dispatch [:form.search-jobs/set-value :search/skills %1])}]])))
 
 (defn search-jobs-page []
   [misc/search-layout

@@ -133,6 +133,8 @@
 
 (def more-text
   {:cursor :pointer
+   :text-align :center
+   :color primary1-color
    :font-style :italic})
 
 (def clickable
@@ -210,7 +212,7 @@
 (def paper-title
   )
 
-(def detail-description
+(def allow-whitespaces
   {:white-space :pre-wrap})
 
 (def success-color (color :green500))
@@ -298,3 +300,19 @@
 
 (def table-highlighted-row
   {:background-color (color :indigo50)})
+
+(def app-bar-balance
+  (merge white-text
+         {:margin-right 20}))
+
+(def app-bar-user
+  (merge white-text
+         {:margin-right 10}))
+
+(def app-bar-user-name
+  (merge white-text
+         {:margin-right 5}))
+
+(def app-bar-loading-users
+  (merge white-text
+         {:font-weight 300}))

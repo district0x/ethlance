@@ -9,13 +9,12 @@
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
+    [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
-    [ethlance.constants :as constants]
     [reagent.core :as r]))
 
 (defn freelancer-info [{:keys [:user/gravatar :user/name :user/country :freelancer/job-title :freelancer/avg-rating
@@ -31,7 +30,7 @@
        {:xs 6 :md 2}
        [ui/avatar
         {:size 110
-         :src (u/gravatar-url gravatar)}]]
+         :src (u/gravatar-url gravatar id)}]]
       [col
        {:xs 6 :md 7}
        [:h1 name]
@@ -60,7 +59,8 @@
      [misc/hr]
      [misc/user-address address]
      [misc/user-created-on created-on]
-     [truncated-text description]
+     [misc/detail-description
+      description]
      [misc/subheader "Skills"]
      [skills-chips
       {:selected-skills skills
@@ -96,8 +96,8 @@
         {:xs 12 :md 6
          :style styles/text-right}
         (when employer?
-          [ui/raised-button
-           {:label "See employer profile"
+          [ui/flat-button
+           {:label "employer profile"
             :primary true
             :href (u/path-for :employer/detail :user/id id)}])]]
       (if freelancer?

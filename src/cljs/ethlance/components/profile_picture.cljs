@@ -17,7 +17,7 @@
       [col {:xs 12}
        [ui/avatar
         {:size 80
-         :src (u/gravatar-url gravatar)}]]
+         :src (u/gravatar-url gravatar id)}]]
       [col {:xs 12
             :style styles/profile-picture-name}
        name]]]))

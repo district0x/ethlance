@@ -273,6 +273,9 @@
 (def get-employer-jobs-for-freelancer-invite
   [:employer/id :freelancer/id])
 
+(def get-configs-args
+  [:config/keys])
+
 (def eth-contracts-fns
   {:ethlance-views/get-freelancer-contracts get-user-contracts-args
    :ethlance-views/get-employer-contracts get-user-contracts-args
@@ -289,6 +292,7 @@
    :ethlance-search/search-freelancers search-freelancers-args
    :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
    :ethlance-config/add-skills add-skills-args
+   :ethlance-config/get-configs get-configs-args
    :ethlance-invoice/cancel-invoice cancel-invoice-args
    :ethlance-invoice/pay-invoice pay-invoice-args
    :ethlance-invoice/add-invoice add-invoice-args
@@ -367,7 +371,7 @@
 (defn uint->value [val val-type]
   (condp = val-type
     bool (if (.eq val 0) false true)
-    bytes32 (web3/to-ascii (web3/from-decimal val))
+    bytes32 (u/remove-zero-chars (web3/to-ascii (web3/from-decimal val)))
     addr (u/prepend-address-zeros (web3/from-decimal val))
     date (u/big-num->date-time val)
     big-num val

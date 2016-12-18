@@ -1,22 +1,44 @@
 (ns ethlance.components.truncated-text
   (:require
+    [cljsjs.react-truncate]
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.components.misc :refer [col row paper-thin]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [clojure.string :as string]
+    [medley.core :as medley]))
+
+(def react-truncate (r/adapt-react-class js/ReactTruncate))
+
+(defn new-lines->br [text]
+  (let [lines-indexed (medley/indexed (string/split text #"\n"))]
+    (map (fn [[i line]]
+           (let [line (r/as-element [:span {:key i} line])]
+             (if (= i (dec (count lines-indexed)))
+               line
+               (clj->js [line (r/as-element [:br {:key (str i "br")}])]))))
+         lines-indexed)))
+
+(defn more-button [{:keys [:color] :as props}]
+  [:span (r/merge-props
+           {:style (merge styles/more-text
+                          (when color
+                            {:color color}))}
+           (dissoc props :color))
+   "...Read More"])
 
 (defn truncated-text []
   (let [open? (r/atom false)]
     (fn [props & children]
-      (let [[{:keys [more-text-props max-length] :or {max-length 200}} children]
-            (u/parse-props-children props children)
+      (let [[{:keys [:more-text-color :allow-whitespace? :lines]
+              :as props} children] (u/parse-props-children props children)
             text (first children)]
-        (if @open?
-          [:div text]
-          [:div (u/truncate text max-length) [:span (r/merge-props
-                                                     {:style styles/more-text
-                                                      :on-click #(reset! open? true)}
-                                                     more-text-props)
-                                             (when (< max-length (count text))
-                                               "More")]])))))
+        (if (or @open? (not (pos? lines)))
+          [:div
+           (when allow-whitespace? {:style styles/allow-whitespaces})
+           text]
+          [react-truncate
+           {:lines lines
+            :ellipsis (r/as-element [more-button {:color more-text-color
+                                                  :on-click #(reset! open? true)}])}
+           (new-lines->br text)])))))

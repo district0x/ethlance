@@ -1,9 +1,10 @@
 (ns ethlance.pages.skills-create-page
   (:require
+    [cljs-react-material-ui.chip-input.reagent :as material-ui-chip-input]
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [clojure.set :as set]
     [clojure.string :as string]
-    [ethlance.components.chip-input :refer [material-ui-chip-input]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
@@ -11,7 +12,6 @@
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
-    [clojure.set :as set]
     [cljs-web3.core :as web3]))
 
 (defn add-error [error]
@@ -33,7 +33,7 @@
         [paper
          {:loading? loading?}
          [:h2 "Add Skills"]
-         [material-ui-chip-input
+         [material-ui-chip-input/chip-input
           {:value names
            :full-width true
            :floating-label-text "New Skills"
@@ -61,7 +61,8 @@
                                 (remove-error :max-skill-name-length)
                                 (when (contains? (set names) skill-name)
                                   (let [skill-names (into [] (remove (partial = skill-name) names))]
-                                    (dispatch [:form/set-value :form.config/add-skills :skill/names skill-names])
+                                    (dispatch [:form/set-value :form.config/add-skills :skill/names skill-names
+                                               (comp pos? count)])
                                     (if (>= max-skills-create-at-once (count skill-names))
                                       (remove-error :max-skills-create-at-once)))))
            :error-text (cond

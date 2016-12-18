@@ -27,9 +27,21 @@
     (:drawer-open? db)))
 
 (reg-sub
+  :db/contracts-not-found?
+  (fn [db _]
+    (:contracts-not-found? db)))
+
+(reg-sub
   :db/active-address
   (fn [db _]
     (:active-address db)))
+
+(reg-sub
+  :db/active-address-balance
+  :<- [:blockchain/addresses]
+  :<- [:db/active-address]
+  (fn [[blockchain-addresses active-address]]
+    (:address/balance (blockchain-addresses active-address))))
 
 (reg-sub
   :db/my-addresses

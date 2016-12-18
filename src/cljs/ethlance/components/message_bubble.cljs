@@ -15,7 +15,7 @@
     [col {:xs 12}
      "- " (u/format-datetime date) " -"]]])
 
-(defn message-bubble* [{:keys [side truncate?]} body]
+(defn message-bubble* [{:keys [:side :header :lines]} text]
   [col
    (r/merge-props
      {:xs 10 :md 9}
@@ -25,9 +25,16 @@
     {:style (if (= side :right)
               styles/message-bubble-right
               styles/message-bubble-left)}
-    (if truncate?
-      [truncated-text body]
-      body)]])
+    header
+    [:div
+     {:style styles/full-width}
+     [truncated-text
+      (merge
+        {:allow-whitespace? true
+         :lines lines}
+        (when (= side :right)
+          {:more-text-color "#FFF"}))
+      text]]]])
 
 (defn profile-picture* [{:keys [side user]}]
   [col

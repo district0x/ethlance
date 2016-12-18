@@ -15,6 +15,8 @@
     [ethlance.styles :as styles]
     [goog.string :as gstring]
     [goog.string.format]
+    [goog.crypt :as crypt]
+    [goog.crypt.Md5 :as Md5]
     [medley.core :as medley]
     [reagent.core :as r]
     [cljs-web3.core :as web3])
@@ -82,6 +84,11 @@
 
 (defn empty-invoice? [invoice]
   (zero? (:invoice/created-on invoice)))
+
+(defn md5 [s]
+  (let [container (doto (goog.crypt.Md5.)
+                    (.update s))]
+    (crypt/byteArrayToHex (.digest container))))
 
 (defn debounce-ch
   ([c ms] (debounce-ch (chan) c ms false))
@@ -222,8 +229,11 @@
                  [component (r/merge-props default-props props)]
                  children)))))
 
-(defn gravatar-url [hash]
-  (gstring/format "http://s.gravatar.com/avatar/%s?s=130" hash))
+(defn gravatar-url [hash user-id]
+  (let [valid? (= (count hash) 32)]
+    (gstring/format "http://s.gravatar.com/avatar/%s?s=130&d=retro%s"
+                    (if valid? hash user-id)
+                    (if valid? "" "&f=y"))))
 
 (defn list-filter-loaded [list non-empty-pred]
   (-> list

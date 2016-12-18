@@ -27,7 +27,7 @@
        {:xs 6 :md 2}
        [ui/avatar
         {:size 110
-         :src (u/gravatar-url gravatar)}]]
+         :src (u/gravatar-url gravatar id)}]]
       [col
        {:xs 6 :md 7}
        [:h1 name]
@@ -48,7 +48,8 @@
      [misc/hr]
      [misc/user-address address]
      [misc/user-created-on created-on]
-     [truncated-text description]
+     [misc/detail-description
+      description]
      [misc/subheader "Speaks languages"]
      [misc/call-on-change
       {:load-on-mount? true
@@ -73,8 +74,8 @@
         {:xs 12 :md 6
          :style styles/text-right}
         (when freelancer?
-          [ui/raised-button
-           {:label "See freelancer profile"
+          [ui/flat-button
+           {:label "freelancer profile"
             :primary true
             :href (u/path-for :freelancer/detail :user/id id)}])]]
       (if employer?
