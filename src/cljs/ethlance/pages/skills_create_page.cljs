@@ -3,7 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [clojure.string :as string]
-    [ethlance.components.chip-input :refer [chip-input]]
+    [ethlance.components.chip-input :refer [material-ui-chip-input]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
@@ -33,7 +33,7 @@
         [paper
          {:loading? loading?}
          [:h2 "Add Skills"]
-         [chip-input
+         [material-ui-chip-input
           {:value names
            :full-width true
            :floating-label-text "New Skills"
@@ -52,7 +52,7 @@
                                        (do
                                          (remove-error :skill-already-exists)
                                          (let [skill-names (into [] (conj names skill-name))]
-                                           (dispatch [:form/value-changed :form.config/add-skills :skill/names skill-names])
+                                           (dispatch [:form/set-value :form.config/add-skills :skill/names skill-names])
                                            (when (< max-skills-create-at-once (count skill-names))
                                              (add-error :max-skills-create-at-once))))))))))
            :on-request-delete (fn [skill-name]
@@ -61,7 +61,7 @@
                                 (remove-error :max-skill-name-length)
                                 (when (contains? (set names) skill-name)
                                   (let [skill-names (into [] (remove (partial = skill-name) names))]
-                                    (dispatch [:form/value-changed :form.config/add-skills :skill/names skill-names])
+                                    (dispatch [:form/set-value :form.config/add-skills :skill/names skill-names])
                                     (if (>= max-skills-create-at-once (count skill-names))
                                       (remove-error :max-skills-create-at-once)))))
            :error-text (cond
@@ -83,5 +83,6 @@
            :on-touch-tap #(dispatch [:contract.config/add-skills data])}]]))))
 
 (defn skills-create-page []
-  [center-layout
-   [add-skills-input]])
+  [misc/only-registered
+   [center-layout
+    [add-skills-input]]])

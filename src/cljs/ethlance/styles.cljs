@@ -71,6 +71,9 @@
 (def margin-top-gutter
   {:margin-top desktop-gutter})
 
+(def margin-top-gutter-more
+  {:margin-top (* desktop-gutter 2)})
+
 (def margin-top-gutter-less
   {:margin-top desktop-gutter-less})
 
@@ -194,8 +197,11 @@
 (def job-detail-title
   {:word-break :break-word})
 
-(def inline
+(def display-inline
   {:display :inline})
+
+(def display-block
+  {:display :block})
 
 (def user-detail-h2-line
   {:display :inline

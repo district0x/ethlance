@@ -8,7 +8,7 @@
     [ethlance.utils :as u]
     [medley.core :as medley]
     [goog.string :as gstring]
-    [re-frame.core :refer [subscribe dispatch]]
+    [re-frame.core :refer [subscribe dispatch dispatch-sync]]
     [reagent.core :as r]
     ))
 
@@ -98,33 +98,58 @@
    (into [] (concat [col {:lg 8 :style styles/text-left}]
                     children))])
 
-(defn ether-field [{:keys [:on-change :default-value :form-key :field-key] :as props}]
-  (let [validator u/pos-or-zero?]
-    [ui/text-field
-     (r/merge-props
-       (dissoc props :form-key :field-key)
-       {:on-change (fn [e val]
-                     (let [val (web3/to-wei (u/parse-float val) :ether)]
-                       (dispatch [:form/value-changed form-key field-key val validator])))
-        :error-text (when-not (validator default-value)
-                      "Invalid number")
-        :default-value (web3/from-wei default-value :ether)})]))
+(defn text-field* [{:keys [:default-value :transform-default-value]
+                    :or {transform-default-value identity}}]
+  (let [prev-value (r/atom default-value)]
+    (fn [{:keys [:rows :on-change :default-value :transform-on-change :transform-default-value]
+          :as props
+          :or {transform-on-change identity transform-default-value identity}}]
+      (if (= (u/big-num->num default-value) (u/big-num->num @prev-value))
+        [ui/text-field
+         (merge
+           (dissoc props :transform-on-change :transform-default-value)
+           {:default-value (transform-default-value default-value)
+            :on-change (fn [e val]
+                         (let [val (transform-on-change val)]
+                           (reset! prev-value val)
+                           (when on-change
+                             (on-change e val))))})]
+        (do
+          (reset! prev-value default-value)
+          [:div {:style {:min-height (+ 72 (* (dec (or rows 1)) 24))}}])))))
 
-(defn text-field [{:keys [:max-length-key :min-length-key] :as props}]
+(defn text-field [{:keys [:max-length-key :min-length-key]}]
   (let [eth-config (subscribe [:eth/config])]
-    (fn [{:keys [:default-value :on-change :form-key :field-key]}]
+    (fn [{:keys [:default-value :on-change :form-key :field-key] :as props}]
       (let [min-length (get @eth-config min-length-key 0)
             max-length (get @eth-config max-length-key)
-            validator #(<= min-length (count %1) max-length)
+            validator (if (and min-length-key max-length-key)
+                        #(<= min-length (count %1) max-length)
+                        (constantly true))
             valid? (validator default-value)]
-        [ui/text-field
+        [text-field*
          (r/merge-props
-           {:on-change #(dispatch [:form/value-changed form-key field-key %2 validator])
+           {:style styles/display-block
+            :on-change #(dispatch [:form/set-value form-key field-key %2 validator])
             :error-text (when-not valid?
                           (if (pos? min-length)
                             (gstring/format "Write between %s and %s characters" min-length max-length)
                             "Text is too long"))}
            (dissoc props :max-length-key :form-key :field-key :min-length-key))]))))
+
+(defn ether-field [{:keys [:on-change :default-value :form-key :field-key] :as props}]
+  (let [validator u/pos-or-zero?]
+    [text-field*
+     (r/merge-props
+       (r/merge-props
+         {:style styles/display-block}
+         (dissoc props :form-key :field-key))
+       {:on-change #(dispatch [:form/set-value form-key field-key %2 validator])
+        :transform-on-change #(web3/to-wei (u/parse-float %) :ether)
+        :transform-default-value #(web3/from-wei % :ether)
+        :error-text (when-not (validator default-value)
+                      "Invalid number")
+        :default-value default-value})]))
 
 (defn textarea [props]
   [text-field
@@ -146,25 +171,23 @@
        :primary true}
       props)]])
 
-(defn register-required-body [text label href]
+(defn centered-rows [& children]
   [center-layout
    [paper
     [row
      {:middle "xs" :center "xs"}
-     [col {:xs 12}
-      text]
-     [col {:xs 12}
-      [ui/raised-button
-       {:primary true
-        :href href
-        :label label
-        :style styles/margin-top-gutter-less}]]]]])
+     (for [[i child] (medley/indexed children)]
+       [col {:xs 12 :key i}
+        child])]]])
 
-(defn register-freelancer-required []
-  )
-
-(defn register-employer-required []
-  )
+(defn register-required-body [text label href]
+  [centered-rows
+   text
+   [ui/raised-button
+    {:primary true
+     :href href
+     :label label
+     :style styles/margin-top-gutter-less}]])
 
 (defmulti register-required identity)
 
@@ -194,11 +217,11 @@
             (into [:div] children)
             (register-required user-role-pred)))))))
 
-(defn freelancer-only-page [props & children]
+(defn only-freelancer [props & children]
   (let [[props children] (u/parse-props-children props children)]
     (into [user-only-page (merge {:user-role-pred :user/freelancer?} props)] children)))
 
-(defn employer-only-page [props & children]
+(defn only-employer [props & children]
   (let [[props children] (u/parse-props-children props children)]
     (into [user-only-page (merge {:user-role-pred :user/employer?} props)] children)))
 
@@ -210,9 +233,61 @@
 
 (defn call-on-change [{:keys [:args :load-on-mount?]}]
   (let [prev-args (r/atom (when-not load-on-mount? args))]
-    (fn [{:keys [:on-change :args]} body]
+    (fn [{:keys [:on-change :args]} & childen]
       (when-not (= @prev-args args)
         (reset! prev-args args)
         (when (fn? on-change)
           (on-change args)))
-      body)))
+      (into [:div] childen))))
+
+(defn blocked-user-chip []
+  [status-chip
+   {:background-color styles/danger-color}
+   "This user has been blocked"])
+
+(defn user-address [address]
+  [:h3
+   {:style styles/margin-bottom-gutter-less}
+   [:a {:target :_blank
+        :style {:color styles/primary1-color}
+        :href (u/etherscan-url address)} address]])
+
+(defn user-created-on [created-on]
+  [:h4 {:style (merge styles/fade-text
+                      {:margin-bottom 5})} "joined on " (u/format-date created-on)])
+
+(defn only-registered [& children]
+  (if @(subscribe [:db/active-address-registered?])
+    (into [:div] children)
+    (when-not @(subscribe [:db/my-users-loading?])
+      #_ [center-layout
+       [paper
+        {:loading? true}
+        [row-plain
+         {:middle "xs"
+          :center "xs"
+          :style styles/paper-section-main}
+         [:h2 "Loading your accounts..."]]]]
+      [centered-rows
+       "You must register your address first"
+       [ui/raised-button
+        {:primary true
+         :href (u/path-for :freelancer/create)
+         :label "Become Freelancer"
+         :style styles/margin-top-gutter-less}]
+       [ui/raised-button
+        {:primary true
+         :href (u/path-for :employer/create)
+         :label "Become Employer"
+         :style styles/margin-top-gutter-less}]])))
+
+(defn only-unregistered [& children]
+  (if @(subscribe [:db/active-address-registered?])
+    [centered-rows
+     "This address was already registered. See your profile for making changes"
+     [ui/raised-button
+      {:primary true
+       :href (u/path-for :user/edit)
+       :label "My Profile"
+       :style styles/margin-top-gutter-less}]]
+    (into [:div] children)))

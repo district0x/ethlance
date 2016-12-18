@@ -51,8 +51,9 @@
 (defn employer-invoices-page []
   (let [user (subscribe [:db/active-user])]
     (fn []
-      [misc/employer-only-page
-       [center-layout
-        [invoices-stats @user]
-        [employer-pending-invoices @user]
-        [employer-paid-invoices @user]]])))
+      [misc/only-registered
+       [misc/only-employer
+        [center-layout
+         [invoices-stats @user]
+         [employer-pending-invoices @user]
+         [employer-paid-invoices @user]]]])))

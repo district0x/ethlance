@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 cd resources/public/contracts/src
 
-#/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceUser.sol -o ../build/
-/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceJob.sol -o ../build/
+/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceUser.sol -o ../build/
+#/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceJob.sol -o ../build/
 #/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceContract.sol -o ../build/
 #/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceInvoice.sol -o ../build/
 #/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceConfig.sol -o ../build/

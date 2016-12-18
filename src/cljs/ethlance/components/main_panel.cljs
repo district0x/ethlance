@@ -18,7 +18,8 @@
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
     [ethlance.pages.job-create-page :refer [job-create-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
-    [ethlance.pages.my-profile-page :refer [my-profile-page]]
+    [ethlance.components.misc :as misc]
+    [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
     [ethlance.pages.skills-create-page :refer [skills-create-page]]
@@ -44,15 +45,14 @@
    :invoice/detail invoice-detail-page
    :job/create job-create-page
    :job/detail job-detail-page
-   :my-profile my-profile-page
+   :user/edit user-edit-page
    :search/freelancers search-freelancers-page
    :skills/create skills-create-page
    :search/jobs search-jobs-page})
 
 (def nav-items
   [["Find Work" :search/jobs (icons/action-work)]
-   ["Find People" :search/freelancers (icons/social-people)]
-   ["My Profile" :my-profile (icons/social-person)]])
+   ["Find People" :search/freelancers (icons/social-people)]])
 
 (def nav-items-freelancers
   [["My Contracts" :freelancer/contracts (icons/hardware-laptop-mac)]
@@ -61,6 +61,13 @@
 (def nav-items-employer
   [["My Jobs" :employer/jobs (icons/hardware-laptop-mac)]
    ["Invoices" :employer/invoices (icons/action-assignment)]])
+
+(def nav-items-registered
+  [["My Profile" :user/edit (icons/social-person)]])
+
+(def nav-items-unregistered
+  [["Become Freelancer" :freelancer/create (icons/social-person-add)]
+   ["Become Employer" :employer/create (icons/social-person-add)]])
 
 (defn create-menu-items [items]
   (for [[label handler icon] items]
@@ -88,10 +95,12 @@
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
-        user (subscribe [:db/active-user])
-        snackbar (subscribe [:db/snackbar])]
+        active-user (subscribe [:db/active-user])
+        snackbar (subscribe [:db/snackbar])
+        active-address-registered? (subscribe [:db/active-address-registered?])
+        my-users-loading? (subscribe [:db/my-users-loading?])]
     (fn []
-      (let [{:keys [:user/freelancer? :user/employer?]} @user]
+      (let [{:keys [:user/freelancer? :user/employer?]} @active-user]
         [ui/mui-theme-provider
          {:mui-theme styles/mui-theme}
          [:div
@@ -107,6 +116,10 @@
              :style styles/nav-list
              :on-change (fn [])}
             (create-menu-items nav-items)
+            (if @active-address-registered?
+              (create-menu-items nav-items-registered)
+              (when-not @my-users-loading?
+                (create-menu-items nav-items-unregistered)))
             (when (and freelancer? employer?)
               [ui/subheader "Freelancer"])
             (when freelancer?

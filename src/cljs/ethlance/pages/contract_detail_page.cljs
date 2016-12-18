@@ -144,7 +144,7 @@
             {:label "Close hiring for this job"
              :default-checked hiring-done?
              :style styles/form-item
-             :on-check #(dispatch [:form/value-changed :form.contract/add-contract :contract/hiring-done? %2])}]
+             :on-check #(dispatch [:form/set-value :form.contract/add-contract :contract/hiring-done? %2])}]
            [misc/send-button
             {:disabled (or loading? (boolean (seq errors)))
              :on-touch-tap #(dispatch [:contract.contract/add-contract (merge data {:contract/id id})])}]])))))
@@ -170,7 +170,7 @@
            [star-rating
             {:star-count 10
              :value (u/rating->star feedback-rating)
-             :on-star-click #(dispatch [:form/value-changed :form.contract/add-feedback :contract/feedback-rating
+             :on-star-click #(dispatch [:form/set-value :form.contract/add-feedback :contract/feedback-rating
                                         (u/star->rating %1)])
              :style styles/form-item}]
            [misc/textarea

@@ -40,9 +40,9 @@
            [star-rating
             {:value (u/rating->star avg-rating)
              :small? true
-             :show-number? true}]]
+             :show-number? true
+             :ratings-count ratings-count}]]
           [line (str (u/eth total-paid) " spent")]
-          [line (str ratings-count " " (u/pluralize "feedback" ratings-count))]
           [misc/country-marker
            {:country country}]]]))))
 
@@ -106,7 +106,9 @@
     (fn []
       (let [{:keys [:loading? :errors :data]} @form
             {:keys [:proposal/description :proposal/rate]} data]
-        (when (and (= (:job/status @job) 1) (:user/freelancer? @active-user))
+        (when (and (= (:job/status @job) 1)
+                   (:user/freelancer? @active-user)
+                   (not= (:user/id (:job/employer @job)) (:user/id @active-user)))
           [paper
            {:loading? loading?}
            [row

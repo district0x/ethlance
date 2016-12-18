@@ -25,6 +25,8 @@ library ContractLibrary {
         if (employerId == freelancerId) throw;
         if (getContract(db, freelancerId, jobId) != 0) throw;
         if (JobLibrary.getStatus(db, jobId) != 1) throw;
+        if (!UserLibrary.isFreelancerAvailable(db, freelancerId))
+        throw;
         var contractId = SharedLibrary.createNext(db, "contract/count");
         setFreelancerJobIndex(db, contractId, freelancerId, jobId);
         

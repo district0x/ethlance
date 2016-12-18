@@ -16,6 +16,7 @@
      [ui/chip
       {:key category-id
        :style styles/chip-in-list}
-      (constants/categories category-id)])])
+      (when (< category-id (count constants/languages))
+        (constants/categories category-id))])])
 
 

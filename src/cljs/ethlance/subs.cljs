@@ -1,8 +1,10 @@
 (ns ethlance.subs
   (:require
+    [ethlance.ethlance-db :as ethlance-db]
     [ethlance.utils :as u]
     [medley.core :as medley]
-    [re-frame.core :refer [reg-sub]]))
+    [re-frame.core :refer [reg-sub]]
+    ))
 
 (reg-sub
   :db
@@ -42,7 +44,7 @@
 (reg-sub
   :db/active-user-id
   (fn [db]
-    ((:address->user-id db) (:active-address db))))
+    (:user/id ((:blockchain/addresses db) (:active-address db)))))
 
 (reg-sub
   :db/active-user
@@ -50,6 +52,18 @@
   :<- [:app/users]
   (fn [[user-id users]]
     (users user-id)))
+
+(reg-sub
+  :db/my-users-loading?
+  (fn [db]
+    (:loading? (:list/my-users db))))
+
+(reg-sub
+  :db/active-address-registered?
+  (fn [db]
+    (when-let [items (seq (get-in db [:list/my-users :items]))]
+      (let [i (.indexOf (get-in db [:list/my-users :params :user/addresses]) (:active-address db))]
+        (pos? (nth items i))))))
 
 (reg-sub
   :app/users
@@ -75,6 +89,11 @@
   :db/active-page
   (fn [db]
     (:active-page db)))
+
+(reg-sub
+  :blockchain/addresses
+  (fn [db]
+    (:blockchain/addresses db)))
 
 (reg-sub
   :db/snackbar
@@ -148,34 +167,41 @@
     (when-let [employer-id (get-in jobs [job-id :job/employer])]
       (= employer-id user-id))))
 
-(defn job-id->job [job-id jobs users]
+(defn user-id->user [user-id users blockchain-addresses]
+  (let [user (get users user-id)]
+    (assoc user :user/balance (:address/balance (blockchain-addresses (:user/address user))))))
+
+(defn job-id->job [job-id jobs users blockchain-addresses]
   (-> (get jobs job-id)
-    (update :job/employer #(get users %))))
+    (update :job/employer #(user-id->user % users blockchain-addresses))))
 
 (reg-sub
   :user/detail
   :<- [:user/route-user-id]
   :<- [:app/users]
-  (fn [[user-id users]]
-    (get users user-id)))
+  :<- [:blockchain/addresses]
+  (fn [[user-id users blockchain-addresses]]
+    (user-id->user user-id users blockchain-addresses)))
 
 (reg-sub
   :job/detail
   :<- [:job/route-job-id]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[job-id jobs users]]
-    (job-id->job job-id jobs users)))
+  :<- [:blockchain/addresses]
+  (fn [[job-id jobs users blockchain-addresses]]
+    (job-id->job job-id jobs users blockchain-addresses)))
 
 (reg-sub
   :list/search-jobs
   :<- [:db]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db jobs users]]
+  :<- [:blockchain/addresses]
+  (fn [[db jobs users blockchain-addresses]]
     (let [jobs-list (:list/search-jobs db)]
       (-> jobs-list
-        (update :items (partial map #(job-id->job % jobs users)))
+        (update :items (partial map #(job-id->job % jobs users blockchain-addresses)))
         (u/list-filter-loaded :job/title)))))
 
 (reg-sub
@@ -183,11 +209,12 @@
   :<- [:db]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db jobs users] [_ list-key]]
+  :<- [:blockchain/addresses]
+  (fn [[db jobs users blockchain-addresses] [_ list-key]]
     (let [jobs-list (get db list-key)]
       (-> jobs-list
         (update :items (partial u/sort-paginate-ids jobs-list))
-        (update :items (partial map #(job-id->job % jobs users)))
+        (update :items (partial map #(job-id->job % jobs users blockchain-addresses)))
         (u/list-filter-loaded :job/title)))))
 
 (reg-sub
@@ -221,11 +248,10 @@
                      :contract/description ""})
     contract))
 
-(defn contract-id->contract [contract-id contracts jobs users]
+(defn contract-id->contract [contract-id contracts jobs users blockchain-addresses]
   (-> (get contracts contract-id)
-    (update :contract/job jobs)
-    (update-in [:contract/job :job/employer] users)
-    (update :contract/freelancer users)))
+    (update :contract/job #(job-id->job % jobs users blockchain-addresses))
+    (update :contract/freelancer #(user-id->user % users blockchain-addresses))))
 
 (reg-sub
   :contract/detail
@@ -233,10 +259,11 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
+  :<- [:blockchain/addresses]
   :<- [:db/active-user-id]
-  (fn [[contract-id contracts jobs users active-user-id]]
+  (fn [[contract-id contracts jobs users blockchain-addresses active-user-id]]
     (-> contract-id
-      (contract-id->contract contracts jobs users)
+      (contract-id->contract contracts jobs users blockchain-addresses)
       (remove-unallowed-contract-data active-user-id))))
 
 (reg-sub
@@ -245,13 +272,14 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db contracts jobs users] [_ list-key {:keys [:loading-till-freelancer?]}]]
+  :<- [:blockchain/addresses]
+  (fn [[db contracts jobs users blockchain-addresses] [_ list-key {:keys [:loading-till-freelancer?]}]]
     (let [contracts-list (get db list-key)
           non-empty-pred (if loading-till-freelancer? (comp :user/name :contract/freelancer)
                                                       (comp :job/title :contract/job))]
       (-> contracts-list
         (update :items (partial u/sort-paginate-ids contracts-list))
-        (update :items (partial map #(contract-id->contract % contracts jobs users)))
+        (update :items (partial map #(contract-id->contract % contracts jobs users blockchain-addresses)))
         (u/list-filter-loaded non-empty-pred)))))
 
 (defn- remove-unallowed-invoice-data [invoice active-user-id]
@@ -260,12 +288,9 @@
     (merge invoice {:invoice/description ""})
     invoice))
 
-(defn invoice-id->invoice [invoice-id invoices contracts jobs users]
+(defn invoice-id->invoice [invoice-id invoices contracts jobs users blockchain-addresses]
   (-> (get invoices invoice-id)
-    (update :invoice/contract contracts)
-    (update-in [:invoice/contract :contract/freelancer] users)
-    (update-in [:invoice/contract :contract/job] jobs)
-    (update-in [:invoice/contract :contract/job :job/employer] users)))
+    (update :invoice/contract #(contract-id->contract % contracts jobs users blockchain-addresses))))
 
 (reg-sub
   :list/invoices
@@ -274,11 +299,12 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  (fn [[db invoices contracts jobs users] [_ list-key]]
+  :<- [:blockchain/addresses]
+  (fn [[db invoices contracts jobs users blockchain-addresses] [_ list-key]]
     (let [invoices-list (get db list-key)]
       (-> invoices-list
         (update :items (partial u/sort-paginate-ids invoices-list))
-        (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users)))
+        (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users blockchain-addresses)))
         (u/list-filter-loaded (comp :user/name :contract/freelancer :invoice/contract))))))
 
 (reg-sub
@@ -288,10 +314,11 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
+  :<- [:blockchain/addresses]
   :<- [:db/active-user-id]
-  (fn [[invoice-id invoices contracts jobs users active-user-id]]
+  (fn [[invoice-id invoices contracts jobs users blockchain-addresses active-user-id]]
     (-> invoice-id
-      (invoice-id->invoice invoices contracts jobs users)
+      (invoice-id->invoice invoices contracts jobs users blockchain-addresses)
       (remove-unallowed-invoice-data active-user-id))))
 
 (reg-sub
@@ -359,4 +386,42 @@
   :form.config/add-skills
   (fn [db]
     (:form.config/add-skills db)))
+
+(reg-sub
+  :form.user/register-employer
+  (fn [db]
+    (:form.user/register-employer db)))
+
+(reg-sub
+  :form.user/register-freelancer
+  (fn [db]
+    (:form.user/register-freelancer db)))
+
+(reg-sub
+  :form.user/set-user
+  :<- [:db]
+  :<- [:db/active-user]
+  (fn [[db active-user]]
+    (-> (:form.user/set-user db)
+      (update :data (partial merge (select-keys active-user ethlance-db/set-user-args))))))
+
+(reg-sub
+  :form.user/set-freelancer
+  :<- [:db]
+  :<- [:db/active-user]
+  (fn [[db active-user]]
+    (-> (:form.user/set-freelancer db)
+      (update :data (partial merge (if (:user/freelancer? active-user)
+                                     (select-keys active-user ethlance-db/set-freelancer-args)
+                                     (:data (:form.user/register-freelancer db))))))))
+
+(reg-sub
+  :form.user/set-employer
+  :<- [:db]
+  :<- [:db/active-user]
+  (fn [[db active-user]]
+    (-> (:form.user/set-employer db)
+      (update :data (partial merge (if (:user/employer? active-user)
+                                     (select-keys active-user ethlance-db/set-employer-args)
+                                     (:data (:form.user/register-employer db))))))))
 

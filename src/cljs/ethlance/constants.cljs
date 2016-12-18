@@ -405,7 +405,6 @@
    "Монгол хэл"
    "Dorerin Naoero"
    "Diné bizaad"
-   "isiNdebele"
    "नेपाली"
    "Owambo"
    "Norsk bokmål"

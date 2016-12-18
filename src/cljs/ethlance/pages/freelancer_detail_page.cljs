@@ -22,7 +22,7 @@
                                :freelancer/ratings-count :freelancer/hourly-rate :freelancer/total-earned
                                :freelancer/available? :user/created-on :freelancer/description
                                :freelancer/skills :freelancer/categories :user/languages :user/id
-                               :user/status] :as user}]
+                               :user/status :user/address :user/balance] :as user}]
   (when (seq name)
     [:div
      [row
@@ -52,14 +52,14 @@
              (if available?
                "available for hire!"
                "not available for hire")]
-          2 [misc/status-chip
-             {:background-color styles/danger-color}
-             "this user has been blocked"])]
+          2 [misc/blocked-user-chip]
+          nil)]
        [misc/elegant-line "rate per hour" (u/eth hourly-rate)]
-       [misc/elegant-line "earned" (u/eth total-earned)]]]
+       [misc/elegant-line "earned" (u/eth total-earned)]
+       [misc/elegant-line "balance" (u/eth balance)]]]
      [misc/hr]
-     [:h4 {:style (merge styles/fade-text
-                         {:margin-bottom 5})} "joined on " (u/format-date created-on)]
+     [misc/user-address address]
+     [misc/user-created-on created-on]
      [truncated-text description]
      [misc/subheader "Skills"]
      [skills-chips
@@ -145,7 +145,7 @@
      :value (when (pos? job) job)
      :auto-width true
      :style styles/overflow-ellipsis
-     :on-change #(dispatch [:form/value-changed :form.contract/add-invitation :contract/job %3])}
+     :on-change #(dispatch [:form/set-value :form.contract/add-invitation :contract/job %3])}
     (for [{:keys [:job/id :job/title]} (:items jobs-list)]
       [ui/menu-item
        {:value id
@@ -163,7 +163,9 @@
             {:keys [:user/employer?]} @active-user]
         (when (and employer?
                    (= (:user/status @active-user) 1)
-                   (= (:user/status user) 1))
+                   (= (:user/status user) 1)
+                   (:freelancer/available? user)
+                   (not= (:user/id @active-user) (:user/id user)))
           [paper
            {:loading? (or loading? (:loading? @jobs-list))}
            [row
@@ -195,7 +197,9 @@
   (let [user-id (subscribe [:user/route-user-id])
         user (subscribe [:user/detail])]
     (dispatch [:after-eth-contracts-loaded
-               [:contract.db/load-users (merge ethlance-db/user-schema ethlance-db/freelancer-schema) [@user-id]]])
+               [:contract.db/load-users (merge ethlance-db/user-schema
+                                               ethlance-db/freelancer-schema
+                                               ethlance-db/user-balance-schema) [@user-id]]])
     (fn []
       [center-layout
        [freelancer-detail @user]

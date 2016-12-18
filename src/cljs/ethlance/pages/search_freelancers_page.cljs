@@ -4,7 +4,7 @@
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.category-select-field :refer [category-select-field]]
     [ethlance.components.checkbox-group :refer [checkbox-group]]
-    [ethlance.components.country-select-field :refer [country-select-field]]
+    [ethlance.components.country-auto-complete :refer [country-auto-complete]]
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
@@ -56,7 +56,7 @@
            :full-width true
            :min 0
            :on-change #(dispatch [:form/search-freelancers-changed :search/min-freelancer-ratings-count %2])}]
-         [country-select-field
+         [country-auto-complete
           {:value country
            :full-width true
            :on-new-request #(dispatch [:form/search-freelancers-changed :search/country %2])}]

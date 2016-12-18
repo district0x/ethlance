@@ -8,7 +8,7 @@
 (defn radio-group [{:keys [:form-key :field-key :options] :as props}]
   [ui/radio-button-group
    (r/merge-props
-     {:on-change #(dispatch [:form/value-changed form-key field-key %2])}
+     {:on-change #(dispatch [:form/set-value form-key field-key %2])}
      (dissoc props :form-key :field-key :options))
    (for [[key label] options]
      [ui/radio-button

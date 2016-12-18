@@ -12,7 +12,8 @@
     [reagent.core :as r]
     ))
 
-(defn jobs-table-content [{:keys [:show-hiring-done-on? :no-items-text :initial-dispatch :all-ids-subscribe]}
+(defn jobs-table-content [{:keys [:show-hiring-done-on? :no-items-text :initial-dispatch :all-ids-subscribe
+                                  :show-status?]}
                           {:keys [items offset limit loading?]}]
   [ui/table
    [ui/table-header
@@ -21,12 +22,15 @@
      [ui/table-header-column "Total Spent"]
      [ui/table-header-column "Created"]
      (when show-hiring-done-on?
-       [ui/table-header-column "Hiring Closed"])]]
+       [ui/table-header-column "Hiring Closed"])
+     (when show-status?
+       [ui/table-header-column "Status"])]]
    [ui/table-body
     {:show-row-hover true}
     (if (seq items)
       (for [item items]
-        (let [{:keys [:job/title :job/id :job/created-on :job/hiring-done-on :job/total-paid]} item]
+        (let [{:keys [:job/title :job/id :job/created-on :job/hiring-done-on :job/total-paid
+                      :job/status]} item]
           [ui/table-row
            {:key id
             :style styles/clickable
@@ -39,7 +43,12 @@
             (u/time-ago created-on)]
            (when show-hiring-done-on?
              [ui/table-row-column
-              (u/time-ago hiring-done-on)])]))
+              (u/time-ago hiring-done-on)])
+           (when show-status?
+             [ui/table-row-column
+              [misc/status-chip
+               {:background-color (styles/job-status-colors status)}
+               (constants/job-statuses status)]])]))
       (misc/create-no-items-row no-items-text loading?))]
    (misc/create-table-pagination
      {:offset offset

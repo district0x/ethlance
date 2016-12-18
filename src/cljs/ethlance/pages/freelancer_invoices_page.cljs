@@ -61,8 +61,9 @@
 (defn freelancer-invoices-page []
   (let [user (subscribe [:db/active-user])]
     (fn []
-      [misc/freelancer-only-page
-       [center-layout
-        [invoices-stats @user]
-        [freelancer-pending-invoices @user]
-        [freelancer-paid-invoices @user]]])))
+      [misc/only-registered
+       [misc/only-freelancer
+        [center-layout
+         [invoices-stats @user]
+         [freelancer-pending-invoices @user]
+         [freelancer-paid-invoices @user]]]])))

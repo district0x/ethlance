@@ -113,8 +113,14 @@
      (fn [& args]
        (go (>! change-ch args))))))
 
-(defn create-data-source [m val-key]
+(defn map->data-source [m val-key]
   (map (fn [[k v]] {"text" (get v val-key) "value" k}) (into [] m)))
+
+(defn coll->data-source [coll]
+  (mapv (fn [[k v]] {"text" v "value" (inc k)}) coll))
+
+(defn results-coll->data-source [results all-items]
+  (mapv (fn [k] {"text" (nth all-items (dec k)) "value" k}) results))
 
 (def data-source-config {"text" "text" "value" "value"})
 
@@ -284,3 +290,17 @@
 
 (defn alphanumeric? [x]
   (re-matches #"[a-zA-Z0-9 ]*" x))
+
+(defn etherscan-url [address]
+  (gstring/format "https://etherscan.io/address/%s" address))
+
+(defn prepend-address-zeros [address]
+  (let [n (- 42 (count address))]
+    (if (pos? n)
+      (->> (subs address 2)
+        (str (string/join (take n (repeat "0"))))
+        (str "0x"))
+      address)))
+
+(defn unzip-map [m]
+  [(keys m) (vals m)])

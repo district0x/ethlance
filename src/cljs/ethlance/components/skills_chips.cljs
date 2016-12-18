@@ -22,10 +22,12 @@
                                (not always-show-all?))
                         (take max-count selected-skills)
                         selected-skills)]
-         [ui/chip
-          {:key skill-id
-           :style styles/chip-in-list}
-          (get-in @all-skills [skill-id :skill/name])])
+         (let [skill-name (get-in @all-skills [skill-id :skill/name])]
+           (when (seq skill-name)
+             [ui/chip
+              {:key skill-id
+               :style styles/chip-in-list}
+              skill-name])))
        (when (and (< max-count (count selected-skills))
                   (not @show-all?))
          [:span {:style (merge styles/more-text

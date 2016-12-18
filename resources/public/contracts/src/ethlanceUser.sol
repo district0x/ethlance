@@ -14,6 +14,7 @@ contract EthlanceUser is EthlanceSetter {
     onlyActiveSmartContract
     {
         if (languages.length > getConfig("max-user-languages")) throw;
+        if (languages.length < getConfig("min-user-languages")) throw;
         if (bytes(name).length > getConfig("max-user-name")) throw;
         if (bytes(name).length < getConfig("min-user-name")) throw;
         UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, languages);
@@ -45,9 +46,12 @@ contract EthlanceUser is EthlanceSetter {
         onlyActiveUser
     {
         if (categories.length > getConfig("max-freelancer-categories")) throw;
+        if (categories.length < getConfig("min-freelancer-categories")) throw;
         if (skills.length > getConfig("max-freelancer-skills")) throw;
+        if (skills.length < getConfig("min-freelancer-skills")) throw;
         if (bytes(description).length > getConfig("max-user-description")) throw;
         if (bytes(jobTitle).length > getConfig("max-freelancer-job-title")) throw;
+        if (bytes(jobTitle).length < getConfig("min-freelancer-job-title")) throw;
         UserLibrary.setFreelancer(ethlanceDB, getSenderUserId(), isAvailable, jobTitle, hourlyRate, categories,
             skills, description);
     }

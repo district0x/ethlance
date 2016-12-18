@@ -32,6 +32,9 @@
    :user/name string
    :user/status uint8})
 
+(def user-balance-schema
+  {:user/balance big-num})
+
 (def freelancer-schema
   {:freelancer/available? bool
    :freelancer/avg-rating uint8
@@ -156,7 +159,7 @@
    :skill/freelancers uint-coll})
 
 (def user-editable-fields
-  (set/difference (set (keys account-schema)) #{:user/address :user/created-on}))
+  (set/difference (set (keys (merge account-schema user-balance-schema))) #{:user/address :user/created-on}))
 
 (def job-editable-fields
   #{:job/status
@@ -365,7 +368,7 @@
   (condp = val-type
     bool (if (.eq val 0) false true)
     bytes32 (web3/to-ascii (web3/from-decimal val))
-    addr (web3/from-decimal val)
+    addr (u/prepend-address-zeros (web3/from-decimal val))
     date (u/big-num->date-time val)
     big-num val
     (.toNumber val)))

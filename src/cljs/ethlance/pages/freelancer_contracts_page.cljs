@@ -81,9 +81,10 @@
 (defn freelancer-contracts-page []
   (let [user (subscribe [:db/active-user])]
     (fn []
-      [misc/freelancer-only-page
-       [center-layout
-        [freelancer-invitations @user]
-        [freelancer-proposals @user]
-        [freelancer-contracts-open @user]
-        [freelancer-contracts-done @user]]])))
+      [misc/only-registered
+       [misc/only-freelancer
+        [center-layout
+         [freelancer-invitations @user]
+         [freelancer-proposals @user]
+         [freelancer-contracts-open @user]
+         [freelancer-contracts-done @user]]]])))

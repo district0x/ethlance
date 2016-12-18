@@ -153,7 +153,7 @@ library UserLibrary {
         return EthlanceDB(db).getBooleanValue(sha3("user/freelancer?", userId)) &&
                hasStatus(db, userId, 1);
     }
-    
+
     function hasStatus(address db, uint userId, uint8 status) internal returns(bool) {
         return status == EthlanceDB(db).getUInt8Value(sha3("user/status", userId));
     }
@@ -334,7 +334,7 @@ library UserLibrary {
         return SharedLibrary.take(j, userIds);
     }
 
-    function freelancerContractsPred(address db, uint[] args, uint contractId) internal returns(bool) {
+    function userContractsPred(address db, uint[] args, uint contractId) internal returns(bool) {
         var jobId = ContractLibrary.getJob(db, contractId);
         var contractStatus = args[0];
         var jobStatus = args[1];
@@ -358,7 +358,7 @@ library UserLibrary {
         var args = new uint[](2);
         args[0] = contractStatus;
         args[1] = jobStatus;
-        return SharedLibrary.filter(db, freelancerContractsPred, getContracts(db, userId), args);
+        return SharedLibrary.filter(db, userContractsPred, getContracts(db, userId), args);
     }
 
     function getFreelancerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)

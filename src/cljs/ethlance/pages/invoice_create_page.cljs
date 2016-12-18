@@ -13,7 +13,7 @@
     [ethlance.ethlance-db :as ethlance-db]))
 
 (defn dispatch-contracts-load [user-id]
-  (dispatch [:form/value-changed :form.invoice/add-invoice :invoice/contract 0 false])
+  (dispatch [:form/set-value :form.invoice/add-invoice :invoice/contract 0 false])
   (dispatch [:after-eth-contracts-loaded
              [:list/load-ids {:list-key :list/freelancer-my-open-contracts
                               :fn-key :ethlance-views/get-freelancer-contracts
@@ -36,7 +36,7 @@
             :value (when (pos? contract) contract)
             :auto-width true
             :style styles/overflow-ellipsis
-            :on-change #(dispatch [:form/value-changed :form.invoice/add-invoice :invoice/contract %3])}
+            :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/contract %3])}
            (for [{:keys [:contract/id :contract/job]} contracts]
              [ui/menu-item
               {:value id
@@ -54,20 +54,20 @@
             :default-value worked-hours
             :type :number
             :min 0
-            :on-change #(dispatch [:form/value-changed :form.invoice/add-invoice :invoice/worked-hours (js/parseInt %2)])}]]
+            :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-hours (js/parseInt %2)])}]]
          [:div
           [ui/date-picker
            {:default-date (js/Date. (u/timestamp-sol->js worked-from))
             :max-date (js/Date.)
             :floating-label-text "Worked From"
-            :on-change #(dispatch [:form/value-changed :form.invoice/add-invoice :invoice/worked-from
+            :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-from
                                    (u/timestamp-js->sol (u/get-time %2))])}]]
          [:div
           [ui/date-picker
            {:default-date (js/Date. (u/timestamp-sol->js worked-to))
             :max-date (js/Date.)
             :floating-label-text "Worked To"
-            :on-change #(dispatch [:form/value-changed :form.invoice/add-invoice :invoice/worked-to
+            :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-to
                                    (u/timestamp-js->sol (u/get-time %2))])}]]
          [misc/textarea
           {:floating-label-text "Message"
@@ -81,9 +81,10 @@
 
 (defn invoice-create-page []
   (fn []
-    [misc/freelancer-only-page
-     {:on-user-change dispatch-contracts-load}
-     [center-layout
-      [paper
-       [:h2 "New Invoice"]
-       [add-invoice-form]]]]))
+    [misc/only-registered
+     [misc/only-freelancer
+      {:on-user-change dispatch-contracts-load}
+      [center-layout
+       [paper
+        [:h2 "New Invoice"]
+        [add-invoice-form]]]]]))

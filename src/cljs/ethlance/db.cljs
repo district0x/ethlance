@@ -2,7 +2,8 @@
   (:require [cljs-web3.core :as web3]
             [ethlance.utils :as u]
             [re-frame.core :refer [dispatch]]
-            [cljs-time.core :as t]))
+            [cljs-time.core :as t]
+            [ethlance.constants :as constants]))
 
 (def default-db
   {:web3 (web3/create-web3 "http://localhost:8545/")
@@ -14,8 +15,11 @@
               :auto-hide-duration 5000
               :on-request-close #(dispatch [:snackbar/close])}
    :eth/config {:max-user-languages 10
-                :max-freelancer-categories 20
+                :min-user-languages 1
+                :max-freelancer-categories (dec (count constants/categories))
+                :min-freelancer-categories 0
                 :max-freelancer-skills 15
+                :min-freelancer-skills 1
                 :max-job-skills 7
                 :min-job-skills 1
                 :max-user-description 1000
@@ -29,10 +33,11 @@
                 :max-user-name 40
                 :min-user-name 0 #_5
                 :max-freelancer-job-title 50
+                :min-freelancer-job-title 4
                 :max-contract-desc 500
                 :max-proposal-desc 500
                 :max-invitation-desc 500
-                :max-skills-create-at-once 50 #_ 10
+                :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true}
                    :ethlance-job {:name "EthlanceJob" :setter? true}
@@ -44,13 +49,14 @@
                    :ethlance-search {:name "EthlanceSearch"}}
    :my-addresses []
    :active-address nil
-   :address->user-id {}
+   :blockchain/addresses {}
    :app/users {}
    :app/jobs {}
    :app/contracts {}
    :app/invoices {}
    :app/skills {}
 
+   :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4}
    :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
@@ -70,6 +76,7 @@
    :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/employer-jobs {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-my-open-contracts {:items [] :loading? true :params {}}
    :list/employer-jobs-open-select-field {:items [] :loading? false :params {}}
 
@@ -128,6 +135,53 @@
                             :gas-limit 4000000
                             :data {:skill/names []}
                             :errors #{:skill/names}}
+
+   :form.user/set-user {:loading? false
+                        :gas-limit 500000
+                        :data {}
+                        :errors #{}}
+
+   :form.user/set-freelancer {:loading? false
+                              :gas-limit 1000000
+                              :data {}
+                              :errors #{}
+                              :open? false}
+
+   :form.user/set-employer {:loading? false
+                            :gas-limit 1000000
+                            :data {}
+                            :errors #{}
+                            :open? false}
+
+   :form.user/register-freelancer {:loading? false
+                                   :gas-limit 1500000
+                                   :open? true
+                                   :data {:user/name ""
+                                          :user/gravatar ""
+                                          :user/country 0
+                                          :user/languages [40]
+                                          :freelancer/available? true
+                                          :freelancer/job-title ""
+                                          :freelancer/hourly-rate (web3/to-wei 1 :ether)
+                                          :freelancer/categories []
+                                          :freelancer/skills []
+                                          :freelancer/description ""}
+                                   :errors #{} #_#{:user/name #_:user/gravatar :user/country
+                                                   :freelancer/job-title :freelancer/categories :freelancer/skills
+                                                   :freelancer/description}}
+
+   :form.user/register-employer {:loading? false
+                                 :gas-limit 1500000
+                                 :open? true
+                                 :data {:user/name ""
+                                        :user/gravatar ""
+                                        :user/country 0
+                                        :user/languages [40]
+                                        :employer/description ""}
+                                 :errors #{} #_#{:user/name #_:user/gravatar :user/country
+                                                 :employer/description}}
+
+
 
    :form/search-jobs {:search/category 0
                       :search/skills []
