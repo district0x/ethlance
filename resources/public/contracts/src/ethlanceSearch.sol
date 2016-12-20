@@ -32,6 +32,7 @@ contract EthlanceSearch {
         uint8Filters[2] = estimatedDurations;
         uint8Filters[3] = hoursPerWeeks;
         jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, uintArgs);
+        jobIds = SharedLibrary.findTopNValues(jobIds, uintArgs[5] + uintArgs[6]);
         return  SharedLibrary.getPage(jobIds, uintArgs[5], uintArgs[6]);
     }
 

@@ -41,7 +41,7 @@
              :on-change #(dispatch [:form/set-value :form.job/add-job :job/category %3])}]]
           [:div
            [misc/ether-field
-            {:floating-label-text "Your budget in Ether"
+            {:floating-label-text "Your budget (Ether)"
              :form-key :form.job/add-job
              :field-key :job/budget
              :default-value budget}]]

@@ -97,13 +97,21 @@
    (into [] (concat [col {:lg 8 :style styles/text-left}]
                     children))])
 
+(defn- default-value->comparable [x]
+  ;(print.foo/look (type x))
+  (if (number? x)
+    (.toString x)
+    (if x (u/big-num->num x) "")))
+
+
 (defn text-field* [{:keys [:default-value :transform-default-value]
                     :or {transform-default-value identity}}]
   (let [prev-value (r/atom default-value)]
     (fn [{:keys [:rows :on-change :default-value :transform-on-change :transform-default-value]
           :as props
           :or {transform-on-change identity transform-default-value identity}}]
-      (if (= (u/big-num->num default-value) (u/big-num->num @prev-value))
+      ;(if (= (u/big-num->num default-value) (u/big-num->num @prev-value))
+      (if (= (default-value->comparable default-value) (default-value->comparable @prev-value))
         [ui/text-field
          (merge
            (dissoc props :transform-on-change :transform-default-value)
@@ -140,15 +148,15 @@
   (let [validator u/pos-or-zero?]
     [text-field*
      (r/merge-props
-       (r/merge-props
-         {:style styles/display-block}
-         (dissoc props :form-key :field-key))
        {:on-change #(dispatch [:form/set-value form-key field-key %2 validator])
         :transform-on-change #(web3/to-wei (u/parse-float %) :ether)
         :transform-default-value #(web3/from-wei % :ether)
         :error-text (when-not (validator default-value)
                       "Invalid number")
-        :default-value default-value})]))
+        :default-value default-value}
+       (r/merge-props
+         {:style styles/display-block}
+         (dissoc props :default-value :form-key :field-key)))]))
 
 (defn textarea [props]
   [text-field
@@ -297,5 +305,11 @@
     :allow-whitespace? true}
    body])
 
-(defn search-result-skill-chips []
-  )
+(defn search-reset-button [{:keys [:reset-dispatch]}]
+  [row-plain
+   {:center "xs"}
+   [ui/flat-button
+    {:style styles/margin-top-gutter-less
+     :primary true
+     :label "Reset"
+     :on-touch-tap #(dispatch reset-dispatch)}]])

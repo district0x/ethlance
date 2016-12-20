@@ -20,50 +20,51 @@
 
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-freelancers])]
-    (dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers @form-data]])
     (fn []
       (let [{:keys [:search/category :search/skills :search/min-avg-rating
                     :search/min-freelancer-ratings-count :search/min-hourly-rate :search/max-hourly-rate
                     :search/country :search/language :search/offset :search/limit]} @form-data]
-        [paper-thin
-         [category-select-field
-          {:value category
-           :full-width true
-           :on-change #(dispatch [:form.search-freelancers/set-value :search/category %3])}]
-         [misc/subheader "Min. Rating"]
-         [star-rating
-          {:value (u/rating->star min-avg-rating)
-           :on-star-click #(dispatch [:form.search-freelancers/set-value :search/min-avg-rating
-                                      (u/star->rating %1)])}]
-         [ui/text-field
-          {:floating-label-text "Min. Hourly Rate"
-           :type :number
-           :default-value min-hourly-rate
-           :full-width true
-           :min 0
-           :on-change #(dispatch [:form.search-freelancers/set-value :search/min-hourly-rate %2])}]
-         [ui/text-field
-          {:floating-label-text "Max. Hourly Rate"
-           :type :number
-           :default-value max-hourly-rate
-           :full-width true
-           :min 0
-           :on-change #(dispatch [:form.search-freelancers/set-value :search/max-hourly-rate %2])}]
-         [ui/text-field
-          {:floating-label-text "Min. Number of Feedbacks"
-           :type :number
-           :default-value min-freelancer-ratings-count
-           :full-width true
-           :min 0
-           :on-change #(dispatch [:form.search-freelancers/set-value :search/min-freelancer-ratings-count %2])}]
-         [country-auto-complete
-          {:value country
-           :full-width true
-           :on-new-request #(dispatch [:form.search-freelancers/set-value :search/country %2])}]
-         [language-select-field
-          {:value language
-           :full-width true
-           :on-new-request #(dispatch [:form.search-freelancers/set-value :search/language %2])}]]))))
+        [misc/call-on-change
+         {:load-on-mount? true
+          :args @form-data
+          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers @form-data]])}
+         [paper-thin
+          [category-select-field
+           {:value category
+            :full-width true
+            :on-change #(dispatch [:form.search-freelancers/set-value :search/category %3])}]
+          [misc/subheader "Min. Rating"]
+          [star-rating
+           {:value (u/rating->star min-avg-rating)
+            :on-star-click #(dispatch [:form.search-freelancers/set-value :search/min-avg-rating
+                                       (u/star->rating %1)])}]
+          [misc/ether-field
+           {:floating-label-text "Min. Hourly Rate (Ether)"
+            :default-value min-hourly-rate
+            :full-width true
+            :on-change #(dispatch [:form.search-freelancers/set-value :search/min-hourly-rate %2])}]
+          [misc/ether-field
+           {:floating-label-text "Max. Hourly Rate (Ether)"
+            :default-value max-hourly-rate
+            :full-width true
+            :on-change #(dispatch [:form.search-freelancers/set-value :search/max-hourly-rate %2])}]
+          [misc/text-field
+           {:floating-label-text "Min. Number of Feedbacks"
+            :type :number
+            :default-value min-freelancer-ratings-count
+            :full-width true
+            :min 0
+            :on-change #(dispatch [:form.search-freelancers/set-value :search/min-freelancer-ratings-count %2])}]
+          [country-auto-complete
+           {:value country
+            :full-width true
+            :on-new-request #(dispatch [:form.search-freelancers/set-value :search/country %2])}]
+          [language-select-field
+           {:value language
+            :full-width true
+            :on-new-request #(dispatch [:form.search-freelancers/set-value :search/language %2])}]
+          [misc/search-reset-button
+           {:reset-dispatch [:form.search-freelancers/reset]}]]]))))
 
 (defn search-results []
   (let [list (subscribe [:list/search-freelancers])

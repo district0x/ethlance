@@ -22,7 +22,7 @@
   (let [job (subscribe [:job/detail])]
     (fn []
       (let [{:keys [:user/name :user/gravatar :user/id :employer/avg-rating
-                    :employer/total-paid :employer/ratings-count :user/country]} (:job/employer @job)
+                    :employer/total-paid :employer/ratings-count :user/country :user/balance]} (:job/employer @job)
             route-props {:route :employer/detail
                          :route-params {:user/id id}}]
         [row
@@ -43,8 +43,10 @@
              :show-number? true
              :ratings-count ratings-count}]]
           [line (str (u/eth total-paid) " spent")]
+          [line (str (u/eth balance) " balance")]
           [misc/country-marker
-           {:country country}]]]))))
+           {:row-props {:style {:margin-left "-2px" :margin-top "-2px"}}
+            :country country}]]]))))
 
 (defn my-contract? [active-user-id {:keys [:contract/freelancer]}]
   (= active-user-id (:user/id freelancer)))
@@ -120,7 +122,7 @@
            (when (and @form-open? (new-proposal-allowed? @contract))
              [:div
               [misc/ether-field
-               {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate in Ether")
+               {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate (Ether)")
                 :default-value rate
                 :form-key :form.contract/add-proposal
                 :field-key :proposal/rate}]
@@ -159,7 +161,8 @@
             (when hiring-done-on
               [:h4 {:style styles/fade-text} "Hiring done on " (u/format-datetime hiring-done-on)])
             [row-plain
-             {:style {:margin-top 20}}
+             {:style (merge styles/margin-top-gutter-less
+                            styles/margin-bottom-gutter-less)}
              [misc/status-chip
               {:background-color (styles/job-status-colors status)}
               (constants/job-statuses status)]

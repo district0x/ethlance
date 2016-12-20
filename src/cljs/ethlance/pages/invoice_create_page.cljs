@@ -44,7 +44,7 @@
                :key id}])]]
          [:div
           [misc/ether-field
-           {:floating-label-text "Amount in Ether"
+           {:floating-label-text "Amount (Ether)"
             :default-value amount
             :form-key :form.invoice/add-invoice
             :field-key :invoice/amount}]]

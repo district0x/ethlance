@@ -3,29 +3,33 @@
     [bidi.bidi :as bidi]
     [camel-snake-kebab.core :as cs :include-macros true]
     [camel-snake-kebab.extras :refer [transform-keys]]
+    [cemerick.url :as url]
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [cljs-time.coerce :refer [to-date-time to-long to-local-date-time]]
     [cljs-time.core :as t :refer [date-time to-default-time-zone]]
     [cljs-time.format :as time-format]
+    [cljs-web3.core :as web3]
+    [cljs.reader :as reader]
     [clojure.core.async :refer [chan <! >!]]
+    [clojure.data :as data]
     [clojure.string :as string]
     [ethlance.constants :as constants]
     [ethlance.routes :refer [routes]]
     [ethlance.styles :as styles]
-    [goog.string :as gstring]
-    [goog.string.format]
     [goog.crypt :as crypt]
     [goog.crypt.Md5 :as Md5]
+    [goog.string :as gstring]
+    [goog.string.format]
     [medley.core :as medley]
     [reagent.core :as r]
-    [cljs-web3.core :as web3])
+    [clojure.set :as set])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
 
-(defn location-hash []
+(defn current-location-hash []
   (let [hash (-> js/document
                .-location
                .-hash
@@ -37,6 +41,32 @@
 (defn set-location-hash! [s]
   (set! (.-hash js/location) s))
 
+(defn current-url []
+  (url/url (string/replace (.-href js/location) "#" "")))
+
+(defn set-location-query! [query-params]
+  (set-location-hash!
+    (str "#" (current-location-hash)
+         (when-let [query (url/map->query query-params)]
+           (str "?" query)))))
+
+(defn add-to-location-query! [query-params]
+  (let [current-query (:query (current-url))
+        new-query (merge current-query (->> query-params
+                                         (medley/map-keys constants/keyword->query)
+                                         (medley/remove-keys nil?)))]
+    (set-location-query! new-query)))
+
+(defn current-url-query []
+  (->> (:query (current-url))
+    (medley/map-keys (set/map-invert ethlance.constants/keyword->query))
+    (medley/remove-keys nil?)
+    (map (fn [[k v]]
+           (if-let [f (constants/query-parsers k)]
+             {k (f v)}
+             {k v})))
+    (into {})))
+
 (defn nav-to! [route route-params]
   (set-location-hash! (medley/mapply path-for route route-params)))
 
@@ -45,7 +75,7 @@
     (str (when-let [n (namespace x)] (str n "/")) (name x))))
 
 (defn match-current-location []
-  (bidi/match-route routes (location-hash)))
+  (bidi/match-route routes (current-location-hash)))
 
 (defn truncate
   "Truncate a string with suffix (ellipsis by default) if it is
@@ -65,6 +95,11 @@
 (defn big-num->num [x]
   (if (and x (aget x "toNumber"))
     (.toNumber x)
+    x))
+
+(defn eth->to-wei [x]
+  (if (and x (aget x "toNumber"))
+    (web3/to-wei x :ether)
     x))
 
 (defn big-nums->nums [coll]
@@ -272,9 +307,10 @@
   (sort #(compare %2 %1) coll))
 
 (defn sort-in-dir [dir coll]
-  (if (= dir :desc)
-    (sort-desc coll)
-    (sort coll)))
+  (case dir
+    :desc (sort-desc coll)
+    :asc (sort coll)
+    coll))
 
 (defn sort-paginate-ids [{:keys [offset limit sort-dir]} ids]
   (if (and offset limit)
@@ -283,11 +319,14 @@
       (paginate offset limit))
     ids))
 
-(defn pos-or-zero? [x]
-  (or (pos? x) (zero? x)))
-
 (defn parse-float [number]
-  (js/parseFloat (string/replace number \, \.)))
+  (if (string? number)
+    (js/parseFloat (string/replace number \, \.))
+    number))
+
+(defn pos-or-zero? [x]
+  (let [x (parse-float x)]
+    (or (pos? x) (zero? x))))
 
 (defn get-time [x]
   (.getTime x))
@@ -314,3 +353,7 @@
 
 (defn unzip-map [m]
   [(keys m) (vals m)])
+
+(defn conj-colls [colls coll]
+  (map (fn [[i c]]
+         (conj c (nth coll i))) (medley/indexed colls)))

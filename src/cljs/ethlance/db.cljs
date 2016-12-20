@@ -59,7 +59,7 @@
 
    :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4}
+   :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :asc}
    :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
    :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/employer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}

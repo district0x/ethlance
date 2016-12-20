@@ -202,13 +202,36 @@ library SharedLibrary {
 
 
     function take(uint n, uint[] array) internal returns(uint[] result) {
+        if (n > array.length) {
+            return array;
+        }
         result = new uint[](n);
         for (uint i = 0; i < n ; i++) {
             result[i] = array[i];
         }
         return result;
     }
-    
+
+    function findTopNValues(uint[] values, uint n) internal returns(uint[]) {
+        uint length = values.length;
+
+        for (uint i = 0; i <= n; i++) {
+            uint maxPos = i;
+            for (uint j = i + 1; j < length; j++) {
+                if (values[j] > values[maxPos]) {
+                    maxPos = j;
+                }
+            }
+
+            if (maxPos != i) {
+                uint maxValue = values[maxPos];
+                values[maxPos] = values[i];
+                values[i] = maxValue;
+            }
+        }
+        return take(n, values);
+    }
+
     function intersectCategoriesAndSkills
     (
         address db,

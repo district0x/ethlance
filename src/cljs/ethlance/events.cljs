@@ -7,19 +7,21 @@
     [cljs-web3.eth :as web3-eth]
     [cljs-web3.personal :as web3-personal]
     [cljs.spec :as s]
+    [clojure.data :as data]
     [clojure.set :as set]
     [day8.re-frame.async-flow-fx]
     [day8.re-frame.http-fx]
     [ethlance.db :refer [default-db]]
     [ethlance.ethlance-db :as ethlance-db :refer [get-entity get-entities get-entities-field-items]]
+    [ethlance.generate-db]
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [goog.string.format]
     [madvas.re-frame.google-analytics-fx]
     [madvas.re-frame.web3-fx]
-    [ethlance.generate-db]
+    [medley.core :as medley]
     [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console dispatch]]
-    [medley.core :as medley]))
+    [ethlance.constants :as constants]))
 
 #_(if goog.DEBUG
     (require '[ethlance.generate-db]))
@@ -60,23 +62,17 @@
 (defn get-ethlance-db []
   (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
 
-(defn get-entity-fn [instance id fields on-success on-failure]
-  (let [[fields records types] (ethlance-db/get-entity-args id fields)]
-    [instance :get-entity records types [:entity-loaded fields on-success] on-failure]))
-
-(defn get-entities-fn [instance ids fields on-success on-failure]
-  (let [[fields records types] (ethlance-db/get-entities-args ids fields)]
-    (when (and (seq records) (seq fields))
-      [instance :get-entity-list records types [:entities-loaded (set ids) fields on-success] on-failure])))
-
 (defn entities-fns
   ([instance ids fields on-success on-failure]
    (entities-fns (count (set ids)) instance ids fields on-success on-failure))
   ([load-per instance ids fields on-success on-failure]
-   (let [ids (set (filter pos? ids))
+   (let [ids (distinct (filter pos? ids))
          parts-count (if (and load-per (< load-per (count ids))) load-per (count ids))]
-     (for [part-ids (partition parts-count ids)]
-       (get-entities-fn instance part-ids fields on-success on-failure)))))
+     (if (and (seq ids) (seq fields))
+       (for [part-ids (partition parts-count ids)]
+         (let [[fields records types] (ethlance-db/get-entities-args part-ids fields)]
+           [instance :get-entity-list records types [:entities-loaded part-ids fields on-success] on-failure]))
+       []))))
 
 (defn entities-field-items-fn [instance id-counts field on-success on-failure]
   (let [[ids+sub-ids field records types] (ethlance-db/get-entities-field-items-args id-counts field)]
@@ -97,7 +93,7 @@
                 (seq needed-fields) (update :ids conj id)
                 true (update :fields set/union needed-fields))))
           {:fields #{}
-           :ids #{}} ids))
+           :ids []} ids))
 
 (def log-used-gas
   (re-frame/->interceptor
@@ -123,10 +119,36 @@
 (defn get-my-users [{:keys [:my-addresses :blockchain/addresses :app/users]}]
   (map (comp users :user/id addresses) my-addresses))
 
+(defn merge-data-from-query [db {:keys [:handler]} query-data]
+  (if-let [form (constants/handler->form handler)]
+    (assoc db form (merge (default-db form) query-data))
+    db))
+
 (reg-fx
   :location/set-hash
   (fn [[route route-params]]
     (u/nav-to! route route-params)))
+
+(reg-fx
+  :location/add-to-query
+  (fn [[query-params]]
+    (u/add-to-location-query! query-params)))
+
+(reg-fx
+  :location/set-query
+  (fn [[query-params]]
+    (u/set-location-query! query-params)))
+
+(reg-fx
+  :window/scroll-to-top
+  (fn [_]
+    (.scrollTo js/window 0 0)))
+
+(reg-event-fx
+  :window/scroll-to-top
+  interceptors
+  (fn []
+    {:window/scroll-to-top true}))
 
 (reg-event-fx
   :location/set-hash
@@ -138,8 +160,8 @@
   :initialize
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
-    (let [{:keys [web3 provides-web3?]} default-db]
-      ;(.clear js/console)
+    (let [{:keys [:web3 :provides-web3? :active-page]} default-db
+          default-db (merge-data-from-query default-db active-page (u/current-url-query))]
       (merge
         {:db (merge-with (partial merge-with merge) default-db localstorage)
          :async-flow {:first-dispatch [:load-eth-contracts]
@@ -232,8 +254,17 @@
 (reg-event-fx
   :set-active-page
   interceptors
-  (fn [{:keys [db]} [match]]
-    {:db (assoc db :active-page match)}))
+  (fn [{:keys [db]} [{:keys [:handler] :as match}]]
+    (merge
+      {:db (-> db
+             (assoc :active-page match)
+             (merge-data-from-query match (u/current-url-query)))}
+      (when-not (= handler (:handler (:active-page db)))
+        {:window/scroll-to-top true})
+      #_(when-let [form (constants/handler->form handler)]
+          (let [[changed-from-default] (data/diff (db form) (default-db form))]
+            (when changed-from-default
+              {:location/add-to-query [changed-from-default]}))))))
 
 (reg-event-fx
   :set-active-address
@@ -958,17 +989,43 @@
   :form.search-jobs/set-value
   interceptors
   (fn [{:keys [db]} [field-key field-value]]
-    (let [new-db (assoc-in db [:form/search-jobs field-key] field-value)]
-      {:db new-db
-       :dispatch [:contract.search/search-jobs (:form/search-jobs new-db)]})))
+    {:dispatch [:form.search/set-value :contract.search/search-jobs :form/search-jobs field-key field-value]}))
 
 (reg-event-fx
   :form.search-freelancers/set-value
   interceptors
   (fn [{:keys [db]} [field-key field-value]]
-    (let [new-db (assoc-in db [:form/search-freelancers field-key] field-value)]
+    {:dispatch [:form.search/set-value :contract.search/search-freelancers :form/search-freelancers field-key field-value]}))
+
+(reg-event-fx
+  :form.search/set-value
+  interceptors
+  (fn [{:keys [db]} [search-dispatch-key form-key field-key field-value]]
+    (let [new-db (assoc-in db [form-key field-key] field-value)]
+      {;:db new-db
+       ;:dispatch [search-dispatch-key (new-db form-key)]
+       :location/add-to-query [{field-key field-value}]})))
+
+(reg-event-fx
+  :form.search-freelancers/reset
+  interceptors
+  (fn [{:keys [db]}]
+    {:dispatch [:form.search/reset :contract.search/search-freelancers :form/search-freelancers]}))
+
+(reg-event-fx
+  :form.search-jobs/reset
+  interceptors
+  (fn [{:keys [db]}]
+    {:dispatch [:form.search/reset :contract.search/search-jobs :form/search-jobs]}))
+
+(reg-event-fx
+  :form.search/reset
+  interceptors
+  (fn [{:keys [db]} [search-dispatch-key form-key]]
+    (let [new-db (assoc db form-key (default-db form-key))]
       {:db new-db
-       :dispatch [:contract.search/search-freelancers (:form/search-freelancers new-db)]})))
+       :dispatch [search-dispatch-key (new-db form-key)]
+       :location/set-query []})))
 
 (reg-event-fx
   :form/submit

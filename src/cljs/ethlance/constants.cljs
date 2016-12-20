@@ -1,4 +1,44 @@
-(ns ethlance.constants)
+(ns ethlance.constants
+  (:require [clojure.tools.reader :as reader]))
+
+(def handler->form
+  {:search/jobs :form/search-jobs
+   :search/freelancers :form/search-freelancers})
+
+(def keyword->query
+  {:search/category "cat"
+   :search/skills "s"
+   :search/payment-types "pt"
+   :search/experience-levels "el"
+   :search/estimated-durations "ed"
+   :search/hours-per-weeks "hw"
+   :search/min-budget "b"
+   :search/min-employer-avg-rating "ear"
+   :search/min-employer-ratings-count "erc"
+   :search/country "c"
+   :search/language "lg"
+   :search/offset "o"
+   :search/limit "l"
+   :search/min-avg-rating "ar"
+   :search/min-freelancer-ratings-count "frc"
+   :search/min-hourly-rate "nhr"
+   :search/max-hourly-rate "xhr"})
+
+(def query-parsers
+  {:search/category js/parseInt
+   :search/skills reader/read-string
+   :search/payment-types reader/read-string
+   :search/experience-levels reader/read-string
+   :search/estimated-durations reader/read-string
+   :search/hours-per-weeks reader/read-string
+   :search/min-employer-avg-rating js/parseInt
+   :search/min-employer-ratings-count js/parseInt
+   :search/country js/parseInt
+   :search/language js/parseInt
+   :search/offset js/parseInt
+   :search/limit js/parseInt
+   :search/min-avg-rating js/parseInt
+   :search/min-freelancer-ratings-count js/parseInt})
 
 (def job-statuses
   {1 "Hiring"

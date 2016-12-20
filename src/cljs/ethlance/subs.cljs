@@ -1,10 +1,13 @@
 (ns ethlance.subs
   (:require
+    [clojure.data :as data]
+    [ethlance.db :refer [default-db]]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.utils :as u]
     [medley.core :as medley]
     [re-frame.core :refer [reg-sub]]
-    ))
+    [cemerick.url :as url]
+    [ethlance.constants :as constants]))
 
 (reg-sub
   :db
@@ -44,6 +47,13 @@
     (:address/balance (blockchain-addresses active-address))))
 
 (reg-sub
+  :location/form-query-string
+  (fn [db [_ form-key]]
+    (let [[changed-from-default] (data/diff (db form-key) (default-db form-key))]
+      (when (seq changed-from-default)
+        (str "?" (url/map->query (medley/map-keys constants/keyword->query changed-from-default)))))))
+
+(reg-sub
   :db/my-addresses
   (fn [db _]
     (:my-addresses db)))
@@ -62,8 +72,8 @@
   :db/active-user
   :<- [:db/active-user-id]
   :<- [:app/users]
-  (fn [[user-id users]]
-    (users user-id)))
+  (fn [[active-user-id users]]
+    (get users active-user-id)))
 
 (reg-sub
   :db/my-users-loading?
@@ -111,13 +121,6 @@
   :db/snackbar
   (fn [db]
     (:snackbar db)))
-
-(reg-sub
-  :db/active-user
-  :<- [:db/active-user-id]
-  :<- [:app/users]
-  (fn [[active-user-id users]]
-    (get users active-user-id)))
 
 (reg-sub
   :form/search-jobs

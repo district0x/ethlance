@@ -51,7 +51,7 @@
    :skills/create skills-create-page
    :search/jobs search-jobs-page})
 
-(def nav-items
+(def search-nav-items
   [["Find Work" :search/jobs (icons/action-work)]
    ["Find People" :search/freelancers (icons/social-people)]])
 
@@ -71,13 +71,21 @@
    ["Become Employer" :employer/create (icons/social-person-add)]])
 
 (defn create-menu-items [items]
-  (for [[label handler icon] items]
+  (for [[label handler icon query-string] items]
     [ui/list-item
      {:primary-text label
       :left-icon icon
       :value (u/ns+name handler)
-      :href (u/path-for handler)
+      :href (str (u/path-for handler) query-string)
       :key handler}]))
+
+#_ (defn search-menu-item [{:keys [:form-key :primary-text :handler :icon]}]
+  [ui/list-item
+   {:primary-text primary-text
+    :left-icon icon
+    :value (u/ns+name handler)
+    :href (str (u/path-for handler) @(subscribe [:location/form-query-string form-key]))
+    :key form-key}])
 
 (defn my-addresses-select-field []
   (let [my-addresses (subscribe [:db/my-addresses])
@@ -147,7 +155,9 @@
         snackbar (subscribe [:db/snackbar])
         active-address-registered? (subscribe [:db/active-address-registered?])
         my-users-loading? (subscribe [:db/my-users-loading?])
-        contracts-not-found? (subscribe [:db/contracts-not-found?])]
+        contracts-not-found? (subscribe [:db/contracts-not-found?])
+        search-freelancers-query (subscribe [:location/form-query-string :form/search-freelancers])
+        search-jobs-query (subscribe [:location/form-query-string :form/search-jobs])]
     (fn []
       (let [{:keys [:user/freelancer? :user/employer?]} @active-user]
         [ui/mui-theme-provider
@@ -164,7 +174,7 @@
             {:value (u/ns+name (:handler @current-page))
              :style styles/nav-list
              :on-change (fn [])}
-            (create-menu-items nav-items)
+            (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
             (if @active-address-registered?
               (create-menu-items nav-items-registered)
               (when-not @my-users-loading?
