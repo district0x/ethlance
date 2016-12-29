@@ -203,7 +203,7 @@
 
 (def search-freelancers-args
   [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count :search/min-hourly-rate
-   :search/max-hourly-rate :search/country :search/language :search/offset :search/limit])
+   :search/max-hourly-rate :search/country :search/language :search/offset :search/limit :search/seed])
 
 (def add-job-args
   [:job/title :job/description :job/skills :job/language :job/budget

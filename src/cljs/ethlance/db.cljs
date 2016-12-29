@@ -66,7 +66,7 @@
    :list/employer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
    :list/freelancer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 10}
+   :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 3}
    :list/search-jobs {:items [] :loading? true :params {} :offset 0 :limit 10}
    :list/freelancer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
    :list/employer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
@@ -207,6 +207,6 @@
                              :search/country 0
                              :search/language 0
                              :search/offset 0
-                             :search/limit 10}
+                             :search/limit 3}
    }
   )

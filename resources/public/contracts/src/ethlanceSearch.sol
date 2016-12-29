@@ -33,7 +33,7 @@ contract EthlanceSearch {
         uint8Filters[3] = hoursPerWeeks;
         jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, uintArgs);
         jobIds = SharedLibrary.findTopNValues(jobIds, uintArgs[5] + uintArgs[6]);
-        return  SharedLibrary.getPage(jobIds, uintArgs[5], uintArgs[6]);
+        return  SharedLibrary.getPage(jobIds, uintArgs[5], uintArgs[6], false);
     }
 
     function searchFreelancers(
@@ -46,7 +46,8 @@ contract EthlanceSearch {
         uint countryId,
         uint languageId,
         uint offset,
-        uint limit
+        uint limit,
+        uint seed
     )
         constant returns
     (
@@ -54,8 +55,14 @@ contract EthlanceSearch {
     {
         userIds = UserLibrary.searchFreelancers(ethlanceDB, categoryId, skills, minAvgRating, minRatingsCount,
             minHourlyRate, maxHourlyRate, countryId, languageId);
-        userIds = SharedLibrary.getPage(userIds, offset, limit);
-
+        if (userIds.length > 0) {
+            if (offset > userIds.length) {
+                return SharedLibrary.take(0, userIds);
+            } else if (offset + limit > userIds.length) {
+                limit = userIds.length - offset;
+            }
+            userIds = SharedLibrary.getPage(userIds, (seed + offset) % userIds.length, limit, true);
+        }
         return userIds;
     }
 }

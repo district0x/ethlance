@@ -23,7 +23,7 @@
                  [org.clojure/clojurescript "1.9.293"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.9.0"]
-                 [reagent "0.6.0" :exclusions [cljsjs/react cljsjs/react-dom]]]
+                 [reagent "0.6.1p-SNAPSHOT" :exclusions [cljsjs/react cljsjs/react-dom]]]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.4"]

@@ -94,22 +94,30 @@ library SharedLibrary {
     }
 
 
-    function getPage(uint[] array, uint offset, uint limit) internal returns (uint[] result) {
+    function getPage(uint[] array, uint offset, uint limit, bool cycle) internal returns (uint[] result) {
         uint j = 0;
-        if (offset >= array.length) {
+        uint length = array.length;
+        if (offset >= length || limit == 0) {
             return result;
-        }
-        if (limit == 0) {
-            return array;
         }
 
         result = new uint[](limit);
         for (uint i = offset; i < (offset + limit); i++) {
-            if (array.length == i) {
+            if (length == i) {
                 break;
             }
             result[j] = array[i];
             j++;
+        }
+
+        if (cycle && j < limit) {
+            for (i = 0; i <= limit - j; i++) {
+                if (length == j) {
+                    break;
+                }
+                result[j] = array[i];
+                j++;
+            }
         }
         return take(j, result);
     }

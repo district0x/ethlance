@@ -29,18 +29,20 @@
   (let [{:keys [:user/name :user/gravatar :user/languages :user/country]} user]
     [:div
      (dissoc props :user :form-key :show-save-button? :errors :loading? :open?)
-     [misc/text-field
-      {:floating-label-text "Your Name"
-       :form-key form-key
-       :field-key :user/name
-       :max-length-key :max-user-name
-       :min-length-key :min-user-name
-       :default-value name}]
-     [misc/text-field
-      {:floating-label-text "Gravatar"
-       :form-key form-key
-       :field-key :user/gravatar
-       :default-value gravatar}]
+     [:div
+      [misc/text-field
+       {:floating-label-text "Your Name"
+        :form-key form-key
+        :field-key :user/name
+        :max-length-key :max-user-name
+        :min-length-key :min-user-name
+        :value name}]]
+     [:div
+      [misc/text-field
+       {:floating-label-text "Gravatar"
+        :form-key form-key
+        :field-key :user/gravatar
+        :value gravatar}]]
      [country-select-field
       {:value country
        :on-change #(dispatch [:form/set-value form-key :user/country %3 pos?])}]
@@ -66,7 +68,7 @@
          :form-key form-key
          :field-key :employer/description
          :max-length-key :max-user-description
-         :default-value (:employer/description user)}]
+         :value (:employer/description user)}]
        (when show-save-button?
          [misc/send-button
           {:label "Save Employer"
@@ -89,12 +91,12 @@
          :field-key :freelancer/job-title
          :max-length-key :max-freelancer-job-title
          :min-length-key :min-freelancer-job-title
-         :default-value job-title}]
+         :value job-title}]
        [misc/ether-field
         {:floating-label-text "Hourly rate"
          :form-key form-key
          :field-key :freelancer/hourly-rate
-         :default-value hourly-rate}]
+         :value hourly-rate}]
        [chip-input
         {:value categories
          :all-items (rest (vals constants/categories))
@@ -110,7 +112,7 @@
          :form-key form-key
          :field-key :freelancer/description
          :max-length-key :max-user-description
-         :default-value (:freelancer/description user)}]
+         :value (:freelancer/description user)}]
        [ui/checkbox
         {:style styles/margin-top-gutter-less
          :label "I'm available for hire"

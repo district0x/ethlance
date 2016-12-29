@@ -5,7 +5,8 @@
 
 (def palette {:primary1-color primary1-color})
 
-(def mui-theme (get-mui-theme {:palette palette}))
+(def mui-theme (get-mui-theme {:palette palette
+                               :font-family "Open Sans, sans-serif"}))
 
 (def desktop-gutter (aget js/MaterialUIStyles "spacing" "desktopGutter"))
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
@@ -316,3 +317,54 @@
 (def app-bar-loading-users
   (merge white-text
          {:font-weight 300}))
+
+(def landing-bg
+  {:height "80%"
+   :width "100%"
+   ;:background-image "url(./../images/landing-hero.jpg)"
+   :background-image "url(./../images/bg1.jpg)"
+   :background-repeat "no-repeat"
+   :background-position "center"
+   :background-size "cover"
+   ;:max-height "none"
+   :transition "height .3s ease-out"
+   ;:margin-top (* 2 desktop-gutter)
+   })
+
+(def landing-menu
+  {:width "860px"
+   ;:height "150px"
+   :margin-bottom "-75px"
+   :padding desktop-gutter-less})
+
+(def landing-menu-title
+  {:font-size "16px"
+   :font-weight 300
+   :margin-left 10
+   ;:width "100%"
+   :text-align "center"})
+
+(def landing-menu-icon
+  {:max-height "110px"})
+
+(def landing-menu-icon-smaller
+  {:max-height "90px"})
+
+(def diagram-icon
+  {:max-height "90px"})
+
+(def diagram-arrow-icon
+  {:max-height "100px"})
+
+(def ethereum-logo-landing
+  {:height "300px"})
+
+(def bold-headline
+  {:font-weight 400
+   :line-height "1.2em"
+   :word-break "break-word"
+   :font-size "2em"})
+
+(def footer-subheader
+  {:color "#a3a3a3"
+   :padding-left 0})

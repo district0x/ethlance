@@ -1,7 +1,7 @@
 @import (inline) "cljsjs/react-flexbox-grid/production/react-flexbox-grid.min.inc.css";
 @import (inline) "cljsjs/common/highlight/monokai-sublime.min.css";
 
-html, body {
+html, body, #app {
     height: 100%;
     width: 100%;
     padding: 0;
@@ -47,6 +47,18 @@ h1, h2, h3 {
     font-weight: 300 !important;
     line-height: 1.2em;
     word-break: break-word;
+}
+
+h1.bolder, h2.bolder, h3.bolder {
+    font-weight: 400 !important;
+}
+
+.black {
+    color: #000;
+}
+
+.white {
+    color: #FFF;
 }
 
 h3 {

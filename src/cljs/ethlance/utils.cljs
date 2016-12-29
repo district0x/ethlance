@@ -77,6 +77,9 @@
 (defn match-current-location []
   (bidi/match-route routes (current-location-hash)))
 
+(defn target-value [e]
+  (aget e "target" "value"))
+
 (defn truncate
   "Truncate a string with suffix (ellipsis by default) if it is
    longer than specified length."
@@ -120,10 +123,13 @@
 (defn empty-invoice? [invoice]
   (zero? (:invoice/created-on invoice)))
 
-(defn md5 [s]
+(defn md5-bytes [s]
   (let [container (doto (goog.crypt.Md5.)
                     (.update s))]
-    (crypt/byteArrayToHex (.digest container))))
+    (.digest container)))
+
+(defn md5 [s]
+  (crypt/byteArrayToHex (md5-bytes s)))
 
 (defn debounce-ch
   ([c ms] (debounce-ch (chan) c ms false))

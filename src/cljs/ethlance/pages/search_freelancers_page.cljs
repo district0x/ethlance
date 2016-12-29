@@ -32,94 +32,102 @@
           [category-select-field
            {:value category
             :full-width true
-            :on-change #(dispatch [:form.search-freelancers/set-value :search/category %3])}]
+            :on-change #(dispatch [:form.search/set-value :search/category %3])}]
           [misc/subheader "Min. Rating"]
           [star-rating
            {:value (u/rating->star min-avg-rating)
-            :on-star-click #(dispatch [:form.search-freelancers/set-value :search/min-avg-rating
+            :on-star-click #(dispatch [:form.search/set-value :search/min-avg-rating
                                        (u/star->rating %1)])}]
           [misc/ether-field
            {:floating-label-text "Min. Hourly Rate (Ether)"
-            :default-value min-hourly-rate
+            :value min-hourly-rate
             :full-width true
-            :on-change #(dispatch [:form.search-freelancers/set-value :search/min-hourly-rate %2])}]
+            :on-change #(dispatch [:form.search/set-value :search/min-hourly-rate %])}]
           [misc/ether-field
            {:floating-label-text "Max. Hourly Rate (Ether)"
-            :default-value max-hourly-rate
+            :value max-hourly-rate
             :full-width true
-            :on-change #(dispatch [:form.search-freelancers/set-value :search/max-hourly-rate %2])}]
+            :on-change #(dispatch [:form.search/set-value :search/max-hourly-rate %])}]
           [misc/text-field
            {:floating-label-text "Min. Number of Feedbacks"
             :type :number
-            :default-value min-freelancer-ratings-count
+            :value min-freelancer-ratings-count
             :full-width true
             :min 0
-            :on-change #(dispatch [:form.search-freelancers/set-value :search/min-freelancer-ratings-count %2])}]
+            :on-change #(dispatch [:form.search/set-value :search/min-freelancer-ratings-count %2])}]
           [country-auto-complete
            {:value country
             :full-width true
-            :on-new-request #(dispatch [:form.search-freelancers/set-value :search/country %2])}]
+            :on-new-request #(dispatch [:form.search/set-value :search/country %2])}]
           [language-select-field
            {:value language
             :full-width true
-            :on-new-request #(dispatch [:form.search-freelancers/set-value :search/language %2])}]
-          [misc/search-reset-button
-           {:reset-dispatch [:form.search-freelancers/reset]}]]]))))
+            :on-new-request #(dispatch [:form.search/set-value :search/language %2])}]
+          [misc/search-reset-button]]]))))
+
+(defn change-page [new-offset]
+  (dispatch [:form.search/set-value :search/offset new-offset])
+  (dispatch [:window/scroll-to-top]))
 
 (defn search-results []
   (let [list (subscribe [:list/search-freelancers])
-        selected-skills (subscribe [:form/search-freelancer-skills])]
+        selected-skills (subscribe [:form/search-freelancer-skills])
+        form-data (subscribe [:form/search-freelancers])]
     (fn []
-      (let [{:keys [loading? items]} @list]
-        [paper-thin
-         {:loading? loading?}
-         (if (seq items)
-           (for [{:keys [:freelancer/avg-rating :freelancer/hourly-rate :freelancer/job-title
-                         :freelancer/ratings-count :freelancer/skills
-                         :user/id :user/name :user/gravatar :user/country] :as item} items]
-             [row
-              {:key id
-               :middle "xs"}
-              [col
-               {:md 1}
-               [ui/avatar
-                {:size 55
-                 :src (u/gravatar-url gravatar id)}]]
-              [col
-               [:h2 [a {:style styles/primary-text
-                        :route :freelancer/detail
-                        :route-params {:user/id id}}
-                     name]]
-               [:div {:style styles/fade-text} job-title]]
-              [col
-               {:xs 12
-                :style styles/fade-text}
-               [row-plain
-                {:middle "xs"}
-                [star-rating
-                 {:value (u/rating->star avg-rating)
-                  :small? true}]
-                [:span [:span {:style (merge styles/dark-text
-                                             styles/freelancer-info-item)}
-                        (u/eth hourly-rate)] " per hour"]
-                [:span
-                 {:style styles/freelancer-info-item}
-                 ratings-count (u/pluralize " feedback" ratings-count)]
-                [misc/country-marker
-                 {:country country
-                  :row-props {:style styles/freelancer-info-item}}]]
-               [:div
-                [skills-chips
-                 {:selected-skills skills
-                  :on-touch-tap (fn [skill-id]
-                                  (when-not (contains? (set @selected-skills) skill-id)
-                                    (dispatch [:form.search-freelancers/set-value :search/skills
-                                               (conj (into [] @selected-skills) skill-id)])))}]]
-               [misc/hr-small]]])
-           [row {:center "xs" :middle "xs"
-                 :style {:min-height 200}}
-            (when-not loading?
-              [:div "No freelancers match your search criteria"])])]))))
+      (let [{:keys [loading? items]} @list
+            {:keys [:search/offset :search/limit]} @form-data]
+        [misc/search-results
+         {:items-count (count items)
+          :loading? loading?
+          :offset offset
+          :limit limit
+          :no-items-found-text "No freelancers match your search criteria"
+          :no-more-items-text "No more freelancers found"
+          :next-button-text "Next"
+          :prev-button-text "Previous"
+          :on-page-change change-page}
+         (for [{:keys [:freelancer/avg-rating :freelancer/hourly-rate :freelancer/job-title
+                       :freelancer/ratings-count :freelancer/skills
+                       :user/id :user/name :user/gravatar :user/country] :as item} items]
+           [row
+            {:key id
+             :middle "xs"}
+            [col
+             {:md 1}
+             [ui/avatar
+              {:size 55
+               :src (u/gravatar-url gravatar id)}]]
+            [col
+             [:h2 [a {:style styles/primary-text
+                      :route :freelancer/detail
+                      :route-params {:user/id id}}
+                   name]]
+             [:div {:style styles/fade-text} job-title]]
+            [col
+             {:xs 12
+              :style styles/fade-text}
+             [row-plain
+              {:middle "xs"}
+              [star-rating
+               {:value (u/rating->star avg-rating)
+                :small? true}]
+              [:span [:span {:style (merge styles/dark-text
+                                           styles/freelancer-info-item)}
+                      (u/eth hourly-rate)] " per hour"]
+              [:span
+               {:style styles/freelancer-info-item}
+               ratings-count (u/pluralize " feedback" ratings-count)]
+              [misc/country-marker
+               {:country country
+                :row-props {:style styles/freelancer-info-item}}]]
+             [:div
+              [skills-chips
+               {:selected-skills skills
+                :on-touch-tap (fn [skill-id]
+                                (when-not (contains? (set @selected-skills) skill-id)
+                                  (dispatch [:form.search/set-value :search/skills
+                                             (conj (into [] @selected-skills) skill-id)])))}]]
+             [misc/hr-small]]])]))))
 
 (defn skills-input []
   (let [selected-skills (subscribe [:form/search-freelancer-skills])]
@@ -128,7 +136,7 @@
        [skills-chip-input
         {:value @selected-skills
          :hint-text "Type skills you want a freelancer to have"
-         :on-change #(dispatch [:form.search-freelancers/set-value :search/skills %1])}]])))
+         :on-change #(dispatch [:form.search/set-value :search/skills %1])}]])))
 
 (defn search-freelancers-page []
   [misc/search-layout

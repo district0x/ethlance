@@ -1,7 +1,9 @@
 (ns ethlance.routes)
 
 (def routes
-  ["/" [["edit-profile" :user/edit]
+  ["/" [["how-it-works" :how-it-works]
+        ["about" :about]
+        ["edit-profile" :user/edit]
         ["become-freelancer" :freelancer/create]
         ["become-employer" :employer/create]
         #_["my-jobs/" {"freelancer" :freelancer/contracts

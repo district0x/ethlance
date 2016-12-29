@@ -159,44 +159,47 @@
         search-freelancers-query (subscribe [:location/form-query-string :form/search-freelancers])
         search-jobs-query (subscribe [:location/form-query-string :form/search-jobs])]
     (fn []
-      (let [{:keys [:user/freelancer? :user/employer?]} @active-user]
+      (let [{:keys [:user/freelancer? :user/employer?]} @active-user
+            {:keys [:handler]} @current-page]
         [ui/mui-theme-provider
          {:mui-theme styles/mui-theme}
-         [:div
-          [ui/drawer
-           {:docked true
-            :open @drawer-open?}
-           [ui/app-bar
-            {:title "ethlance"
-             :show-menu-icon-button false
-             :style styles/app-bar-left}]
-           [ui/selectable-list
-            {:value (u/ns+name (:handler @current-page))
-             :style styles/nav-list
-             :on-change (fn [])}
-            (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
-            (if @active-address-registered?
-              (create-menu-items nav-items-registered)
-              (when-not @my-users-loading?
-                (create-menu-items nav-items-unregistered)))
-            (when (and freelancer? employer?)
-              [ui/subheader "Freelancer"])
-            (when freelancer?
-              (create-menu-items nav-items-freelancers))
-            (when (and freelancer? employer?)
-              [ui/subheader "Employer"])
-            (when employer?
-              (create-menu-items nav-items-employer))]]
-          [ui/app-bar
-           {:show-menu-icon-button false
-            :icon-element-right (r/as-element [app-bar-right-elements])
-            :style styles/app-bar-right}]
-          [ui/snackbar (-> @snackbar
-                         (set/rename-keys {:open? :open})
-                         (update :message #(r/as-element %))
-                         (update :action #(if % (r/as-element %) nil)))]
-          (when-let [page (route->component (:handler @current-page))]
-            [:div {:style styles/content-wrap}
-             (if @contracts-not-found?
-               [contracts-not-found-page]
-               [page])])]]))))
+         (if (= handler :home)
+           [(route->component handler)]
+           [:div
+            [ui/drawer
+             {:docked true
+              :open @drawer-open?}
+             [ui/app-bar
+              {:title "ethlance"
+               :show-menu-icon-button false
+               :style styles/app-bar-left}]
+             [ui/selectable-list
+              {:value (u/ns+name handler)
+               :style styles/nav-list
+               :on-change (fn [])}
+              (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
+              (if @active-address-registered?
+                (create-menu-items nav-items-registered)
+                (when-not @my-users-loading?
+                  (create-menu-items nav-items-unregistered)))
+              (when (and freelancer? employer?)
+                [ui/subheader "Freelancer"])
+              (when freelancer?
+                (create-menu-items nav-items-freelancers))
+              (when (and freelancer? employer?)
+                [ui/subheader "Employer"])
+              (when employer?
+                (create-menu-items nav-items-employer))]]
+            [ui/app-bar
+             {:show-menu-icon-button false
+              :icon-element-right (r/as-element [app-bar-right-elements])
+              :style styles/app-bar-right}]
+            [ui/snackbar (-> @snackbar
+                           (set/rename-keys {:open? :open})
+                           (update :message #(r/as-element %))
+                           (update :action #(if % (r/as-element %) nil)))]
+            (when-let [page (route->component handler)]
+              [:div {:style styles/content-wrap}
+               (if @contracts-not-found?
+                 [contracts-not-found-page]
+                 [page])])])]))))

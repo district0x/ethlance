@@ -20,7 +20,8 @@
     [madvas.re-frame.google-analytics-fx]
     [madvas.re-frame.web3-fx]
     [medley.core :as medley]
-    [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console dispatch]]
+    [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console
+                                        dispatch dispatch-sync]]
     [ethlance.constants :as constants]))
 
 #_(if goog.DEBUG
@@ -124,6 +125,15 @@
     (assoc db form (merge (default-db form) query-data))
     db))
 
+(defn calculate-search-seed [args on-load-seed]
+  (as-> args a
+        (dissoc a :search/offset :search/limit)
+        (pr-str a)
+        (u/md5-bytes a)
+        (reduce + a)
+        (* on-load-seed a)
+        ))
+
 (reg-fx
   :location/set-hash
   (fn [[route route-params]]
@@ -151,6 +161,12 @@
     {:window/scroll-to-top true}))
 
 (reg-event-fx
+  :location/set-query
+  interceptors
+  (fn [_ args]
+    {:location/set-query args}))
+
+(reg-event-fx
   :location/set-hash
   interceptors
   (fn [_ args]
@@ -160,10 +176,12 @@
   :initialize
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
-    (let [{:keys [:web3 :provides-web3? :active-page]} default-db
-          default-db (merge-data-from-query default-db active-page (u/current-url-query))]
+    (let [{:keys [:web3 :provides-web3? :active-page]} default-db]
       (merge
-        {:db (merge-with (partial merge-with merge) default-db localstorage)
+        {:db (as-> default-db db
+                   (merge-data-from-query db active-page (u/current-url-query))
+                   (merge-with (partial merge-with merge) db localstorage)
+                   (assoc db :on-load-seed (rand-int 99999)))
          :async-flow {:first-dispatch [:load-eth-contracts]
                       :rules [{:when :seen?
                                :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
@@ -559,11 +577,12 @@
   :contract.search/search-freelancers
   interceptors
   (fn [{:keys [db]} [args]]
+    (println (calculate-search-seed args (:on-load-seed db)) (mod (calculate-search-seed args (:on-load-seed db)) 8))
     {:dispatch [:list/load-ids {:list-key :list/search-freelancers
                                 :fn-key :ethlance-search/search-freelancers
                                 :load-dispatch-key :contract.db/load-users
                                 :schema (dissoc ethlance-db/freelancer-schema :freelancer/description)
-                                :args args
+                                :args (assoc args :search/seed (calculate-search-seed args (:on-load-seed db)))
                                 :keep-items? true}]}))
 
 (reg-event-fx
@@ -986,46 +1005,12 @@
                      [:contract/transaction-receipt method max-gas nil nil]])]}}))
 
 (reg-event-fx
-  :form.search-jobs/set-value
-  interceptors
-  (fn [{:keys [db]} [field-key field-value]]
-    {:dispatch [:form.search/set-value :contract.search/search-jobs :form/search-jobs field-key field-value]}))
-
-(reg-event-fx
-  :form.search-freelancers/set-value
-  interceptors
-  (fn [{:keys [db]} [field-key field-value]]
-    {:dispatch [:form.search/set-value :contract.search/search-freelancers :form/search-freelancers field-key field-value]}))
-
-(reg-event-fx
   :form.search/set-value
   interceptors
-  (fn [{:keys [db]} [search-dispatch-key form-key field-key field-value]]
-    (let [new-db (assoc-in db [form-key field-key] field-value)]
-      {;:db new-db
-       ;:dispatch [search-dispatch-key (new-db form-key)]
-       :location/add-to-query [{field-key field-value}]})))
-
-(reg-event-fx
-  :form.search-freelancers/reset
-  interceptors
-  (fn [{:keys [db]}]
-    {:dispatch [:form.search/reset :contract.search/search-freelancers :form/search-freelancers]}))
-
-(reg-event-fx
-  :form.search-jobs/reset
-  interceptors
-  (fn [{:keys [db]}]
-    {:dispatch [:form.search/reset :contract.search/search-jobs :form/search-jobs]}))
-
-(reg-event-fx
-  :form.search/reset
-  interceptors
-  (fn [{:keys [db]} [search-dispatch-key form-key]]
-    (let [new-db (assoc db form-key (default-db form-key))]
-      {:db new-db
-       :dispatch [search-dispatch-key (new-db form-key)]
-       :location/set-query []})))
+  (fn [{:keys [db]} [field-key field-value]]
+    {:location/add-to-query [(merge {field-key field-value}
+                                    (when-not (= field-key :search/offset)
+                                      {:search/offset 0}))]}))
 
 (reg-event-fx
   :form/submit
@@ -1219,6 +1204,12 @@
   (fn [_]
     {:localstorage nil}))
 
+(reg-event-db
+  :reset-on-load-seed
+  interceptors
+  (fn [db [number]]
+    (assoc db :on-load-seed (or number (rand-int 99999)))))
+
 (reg-event-fx
   :reintialize
   interceptors
@@ -1347,16 +1338,19 @@
                                                :user/languages [1]
                                                :employer/description "employdescribptions"}])
 
-  (dispatch [:contract.search/search-freelancers {:search/category 0
-                                                  :search/skills [12]
-                                                  :search/min-avg-rating 0
-                                                  :search/min-freelancer-ratings-count 0
-                                                  :search/min-hourly-rate 0
-                                                  :search/max-hourly-rate 0
-                                                  :search/country 0
-                                                  :search/language 0
-                                                  :search/offset 0
-                                                  :search/limit 10}])
+
+  (do
+    (dispatch-sync [:reset-on-load-seed 0])
+    (dispatch-sync [:contract.search/search-freelancers {:search/category 0
+                                                         :search/skills []
+                                                         :search/min-avg-rating 0
+                                                         :search/min-freelancer-ratings-count 0
+                                                         :search/min-hourly-rate 0 #_(web3/to-wei 3 :ether)
+                                                         :search/max-hourly-rate 0
+                                                         :search/country 0
+                                                         :search/language 0
+                                                         :search/offset 0
+                                                         :search/limit 5}]))
 
   (dispatch [:contract.job/add-job {:job/title "This is Job 1"
                                     :job/description "Asdkaas  aspokd aps asopdk ap"

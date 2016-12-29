@@ -11,6 +11,7 @@
     [medley.core :as medley]
     [re-frame.core :refer [subscribe dispatch dispatch-sync]]
     [reagent.core :as r]
+    [reagent.impl.template :as tmpl]
     ))
 
 (def col (r/adapt-react-class js/ReactFlexboxGrid.Col))
@@ -104,37 +105,84 @@
     (if x (u/big-num->num x) "")))
 
 
-(defn text-field* [{:keys [:default-value :transform-default-value]
-                    :or {transform-default-value identity}}]
-  (let [prev-value (r/atom default-value)]
-    (fn [{:keys [:rows :on-change :default-value :transform-on-change :transform-default-value]
-          :as props
-          :or {transform-on-change identity transform-default-value identity}}]
-      ;(if (= (u/big-num->num default-value) (u/big-num->num @prev-value))
-      (if (= (default-value->comparable default-value) (default-value->comparable @prev-value))
-        [ui/text-field
-         (merge
-           (dissoc props :transform-on-change :transform-default-value)
-           {:default-value (transform-default-value default-value)
-            :on-change (fn [e val]
-                         (let [val (transform-on-change val)]
-                           (reset! prev-value val)
-                           (when on-change
-                             (on-change e val))))})]
-        (do
-          (reset! prev-value default-value)
-          [:div {:style {:min-height (+ 72 (* (dec (or rows 1)) 24))}}])))))
+#_(defn text-field* [{:keys [:default-value :transform-default-value]
+                      :or {transform-default-value identity}}]
+    (let [prev-value (r/atom default-value)]
+      (fn [{:keys [:rows :on-change :default-value :transform-on-change :transform-default-value]
+            :as props
+            :or {transform-on-change identity transform-default-value identity}}]
+        ;(if (= (u/big-num->num default-value) (u/big-num->num @prev-value))
+        (if (= (default-value->comparable default-value) (default-value->comparable @prev-value))
+          [ui/text-field
+           (merge
+             (dissoc props :transform-on-change :transform-default-value)
+             {:default-value (transform-default-value default-value)
+              :on-change (fn [e val]
+                           (let [val (transform-on-change val)]
+                             (reset! prev-value val)
+                             (when on-change
+                               (on-change e val))))})]
+          (do
+            (reset! prev-value default-value)
+            [:div {:style {:min-height (+ 72 (* (dec (or rows 1)) 24))}}])))))
 
-(defn text-field [{:keys [:max-length-key :min-length-key]}]
+(def text-field-patched
+  (tmpl/adapt-react-class (aget js/MaterialUI "TextField")
+                          ;; Optional...
+                          {:synthetic-input
+                           ;; A valid map value for `synthetic-input` does two things:
+                           ;; 1) It implicitly marks this component class as an input type so that interactive
+                           ;;    updates will work without cursor jumping.
+                           ;; 2) Reagent defers to its functions when it goes to set a value for the input component,
+                           ;;    or signal a change, providing enough data for us to decide which DOM node is our input
+                           ;;    node to target and continue processing with that (or any arbitrary behaviour...); and
+                           ;;    to handle onChange events arbitrarily.
+                           ;;
+                           ;;    Note: We can also use an extra hook `on-write` to execute more custom behaviour
+                           ;;    when Reagent actually writes a new value to the input node, from within `on-update`.
+                           ;;
+                           ;;    Note: Both functions receive a `next` argument which represents the next fn to
+                           ;;    execute in Reagent's processing chain.
+                           {:on-update (fn [next root-node rendered-value dom-value component]
+                                         (let [input-node (.querySelector root-node "input")
+                                               textarea-nodes (array-seq (.querySelectorAll root-node "textarea"))
+                                               textarea-node (when (= 2 (count textarea-nodes))
+                                                               ;; We are dealing with EnhancedTextarea (i.e.
+                                                               ;; multi-line TextField)
+                                                               ;; so our target node is the second <textarea>...
+                                                               (second textarea-nodes))
+                                               target-node (or input-node textarea-node)]
+                                           (when target-node
+                                             ;; Call Reagent's input node value setter fn (extracted from input-set-value)
+                                             ;; which handles updating of a given <input> element,
+                                             ;; now that we have targeted the correct <input> within our component...
+                                             (next target-node rendered-value dom-value component
+                                                   ;; Also hook into the actual value-writing step,
+                                                   ;; since `input-node-set-value doesn't necessarily update values
+                                                   ;; (i.e. not dirty).
+                                                   {:on-write
+                                                    (fn [new-value]
+                                                      ;; `blank?` is effectively the same conditional as Material-UI uses
+                                                      ;; to update its `hasValue` and `isClean` properties, which are
+                                                      ;; required for correct rendering of hint text etc.
+                                                      (if (clojure.string/blank? new-value)
+                                                        (.setState component #js {:hasValue false :isClean false})
+                                                        (.setState component #js {:hasValue true :isClean false})))}))))
+                            :on-change (fn [next event]
+                                         ;; All we do here is continue processing but with the event target value
+                                         ;; extracted into a second argument, to match Material-UI's existing API.
+                                         (next event (-> event .-target .-value)))}}))
+
+(defn text-field []
   (let [eth-config (subscribe [:eth/config])]
-    (fn [{:keys [:default-value :on-change :form-key :field-key] :as props}]
+    (fn [{:keys [:value :on-change :form-key :field-key :max-length-key :min-length-key] :as props}]
       (let [min-length (get @eth-config min-length-key 0)
             max-length (get @eth-config max-length-key)
             validator (if (and min-length-key max-length-key)
                         #(<= min-length (count %1) max-length)
                         (constantly true))
-            valid? (validator default-value)]
-        [text-field*
+            valid? (validator value)]
+        [text-field-patched
          (r/merge-props
            {:style styles/display-block
             :on-change #(dispatch [:form/set-value form-key field-key %2 validator])
@@ -142,29 +190,34 @@
                           (if (pos? min-length)
                             (gstring/format "Write between %s and %s characters" min-length max-length)
                             "Text is too long"))}
-           (dissoc props :max-length-key :form-key :field-key :min-length-key))]))))
+           (dissoc props :form-key :field-key :max-length-key :form-key :field-key :min-length-key))]))))
 
-(defn ether-field [{:keys [:on-change :default-value :form-key :field-key] :as props}]
-  (let [validator u/pos-or-zero?]
-    [text-field*
+(defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change] :as props}]
+  (let [validator (comp u/pos-or-zero? u/parse-float)]
+    [text-field-patched
      (r/merge-props
-       {:on-change #(dispatch [:form/set-value form-key field-key %2 validator])
-        :transform-on-change #(web3/to-wei (u/parse-float %) :ether)
-        :transform-default-value #(web3/from-wei % :ether)
-        :error-text (when-not (validator default-value)
+       {:style styles/display-block
+        :on-change (fn [e value]
+                     (let [value (web3/to-wei value :ether)]
+                       (if on-change
+                         (on-change value)
+                         (dispatch [:form/set-value form-key field-key value validator]))))
+        :error-text (when-not (validator value)
                       "Invalid number")
-        :default-value default-value}
-       (r/merge-props
-         {:style styles/display-block}
-         (dissoc props :default-value :form-key :field-key)))]))
+        :value (web3/from-wei value :ether)}
+       (dissoc props :value :form-key :field-key :on-change))]))
 
-(defn textarea [props]
-  [text-field
-   (r/merge-props
-     {:rows 4
-      :full-width true
-      :multi-line true}
-     props)])
+(def textarea (u/create-with-default-props text-field {:rows 4
+                                                       :full-width true
+                                                       :multi-line true}))
+
+#_(defn textarea [props]
+    [text-field
+     (r/merge-props
+       {:rows 4
+        :full-width true
+        :multi-line true}
+       props)])
 
 (defn send-button [props]
   [row-plain
@@ -305,11 +358,42 @@
     :allow-whitespace? true}
    body])
 
-(defn search-reset-button [{:keys [:reset-dispatch]}]
+(defn search-reset-button []
   [row-plain
    {:center "xs"}
    [ui/flat-button
     {:style styles/margin-top-gutter-less
      :primary true
      :label "Reset"
-     :on-touch-tap #(dispatch reset-dispatch)}]])
+     :on-touch-tap #(dispatch [:location/set-query nil])}]])
+
+(defn search-result-change-page [new-offset]
+  (dispatch [:form.search/set-value :search/offset new-offset])
+  (dispatch [:window/scroll-to-top]))
+
+(defn search-results [{:keys [:items-count :loading? :offset :limit :no-items-found-text :no-more-items-text
+                              :next-button-text :prev-button-text :on-page-change]} body]
+  [paper-thin
+   {:loading? loading?}
+   (if (pos? items-count)
+     body
+     [row {:center "xs" :middle "xs"
+           :style {:min-height 200}}
+      (when-not loading?
+        (if (zero? offset)
+          [:div no-items-found-text]
+          [:div no-more-items-text]))])
+   [row-plain {:end "xs"}
+    (when (pos? offset)
+      [ui/flat-button
+       {:secondary true
+        :label prev-button-text
+        :icon (icons/navigation-chevron-left)
+        :on-touch-tap #(on-page-change (- offset limit))}])
+    (when (= items-count limit)
+      [ui/flat-button
+       {:secondary true
+        :label next-button-text
+        :label-position :before
+        :icon (icons/navigation-chevron-right)
+        :on-touch-tap #(on-page-change (+ offset limit))}])]])
