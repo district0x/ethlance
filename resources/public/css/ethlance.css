@@ -11,5 +11,7 @@ h2,
 h3{font-weight:300 !important;line-height:1.2em;word-break:break-word;} h1.bolder,
 h2.bolder,
 h3.bolder{font-weight:400 !important;} .black{color:#000;} .white{color:#FFF;} h3{line-height:1.4em;} body{font-size:15px;} strong,
-b{font-weight:600;}
+b{font-weight:600;} .visible-sm,
+.visible-md,
+.visible-lg{display:none;}@media only screen and (min-width:48em){ .visible-sm{display:block;}}@media only screen and (min-width:64em){ .visible-md{display:block;}}@media only screen and (min-width:75em){ .visible-lg{display:block;}}
 /*# sourceMappingURL=ethlance.main.css.map */

@@ -132,7 +132,7 @@
            :style styles/app-bar-user}
           [user-anchor
            {:user @active-user}
-           [:h3 {:style styles/app-bar-user}
+           [:h3.bolder {:style styles/app-bar-user}
             (u/first-word (:user/name @active-user))]]
           [user-anchor
            {:user @active-user}
@@ -140,7 +140,7 @@
             {:size 35
              :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))}]]])
        (when @active-address-balance
-         [:h2 {:style styles/app-bar-balance}
+         [:h2.bolder {:style styles/app-bar-balance}
           (u/eth @active-address-balance)])
        [my-addresses-select-field]])))
 
@@ -170,7 +170,11 @@
              {:docked true
               :open @drawer-open?}
              [ui/app-bar
-              {:title "ethlance"
+              {:title (r/as-element
+                        [:a
+                         {:href (u/path-for :home)}
+                         [:img {:style styles/ethlance-logo
+                                :src "../images/ethlance-logo-white.svg"}]])
                :show-menu-icon-button false
                :style styles/app-bar-left}]
              [ui/selectable-list

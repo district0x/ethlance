@@ -103,6 +103,11 @@
     (:app/contracts db)))
 
 (reg-sub
+  :window/width-size
+  (fn [db]
+    (:window/width-size db)))
+
+(reg-sub
   :app/invoices
   (fn [db]
     (:app/invoices db)))

@@ -1,7 +1,7 @@
 (ns ethlance.styles
   (:require [cljs-react-material-ui.core :refer [color get-mui-theme]]))
 
-(def primary1-color (color :indigo500))
+(def primary1-color (color #_ :teal500 #_ :blue600 #_ :light-blue600 :indigo500))
 
 (def palette {:primary1-color primary1-color})
 
@@ -50,6 +50,9 @@
 
 (def full-width
   {:width "100%"})
+
+(def full-height
+  {:height "100%"})
 
 (def content-wrap
   {:padding desktop-gutter
@@ -319,28 +322,32 @@
          {:font-weight 300}))
 
 (def landing-bg
-  {:height "80%"
+  {:margin-top 64
    :width "100%"
+   :height "700px"
+   ;:height "80%"
    ;:background-image "url(./../images/landing-hero.jpg)"
-   :background-image "url(./../images/bg1.jpg)"
-   :background-repeat "no-repeat"
-   :background-position "center"
-   :background-size "cover"
+   ;:background-image "url(./../images/bg1.jpg)"
+   :background-color primary1-color #_ (color :indigo500)
+   ;:background-repeat "no-repeat"
+   ;:background-position "center"
+   ;:background-size "cover"
    ;:max-height "none"
-   :transition "height .3s ease-out"
+   ;:transition "height .3s ease-out"
    ;:margin-top (* 2 desktop-gutter)
    })
 
-(def landing-menu
+(def landing-banner
   {:width "860px"
    ;:height "150px"
-   :margin-bottom "-75px"
-   :padding desktop-gutter-less})
+   :margin-bottom "-60px"
+   :padding desktop-gutter-less
+   :z-index 99})
 
 (def landing-menu-title
   {:font-size "16px"
    :font-weight 300
-   :margin-left 10
+   ;:margin-left 10
    ;:width "100%"
    :text-align "center"})
 
@@ -368,3 +375,30 @@
 (def footer-subheader
   {:color "#a3a3a3"
    :padding-left 0})
+
+(def ethlance-logo
+  {:margin-top 10
+   :max-height 40})
+
+(def landing-title-base
+  {:color "#FFF"})
+
+(def landing-title
+  (merge landing-title-base
+    {:font-size 55}))
+
+(def landing-subtitle
+  (merge landing-title-base
+    {:font-size 25}))
+
+(def landing-app-bar
+  {:position :fixed
+   :box-shadow "none"
+   :top 0})
+
+(def landing-button
+  {:background-color :transparent
+   :box-shadow "none"
+   :border "1px solid #FFF"
+   :width 200
+   :margin "2px 10px"})

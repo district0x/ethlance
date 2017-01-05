@@ -73,3 +73,25 @@ body {
 strong, b {
     font-weight: 600;
 }
+
+.visible-sm, .visible-md, .visible-lg {
+    display: none;
+}
+
+@media only screen and (min-width:48em) {
+    .visible-sm {
+        display: block;
+    }
+}
+
+@media only screen and (min-width:64em) {
+    .visible-md {
+        display: block;
+    }
+}
+
+@media only screen and (min-width:75em) {
+    .visible-lg {
+        display: block;
+    }
+}

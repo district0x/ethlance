@@ -15,6 +15,7 @@
     [ethlance.ethlance-db :as ethlance-db :refer [get-entity get-entities get-entities-field-items]]
     [ethlance.generate-db]
     [ethlance.utils :as u]
+    [ethlance.window-fx]
     [goog.string :as gstring]
     [goog.string.format]
     [madvas.re-frame.google-analytics-fx]
@@ -149,16 +150,22 @@
   (fn [[query-params]]
     (u/set-location-query! query-params)))
 
-(reg-fx
-  :window/scroll-to-top
-  (fn [_]
-    (.scrollTo js/window 0 0)))
-
 (reg-event-fx
   :window/scroll-to-top
   interceptors
   (fn []
     {:window/scroll-to-top true}))
+
+(reg-event-fx
+  :window/on-resize
+  interceptors
+  (fn [{:keys [db]} [width]]
+    (let [width-size (cond
+                       (>= width 1200) 3
+                       (>= width 1024) 2
+                       (>= width 768) 1
+                       :else 0)]
+      {:db (assoc db :window/width-size width-size)})))
 
 (reg-event-fx
   :location/set-query
@@ -187,7 +194,9 @@
                                :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
                                :dispatch-n [[:contract.config/get-configs {:config/keys (keys (:eth/config default-db))}]
                                             [:contract.views/load-my-users]]
-                               :halt? true}]}}
+                               :halt? true}]}
+         :window/on-resize {:dispatch [:window/on-resize]
+                            :resize-interval 166}}
         (when provides-web3?
           {:web3-fx.blockchain/fns
            {:web3 web3
