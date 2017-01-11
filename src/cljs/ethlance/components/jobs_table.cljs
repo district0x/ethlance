@@ -47,7 +47,8 @@
            (when show-status?
              [ui/table-row-column
               [misc/status-chip
-               {:background-color (styles/job-status-colors status)}
+               {:background-color (styles/job-status-colors status)
+                :style styles/table-status-chip}
                (constants/job-statuses status)]])]))
       (misc/create-no-items-row no-items-text loading?))]
    (misc/create-table-pagination

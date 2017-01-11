@@ -19,16 +19,19 @@
 
 
 (defn employer-details []
-  (let [job (subscribe [:job/detail])]
+  (let [job (subscribe [:job/detail])
+        xs-width (subscribe [:window/xs-width?])]
     (fn []
       (let [{:keys [:user/name :user/gravatar :user/id :employer/avg-rating
                     :employer/total-paid :employer/ratings-count :user/country :user/balance]} (:job/employer @job)
             route-props {:route :employer/detail
                          :route-params {:user/id id}}]
         [row
-         {:middle "xs"}
+         {:middle "xs"
+          :center "xs"
+          :start "sm"}
          [col
-          {:md 2}
+          {:xs 12 :sm 3 :md 2 :lg 3}
           [a route-props
            [ui/avatar
             {:size 100
@@ -45,20 +48,23 @@
           [line (str (u/eth total-paid) " spent")]
           [line (str (u/eth balance) " balance")]
           [misc/country-marker
-           {:row-props {:style {:margin-left "-2px" :margin-top "-2px"}}
+           {:row-props (if @xs-width
+                         {:center "xs"}
+                         {:style {:margin-left "-2px" :margin-top "-2px"}})
             :country country}]]]))))
 
 (defn my-contract? [active-user-id {:keys [:contract/freelancer]}]
   (= active-user-id (:user/id freelancer)))
 
 (defn job-proposals []
-  (let [active-user-id (subscribe [:db/active-user-id])]
+  (let [active-user-id (subscribe [:db/active-user-id])
+        xs-width (subscribe [:window/xs-width?])]
     (fn [job-id]
       (when job-id
         [contracts-table
          {:list-subscribe [:list/contracts :list/job-proposals {:loading-till-freelancer? true}]
           :show-freelancer? true
-          :show-invitation-or-proposal-time? true
+          :show-invitation-or-proposal-time? (not @xs-width)
           :show-rate? true
           :show-status? true
           :highlight-row-pred (partial my-contract? @active-user-id)
@@ -73,29 +79,32 @@
           :title "Proposals"
           :no-items-text "No proposals for this job"}]))))
 
-(defn new-proposal-allowed? [{:keys [:contract/status]}]
+(defn create-proposal-allowed? [{:keys [:contract/status]}]
   (or (not status) (= status 1)))
 
 (defn job-action-buttons [contract form-open?]
   (let [{:keys [:contract/status :contract/id]} contract]
     [row-plain
      {:end "xs"}
-     (when (and (not @form-open?) (new-proposal-allowed? contract))
+     (when (and (not @form-open?) (create-proposal-allowed? contract))
        [ui/raised-button
         {:label "Write Proposal"
          :primary true
          :on-touch-tap #(reset! form-open? true)
+         :style styles/detail-action-button
          :icon (icons/content-create)}])
      (when (= status 1)
        [ui/raised-button
         {:label "You were invited!"
-         :style {:margin-left 10}
+         :style (merge {:margin-left 10}
+                       styles/detail-action-button)
          :href (u/path-for :contract/detail :contract/id id)
          :secondary true}])
      (when (>= status 2)
        [ui/raised-button
         {:label "My Proposal"
          :href (u/path-for :contract/detail :contract/id id)
+         :style styles/detail-action-button
          :primary true
          :icon (icons/content-create)}])]))
 
@@ -114,12 +123,12 @@
           [paper
            {:loading? loading?}
            [row
-            [col {:xs 6}
-             (when (and @form-open? (new-proposal-allowed? @contract))
+            [col {:xs 12 :sm 6}
+             (when (and @form-open? (create-proposal-allowed? @contract))
                [:h2 "New Proposal"])]
-            [col {:xs 6}
+            [col {:xs 12 :sm 6}
              [job-action-buttons @contract form-open?]]]
-           (when (and @form-open? (new-proposal-allowed? @contract))
+           (when (and @form-open? (create-proposal-allowed? @contract))
              [:div
               [misc/ether-field
                {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate (Ether)")

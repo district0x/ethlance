@@ -10,6 +10,7 @@
 
 (def desktop-gutter (aget js/MaterialUIStyles "spacing" "desktopGutter"))
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
+(def desktop-gutter-mini (aget js/MaterialUIStyles "spacing" "desktopGutterMini"))
 
 (def app-bar-left
   {:background-color primary1-color})
@@ -36,7 +37,7 @@
 (def white-text
   {:color (color :white)})
 
-(def address-select-field-label
+(def app-bar-select-field-label
   {:color "#FFF"})
 
 (def text-left
@@ -55,12 +56,15 @@
   {:height "100%"})
 
 (def content-wrap
-  {:padding desktop-gutter
-   :padding-left (+ 256 desktop-gutter)})
+  {:padding desktop-gutter})
 
 (def paper-secton-thin
   {:padding desktop-gutter-less
    :margin-bottom desktop-gutter-less})
+
+(def paper-secton-mini
+  {:padding desktop-gutter-mini
+   :margin-bottom desktop-gutter-mini})
 
 (def paper-secton
   {:padding desktop-gutter
@@ -183,7 +187,8 @@
 
 (def message-bubble-time
   (merge bold-fader-text
-         {:margin-bottom 10}))
+         {:margin-bottom 10
+          :font-size "0.9em"}))
 
 (def employer-info-wrap
   {:min-height 24})
@@ -277,7 +282,8 @@
    :padding desktop-gutter-less})
 
 (def message-bubble-row
-  {:margin-bottom desktop-gutter-less})
+  {:margin-bottom desktop-gutter-less
+   :font-size "0.85em"})
 
 (def message-bubble-right
   (merge message-bubble
@@ -300,7 +306,8 @@
 (def profile-picture-name
   (merge overflow-ellipsis
          text-center
-         {:max-height 50}))
+         {:max-height 50
+          :margin-top 2}))
 
 (def table-highlighted-row
   {:background-color (color :indigo50)})
@@ -402,3 +409,24 @@
    :border "1px solid #FFF"
    :width 200
    :margin "2px 10px"})
+
+(def landing-feature-seaction
+  {:width "100%"
+   :height "725px"})
+
+(def landing-feature-image
+  {:width "100%"
+   :max-height "550px"
+   })
+
+(def table-row-column-thin
+  {:padding-left 3 :padding-right 3})
+
+(def detail-action-button
+  {:margin-top 2
+   :margin-bottom 2})
+
+(def table-status-chip
+  {:margin-right 0
+   :margin-bottom 0
+   :float :left})

@@ -3,7 +3,7 @@
                  [bidi "2.0.14"]
                  [camel-snake-kebab "0.4.0"]
                  [cljs-ajax "0.5.8"]
-                 [cljs-react-material-ui "0.2.34"]
+                 [cljs-react-material-ui "0.2.35"]
                  [cljs-web3 "0.16.0-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/material-ui-chip-input "0.11.2-0"]

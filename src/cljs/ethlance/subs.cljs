@@ -108,6 +108,16 @@
     (:window/width-size db)))
 
 (reg-sub
+  :window/lg-width?
+  (fn [db]
+    (= (:window/width-size db) 3)))
+
+(reg-sub
+  :window/xs-width?
+  (fn [db]
+    (= (:window/width-size db) 0)))
+
+(reg-sub
   :app/invoices
   (fn [db]
     (:app/invoices db)))

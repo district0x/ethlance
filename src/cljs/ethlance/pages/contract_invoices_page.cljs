@@ -10,6 +10,18 @@
     [ethlance.utils :as u]))
 
 
+(defn contract-invoices-header [{:keys [:contract/job :contract/freelancer]}]
+  (when (and (:job/id job) (:user/id freelancer))
+    [:div {:style styles/margin-top-gutter-less}
+     [:div
+      [a {:route :job/detail
+          :route-params (select-keys job [:job/id])}
+       (:job/title job)]]
+     [:div
+      [a {:route :freelancer/detail
+          :route-params (select-keys freelancer [:user/id])}
+       (:user/name freelancer)]]]))
+
 (defn contract-invoices-page []
   (let [contract-id (subscribe [:contract/route-contract-id])
         contract (subscribe [:contract/detail])]
@@ -18,15 +30,15 @@
         [center-layout
          [invoices-table
           {:title "Contract Invoices"
+           :header (partial contract-invoices-header @contract)
            :list-subscribe [:list/invoices :list/contract-invoices]
            :initial-dispatch {:list-key :list/contract-invoices
                               :fn-key :ethlance-views/get-contract-invoices
                               :load-dispatch-key :contract.db/load-invoices
                               :schema ethlance-db/invoices-table-schema
                               :args {:contract/id @contract-id :invoice/status 0}}
-           :show-freelancer? true
-           :show-job? true
            :show-status? true
+           :always-show-created-on? true
            :all-ids-subscribe [:list/ids :list/contract-invoices]}
           [row
            [col {:xs 12

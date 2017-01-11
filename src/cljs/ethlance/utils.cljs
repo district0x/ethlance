@@ -363,3 +363,13 @@
 (defn conj-colls [colls coll]
   (map (fn [[i c]]
          (conj c (nth coll i))) (medley/indexed colls)))
+
+(defn get-window-width-size [width]
+  (cond
+    (>= width 1200) 3
+    (>= width 1024) 2
+    (>= width 768) 1
+    :else 0))
+
+(defn large-window? [width-size]
+  (> width-size 2))

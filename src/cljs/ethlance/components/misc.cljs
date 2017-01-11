@@ -27,22 +27,26 @@
 
 (def row-plain (u/create-with-default-props row {:style styles/row-no-margin}))
 
-(defn paper [props & children]
-  (let [[props children] (u/parse-props-children props children)]
-    [ui/paper
-     (dissoc props :loading? :inner-style)
-     [ui/linear-progress {:mode :indeterminate
-                          :style {:visibility (if (:loading? props) :visible :hidden)}}]
-     (into [] (concat [:div {:style (merge styles/paper-secton (:inner-style props))}]
-                      children))]))
+(defn paper []
+  (let [xs-width (subscribe [:window/xs-width?])]
+    (fn [props & children]
+      (let [[props children] (u/parse-props-children props children)]
+        [ui/paper
+         (dissoc props :loading? :inner-style)
+         [ui/linear-progress {:mode :indeterminate
+                              :style {:visibility (if (:loading? props) :visible :hidden)}}]
+         (into [] (concat [:div {:style (merge (if @xs-width styles/paper-secton-thin
+                                                             styles/paper-secton)
+                                               (:inner-style props))}]
+                          children))]))))
 
 (def paper-thin (u/create-with-default-props paper {:inner-style styles/paper-secton-thin}))
 
 (defn search-layout [filter-sidebar skills-input search-results]
   [row
-   [col {:xs 4}
+   [col {:xs 12 :md 4}
     filter-sidebar]
-   [col {:xs 8}
+   [col {:xs 12 :md 8}
     [row
      [col {:xs 12}
       skills-input]
@@ -95,7 +99,7 @@
 
 (defn center-layout [& children]
   [row {:center "xs"}
-   (into [] (concat [col {:lg 8 :style styles/text-left}]
+   (into [] (concat [col {:xs 12 :md 10 :lg 8 :style styles/text-left}]
                     children))])
 
 (defn- default-value->comparable [x]
@@ -397,3 +401,9 @@
         :label-position :before
         :icon (icons/navigation-chevron-right)
         :on-touch-tap #(on-page-change (+ offset limit))}])]])
+
+(defn logo []
+  [:a
+   {:href (u/path-for :home)}
+   [:img {:style styles/ethlance-logo
+          :src "../images/ethlance-logo-white.svg"}]])

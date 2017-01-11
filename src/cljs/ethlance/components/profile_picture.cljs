@@ -6,7 +6,7 @@
     [ethlance.utils :as u]
     ))
 
-(defn profile-picture [{:keys [user employer?]}]
+(defn profile-picture [{:keys [:user :employer? :size :hide-name?]}]
   (let [{:keys [:user/gravatar :user/name :user/id]} user]
     [a
      {:route-params {:user/id id}
@@ -16,8 +16,9 @@
       {:center "xs"}
       [col {:xs 12}
        [ui/avatar
-        {:size 80
+        {:size (or size 80)
          :src (u/gravatar-url gravatar id)}]]
-      [col {:xs 12
-            :style styles/profile-picture-name}
-       name]]]))
+      (when-not hide-name?
+        [col {:xs 12
+              :style styles/profile-picture-name}
+         name])]]))

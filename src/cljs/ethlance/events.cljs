@@ -119,7 +119,9 @@
   (users (:user/id (addresses active-address))))
 
 (defn get-my-users [{:keys [:my-addresses :blockchain/addresses :app/users]}]
-  (map (comp users :user/id addresses) my-addresses))
+  (->> my-addresses
+    (map (comp users :user/id addresses))
+    (remove nil?)))
 
 (defn merge-data-from-query [db {:keys [:handler]} query-data]
   (if-let [form (constants/handler->form handler)]
@@ -160,12 +162,7 @@
   :window/on-resize
   interceptors
   (fn [{:keys [db]} [width]]
-    (let [width-size (cond
-                       (>= width 1200) 3
-                       (>= width 1024) 2
-                       (>= width 768) 1
-                       :else 0)]
-      {:db (assoc db :window/width-size width-size)})))
+    {:db (assoc db :window/width-size (u/get-window-width-size width))}))
 
 (reg-event-fx
   :location/set-query
@@ -188,7 +185,8 @@
         {:db (as-> default-db db
                    (merge-data-from-query db active-page (u/current-url-query))
                    (merge-with (partial merge-with merge) db localstorage)
-                   (assoc db :on-load-seed (rand-int 99999)))
+                   (assoc db :on-load-seed (rand-int 99999))
+                   (assoc db :drawer-open? (> (:window/width-size db) 2)))
          :async-flow {:first-dispatch [:load-eth-contracts]
                       :rules [{:when :seen?
                                :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
@@ -201,6 +199,12 @@
           {:web3-fx.blockchain/fns
            {:web3 web3
             :fns [[web3-eth/accounts :blockchain/my-addresses-loaded :blockchain/on-error]]}})))))
+
+(reg-event-db
+  :drawer/set
+  interceptors
+  (fn [db [open?]]
+    (assoc db :drawer-open? open?)))
 
 (reg-event-fx
   :load-eth-contracts
@@ -521,12 +525,11 @@
   :after-my-users-loaded
   interceptors
   (fn [{:keys [db]} [load-dispatch]]
-    (if (and (every? (comp pos? :user/status) (get-my-users db))
-             (all-contracts-loaded? db))
+    (if (:my-users-loaded? db)
       {:dispatch load-dispatch}
       {:async-flow {:first-dispatch [:do-nothing]
                     :rules [{:when :seen?
-                             :events [:contract/users-loaded]
+                             :events [:my-users-loaded]
                              :dispatch (conj [:after-my-users-loaded] load-dispatch)
                              :halt? true}]}})))
 
@@ -586,7 +589,6 @@
   :contract.search/search-freelancers
   interceptors
   (fn [{:keys [db]} [args]]
-    (println (calculate-search-seed args (:on-load-seed db)) (mod (calculate-search-seed args (:on-load-seed db)) 8))
     {:dispatch [:list/load-ids {:list-key :list/search-freelancers
                                 :fn-key :ethlance-search/search-freelancers
                                 :load-dispatch-key :contract.db/load-users
@@ -602,10 +604,17 @@
       {:dispatch [:list/load-ids {:list-key :list/my-users
                                   :fn-key :ethlance-views/get-users
                                   :load-dispatch-key :contract.db/load-users
+                                  :load-dispatch-opts {:dispatch-after-loaded [:my-users-loaded]}
                                   :schema (dissoc ethlance-db/account-schema
                                                   :freelancer/description
                                                   :employer/description)
                                   :args {:user/addresses addrs}}]})))
+
+(reg-event-fx
+  :my-users-loaded
+  interceptors
+  (fn [{:keys [db]}]
+    {:db (assoc db :my-users-loaded? true)}))
 
 (reg-event-fx
   :contract.views/load-user-id-by-address
@@ -622,7 +631,7 @@
 (reg-event-fx
   :contract.db/load-users
   interceptors
-  (fn [{:keys [db]} [schema user-ids]]
+  (fn [{:keys [db]} [schema user-ids load-per load-dispatch-opts]]
     (let [user-ids (u/big-nums->nums user-ids)
           {:keys [fields ids]} (find-needed-fields (keys schema)
                                                    (:app/users db)
@@ -632,25 +641,27 @@
        {:fns (entities-fns (get-instance db :ethlance-db)
                            ids
                            (remove #{:user/balance} fields)
-                           [:contract/users-loaded fields]
+                           [:contract/users-loaded fields load-dispatch-opts]
                            :log-error)}})))
 
 (reg-event-fx
   :contract/users-loaded
   interceptors
-  (fn [{:keys [db]} [fields users]]
+  (fn [{:keys [db]} [fields load-dispatch-opts users]]
     (let [users (->> users
                   (medley/remove-vals u/empty-user?)
                   (u/assoc-key-as-value :user/id))
           address->user-id (into {} (map (fn [[id user]]
                                            {(:user/address user) {:user/id id}})
-                                         users))]
+                                         (medley/filter-vals :user/address users)))]
       {:db (-> db
              (update :app/users (partial merge-with merge) users)
              (update :blockchain/addresses (partial merge-with merge) address->user-id))
-       :dispatch-n (into [[:contract.db/load-freelancer-skills users]]
-                         (when (contains? (set fields) :user/balance)
-                           [[:blockchain/load-user-balances users]]))})))
+       :dispatch-n (concat [[:contract.db/load-freelancer-skills users]]
+                           (when (contains? (set fields) :user/balance)
+                             [[:blockchain/load-user-balances users]])
+                           (when-let [dispatch-after-loaded (:dispatch-after-loaded load-dispatch-opts)]
+                             [dispatch-after-loaded]))})))
 
 (reg-event-fx
   :contract.db/load-field-items
@@ -950,7 +961,8 @@
 (reg-event-fx
   :list/load-ids
   interceptors
-  (fn [{:keys [db]} [{:keys [:list-key :fn-key :load-dispatch-key :schema :args :load-per :keep-items?]}]]
+  (fn [{:keys [db]} [{:keys [:list-key :fn-key :load-dispatch-key :load-dispatch-opts :schema :args :load-per
+                             :keep-items?]}]]
     {:db (cond-> db
            (and (not keep-items?) (not= (get-in db [list-key :params]) args))
            (assoc-in [list-key :items] [])
@@ -961,17 +973,17 @@
               [(get-instance db (keyword (namespace fn-key)))
                fn-key]
               (args-map->vec args (ethlance-db/eth-contracts-fns fn-key))
-              [[:contract.views/ids-loaded list-key load-dispatch-key schema load-per]
+              [[:contract.views/ids-loaded list-key load-dispatch-key schema load-per load-dispatch-opts]
                :log-error])]}}))
 
 (reg-event-fx
   :contract.views/ids-loaded
   interceptors
-  (fn [{:keys [db]} [list-key load-dispatch-key schema load-per ids]]
+  (fn [{:keys [db]} [list-key load-dispatch-key schema load-per load-dispatch-opts ids]]
     (let [ids (u/big-nums->nums ids)
           items-list (get db list-key)]
       {:db (update db list-key merge {:items ids :loading? false})
-       :dispatch [load-dispatch-key schema (u/sort-paginate-ids items-list ids) load-per]})))
+       :dispatch [load-dispatch-key schema (u/sort-paginate-ids items-list ids) load-per load-dispatch-opts]})))
 
 (reg-event-fx
   :contract.views/load-skill-names
@@ -1238,6 +1250,14 @@
   (fn [db]
     (print.foo/look db)
     db))
+
+(reg-event-fx
+  :print-contract-addresses
+  interceptors
+  (fn [{:keys [db]}]
+    (doseq [[key {:keys [:address]}] (:eth/contracts db)]
+      (println key address))
+    nil))
 
 (reg-event-fx
   :print-localstorage

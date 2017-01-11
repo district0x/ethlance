@@ -4,8 +4,10 @@
     [ethlance.components.profile-picture :refer [profile-picture]]
     [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.styles :as styles]
+    [ethlance.utils :as u]
+    [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [ethlance.utils :as u]))
+    ))
 
 (defn date-line [date]
   [col {:xs 12}
@@ -36,14 +38,18 @@
           {:more-text-color "#FFF"}))
       text]]]])
 
-(defn profile-picture* [{:keys [side user]}]
-  [col
-   (r/merge-props
-     {:xs 2}
-     (when (= side :right)
-       {:style styles/text-right}))
-   [profile-picture {:user user
-                     :employer? (= side :right)}]])
+(defn profile-picture* []
+  (let [xs-width? (subscribe [:window/xs-width?])]
+    (fn [{:keys [side user]}]
+      [col
+       (r/merge-props
+         {:xs 2}
+         (when (= side :right)
+           {:style styles/text-right}))
+       [profile-picture {:user user
+                         :employer? (= side :right)
+                         :size (if @xs-width? 40 70)
+                         :hide-name? @xs-width?}]])))
 
 (defn message-bubble [{:keys [side date user]
                        :as props

@@ -79,13 +79,13 @@
       :href (str (u/path-for handler) query-string)
       :key handler}]))
 
-#_ (defn search-menu-item [{:keys [:form-key :primary-text :handler :icon]}]
-  [ui/list-item
-   {:primary-text primary-text
-    :left-icon icon
-    :value (u/ns+name handler)
-    :href (str (u/path-for handler) @(subscribe [:location/form-query-string form-key]))
-    :key form-key}])
+#_(defn search-menu-item [{:keys [:form-key :primary-text :handler :icon]}]
+    [ui/list-item
+     {:primary-text primary-text
+      :left-icon icon
+      :value (u/ns+name handler)
+      :href (str (u/path-for handler) @(subscribe [:location/form-query-string form-key]))
+      :key form-key}])
 
 (defn my-addresses-select-field []
   (let [my-addresses (subscribe [:db/my-addresses])
@@ -94,7 +94,8 @@
       [ui/select-field
        {:value @active-address
         :on-change #(dispatch [:set-active-address %3])
-        :label-style styles/address-select-field-label}
+        :style styles/app-bar-user
+        :label-style styles/app-bar-select-field-label}
        (for [address @my-addresses]
          [ui/menu-item
           {:value address
@@ -108,6 +109,20 @@
       :route-params {:user/id id}}
      body]))
 
+(defn currency-select-field []
+  [ui/select-field
+   {:value "usd"
+    :label-style styles/app-bar-select-field-label
+    :auto-width true
+    :style (merge
+             styles/app-bar-user
+             {:width 40})}
+   (for [[key text] [[:eth "Ξ"] [:usd "$"] [:eur "€"]]]
+     [ui/menu-item
+      {:value key
+       :primary-text text
+       :key key}])])
+
 (defn app-bar-right-elements []
   (let [active-address-balance (subscribe [:db/active-address-balance])
         active-user (subscribe [:db/active-user])
@@ -115,7 +130,8 @@
         active-address-registered? (subscribe [:db/active-address-registered?])]
     (fn []
       [row-plain
-       {:middle "xs"}
+       {:middle "xs"
+        :end "xs"}
        (when (or @my-users-loading?
                  (and (not @active-user)
                       @active-address-registered?))
@@ -138,11 +154,13 @@
            {:user @active-user}
            [ui/avatar
             {:size 35
-             :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))}]]])
+             :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))
+             :style {:margin-top 5}}]]])
        (when @active-address-balance
          [:h2.bolder {:style styles/app-bar-balance}
           (u/eth @active-address-balance)])
-       [my-addresses-select-field]])))
+       [my-addresses-select-field]
+       [currency-select-field]])))
 
 (defn contracts-not-found-page []
   [centered-rows
@@ -157,7 +175,9 @@
         my-users-loading? (subscribe [:db/my-users-loading?])
         contracts-not-found? (subscribe [:db/contracts-not-found?])
         search-freelancers-query (subscribe [:location/form-query-string :form/search-freelancers])
-        search-jobs-query (subscribe [:location/form-query-string :form/search-jobs])]
+        search-jobs-query (subscribe [:location/form-query-string :form/search-jobs])
+        lg-width? (subscribe [:window/lg-width?])
+        xs-width? (subscribe [:window/xs-width?])]
     (fn []
       (let [{:keys [:user/freelancer? :user/employer?]} @active-user
             {:keys [:handler]} @current-page]
@@ -167,14 +187,11 @@
            [(route->component handler)]
            [:div
             [ui/drawer
-             {:docked true
-              :open @drawer-open?}
+             {:docked @lg-width?
+              :open (or @drawer-open? @lg-width?)
+              :on-request-change #(dispatch [:drawer/set %])}
              [ui/app-bar
-              {:title (r/as-element
-                        [:a
-                         {:href (u/path-for :home)}
-                         [:img {:style styles/ethlance-logo
-                                :src "../images/ethlance-logo-white.svg"}]])
+              {:title (r/as-element [misc/logo])
                :show-menu-icon-button false
                :style styles/app-bar-left}]
              [ui/selectable-list
@@ -195,15 +212,21 @@
               (when employer?
                 (create-menu-items nav-items-employer))]]
             [ui/app-bar
-             {:show-menu-icon-button false
+             {:show-menu-icon-button (not @lg-width?)
               :icon-element-right (r/as-element [app-bar-right-elements])
+              ;:icon-element-left (r/as-element [app-bar-left-elements])
+              :on-left-icon-button-touch-tap #(dispatch [:drawer/set true])
               :style styles/app-bar-right}]
             [ui/snackbar (-> @snackbar
                            (set/rename-keys {:open? :open})
                            (update :message #(r/as-element %))
                            (update :action #(if % (r/as-element %) nil)))]
             (when-let [page (route->component handler)]
-              [:div {:style styles/content-wrap}
+              [:div {:style (merge styles/content-wrap
+                                   (when @lg-width?
+                                     {:padding-left (+ 256 styles/desktop-gutter)})
+                                   (when @xs-width?
+                                     {:padding styles/desktop-gutter-mini}))}
                (if @contracts-not-found?
                  [contracts-not-found-page]
                  [page])])])]))))

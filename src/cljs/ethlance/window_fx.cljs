@@ -18,7 +18,7 @@
   (fn [config]
     (s/assert ::on-resize-args config)
     (let [timer (atom nil)]
-      (on-resize config timer)
+  #_     (on-resize config timer)
       (events/listen js/window events/EventType.RESIZE (partial on-resize config timer)))))
 
 (reg-fx

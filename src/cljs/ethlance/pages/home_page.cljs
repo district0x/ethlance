@@ -54,7 +54,7 @@
 
     [col
      {:xs 12
-      :class "visible-sm"}
+      :class "sm-visible"}
      [row-plain
       {:center "xs"}
       [ui/paper
@@ -95,31 +95,30 @@
 (defn feature-no-cut []
   [row-plain
    {:middle "xs" :center "xs"
-    :style {:background-color "#bbdefb"
-            :padding-top 70
-            :width "100%"}}
+    :style (merge styles/landing-feature-seaction
+                  {:background-color "#bbdefb"
+                   :padding-top 50})}
    [col
-    {:xs 8 :md 5
+    {:xs 10 :sm 7 :md 5 :lg 4
      :style styles/text-left}
     [:h1.black "We take no cut!"]
     [:h3.black "Ethlance doesn’t take any percentage of your earned Ether. Amount of Ether employer pays is exactly what freelancer gets."]]
    [col
-    {:xs 10 :sm 6 :md 4}
+    {:xs 5 :sm 3 :md 3 :lg 2}
     [:img
      {:src "./images/coins-cloud.svg"
-      :style styles/full-width}]]])
+      :style styles/landing-feature-image}]]])
 
 (defn feature-blockchain []
   [row-plain
    {:middle "xs" :center "xs"
-    :style {:padding-bottom "50px"
-            :background-color "#FFF"
-            :height "725px"}}
+    :style (merge styles/landing-feature-seaction
+                  {:padding-bottom "50px"})}
    [col
     {:xs 5 :sm 3 :md 3 :lg 2}
     [:img
      {:src "./images/ethereum.png"
-      :style styles/full-width}]]
+      :style styles/landing-feature-image}]]
    [col
     {:xs 8 :sm 6 :sm-offset 1 :md 5
      :style styles/text-left}
@@ -129,8 +128,8 @@
 (defn feature-no-restrictions []
   [row-plain
    {:middle "xs" :center "xs"
-    :style {:background-color "#ff8a80"
-            :height "725px"}}
+    :style (merge styles/landing-feature-seaction
+                  {:background-color "#ff8a80"})}
    [col
     {:xs 8 :sm 8 :md 4
      :style styles/text-left}
@@ -140,7 +139,7 @@
     {:xs 10 :sm 8 :md 6 :lg 5}
     [:img
      {:src "./images/to-the-top.svg"
-      :style styles/full-width}]]])
+      :style styles/landing-feature-image}]]])
 
 (def employer-path
   [["job.svg" "Create Job"]
@@ -187,24 +186,25 @@
 
 (defn footer-link [route text]
   [:div
-   [:a {:href (u/path-for route)
+   [:a {:href (if (keyword? route) (u/path-for route) route)
         :style {:color "rgba(255, 255, 255, 0.75)"}}
     text]])
 
 (defn footer []
   [row-plain
-   {:around "xs"
+   {:around "sm"
+    :center "xs"
     :style {:background-color "#181a1a"
             :padding-top styles/desktop-gutter
             :padding-bottom "40px"}}
    [col
-    {:xs 6 :sm 2 :sm-offset 2}
+    {:xs 12 :sm 4}
     [ui/subheader {:style styles/footer-subheader}
      "LEARN MORE"]
     [footer-link :about "About us"]
     [footer-link :about "How it works?"]]
    [col
-    {:xs 6 :sm 2}
+    {:xs 12 :sm 4}
     [ui/subheader {:style styles/footer-subheader}
      "GET STARTED"]
     [footer-link :freelancer/create "Become Freelancer"]
@@ -212,7 +212,12 @@
     [footer-link :search/jobs "Find Work"]
     [footer-link :search/freelancers "Find Freelancers"]]
    [col
-    {:xs 3}]])
+    {:xs 12 :sm 4}
+    [ui/subheader {:style styles/footer-subheader}
+     "REACH US"]
+    [footer-link "http://facebook.com" "Facebook"]
+    [footer-link "http://facebook.com" "Twitter"]
+    [footer-link "http://facebook.com" "Github"]]])
 
 (defn home-page []
   (let [current-page (subscribe [:db/current-page])]

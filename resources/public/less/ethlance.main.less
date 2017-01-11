@@ -6,6 +6,7 @@ html, body, #app {
     width: 100%;
     padding: 0;
     margin: 0;
+    -webkit-text-size-adjust: 100%;
 }
 
 a {
@@ -74,24 +75,36 @@ strong, b {
     font-weight: 600;
 }
 
-.visible-sm, .visible-md, .visible-lg {
+.sm-visible, .md-visible, .lg-visible {
     display: none;
 }
 
 @media only screen and (min-width:48em) {
-    .visible-sm {
+    .sm-visible {
         display: block;
+    }
+    .sm-margin-0 {
+        margin: 0;
+    }
+    .sm-margin-top-0 {
+        margin-top: 0 !important;
     }
 }
 
 @media only screen and (min-width:64em) {
-    .visible-md {
+    .md-visible {
         display: block;
+    }
+    .md-margin-0 {
+        margin: 0;
     }
 }
 
 @media only screen and (min-width:75em) {
-    .visible-lg {
+    .lg-visible {
         display: block;
+    }
+    .lg-margin-0 {
+        margin: 0;
     }
 }
