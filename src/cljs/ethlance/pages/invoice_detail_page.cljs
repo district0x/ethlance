@@ -90,4 +90,5 @@
                  {:primary true
                   :label "Pay Invoice"
                   :disabled (:loading? @form-pay)
+                  :style {:margin-top 10}
                   :on-touch-tap #(dispatch [:contract.invoice/pay-invoice {:invoice/id id} amount])}])]])]]))))

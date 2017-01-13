@@ -289,13 +289,10 @@
     (merge
       {:db (-> db
              (assoc :active-page match)
+             (assoc :drawer-open? false)
              (merge-data-from-query match (u/current-url-query)))}
       (when-not (= handler (:handler (:active-page db)))
-        {:window/scroll-to-top true})
-      #_(when-let [form (constants/handler->form handler)]
-          (let [[changed-from-default] (data/diff (db form) (default-db form))]
-            (when changed-from-default
-              {:location/add-to-query [changed-from-default]}))))))
+        {:window/scroll-to-top true}))))
 
 (reg-event-fx
   :set-active-address

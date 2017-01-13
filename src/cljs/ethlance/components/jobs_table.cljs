@@ -13,14 +13,16 @@
     ))
 
 (defn jobs-table-content [{:keys [:show-hiring-done-on? :no-items-text :initial-dispatch :all-ids-subscribe
-                                  :show-status?]}
+                                  :show-status? :show-created-on? :show-total-paid?]}
                           {:keys [items offset limit loading?]}]
   [ui/table
    [ui/table-header
     [ui/table-row
      [ui/table-header-column "Title"]
-     [ui/table-header-column "Total Spent"]
-     [ui/table-header-column "Created"]
+     (when show-total-paid?
+       [ui/table-header-column "Total Spent"])
+     (when show-created-on?
+       [ui/table-header-column "Created"])
      (when show-hiring-done-on?
        [ui/table-header-column "Hiring Closed"])
      (when show-status?
@@ -37,10 +39,12 @@
             :on-touch-tap (u/table-row-nav-to-fn :job/detail {:job/id id})}
            [ui/table-row-column
             title]
-           [ui/table-row-column
-            (u/eth total-paid)]
-           [ui/table-row-column
-            (u/time-ago created-on)]
+           (when show-total-paid?
+             [ui/table-row-column
+              (u/eth total-paid)])
+           (when show-created-on?
+             [ui/table-row-column
+              (u/time-ago created-on)])
            (when show-hiring-done-on?
              [ui/table-row-column
               (u/time-ago hiring-done-on)])

@@ -53,7 +53,7 @@
      [col {:xs 12}
       search-results]]]])
 
-(defn country-marker [{:keys [row-props country]}]
+(defn country-marker [{:keys [:row-props :country]}]
   [row-plain
    (r/merge-props
      {:middle "xs"}
@@ -61,8 +61,7 @@
    (icons/maps-place {:color styles/fade-color :style styles/location-icon-small})
    (u/country-name country)])
 
-(def status-chip (u/create-with-default-props ui/chip {:label-style {:color "#FFF" :font-weight :bold}
-                                                       :style {:margin-right 5 :margin-bottom 5}}))
+(def status-chip (u/create-with-default-props ui/chip {:label-style {:color "#FFF" :font-weight :bold}}))
 
 (def hr-small (u/create-with-default-props :div {:style styles/hr-small}))
 (def hr (u/create-with-default-props :div {:style styles/hr}))
@@ -99,7 +98,7 @@
 
 (defn center-layout [& children]
   [row {:center "xs"}
-   (into [] (concat [col {:xs 12 :md 10 :lg 8 :style styles/text-left}]
+   (into [] (concat [col {:xs 12 :md 10 :lg 9 :style styles/text-left}]
                     children))])
 
 (defn- default-value->comparable [x]

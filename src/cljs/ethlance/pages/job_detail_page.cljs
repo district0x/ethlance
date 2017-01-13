@@ -19,8 +19,7 @@
 
 
 (defn employer-details []
-  (let [job (subscribe [:job/detail])
-        xs-width (subscribe [:window/xs-width?])]
+  (let [job (subscribe [:job/detail])]
     (fn []
       (let [{:keys [:user/name :user/gravatar :user/id :employer/avg-rating
                     :employer/total-paid :employer/ratings-count :user/country :user/balance]} (:job/employer @job)
@@ -48,9 +47,8 @@
           [line (str (u/eth total-paid) " spent")]
           [line (str (u/eth balance) " balance")]
           [misc/country-marker
-           {:row-props (if @xs-width
-                         {:center "xs"}
-                         {:style {:margin-left "-2px" :margin-top "-2px"}})
+           {:row-props {:center "xs"
+                        :start "sm"}
             :country country}]]]))))
 
 (defn my-contract? [active-user-id {:keys [:contract/freelancer]}]
@@ -151,7 +149,8 @@
   (let [job (subscribe [:job/detail])
         job-id (subscribe [:job/route-job-id])
         my-job? (subscribe [:job/my-job?])
-        set-hiring-done-form (subscribe [:form.job/set-hiring-done])]
+        set-hiring-done-form (subscribe [:form.job/set-hiring-done])
+        xs-width? (subscribe [:window/xs-width?])]
     (dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-schema [@job-id]]])
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
@@ -173,23 +172,29 @@
              {:style (merge styles/margin-top-gutter-less
                             styles/margin-bottom-gutter-less)}
              [misc/status-chip
-              {:background-color (styles/job-status-colors status)}
+              {:background-color (styles/job-status-colors status)
+               :style styles/job-status-chip}
               (constants/job-statuses status)]
              [misc/status-chip
-              {:background-color (styles/job-payment-type-colors payment-type)}
+              {:background-color (styles/job-payment-type-colors payment-type)
+               :style styles/job-status-chip}
               (constants/payment-types payment-type) " Rate"]
              [misc/status-chip
-              {:background-color (styles/job-estimation-duration-colors estimated-duration)}
+              {:background-color (styles/job-estimation-duration-colors estimated-duration)
+               :style styles/job-status-chip}
               "For " (constants/estimated-durations estimated-duration)]
              [misc/status-chip
-              {:background-color (styles/job-experience-level-colors experience-level)}
+              {:background-color (styles/job-experience-level-colors experience-level)
+               :style styles/job-status-chip}
               "For " (constants/experience-levels experience-level)]
              [misc/status-chip
-              {:background-color (styles/job-hours-per-week-colors hours-per-week)}
+              {:background-color (styles/job-hours-per-week-colors hours-per-week)
+               :style styles/job-status-chip}
               (constants/hours-per-weeks hours-per-week)]
              (when (u/big-num-pos? budget)
                [misc/status-chip
-                {:background-color styles/budget-chip-color}
+                {:background-color styles/budget-chip-color
+                 :style styles/job-status-chip}
                 "Budget " (u/eth budget)])]
             [misc/detail-description
              description]
@@ -201,7 +206,8 @@
             [employer-details]
             (when (and @my-job? (= status 1))
               [row-plain
-               {:end "xs"}
+               {:end "sm" :center "xs"
+                :style (when @xs-width? {:margin-top 10})}
                [ui/raised-button
                 {:label "Close Hiring"
                  :secondary true

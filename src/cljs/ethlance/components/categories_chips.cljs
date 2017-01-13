@@ -13,10 +13,10 @@
    {:middle "xs"
     :style styles/chip-list-row}
    (for [category-id value]
-     [ui/chip
-      {:key category-id
-       :style styles/chip-in-list}
-      (when (< category-id (count constants/languages))
-        (constants/categories category-id))])])
+     (when (< category-id (count constants/categories))
+       [ui/chip
+        {:key category-id
+         :style styles/chip-in-list}
+        (constants/categories category-id)]))])
 
 

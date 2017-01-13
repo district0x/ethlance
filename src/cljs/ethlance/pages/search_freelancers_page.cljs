@@ -72,10 +72,12 @@
 (defn search-results []
   (let [list (subscribe [:list/search-freelancers])
         selected-skills (subscribe [:form/search-freelancer-skills])
-        form-data (subscribe [:form/search-freelancers])]
+        form-data (subscribe [:form/search-freelancers])
+        xs-width? (subscribe [:window/xs-width?])]
     (fn []
       (let [{:keys [loading? items]} @list
-            {:keys [:search/offset :search/limit]} @form-data]
+            {:keys [:search/offset :search/limit]} @form-data
+            xs? @xs-width?]
         [misc/search-results
          {:items-count (count items)
           :loading? loading?
@@ -89,45 +91,47 @@
          (for [{:keys [:freelancer/avg-rating :freelancer/hourly-rate :freelancer/job-title
                        :freelancer/ratings-count :freelancer/skills
                        :user/id :user/name :user/gravatar :user/country] :as item} items]
-           [row
-            {:key id
-             :middle "xs"}
-            [col
-             {:md 1}
+           [row-plain
+            {:key id :middle "xs" :center "xs" :start "sm"}
+            [a
+             {:route :freelancer/detail
+              :route-params {:user/id id}}
              [ui/avatar
-              {:size 55
-               :src (u/gravatar-url gravatar id)}]]
-            [col
+              {:size (if xs? 80 55)
+               :src (u/gravatar-url gravatar id)
+               :style (if xs?
+                        {:margin-bottom 10}
+                        {:margin-right 10})}]]
+            [:div
+             {:style (when xs? styles/full-width)}
              [:h2 [a {:style styles/primary-text
                       :route :freelancer/detail
                       :route-params {:user/id id}}
                    name]]
-             [:div {:style styles/fade-text} job-title]]
-            [col
-             {:xs 12
-              :style styles/fade-text}
-             [row-plain
-              {:middle "xs"}
-              [star-rating
-               {:value (u/rating->star avg-rating)
-                :small? true}]
-              [:span [:span {:style (merge styles/dark-text
-                                           styles/freelancer-info-item)}
-                      (u/eth hourly-rate)] " per hour"]
-              [:span
-               {:style styles/freelancer-info-item}
-               ratings-count (u/pluralize " feedback" ratings-count)]
-              [misc/country-marker
-               {:country country
-                :row-props {:style styles/freelancer-info-item}}]]
-             [:div
-              [skills-chips
-               {:selected-skills skills
-                :on-touch-tap (fn [skill-id]
-                                (when-not (contains? (set @selected-skills) skill-id)
-                                  (dispatch [:form.search/set-value :search/skills
-                                             (conj (into [] @selected-skills) skill-id)])))}]]
-             [misc/hr-small]]])]))))
+             [:div {:style (merge styles/fade-text
+                                  (when @xs-width? {:margin-top 5}))} job-title]]
+            [row-plain
+             {:middle "xs" :center "xs" :start "sm"
+              :style styles/freelancer-search-result-info-row}
+             [star-rating
+              {:value (u/rating->star avg-rating)
+               :small? true}]
+             [:span [:span {:style (merge styles/dark-text
+                                          styles/freelancer-info-item)}
+                     (u/eth hourly-rate)] " per hour"]
+             [:span
+              {:style styles/freelancer-info-item}
+              ratings-count (u/pluralize " feedback" ratings-count)]
+             [misc/country-marker
+              {:country country
+               :row-props {:style styles/freelancer-info-item}}]]
+            [skills-chips
+             {:selected-skills skills
+              :on-touch-tap (fn [skill-id]
+                              (when-not (contains? (set @selected-skills) skill-id)
+                                (dispatch [:form.search/set-value :search/skills
+                                           (conj (into [] @selected-skills) skill-id)])))}]
+            [misc/hr-small]])]))))
 
 (defn skills-input []
   (let [selected-skills (subscribe [:form/search-freelancer-skills])]

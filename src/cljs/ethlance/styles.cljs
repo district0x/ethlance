@@ -49,6 +49,14 @@
 (def text-center
   {:text-align :center})
 
+(defn margin-horizontal [x]
+  {:margin-right x
+   :margin-left x})
+
+(defn margin-vertical [x]
+  {:margin-top x
+   :margin-bottom x})
+
 (def full-width
   {:width "100%"})
 
@@ -165,7 +173,8 @@
    :margin-bottom 3})
 
 (def hr
-  {:border-top "1px solid #e0e0e0"
+  {:width "100%"
+   :border-top "1px solid #e0e0e0"
    :margin-top desktop-gutter
    :margin-bottom desktop-gutter})
 
@@ -430,3 +439,13 @@
   {:margin-right 0
    :margin-bottom 0
    :float :left})
+
+(def job-status-chip
+  {:margin-right 5
+   :margin-bottom 5})
+
+(def freelancer-search-result-info-row
+  (merge fade-text
+         full-width
+         {:margin-top 5
+          :margin-bottom 5}))

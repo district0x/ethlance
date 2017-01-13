@@ -13,8 +13,8 @@
     ))
 
 (defn contracts-table-content []
-  (let [xs-width (subscribe [:window/xs-width?])]
-    (fn [{:keys [:show-invitation? :show-proposal? :show-contract? :show-contract-done?
+  (let [xs-width? (subscribe [:window/xs-width?])]
+    (fn [{:keys [:show-invitation? :show-proposal? :show-created-on? show-done-on?
                  :show-employer? :show-rate? :show-total-paid? :show-status? :show-freelancer?
                  :show-invitation-or-proposal-time? :show-job?
                  :no-items-text :initial-dispatch :all-ids-subscribe :highlight-row-pred]}
@@ -38,9 +38,9 @@
            [ui/table-header-column "Invited"])
          (when show-proposal?
            [ui/table-header-column "Proposed"])
-         (when show-contract?
+         (when show-created-on?
            [ui/table-header-column "Contract Started"])
-         (when show-contract-done?
+         (when show-done-on?
            [ui/table-header-column "Contract Ended"])
          (when show-status?
            [ui/table-header-column "Status"])]]
@@ -90,15 +90,15 @@
                (when show-proposal?
                  [ui/table-row-column
                   (u/time-ago (:proposal/created-on item))])
-               (when show-contract?
+               (when show-created-on?
                  [ui/table-row-column
                   (u/time-ago (:contract/created-on item))])
-               (when show-contract-done?
+               (when show-done-on?
                  [ui/table-row-column
                   (u/time-ago (:contract/done-on item))])
                (when show-status?
                  [ui/table-row-column
-                  {:style (when @xs-width styles/table-row-column-thin)}
+                  {:style (when @xs-width? styles/table-row-column-thin)}
                   [misc/status-chip
                    {:background-color (styles/contract-status-colors status)
                     :style styles/table-status-chip}

@@ -272,7 +272,7 @@
 
 (defn gravatar-url [hash user-id]
   (let [valid? (= (count hash) 32)]
-    (gstring/format "http://s.gravatar.com/avatar/%s?s=130&d=retro%s"
+    (gstring/format "http://s.gravatar.com/avatar/%s?s=150&d=retro%s"
                     (if valid? hash user-id)
                     (if valid? "" "&f=y"))))
 
