@@ -5,6 +5,7 @@
     [cljs-web3.core :as web3]
     [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.truncated-text :refer [truncated-text]]
+    [ethlance.components.linkify :refer [linkify]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
@@ -49,7 +50,7 @@
       (when @xs-sm-width?
         [row-plain
          {:end "xs"
-          :style (when @xs-width? {:margin-top styles/desktop-gutter-less})}
+          :style (if @xs-width? {:margin-top styles/desktop-gutter-less} {})}
          [ui/floating-action-button
           (r/merge-props
             {:style {:margin-bottom -26
@@ -70,8 +71,7 @@
           (r/merge-props
             {:width 300
              :docked false
-             :open-secondary true
-             :container-style {:padding-bottom 200}}
+             :open-secondary true}
             filter-drawer-props)
           filter-sidebar]
          [col {:xs 12 :md 4}
@@ -83,13 +83,16 @@
          [col {:xs 12}
           search-results]]]])))
 
-(defn country-marker [{:keys [:row-props :country]}]
+(defn country-marker [{:keys [:row-props :country :state]}]
   [row-plain
    (r/merge-props
      {:middle "xs"}
      row-props)
    (icons/maps-place {:color styles/fade-color :style styles/location-icon-small})
-   (u/country-name country)])
+   (str (u/country-name country)
+        (when (and (u/united-states? country)
+                   (pos? state))
+          (str ", " (u/state-name state))))])
 
 (def status-chip (u/create-with-default-props ui/chip {:label-style {:color "#FFF" :font-weight :bold}}))
 
@@ -319,7 +322,7 @@
    "This user has been blocked"])
 
 (defn user-address [address]
-  [:h3
+  [:h3.bolder
    {:style styles/margin-bottom-gutter-less}
    [:a {:target :_blank
         :style {:color styles/primary1-color}
@@ -365,11 +368,13 @@
        :style styles/margin-top-gutter-less}]]
     (into [:div] children)))
 
-(defn detail-description [body]
-  [truncated-text
-   {:lines 30
-    :allow-whitespace? true}
-   body])
+(defn long-text [props & children]
+  (let [[props children] (u/parse-props-children props children)]
+    [:div
+     (r/merge-props
+       {:style styles/allow-whitespaces}
+       props)
+     (into [linkify] children)]))
 
 (defn search-filter-reset-button []
   [row-plain
@@ -400,7 +405,7 @@
     (fn [& children]
       (into
         [paper-thin
-         {:style (when @xs-sm-width? styles/no-box-shadow)}]
+         {:style (if @xs-sm-width? styles/no-box-shadow {})}]
         children))))
 
 (defn search-result-change-page [new-offset]

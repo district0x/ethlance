@@ -23,6 +23,7 @@
 (def user-schema
   {:user/address addr
    :user/country uint
+   :user/state uint
    :user/created-on date
    :user/employer? bool
    :user/freelancer? bool
@@ -189,7 +190,7 @@
     :proposal/rate :invoice/amount})
 
 (def set-user-args
-  [:user/name :user/gravatar :user/country :user/languages])
+  [:user/name :user/gravatar :user/country :user/state :user/languages])
 
 (def set-freelancer-args
   [:freelancer/available? :freelancer/job-title :freelancer/hourly-rate :freelancer/categories :freelancer/skills
@@ -206,7 +207,7 @@
 
 (def search-freelancers-args
   [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count
-   :search/min-hourly-rate :search/max-hourly-rate :search/country
+   :search/min-hourly-rate :search/max-hourly-rate :search/country :search/state
    :search/language :search/offset :search/limit :search/seed])
 
 (def add-job-args
@@ -220,7 +221,7 @@
 
 (def search-jobs-nested-args
   [:search/min-budget :search/min-employer-avg-rating :search/min-employer-ratings-count
-   :search/country :search/language :search/offset :search/limit])
+   :search/country :search/state :search/language :search/offset :search/limit])
 
 (def set-job-hiring-done-args
   [:job/id])
@@ -280,6 +281,9 @@
 (def get-configs-args
   [:config/keys])
 
+(def get-skill-names
+  [:skill/offset :skill/limit])
+
 (def eth-contracts-fns
   {:ethlance-views/get-freelancer-contracts get-user-contracts-args
    :ethlance-views/get-employer-contracts get-user-contracts-args
@@ -290,7 +294,8 @@
    :ethlance-views/get-freelancers-job-contracts get-freelancers-job-contracts-args
    :ethlance-views/get-contract-invoices get-contract-invoices-args
    :ethlance-views/get-employer-jobs get-employer-jobs-args
-   :ethlance-views/get-skill-names #{}
+   :ethlance-views/get-skill-names get-skill-names
+   :ethlance-views/get-skill-count #{}
    :ethlance-views/get-users get-users-args
    :ethlance-views/get-employer-jobs-for-freelancer-invite get-employer-jobs-for-freelancer-invite
    :ethlance-search/search-freelancers search-freelancers-args

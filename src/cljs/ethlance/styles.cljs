@@ -65,6 +65,12 @@
   {:padding-top x
    :padding-bottom x})
 
+(defn padding-all [x]
+  {:padding-top x
+   :padding-bottom x
+   :padding-right x
+   :padding-left x})
+
 
 (def full-width
   {:width "100%"})
@@ -73,7 +79,7 @@
   {:height "100%"})
 
 (def content-wrap
-  {:padding desktop-gutter})
+  (padding-all desktop-gutter))
 
 (def paper-secton-thin
   {:padding desktop-gutter-less

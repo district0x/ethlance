@@ -22,7 +22,8 @@
   (let [job (subscribe [:job/detail])]
     (fn []
       (let [{:keys [:user/name :user/gravatar :user/id :employer/avg-rating
-                    :employer/total-paid :employer/ratings-count :user/country :user/balance]} (:job/employer @job)
+                    :employer/total-paid :employer/ratings-count :user/country
+                    :user/balance :user/state]} (:job/employer @job)
             route-props {:route :employer/detail
                          :route-params {:user/id id}}]
         [row
@@ -49,7 +50,8 @@
           [misc/country-marker
            {:row-props {:center "xs"
                         :start "sm"}
-            :country country}]]]))))
+            :country country
+            :state state}]]]))))
 
 (defn my-contract? [active-user-id {:keys [:contract/freelancer]}]
   (= active-user-id (:user/id freelancer)))
@@ -196,7 +198,7 @@
                 {:background-color styles/budget-chip-color
                  :style styles/job-status-chip}
                 "Budget " [currency budget]])]
-            [misc/detail-description
+            [misc/long-text
              description]
             [misc/subheader "Required Skills"]
             [skills-chips

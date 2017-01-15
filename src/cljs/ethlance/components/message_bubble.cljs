@@ -28,15 +28,9 @@
               styles/message-bubble-right
               styles/message-bubble-left)}
     header
-    [:div
+    [misc/long-text
      {:style styles/full-width}
-     [truncated-text
-      (merge
-        {:allow-whitespace? true
-         :lines lines}
-        (when (= side :right)
-          {:more-text-color "#FFF"}))
-      text]]]])
+     text]]])
 
 (defn profile-picture* []
   (let [xs-width? (subscribe [:window/xs-width?])]

@@ -220,6 +220,17 @@ library SharedLibrary {
         return result;
     }
 
+    function take(uint n, bytes32[] array) internal returns(bytes32[] result) {
+        if (n > array.length) {
+            return array;
+        }
+        result = new bytes32[](n);
+        for (uint i = 0; i < n ; i++) {
+            result[i] = array[i];
+        }
+        return result;
+    }
+
     function findTopNValues(uint[] values, uint n) internal returns(uint[]) {
         uint length = values.length;
 

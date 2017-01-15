@@ -388,7 +388,7 @@
   :eth-contracts-loaded
   interceptors
   (fn [{:keys [db]}]
-    {:dispatch [:contract.views/load-skill-names]}))
+    {:dispatch [:contract.views/load-skill-count]}))
 
 (reg-event-fx
   :contract.config/set-configs
@@ -438,7 +438,7 @@
                  :fn-key :ethlance-config/add-skills
                  :form-key :form.config/add-skills
                  :receipt-dispatch-n [[:snackbar/show-message "Skills were successfully added!"]
-                                      [:contract.views/load-skill-names]
+                                      [:contract.views/load-skill-count]
                                       [:form/set-value :form.config/add-skills :skill/names [] false]]}]}))
 
 (reg-event-fx
@@ -1021,14 +1021,42 @@
        :dispatch [load-dispatch-key schema (u/sort-paginate-ids items-list ids) load-per load-dispatch-opts]})))
 
 (reg-event-fx
+  :contract.views/load-skill-count
+  interceptors
+  (fn [{:keys [db]}]
+    {:web3-fx.contract/constant-fns
+     {:fns [[(get-instance db :ethlance-views)
+             :ethlance-views/get-skill-count
+             :contract.views/skill-count-loaded
+             :log-error]]}}))
+
+(reg-event-fx
+  :contract.views/skill-count-loaded
+  interceptors
+  (fn [{:keys [db]} [new-skill-count]]
+    (let [new-skill-count (u/big-num->num new-skill-count)
+          old-skill-count (:app/skill-count db)
+          skill-load-limit (:skill-load-limit db)]
+      (merge
+        {:db (assoc db :app/skill-count new-skill-count)}
+        (when (< old-skill-count new-skill-count)
+          {:dispatch-n
+           (into []
+                 (for [x (range (js/Math.ceil (/ (- new-skill-count old-skill-count) skill-load-limit)))]
+                   [:contract.views/load-skill-names {:skill/limit skill-load-limit
+                                                      :skill/offset (+ old-skill-count (* x skill-load-limit))}]))})))))
+
+(reg-event-fx
   :contract.views/load-skill-names
   interceptors
   (fn [{:keys [db]} [values]]
     {:web3-fx.contract/constant-fns
-     {:fns [[(get-instance db :ethlance-views)
-             :ethlance-views/get-skill-names
-             :contract.views/skill-names-loaded
-             :log-error]]}}))
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :ethlance-views/get-skill-names]
+              (args-map->vec values (ethlance-db/eth-contracts-fns :ethlance-views/get-skill-names))
+              [:contract.views/skill-names-loaded
+               :log-error])]}}))
 
 (reg-event-db
   :contract.views/skill-names-loaded
@@ -1067,6 +1095,9 @@
     (when (or (not validator)
               (validator field-value))
       {:location/add-to-query [(merge {field-key field-value}
+                                      (when (and (= field-key :search/country)
+                                                 (not (u/united-states? field-value)))
+                                        {:search/state 0})
                                       (when-not (= field-key :search/offset)
                                         {:search/offset 0}))]})))
 
@@ -1452,6 +1483,7 @@
                                            :search/min-employer-avg-rating 0
                                            :search/min-employer-ratings-count 0
                                            :search/country 0
+                                           :search/state 0
                                            :search/language 0
                                            :search/offset 0
                                            :search/limit 10}])

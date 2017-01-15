@@ -19,7 +19,7 @@
 
 (defn freelancer-info []
   (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/gravatar :user/name :user/country :freelancer/job-title :freelancer/avg-rating
+    (fn [{:keys [:user/gravatar :user/name :user/country :user/state :freelancer/job-title :freelancer/avg-rating
                  :freelancer/ratings-count :freelancer/hourly-rate :freelancer/total-earned
                  :freelancer/available? :user/created-on :freelancer/description
                  :freelancer/skills :freelancer/categories :user/languages :user/id
@@ -36,7 +36,7 @@
            :src (u/gravatar-url gravatar id)}]]
         [col
          {:xs 12 :sm 6 :lg 7
-          :style (when @xs-width? {:margin-top 10})}
+          :style (if @xs-width? {:margin-top 10} {})}
          [:h1 name]
          [:h3 job-title]
          [star-rating
@@ -45,12 +45,13 @@
            :ratings-count ratings-count
            :center "xs"
            :start "sm"
-           :style (when @xs-width? {:margin-top 5})}]
+           :style (if @xs-width? {:margin-top 5} {})}]
          [misc/country-marker
           {:row-props {:center "xs"
                        :start "sm"
-                       :style (when @xs-width? {:margin-top 5})}
-           :country country}]]
+                       :style (if @xs-width? {:margin-top 5} {})}
+           :country country
+           :state state}]]
         [col {:xs 12 :sm 4 :lg 3
               :style (merge
                        {:padding-left 0}
@@ -74,7 +75,7 @@
        [misc/hr]
        [misc/user-address address]
        [misc/user-created-on created-on]
-       [misc/detail-description
+       [misc/long-text
         description]
        [misc/subheader "Skills"]
        [skills-chips

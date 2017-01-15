@@ -13,7 +13,7 @@
     (let [star-coef (/ star-count 5)
           value (* star-coef value)]
       [row-plain
-       (merge
+       (r/merge-props
          {:middle "xs"}
          (dissoc props :value :star-count :star-style :on-star-click :show-number? :small?
                  :rating-number-style :ratings-count))

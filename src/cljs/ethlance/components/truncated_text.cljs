@@ -2,11 +2,13 @@
   (:require
     [cljsjs.react-truncate]
     [cljs-react-material-ui.reagent :as ui]
+    [cljs-react-material-ui.icons :as icons]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [reagent.core :as r]
     [clojure.string :as string]
-    [medley.core :as medley]))
+    [medley.core :as medley]
+    [clojure.walk :as walk]))
 
 (def react-truncate (r/adapt-react-class js/ReactTruncate))
 
@@ -39,6 +41,9 @@
            text]
           [react-truncate
            {:lines lines
+            :on-truncate (fn [truncated?]
+                           (when-not truncated?
+                             (reset! open? true)))
             :ellipsis (r/as-element [more-button {:color more-text-color
                                                   :on-click #(reset! open? true)}])}
            (new-lines->br text)])))))

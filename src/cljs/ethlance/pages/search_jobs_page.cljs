@@ -11,6 +11,7 @@
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
     [ethlance.components.star-rating :refer [star-rating]]
+    [ethlance.components.state-select-field :refer [state-select-field]]
     [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
@@ -21,7 +22,7 @@
 (defn filter-sidebar []
   (let [form-data (subscribe [:form/search-jobs])]
     (fn []
-      (let [{:keys [:search/category :search/min-employer-avg-rating :search/country
+      (let [{:keys [:search/category :search/min-employer-avg-rating :search/country :search/state
                     :search/language :search/experience-levels :search/payment-types
                     :search/estimated-durations :search/hours-per-weeks :search/min-budget
                     :search/min-employer-ratings-count]} @form-data]
@@ -75,6 +76,11 @@
            {:value country
             :full-width true
             :on-new-request #(dispatch [:form.search/set-value :search/country %2])}]
+          (when (u/united-states? country)
+            [state-select-field
+             {:value state
+              :full-width true
+              :on-change #(dispatch [:form.search/set-value :search/state %3])}])
           [language-select-field
            {:value language
             :full-width true
@@ -84,7 +90,8 @@
            {:on-touch-tap #(dispatch [:search-filter.jobs/set-open? false])}]]]))))
 
 (defn search-results-employer [{:keys [:employer/jobs-count :employer/avg-rating :employer/total-paid
-                                       :user/name :user/id :employer/ratings-count :user/country :user/balance]}]
+                                       :user/name :user/id :employer/ratings-count :user/country :user/state
+                                       :user/balance]}]
   [:div {:style styles/employer-info-wrap}
    (when (seq name)
      [row-plain
@@ -108,6 +115,7 @@
        [:span {:style styles/dark-text} [currency balance]] " balance"]
       [misc/country-marker
        {:country country
+        :state state
         :row-props {:style styles/employer-info-item}}]])])
 
 

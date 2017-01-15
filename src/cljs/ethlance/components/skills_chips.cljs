@@ -8,12 +8,11 @@
     [reagent.core :as r]
     ))
 
-(def max-count 5)
-
 (defn skills-chips []
   (let [all-skills (subscribe [:app/skills])
         show-all? (r/atom false)]
-    (fn [{:keys [:selected-skills :on-touch-tap :always-show-all?]}]
+    (fn [{:keys [:selected-skills :on-touch-tap :always-show-all? :max-count]
+          :or {max-count 5}}]
       [row-plain
        {:middle "xs"
         :style styles/chip-list-row}
@@ -34,6 +33,8 @@
                 skill-name]))))
        (when (and (< max-count (count selected-skills))
                   (not @show-all?))
-         [:span {:style (merge styles/more-text
-                               {:color styles/primary1-color})
-                 :on-click #(reset! show-all? true)} "More"])])))
+         [ui/chip
+          {:key :more
+           :style styles/chip-in-list
+           :on-touch-tap #(reset! show-all? true)}
+          [:b (str "+" (- (count selected-skills) max-count))]])])))

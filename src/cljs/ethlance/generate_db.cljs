@@ -15,7 +15,10 @@
 
 (defn rand-text [max-chars]
   (let [c (inc (rand-int (/ max-chars (inc (rand-int 8)))))]
-    (u/truncate (string/join " " (repeatedly c #(u/rand-str (inc (rand-int 12))))) max-chars "")))
+    (u/truncate (string/join " " (-> (repeatedly c #(u/rand-str (inc (rand-int 12)) {:lowercase-only? true}))
+                                   vec
+                                   (update 0 (comp string/capitalize str))))
+                max-chars "")))
 
 (defn get-instance [key]
   (get-in @re-frame.db/app-db [:eth/contracts key :instance]))
@@ -24,10 +27,11 @@
   {:user/name (rand-text 40)
    :user/gravatar "a"
    :user/country (rand-id (count constants/countries))
+   :user/state (rand-id (count constants/united-states))
    :user/languages (set (rand-uint-coll 6 (count constants/languages)))
    :freelancer/available? true
    :freelancer/job-title (rand-text 40)
-   :freelancer/hourly-rate (web3/to-wei (rand-int 100) :ether)
+   :freelancer/hourly-rate (rand-int 100)
    :freelancer/categories (set (rand-uint-coll 6 (count constants/categories)))
    :freelancer/skills (set (rand-uint-coll 9 29))
    :freelancer/description (rand-text 300)})
@@ -36,13 +40,14 @@
   (merge (gen-freelancer)
          {:user/name "Matúš Lešťan"
           :user/gravatar "bfdb252fe9d0ab9759f41e3c26d7700e"
+          :user/country 232
           :freelancer/job-title "Clojure(script), Ethereum developer"}))
 
 (defn gen-job []
   {:job/title (rand-text 90)
    :job/description (rand-text 300)
    :job/skills (set (rand-uint-coll 6 29))
-   :job/budget (web3/to-wei (rand-int 100) :ether)
+   :job/budget (rand-int 100)
    :job/language (rand-id (count constants/languages))
    :job/category (rand-id (count constants/categories))
    :job/payment-type (rand-id (count constants/payment-types))
@@ -101,7 +106,7 @@
 
 (defn gen-proposal [& [job-id]]
   {:contract/job (or job-id (rand-id 10))
-   :proposal/rate (web3/to-wei (rand-int 100) :ether)
+   :proposal/rate (rand-int 100)
    :proposal/description (rand-text 200)})
 
 (defn gen-contract [& [contract-id]]
@@ -112,7 +117,7 @@
 (defn gen-invoice [& [contract-id]]
   {:invoice/contract (or contract-id (rand-id 10))
    :invoice/description (rand-text 100)
-   :invoice/amount (web3/to-wei (rand-int 10) :ether)
+   :invoice/amount (rand-int 10)
    :invoice/worked-hours (rand-int 200)
    :invoice/worked-from 1480407621
    :invoice/worked-to 1480407621})

@@ -5,6 +5,7 @@
     [ethlance.components.category-select-field :refer [category-select-field]]
     [ethlance.components.checkbox-group :refer [checkbox-group]]
     [ethlance.components.country-auto-complete :refer [country-auto-complete]]
+    [ethlance.components.state-select-field :refer [state-select-field]]
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a currency]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
@@ -24,7 +25,7 @@
     (fn []
       (let [{:keys [:search/category :search/skills :search/min-avg-rating
                     :search/min-freelancer-ratings-count :search/min-hourly-rate :search/max-hourly-rate
-                    :search/country :search/language :search/offset :search/limit]} @form-data]
+                    :search/country :search/state :search/language :search/offset :search/limit]} @form-data]
         [misc/call-on-change
          {:load-on-mount? true
           :args @form-data
@@ -66,6 +67,11 @@
              (when @xs-sm-width?
                {:target-origin {:vertical "bottom" :horizontal "left"}
                 :max-search-results 3}))]
+          (when (u/united-states? country)
+            [state-select-field
+             {:value state
+              :full-width true
+              :on-change #(dispatch [:form.search/set-value :search/state %3])}])
           [language-select-field
            (merge
              {:value language
@@ -103,7 +109,7 @@
           :on-page-change change-page}
          (for [{:keys [:freelancer/avg-rating :freelancer/hourly-rate :freelancer/job-title
                        :freelancer/ratings-count :freelancer/skills
-                       :user/id :user/name :user/gravatar :user/country] :as item} items]
+                       :user/id :user/name :user/gravatar :user/country :user/state] :as item} items]
            [row-plain
             {:key id :middle "xs" :center "xs" :start "sm"}
             [a
@@ -116,7 +122,7 @@
                         {:margin-bottom 10}
                         {:margin-right 10})}]]
             [:div
-             {:style (when xs? styles/full-width)}
+             {:style (if xs? styles/full-width {})}
              [:h2 [a {:style styles/primary-text
                       :route :freelancer/detail
                       :route-params {:user/id id}}
@@ -138,6 +144,7 @@
                      [currency hourly-rate]] " per hour"]
              [misc/country-marker
               {:country country
+               :state state
                :row-props {:style styles/freelancer-info-item}}]]
             [skills-chips
              {:selected-skills skills

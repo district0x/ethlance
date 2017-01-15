@@ -10,17 +10,17 @@ contract EthlanceUser is EthlanceSetter {
         ethlanceDB = _ethlanceDB;
     }
 
-    function setUser(string name, bytes32 gravatar, uint country, uint[] languages)
+    function setUser(string name, bytes32 gravatar, uint country, uint state, uint[] languages)
     onlyActiveSmartContract
     {
         if (languages.length > getConfig("max-user-languages")) throw;
         if (languages.length < getConfig("min-user-languages")) throw;
         if (bytes(name).length > getConfig("max-user-name")) throw;
         if (bytes(name).length < getConfig("min-user-name")) throw;
-        UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, languages);
+        UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, state, languages);
     }
 
-    function registerFreelancer(string name, bytes32 gravatar, uint country, uint[] languages,
+    function registerFreelancer(string name, bytes32 gravatar, uint country, uint state, uint[] languages,
         bool isAvailable,
         string jobTitle,
         uint hourlyRate,
@@ -30,7 +30,7 @@ contract EthlanceUser is EthlanceSetter {
     )
         onlyActiveSmartContract
     {
-        setUser(name, gravatar, country, languages);
+        setUser(name, gravatar, country, state, languages);
         setFreelancer(isAvailable, jobTitle, hourlyRate, categories, skills, description);
     }
 
@@ -57,10 +57,12 @@ contract EthlanceUser is EthlanceSetter {
     }
 
 
-    function registerEmployer(string name, bytes32 gravatar, uint country, uint[] languages, string description)
+    function registerEmployer(string name, bytes32 gravatar, uint country, uint state, uint[] languages,
+        string description
+    )
     onlyActiveSmartContract
     {
-        setUser(name, gravatar, country, languages);
+        setUser(name, gravatar, country, state, languages);
         setEmployer(description);
     }
 

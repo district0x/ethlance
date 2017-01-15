@@ -168,7 +168,8 @@ library JobLibrary {
                 hasEmployerMinRating(db, employerId, uintArgs[1]) &&
                 hasEmployerMinRatingsCount(db, employerId, uintArgs[2]) &&
                 UserLibrary.isFromCountry(db, employerId, uintArgs[3]) &&
-                hasLanguage(db, jobId, uintArgs[4]) &&
+                UserLibrary.isFromState(db, employerId, uintArgs[4]) &&
+                hasLanguage(db, jobId, uintArgs[5]) &&
                 UserLibrary.hasStatus(db, employerId, 1)
                 )
             {

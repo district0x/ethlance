@@ -44,14 +44,14 @@
                 :max-invitation-desc 500
                 :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x5743af1089c230e35c2ae14223dc372a32c0c60e"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xc383897837e24bcaf2645da740e217fe3ee33ec5"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x1bbe454a6620773d4e7652b648baf68830a4b521"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0xeded68900fd4aad8fbe20ee8b343200f9f709eb8"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x6864552b95434d806262b32b276178264ced0fa5"}
-                   :ethlance-db {:name "EthlanceDB" :address "0xc56e67106a5824862fe138c04ccdfb49fa1d024c"}
-                   :ethlance-views {:name "EthlanceViews" :address "0x6688b03fd1fba2be67c92a38c4e89675c7f9b575"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x02452b3a90192d9928cd1d2061e52a7c3606677d"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_ #_ :address "0x5743af1089c230e35c2ae14223dc372a32c0c60e"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true #_ #_ :address "0xc383897837e24bcaf2645da740e217fe3ee33ec5"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true #_ #_ :address "0x1bbe454a6620773d4e7652b648baf68830a4b521"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_ #_ :address "0xeded68900fd4aad8fbe20ee8b343200f9f709eb8"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true #_ #_ :address "0x6864552b95434d806262b32b276178264ced0fa5"}
+                   :ethlance-db {:name "EthlanceDB" #_ #_ :address "0xc56e67106a5824862fe138c04ccdfb49fa1d024c"}
+                   :ethlance-views {:name "EthlanceViews" #_ #_ :address "0x6688b03fd1fba2be67c92a38c4e89675c7f9b575"}
+                   :ethlance-search {:name "EthlanceSearch" #_ #_ :address "0x02452b3a90192d9928cd1d2061e52a7c3606677d"}}
    :my-addresses []
    :active-address nil
    :my-users-loaded? false
@@ -62,6 +62,8 @@
    :app/contracts {}
    :app/invoices {}
    :app/skills {}
+   :app/skill-count 0
+   :skill-load-limit 5
 
    :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
@@ -200,6 +202,7 @@
                       :search/min-employer-avg-rating 0
                       :search/min-employer-ratings-count 0
                       :search/country 0
+                      :search/state 0
                       :search/language 0
                       :search/offset 0
                       :search/limit 10}
@@ -211,6 +214,7 @@
                              :search/min-hourly-rate 0
                              :search/max-hourly-rate 0
                              :search/country 0
+                             :search/state 0
                              :search/language 0
                              :search/offset 0
                              :search/limit 3}

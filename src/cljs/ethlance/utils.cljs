@@ -264,8 +264,14 @@
   (str text (when (not= count 1) "s")))
 
 (defn country-name [country-id]
-  (when (pos? country-id)
+  (when (and (pos? country-id)
+             (<= country-id (count constants/countries)))
     (nth constants/countries (dec country-id))))
+
+(defn state-name [state-id]
+  (when (and (pos? state-id)
+             (<= state-id (count constants/united-states)))
+    (nth constants/united-states (dec state-id))))
 
 (defn rating->star [rating]
   (/ (or rating 0) 20))
@@ -273,12 +279,12 @@
 (defn star->rating [star]
   (* (or star 0) 20))
 
-(defn rand-str [n]
+(defn rand-str [n & [{:keys [:lowercase-only?]}]]
   (let [chars-between #(map char (range (.charCodeAt %1) (inc (.charCodeAt %2))))
-        chars (concat (chars-between \0 \9)
+        chars (concat (when-not lowercase-only? (chars-between \0 \9))
                       (chars-between \a \z)
-                      (chars-between \A \Z)
-                      [\_])
+                      (when-not lowercase-only? (chars-between \A \Z))
+                      (when-not lowercase-only? [\_]))
         password (take n (repeatedly #(rand-nth chars)))]
     (reduce str password)))
 
@@ -392,7 +398,11 @@
 
 (defn format-currency [value currency & [{:keys [:full-length?]}]]
   (let [currency (keyword currency)
+        value (or value 0)
         value (if (and full-length? (= currency :eth)) value (gstring/format "%.3f" value))]
     (case currency
       :usd (str (constants/currencies :usd) value)
       (str value (constants/currencies currency)))))
+
+(defn united-states? [country-id]
+  (= 232 country-id))

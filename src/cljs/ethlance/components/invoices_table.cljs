@@ -69,7 +69,7 @@
                    "Go to Contract"]])
                (when show-status?
                  [ui/table-row-column
-                  {:style (when @xs-width styles/table-row-column-thin)}
+                  {:style (if @xs-width styles/table-row-column-thin {})}
                   [misc/status-chip
                    {:background-color (styles/invoice-status-colors status)
                     :style styles/table-status-chip}

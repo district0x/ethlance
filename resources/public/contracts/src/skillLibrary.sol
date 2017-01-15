@@ -5,6 +5,10 @@ import "sharedLibrary.sol";
 
 library SkillLibrary {
 
+    function getSkillCount(address db) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("skill/count"));
+    }
+
     function addSkillName(address db, bytes32 name, uint userId) internal returns(uint) {
         var skillId = SharedLibrary.createNext(db, "skill/count");
         EthlanceDB(db).setBytes32Value(sha3("skill/name", skillId), name);
@@ -54,16 +58,22 @@ library SkillLibrary {
         }
     }
     
-    function getNames(address db) internal returns (uint[] skillIds, bytes32[] names){
-        var count = EthlanceDB(db).getUIntValue(sha3("skill/count"));
-        skillIds = new uint[](count);
-        names = new bytes32[](count);
-        for (uint i = 1; i <= count ; i++) {
+    function getNames(address db, uint offset, uint limit) internal returns (uint[] skillIds, bytes32[] names){
+        var count = getSkillCount(db);
+        skillIds = new uint[](limit);
+        names = new bytes32[](limit);
+        uint j;
+        var last = offset + limit;
+        if (last > count) {
+            last = count;
+        }
+        for (uint i = offset + 1; i <= last; i++) {
             if (!EthlanceDB(db).getBooleanValue(sha3("skill/blocked?", i))) {
-                skillIds[i - 1] = i;
-                names[i - 1] = EthlanceDB(db).getBytes32Value(sha3("skill/name", i));
+                skillIds[j] = i;
+                names[j] = EthlanceDB(db).getBytes32Value(sha3("skill/name", i));
+                j++;
             }
         }
-        return (skillIds, names);
+        return (SharedLibrary.take(j, skillIds), SharedLibrary.take(j, names));
     }
 }

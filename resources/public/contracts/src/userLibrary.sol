@@ -40,6 +40,7 @@ library UserLibrary {
         string name,
         bytes32 gravatar,
         uint country,
+        uint state,
         uint[] languages
     )
         internal returns (uint)
@@ -57,6 +58,7 @@ library UserLibrary {
 
         if (country == 0) throw;
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
+        EthlanceDB(db).setUIntValue(sha3("user/state", userId), state);
         EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
         EthlanceDB(db).setUIntValue(sha3("user/created-on", userId), now);
         EthlanceDB(db).setUIntValue(sha3("user/ids", userAddress), userId);
@@ -251,6 +253,13 @@ library UserLibrary {
         }
         return countryId == EthlanceDB(db).getUIntValue(sha3("user/country", userId));
     }
+    
+    function isFromState(address db, uint userId, uint stateId) internal returns(bool) {
+        if (stateId == 0) {
+            return true;
+        }
+        return stateId == EthlanceDB(db).getUIntValue(sha3("user/state", userId));
+    }
 
     function hasMinRating(address db, uint userId, uint8 minAvgRating) internal returns(bool) {
         if (minAvgRating == 0) {
@@ -309,6 +318,7 @@ library UserLibrary {
         uint minHourlyRate,
         uint maxHourlyRate,
         uint countryId,
+        uint stateId,
         uint languageId
     )
         internal returns (uint[] userIds)
@@ -324,6 +334,7 @@ library UserLibrary {
                 hasFreelancerMinRatingsCount(db, userId, minRatingsCount) &&
                 hasHourlyRateWithinRange(db, userId, minHourlyRate, maxHourlyRate) &&
                 isFromCountry(db, userId, countryId) &&
+                isFromState(db, userId, stateId) &&
                 hasLanguage(db, userId, languageId) &&
                 hasStatus(db, userId, 1)
             ) {

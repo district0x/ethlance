@@ -52,8 +52,12 @@ contract EthlanceViews {
         return JobLibrary.getEmployerJobsByStatus(ethlanceDB, userId, jobStatus);
     }
 
-    function getSkillNames() constant returns (uint[] skillIds, bytes32[] names) {
-        return SkillLibrary.getNames(ethlanceDB);
+    function getSkillNames(uint offset, uint limit) constant returns (uint[] skillIds, bytes32[] names) {
+        return SkillLibrary.getNames(ethlanceDB, offset, limit);
+    }
+
+    function getSkillCount() constant returns (uint) {
+        return SkillLibrary.getSkillCount(ethlanceDB);
     }
 
     function getUsers(address[] addresses) constant returns(uint[]) {

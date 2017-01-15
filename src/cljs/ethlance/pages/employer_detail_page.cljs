@@ -18,7 +18,7 @@
 
 (defn employer-info []
   (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/gravatar :user/name :user/country :user/created-on :freelancer/description
+    (fn [{:keys [:user/gravatar :user/name :user/country :user/state :user/created-on :freelancer/description
                  :user/languages :user/id :user/status :employer/avg-rating :employer/total-paid
                  :employer/description :employer/ratings-count :user/address :user/balance] :as user}]
       (when (seq name)
@@ -34,7 +34,7 @@
              :src (u/gravatar-url gravatar id)}]]
           [col
            {:xs 12 :sm 6 :lg 7
-            :style (when @xs-width? {:margin-top 10})}
+            :style (if @xs-width? {:margin-top 10} {})}
            [:h1 name]
            [star-rating
             {:value (u/rating->star avg-rating)
@@ -42,14 +42,15 @@
              :center "xs"
              :start "sm"
              :ratings-count ratings-count
-             :style (when @xs-width? {:margin-top 5})}]
+             :style (if @xs-width? {:margin-top 5} {})}]
            [misc/country-marker
             {:row-props {:center "xs"
                          :start "sm"
-                         :style (when @xs-width? {:margin-top 5})}
-             :country country}]]
+                         :style (if @xs-width? {:margin-top 5} {})}
+             :country country
+             :state state}]]
           [col {:xs 12 :sm 4 :lg 3
-                :style (when-not @xs-width? styles/text-right)}
+                :style (if-not @xs-width? styles/text-right {})}
            (when (= status 2)
              [row-plain
               {:center "xs"
@@ -60,7 +61,7 @@
          [misc/hr]
          [misc/user-address address]
          [misc/user-created-on created-on]
-         [misc/detail-description
+         [misc/long-text
           description]
          [misc/subheader "Speaks languages"]
          [misc/call-on-change

@@ -230,7 +230,7 @@
                                    (when @lg-width?
                                      {:padding-left (+ 256 styles/desktop-gutter)})
                                    (when @xs-width?
-                                     {:padding styles/desktop-gutter-mini}))}
+                                     (styles/padding-all styles/desktop-gutter-mini)))}
                (if @contracts-not-found?
                  [contracts-not-found-page]
                  [page])])])]))))
