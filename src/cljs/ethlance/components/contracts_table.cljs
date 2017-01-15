@@ -3,7 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.list-table :refer [list-table]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -75,7 +75,9 @@
                    (:user/name freelancer)]])
                (when show-rate?
                  [ui/table-row-column
-                  (if (= status 1) "-" (u/format-rate rate payment-type))])
+                  (if (= status 1)
+                    "-"
+                    [misc/rate rate payment-type])])
                (when show-invitation-or-proposal-time?
                  [ui/table-row-column
                   (if (= status 1)
@@ -83,7 +85,7 @@
                     (u/time-ago (:proposal/created-on item)))])
                (when show-total-paid?
                  [ui/table-row-column
-                  (u/eth total-paid)])
+                  [currency total-paid]])
                (when show-invitation?
                  [ui/table-row-column
                   (u/time-ago (:invitation/created-on item))])

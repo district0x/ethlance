@@ -57,6 +57,15 @@
   {:margin-top x
    :margin-bottom x})
 
+(defn padding-horizontal [x]
+  {:padding-right x
+   :padding-left x})
+
+(defn padding-vertical [x]
+  {:padding-top x
+   :padding-bottom x})
+
+
 (def full-width
   {:width "100%"})
 
@@ -184,6 +193,9 @@
     {:margin-top desktop-gutter-less
      :margin-bottom desktop-gutter-less}))
 
+(def no-box-shadow
+  {:box-shadow "none"})
+
 (def employer-info
   (merge
     fade-text
@@ -279,10 +291,15 @@
   (color :brown500))
 
 (def line
-  {:line-height "1.2em"})
+  {:line-height "1.3em"})
 
 (def pagination-button
   {:min-width 36})
+
+(def pagination-row-column
+  {:padding-right 0
+   :padding-left 0
+   :overflow :auto})
 
 (def message-bubble
   {:white-space :pre-wrap
@@ -292,7 +309,7 @@
 
 (def message-bubble-row
   {:margin-bottom desktop-gutter-less
-   :font-size "0.85em"})
+   :font-size "0.95em"})
 
 (def message-bubble-right
   (merge message-bubble
@@ -378,15 +395,6 @@
 
 (def diagram-arrow-icon
   {:max-height "100px"})
-
-(def ethereum-logo-landing
-  {:height "300px"})
-
-(def bold-headline
-  {:font-weight 400
-   :line-height "1.2em"
-   :word-break "break-word"
-   :font-size "2em"})
 
 (def footer-subheader
   {:color "#a3a3a3"

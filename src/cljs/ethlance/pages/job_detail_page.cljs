@@ -6,7 +6,7 @@
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.list-pagination :refer [list-pagination]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.constants :as constants]
@@ -44,8 +44,8 @@
              :small? true
              :show-number? true
              :ratings-count ratings-count}]]
-          [line (str (u/eth total-paid) " spent")]
-          [line (str (u/eth balance) " balance")]
+          [line [:span [currency total-paid] " spent"]]
+          [line [:span [currency balance] " balance"]]
           [misc/country-marker
            {:row-props {:center "xs"
                         :start "sm"}
@@ -130,7 +130,7 @@
              [:div
               [misc/ether-field
                {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate (Ether)")
-                :default-value rate
+                :value rate
                 :form-key :form.contract/add-proposal
                 :field-key :proposal/rate}]
               [misc/textarea
@@ -138,7 +138,7 @@
                 :form-key :form.contract/add-proposal
                 :field-key :proposal/description
                 :max-length-key :max-proposal-desc
-                :default-value description}]
+                :value description}]
               [misc/send-button
                {:disabled (or loading? (boolean (seq errors)))
                 :on-touch-tap #(dispatch [:contract.contract/add-job-proposal
@@ -195,7 +195,7 @@
                [misc/status-chip
                 {:background-color styles/budget-chip-color
                  :style styles/job-status-chip}
-                "Budget " (u/eth budget)])]
+                "Budget " [currency budget]])]
             [misc/detail-description
              description]
             [misc/subheader "Required Skills"]

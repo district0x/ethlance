@@ -49,7 +49,7 @@
   (when created-on
     (let [italic-text [:span (gstring/format "%s applied for the job with rate "
                                              (freelancer-first-name contract))
-                       [:b (u/format-rate rate (:job/payment-type job))]]]
+                       [:b [misc/rate rate (:job/payment-type job) {:full-length? true}]]]]
       [message-bubble
        {:side :left
         :user freelancer

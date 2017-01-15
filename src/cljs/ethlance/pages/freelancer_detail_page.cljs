@@ -6,7 +6,7 @@
     [ethlance.components.contracts-table :refer [contracts-table]]
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.languages-chips :refer [languages-chips]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.constants :as constants]
@@ -52,7 +52,9 @@
                        :style (when @xs-width? {:margin-top 5})}
            :country country}]]
         [col {:xs 12 :sm 4 :lg 3
-              :style (when-not @xs-width? styles/text-right)}
+              :style (merge
+                       {:padding-left 0}
+                       (when-not @xs-width? styles/text-right))}
          [row-plain
           {:center "xs"
            :end "sm"}
@@ -66,9 +68,9 @@
                  "not available for hire")]
             2 [misc/blocked-user-chip]
             nil)]
-         [misc/elegant-line "rate per hour" (u/eth hourly-rate)]
-         [misc/elegant-line "earned" (u/eth total-earned)]
-         [misc/elegant-line "balance" (u/eth balance)]]]
+         [misc/elegant-line "hourly rate" [currency hourly-rate]]
+         [misc/elegant-line "earned" [currency total-earned]]
+         [misc/elegant-line "balance" [currency balance]]]]
        [misc/hr]
        [misc/user-address address]
        [misc/user-created-on created-on]

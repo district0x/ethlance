@@ -3,7 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.invoices-table :refer [invoices-table]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -16,8 +16,8 @@
     [col {:xs 12}
      [:h2 {:style styles/margin-bottom-gutter-less} "My Invoices as Employer"]
      [:div
-      [:h3 "Total to Pay: " (u/eth total-invoiced)]
-      [:h3 "Total Paid: " (u/eth total-paid)]]]]])
+      [:h3 "Total to Pay: " [currency total-invoiced]]
+      [:h3 "Total Paid: " [currency total-paid]]]]]])
 
 (defn employer-pending-invoices [{:keys [:user/id]}]
   [invoices-table

@@ -12,6 +12,9 @@
    :contracts-not-found? false
    :window/width-size (u/get-window-width-size js/window.innerWidth)
    :drawer-open? false
+   :search-freelancers-filter-open? false
+   :search-jobs-filter-open? false
+   :selected-currency :eth
    :snackbar {:open? false
               :message ""
               :auto-hide-duration 5000
@@ -41,8 +44,8 @@
                 :max-invitation-desc 500
                 :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true  :address "0x5743af1089c230e35c2ae14223dc372a32c0c60e"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true  :address "0xc383897837e24bcaf2645da740e217fe3ee33ec5"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x5743af1089c230e35c2ae14223dc372a32c0c60e"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xc383897837e24bcaf2645da740e217fe3ee33ec5"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x1bbe454a6620773d4e7652b648baf68830a4b521"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0xeded68900fd4aad8fbe20ee8b343200f9f709eb8"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x6864552b95434d806262b32b276178264ced0fa5"}
@@ -53,6 +56,7 @@
    :active-address nil
    :my-users-loaded? false
    :blockchain/addresses {}
+   :conversion-rates {}
    :app/users {}
    :app/jobs {}
    :app/contracts {}

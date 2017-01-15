@@ -6,7 +6,7 @@
     [ethlance.components.checkbox-group :refer [checkbox-group]]
     [ethlance.components.country-auto-complete :refer [country-auto-complete]]
     [ethlance.components.language-select-field :refer [language-select-field]]
-    [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a]]
+    [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a currency]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
@@ -29,7 +29,7 @@
          {:load-on-mount? true
           :args @form-data
           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-jobs @form-data]])}
-         [paper-thin
+         [misc/search-paper-thin
           [category-select-field
            {:value category
             :full-width true
@@ -62,7 +62,8 @@
            {:floating-label-text "Min. Budget (Ether)"
             :value min-budget
             :full-width true
-            :on-change #(dispatch [:form.search/set-value :search/min-budget %])}]
+            :allow-empty? true
+            :on-change #(dispatch [:form.search/set-value :search/min-budget % u/non-neg-or-empty-ether-value?])}]
           [misc/text-field
            {:floating-label-text "Min. Employer Feedbacks"
             :type :number
@@ -78,7 +79,9 @@
            {:value language
             :full-width true
             :on-new-request #(dispatch [:form.search/set-value :search/language %2])}]
-          [misc/search-reset-button]]]))))
+          [misc/search-filter-reset-button]
+          [misc/search-filter-done-button
+           {:on-touch-tap #(dispatch [:search-filter.jobs/set-open? false])}]]]))))
 
 (defn search-results-employer [{:keys [:employer/jobs-count :employer/avg-rating :employer/total-paid
                                        :user/name :user/id :employer/ratings-count :user/country :user/balance]}]
@@ -95,13 +98,14 @@
         :style styles/employer-rating-search}]
       [:span
        {:style styles/employer-info-item}
-       ratings-count (u/pluralize " feedback" ratings-count)]
+       [:span {:style styles/dark-text} ratings-count]
+       (u/pluralize " feedback" ratings-count)]
       [:span
        {:style styles/employer-info-item}
-       [:span {:style styles/dark-text} (u/eth total-paid)] " spent"]
+       [:span {:style styles/dark-text} [currency total-paid]] " spent"]
       [:span
        {:style styles/employer-info-item}
-       [:span {:style styles/dark-text} (u/eth balance)] " balance"]
+       [:span {:style styles/dark-text} [currency balance]] " balance"]
       [misc/country-marker
        {:country country
         :row-props {:style styles/employer-info-item}}]])])
@@ -162,7 +166,9 @@
              [:span " - " (constants/experience-levels experience-level)]
              [:span " - Est. Time: " (constants/estimated-durations estimated-duration)]
              [:span " - " (constants/hours-per-weeks hours-per-week)]
-             [:span " - Budget: " [:span {:style styles/dark-text} (u/eth budget)]]
+             [:span " - Budget: " [:span
+                                   {:style styles/dark-text}
+                                   [misc/currency budget]]]
              #_(when (.greaterThan budget 0)
                  [:span " - Budget: " (.toNumber budget) " ETH"])]
             [:div {:style styles/job-list-description}
@@ -189,6 +195,9 @@
 
 (defn search-jobs-page []
   [misc/search-layout
+   {:filter-drawer-props {:open @(subscribe [:db/search-jobs-filter-open?])
+                          :on-request-change #(dispatch [:search-filter.jobs/set-open? %])}
+    :filter-open-button-props {:on-touch-tap #(dispatch [:search-filter.jobs/set-open? true])}}
    [filter-sidebar]
    [skills-input]
    [search-results]])

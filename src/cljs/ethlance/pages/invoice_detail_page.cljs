@@ -3,7 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.message-bubble :refer [message-bubble]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
@@ -38,7 +38,7 @@
       [line "Proposal" [a {:route-params (select-keys contract [:contract/id])
                            :route :contract/detail}
                         (:contract/id contract)]]
-      [line "Amount" (u/eth amount)]
+      [line "Amount" [currency amount {:full-length? true}]]
       [line "Created on" (u/format-datetime created-on)]
       [line "Worked hours" worked-hours]
       [line "Worked from" (u/format-date worked-from)]
@@ -84,11 +84,12 @@
                  {:secondary true
                   :label "Cancel Invoice"
                   :disabled (:loading? @form-cancel)
+                  :style styles/margin-top-gutter-less
                   :on-touch-tap #(dispatch [:contract.invoice/cancel-invoice {:invoice/id id}])}])
               (when (and (= status 1) @for-me)
                 [ui/raised-button
                  {:primary true
                   :label "Pay Invoice"
                   :disabled (:loading? @form-pay)
-                  :style {:margin-top 10}
+                  :style styles/margin-top-gutter-less
                   :on-touch-tap #(dispatch [:contract.invoice/pay-invoice {:invoice/id id} amount])}])]])]]))))

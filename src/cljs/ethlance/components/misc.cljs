@@ -42,16 +42,46 @@
 
 (def paper-thin (u/create-with-default-props paper {:inner-style styles/paper-secton-thin}))
 
-(defn search-layout [filter-sidebar skills-input search-results]
-  [row
-   [col {:xs 12 :md 4}
-    filter-sidebar]
-   [col {:xs 12 :md 8}
-    [row
-     [col {:xs 12}
-      skills-input]
-     [col {:xs 12}
-      search-results]]]])
+(defn search-filter-open-button []
+  (let [xs-sm-width? (subscribe [:window/xs-sm-width?])
+        xs-width? (subscribe [:window/xs-width?])]
+    (fn [props]
+      (when @xs-sm-width?
+        [row-plain
+         {:end "xs"
+          :style (when @xs-width? {:margin-top styles/desktop-gutter-less})}
+         [ui/floating-action-button
+          (r/merge-props
+            {:style {:margin-bottom -26
+                     :margin-right styles/desktop-gutter
+                     :z-index 99}}
+            props)
+          (icons/content-filter-list)]]))))
+
+(defn search-layout []
+  (let [xs-sm-width? (subscribe [:window/xs-sm-width?])]
+    (fn [{:keys [:filter-drawer-props :filter-open-button-props]} filter-sidebar skills-input search-results]
+      [row
+       (when @xs-sm-width?
+         [col {:xs 12}
+          [search-filter-open-button filter-open-button-props]])
+       (if @xs-sm-width?
+         [ui/drawer
+          (r/merge-props
+            {:width 300
+             :docked false
+             :open-secondary true
+             :container-style {:padding-bottom 200}}
+            filter-drawer-props)
+          filter-sidebar]
+         [col {:xs 12 :md 4}
+          filter-sidebar])
+       [col {:xs 12 :md 8}
+        [row
+         [col {:xs 12}
+          skills-input]
+         [col {:xs 12}
+          search-results]]]])))
 
 (defn country-marker [{:keys [:row-props :country]}]
   [row-plain
@@ -87,8 +117,11 @@
    [ui/table-row
     [ui/table-row-column
      {:col-span 99
-      :style {:text-align :right :padding-right 0}}
-     [list-pagination list-pagination-props]]]])
+      :style styles/pagination-row-column}
+     [row-plain
+      {:start "xs"
+       :end "sm"}
+      [list-pagination list-pagination-props]]]]])
 
 (defn create-no-items-row [text & [loading?]]
   [ui/table-row
@@ -100,34 +133,6 @@
   [row {:center "xs"}
    (into [] (concat [col {:xs 12 :md 10 :lg 9 :style styles/text-left}]
                     children))])
-
-(defn- default-value->comparable [x]
-  ;(print.foo/look (type x))
-  (if (number? x)
-    (.toString x)
-    (if x (u/big-num->num x) "")))
-
-
-#_(defn text-field* [{:keys [:default-value :transform-default-value]
-                      :or {transform-default-value identity}}]
-    (let [prev-value (r/atom default-value)]
-      (fn [{:keys [:rows :on-change :default-value :transform-on-change :transform-default-value]
-            :as props
-            :or {transform-on-change identity transform-default-value identity}}]
-        ;(if (= (u/big-num->num default-value) (u/big-num->num @prev-value))
-        (if (= (default-value->comparable default-value) (default-value->comparable @prev-value))
-          [ui/text-field
-           (merge
-             (dissoc props :transform-on-change :transform-default-value)
-             {:default-value (transform-default-value default-value)
-              :on-change (fn [e val]
-                           (let [val (transform-on-change val)]
-                             (reset! prev-value val)
-                             (when on-change
-                               (on-change e val))))})]
-          (do
-            (reset! prev-value default-value)
-            [:div {:style {:min-height (+ 72 (* (dec (or rows 1)) 24))}}])))))
 
 (def text-field-patched
   (tmpl/adapt-react-class (aget js/MaterialUI "TextField")
@@ -195,20 +200,21 @@
                             "Text is too long"))}
            (dissoc props :form-key :field-key :max-length-key :form-key :field-key :min-length-key))]))))
 
-(defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change] :as props}]
-  (let [validator (comp u/pos-or-zero? u/parse-float)]
-    [text-field-patched
-     (r/merge-props
-       {:style styles/display-block
-        :on-change (fn [e value]
-                     (let [value (web3/to-wei value :ether)]
-                       (if on-change
-                         (on-change value)
-                         (dispatch [:form/set-value form-key field-key value validator]))))
-        :error-text (when-not (validator value)
-                      "Invalid number")
-        :value (web3/from-wei value :ether)}
-       (dissoc props :value :form-key :field-key :on-change))]))
+(defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change :allow-empty?] :as props}]
+  [text-field-patched
+   (r/merge-props
+     {:style styles/display-block
+      :on-change (fn [e value]
+                   (if on-change
+                     (on-change value)
+                     (dispatch [:form/set-value
+                                form-key
+                                field-key
+                                value
+                                #(u/non-neg-ether-value? % (select-keys props [:allow-empty?]))])))
+      :error-text (when-not (u/non-neg-ether-value? value (select-keys props [:allow-empty?]))
+                    "This is invalid Ether value")}
+     (dissoc props :form-key :field-key :on-change :allow-empty?))])
 
 (def textarea (u/create-with-default-props text-field {:rows 4
                                                        :full-width true
@@ -292,7 +298,11 @@
   [ui/subheader {:style styles/subheader} title])
 
 (defn elegant-line [label body]
-  [:div [:h3 {:style styles/user-detail-h2-line} label] [:h2 {:style styles/user-detail-h2-line} body]])
+  [:div
+   [:h3 {:style (merge styles/user-detail-h2-line
+                       {:font-size "1.08em"})} label]
+   [:h2 {:style (merge styles/user-detail-h2-line
+                       {:font-size "1.22em"})} body]])
 
 (defn call-on-change [{:keys [:args :load-on-mount?]}]
   (let [prev-args (r/atom (when-not load-on-mount? args))]
@@ -361,14 +371,37 @@
     :allow-whitespace? true}
    body])
 
-(defn search-reset-button []
+(defn search-filter-reset-button []
   [row-plain
    {:center "xs"}
    [ui/flat-button
-    {:style styles/margin-top-gutter-less
+    {:style (merge styles/margin-top-gutter-less
+                   styles/full-width)
      :primary true
      :label "Reset"
      :on-touch-tap #(dispatch [:location/set-query nil])}]])
+
+(defn search-filter-done-button []
+  (let [xs-sm-width? (subscribe [:window/xs-sm-width?])]
+    (fn [props]
+      (when @xs-sm-width?
+        [row-plain
+         {:center "xs"}
+         [ui/flat-button
+          (merge
+            {:style (merge styles/margin-top-gutter-less
+                           styles/full-width)
+             :primary true
+             :label "Done"}
+            props)]]))))
+
+(defn search-paper-thin []
+  (let [xs-sm-width? (subscribe [:window/xs-sm-width?])]
+    (fn [& children]
+      (into
+        [paper-thin
+         {:style (when @xs-sm-width? styles/no-box-shadow)}]
+        children))))
 
 (defn search-result-change-page [new-offset]
   (dispatch [:form.search/set-value :search/offset new-offset])
@@ -406,3 +439,13 @@
    {:href (u/path-for :home)}
    [:img {:style styles/ethlance-logo
           :src "../images/ethlance-logo-white.svg"}]])
+
+(defn currency [value opts]
+  [:span @(subscribe [:selected-currency/converted-value value opts])])
+
+(defn rate [rate payment-type opts]
+  (when rate
+    [:span
+     [currency rate opts]
+     (when (= 1 payment-type)
+       " / hr")]))

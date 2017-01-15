@@ -89,6 +89,11 @@
    11 "Accounting & Consulting"
    12 "Other"})
 
+(def currencies
+  {:eth "Ξ"
+   :usd "$"
+   :eur "€"})
+
 (def countries
   ["Afghanistan"
    "Åland Islands"

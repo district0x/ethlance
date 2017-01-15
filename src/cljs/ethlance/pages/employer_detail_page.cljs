@@ -5,7 +5,7 @@
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.jobs-table :refer [jobs-table]]
     [ethlance.components.languages-chips :refer [languages-chips]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.constants :as constants]
@@ -55,8 +55,8 @@
               {:center "xs"
                :end "sm"}
               [misc/blocked-user-chip]])
-           [misc/elegant-line "spent" (u/eth total-paid)]
-           [misc/elegant-line "balance" (u/eth balance)]]]
+           [misc/elegant-line "spent" [currency total-paid]]
+           [misc/elegant-line "balance" [currency balance]]]]
          [misc/hr]
          [misc/user-address address]
          [misc/user-created-on created-on]

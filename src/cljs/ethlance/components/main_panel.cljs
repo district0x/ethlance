@@ -19,7 +19,7 @@
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
     [ethlance.pages.job-create-page :refer [job-create-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
-    [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows]]
+    [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows currency]]
     [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
@@ -28,7 +28,8 @@
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [clojure.set :as set]))
+    [clojure.set :as set]
+    [ethlance.constants :as constants]))
 
 (def route->component
   {:contract/detail contract-detail-page
@@ -110,18 +111,21 @@
      body]))
 
 (defn currency-select-field []
-  [ui/select-field
-   {:value "usd"
-    :label-style styles/app-bar-select-field-label
-    :auto-width true
-    :style (merge
-             styles/app-bar-user
-             {:width 40})}
-   (for [[key text] [[:eth "Ξ"] [:usd "$"] [:eur "€"]]]
-     [ui/menu-item
-      {:value key
-       :primary-text text
-       :key key}])])
+  (let [selected-currency (subscribe [:db/selected-currency])]
+    (fn []
+      [ui/select-field
+       {:value @selected-currency
+        :label-style styles/app-bar-select-field-label
+        :auto-width true
+        :on-change #(dispatch [:selected-currency/set %3])
+        :style (merge
+                 styles/app-bar-user
+                 {:width 40})}
+       (for [[key text] constants/currencies]
+         [ui/menu-item
+          {:value key
+           :primary-text text
+           :key key}])])))
 
 (defn app-bar-right-elements []
   (let [active-address-balance (subscribe [:db/active-address-balance])
@@ -158,7 +162,7 @@
              :style {:margin-top 5}}]]])
        (when @active-address-balance
          [:h2.bolder {:style styles/app-bar-balance}
-          (u/eth @active-address-balance)])
+          [currency @active-address-balance]])
        [my-addresses-select-field]
        [currency-select-field]])))
 

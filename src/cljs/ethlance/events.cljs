@@ -53,12 +53,19 @@
 (defn storage-keys [& args]
   (apply web3-eth/contract-call (get-instance @re-frame.db/app-db :ethlance-db) :storage-keys args))
 
+(defn arg-eth->wei [value arg-key]
+  (if (contains? ethlance-db/wei-args arg-key)
+    (web3/to-wei (if (string? value) (u/replace-comma value) value) :ether)
+    value))
+
 (defn args-map->vec [values args-order]
   (mapv (fn [arg-key]
-          (let [val (get values arg-key)]
-            (if (sequential? arg-key)
-              (map #(get values %) arg-key)
-              val)))
+          (if (sequential? arg-key)
+            (map #(-> (get values %)
+                    (arg-eth->wei %))
+                 arg-key)
+            (-> (get values arg-key)
+              (arg-eth->wei arg-key))))
         args-order))
 
 (defn get-ethlance-db []
@@ -180,13 +187,15 @@
   :initialize
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
-    (let [{:keys [:web3 :provides-web3? :active-page]} default-db]
-      (merge
-        {:db (as-> default-db db
+    (let [{:keys [:web3 :provides-web3? :active-page]} default-db
+          db (as-> default-db db
                    (merge-data-from-query db active-page (u/current-url-query))
-                   (merge-with (partial merge-with merge) db localstorage)
+                   (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
                    (assoc db :on-load-seed (rand-int 99999))
-                   (assoc db :drawer-open? (> (:window/width-size db) 2)))
+                   (assoc db :drawer-open? (> (:window/width-size db) 2)))]
+      (merge
+        {:db db
+         :dispatch [:load-conversion-rate (:selected-currency db)]
          :async-flow {:first-dispatch [:load-eth-contracts]
                       :rules [{:when :seen?
                                :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
@@ -264,6 +273,35 @@
           {:dispatch [:contract.db/add-allowed-contracts [key]]})))))
 
 (reg-event-fx
+  :load-conversion-rate
+  interceptors
+  (fn [{:keys [db]} [currency]]
+    (when (contains? #{:usd :eur} (keyword currency))
+      {:http-xhrio {:method :get
+                    :uri (gstring/format "https://api.cryptonator.com/api/ticker/eth-%s" (name currency))
+                    :timeout 10000
+                    :response-format (ajax/json-response-format {:keywords? true})
+                    :on-success [:conversion-rate-loaded currency]
+                    :on-failure [:log-error "Failer to load conversion rate" currency]}})))
+
+(reg-event-db
+  :conversion-rate-loaded
+  interceptors
+  (fn [db [currency response]]
+    (assoc-in db [:conversion-rates currency] (-> response :ticker :price js/parseFloat))))
+
+(reg-event-fx
+  :selected-currency/set
+  [interceptors (inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [currency]]
+    (let [currency (keyword currency)]
+      (merge
+        {:db (assoc db :selected-currency currency)
+         :localstorage (assoc localstorage :selected-currency currency)}
+        (when-not (get-in db [:conversion-rates currency])
+          {:dispatch [:load-conversion-rate currency]})))))
+
+(reg-event-fx
   :estimate-contracts
   interceptors
   (fn [{:keys [db]}]
@@ -326,7 +364,7 @@
   :blockchain/address-balance-loaded
   interceptors
   (fn [{:keys [db]} [balance address]]
-    {:db (assoc-in db [:blockchain/addresses address :address/balance] balance)}))
+    {:db (assoc-in db [:blockchain/addresses address :address/balance] (web3/from-wei balance :ether))}))
 
 (reg-event-fx
   :contract/loaded
@@ -935,7 +973,7 @@
     {:dispatch [:form/submit
                 {:form-data form-data
                  :address address
-                 :value amount
+                 :value (web3/to-wei amount :ether)
                  :fn-key :ethlance-invoice/pay-invoice
                  :form-key :form.invoice/pay-invoice
                  :receipt-dispatch [:contract.db/load-invoices (select-keys ethlance-db/invoice-schema
@@ -1025,10 +1063,12 @@
 (reg-event-fx
   :form.search/set-value
   interceptors
-  (fn [{:keys [db]} [field-key field-value]]
-    {:location/add-to-query [(merge {field-key field-value}
-                                    (when-not (= field-key :search/offset)
-                                      {:search/offset 0}))]}))
+  (fn [{:keys [db]} [field-key field-value validator]]
+    (when (or (not validator)
+              (validator field-value))
+      {:location/add-to-query [(merge {field-key field-value}
+                                      (when-not (= field-key :search/offset)
+                                        {:search/offset 0}))]})))
 
 (reg-event-fx
   :form/submit
@@ -1191,6 +1231,18 @@
   interceptors
   (fn [db _]
     (assoc-in db [:snackbar :open?] false)))
+
+(reg-event-db
+  :search-filter.freelancers/set-open?
+  interceptors
+  (fn [db [open?]]
+    (assoc db :search-freelancers-filter-open? open?)))
+
+(reg-event-db
+  :search-filter.jobs/set-open?
+  interceptors
+  (fn [db [open?]]
+    (assoc db :search-jobs-filter-open? open?)))
 
 (reg-event-fx
   :contract/transaction-sent

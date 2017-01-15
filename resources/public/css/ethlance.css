@@ -10,7 +10,7 @@ h6{margin:0;color:rgba(0, 0, 0, 0.87);} h1{color:rgba(0, 0, 0, 0.7);} h1,
 h2,
 h3{font-weight:300 !important;line-height:1.2em;word-break:break-word;} h1.bolder,
 h2.bolder,
-h3.bolder{font-weight:400 !important;} .black{color:#000;} .white{color:#FFF;} h3{line-height:1.4em;} body{font-size:15px;} strong,
+h3.bolder{font-weight:400 !important;} .black{color:#000;} .white{color:#FFF;} h3{line-height:1.4em;} body{font-size:14px;} strong,
 b{font-weight:600;} .sm-visible,
 .md-visible,
 .lg-visible{display:none;}@media only screen and (min-width:48em){ .sm-visible{display:block;} .sm-margin-0{margin:0;} .sm-margin-top-0{margin-top:0 !important;}}@media only screen and (min-width:64em){ .md-visible{display:block;} .md-margin-0{margin:0;}}@media only screen and (min-width:75em){ .lg-visible{display:block;} .lg-margin-0{margin:0;}}

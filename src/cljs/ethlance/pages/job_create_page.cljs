@@ -44,7 +44,7 @@
             {:floating-label-text "Your budget (Ether)"
              :form-key :form.job/add-job
              :field-key :job/budget
-             :default-value budget}]]
+             :value budget}]]
           [ui/text-field
            {:floating-label-text "Number of needed freelancers"
             :type :number

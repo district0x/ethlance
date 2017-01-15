@@ -3,7 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.invoices-table :refer [invoices-table]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -18,8 +18,8 @@
      [row {:bottom "xs"}
       [col {:xs 12 :md 6}
        [:div
-        [:h3 "Total Invoiced: " (u/eth total-invoiced)]
-        [:h3 "Total Earned: " (u/eth total-earned)]]]
+        [:h3 "Total Invoiced: " [currency total-invoiced]]
+        [:h3 "Total Earned: " [currency total-earned]]]]
       [col
        {:xs 12 :md 6
         :style styles/text-right}

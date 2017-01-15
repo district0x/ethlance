@@ -30,6 +30,40 @@
     (:drawer-open? db)))
 
 (reg-sub
+  :db/selected-currency
+  (fn [db _]
+    (:selected-currency db)))
+
+(reg-sub
+  :db/conversion-rates
+  (fn [db _]
+    (:conversion-rates db)))
+
+(reg-sub
+  :selected-currency/converted-value
+  :<- [:db/selected-currency]
+  :<- [:db/conversion-rates]
+  (fn [[selected-curency conversion-rates] [_ value opts]]
+    (if (and (not= :eth selected-curency)
+             (conversion-rates selected-curency))
+      (let [value (u/parse-float value)]
+        (if (and value
+                 (not (js/isNaN value)))
+          (u/format-currency (* value (conversion-rates selected-curency)) selected-curency opts)
+          (u/format-currency (or value 0) :eth opts)))
+      (u/format-currency value :eth opts))))
+
+(reg-sub
+  :db/search-freelancers-filter-open?
+  (fn [db _]
+    (:search-freelancers-filter-open? db)))
+
+(reg-sub
+  :db/search-jobs-filter-open?
+  (fn [db _]
+    (:search-jobs-filter-open? db)))
+
+(reg-sub
   :db/contracts-not-found?
   (fn [db _]
     (:contracts-not-found? db)))
@@ -116,6 +150,11 @@
   :window/xs-width?
   (fn [db]
     (= (:window/width-size db) 0)))
+
+(reg-sub
+  :window/xs-sm-width?
+  (fn [db]
+    (<= (:window/width-size db) 1)))
 
 (reg-sub
   :app/invoices

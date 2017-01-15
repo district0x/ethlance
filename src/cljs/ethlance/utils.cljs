@@ -100,10 +100,42 @@
     (.toNumber x)
     x))
 
+(defn big-num? [x]
+  (and x (aget x "toNumber")))
+
+(defn big-num-pos? [x]
+  (when x
+    (.greaterThan x 0)))
+
+(defn big-num-neg? [x]
+  (when x
+    (.isNegative x)))
+
 (defn eth->to-wei [x]
   (if (and x (aget x "toNumber"))
     (web3/to-wei x :ether)
     x))
+
+(defn replace-comma [x]
+  (string/replace x \, \.))
+
+(defn empty-string? [x]
+  (and (string? x) (empty? x)))
+
+(defn non-neg-ether-value? [x & [{:keys [:allow-empty?]}]]
+  (try
+    (when (and (not allow-empty?) (empty-string? x))
+      (throw (js/Error.)))
+    (let [value (web3/to-wei (if (string? x) (replace-comma x) x) :ether)]
+      (and
+        (or (and (string? value)
+                 (not (= "-" (first value))))
+            (and (big-num? value)
+                 (not (big-num-neg? value))))))
+    (catch :default e
+      false)))
+
+(def non-neg-or-empty-ether-value? #(non-neg-ether-value? % {:allow-empty? true}))
 
 (defn big-nums->nums [coll]
   (map big-num->num coll))
@@ -179,10 +211,6 @@
   (into {} (map (fn [[k v]]
                   {k (assoc v key-name k)}) m)))
 
-(defn big-num-pos? [x]
-  (when x
-    (.greaterThan x 0)))
-
 (defn timestamp-js->sol [x]
   (/ x 1000))
 
@@ -231,15 +259,6 @@
   ([d precision]
    (let [factor (js/Math.pow 10 precision)]
      (/ (js/Math.round (* d factor)) factor))))
-
-(defn eth [x]
-  (str (round (web3/from-wei (if x (.toNumber x) 0) :ether)) " Ξ"))
-
-(defn format-rate [rate payment-type]
-  (when rate
-    (str (eth rate)
-         (when (= 1 payment-type)
-           " / hr"))))
 
 (defn pluralize [text count]
   (str text (when (not= count 1) "s")))
@@ -327,7 +346,7 @@
 
 (defn parse-float [number]
   (if (string? number)
-    (js/parseFloat (string/replace number \, \.))
+    (js/parseFloat (replace-comma number))
     number))
 
 (defn pos-or-zero? [x]
@@ -371,5 +390,9 @@
     (>= width 768) 1
     :else 0))
 
-(defn large-window? [width-size]
-  (> width-size 2))
+(defn format-currency [value currency & [{:keys [:full-length?]}]]
+  (let [currency (keyword currency)
+        value (if (and full-length? (= currency :eth)) value (gstring/format "%.3f" value))]
+    (case currency
+      :usd (str (constants/currencies :usd) value)
+      (str value (constants/currencies currency)))))

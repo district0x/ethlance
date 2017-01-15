@@ -3,7 +3,7 @@
     [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.list-table :refer [list-table]]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -41,7 +41,7 @@
             title]
            (when show-total-paid?
              [ui/table-row-column
-              (u/eth total-paid)])
+              [currency total-paid]])
            (when show-created-on?
              [ui/table-row-column
               (u/time-ago created-on)])

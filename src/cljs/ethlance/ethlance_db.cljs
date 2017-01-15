@@ -184,6 +184,9 @@
 (def invoice-editable-fields
   #{:invoice/status :invoice/paid-on :invoice/cancelled-on})
 
+(def wei-args
+  #{:freelancer/hourly-rate :search/min-hourly-rate :search/max-hourly-rate :job/budget :search/min-budget
+    :proposal/rate :invoice/amount})
 
 (def set-user-args
   [:user/name :user/gravatar :user/country :user/languages])
@@ -202,8 +205,9 @@
   (concat set-user-args set-employer-args))
 
 (def search-freelancers-args
-  [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count :search/min-hourly-rate
-   :search/max-hourly-rate :search/country :search/language :search/offset :search/limit :search/seed])
+  [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count
+   :search/min-hourly-rate :search/max-hourly-rate :search/country
+   :search/language :search/offset :search/limit :search/seed])
 
 (def add-job-args
   [:job/title :job/description :job/skills :job/language :job/budget
@@ -328,7 +332,9 @@
   (remove #(= (schema %) uint-coll) fields))
 
 (defn replace-special-types [types]
-  (map #(if (or (= % date) (= % big-num)) uint %) types))
+  (map #(if (or (contains? #{date big-num} %))
+          uint
+          %) types))
 
 (defn create-types-map [fields types]
   (reduce
@@ -339,7 +345,7 @@
 (defn parse-value [val val-type]
   (condp = val-type
     bytes32 (web3/to-ascii val)
-    big-num val
+    big-num (web3/from-wei val :ether)
     uint (.toNumber val)
     uint8 (.toNumber val)
     val))
@@ -374,7 +380,7 @@
     bytes32 (u/remove-zero-chars (web3/to-ascii (web3/from-decimal val)))
     addr (u/prepend-address-zeros (web3/from-decimal val))
     date (u/big-num->date-time val)
-    big-num val
+    big-num (web3/from-wei val :ether)
     (.toNumber val)))
 
 (defn parse-entities [ids fields result]

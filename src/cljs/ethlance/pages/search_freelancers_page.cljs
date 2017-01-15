@@ -6,7 +6,7 @@
     [ethlance.components.checkbox-group :refer [checkbox-group]]
     [ethlance.components.country-auto-complete :refer [country-auto-complete]]
     [ethlance.components.language-select-field :refer [language-select-field]]
-    [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a]]
+    [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a currency]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
@@ -19,7 +19,8 @@
     [reagent.core :as r]))
 
 (defn filter-sidebar []
-  (let [form-data (subscribe [:form/search-freelancers])]
+  (let [form-data (subscribe [:form/search-freelancers])
+        xs-sm-width? (subscribe [:window/xs-sm-width?])]
     (fn []
       (let [{:keys [:search/category :search/skills :search/min-avg-rating
                     :search/min-freelancer-ratings-count :search/min-hourly-rate :search/max-hourly-rate
@@ -28,7 +29,7 @@
          {:load-on-mount? true
           :args @form-data
           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers @form-data]])}
-         [paper-thin
+         [misc/search-paper-thin
           [category-select-field
            {:value category
             :full-width true
@@ -42,12 +43,14 @@
            {:floating-label-text "Min. Hourly Rate (Ether)"
             :value min-hourly-rate
             :full-width true
-            :on-change #(dispatch [:form.search/set-value :search/min-hourly-rate %])}]
+            :allow-empty? true
+            :on-change #(dispatch [:form.search/set-value :search/min-hourly-rate % u/non-neg-or-empty-ether-value?])}]
           [misc/ether-field
            {:floating-label-text "Max. Hourly Rate (Ether)"
             :value max-hourly-rate
             :full-width true
-            :on-change #(dispatch [:form.search/set-value :search/max-hourly-rate %])}]
+            :allow-empty? true
+            :on-change #(dispatch [:form.search/set-value :search/max-hourly-rate % u/non-neg-or-empty-ether-value?])}]
           [misc/text-field
            {:floating-label-text "Min. Number of Feedbacks"
             :type :number
@@ -56,14 +59,24 @@
             :min 0
             :on-change #(dispatch [:form.search/set-value :search/min-freelancer-ratings-count %2])}]
           [country-auto-complete
-           {:value country
-            :full-width true
-            :on-new-request #(dispatch [:form.search/set-value :search/country %2])}]
+           (merge
+             {:value country
+              :full-width true
+              :on-new-request #(dispatch [:form.search/set-value :search/country %2])}
+             (when @xs-sm-width?
+               {:target-origin {:vertical "bottom" :horizontal "left"}
+                :max-search-results 3}))]
           [language-select-field
-           {:value language
-            :full-width true
-            :on-new-request #(dispatch [:form.search/set-value :search/language %2])}]
-          [misc/search-reset-button]]]))))
+           (merge
+             {:value language
+              :full-width true
+              :on-new-request #(dispatch [:form.search/set-value :search/language %2])}
+             (when @xs-sm-width?
+               {:target-origin {:vertical "bottom" :horizontal "left"}
+                :max-search-results 3}))]
+          [misc/search-filter-reset-button]
+          [misc/search-filter-done-button
+           {:on-touch-tap #(dispatch [:search-filter.freelancers/set-open? false])}]]]))))
 
 (defn change-page [new-offset]
   (dispatch [:form.search/set-value :search/offset new-offset])
@@ -116,12 +129,13 @@
              [star-rating
               {:value (u/rating->star avg-rating)
                :small? true}]
-             [:span [:span {:style (merge styles/dark-text
-                                          styles/freelancer-info-item)}
-                     (u/eth hourly-rate)] " per hour"]
              [:span
               {:style styles/freelancer-info-item}
-              ratings-count (u/pluralize " feedback" ratings-count)]
+              [:span {:style styles/dark-text} ratings-count]
+              (u/pluralize " feedback" ratings-count)]
+             [:span [:span {:style (merge styles/dark-text
+                                          styles/freelancer-info-item)}
+                     [currency hourly-rate]] " per hour"]
              [misc/country-marker
               {:country country
                :row-props {:style styles/freelancer-info-item}}]]
@@ -144,6 +158,9 @@
 
 (defn search-freelancers-page []
   [misc/search-layout
+   {:filter-drawer-props {:open @(subscribe [:db/search-freelancers-filter-open?])
+                          :on-request-change #(dispatch [:search-filter.freelancers/set-open? %])}
+    :filter-open-button-props {:on-touch-tap #(dispatch [:search-filter.freelancers/set-open? true])}}
    [filter-sidebar]
    [skills-input]
    [search-results]])
