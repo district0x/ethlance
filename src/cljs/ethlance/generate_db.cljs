@@ -13,28 +13,41 @@
 (defn rand-uint-coll [max-n max-int]
   (repeatedly (rand-id max-n) #(rand-id max-int)))
 
-(defn rand-text [max-chars]
-  (let [c (inc (rand-int (/ max-chars (inc (rand-int 8)))))]
-    (u/truncate (string/join " " (-> (repeatedly c #(u/rand-str (inc (rand-int 12)) {:lowercase-only? true}))
-                                   vec
-                                   (update 0 (comp string/capitalize str))))
-                max-chars "")))
+(defn rand-text* [s length]
+  (let [s (str s " " (u/rand-str (inc (rand-int 12)) {:lowercase-only? true}))]
+    (if (<= length (count s))
+      (string/capitalize (string/join "" (take length s)))
+      (rand-text* s length))))
+
+(defn rand-text
+  ([max-chars]
+    (rand-text 0 max-chars))
+  ([min-chars max-chars]
+   (rand-text* (u/rand-str (inc (rand-int 12)) {:lowercase-only? true}) (+ min-chars
+                                                                           (rand-int (inc (- max-chars min-chars)))))))
+
+(comment
+  (rand-text 9 10)
+  (gen-freelancer))
 
 (defn get-instance [key]
   (get-in @re-frame.db/app-db [:eth/contracts key :instance]))
 
+(defn cfg [config-key]
+  (get-in @re-frame.db/app-db [:eth/config config-key]))
+
 (defn gen-freelancer []
-  {:user/name (rand-text 40)
+  {:user/name (rand-text (cfg :min-user-name) (cfg :max-user-name))
    :user/gravatar "a"
    :user/country (rand-id (count constants/countries))
    :user/state (rand-id (count constants/united-states))
-   :user/languages (set (rand-uint-coll 6 (count constants/languages)))
+   :user/languages (set (rand-uint-coll (cfg :max-user-languages) (count constants/languages)))
    :freelancer/available? true
-   :freelancer/job-title (rand-text 40)
+   :freelancer/job-title (rand-text (cfg :min-freelancer-job-title) (cfg :max-freelancer-job-title))
    :freelancer/hourly-rate (rand-int 100)
-   :freelancer/categories (set (rand-uint-coll 6 (count constants/categories)))
-   :freelancer/skills (set (rand-uint-coll 9 29))
-   :freelancer/description (rand-text 300)})
+   :freelancer/categories (set (rand-uint-coll (cfg :max-freelancer-categories) (count constants/categories)))
+   :freelancer/skills (set (rand-uint-coll (cfg :max-freelancer-skills) 29))
+   :freelancer/description (rand-text (cfg :max-user-description))})
 
 (def freelancer1
   (merge (gen-freelancer)
@@ -44,9 +57,9 @@
           :freelancer/job-title "Clojure(script), Ethereum developer"}))
 
 (defn gen-job []
-  {:job/title (rand-text 90)
-   :job/description (rand-text 300)
-   :job/skills (set (rand-uint-coll 6 29))
+  {:job/title (rand-text (cfg :min-job-title) (cfg :max-job-title))
+   :job/description (rand-text (cfg :min-job-description) (cfg :max-job-description))
+   :job/skills (set (rand-uint-coll (cfg :max-job-skills) 29))
    :job/budget (rand-int 100)
    :job/language (rand-id (count constants/languages))
    :job/category (rand-id (count constants/categories))
@@ -63,32 +76,6 @@
    :user/languages [1]
    :employer/description "hahaha"})
 
-(def job1
-  {:job/title "Ionic/AngularJs Mobile App Developer"
-   :job/description "We are porting our jQueryMobile-based app to ionic, and have another ionic app, but have periodic development needs.\n\nPlease read these and respond in your application.\n\nYou MUST be available during US hours using Google Chat for video-conferencing and screen sharing.\n\nYou MUST be the person doing the work, not subcontracting it out to someone else.\n\nYou need to  use the upwork timer."
-   :job/skills [2 3 4]
-   :job/budget 10
-   :job/language 1
-   :job/category 1
-   :job/payment-type 1
-   :job/experience-level 1
-   :job/estimated-duration 1
-   :job/hours-per-week 1
-   :job/freelancers-needed 2})
-
-(def job2
-  {:job/title "Bitcoin and Blockchain content writer for 800 - 1000 word article"
-   :job/description "New Blockchain startup is looking for content writers who understand the blockchain, bitcoin and cryptocurrency space.\n\nWe are looking for a mix of Technical but made simple, but delivered in a way anyone can understand. Our audience are investors, and entrepreneurs \n\n\nPlease provide us with previous work \n\nTopics to write about\n\nBlockchain, crypto, how to,  ethereum, \n\netc..."
-   :job/skills [5 6 7]
-   :job/budget 10
-   :job/language 2
-   :job/category 3
-   :job/payment-type 2
-   :job/experience-level 2
-   :job/estimated-duration 2
-   :job/hours-per-week 2
-   :job/freelancers-needed 1})
-
 (def invitation1
   {:contract/job 1
    :contract/freelancer 1
@@ -97,26 +84,26 @@
 (defn gen-invitation [& [job-id]]
   {:contract/job (or job-id (rand-id 10))
    :contract/freelancer (rand-id 10)
-   :invitation/description (rand-text 200)})
+   :invitation/description (rand-text (cfg :max-invitation-desc))})
 
 (def proposal1
   {:contract/job 1
    :proposal/rate (rand-int 200)
-   :proposal/description (rand-text 100)})
+   :proposal/description (rand-text (cfg :max-proposal-desc))})
 
 (defn gen-proposal [& [job-id]]
   {:contract/job (or job-id (rand-id 10))
    :proposal/rate (rand-int 100)
-   :proposal/description (rand-text 200)})
+   :proposal/description (rand-text (cfg :max-proposal-desc))})
 
 (defn gen-contract [& [contract-id]]
   {:contract/id (or contract-id (rand-id 10))
-   :contract/description (rand-text 200)
+   :contract/description (rand-text (cfg :max-contract-desc))
    :contract/hiring-done? false})
 
 (defn gen-invoice [& [contract-id]]
   {:invoice/contract (or contract-id (rand-id 10))
-   :invoice/description (rand-text 100)
+   :invoice/description (rand-text (cfg :max-invoice-description))
    :invoice/amount (rand-int 10)
    :invoice/worked-hours (rand-int 200)
    :invoice/worked-from 1480407621
@@ -124,7 +111,7 @@
 
 (def feedback1
   {:contract/id 1
-   :contract/feedback (rand-text 200)
+   :contract/feedback (rand-text (cfg :min-feedback) (cfg :max-feedback))
    :contract/feedback-rating (rand-int 100)})
 
 (def feedback2
@@ -135,18 +122,18 @@
 (defn get-address [n]
   (nth (:my-addresses @re-frame.db/app-db) n))
 
-(def skills1
-  {:skill/names (set (repeatedly 30 #(rand-text 20)))})
+(defn gen-skills []
+  {:skill/names (set (repeatedly 30 #_ (cfg :max-skills-create-at-once) #(rand-text 20)))})
 
 (reg-event-fx
   :generate-db
   [trim-v]
   (fn [{:keys [db]}]
-    #_{:dispatch [:contract.config/add-skills skills1 (get-address 0)]}
+    #_{:dispatch [:contract.config/add-skills gen-skills (get-address 0)]}
     {:dispatch-n [[:contract.user/register-freelancer freelancer1 (get-address 0)]]
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
-                       [{:ms 10 :dispatch [:contract.config/add-skills skills1 (get-address 0)]}]
+                       [{:ms 10 :dispatch [:contract.config/add-skills (gen-skills) (get-address 0)]}]
                        (map #(hash-map :ms 25 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
                        [{:ms 20 :dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)]}
                         {:ms 30 :dispatch [:contract.contract/add-job-proposal proposal1 (get-address 0)]}

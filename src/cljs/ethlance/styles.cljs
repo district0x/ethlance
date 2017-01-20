@@ -443,7 +443,8 @@
    })
 
 (def table-row-column-thin
-  {:padding-left 3 :padding-right 3})
+  {:padding-left 3
+   :padding-right 3})
 
 (def detail-action-button
   {:margin-top 2

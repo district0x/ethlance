@@ -231,4 +231,4 @@
        (when (:user/freelancer? @user)
          [:div
           [freelancer-contracts @user]
-          [freelancer-feedback @user]])])))
+          #_ [freelancer-feedback @user]])])))

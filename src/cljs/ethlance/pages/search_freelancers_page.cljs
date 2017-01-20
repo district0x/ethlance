@@ -96,7 +96,8 @@
     (fn []
       (let [{:keys [loading? items]} @list
             {:keys [:search/offset :search/limit]} @form-data
-            xs? @xs-width?]
+            xs? @xs-width?
+            selected-skills @selected-skills]
         [misc/search-results
          {:items-count (count items)
           :loading? loading?
@@ -128,7 +129,7 @@
                       :route-params {:user/id id}}
                    name]]
              [:div {:style (merge styles/fade-text
-                                  (when @xs-width? {:margin-top 5}))} job-title]]
+                                  (when xs? {:margin-top 5}))} job-title]]
             [row-plain
              {:middle "xs" :center "xs" :start "sm"
               :style styles/freelancer-search-result-info-row}
@@ -149,9 +150,9 @@
             [skills-chips
              {:selected-skills skills
               :on-touch-tap (fn [skill-id]
-                              (when-not (contains? (set @selected-skills) skill-id)
+                              (when-not (contains? (set selected-skills) skill-id)
                                 (dispatch [:form.search/set-value :search/skills
-                                           (conj (into [] @selected-skills) skill-id)])))}]
+                                           (conj (into [] selected-skills) skill-id)])))}]
             [misc/hr-small]])]))))
 
 (defn skills-input []

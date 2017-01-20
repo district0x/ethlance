@@ -19,6 +19,7 @@
     [ethlance.styles :as styles]
     [goog.crypt :as crypt]
     [goog.crypt.Md5 :as Md5]
+    [goog.format.EmailAddress :as email-address]
     [goog.string :as gstring]
     [goog.string.format]
     [medley.core :as medley]
@@ -295,9 +296,9 @@
                  [component (r/merge-props default-props props)]
                  children)))))
 
-(defn gravatar-url [hash user-id]
+(defn gravatar-url [hash & [user-id]]
   (let [valid? (= (count hash) 32)]
-    (gstring/format "http://s.gravatar.com/avatar/%s?s=150&d=retro%s"
+    (gstring/format "http://s.gravatar.com/avatar/%s?s=300&d=retro%s"
                     (if valid? hash user-id)
                     (if valid? "" "&f=y"))))
 
@@ -406,3 +407,10 @@
 
 (defn united-states? [country-id]
   (= 232 country-id))
+
+(defn empty-or-valid-email? [s]
+  (or (empty? s)
+      (email-address/isValidAddress s)))
+
+(defn split-include-empty [s re]
+  (butlast (string/split (str s " ") re)))

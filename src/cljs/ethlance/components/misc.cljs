@@ -137,7 +137,7 @@
    (into [] (concat [col {:xs 12 :md 10 :lg 9 :style styles/text-left}]
                     children))])
 
-(def text-field-patched
+(def text-field-base
   (tmpl/adapt-react-class (aget js/MaterialUI "TextField")
                           ;; Optional...
                           {:synthetic-input
@@ -193,7 +193,7 @@
                         #(<= min-length (count %1) max-length)
                         (constantly true))
             valid? (validator value)]
-        [text-field-patched
+        [text-field-base
          (r/merge-props
            {:style styles/display-block
             :on-change #(dispatch [:form/set-value form-key field-key %2 validator])
@@ -204,7 +204,7 @@
            (dissoc props :form-key :field-key :max-length-key :form-key :field-key :min-length-key))]))))
 
 (defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change :allow-empty?] :as props}]
-  [text-field-patched
+  [text-field-base
    (r/merge-props
      {:style styles/display-block
       :on-change (fn [e value]
@@ -216,20 +216,12 @@
                                 value
                                 #(u/non-neg-ether-value? % (select-keys props [:allow-empty?]))])))
       :error-text (when-not (u/non-neg-ether-value? value (select-keys props [:allow-empty?]))
-                    "This is invalid Ether value")}
+                    "Invalid Ether value")}
      (dissoc props :form-key :field-key :on-change :allow-empty?))])
 
 (def textarea (u/create-with-default-props text-field {:rows 4
                                                        :full-width true
                                                        :multi-line true}))
-
-#_(defn textarea [props]
-    [text-field
-     (r/merge-props
-       {:rows 4
-        :full-width true
-        :multi-line true}
-       props)])
 
 (defn send-button [props]
   [row-plain

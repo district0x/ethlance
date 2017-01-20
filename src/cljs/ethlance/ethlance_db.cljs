@@ -406,8 +406,8 @@
                             (if (seq ids)
                               (assoc-in acc [(nth ids entity-index) field-name] string-value)
                               acc)))
-                        acc (medley/indexed (string/split entity-strings str-delimiter))))
-              parsed-result (medley/indexed (string/split (second result) list-delimiter))))))
+                        acc (medley/indexed (u/split-include-empty entity-strings str-delimiter))))
+              parsed-result (medley/indexed (u/split-include-empty (second result) list-delimiter))))))
 
 (defn parse-entities-field-items [ids+sub-ids field result]
   (reduce (fn [acc [i result-item]]

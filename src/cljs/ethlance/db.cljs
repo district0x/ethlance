@@ -5,6 +5,7 @@
             [cljs-time.core :as t]
             [ethlance.constants :as constants]))
 
+
 (def default-db
   {:web3 (web3/create-web3 "http://192.168.0.16:8545/")
    :active-page (u/match-current-location)
@@ -22,21 +23,21 @@
    :eth/config {:max-user-languages 10
                 :min-user-languages 1
                 :max-freelancer-categories (dec (count constants/categories))
-                :min-freelancer-categories 0
+                :min-freelancer-categories 1
                 :max-freelancer-skills 10
-                :min-freelancer-skills 0
+                :min-freelancer-skills 1
                 :max-job-skills 7
                 :min-job-skills 1
                 :max-user-description 1000
                 :max-job-description 1000
-                :min-job-description 0 #_100
+                :min-job-description 100
                 :max-invoice-description 500
                 :max-feedback 1000
-                :min-feedback 0 #_50
+                :min-feedback 50
                 :max-job-title 100
-                :min-job-title 0 #_10
+                :min-job-title 10
                 :max-user-name 40
-                :min-user-name 0 #_5
+                :min-user-name 5
                 :max-freelancer-job-title 50
                 :min-freelancer-job-title 4
                 :max-contract-desc 500
@@ -44,14 +45,14 @@
                 :max-invitation-desc 500
                 :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_ #_ :address "0x5743af1089c230e35c2ae14223dc372a32c0c60e"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true #_ #_ :address "0xc383897837e24bcaf2645da740e217fe3ee33ec5"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true #_ #_ :address "0x1bbe454a6620773d4e7652b648baf68830a4b521"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_ #_ :address "0xeded68900fd4aad8fbe20ee8b343200f9f709eb8"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true #_ #_ :address "0x6864552b95434d806262b32b276178264ced0fa5"}
-                   :ethlance-db {:name "EthlanceDB" #_ #_ :address "0xc56e67106a5824862fe138c04ccdfb49fa1d024c"}
-                   :ethlance-views {:name "EthlanceViews" #_ #_ :address "0x6688b03fd1fba2be67c92a38c4e89675c7f9b575"}
-                   :ethlance-search {:name "EthlanceSearch" #_ #_ :address "0x02452b3a90192d9928cd1d2061e52a7c3606677d"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_#_:address "0x5743af1089c230e35c2ae14223dc372a32c0c60e"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true #_#_:address "0xc383897837e24bcaf2645da740e217fe3ee33ec5"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true #_#_:address "0x1bbe454a6620773d4e7652b648baf68830a4b521"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_#_:address "0xeded68900fd4aad8fbe20ee8b343200f9f709eb8"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true #_#_:address "0x6864552b95434d806262b32b276178264ced0fa5"}
+                   :ethlance-db {:name "EthlanceDB" #_#_:address "0xc56e67106a5824862fe138c04ccdfb49fa1d024c"}
+                   :ethlance-views {:name "EthlanceViews" #_#_:address "0x6688b03fd1fba2be67c92a38c4e89675c7f9b575"}
+                   :ethlance-search {:name "EthlanceSearch" #_#_:address "0x02452b3a90192d9928cd1d2061e52a7c3606677d"}}
    :my-addresses []
    :active-address nil
    :my-users-loaded? false
@@ -166,30 +167,30 @@
                                    :gas-limit 2000000
                                    :open? true
                                    :data {:user/name ""
+                                          :user/email ""
                                           :user/gravatar ""
                                           :user/country 0
                                           :user/languages [40]
                                           :freelancer/available? true
                                           :freelancer/job-title ""
-                                          :freelancer/hourly-rate (web3/to-wei 1 :ether)
+                                          :freelancer/hourly-rate 1
                                           :freelancer/categories []
                                           :freelancer/skills []
                                           :freelancer/description ""}
-                                   :errors #{} #_#{:user/name #_:user/gravatar :user/country
-                                                   :freelancer/job-title :freelancer/categories :freelancer/skills
-                                                   :freelancer/description}}
+                                   :errors #{:user/name :user/country :freelancer/job-title
+                                             :freelancer/categories :freelancer/skills
+                                             :freelancer/description}}
 
    :form.user/register-employer {:loading? false
                                  :gas-limit 2000000
                                  :open? true
                                  :data {:user/name ""
+                                        :user/email ""
                                         :user/gravatar ""
                                         :user/country 0
                                         :user/languages [40]
                                         :employer/description ""}
-                                 :errors #{} #_#{:user/name #_:user/gravatar :user/country
-                                                 :employer/description}}
-
+                                 :errors #{:user/name :user/country :employer/description}}
 
 
    :form/search-jobs {:search/category 0

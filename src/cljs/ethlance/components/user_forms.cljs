@@ -4,16 +4,18 @@
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.chip-input :refer [chip-input]]
     [ethlance.components.country-select-field :refer [country-select-field]]
+    [ethlance.components.validated-chip-input :refer [validated-chip-input]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.radio-group :refer [radio-group]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
+    [ethlance.components.state-select-field :refer [state-select-field]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
-    ))
+    [reagent.core :as r]))
 
 (defn not-open-content [{:keys [:button-label :text :form-key]}]
   [row
@@ -26,7 +28,7 @@
      :on-touch-tap #(dispatch [:form/set-open? form-key true])}]])
 
 (defn user-form [{:keys [:user :form-key :show-save-button? :errors :loading?] :as props}]
-  (let [{:keys [:user/name :user/gravatar :user/languages :user/country]} user]
+  (let [{:keys [:user/name :user/gravatar :user/languages :user/country :user/state :user/email]} user]
     [:div
      (dissoc props :user :form-key :show-save-button? :errors :loading? :open?)
      [:div
@@ -37,20 +39,42 @@
         :max-length-key :max-user-name
         :min-length-key :min-user-name
         :value name}]]
+     [row-plain
+      {:bottom "xs"}
+      [misc/text-field-base
+       {:floating-label-text "Your Gravatar Email"
+        :hint-text "Email is not stored in blockchain"
+        :value email
+        :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
+        :error-text (when-not (u/empty-or-valid-email? email)
+                      "Invalid email address")}]
+      [ui/icon-button
+       {:tooltip "Gravatar is an avatar calculated from your email address. Click for more"
+        :href "http://gravatar.com/"
+        :target :_blank
+        }
+       (icons/action-help-outline {:color styles/fade-color})]]
      [:div
-      [misc/text-field
-       {:floating-label-text "Gravatar"
-        :form-key form-key
-        :field-key :user/gravatar
-        :value gravatar}]]
-     [country-select-field
-      {:value country
-       :on-change #(dispatch [:form/set-value form-key :user/country %3 pos?])}]
-     [chip-input
-      {:value languages
-       :all-items constants/languages
-       :floating-label-text "Languages"
-       :on-change #(dispatch [:form/set-value form-key :user/languages %1 seq])}]
+      {:style styles/margin-top-gutter}
+      [ui/avatar
+       {:size 100
+        :src (u/gravatar-url gravatar)}]]
+     [:div
+      [country-select-field
+       {:value country
+        :on-change #(dispatch [:form/set-value form-key :user/country %3 pos?])}]]
+     (when (u/united-states? country)
+       [state-select-field
+        {:value state
+         :on-change #(dispatch [:form/set-value form-key :user/country %3])}])
+     [validated-chip-input
+      {:all-items constants/languages
+       :value languages
+       :floating-label-text "Languages you speak"
+       :form-key form-key
+       :field-key :user/languages
+       :min-length-key :min-user-languages
+       :max-length-key :max-user-languages}]
      (when show-save-button?
        [misc/send-button
         {:label "Save User"
@@ -93,19 +117,28 @@
          :min-length-key :min-freelancer-job-title
          :value job-title}]
        [misc/ether-field
-        {:floating-label-text "Hourly rate"
+        {:floating-label-text "Hourly rate (Ether)"
          :form-key form-key
          :field-key :freelancer/hourly-rate
          :value hourly-rate}]
-       [chip-input
-        {:value categories
-         :all-items (rest (vals constants/categories))
-         :floating-label-text "Categories"
-         :on-change #(dispatch [:form/set-value form-key :freelancer/categories %1 seq])}]
+       [validated-chip-input
+        {:all-items (rest (vals constants/categories))
+         :value categories
+         :floating-label-text "Categories you are interested in"
+         :open-on-focus true
+         :max-search-results (count constants/categories)
+         :form-key form-key
+         :field-key :freelancer/categories
+         :min-length-key :min-freelancer-categories
+         :max-length-key :max-freelancer-categories}]
        [skills-chip-input
         {:value skills
          :hint-text "Type skills you have"
-         :on-change #(dispatch [:form/set-value form-key :freelancer/skills %1 seq])}]
+         :validated? true
+         :form-key form-key
+         :field-key :freelancer/skills
+         :min-length-key :min-freelancer-skills
+         :max-length-key :max-freelancer-skills}]
        [misc/textarea
         {:floating-label-text "Overview"
          :hint-text "Describe youself as freelancer"

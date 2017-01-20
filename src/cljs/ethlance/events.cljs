@@ -23,7 +23,8 @@
     [medley.core :as medley]
     [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console
                                         dispatch dispatch-sync]]
-    [ethlance.constants :as constants]))
+    [ethlance.constants :as constants]
+    [clojure.string :as string]))
 
 #_(if goog.DEBUG
     (require '[ethlance.generate-db]))
@@ -473,13 +474,18 @@
       {:db (update-in db [:list/my-users :items] (comp #(assoc % i user-id) vec))
        :location/set-hash [route {:user/id user-id}]})))
 
+(defn clear-invalid-state [form-data]
+  (cond-> form-data
+    (not (u/united-states? (:user/country form-data)))
+    (assoc :user/state 0)))
+
 (reg-event-fx
   :contract.user/register-freelancer
   interceptors
   (fn [{:keys [db]} [form-data address]]
     (let [address (or address (:active-address db))]
       {:dispatch [:form/submit
-                  {:form-data form-data
+                  {:form-data (clear-invalid-state form-data)
                    :address address
                    :fn-key :ethlance-user/register-freelancer
                    :form-key :form.user/register-freelancer
@@ -493,7 +499,7 @@
   (fn [{:keys [db]} [form-data address]]
     (let [address (or address (:active-address db))]
       {:dispatch [:form/submit
-                  {:form-data form-data
+                  {:form-data (clear-invalid-state form-data)
                    :address address
                    :fn-key :ethlance-user/register-employer
                    :form-key :form.user/register-employer
@@ -506,7 +512,7 @@
   interceptors
   (fn [{:keys [db]} [form-data address]]
     {:dispatch [:form/submit
-                {:form-data form-data
+                {:form-data (clear-invalid-state form-data)
                  :address address
                  :fn-key :ethlance-user/set-user
                  :form-key :form.user/set-user
@@ -1136,6 +1142,16 @@
         {:dispatch-n (map #(conj % form-data) receipt-dispatch-n)})
       (when-not success?
         {:dispatch [:snackbar/show-error]}))))
+
+(reg-event-fx
+  :form.user/set-email
+  interceptors
+  (fn [{:keys [db]} [form-key value]]
+    {:dispatch-n (remove nil?
+                         [[:form/set-value form-key :user/email value u/empty-or-valid-email?]
+                          (when (u/empty-or-valid-email? value)
+                            [:form/set-value form-key :user/gravatar (when (seq value)
+                                                                       (u/md5 (string/trim value)))])])}))
 
 (reg-event-db
   :form/set-value
