@@ -140,7 +140,8 @@
                 :form-key :form.contract/add-proposal
                 :field-key :proposal/description
                 :max-length-key :max-proposal-desc
-                :value description}]
+                :value description
+                :hint-text misc/privacy-warning-hint}]
               [misc/send-button
                {:disabled (or loading? (boolean (seq errors)))
                 :on-touch-tap #(dispatch [:contract.contract/add-job-proposal

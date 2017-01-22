@@ -1,7 +1,7 @@
 (ns ethlance.styles
   (:require [cljs-react-material-ui.core :refer [color get-mui-theme]]))
 
-(def primary1-color (color #_ :teal500 #_ :blue600 #_ :light-blue600 :indigo500))
+(def primary1-color (color #_:teal500 #_:blue600 #_:light-blue600 :indigo500))
 
 (def palette {:primary1-color primary1-color})
 
@@ -367,7 +367,7 @@
    ;:height "80%"
    ;:background-image "url(./../images/landing-hero.jpg)"
    ;:background-image "url(./../images/bg1.jpg)"
-   :background-color primary1-color #_ (color :indigo500)
+   :background-color primary1-color #_(color :indigo500)
    ;:background-repeat "no-repeat"
    ;:background-position "center"
    ;:background-size "cover"
@@ -400,7 +400,7 @@
   {:max-height "90px"})
 
 (def diagram-arrow-icon
-  {:max-height "100px"})
+  {:max-height "80px"})
 
 (def footer-subheader
   {:color "#a3a3a3"
@@ -415,11 +415,11 @@
 
 (def landing-title
   (merge landing-title-base
-    {:font-size 55}))
+         {:font-size 55}))
 
 (def landing-subtitle
   (merge landing-title-base
-    {:font-size 25}))
+         {:font-size 25}))
 
 (def landing-app-bar
   {:position :fixed
@@ -436,6 +436,24 @@
 (def landing-feature-seaction
   {:width "100%"
    :height "725px"})
+
+(def feature-no-cut
+  (merge landing-feature-seaction
+         {:background-color "#bbdefb"
+          :padding-top 50}))
+
+(def feature-blockchain
+  (merge landing-feature-seaction
+         {:padding-bottom "50px"
+          :background-color "#FFF"}))
+
+(def feature-no-restrictions
+  (merge landing-feature-seaction
+         {:background-color "#ff8a80"}))
+
+(def process-diagram
+  {:background-color "#FFF"
+   :padding "36px 0"})
 
 (def landing-feature-image
   {:width "100%"
@@ -464,3 +482,6 @@
          full-width
          {:margin-top 5
           :margin-bottom 5}))
+
+(def user-forms-text-field
+  {:width 300})

@@ -11,7 +11,8 @@
     [a
      {:route-params {:user/id id}
       :route (if employer? :employer/detail :freelancer/detail)
-      :style styles/fade-text}
+      :style {:color :inherit}
+      }
      [row
       {:center "xs"}
       [col {:xs 12}

@@ -160,30 +160,24 @@
    :skill/freelancers uint-coll})
 
 (def user-editable-fields
-  (set/difference (set (keys (merge account-schema user-balance-schema))) #{:user/address :user/created-on}))
+  (set/difference (set (keys (merge account-schema user-balance-schema)))
+                  #{:user/address :user/created-on}))
 
 (def job-editable-fields
   #{:job/status
     :job/contracts-count
     :job/contracts
-    :job/total-paid
-    :job/hiring-done-on})
+    :job/total-paid})
 
 (def contract-editable-fields
   #{:contract/status
     :contract/invoices-count
     :contract/invoices
     :contract/total-invoiced
-    :contract/total-paid
-    :contract/done-on
-    :proposal/created-on
-    :invitation/created-on
-    :contract/created-on
-    :contract/freelancer-feedback-on
-    :contract/employer-feedback-on})
+    :contract/total-paid})
 
 (def invoice-editable-fields
-  #{:invoice/status :invoice/paid-on :invoice/cancelled-on})
+  #{:invoice/status})
 
 (def wei-args
   #{:freelancer/hourly-rate :search/min-hourly-rate :search/max-hourly-rate :job/budget :search/min-budget
@@ -388,6 +382,12 @@
     big-num (web3/from-wei val :ether)
     (.toNumber val)))
 
+(defn string-blob->strings [string-blob delimiter]
+  (->> (u/split-include-empty string-blob str-delimiter)
+    (map (fn [s]
+           (when (seq s)
+             (subs s 1))))))
+
 (defn parse-entities [ids fields result]
   (let [ids (vec ids)
         uint-fields (remove #(= string (schema %)) fields)
@@ -406,7 +406,7 @@
                             (if (seq ids)
                               (assoc-in acc [(nth ids entity-index) field-name] string-value)
                               acc)))
-                        acc (medley/indexed (u/split-include-empty entity-strings str-delimiter))))
+                        acc (medley/indexed (string-blob->strings entity-strings str-delimiter))))
               parsed-result (medley/indexed (u/split-include-empty (second result) list-delimiter))))))
 
 (defn parse-entities-field-items [ids+sub-ids field result]

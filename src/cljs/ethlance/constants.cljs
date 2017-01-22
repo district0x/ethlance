@@ -363,7 +363,7 @@
    "Sweden"
    "Switzerland"
    "Syrian Arab Republic"
-   "Taiwan, Province of China"
+   "Taiwan"
    "Tajikistan"
    "Tanzania, United Republic of"
    "Thailand"

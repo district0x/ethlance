@@ -111,7 +111,7 @@ contract EthlanceDB is Ownable {
     function setStringValue(bytes32 record, string value)
     onlyAllowedContractOrOwner
     {
-        StringStorage[record] = value;
+        StringStorage[record] = "^".toSlice().concat(value.toSlice());
     }
 
     function deleteStringValue(bytes32 record)

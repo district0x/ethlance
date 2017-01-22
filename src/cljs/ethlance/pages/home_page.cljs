@@ -51,7 +51,6 @@
       [landing-button
        {:label "Find Freelancers"
         :href (u/path-for :search/freelancers)}]]]
-
     [col
      {:xs 12
       :class "sm-visible"}
@@ -95,9 +94,7 @@
 (defn feature-no-cut []
   [row-plain
    {:middle "xs" :center "xs"
-    :style (merge styles/landing-feature-seaction
-                  {:background-color "#bbdefb"
-                   :padding-top 50})}
+    :style styles/feature-no-cut}
    [col
     {:xs 10 :sm 7 :md 5 :lg 4
      :style styles/text-left}
@@ -112,8 +109,7 @@
 (defn feature-blockchain []
   [row-plain
    {:middle "xs" :center "xs"
-    :style (merge styles/landing-feature-seaction
-                  {:padding-bottom "50px"})}
+    :style styles/feature-blockchain}
    [col
     {:xs 5 :sm 3 :md 3 :lg 2}
     [:img
@@ -128,8 +124,7 @@
 (defn feature-no-restrictions []
   [row-plain
    {:middle "xs" :center "xs"
-    :style (merge styles/landing-feature-seaction
-                  {:background-color "#ff8a80"})}
+    :style styles/feature-no-restrictions}
    [col
     {:xs 8 :sm 8 :md 4
      :style styles/text-left}
@@ -160,8 +155,7 @@
 (defn process-diagram []
   [row-plain
    {:center "xs"
-    :style {:background-color "#FFF"
-            :padding "36px 0"}}
+    :style styles/process-diagram}
    [col {:xs 12}
     [:h1.black {:style styles/text-center} "How it works?"]]
    [col {:xs 12}

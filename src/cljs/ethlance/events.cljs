@@ -97,7 +97,7 @@
   (reduce (fn [acc id]
             (let [item (get items id)
                   needed-fields (set/difference (set required-fields)
-                                                (set/difference (set (keys item))
+                                                (set/difference (set (keys (medley/remove-vals nil? item)))
                                                                 (set editable-fields)))]
               (cond-> acc
                 (seq needed-fields) (update :ids conj id)
@@ -584,7 +584,7 @@
     {:dispatch [:list/load-ids {:list-key :list/search-jobs
                                 :fn-key :ethlance-search/search-jobs
                                 :load-dispatch-key :contract.db/load-jobs
-                                :schema ethlance-db/job-schema
+                                :schema (dissoc ethlance-db/job-schema :job/description)
                                 :args args
                                 :keep-items? true}]}))
 

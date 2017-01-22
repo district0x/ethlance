@@ -33,8 +33,8 @@
     (fn []
       (let [{:keys [:user/id :user/freelancer? :user/employer?]} @active-user
             loading? (or (empty? (:user/name @active-user))
-                         (and freelancer? (nil? (:freelancer/description @active-user)))
-                         (and employer? (nil? (:employer/description @active-user)))
+                         (and freelancer? (not (:freelancer/description @active-user)))
+                         (and employer? (not (:employer/description @active-user)))
                          (:loading? @set-user-form)
                          (:loading? @set-freelancer-form)
                          (:loading? @set-employer-form))]
@@ -78,6 +78,7 @@
                   :open? open?
                   :form-key :form.user/set-freelancer
                   :show-save-button? true
+                  :show-add-more-skills? true
                   :errors errors
                   :loading? loading?}])
               [:h2

@@ -36,6 +36,7 @@
             :value (when (pos? contract) contract)
             :auto-width true
             :style styles/overflow-ellipsis
+            :disabled (empty? contracts)
             :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/contract %3])}
            (for [{:keys [:contract/id :contract/job]} contracts]
              [ui/menu-item
@@ -45,16 +46,16 @@
          [:div
           [misc/ether-field
            {:floating-label-text "Amount (Ether)"
-            :default-value amount
+            :value amount
             :form-key :form.invoice/add-invoice
             :field-key :invoice/amount}]]
          [:div
           [ui/text-field
            {:floating-label-text "Hours Worked"
-            :default-value worked-hours
+            :value worked-hours
             :type :number
             :min 0
-            :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-hours (js/parseInt %2)])}]]
+            :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-hours (js/parseInt %2) pos?])}]]
          [:div
           [ui/date-picker
            {:default-date (js/Date. (u/timestamp-sol->js worked-from))
@@ -74,7 +75,8 @@
            :form-key :form.invoice/add-invoice
            :field-key :invoice/description
            :max-length-key :max-invoice-description
-           :default-value description}]
+           :value description
+           :hint-text misc/privacy-warning-hint}]
          [misc/send-button
           {:disabled (or loading? (boolean (seq errors)))
            :on-touch-tap #(dispatch [:contract.invoice/add-invoice data])}]]))))

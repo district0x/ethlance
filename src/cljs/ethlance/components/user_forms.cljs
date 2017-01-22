@@ -27,60 +27,64 @@
      :primary true
      :on-touch-tap #(dispatch [:form/set-open? form-key true])}]])
 
-(defn user-form [{:keys [:user :form-key :show-save-button? :errors :loading?] :as props}]
-  (let [{:keys [:user/name :user/gravatar :user/languages :user/country :user/state :user/email]} user]
-    [:div
-     (dissoc props :user :form-key :show-save-button? :errors :loading? :open?)
-     [:div
-      [misc/text-field
-       {:floating-label-text "Your Name"
-        :form-key form-key
-        :field-key :user/name
-        :max-length-key :max-user-name
-        :min-length-key :min-user-name
-        :value name}]]
-     [row-plain
-      {:bottom "xs"}
-      [misc/text-field-base
-       {:floating-label-text "Your Gravatar Email"
-        :hint-text "Email is not stored in blockchain"
-        :value email
-        :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
-        :error-text (when-not (u/empty-or-valid-email? email)
-                      "Invalid email address")}]
-      [ui/icon-button
-       {:tooltip "Gravatar is an avatar calculated from your email address. Click for more"
-        :href "http://gravatar.com/"
-        :target :_blank
-        }
-       (icons/action-help-outline {:color styles/fade-color})]]
-     [:div
-      {:style styles/margin-top-gutter}
-      [ui/avatar
-       {:size 100
-        :src (u/gravatar-url gravatar)}]]
-     [:div
-      [country-select-field
-       {:value country
-        :on-change #(dispatch [:form/set-value form-key :user/country %3 pos?])}]]
-     (when (u/united-states? country)
-       [state-select-field
-        {:value state
-         :on-change #(dispatch [:form/set-value form-key :user/country %3])}])
-     [validated-chip-input
-      {:all-items constants/languages
-       :value languages
-       :floating-label-text "Languages you speak"
-       :form-key form-key
-       :field-key :user/languages
-       :min-length-key :min-user-languages
-       :max-length-key :max-user-languages}]
-     (when show-save-button?
-       [misc/send-button
-        {:label "Save User"
-         :icon (icons/content-save)
-         :disabled (or loading? (boolean (seq errors)))
-         :on-touch-tap #(dispatch [:contract.user/set-user user])}])]))
+(defn user-form []
+  (let [xs-width? (subscribe [:window/xs-width?])]
+    (fn [{:keys [:user :form-key :show-save-button? :errors :loading?] :as props}]
+      (let [{:keys [:user/name :user/gravatar :user/languages :user/country :user/state :user/email]} user]
+        [:div
+         (dissoc props :user :form-key :show-save-button? :errors :loading? :open?)
+         [:div
+          [misc/text-field
+           {:floating-label-text "Your Name"
+            :form-key form-key
+            :field-key :user/name
+            :max-length-key :max-user-name
+            :min-length-key :min-user-name
+            :value name
+            }]]
+         [row-plain
+          {:bottom "xs"}
+          [misc/text-field-base
+           {:floating-label-text "Your Gravatar Email"
+            :hint-text "Email is not stored in blockchain"
+            :value email
+            :style (if @xs-width? {:width 220} {})
+            :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
+            :error-text (when-not (u/empty-or-valid-email? email)
+                          "Invalid email address")}]
+          [ui/icon-button
+           {:tooltip "Gravatar is an avatar calculated from your email address. Click for more"
+            :href "http://gravatar.com/"
+            :target :_blank
+            }
+           (icons/action-help-outline {:color styles/fade-color})]]
+         [row-plain
+          {:style styles/margin-top-gutter}
+          [ui/avatar
+           {:size 100
+            :src (u/gravatar-url gravatar)}]]
+         [:div
+          [country-select-field
+           {:value country
+            :on-change #(dispatch [:form/set-value form-key :user/country %3 pos?])}]]
+         (when (u/united-states? country)
+           [state-select-field
+            {:value state
+             :on-change #(dispatch [:form/set-value form-key :user/country %3])}])
+         [validated-chip-input
+          {:all-items constants/languages
+           :value languages
+           :floating-label-text "Languages you speak"
+           :form-key form-key
+           :field-key :user/languages
+           :min-length-key :min-user-languages
+           :max-length-key :max-user-languages}]
+         (when show-save-button?
+           [misc/send-button
+            {:label "Save User"
+             :icon (icons/content-save)
+             :disabled (or loading? (boolean (seq errors)))
+             :on-touch-tap #(dispatch [:contract.user/set-user user])}])]))))
 
 (defn employer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading?]}]
   (let [{:keys [:employer/description]} user]
@@ -104,7 +108,7 @@
         :text "You are not yet registered as an employer"
         :button-label "Become Employer"}])))
 
-(defn freelancer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading?]}]
+(defn freelancer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading? :show-add-more-skills?]}]
   (let [{:keys [:freelancer/description :freelancer/job-title :freelancer/hourly-rate :freelancer/categories
                 :freelancer/skills :freelancer/available?]} user]
     (if open?
@@ -115,6 +119,7 @@
          :field-key :freelancer/job-title
          :max-length-key :max-freelancer-job-title
          :min-length-key :min-freelancer-job-title
+         :full-width true
          :value job-title}]
        [misc/ether-field
         {:floating-label-text "Hourly rate (Ether)"
@@ -139,6 +144,9 @@
          :field-key :freelancer/skills
          :min-length-key :min-freelancer-skills
          :max-length-key :max-freelancer-skills}]
+       (when show-add-more-skills?
+         [row-plain {:end "xs"}
+          [misc/add-more-skills-button]])
        [misc/textarea
         {:floating-label-text "Overview"
          :hint-text "Describe youself as freelancer"

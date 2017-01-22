@@ -174,12 +174,11 @@
              [:span " - " (constants/experience-levels experience-level)]
              [:span " - Est. Time: " (constants/estimated-durations estimated-duration)]
              [:span " - " (constants/hours-per-weeks hours-per-week)]
-             [:span " - Budget: " [:span
-                                   {:style styles/dark-text}
-                                   [misc/currency budget]]]
-             #_(when (.greaterThan budget 0)
-                 [:span " - Budget: " (.toNumber budget) " ETH"])]
-            [:div {:style styles/job-list-description}
+             (when (u/big-num-pos? budget)
+               [:span " - Budget: " [:span
+                                     {:style styles/dark-text}
+                                     [misc/currency budget]]])]
+            #_ [:div {:style styles/job-list-description}
              [truncated-text
               {:lines 2}
               description]]

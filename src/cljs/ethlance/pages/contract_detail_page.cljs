@@ -139,7 +139,8 @@
              :form-key :form.contract/add-contract
              :field-key :contract/description
              :max-length-key :max-contract-desc
-             :default-value description}]
+             :value description
+             :hint-text misc/privacy-warning-hint}]
            [ui/checkbox
             {:label "Close hiring for this job"
              :default-checked hiring-done?
@@ -178,7 +179,8 @@
              :form-key :form.contract/add-feedback
              :field-key :contract/feedback
              :max-length-key :max-feedback
-             :default-value feedback}]
+             :min-length-key :min-feedback
+             :value feedback}]
            (when (= status 3)
              [:div {:style styles/form-item}
               "Note, by leaving feedback you will end this contract. That means no more invoices can be sent."])

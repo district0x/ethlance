@@ -33,7 +33,7 @@
             :field-key :job/title
             :max-length-key :max-job-title
             :min-length-key :min-job-title
-            :default-value title}]
+            :value title}]
           [:div
            [category-select-field
             {:value (when (pos? category) category)
@@ -49,7 +49,7 @@
            {:floating-label-text "Number of needed freelancers"
             :type :number
             :min 1
-            :default-value freelancers-needed
+            :value freelancers-needed
             :on-change #(dispatch [:form/set-value :form.job/add-job :job/freelancers-needed %2 pos?])}]
           [:div
            [misc/subheader "Payment Type"]
@@ -96,19 +96,15 @@
                :on-change #(dispatch [:form/set-value :form.job/add-job :job/skills %1 validator])
                :error-text (when-not (validator skills)
                              (gstring/format "Choose from %s to %s skills" min-job-skills max-job-skills))}]
-             [row {:end "xs"}
-              [ui/raised-button
-               {:label "Add more skills"
-                :primary true
-                :href (u/path-for :skills/create)
-                :icon (icons/content-add)}]]])
+             [row-plain {:end "xs"}
+              [misc/add-more-skills-button]]])
           [misc/textarea
            {:floating-label-text "Job description"
             :form-key :form.job/add-job
             :field-key :job/description
             :max-length-key :max-job-description
             :min-length-key :min-job-description
-            :default-value description}]
+            :value description}]
           [misc/send-button
            {:disabled (or loading? (boolean (seq errors)))
             :on-touch-tap #(dispatch [:contract.job/add-job data])}]]]))))

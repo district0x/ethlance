@@ -211,7 +211,8 @@
                 :form-key :form.contract/add-invitation
                 :field-key :invitation/description
                 :max-length-key :max-invitation-desc
-                :default-value description}]
+                :value description
+                :hint-text misc/privacy-warning-hint}]
               [misc/send-button
                {:disabled (or loading? (boolean (seq errors)))
                 :on-touch-tap #(dispatch [:contract.contract/add-job-invitation

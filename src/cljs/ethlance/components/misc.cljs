@@ -189,8 +189,8 @@
     (fn [{:keys [:value :on-change :form-key :field-key :max-length-key :min-length-key] :as props}]
       (let [min-length (get @eth-config min-length-key 0)
             max-length (get @eth-config max-length-key)
-            validator (if (and min-length-key max-length-key)
-                        #(<= min-length (count %1) max-length)
+            validator (if (and min-length max-length)
+                        #(<= min-length (count %) max-length)
                         (constantly true))
             valid? (validator value)]
         [text-field-base
@@ -446,3 +446,13 @@
      [currency rate opts]
      (when (= 1 payment-type)
        " / hr")]))
+
+(defn add-more-skills-button []
+  [ui/raised-button
+   {:label "Add more skills"
+    :primary true
+    :href (u/path-for :skills/create)
+    :icon (icons/content-add)}])
+
+(def privacy-warning-hint
+  "Note, all communication on Ethlance is unencrypted on public blockchain. Please don't reveal any private information.")
