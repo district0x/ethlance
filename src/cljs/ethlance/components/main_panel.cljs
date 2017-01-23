@@ -1,35 +1,37 @@
 (ns ethlance.components.main-panel
   (:require
-    [cljsjs.material-ui-chip-input]
     [cljs-react-material-ui.core :refer [get-mui-theme]]
-    [ethlance.components.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [cljsjs.material-ui-chip-input]
+    [clojure.set :as set]
+    [ethlance.components.icons :as icons]
+    [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows currency]]
+    [ethlance.constants :as constants]
     [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
     [ethlance.pages.contract-invoices-page :refer [contract-invoices-page]]
     [ethlance.pages.employer-create-page :refer [employer-create-page]]
+    [ethlance.pages.employer-detail-page :refer [employer-detail-page]]
     [ethlance.pages.employer-invoices-page :refer [employer-invoices-page]]
     [ethlance.pages.employer-jobs-page :refer [employer-jobs-page]]
-    [ethlance.pages.employer-detail-page :refer [employer-detail-page]]
     [ethlance.pages.freelancer-contracts-page :refer [freelancer-contracts-page]]
     [ethlance.pages.freelancer-create-page :refer [freelancer-create-page]]
-    [ethlance.pages.freelancer-invoices-page :refer [freelancer-invoices-page]]
     [ethlance.pages.freelancer-detail-page :refer [freelancer-detail-page]]
+    [ethlance.pages.freelancer-invoices-page :refer [freelancer-invoices-page]]
     [ethlance.pages.home-page :refer [home-page]]
+    [ethlance.pages.how-it-works-page :refer [how-it-works-page]]
     [ethlance.pages.invoice-create-page :refer [invoice-create-page]]
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
     [ethlance.pages.job-create-page :refer [job-create-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
-    [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows currency]]
-    [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
     [ethlance.pages.skills-create-page :refer [skills-create-page]]
+    [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [clojure.set :as set]
-    [ethlance.constants :as constants]))
+    ))
 
 (def route->component
   {:contract/detail contract-detail-page
@@ -43,6 +45,7 @@
    :freelancer/detail freelancer-detail-page
    :freelancer/invoices freelancer-invoices-page
    :home home-page
+   :how-it-works how-it-works-page
    :invoice/create invoice-create-page
    :invoice/detail invoice-detail-page
    :job/create job-create-page
@@ -163,7 +166,7 @@
            [my-addresses-select-field]
            [misc/how-it-works-app-bar-link
             {:style {:margin-top 0}}
-            "No accounts connected. How it works?"])
+            "No accounts connected. How to join?"])
          [currency-select-field]]
         [row-plain
          {:middle "xs"
@@ -183,6 +186,7 @@
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
         active-user (subscribe [:db/active-user])
+        active-address (subscribe [:db/active-address])
         snackbar (subscribe [:db/snackbar])
         active-address-registered? (subscribe [:db/active-address-registered?])
         my-users-loading? (subscribe [:db/my-users-loading?])
@@ -214,7 +218,8 @@
               (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
               (if @active-address-registered?
                 (create-menu-items nav-items-registered)
-                (when-not @my-users-loading?
+                (when (and (not @my-users-loading?)
+                           @active-address)
                   (create-menu-items nav-items-unregistered)))
               (when (and freelancer? employer?)
                 [ui/subheader "Freelancer"])

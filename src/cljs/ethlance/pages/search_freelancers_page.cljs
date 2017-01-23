@@ -27,7 +27,7 @@
         [misc/call-on-change
          {:load-on-mount? true
           :args @form-data
-          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers @form-data]])}
+          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers-deb @form-data]])}
          [misc/search-paper-thin
           [category-select-field
            {:value category

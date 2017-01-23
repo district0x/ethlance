@@ -27,7 +27,7 @@
         [misc/call-on-change
          {:load-on-mount? true
           :args @form-data
-          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-jobs @form-data]])}
+          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-jobs-deb @form-data]])}
          [misc/search-paper-thin
           [category-select-field
            {:value category
@@ -97,7 +97,7 @@
        :style styles/employer-info}
       [:span [a {:route :employer/detail
                  :route-params {:user/id id}
-                 :style {:color styles/accent1-color}
+                 :style {:color styles/primary1-color}
                  } name]]
       [star-rating
        {:value (u/rating->star avg-rating)

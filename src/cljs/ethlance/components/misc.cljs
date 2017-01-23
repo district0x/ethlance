@@ -317,7 +317,7 @@
    "This user has been blocked"])
 
 (defn user-address [address]
-  [:h3.bolder
+  [:div
    {:style styles/margin-bottom-gutter-less}
    [:a {:target :_blank
         :style {:color styles/primary1-color}
@@ -331,14 +331,6 @@
   (if @(subscribe [:db/active-address-registered?])
     (into [:div] children)
     (when-not @(subscribe [:db/my-users-loading?])
-      #_[center-layout
-         [paper
-          {:loading? true}
-          [row-plain
-           {:middle "xs"
-            :center "xs"
-            :style styles/paper-section-main}
-           [:h2 "Loading your accounts..."]]]]
       [centered-rows
        "You must register your address first"
        [ui/raised-button
@@ -361,7 +353,15 @@
        :href (u/path-for :user/edit)
        :label "My Profile"
        :style styles/margin-top-gutter-less}]]
-    (into [:div] children)))
+    (if (seq @(subscribe [:db/my-addresses]))
+      (into [:div] children)
+      [centered-rows
+       "You have no accounts connected. Please see How it works section for more information"
+       [ui/raised-button
+        {:primary true
+         :href (u/path-for :how-it-works)
+         :label "How it works?"
+         :style styles/margin-top-gutter-less}]])))
 
 (defn long-text [props & children]
   (let [[props children] (u/parse-props-children props children)]

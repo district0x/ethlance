@@ -37,7 +37,7 @@
                  [ui/raised-button
                   {:label "New Job"
                    :primary true
-                   :icon (icons/file-document-box)
+                   :icon (icons/plus)
                    :href (u/path-for :job/create)}]]]
         :no-items-text "You have no open hiring jobs"}])))
 

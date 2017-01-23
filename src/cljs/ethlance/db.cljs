@@ -7,7 +7,8 @@
 
 
 (def default-db
-  {:web3 nil
+  {:testrpc? false #_ true
+   :web3 nil
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -45,14 +46,14 @@
                 :max-invitation-desc 500
                 :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_ #_ :address "0x0d20188436827a7b6e1b747eb1578885228d7950"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true #_ #_ :address "0xfd30316f66e0ab80b4ff82e92689a34d430d9c7f"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true #_ #_  :address "0x904015a368942bd72e8816470c80d077fa7518f5"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_ #_ :address "0xa0b68e37b14330e108683b14f10941e06de12c09"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true #_ #_ :address "0xdc92970384be34f2dd35c39ccc1d4bc5ee95d9dc"}
-                   :ethlance-db {:name "EthlanceDB" #_ #_ :address "0x597cd239c6c2254911e4046e6323168626977e94"}
-                   :ethlance-views {:name "EthlanceViews" #_ #_ :address "0xb35c37b6f0384e3aa9622cdf6772053e1a22a4f7"}
-                   :ethlance-search {:name "EthlanceSearch" #_ #_ :address "0xc2139db871dccfd3e6b422595eceb1c7538207a9"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0xb0f1102af4f36290ec7db1461ab23d5a55460715"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x2128629f1546072a0a833041fe4445584d792792"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true  :address "0xa5d81ebae0dfe33a20a52b6cc76cebea6530e2c5"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x348585f2c1f08abd701846df04ef737aaa2979d5"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x410f475553f7e1f701d503fc24fc48822fd1ccb4"}
+                   :ethlance-db {:name "EthlanceDB" :address "0xf3e6364666138d997caf832a7bb0688316ac1e5f"}
+                   :ethlance-views {:name "EthlanceViews" :address "0xa2faa7a777d3efc20453dc073b8d8009db6594a6"}
+                   :ethlance-search {:name "EthlanceSearch" :address "0xac9a6b36d5cbc64238dd34b390e3073c7f30cbeb"}}
    :my-addresses []
    :active-address nil
    :my-users-loaded? false

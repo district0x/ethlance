@@ -12,6 +12,7 @@
     [day8.re-frame.async-flow-fx]
     [day8.re-frame.http-fx]
     [ethlance.db :refer [default-db]]
+    [ethlance.debounce-fx]
     [ethlance.ethlance-db :as ethlance-db :refer [get-entity get-entities get-entities-field-items]]
     [ethlance.generate-db]
     [ethlance.utils :as u]
@@ -32,7 +33,7 @@
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
 (def interceptors [;check-spec-interceptor
-                   #_ (when ^boolean goog.DEBUG debug)
+                   #_(when ^boolean goog.DEBUG debug)
                    trim-v])
 
 (defn contract-xhrio [contract-name code-type on-success on-failure]
@@ -71,34 +72,6 @@
 
 (defn get-ethlance-db []
   (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
-
-(defn entities-fns
-  ([instance ids fields on-success on-failure]
-   (entities-fns (count (set ids)) instance ids fields on-success on-failure))
-  ([load-per instance ids fields on-success on-failure]
-   (let [ids (distinct (filter pos? ids))
-         parts-count (if (and load-per (< load-per (count ids))) load-per (count ids))]
-     (for [part-ids (partition parts-count ids)]
-       (let [[fields records types] (ethlance-db/get-entities-args part-ids fields)]
-         [instance
-          :get-entity-list
-          records
-          types
-          [:entities-loaded part-ids fields on-success]
-          (concat (u/ensure-vec on-failure) [part-ids fields load-per])]))
-     #_ (if (and (seq ids) (seq fields))
-
-       []))))
-
-(defn entities-field-items-fn [instance id-counts field on-success on-failure]
-  (let [[ids+sub-ids field records types] (ethlance-db/get-entities-field-items-args id-counts field)]
-    (when (seq records)
-      [instance
-       :get-entity-list
-       records
-       types
-       [:entities-field-items-loaded ids+sub-ids field on-success]
-       (concat (u/ensure-vec on-failure) [ids+sub-ids field])])))
 
 (defn all-contracts-loaded? [db]
   (every? #(and (:abi %) (if goog.DEBUG true (:bin %))) (vals (:eth/contracts db))))
@@ -199,12 +172,12 @@
   :initialize
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
-    (let [provides-web3? (boolean (or (aget js/window "web3") false #_ goog.DEBUG))
+    (let [provides-web3? (boolean (aget js/window "web3"))
           web3 (if provides-web3? (aget js/window "web3") (web3/create-web3 "http://192.168.0.16:8545/"))
           {:keys [:active-page]} default-db
           db (as-> default-db db
                    (merge-data-from-query db active-page (u/current-url-query))
-                   (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
+                   #_ (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
                    (assoc db :provides-web3? provides-web3?)
                    (assoc db :web3 web3)
                    (assoc db :on-load-seed (rand-int 99999))
@@ -221,7 +194,7 @@
          :window/on-resize {:dispatch [:window/on-resize]
                             :resize-interval 166}
          :ga/page-view [(u/current-location-hash)]}
-        (if provides-web3?
+        (if (or provides-web3? (:testrpc? default-db))
           {:web3-fx.blockchain/fns
            {:web3 web3
             :fns [[web3-eth/accounts
@@ -599,6 +572,14 @@
 
 
 (reg-event-fx
+  :contract.search/search-jobs-deb
+  interceptors
+  (fn [{:keys [db]} args]
+    {:dispatch-debounce {:key :contract.search/search-jobs
+                         :event (into [:contract.search/search-jobs] args)
+                         :delay 300}}))
+
+(reg-event-fx
   :contract.search/search-jobs
   interceptors
   (fn [{:keys [db]} [args]]
@@ -618,13 +599,12 @@
                                  (:app/jobs db)
                                  job-ids
                                  ethlance-db/job-editable-fields)]
-      {:web3-fx.contract/constant-fns
-       {:fns (entities-fns (when (contains? fields :job/description) 1)
-                           (get-instance db :ethlance-db)
-                           ids
-                           fields
-                           :contract/jobs-loaded
-                           [:log-error :contract.db/load-jobs])}})))
+      {:ethlance-db/entities
+       {:instance (get-instance db :ethlance-db)
+        :ids ids
+        :fields fields
+        :on-success [:contract/jobs-loaded]
+        :on-error [:log-error :contract.db/load-jobs]}})))
 
 (reg-event-fx
   :contract/jobs-loaded
@@ -635,10 +615,7 @@
                  (u/assoc-key-as-value :job/id))]
       {:db (-> db
              (update :app/jobs (partial merge-with merge) jobs))
-       :dispatch-n [[:contract.db/load-field-items {:items jobs
-                                                    :count-key :job/skills-count
-                                                    :items-key :app/jobs
-                                                    :field-key :job/skills}]
+       :dispatch-n [[:contract.db/load-job-skills jobs]
                     [:contract.db/load-users
                      (merge (ethlance-db/without-strs ethlance-db/employer-schema)
                             ethlance-db/user-schema
@@ -648,13 +625,22 @@
 ;; ============users
 
 (reg-event-fx
+  :contract.search/search-freelancers-deb
+  interceptors
+  (fn [{:keys [db]} args]
+    {:dispatch-debounce {:key :contract.search/search-freelancers
+                         :event (into [:contract.search/search-freelancers] args)
+                         :delay 300}}))
+
+(reg-event-fx
   :contract.search/search-freelancers
   interceptors
   (fn [{:keys [db]} [args]]
     {:dispatch [:list/load-ids {:list-key :list/search-freelancers
                                 :fn-key :ethlance-search/search-freelancers
                                 :load-dispatch-key :contract.db/load-users
-                                :schema (dissoc ethlance-db/freelancer-schema :freelancer/description)
+                                :schema (merge (dissoc ethlance-db/freelancer-schema :freelancer/description)
+                                               ethlance-db/user-schema)
                                 :args (assoc args :search/seed (calculate-search-seed args (:on-load-seed db)))
                                 :keep-items? true}]}))
 
@@ -663,7 +649,6 @@
   interceptors
   (fn [{:keys [db]} [addresses]]
     (let [addrs (or addresses (:my-addresses db))]
-      (println ":contract.views/load-my-users" addrs)
       {:dispatch [:list/load-ids {:list-key :list/my-users
                                   :fn-key :ethlance-views/get-users
                                   :load-dispatch-key :contract.db/load-users
@@ -677,7 +662,6 @@
   :my-users-loaded
   interceptors
   (fn [{:keys [db]}]
-    (println ":my-users-loaded")
     {:db (assoc db :my-users-loaded? true)}))
 
 (reg-event-fx
@@ -696,18 +680,17 @@
   :contract.db/load-users
   interceptors
   (fn [{:keys [db]} [schema user-ids load-per load-dispatch-opts]]
-    (println ":contract.db/load-users" user-ids)
     (let [user-ids (u/big-nums->nums user-ids)
           {:keys [fields ids]} (find-needed-fields (keys schema)
                                                    (:app/users db)
                                                    user-ids
                                                    ethlance-db/user-editable-fields)]
-      {:web3-fx.contract/constant-fns
-       {:fns (entities-fns (get-instance db :ethlance-db)
-                           ids
-                           (remove #{:user/balance} fields)
-                           [:contract/users-loaded fields load-dispatch-opts]
-                           [:log-error :contract.db/load-users])}})))
+      {:ethlance-db/entities
+       {:instance (get-instance db :ethlance-db)
+        :ids ids
+        :fields (remove #{:user/balance} fields)
+        :on-success [:contract/users-loaded fields load-dispatch-opts]
+        :on-error [:log-error :contract.db/load-users]}})))
 
 (reg-event-fx
   :contract/users-loaded
@@ -729,45 +712,48 @@
                              [dispatch-after-loaded]))})))
 
 (reg-event-fx
-  :contract.db/load-field-items
+  :contract.db/load-job-skills
   interceptors
-  (fn [{:keys [db]} [{:keys [items count-key items-key field-key]}]]
-    {:web3-fx.contract/constant-fns
-     {:fns [(entities-field-items-fn
-              (get-instance db :ethlance-db)
-              (->> items
-                (medley/map-vals count-key)
-                (medley/remove-vals nil?))
-              field-key
-              [:contract/field-items-loaded items-key]
-              [:log-error :contract.db/load-field-items])]}}))
+  (fn [{:keys [db]} [jobs]]
+    {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
+                                        :items jobs
+                                        :count-key :job/skills-count
+                                        :field-key :job/skills
+                                        :on-success [:contract/field-items-loaded :app/jobs]
+                                        :on-error [:log-error :contract.db/load-job-skills]}}))
 
 (reg-event-fx
   :contract.db/load-freelancer-skills
   interceptors
   (fn [{:keys [db]} [users]]
-    {:dispatch [:contract.db/load-field-items {:items users
-                                               :count-key :freelancer/skills-count
-                                               :items-key :app/users
-                                               :field-key :freelancer/skills}]}))
+    {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
+                                        :items users
+                                        :count-key :freelancer/skills-count
+                                        :field-key :freelancer/skills
+                                        :on-success [:contract/field-items-loaded :app/users]
+                                        :on-error [:log-error :contract.db/load-freelancer-skills]}}))
 
 (reg-event-fx
   :contract.db/load-freelancer-categories
   interceptors
   (fn [{:keys [db]} [users]]
-    {:dispatch [:contract.db/load-field-items {:items users
-                                               :count-key :freelancer/categories-count
-                                               :items-key :app/users
-                                               :field-key :freelancer/categories}]}))
+    {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
+                                        :items users
+                                        :count-key :freelancer/categories-count
+                                        :field-key :freelancer/categories
+                                        :on-success [:contract/field-items-loaded :app/users]
+                                        :on-error [:log-error :contract.db/load-freelancer-categories]}}))
 
 (reg-event-fx
   :contract.db/load-user-languages
   interceptors
   (fn [{:keys [db]} [users]]
-    {:dispatch [:contract.db/load-field-items {:items users
-                                               :count-key :user/languages-count
-                                               :items-key :app/users
-                                               :field-key :user/languages}]}))
+    {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
+                                        :items users
+                                        :count-key :user/languages-count
+                                        :field-key :user/languages
+                                        :on-success [:contract/field-items-loaded :app/users]
+                                        :on-error [:log-error :contract.db/load-user-languages]}}))
 
 (reg-event-fx
   :blockchain/load-user-balances
@@ -830,13 +816,12 @@
                                                    (:app/contracts db)
                                                    contract-ids
                                                    ethlance-db/contract-editable-fields)]
-      {:web3-fx.contract/constant-fns
-       {:fns (entities-fns load-per
-                           (get-instance db :ethlance-db)
-                           ids
-                           fields
-                           :contract/contracts-loaded
-                           [:log-error :contract.db/load-contracts])}})))
+      {:ethlance-db/entities
+       {:instance (get-instance db :ethlance-db)
+        :ids ids
+        :fields fields
+        :on-success [:contract/contracts-loaded]
+        :on-error [:log-error :contract.db/load-contracts]}})))
 
 (reg-event-fx
   :contract/contracts-loaded
@@ -966,12 +951,12 @@
                                                    (:app/invoices db)
                                                    invoice-ids
                                                    ethlance-db/invoice-editable-fields)]
-      {:web3-fx.contract/constant-fns
-       {:fns (entities-fns (get-instance db :ethlance-db)
-                           ids
-                           fields
-                           :contract/invoices-loaded
-                           [:log-error :contract.db/load-invoices])}})))
+      {:ethlance-db/entities
+       {:instance (get-instance db :ethlance-db)
+        :ids ids
+        :fields fields
+        :on-success [:contract/invoices-loaded]
+        :on-error [:log-error :contract.db/load-invoices]}})))
 
 (reg-event-fx
   :contract/invoices-loaded
@@ -1046,7 +1031,6 @@
   :contract.views/ids-loaded
   interceptors
   (fn [{:keys [db]} [list-key load-dispatch-key schema load-per load-dispatch-opts ids]]
-    (println ":contract.views/ids-loaded" (u/big-nums->nums ids))
     (let [ids (u/big-nums->nums ids)
           items-list (get db list-key)]
       {:db (update db list-key merge {:items ids :loading? false})
@@ -1258,7 +1242,6 @@
   :entities-loaded
   interceptors
   (fn [_ [ids fields on-success result]]
-    (println ":entities-loaded" result)
     {:dispatch (conj (u/ensure-vec on-success) (ethlance-db/parse-entities ids fields result))}))
 
 (reg-event-fx

@@ -6,8 +6,9 @@
     [clojure.string :as string]
     [ethlance.utils :as u]
     [medley.core :as medley]
-    [re-frame.core :refer [console dispatch]]
-    [clojure.set :as set]))
+    [re-frame.core :refer [console dispatch reg-fx]]
+    [clojure.set :as set]
+    [cljs.spec :as s]))
 
 (def bool 1)
 (def uint8 2)
@@ -451,19 +452,67 @@
                        (u/sha3 field id sub-id)) ids+sub-ids)]
     [ids+sub-ids field records [uint]]))
 
-(defn get-entities [ids fields instance]
+(defn get-entities [ids fields instance on-success on-error]
   (let [[fields records types] (get-entities-args ids fields)]
-    (web3-eth/contract-call instance :get-entity-list records
+    (web3-eth/contract-call instance
+                            :get-entity-list
+                            records
                             (replace-special-types types)
-                            (partial log-entities ids fields))))
-
-(defn get-entities-field-items [id-counts field instance]
-  (let [[ids+sub-ids field records types] (get-entities-field-items-args id-counts field)]
-    (web3-eth/contract-call instance :get-entity-list records types
                             (fn [err result]
-                              (when err
-                                (console :error err))
-                              (console :log (parse-entities-field-items ids+sub-ids field result))))))
+                              (if err
+                                (on-error err)
+                                (on-success (parse-entities ids fields result)))))))
+
+(defn get-entities-field-items [id-counts field instance on-success on-error]
+  (let [[ids+sub-ids field records types] (get-entities-field-items-args id-counts field)]
+    (web3-eth/contract-call instance
+                            :get-entity-list
+                            records
+                            types
+                            (fn [err result]
+                              (if err
+                                (on-error on-error)
+                                (on-success (parse-entities-field-items ids+sub-ids field result)))))))
+
+
+(s/def ::instance (complement nil?))
+(s/def ::ids (s/coll-of (s/nilable int?)))
+(s/def ::fields (s/coll-of keyword?))
+(s/def ::on-success sequential?)
+(s/def ::on-error sequential?)
+
+(s/def ::entities (s/keys :req-un [::instance ::ids ::fields ::on-success ::on-error]))
+
+(reg-fx
+  :ethlance-db/entities
+  (fn [{:keys [:instance :ids :fields :on-success :on-error] :as config}]
+    (s/assert ::entities config)
+    (let [ids (distinct (filter pos? ids))]
+      (if (and (seq ids) (seq fields))
+        (get-entities ids
+                      fields
+                      instance
+                      #(dispatch (conj on-success %))
+                      #(dispatch (conj on-error %)))
+        #(dispatch (conj on-success {}))))))
+
+
+(s/def ::count-key keyword?)
+(s/def ::field-key keyword?)
+(s/def ::items map?)
+(s/def ::entities-field-items (s/keys :req-un [::instance ::items ::count-key ::field-key ::on-success ::on-error]))
+
+(reg-fx
+  :ethlance-db/entities-field-items
+  (fn [{:keys [:instance :items :count-key :field-key :on-success :on-error] :as config}]
+    (s/assert ::entities-field-items config)
+    (get-entities-field-items (->> items
+                                (medley/map-vals count-key)
+                                (medley/remove-vals nil?))
+                              field-key
+                              instance
+                              #(dispatch (conj on-success %))
+                              #(dispatch (conj on-error %)))))
 
 (comment
   (create-types-map [:a :b :c] [1 2 1])
