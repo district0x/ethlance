@@ -1,6 +1,5 @@
 (ns ethlance.pages.search-jobs-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.category-select-field :refer [category-select-field]]
     [ethlance.components.checkbox-group :refer [checkbox-group]]
@@ -12,7 +11,6 @@
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.components.state-select-field :refer [state-select-field]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -98,7 +96,9 @@
       {:middle "xs"
        :style styles/employer-info}
       [:span [a {:route :employer/detail
-                 :route-params {:user/id id}} name]]
+                 :route-params {:user/id id}
+                 :style {:color styles/accent1-color}
+                 } name]]
       [star-rating
        {:value (u/rating->star avg-rating)
         :small? true
@@ -123,25 +123,6 @@
   (dispatch [:form.search/set-value :search/offset new-offset])
   (dispatch [:window/scroll-to-top]))
 
-(defn pagination []
-  (let [form-data (subscribe [:form/search-jobs])]
-    (fn [items-count]
-      (let [{:keys [:search/limit :search/offset]} @form-data]
-        [row-plain {:end "xs"}
-         (when (pos? offset)
-           [ui/flat-button
-            {:secondary true
-             :label "Newer"
-             :icon (icons/navigation-chevron-left)
-             :on-touch-tap #(change-page (- offset limit))}])
-         (when (= items-count limit)
-           [ui/flat-button
-            {:secondary true
-             :label "Older"
-             :label-position :before
-             :icon (icons/navigation-chevron-right)
-             :on-touch-tap #(change-page (+ offset limit))}])]))))
-
 (defn search-results []
   (let [list (subscribe [:list/search-jobs])
         selected-skills (subscribe [:form/search-job-skills])
@@ -165,7 +146,7 @@
            [:div {:key id}
             [:h2
              {:style styles/overflow-ellipsis}
-             [a {:style styles/primary-text
+             [a {:style styles/search-result-headline
                  :route :job/detail
                  :route-params {:job/id id}} title]]
             [:div {:style styles/job-info}
@@ -178,10 +159,6 @@
                [:span " - Budget: " [:span
                                      {:style styles/dark-text}
                                      [misc/currency budget]]])]
-            #_ [:div {:style styles/job-list-description}
-             [truncated-text
-              {:lines 2}
-              description]]
             [skills-chips
              {:selected-skills skills
               :on-touch-tap (fn [skill-id]

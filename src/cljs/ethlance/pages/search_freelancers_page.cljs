@@ -1,6 +1,5 @@
 (ns ethlance.pages.search-freelancers-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.category-select-field :refer [category-select-field]]
     [ethlance.components.checkbox-group :refer [checkbox-group]]
@@ -12,7 +11,6 @@
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
     [ethlance.components.star-rating :refer [star-rating]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
@@ -124,7 +122,7 @@
                         {:margin-right 10})}]]
             [:div
              {:style (if xs? styles/full-width {})}
-             [:h2 [a {:style styles/primary-text
+             [:h2 [a {:style styles/search-result-headline
                       :route :freelancer/detail
                       :route-params {:user/id id}}
                    name]]

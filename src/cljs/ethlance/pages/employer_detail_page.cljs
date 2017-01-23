@@ -1,13 +1,11 @@
 (ns ethlance.pages.employer-detail-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.jobs-table :refer [jobs-table]]
     [ethlance.components.languages-chips :refer [languages-chips]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.star-rating :refer [star-rating]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
@@ -124,6 +122,8 @@
 (defn employer-feedback [{:keys [:user/id]}]
   [feedback-list
    {:list-subscribe [:list/contracts :list/employer-feedbacks]
+    :list-db-path [:list/employer-feedbacks]
+    :all-ids-subscribe [:list/ids :list/employer-feedbacks]
     :initial-dispatch [:list/load-ids {:list-key :list/employer-feedbacks
                                        :fn-key :ethlance-views/get-employer-contracts
                                        :load-dispatch-key :contract.db/load-contracts

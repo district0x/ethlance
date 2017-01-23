@@ -7,9 +7,9 @@
 
 
 (def default-db
-  {:web3 (web3/create-web3 "http://192.168.0.16:8545/")
+  {:web3 nil
    :active-page (u/match-current-location)
-   :provides-web3? (boolean (or (aget js/window "web3") goog.DEBUG))
+   :provides-web3? false
    :contracts-not-found? false
    :window/width-size (u/get-window-width-size js/window.innerWidth)
    :drawer-open? false
@@ -57,6 +57,7 @@
    :active-address nil
    :my-users-loaded? false
    :blockchain/addresses {}
+   :blockchain/connection-error? false
    :conversion-rates {}
    :app/users {}
    :app/jobs {}

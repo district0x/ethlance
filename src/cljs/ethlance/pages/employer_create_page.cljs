@@ -1,6 +1,5 @@
 (ns ethlance.pages.employer-create-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.user-forms :refer [user-form employer-form]]
     [ethlance.ethlance-db :as ethlance-db]

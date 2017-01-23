@@ -1,6 +1,5 @@
 (ns ethlance.pages.home-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.styles :as styles]
@@ -225,15 +224,7 @@
                                              (dispatch [:window/scroll-to-top])))}
                               [:img {:style styles/ethlance-logo
                                      :src "../images/ethlance-logo-white.svg"}]])
-                    :icon-element-right (r/as-element
-                                          [:div
-                                           {:style {:margin-right styles/desktop-gutter
-                                                    :margin-top 10}}
-                                           [:a
-                                            {:href (u/path-for :how-it-works)}
-                                            [:h3.bolder
-                                             {:style styles/white-text}
-                                             "How it works?"]]])
+                    :icon-element-right (r/as-element [misc/how-it-works-app-bar-link])
                     :show-menu-icon-button false
                     :style styles/landing-app-bar}]
        [landing-hero]

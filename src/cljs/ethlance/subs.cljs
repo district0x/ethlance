@@ -182,6 +182,11 @@
     (:form/search-jobs db)))
 
 (reg-sub
+  :blockchain/connection-error?
+  (fn [db]
+    (:blockchain/connection-error? db)))
+
+(reg-sub
   :form/search-freelancers
   (fn [db]
     (:form/search-freelancers db)))

@@ -1,10 +1,10 @@
 (ns ethlance.pages.freelancer-detail-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.categories-chips :refer [categories-chips]]
     [ethlance.components.contracts-table :refer [contracts-table]]
     [ethlance.components.feedback-list :refer [feedback-list]]
+    [ethlance.components.icons :as icons]
     [ethlance.components.languages-chips :refer [languages-chips]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.skills-chips :refer [skills-chips]]
@@ -151,6 +151,8 @@
 (defn freelancer-feedback [{:keys [:user/id]}]
   [feedback-list
    {:list-subscribe [:list/contracts :list/freelancer-feedbacks]
+    :list-db-path [:list/freelancer-feedbacks]
+    :all-ids-subscribe [:list/ids :list/freelancer-feedbacks]
     :initial-dispatch [:list/load-ids {:list-key :list/freelancer-feedbacks
                                        :fn-key :ethlance-views/get-freelancer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
@@ -202,7 +204,7 @@
                 {:label "Write Invitation"
                  :primary true
                  :on-touch-tap #(reset! form-open? true)
-                 :icon (icons/content-create)}])]]
+                 :icon (icons/pencil)}])]]
            (when @form-open?
              [:div
               [employer-jobs-select-field @jobs-list data user @active-user]
@@ -232,4 +234,4 @@
        (when (:user/freelancer? @user)
          [:div
           [freelancer-contracts @user]
-          #_ [freelancer-feedback @user]])])))
+          [freelancer-feedback @user]])])))

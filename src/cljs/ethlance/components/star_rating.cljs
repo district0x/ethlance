@@ -1,10 +1,11 @@
 (ns ethlance.components.star-rating
-  (:require [cljs-react-material-ui.icons :as icons]
-            [reagent.core :as r]
-            [cljs-react-material-ui.reagent :as ui]
-            [ethlance.components.misc :refer [col row row-plain]]
-            [ethlance.styles :as styles]
-            [ethlance.utils :as u]))
+  (:require
+    [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.icons :as icons]
+    [ethlance.components.misc :refer [col row row-plain]]
+    [ethlance.styles :as styles]
+    [ethlance.utils :as u]
+    [reagent.core :as r]))
 
 (defn star-rating []
   (fn [{:keys [value star-count star-style on-star-click show-number? small? rating-number-style ratings-count]
@@ -28,10 +29,10 @@
                                              (when on-star-click
                                                (on-star-click (/ next-val star-coef)))))}]
            (if (and (<= (- i 0.5) value) (> i value))
-             (icons/toggle-star-half star-props)
+             (icons/star-half star-props)
              (if (<= i value)
-               (icons/toggle-star star-props)
-               (icons/toggle-star-border star-props)))))
+               (icons/star star-props)
+               (icons/star-outline star-props)))))
        (when show-number?
          [:h4
           {:style (merge

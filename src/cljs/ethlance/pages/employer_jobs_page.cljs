@@ -1,7 +1,7 @@
 (ns ethlance.pages.employer-jobs-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.icons :as icons]
     [ethlance.components.jobs-table :refer [jobs-table]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.ethlance-db :as ethlance-db]
@@ -37,7 +37,7 @@
                  [ui/raised-button
                   {:label "New Job"
                    :primary true
-                   :icon (icons/content-add)
+                   :icon (icons/file-document-box)
                    :href (u/path-for :job/create)}]]]
         :no-items-text "You have no open hiring jobs"}])))
 

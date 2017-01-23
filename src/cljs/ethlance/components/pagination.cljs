@@ -1,7 +1,7 @@
 (ns ethlance.components.pagination
   (:require
     [cljs-react-material-ui.reagent :as ui]
-    [cljs-react-material-ui.icons :as icons]
+    [ethlance.components.icons :as icons]
     [cljsjs.react-ultimate-pagination]
     [ethlance.styles :as styles]
     [reagent.core :as r]))
@@ -29,7 +29,7 @@
         (r/as-element
           [ui/flat-button
            {:style styles/pagination-button
-            :icon (icons/navigation-first-page)
+            :icon (icons/page-first)
             :on-touch-tap onClick
             :disabled isActive}])))
 
@@ -39,7 +39,7 @@
         (r/as-element
           [ui/flat-button
            {:style styles/pagination-button
-            :icon (icons/navigation-chevron-left)
+            :icon (icons/chevron-left)
             :on-touch-tap onClick
             :disabled isActive}])))
 
@@ -49,7 +49,7 @@
         (r/as-element
           [ui/flat-button
            {:style styles/pagination-button
-            :icon (icons/navigation-chevron-right)
+            :icon (icons/chevron-right)
             :on-touch-tap onClick
             :disabled isActive}])))
 
@@ -59,7 +59,7 @@
         (r/as-element
           [ui/flat-button
            {:style styles/pagination-button
-            :icon (icons/navigation-last-page)
+            :icon (icons/page-last)
             :on-touch-tap onClick
             :disabled isActive}])))}})
 

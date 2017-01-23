@@ -1,6 +1,5 @@
 (ns ethlance.pages.invoice-detail-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.message-bubble :refer [message-bubble]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]

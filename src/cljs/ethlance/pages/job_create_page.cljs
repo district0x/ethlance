@@ -1,6 +1,5 @@
 (ns ethlance.pages.job-create-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.category-select-field :refer [category-select-field]]
     [ethlance.components.language-select-field :refer [language-select-field]]

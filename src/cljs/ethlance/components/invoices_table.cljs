@@ -1,6 +1,5 @@
 (ns ethlance.components.invoices-table
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.list-table :refer [list-table]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]

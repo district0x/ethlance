@@ -2,7 +2,6 @@
   (:require
     [cljsjs.react-truncate]
     [cljs-react-material-ui.reagent :as ui]
-    [cljs-react-material-ui.icons :as icons]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [reagent.core :as r]

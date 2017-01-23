@@ -5,7 +5,8 @@
     [ethlance.components.validated-chip-input :refer [validated-chip-input]]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [ethlance.styles :as styles]))
 
 (defn skills-chip-input []
   (let [skills (subscribe [:app/skills])]
@@ -14,5 +15,6 @@
        (r/merge-props
          {:all-items @skills
           :all-items-val-key :skill/name
-          :floating-label-text "Skills"}
+          :floating-label-text "Skills"
+          :chip-backgroud-color styles/skills-chip-color}
          (dissoc props :validated?))])))

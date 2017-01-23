@@ -32,7 +32,7 @@
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
 (def interceptors [;check-spec-interceptor
-                   ;(when ^boolean goog.DEBUG debug)
+                   #_ (when ^boolean goog.DEBUG debug)
                    trim-v])
 
 (defn contract-xhrio [contract-name code-type on-success on-failure]
@@ -78,16 +78,27 @@
   ([load-per instance ids fields on-success on-failure]
    (let [ids (distinct (filter pos? ids))
          parts-count (if (and load-per (< load-per (count ids))) load-per (count ids))]
-     (if (and (seq ids) (seq fields))
-       (for [part-ids (partition parts-count ids)]
-         (let [[fields records types] (ethlance-db/get-entities-args part-ids fields)]
-           [instance :get-entity-list records types [:entities-loaded part-ids fields on-success] on-failure]))
+     (for [part-ids (partition parts-count ids)]
+       (let [[fields records types] (ethlance-db/get-entities-args part-ids fields)]
+         [instance
+          :get-entity-list
+          records
+          types
+          [:entities-loaded part-ids fields on-success]
+          (concat (u/ensure-vec on-failure) [part-ids fields load-per])]))
+     #_ (if (and (seq ids) (seq fields))
+
        []))))
 
 (defn entities-field-items-fn [instance id-counts field on-success on-failure]
   (let [[ids+sub-ids field records types] (ethlance-db/get-entities-field-items-args id-counts field)]
     (when (seq records)
-      [instance :get-entity-list records types [:entities-field-items-loaded ids+sub-ids field on-success] on-failure])))
+      [instance
+       :get-entity-list
+       records
+       types
+       [:entities-field-items-loaded ids+sub-ids field on-success]
+       (concat (u/ensure-vec on-failure) [ids+sub-ids field])])))
 
 (defn all-contracts-loaded? [db]
   (every? #(and (:abi %) (if goog.DEBUG true (:bin %))) (vals (:eth/contracts db))))
@@ -188,10 +199,14 @@
   :initialize
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
-    (let [{:keys [:web3 :provides-web3? :active-page]} default-db
+    (let [provides-web3? (boolean (or (aget js/window "web3") false #_ goog.DEBUG))
+          web3 (if provides-web3? (aget js/window "web3") (web3/create-web3 "http://192.168.0.16:8545/"))
+          {:keys [:active-page]} default-db
           db (as-> default-db db
                    (merge-data-from-query db active-page (u/current-url-query))
                    (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
+                   (assoc db :provides-web3? provides-web3?)
+                   (assoc db :web3 web3)
                    (assoc db :on-load-seed (rand-int 99999))
                    (assoc db :drawer-open? (> (:window/width-size db) 2)))]
       (merge
@@ -204,11 +219,15 @@
                                             [:contract.views/load-my-users]]
                                :halt? true}]}
          :window/on-resize {:dispatch [:window/on-resize]
-                            :resize-interval 166}}
-        (when provides-web3?
+                            :resize-interval 166}
+         :ga/page-view [(u/current-location-hash)]}
+        (if provides-web3?
           {:web3-fx.blockchain/fns
            {:web3 web3
-            :fns [[web3-eth/accounts :blockchain/my-addresses-loaded :blockchain/on-error]]}})))))
+            :fns [[web3-eth/accounts
+                   :blockchain/my-addresses-loaded
+                   [:blockchain/on-error :initialize]]]}}
+          {:dispatch-n [[:blockchain/my-addresses-loaded []]]})))))
 
 (reg-event-db
   :drawer/set
@@ -223,7 +242,7 @@
     {:http-xhrio
      (for [[key {:keys [name]}] (:eth/contracts db)]
        (for [code-type (if goog.DEBUG [:abi :bin] [:abi])]
-         (contract-xhrio name code-type [:contract/loaded key code-type] [:log-error])))}))
+         (contract-xhrio name code-type [:contract/loaded key code-type] [:log-error :load-eth-contracts])))}))
 
 (reg-event-fx
   :deploy-contracts
@@ -238,7 +257,7 @@
                 :data (:bin ethance-db)
                 :from (:active-address db)}
                :contract/deployed-ethlance-db
-               :log-error]]}})))
+               [:log-error :deploy-contracts]]]}})))
 
 (reg-event-fx
   :contract/deployed-ethlance-db
@@ -258,7 +277,7 @@
                  :data bin
                  :from (:active-address db)}
                 [:contract/deployed key]
-                [:log-error key]])}})))
+                [:log-error :contract/deployed-ethlance-db key]])}})))
 
 (reg-event-fx
   :contract/deployed
@@ -283,7 +302,7 @@
                     :timeout 10000
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success [:conversion-rate-loaded currency]
-                    :on-failure [:log-error "Failer to load conversion rate" currency]}})))
+                    :on-failure [:log-error :load-conversion-rate currency]}})))
 
 (reg-event-db
   :conversion-rate-loaded
@@ -312,7 +331,7 @@
              [web3-eth/estimate-gas
               {:data bin}
               [:contract/estimate-gas-result key]
-              [:log-error key]])}}))
+              [:log-error :estimate-contracts key]])}}))
 
 (reg-event-fx
   :contract/estimate-gas-result
@@ -329,7 +348,8 @@
       {:db (-> db
              (assoc :active-page match)
              (assoc :drawer-open? false)
-             (merge-data-from-query match (u/current-url-query)))}
+             (merge-data-from-query match (u/current-url-query)))
+       :ga/page-view [(u/current-location-hash)]}
       (when-not (= handler (:handler (:active-page db)))
         {:window/scroll-to-top true}))))
 
@@ -352,14 +372,15 @@
       (merge
         {:db (-> db
                (assoc :my-addresses addresses)
-               (assoc :active-address active-address))
-         :web3-fx.blockchain/balances
-         {:web3 (:web3 db)
-          :watch? true
-          :blockchain-filter-opts "latest"
-          :db-path [:blockchain :balances]
-          :addresses addresses
-          :dispatches [:blockchain/address-balance-loaded :blockchain/on-error]}}))))
+               (assoc :active-address active-address))}
+        (when (seq addresses)
+          {:web3-fx.blockchain/balances
+           {:web3 (:web3 db)
+            :watch? true
+            :blockchain-filter-opts "latest"
+            :db-path [:blockchain :balances]
+            :addresses addresses
+            :dispatches [:blockchain/address-balance-loaded [:blockchain/on-error :blockchain/my-addresses-loaded]]}})))))
 
 (reg-event-fx
   :blockchain/address-balance-loaded
@@ -406,7 +427,7 @@
                {:gas max-gas
                 :from active-address}
                :contract/transaction-sent
-               :contract/transaction-error
+               [:contract/transaction-error :contract.config/set-configs]
                [:contract/transaction-receipt :set-configs max-gas :generate-db false]]]}})))
 
 (reg-event-fx
@@ -419,13 +440,13 @@
                fn-key
                (:config/keys values)
                [:contract.config/get-configs-loaded (:config/keys values)]
-               :log-error]]}})))
+               [:log-error :contract.config/get-configs values]]]}})))
 
 (reg-event-fx
   :contract.config/get-configs-loaded
   interceptors
   (fn [{:keys [db]} [config-keys config-values]]
-    (if (seq config-values)
+    (if (seq (print.foo/look config-values))
       {:db (update db :eth/config merge (zipmap config-keys (u/big-nums->nums config-values)))}
       {:db (assoc db :contracts-not-found? true)})))
 
@@ -458,7 +479,7 @@
                  {:gas max-gas
                   :from active-address}
                  :contract/transaction-sent
-                 :contract/transaction-error
+                 [:contract/transaction-error :contract.db/add-allowed-contracts]
                  (if (contains? (set contract-keys) :ethlance-config)
                    :contract.config/set-configs
                    :do-nothing)
@@ -603,7 +624,7 @@
                            ids
                            fields
                            :contract/jobs-loaded
-                           :log-error)}})))
+                           [:log-error :contract.db/load-jobs])}})))
 
 (reg-event-fx
   :contract/jobs-loaded
@@ -642,6 +663,7 @@
   interceptors
   (fn [{:keys [db]} [addresses]]
     (let [addrs (or addresses (:my-addresses db))]
+      (println ":contract.views/load-my-users" addrs)
       {:dispatch [:list/load-ids {:list-key :list/my-users
                                   :fn-key :ethlance-views/get-users
                                   :load-dispatch-key :contract.db/load-users
@@ -655,6 +677,7 @@
   :my-users-loaded
   interceptors
   (fn [{:keys [db]}]
+    (println ":my-users-loaded")
     {:db (assoc db :my-users-loaded? true)}))
 
 (reg-event-fx
@@ -667,12 +690,13 @@
                fn-key
                [address]
                loaded-dispatch
-               :log-error]]}})))
+               [:log-error :contract.views/load-user-id-by-address address]]]}})))
 
 (reg-event-fx
   :contract.db/load-users
   interceptors
   (fn [{:keys [db]} [schema user-ids load-per load-dispatch-opts]]
+    (println ":contract.db/load-users" user-ids)
     (let [user-ids (u/big-nums->nums user-ids)
           {:keys [fields ids]} (find-needed-fields (keys schema)
                                                    (:app/users db)
@@ -683,7 +707,7 @@
                            ids
                            (remove #{:user/balance} fields)
                            [:contract/users-loaded fields load-dispatch-opts]
-                           :log-error)}})))
+                           [:log-error :contract.db/load-users])}})))
 
 (reg-event-fx
   :contract/users-loaded
@@ -716,7 +740,7 @@
                 (medley/remove-vals nil?))
               field-key
               [:contract/field-items-loaded items-key]
-              :log-error)]}}))
+              [:log-error :contract.db/load-field-items])]}}))
 
 (reg-event-fx
   :contract.db/load-freelancer-skills
@@ -758,7 +782,8 @@
       {:web3-fx.blockchain/balances {:web3 (:web3 db)
                                      :blockchain-filter-opts "latest"
                                      :addresses addresses
-                                     :dispatches [:blockchain/address-balance-loaded :blockchain/on-error]}})))
+                                     :dispatches [:blockchain/address-balance-loaded
+                                                  [:blockchain/on-error :blockchain/load-user-balances]]}})))
 
 (reg-event-fx
   :contract/field-items-loaded
@@ -811,7 +836,7 @@
                            ids
                            fields
                            :contract/contracts-loaded
-                           :log-error)}})))
+                           [:log-error :contract.db/load-contracts])}})))
 
 (reg-event-fx
   :contract/contracts-loaded
@@ -847,7 +872,7 @@
                                                                   :contract/freelancer
                                                                   :contract/status
                                                                   :contract/freelancer-feedback-on])]
-                   :log-error])]}}))))
+                   [:log-error :contract.views/load-my-freelancers-contracts-for-job]])]}}))))
 
 (reg-event-fx
   :contract.contract/add-job-invitation
@@ -946,7 +971,7 @@
                            ids
                            fields
                            :contract/invoices-loaded
-                           :log-error)}})))
+                           [:log-error :contract.db/load-invoices])}})))
 
 (reg-event-fx
   :contract/invoices-loaded
@@ -1015,12 +1040,13 @@
                fn-key]
               (args-map->vec args (ethlance-db/eth-contracts-fns fn-key))
               [[:contract.views/ids-loaded list-key load-dispatch-key schema load-per load-dispatch-opts]
-               :log-error])]}}))
+               [:log-error :list/load-ids fn-key]])]}}))
 
 (reg-event-fx
   :contract.views/ids-loaded
   interceptors
   (fn [{:keys [db]} [list-key load-dispatch-key schema load-per load-dispatch-opts ids]]
+    (println ":contract.views/ids-loaded" (u/big-nums->nums ids))
     (let [ids (u/big-nums->nums ids)
           items-list (get db list-key)]
       {:db (update db list-key merge {:items ids :loading? false})
@@ -1034,7 +1060,7 @@
      {:fns [[(get-instance db :ethlance-views)
              :ethlance-views/get-skill-count
              :contract.views/skill-count-loaded
-             :log-error]]}}))
+             [:blockchain/on-error :contract.views/load-skill-count]]]}}))
 
 (reg-event-fx
   :contract.views/skill-count-loaded
@@ -1062,7 +1088,7 @@
                :ethlance-views/get-skill-names]
               (args-map->vec values (ethlance-db/eth-contracts-fns :ethlance-views/get-skill-names))
               [:contract.views/skill-names-loaded
-               :log-error])]}}))
+               [:log-error :contract.views/load-skill-names values]])]}}))
 
 (reg-event-db
   :contract.views/skill-names-loaded
@@ -1091,7 +1117,7 @@
                     [{:gas max-gas
                       :from (:active-address db)}
                      :contract/transaction-sent
-                     :contract/transaction-error
+                     [:contract/transaction-error :contract/state-call]
                      [:contract/transaction-receipt method max-gas nil nil]])]}}))
 
 (reg-event-fx
@@ -1105,7 +1131,8 @@
                                                  (not (u/united-states? field-value)))
                                         {:search/state 0})
                                       (when-not (= field-key :search/offset)
-                                        {:search/offset 0}))]})))
+                                        {:search/offset 0}))]
+       :ga/event ["form.search/set-value" (name field-key) (str field-value)]})))
 
 (reg-event-fx
   :form/submit
@@ -1127,7 +1154,7 @@
                    (when value
                      {:value value}))
                  [:form/start-loading form-key]
-                 :contract/transaction-error
+                 [:contract/transaction-error :form/submit fn-key form-data value address]
                  [:form/submit-receipt gas-limit props]])]}})))
 
 (reg-event-fx
@@ -1231,6 +1258,7 @@
   :entities-loaded
   interceptors
   (fn [_ [ids fields on-success result]]
+    (println ":entities-loaded" result)
     {:dispatch (conj (u/ensure-vec on-success) (ethlance-db/parse-entities ids fields result))}))
 
 (reg-event-fx
@@ -1301,7 +1329,17 @@
   :contract/transaction-error
   interceptors
   (fn [_ errors]
-    (apply console :error errors)))
+    (apply console :error "transaction-error" errors)
+    {:ga/event ["transaction-error" (name (first errors)) (str (rest errors))]}))
+
+(reg-event-fx
+  :blockchain/on-error
+  interceptors
+  (fn [{:keys [:db]} errors]
+    (apply console :error "blockchain-error" errors)
+    {:db (assoc db :blockchain/connection-error? true)
+     :ga/event ["blockchain-error" (name (first errors)) (str (rest errors))]
+     :dispatch [:snackbar/show-error "Oops, looks like we have trouble connecting into the Ethereum blockchain"]}))
 
 (reg-event-fx
   :contract/transaction-receipt
@@ -1374,15 +1412,13 @@
   (fn [db result]
     ))
 
-(reg-event-db
+(reg-event-fx
   :log-error
   interceptors
-  (fn [db errors]
+  (fn [{:keys [:db]} errors]
     (apply console :error errors)
-    db))
-
-
-
+    {:db db
+     :ga/event ["error" (first errors) (str (rest errors))]}))
 
 (comment
   (dispatch [:initialize])

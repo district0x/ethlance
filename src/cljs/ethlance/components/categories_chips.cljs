@@ -16,7 +16,8 @@
      (when (< category-id (count constants/categories))
        [ui/chip
         {:key category-id
-         :style styles/chip-in-list}
+         :style styles/chip-in-list
+         :background-color styles/categories-chip-color}
         (constants/categories category-id)]))])
 
 

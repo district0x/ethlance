@@ -1,14 +1,13 @@
 (ns ethlance.pages.freelancer-invoices-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.icons :as icons]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
-    [re-frame.core :refer [subscribe dispatch]]
-    ))
+    [re-frame.core :refer [subscribe dispatch]]))
 
 (defn invoices-stats [{:keys [:freelancer/total-earned :freelancer/total-invoiced]}]
   [paper
@@ -26,7 +25,7 @@
        [ui/raised-button
         {:primary true
          :label "New Invoice"
-         :icon (icons/content-add)
+         :icon (icons/plus)
          :href (u/path-for :invoice/create)}]]]]]])
 
 (defn freelancer-pending-invoices [{:keys [:user/id]}]

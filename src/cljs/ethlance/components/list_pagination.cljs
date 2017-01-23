@@ -1,6 +1,5 @@
 (ns ethlance.components.list-pagination
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.pagination :refer [pagination]]
     [ethlance.styles :as styles]

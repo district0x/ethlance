@@ -4,7 +4,6 @@
     [camel-snake-kebab.core :as cs :include-macros true]
     [camel-snake-kebab.extras :refer [transform-keys]]
     [cemerick.url :as url]
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [cljs-time.coerce :refer [to-date-time to-long to-local-date-time]]
     [cljs-time.core :as t :refer [date-time to-default-time-zone]]

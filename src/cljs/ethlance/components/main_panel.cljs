@@ -2,7 +2,7 @@
   (:require
     [cljsjs.material-ui-chip-input]
     [cljs-react-material-ui.core :refer [get-mui-theme]]
-    [cljs-react-material-ui.icons :as icons]
+    [ethlance.components.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
     [ethlance.pages.contract-invoices-page :refer [contract-invoices-page]]
@@ -53,23 +53,23 @@
    :search/jobs search-jobs-page})
 
 (def search-nav-items
-  [["Find Work" :search/jobs (icons/action-work)]
-   ["Find People" :search/freelancers (icons/social-people)]])
+  [["Find Work" :search/jobs (icons/magnify)]
+   ["Find Freelancers" :search/freelancers (icons/account-search)]])
 
 (def nav-items-freelancers
-  [["My Contracts" :freelancer/contracts (icons/hardware-laptop-mac)]
-   ["My Invoices" :freelancer/invoices (icons/action-assignment)]])
+  [["My Contracts" :freelancer/contracts (icons/file-document)]
+   ["My Invoices" :freelancer/invoices (icons/clipboard-text)]])
 
 (def nav-items-employer
-  [["My Jobs" :employer/jobs (icons/hardware-laptop-mac)]
-   ["Invoices" :employer/invoices (icons/action-assignment)]])
+  [["My Jobs" :employer/jobs (icons/work)]
+   ["Invoices" :employer/invoices (icons/clipboard-text)]])
 
 (def nav-items-registered
-  [["My Profile" :user/edit (icons/social-person)]])
+  [["My Profile" :user/edit (icons/account)]])
 
 (def nav-items-unregistered
-  [["Become Freelancer" :freelancer/create (icons/social-person-add)]
-   ["Become Employer" :employer/create (icons/social-person-add)]])
+  [["Become Freelancer" :freelancer/create (icons/account-plus)]
+   ["Become Employer" :employer/create (icons/account-plus)]])
 
 (defn create-menu-items [items]
   (for [[label handler icon query-string] items]
@@ -79,14 +79,6 @@
       :value (u/ns+name handler)
       :href (str (u/path-for handler) query-string)
       :key handler}]))
-
-#_(defn search-menu-item [{:keys [:form-key :primary-text :handler :icon]}]
-    [ui/list-item
-     {:primary-text primary-text
-      :left-icon icon
-      :value (u/ns+name handler)
-      :href (str (u/path-for handler) @(subscribe [:location/form-query-string form-key]))
-      :key form-key}])
 
 (defn my-addresses-select-field []
   (let [my-addresses (subscribe [:db/my-addresses])
@@ -131,44 +123,61 @@
   (let [active-address-balance (subscribe [:db/active-address-balance])
         active-user (subscribe [:db/active-user])
         my-users-loading? (subscribe [:db/my-users-loading?])
-        active-address-registered? (subscribe [:db/active-address-registered?])]
+        active-address-registered? (subscribe [:db/active-address-registered?])
+        connection-error? (subscribe [:blockchain/connection-error?])
+        my-addresses (subscribe [:db/my-addresses])]
     (fn []
-      [row-plain
-       {:middle "xs"
-        :end "xs"}
-       (when (or @my-users-loading?
-                 (and (not @active-user)
-                      @active-address-registered?))
-         [row-plain
-          {:middle "xs"
-           :style styles/app-bar-user}
-          [ui/circular-progress
-           {:size 30
-            :color "#FFF"
-            :thickness 2}]])
-       (when @active-user
-         [row-plain
-          {:middle "xs"
-           :style styles/app-bar-user}
-          [user-anchor
-           {:user @active-user}
-           [:h3.bolder {:style styles/app-bar-user}
-            (u/first-word (:user/name @active-user))]]
-          [user-anchor
-           {:user @active-user}
-           [ui/avatar
-            {:size 35
-             :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))
-             :style {:margin-top 5}}]]])
-       (when @active-address-balance
-         [:h2.bolder {:style styles/app-bar-balance}
-          [currency @active-address-balance]])
-       [my-addresses-select-field]
-       [currency-select-field]])))
+      (if-not @connection-error?
+        [row-plain
+         {:middle "xs"
+          :end "xs"}
+         (when (and (or @my-users-loading?
+                        (and (not @active-user)
+                             @active-address-registered?)))
+           [row-plain
+            {:middle "xs"
+             :style styles/app-bar-user}
+            [ui/circular-progress
+             {:size 30
+              :color "#FFF"
+              :thickness 2}]])
+         (when @active-user
+           [row-plain
+            {:middle "xs"
+             :style styles/app-bar-user}
+            [user-anchor
+             {:user @active-user}
+             [:h3.bolder {:style styles/app-bar-user}
+              (u/first-word (:user/name @active-user))]]
+            [user-anchor
+             {:user @active-user}
+             [ui/avatar
+              {:size 35
+               :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))
+               :style {:margin-top 5}}]]])
+         (when (and (seq @my-addresses)
+                    @active-address-balance)
+           [:h2.bolder {:style styles/app-bar-balance}
+            [currency @active-address-balance]])
+         (if (or (seq @my-addresses) @my-users-loading?)
+           [my-addresses-select-field]
+           [misc/how-it-works-app-bar-link
+            {:style {:margin-top 0}}
+            "No accounts connected. How it works?"])
+         [currency-select-field]]
+        [row-plain
+         {:middle "xs"
+          :end "xs"}
+         [misc/how-it-works-app-bar-link "Can't connect to a blockchain. How it works?"]]))))
 
 (defn contracts-not-found-page []
   [centered-rows
-   [:h3 "Looks like we couldn't find Ethlance smart contracts. Are you sure you are connected to Ethereum Mainnet?"]])
+   [:h3 "Looks like we couldn't find Ethlance smart contracts. Are you sure you are connected to Ethereum Mainnet?"]
+   [ui/raised-button
+    {:style styles/margin-top-gutter
+     :primary true
+     :href (u/path-for :how-it-works)
+     :label "How it works?"}]])
 
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])

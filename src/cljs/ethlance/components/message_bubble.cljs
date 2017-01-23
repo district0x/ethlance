@@ -2,7 +2,6 @@
   (:require
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.components.profile-picture :refer [profile-picture]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]

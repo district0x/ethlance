@@ -174,7 +174,9 @@
     :contract/invoices-count
     :contract/invoices
     :contract/total-invoiced
-    :contract/total-paid})
+    :contract/total-paid
+    :contract/employer-feedback-rating
+    :contract/freelancer-feedback-rating})
 
 (def invoice-editable-fields
   #{:invoice/status})

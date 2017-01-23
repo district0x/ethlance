@@ -1,6 +1,5 @@
 (ns ethlance.components.show-more-pagination
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.components.pagination :refer [pagination]]
@@ -21,7 +20,7 @@
            {:style styles/full-width
             :center "xs"}
            [ui/flat-button
-            {:primary true
+            {:secondary true
              :label "Show more"
              :on-touch-tap (fn []
                              (swap! load-offset + (dec limit))

@@ -1,13 +1,11 @@
 (ns ethlance.components.feedback-list
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.message-bubble :refer [message-bubble]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a]]
     [ethlance.components.show-more-pagination :refer [show-more-pagination]]
     [ethlance.components.star-rating :refer [star-rating]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
     [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -31,7 +29,7 @@
 
 (defn feedback-list [{:keys [:list-subscribe]}]
   (let [list (subscribe list-subscribe)]
-    (fn [{:keys [title pagination-props initial-dispatch]}]
+    (fn [{:keys [:title :initial-dispatch :list-db-path :all-ids-subscribe]}]
       (let [{:keys [:loading? :items :offset :limit :show-more-limit :initial-limit :lines-in-message]
              :or {lines-in-message 5}} @list
             items (remove-without-feedback items)]
@@ -88,8 +86,8 @@
                {:center "xs"}
                "No feedback left yet"]))
           [show-more-pagination
-           {:all-ids-subscribe [:list/ids :list/job-feedbacks]
-            :list-db-path [:list/job-feedbacks]
+           {:all-ids-subscribe all-ids-subscribe
+            :list-db-path list-db-path
             :load-dispatch [:contract.db/load-contracts ethlance-db/feedback-schema]
             :load-per 1
             :offset offset

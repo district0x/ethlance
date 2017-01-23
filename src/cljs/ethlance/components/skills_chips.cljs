@@ -27,7 +27,8 @@
                [ui/chip
                 (r/merge-props
                   {:key skill-id
-                   :style styles/chip-in-list}
+                   :style styles/chip-in-list
+                   :background-color styles/skills-chip-color}
                   (when on-touch-tap
                     {:on-touch-tap #(on-touch-tap skill-id skill-name)}))
                 skill-name]))))
@@ -37,5 +38,6 @@
          [ui/chip
           {:key :more
            :style styles/chip-in-list
+           :background-color styles/skills-chip-color
            :on-touch-tap #(reset! show-all? true)}
           [:b (str "+" (- (count selected-skills) max-count))]])])))

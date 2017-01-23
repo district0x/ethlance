@@ -1,19 +1,17 @@
 (ns ethlance.components.misc
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [cljs-web3.core :as web3]
-    [ethlance.components.list-pagination :refer [list-pagination]]
-    [ethlance.components.truncated-text :refer [truncated-text]]
+    [ethlance.components.icons :as icons]
     [ethlance.components.linkify :refer [linkify]]
+    [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [medley.core :as medley]
     [re-frame.core :refer [subscribe dispatch dispatch-sync]]
     [reagent.core :as r]
-    [reagent.impl.template :as tmpl]
-    ))
+    [reagent.impl.template :as tmpl]))
 
 (def col (r/adapt-react-class js/ReactFlexboxGrid.Col))
 (def row (r/adapt-react-class js/ReactFlexboxGrid.Row))
@@ -29,13 +27,18 @@
 (def row-plain (u/create-with-default-props row {:style styles/row-no-margin}))
 
 (defn paper []
-  (let [xs-width (subscribe [:window/xs-width?])]
+  (let [xs-width (subscribe [:window/xs-width?])
+        connection-error? (subscribe [:blockchain/connection-error?])]
     (fn [props & children]
       (let [[props children] (u/parse-props-children props children)]
         [ui/paper
          (dissoc props :loading? :inner-style)
          [ui/linear-progress {:mode :indeterminate
-                              :style {:visibility (if (:loading? props) :visible :hidden)}}]
+                              :style {:visibility (if (and (:loading? props)
+                                                           (not @connection-error?))
+                                                    :visible
+                                                    :hidden)}
+                              :color styles/accent1-color}]
          (into [] (concat [:div {:style (merge (if @xs-width styles/paper-secton-thin
                                                              styles/paper-secton)
                                                (:inner-style props))}]
@@ -57,7 +60,7 @@
                      :margin-right styles/desktop-gutter
                      :z-index 99}}
             props)
-          (icons/content-filter-list)]]))))
+          (icons/filter-variant)]]))))
 
 (defn search-layout []
   (let [xs-sm-width? (subscribe [:window/xs-sm-width?])]
@@ -88,7 +91,7 @@
    (r/merge-props
      {:middle "xs"}
      row-props)
-   (icons/maps-place {:color styles/fade-color :style styles/location-icon-small})
+   (icons/map-marker {:color styles/fade-color :style styles/location-icon-small})
    (str (u/country-name country)
         (when (and (u/united-states? country)
                    (pos? state))
@@ -230,7 +233,7 @@
    [ui/raised-button
     (merge
       {:label "Send"
-       :icon (icons/content-send)
+       :icon (icons/send)
        :label-position :before
        :primary true}
       props)]])
@@ -400,10 +403,6 @@
          {:style (if @xs-sm-width? styles/no-box-shadow {})}]
         children))))
 
-(defn search-result-change-page [new-offset]
-  (dispatch [:form.search/set-value :search/offset new-offset])
-  (dispatch [:window/scroll-to-top]))
-
 (defn search-results [{:keys [:items-count :loading? :offset :limit :no-items-found-text :no-more-items-text
                               :next-button-text :prev-button-text :on-page-change]} body]
   [paper-thin
@@ -421,14 +420,14 @@
       [ui/flat-button
        {:secondary true
         :label prev-button-text
-        :icon (icons/navigation-chevron-left)
+        :icon (icons/chevron-left)
         :on-touch-tap #(on-page-change (- offset limit))}])
     (when (= items-count limit)
       [ui/flat-button
        {:secondary true
         :label next-button-text
         :label-position :before
-        :icon (icons/navigation-chevron-right)
+        :icon (icons/chevron-right)
         :on-touch-tap #(on-page-change (+ offset limit))}])]])
 
 (defn logo []
@@ -452,7 +451,19 @@
    {:label "Add more skills"
     :primary true
     :href (u/path-for :skills/create)
-    :icon (icons/content-add)}])
+    :icon (icons/plus)}])
 
 (def privacy-warning-hint
   "Note, all communication on Ethlance is unencrypted on public blockchain. Please don't reveal any private information.")
+
+(defn how-it-works-app-bar-link [props & children]
+  (let [[props children] (u/parse-props-children props children)]
+    [:div
+     (r/merge-props
+       {:style {:margin-right styles/desktop-gutter :margin-top 10}}
+       props)
+     [:a
+      {:href (u/path-for :how-it-works)}
+      [:h3.bolder
+       {:style styles/white-text}
+       (or (first children) "How it works?")]]]))

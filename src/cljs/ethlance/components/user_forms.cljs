@@ -1,14 +1,14 @@
 (ns ethlance.components.user-forms
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.chip-input :refer [chip-input]]
     [ethlance.components.country-select-field :refer [country-select-field]]
-    [ethlance.components.validated-chip-input :refer [validated-chip-input]]
+    [ethlance.components.icons :as icons]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.radio-group :refer [radio-group]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.state-select-field :refer [state-select-field]]
+    [ethlance.components.validated-chip-input :refer [validated-chip-input]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
@@ -57,7 +57,7 @@
             :href "http://gravatar.com/"
             :target :_blank
             }
-           (icons/action-help-outline {:color styles/fade-color})]]
+           (icons/help-circle-outline {:color styles/fade-color})]]
          [row-plain
           {:style styles/margin-top-gutter}
           [ui/avatar
@@ -78,11 +78,11 @@
            :form-key form-key
            :field-key :user/languages
            :min-length-key :min-user-languages
-           :max-length-key :max-user-languages}]
+           :max-length-key :max-user-languages
+           :chip-backgroud-color styles/languages-chip-color}]
          (when show-save-button?
            [misc/send-button
             {:label "Save User"
-             :icon (icons/content-save)
              :disabled (or loading? (boolean (seq errors)))
              :on-touch-tap #(dispatch [:contract.user/set-user user])}])]))))
 
@@ -100,7 +100,6 @@
        (when show-save-button?
          [misc/send-button
           {:label "Save Employer"
-           :icon (icons/content-save)
            :disabled (or loading? (boolean (seq errors)))
            :on-touch-tap #(dispatch [:contract.user/set-employer user])}])]
       [not-open-content
@@ -135,7 +134,8 @@
          :form-key form-key
          :field-key :freelancer/categories
          :min-length-key :min-freelancer-categories
-         :max-length-key :max-freelancer-categories}]
+         :max-length-key :max-freelancer-categories
+         :chip-backgroud-color styles/categories-chip-color}]
        [skills-chip-input
         {:value skills
          :hint-text "Type skills you have"
@@ -162,7 +162,6 @@
        (when show-save-button?
          [misc/send-button
           {:label "Save Freelancer"
-           :icon (icons/content-save)
            :disabled (or loading? (boolean (seq errors)))
            :on-touch-tap #(dispatch [:contract.user/set-freelancer user])}])]
       [not-open-content

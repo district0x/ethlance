@@ -2,8 +2,10 @@
   (:require [cljs-react-material-ui.core :refer [color get-mui-theme]]))
 
 (def primary1-color (color #_:teal500 #_:blue600 #_:light-blue600 :indigo500))
+(def accent1-color (color :pinkA200))
 
-(def palette {:primary1-color primary1-color})
+(def palette {:primary1-color primary1-color
+              :accent1-color accent1-color})
 
 (def mui-theme (get-mui-theme {:palette palette
                                :font-family "Open Sans, sans-serif"}))
@@ -11,6 +13,12 @@
 (def desktop-gutter (aget js/MaterialUIStyles "spacing" "desktopGutter"))
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
 (def desktop-gutter-mini (aget js/MaterialUIStyles "spacing" "desktopGutterMini"))
+
+(defn emphasize [clr]
+  (js/MaterialUIUtils.colorManipulator.emphasize clr))
+
+(defn lighten [clr coef]
+  (js/MaterialUIUtils.colorManipulator.lighten clr coef))
 
 (def app-bar-left
   {:background-color primary1-color})
@@ -125,7 +133,7 @@
     {:text-align :right}))
 
 (def star-rating
-  {:color primary1-color})
+  {:color (color :amberA400) #_ primary1-color})
 
 (def star-rating-number
   {:color primary1-color
@@ -143,7 +151,7 @@
 (def feedback-style-rating
   {:margin-bottom 3})
 
-(def primary-text
+(def search-result-headline
   {:color primary1-color
    :font-weight 500})
 
@@ -282,7 +290,7 @@
   {1 (color :deep-purple300)
    2 pending-color
    3 success-color
-   4 (color :red800)})                                      ;; change this
+   4 (color :red800)})
 
 (def invoice-status-colors
   {1 pending-color
@@ -295,6 +303,15 @@
 
 (def budget-chip-color
   (color :brown500))
+
+(def skills-chip-color
+  (color :deep-purple50))
+
+(def languages-chip-color
+  (color :green100))
+
+(def categories-chip-color
+  (color :orange100))
 
 (def line
   {:line-height "1.3em"})
@@ -319,7 +336,7 @@
 
 (def message-bubble-right
   (merge message-bubble
-         {:background-color "#407fff"
+         {:background-color primary1-color
           :color "#FFF"}))
 
 (def message-bubble-left
@@ -364,21 +381,10 @@
   {:margin-top 64
    :width "100%"
    :height "700px"
-   ;:height "80%"
-   ;:background-image "url(./../images/landing-hero.jpg)"
-   ;:background-image "url(./../images/bg1.jpg)"
-   :background-color primary1-color #_(color :indigo500)
-   ;:background-repeat "no-repeat"
-   ;:background-position "center"
-   ;:background-size "cover"
-   ;:max-height "none"
-   ;:transition "height .3s ease-out"
-   ;:margin-top (* 2 desktop-gutter)
-   })
+   :background-color primary1-color})
 
 (def landing-banner
   {:width "860px"
-   ;:height "150px"
    :margin-bottom "-60px"
    :padding desktop-gutter-less
    :z-index 99})
@@ -389,9 +395,6 @@
    ;:margin-left 10
    ;:width "100%"
    :text-align "center"})
-
-(def landing-menu-icon
-  {:max-height "110px"})
 
 (def landing-menu-icon-smaller
   {:max-height "90px"})

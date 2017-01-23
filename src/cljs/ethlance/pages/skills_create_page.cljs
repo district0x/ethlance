@@ -1,7 +1,6 @@
 (ns ethlance.pages.skills-create-page
   (:require
     [cljs-react-material-ui.chip-input.reagent :as material-ui-chip-input]
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [clojure.set :as set]
     [clojure.string :as string]

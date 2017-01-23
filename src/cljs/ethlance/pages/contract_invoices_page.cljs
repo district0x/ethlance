@@ -1,13 +1,13 @@
 (ns ethlance.pages.contract-invoices-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
+    [ethlance.components.icons :as icons]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
-    [re-frame.core :refer [subscribe dispatch]]
-    [ethlance.utils :as u]))
+    [ethlance.utils :as u]
+    [re-frame.core :refer [subscribe dispatch]]))
 
 
 (defn contract-invoices-header [{:keys [:contract/job :contract/freelancer]}]
@@ -50,4 +50,4 @@
            {:primary true
             :href (u/path-for :contract/detail :contract/id @contract-id)
             :label "Go to Proposal"
-            :icon (icons/navigation-chevron-left)}]]]))))
+            :icon (icons/chevron-left)}]]]))))

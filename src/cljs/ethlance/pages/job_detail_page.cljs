@@ -1,9 +1,9 @@
 (ns ethlance.pages.job-detail-page
   (:require
-    [cljs-react-material-ui.icons :as icons]
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.contracts-table :refer [contracts-table]]
     [ethlance.components.feedback-list :refer [feedback-list]]
+    [ethlance.components.icons :as icons]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]
@@ -14,8 +14,7 @@
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    ))
+    [reagent.core :as r]))
 
 
 (defn employer-details []
@@ -92,7 +91,7 @@
          :primary true
          :on-touch-tap #(reset! form-open? true)
          :style styles/detail-action-button
-         :icon (icons/content-create)}])
+         :icon (icons/pencil)}])
      (when (= status 1)
        [ui/raised-button
         {:label "You were invited!"
@@ -106,7 +105,7 @@
          :href (u/path-for :contract/detail :contract/id id)
          :style styles/detail-action-button
          :primary true
-         :icon (icons/content-create)}])]))
+         :icon (icons/pencil)}])]))
 
 (defn job-proposal-form []
   (let [form-open? (r/atom false)
@@ -235,6 +234,8 @@
     (fn []
       [feedback-list
        {:list-subscribe [:list/contracts :list/job-feedbacks {:loading-till-freelancer? true}]
+        :list-db-path [:list/job-feedbacks]
+        :all-ids-subscribe [:list/ids :list/job-feedbacks]
         :initial-dispatch [:list/load-ids {:list-key :list/job-feedbacks
                                            :fn-key :ethlance-views/get-job-contracts
                                            :load-dispatch-key :contract.db/load-contracts
