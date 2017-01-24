@@ -129,6 +129,9 @@
         (* on-load-seed a)
         ))
 
+(comment
+  (dispatch [:blockchain/unlock-account "0x4C155E9C387e3ad41fAfB3f4ea5B959F65A88C5f" "m"]))
+
 (reg-fx
   :location/set-hash
   (fn [[route route-params]]
@@ -173,11 +176,11 @@
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
     (let [provides-web3? (boolean (aget js/window "web3"))
-          web3 (if provides-web3? (aget js/window "web3") (web3/create-web3 "http://192.168.0.16:8545/"))
+          web3 (if provides-web3? (aget js/window "web3") (web3/create-web3 (:node-url default-db)))
           {:keys [:active-page]} default-db
           db (as-> default-db db
                    (merge-data-from-query db active-page (u/current-url-query))
-                   #_ (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
+                   (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
                    (assoc db :provides-web3? provides-web3?)
                    (assoc db :web3 web3)
                    (assoc db :on-load-seed (rand-int 99999))
@@ -373,7 +376,10 @@
                      (= code-type :abi)
                      (assoc-in [:eth/contracts contract-key :instance]
                                (when-let [address (:address (get-contract db contract-key))]
-                                 (web3-eth/contract-at (:web3 db) code address))))]
+                                 (web3-eth/contract-at (:web3 db) code address)))
+
+                     (not (:address (get-contract db contract-key)))
+                     (assoc :contracts-not-found? true))]
         (merge
           {:db new-db}
           (when (all-contracts-loaded? new-db)
@@ -383,7 +389,8 @@
   :eth-contracts-loaded
   interceptors
   (fn [{:keys [db]}]
-    {:dispatch [:contract.views/load-skill-count]}))
+    (when-not (:contracts-not-found? db)
+      {:dispatch [:contract.views/load-skill-count]})))
 
 (reg-event-fx
   :contract.config/set-configs
@@ -401,7 +408,9 @@
                 :from active-address}
                :contract/transaction-sent
                [:contract/transaction-error :contract.config/set-configs]
-               [:contract/transaction-receipt :set-configs max-gas :generate-db false]]]}})))
+               [:contract/transaction-receipt :set-configs max-gas (if (:generate-db-on-deploy db)
+                                                                     :generate-db
+                                                                     :do-nothing) false]]]}})))
 
 (reg-event-fx
   :contract.config/get-configs
@@ -419,7 +428,7 @@
   :contract.config/get-configs-loaded
   interceptors
   (fn [{:keys [db]} [config-keys config-values]]
-    (if (seq (print.foo/look config-values))
+    (if (seq config-values)
       {:db (update db :eth/config merge (zipmap config-keys (u/big-nums->nums config-values)))}
       {:db (assoc db :contracts-not-found? true)})))
 
@@ -455,9 +464,7 @@
                  [:contract/transaction-error :contract.db/add-allowed-contracts]
                  (if (contains? (set contract-keys) :ethlance-config)
                    :contract.config/set-configs
-                   :do-nothing)
-                 ;[:contract/transaction-receipt max-gas false false]
-                 ]]}}))))
+                   :do-nothing)]]}}))))
 
 (reg-event-fx
   :contract.views/my-new-user-id-loaded
@@ -649,14 +656,15 @@
   interceptors
   (fn [{:keys [db]} [addresses]]
     (let [addrs (or addresses (:my-addresses db))]
-      {:dispatch [:list/load-ids {:list-key :list/my-users
-                                  :fn-key :ethlance-views/get-users
-                                  :load-dispatch-key :contract.db/load-users
-                                  :load-dispatch-opts {:dispatch-after-loaded [:my-users-loaded]}
-                                  :schema (dissoc ethlance-db/account-schema
-                                                  :freelancer/description
-                                                  :employer/description)
-                                  :args {:user/addresses addrs}}]})))
+      (when-not (:contracts-not-found? db)
+        {:dispatch [:list/load-ids {:list-key :list/my-users
+                                    :fn-key :ethlance-views/get-users
+                                    :load-dispatch-key :contract.db/load-users
+                                    :load-dispatch-opts {:dispatch-after-loaded [:my-users-loaded]}
+                                    :schema (dissoc ethlance-db/account-schema
+                                                    :freelancer/description
+                                                    :employer/description)
+                                    :args {:user/addresses addrs}}]}))))
 
 (reg-event-fx
   :my-users-loaded
@@ -1402,6 +1410,24 @@
     (apply console :error errors)
     {:db db
      :ga/event ["error" (first errors) (str (rest errors))]}))
+
+
+(reg-event-fx
+  :blockchain/unlock-account
+  interceptors
+  (fn [{:keys [db]} [address password]]
+    {:web3-fx.blockchain/fns
+     {:web3 (:web3 db)
+      :fns [[web3-personal/unlock-account address password 999999
+             :blockchain/account-unlocked
+             [:log-error :blockchain/unlock-account]]]}}))
+
+(reg-event-fx
+  :blockchain/account-unlocked
+  interceptors
+  (fn [{:keys [db]}]
+    (console :log "Account was unlocked.")
+    {}))
 
 (comment
   (dispatch [:initialize])

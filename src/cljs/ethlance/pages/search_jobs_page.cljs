@@ -161,6 +161,7 @@
                                      [misc/currency budget]]])]
             [skills-chips
              {:selected-skills skills
+              :always-show-all? true
               :on-touch-tap (fn [skill-id]
                               (when-not (contains? (set @selected-skills) skill-id)
                                 (dispatch [:form.search/set-value :search/skills

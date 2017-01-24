@@ -435,7 +435,7 @@
 
 (defn get-entities-args [ids fields]
   (let [fields (remove-uint-coll-fields fields)
-        records (flatten (for [id (set ids)]
+        records (flatten (for [id ids]
                            (for [field fields]
                              (u/sha3 field id))))
         types (replace-special-types (map schema fields))]
@@ -487,7 +487,9 @@
   :ethlance-db/entities
   (fn [{:keys [:instance :ids :fields :on-success :on-error] :as config}]
     (s/assert ::entities config)
-    (let [ids (distinct (filter pos? ids))]
+    (let [ids (->> ids
+                (filter pos?)
+                distinct)]
       (if (and (seq ids) (seq fields))
         (get-entities ids
                       fields

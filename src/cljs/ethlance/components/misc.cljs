@@ -437,7 +437,8 @@
           :src "../images/ethlance-logo-white.svg"}]])
 
 (defn currency [value opts]
-  [:span @(subscribe [:selected-currency/converted-value value opts])])
+  [:span {:title (str (u/big-num->num value) "Ξ")}
+   @(subscribe [:selected-currency/converted-value value opts])])
 
 (defn rate [rate payment-type opts]
   (when rate
@@ -467,3 +468,8 @@
       [:h3.bolder
        {:style styles/white-text}
        (or (first children) "How it works?")]]]))
+
+(defn- link [href text]
+  [:a {:href href
+       :target :_blank}
+   text])

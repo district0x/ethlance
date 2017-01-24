@@ -7,6 +7,7 @@
     [ethlance.components.icons :as icons]
     [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows currency]]
     [ethlance.constants :as constants]
+    [ethlance.pages.about-page :refer [about-page]]
     [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
     [ethlance.pages.contract-invoices-page :refer [contract-invoices-page]]
     [ethlance.pages.employer-create-page :refer [employer-create-page]]
@@ -34,7 +35,8 @@
     ))
 
 (def route->component
-  {:contract/detail contract-detail-page
+  {:about about-page
+   :contract/detail contract-detail-page
    :contract/invoices contract-invoices-page
    :employer/create employer-create-page
    :employer/detail employer-detail-page
@@ -50,9 +52,9 @@
    :invoice/detail invoice-detail-page
    :job/create job-create-page
    :job/detail job-detail-page
-   :user/edit user-edit-page
    :search/freelancers search-freelancers-page
    :skills/create skills-create-page
+   :user/edit user-edit-page
    :search/jobs search-jobs-page})
 
 (def search-nav-items
@@ -128,7 +130,8 @@
         my-users-loading? (subscribe [:db/my-users-loading?])
         active-address-registered? (subscribe [:db/active-address-registered?])
         connection-error? (subscribe [:blockchain/connection-error?])
-        my-addresses (subscribe [:db/my-addresses])]
+        my-addresses (subscribe [:db/my-addresses])
+        contracts-not-found? (subscribe [:db/contracts-not-found?])]
     (fn []
       (if-not @connection-error?
         [row-plain
@@ -136,7 +139,8 @@
           :end "xs"}
          (when (and (or @my-users-loading?
                         (and (not @active-user)
-                             @active-address-registered?)))
+                             @active-address-registered?))
+                    (not @contracts-not-found?))
            [row-plain
             {:middle "xs"
              :style styles/app-bar-user}

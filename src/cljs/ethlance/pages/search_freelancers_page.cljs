@@ -147,6 +147,7 @@
                :row-props {:style styles/freelancer-info-item}}]]
             [skills-chips
              {:selected-skills skills
+              :max-count 7
               :on-touch-tap (fn [skill-id]
                               (when-not (contains? (set selected-skills) skill-id)
                                 (dispatch [:form.search/set-value :search/skills

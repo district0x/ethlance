@@ -1,13 +1,15 @@
 (ns ethlance.subs
   (:require
+    [cemerick.url :as url]
     [clojure.data :as data]
+    [ethlance.constants :as constants]
     [ethlance.db :refer [default-db]]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.utils :as u]
+    [goog.string :as gstring]
+    [goog.string.format]
     [medley.core :as medley]
-    [re-frame.core :refer [reg-sub]]
-    [cemerick.url :as url]
-    [ethlance.constants :as constants]))
+    [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
   :db
@@ -175,6 +177,12 @@
   :db/snackbar
   (fn [db]
     (:snackbar db)))
+
+(reg-sub
+  :eth/contracts
+  (fn [db]
+    (->> (:eth/contracts db)
+      (medley/map-vals #(assoc % :github-page (gstring/format u/github-contracts-path (u/uncapitalize (:name %))))))))
 
 (reg-sub
   :form/search-jobs

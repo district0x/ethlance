@@ -223,15 +223,18 @@
 (defn freelancer-detail-page []
   (let [user-id (subscribe [:user/route-user-id])
         user (subscribe [:user/detail])]
-    (dispatch [:after-eth-contracts-loaded
-               [:contract.db/load-users (merge ethlance-db/user-schema
-                                               ethlance-db/freelancer-schema
-                                               ethlance-db/user-balance-schema) [@user-id]]])
     (fn []
-      [center-layout
-       [freelancer-detail @user]
-       [invite-freelancer-form @user]
-       (when (:user/freelancer? @user)
-         [:div
-          [freelancer-contracts @user]
-          [freelancer-feedback @user]])])))
+      [misc/call-on-change
+       {:load-on-mount? true
+        :args @user-id
+        :on-change #(dispatch [:after-eth-contracts-loaded
+                               [:contract.db/load-users (merge ethlance-db/user-schema
+                                                               ethlance-db/freelancer-schema
+                                                               ethlance-db/user-balance-schema) [@user-id]]])}
+       [center-layout
+        [freelancer-detail @user]
+        [invite-freelancer-form @user]
+        (when (:user/freelancer? @user)
+          [:div
+           [freelancer-contracts @user]
+           [freelancer-feedback @user]])]])))

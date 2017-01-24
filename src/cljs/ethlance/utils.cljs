@@ -399,7 +399,7 @@
 (defn format-currency [value currency & [{:keys [:full-length?]}]]
   (let [currency (keyword currency)
         value (or value 0)
-        value (if (and full-length? (= currency :eth)) value (gstring/format "%.3f" value))]
+        value (if (and full-length? (= currency :eth)) value (gstring/format "%.3f" (big-num->num value)))]
     (case currency
       :usd (str (constants/currencies :usd) value)
       (str value (constants/currencies currency)))))
@@ -413,3 +413,8 @@
 
 (defn split-include-empty [s re]
   (butlast (string/split (str s " ") re)))
+
+(def github-contracts-path "https://github.com/madvas/ethlance/blob/master/resources/public/contracts/src/%s.sol")
+
+(defn uncapitalize [s]
+  (str (string/lower-case (first s)) (subs s 1)))

@@ -195,7 +195,7 @@
     [ui/subheader {:style styles/footer-subheader}
      "LEARN MORE"]
     [footer-link :about "About us"]
-    [footer-link :about "How it works?"]]
+    [footer-link :how-it-works "How it works?"]]
    [col
     {:xs 12 :sm 4}
     [ui/subheader {:style styles/footer-subheader}

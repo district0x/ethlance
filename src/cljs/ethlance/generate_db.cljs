@@ -38,14 +38,14 @@
 
 (defn gen-freelancer []
   {:user/name (rand-text (cfg :min-user-name) (cfg :max-user-name))
-   :user/gravatar "a"
+   :user/gravatar (u/md5 (u/rand-str 10))
    :user/country (rand-id (count constants/countries))
    :user/state (rand-id (count constants/united-states))
    :user/languages (set (rand-uint-coll (cfg :max-user-languages) (count constants/languages)))
    :freelancer/available? true
    :freelancer/job-title (rand-text (cfg :min-freelancer-job-title) (cfg :max-freelancer-job-title))
    :freelancer/hourly-rate (rand-int 100)
-   :freelancer/categories (set (rand-uint-coll (cfg :max-freelancer-categories) (count constants/categories)))
+   :freelancer/categories (set (rand-uint-coll (cfg :max-freelancer-categories) (dec (count constants/categories))))
    :freelancer/skills (set (rand-uint-coll (cfg :max-freelancer-skills) 29))
    :freelancer/description (rand-text (cfg :max-user-description))})
 
