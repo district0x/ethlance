@@ -26,6 +26,30 @@
     [clojure.set :as set])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
+(defn uint8? [x]
+  (and x (not (neg? x))))
+
+(defn uint? [x]
+  (and x (not (neg? x))))
+
+(defn address? [x]
+  (string? x))
+
+(defn bytes32? [x]
+  (string? x))
+
+(defn uint-coll? [x]
+  (and x (every? uint? x)))
+
+(defn date? [x]
+  (instance? goog.date.DateTime x))
+
+(defn string-or-nil? [x]
+  (or (nil? x) (string? x)))
+
+(defn date-or-nil? [x]
+  (or (nil? x) (date? x)))
+
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
 
@@ -427,3 +451,7 @@
           (if res
             res
             (recur (rest fs))))))))
+
+(defn filter-by-namespace [nmsp coll]
+  (let [nmsp (name nmsp)]
+    (filter #(= (namespace %) nmsp) coll)))

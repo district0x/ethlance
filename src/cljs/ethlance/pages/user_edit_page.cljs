@@ -1,5 +1,7 @@
 (ns ethlance.pages.user-edit-page
   (:require
+    [cljs-react-material-ui.reagent :as ui]
+    [clojure.set :as set]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.user-forms :refer [user-form freelancer-form employer-form]]
     [ethlance.ethlance-db :as ethlance-db]
@@ -7,22 +9,21 @@
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    [cljs-react-material-ui.reagent :as ui]))
+    [reagent.core :as r]))
 
-(def freelancer-schema
-  (dissoc ethlance-db/freelancer-schema
-          :freelancer/avg-rating
-          :freelancer/ratings-count
-          :freelancer/total-earned
-          :freelancer/total-invoiced))
+(def freelancer-fields
+  (set/difference ethlance-db/freelancer-entity-fields
+                  #{:freelancer/avg-rating
+                    :freelancer/ratings-count
+                    :freelancer/total-earned
+                    :freelancer/total-invoiced}))
 
-(def employer-shema
-  (dissoc ethlance-db/employer-schema
-          :employer/avg-rating
-          :employer/ratings-count
-          :employer/total-paid
-          :employer/total-invoiced))
+(def employer-fields
+  (set/difference ethlance-db/employer-entity-fields
+                  #{:employer/avg-rating
+                    :employer/ratings-count
+                    :employer/total-paid
+                    :employer/total-invoiced}))
 
 (defn user-edit-page []
   (let [set-user-form (subscribe [:form.user/set-user])
@@ -55,10 +56,10 @@
                             (dispatch [:contract.db/load-user-languages {user-id @active-user}])
                             (when employer?
                               (dispatch [:after-eth-contracts-loaded
-                                         [:contract.db/load-users employer-shema [user-id]]]))
+                                         [:contract.db/load-users employer-fields [user-id]]]))
                             (when freelancer?
                               (dispatch [:after-eth-contracts-loaded
-                                         [:contract.db/load-users freelancer-schema [user-id]]])
+                                         [:contract.db/load-users freelancer-fields [user-id]]])
                               (dispatch [:contract.db/load-freelancer-categories {user-id @active-user}])))}
               [:h2 "User Information"]
               (let [{:keys [:data :errors]} @set-user-form]

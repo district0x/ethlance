@@ -70,9 +70,11 @@
           :initial-dispatch {:list-key :list/job-proposals
                              :fn-key :ethlance-views/get-job-contracts
                              :load-dispatch-key :contract.db/load-contracts
-                             :schema (select-keys ethlance-db/contract-all-schema
-                                                  [:contract/freelancer :proposal/rate :proposal/created-on
-                                                   :invitation/created-on :contract/status])
+                             :schema #{:contract/freelancer
+                                       :proposal/rate
+                                       :proposal/created-on
+                                       :invitation/created-on
+                                       :contract/status}
                              :args {:job/id job-id :contract/status 0}}
           :all-ids-subscribe [:list/ids :list/job-proposals]
           :title "Proposals"
@@ -162,7 +164,7 @@
         [misc/call-on-change
          {:load-on-mount? true
           :args @job-id
-          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-schema [@job-id]]])}
+          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-entity-fields [@job-id]]])}
          [paper
           {:loading? (or (empty? (:user/name employer)) (:loading @set-hiring-done-form))
            :style styles/paper-section-main}
@@ -228,7 +230,7 @@
         :initial-dispatch {:list-key :list/job-invoices
                            :fn-key :ethlance-views/get-job-invoices
                            :load-dispatch-key :contract.db/load-invoices
-                           :schema ethlance-db/invoices-table-schema
+                           :schema ethlance-db/invoices-table-entity-fields
                            :args {:job/id @job-id :invoice/status 0}}
         :all-ids-subscribe [:list/ids :list/job-invoices]}])))
 
@@ -242,7 +244,7 @@
         :initial-dispatch [:list/load-ids {:list-key :list/job-feedbacks
                                            :fn-key :ethlance-views/get-job-contracts
                                            :load-dispatch-key :contract.db/load-contracts
-                                           :schema ethlance-db/feedback-schema
+                                           :schema ethlance-db/feedback-entity-fields
                                            :args {:job/id @job-id :contract/status 4}}]}])))
 
 (defn job-detail-page []

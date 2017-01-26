@@ -20,8 +20,7 @@
         :initial-dispatch {:list-key :list/freelancer-invitations
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema (select-keys ethlance-db/proposal+invitation-schema
-                                                [:contract/job :invitation/created-on])
+                           :schema #{:contract/job :invitation/created-on}
                            :args {:user/id id :contract/status 1 :job/status 1}}
         :all-ids-subscribe [:list/ids :list/freelancer-invitations]
         :title "Invitations"
@@ -36,8 +35,7 @@
     :initial-dispatch {:list-key :list/freelancer-proposals
                        :fn-key :ethlance-views/get-freelancer-contracts
                        :load-dispatch-key :contract.db/load-contracts
-                       :schema (select-keys ethlance-db/proposal+invitation-schema
-                                            [:contract/job :proposal/created-on :proposal/rate])
+                       :schema #{:contract/job :proposal/created-on :proposal/rate}
                        :args {:user/id id :contract/status 2 :job/status 1}}
     :all-ids-subscribe [:list/ids :list/freelancer-proposals]
     :title "Pending Proposals"
@@ -55,8 +53,7 @@
         :initial-dispatch {:list-key :list/freelancer-contracts-open
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema (select-keys ethlance-db/contract-all-schema
-                                                [:contract/job :contract/created-on :proposal/rate :contract/total-paid])
+                           :schema #{:contract/job :contract/created-on :proposal/rate :contract/total-paid}
                            :args {:user/id id :contract/status 3 :job/status 0}}
         :all-ids-subscribe [:list/ids :list/freelancer-contracts-open]
         :title "Active Contracts"
@@ -75,9 +72,11 @@
         :initial-dispatch {:list-key :list/freelancer-contracts-done
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema (select-keys ethlance-db/contract-all-schema
-                                                [:contract/job :contract/created-on :proposal/rate :contract/total-paid
-                                                 :contract/done-on])
+                           :schema #{:contract/job
+                                     :contract/created-on
+                                     :proposal/rate
+                                     :contract/total-paid
+                                     :contract/done-on}
                            :args {:user/id id :contract/status 4 :job/status 0}}
         :all-ids-subscribe [:list/ids :list/freelancer-contracts-done]
         :title "Past Contracts"

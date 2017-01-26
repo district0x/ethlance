@@ -26,7 +26,7 @@
     :initial-dispatch {:list-key :list/employer-invoices-pending
                        :fn-key :ethlance-views/get-employer-invoices
                        :load-dispatch-key :contract.db/load-invoices
-                       :schema ethlance-db/invoices-table-schema
+                       :schema ethlance-db/invoices-table-entity-fields
                        :args {:user/id id :invoice/status 1}}
     :all-ids-subscribe [:list/ids :list/employer-invoices-pending]
     :title "Pending Invoices"
@@ -43,7 +43,7 @@
         :initial-dispatch {:list-key :list/employer-invoices-paid
                            :fn-key :ethlance-views/get-employer-invoices
                            :load-dispatch-key :contract.db/load-invoices
-                           :schema ethlance-db/invoices-table-schema
+                           :schema ethlance-db/invoices-table-entity-fields
                            :args {:user/id id :invoice/status 2}}
         :all-ids-subscribe [:list/ids :list/employer-invoices-paid]
         :title "Paid Invoices"

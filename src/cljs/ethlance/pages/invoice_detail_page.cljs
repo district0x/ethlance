@@ -62,7 +62,7 @@
          {:load-on-mount? true
           :args @invoice-id
           :on-change #(dispatch [:after-eth-contracts-loaded
-                                 [:contract.db/load-invoices ethlance-db/invoice-schema [@invoice-id]]])}
+                                 [:contract.db/load-invoices ethlance-db/invoice-entity-fields [@invoice-id]]])}
          [misc/center-layout
           [paper
            {:loading? (or (empty? job-title)

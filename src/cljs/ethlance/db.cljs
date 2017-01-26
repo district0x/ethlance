@@ -1,10 +1,11 @@
 (ns ethlance.db
   (:require [cljs-web3.core :as web3]
+            [cljs-time.core :as t]
+            [cljs.spec :as s]
+            [ethlance.constants :as constants]
             [ethlance.utils :as u]
             [re-frame.core :refer [dispatch]]
-            [cljs-time.core :as t]
-            [ethlance.constants :as constants]
-            [cljs.spec :as s]))
+            ))
 
 (s/def ::devnet? boolean?)
 (s/def ::web3 (complement nil?))
@@ -35,18 +36,233 @@
 (s/def ::my-addresses (s/coll-of string?))
 (s/def ::active-address string?)
 (s/def ::my-users-loaded? boolean?)
-(s/def :user/id int?)
+(s/def :user/id pos?)
 (s/def :address/balance u/big-num?)
 (s/def :blockchain/addresses (s/map-of string? (s/keys :opt [:user/id :address/balance])))
 (s/def :blockchain/connection-error? boolean?)
 (s/def ::conversion-rates (s/map-of keyword? number?))
 
+(s/def :user/address u/address?)
+(s/def :user/country u/uint?)
+(s/def :user/state u/uint?)
+(s/def :user/created-on u/date?)
+(s/def :user/employer? boolean?)
+(s/def :user/freelancer? boolean?)
+(s/def :user/gravatar u/bytes32?)
+(s/def :user/languages u/uint-coll?)
+(s/def :user/languages-count u/uint?)
+(s/def :user/name string?)
+(s/def :user/status u/uint8?)
+(s/def :user/balance u/big-num?)
+(s/def :freelancer/available? boolean?)
+(s/def :freelancer/avg-rating u/uint8?)
+(s/def :freelancer/categories u/uint-coll?)
+(s/def :freelancer/categories-count u/uint?)
+(s/def :freelancer/contracts u/uint-coll?)
+(s/def :freelancer/contracts-count u/uint?)
+(s/def :freelancer/description string?)
+(s/def :freelancer/hourly-rate u/big-num?)
+(s/def :freelancer/job-title u/string-or-nil?)
+(s/def :freelancer/ratings-count u/uint?)
+(s/def :freelancer/skills u/uint-coll?)
+(s/def :freelancer/skills-count u/uint?)
+(s/def :freelancer/total-earned u/big-num?)
+(s/def :freelancer/total-invoiced u/big-num?)
+(s/def :employer/avg-rating u/uint8?)
+(s/def :employer/description string?)
+(s/def :employer/jobs u/uint-coll?)
+(s/def :employer/jobs-count u/uint?)
+(s/def :employer/ratings-count u/uint?)
+(s/def :employer/total-paid u/big-num?)
+(s/def :employer/total-invoiced u/big-num?)
+
+(s/def :app/user (s/keys :opt [:user/id
+                               :user/address
+                               :user/country
+                               :user/state
+                               :user/created-on
+                               :user/employer?
+                               :user/freelancer?
+                               :user/gravatar
+                               :user/languages-coll
+                               :user/languages-count
+                               :user/name
+                               :user/status
+                               :user/balance
+                               :freelancer/available?
+                               :freelancer/avg-rating
+                               :freelancer/categories
+                               :freelancer/categories-count
+                               :freelancer/contracts
+                               :freelancer/contracts-count
+                               :freelancer/description
+                               :freelancer/hourly-rate
+                               :freelancer/job-title
+                               :freelancer/ratings-count
+                               :freelancer/skills
+                               :freelancer/skills-count
+                               :freelancer/total-earned
+                               :freelancer/total-invoiced
+                               :employer/avg-rating
+                               :employer/description
+                               :employer/jobs
+                               :employer/jobs-count
+                               :employer/ratings-count
+                               :employer/total-paid
+                               :employer/total-invoiced]))
+(s/def :app/users (s/map-of pos? :app/user))
+
+(s/def :job/id pos?)
+(s/def :job/budget u/big-num?)
+(s/def :job/category u/uint8?)
+(s/def :job/contracts u/uint-coll?)
+(s/def :job/contracts-count u/uint?)
+(s/def :job/created-on u/date?)
+(s/def :job/description string?)
+(s/def :job/employer u/uint?)
+(s/def :job/estimated-duration u/uint8?)
+(s/def :job/experience-level u/uint8?)
+(s/def :job/freelancers-needed u/uint8?)
+(s/def :job/hiring-done-on u/date-or-nil?)
+(s/def :job/hours-per-week u/uint8?)
+(s/def :job/language u/uint?)
+(s/def :job/payment-type u/uint8?)
+(s/def :job/skills u/uint-coll?)
+(s/def :job/skills-count u/uint?)
+(s/def :job/status u/uint8?)
+(s/def :job/title string?)
+(s/def :job/total-paid u/big-num?)
+
+(s/def :app/job (s/keys :opt [:job/id
+                              :job/budget
+                              :job/category
+                              :job/contracts
+                              :job/contracts-count
+                              :job/created-on
+                              :job/description
+                              :job/employer
+                              :job/estimated-duration
+                              :job/experience-level
+                              :job/freelancers-needed
+                              :job/hiring-done-on
+                              :job/hours-per-week
+                              :job/language
+                              :job/payment-type
+                              :job/skills
+                              :job/skills-count
+                              :job/status
+                              :job/title
+                              :job/total-paid]))
+
+(s/def :app/jobs (s/map-of pos? :app/job))
+
+(s/def :contract/id pos?)
+(s/def :invitation/created-on u/date-or-nil?)
+(s/def :invitation/description string?)
+(s/def :proposal/created-on u/date-or-nil?)
+(s/def :proposal/description string?)
+(s/def :proposal/rate u/big-num?)
+(s/def :contract/created-on u/date-or-nil?)
+(s/def :contract/description string?)
+(s/def :contract/done-by-freelancer? boolean?)
+(s/def :contract/done-on u/date-or-nil?)
+(s/def :contract/freelancer u/uint?)
+(s/def :contract/invoices u/uint-coll?)
+(s/def :contract/invoices-count u/uint?)
+(s/def :contract/job u/uint?)
+(s/def :contract/status u/uint8?)
+(s/def :contract/total-invoiced u/big-num?)
+(s/def :contract/total-paid u/big-num?)
+(s/def :contract/employer-feedback string?)
+(s/def :contract/employer-feedback-on u/date-or-nil?)
+(s/def :contract/employer-feedback-rating u/uint8?)
+(s/def :contract/freelancer-feedback string?)
+(s/def :contract/freelancer-feedback-on u/date-or-nil?)
+(s/def :contract/freelancer-feedback-rating u/uint8?)
+
+(s/def :app/contract (s/keys :opt [:contract/id
+                                   :invitation/created-on
+                                   :invitation/description
+                                   :proposal/created-on
+                                   :proposal/description
+                                   :proposal/rate
+                                   :contract/created-on
+                                   :contract/description
+                                   :contract/done-by-freelancer?
+                                   :contract/done-on
+                                   :contract/freelancer
+                                   :contract/invoices
+                                   :contract/invoices-count
+                                   :contract/job
+                                   :contract/status
+                                   :contract/total-invoiced
+                                   :contract/total-paid
+                                   :contract/employer-feedback
+                                   :contract/employer-feedback-on
+                                   :contract/employer-feedback-rating
+                                   :contract/freelancer-feedback
+                                   :contract/freelancer-feedback-on
+                                   :contract/freelancer-feedback-rating]))
+
+(s/def :app/contracts (s/map-of pos? :app/contract))
+
+(s/def :invoice/id pos?)
+(s/def :invoice/amount u/big-num?)
+(s/def :invoice/cancelled-on u/date-or-nil?)
+(s/def :invoice/contract u/uint?)
+(s/def :invoice/created-on u/date?)
+(s/def :invoice/description string?)
+(s/def :invoice/paid-on u/date-or-nil?)
+(s/def :invoice/status u/uint8?)
+(s/def :invoice/worked-from u/date?)
+(s/def :invoice/worked-hours u/uint?)
+(s/def :invoice/worked-to u/date?)
+
+(s/def :app/invoice (s/keys :opt [:invoice/id
+                                  :invoice/amount
+                                  :invoice/cancelled-on
+                                  :invoice/contract
+                                  :invoice/created-on
+                                  :invoice/description
+                                  :invoice/paid-on
+                                  :invoice/status
+                                  :invoice/worked-from
+                                  :invoice/worked-hours
+                                  :invoice/worked-to]))
+
+(s/def :app/invoices (s/map-of pos? :app/invoice))
+
+(s/def :skill/id pos?)
+(s/def :skill/name u/bytes32?)
+(s/def :skill/creator u/uint?)
+(s/def :skill/created-on u/date?)
+(s/def :skill/jobs-count u/uint?)
+(s/def :skill/jobs u/uint-coll?)
+(s/def :skill/blocked? boolean?)
+(s/def :skill/freelancers-count u/uint?)
+(s/def :skill/freelancers u/uint-coll?)
+
+(s/def :app/skill (s/keys :opt [:skill/id
+                                :skill/name
+                                :skill/creator 
+                                :skill/created-on
+                                :skill/jobs-count
+                                :skill/jobs
+                                :skill/blocked?
+                                :skill/freelancers-count
+                                :skill/freelancers]))
+
+(s/def :app/skills (s/map-of pos? :app/skill))
+(s/def :app/skill-count int?)
+(s/def ::skill-load-limit pos?)
+
 (s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
                              ::generate-db-on-deploy? ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
-                             ::my-users-loaded? ::conversion-rates]
+                             ::my-users-loaded? ::conversion-rates ::skill-load-limit]
                     :req [:window/width-size :eth/config :eth/contracts :blockchain/addresses
-                          :blockchain/connection-error? :app/users]))
+                          :blockchain/connection-error? :app/users :app/jobs :app/contracts :app/invoices
+                          :app/skill-count]))
 
 (def default-db
   {:devnet? true

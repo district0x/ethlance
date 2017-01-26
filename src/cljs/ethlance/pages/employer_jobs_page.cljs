@@ -9,9 +9,7 @@
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]))
 
-(def schema-to-load
-  (select-keys ethlance-db/job-schema
-               [:job/title :job/total-paid :job/created-on :job/hiring-done-on]))
+(def fields-to-load #{:job/title :job/total-paid :job/created-on :job/hiring-done-on})
 
 (defn employer-jobs-open []
   (let [xs-width? (subscribe [:window/xs-width?])]
@@ -21,7 +19,7 @@
         :initial-dispatch {:list-key :list/employer-jobs-open
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :schema schema-to-load
+                           :schema fields-to-load
                            :args {:user/id id :job/status 1}}
         :all-ids-subscribe [:list/ids :list/employer-jobs-open]
         :show-created-on? true
@@ -52,7 +50,7 @@
         :initial-dispatch {:list-key :list/employer-jobs-done
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :schema schema-to-load
+                           :schema fields-to-load
                            :args {:user/id id :job/status 2}}
         :all-ids-subscribe [:list/ids :list/employer-jobs-done]
         :title "Closed Hiring Jobs"

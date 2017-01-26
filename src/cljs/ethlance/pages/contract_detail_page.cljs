@@ -11,7 +11,7 @@
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    ))
+    [clojure.set :as set]))
 
 (defn get-employer [contract]
   (get-in contract [:contract/job :job/employer]))
@@ -200,11 +200,11 @@
           :on-change (fn []
                        (dispatch [:after-eth-contracts-loaded
                                   [:contract.db/load-contracts
-                                   (merge ethlance-db/contract-schema ethlance-db/feedback-schema)
+                                   (set/union ethlance-db/contract-entity-fields ethlance-db/feedback-entity-fields)
                                    [@contract-id]]])
                        (dispatch [:after-eth-contracts-loaded
                                   [:contract.db/load-contracts
-                                   ethlance-db/proposal+invitation-schema
+                                   ethlance-db/proposal+invitation-entitiy-fields
                                    [@contract-id]]]))}
          [misc/center-layout
           [paper

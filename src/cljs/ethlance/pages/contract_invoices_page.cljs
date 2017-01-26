@@ -35,7 +35,7 @@
            :initial-dispatch {:list-key :list/contract-invoices
                               :fn-key :ethlance-views/get-contract-invoices
                               :load-dispatch-key :contract.db/load-invoices
-                              :schema ethlance-db/invoices-table-schema
+                              :schema ethlance-db/invoices-table-entity-fields
                               :args {:contract/id @contract-id :invoice/status 0}}
            :show-status? true
            :always-show-created-on? true

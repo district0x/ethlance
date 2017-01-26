@@ -1,6 +1,7 @@
 (ns ethlance.pages.employer-detail-page
   (:require
     [cljs-react-material-ui.reagent :as ui]
+    [clojure.set :as set]
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.jobs-table :refer [jobs-table]]
     [ethlance.components.languages-chips :refer [languages-chips]]
@@ -112,8 +113,7 @@
         :initial-dispatch {:list-key :list/employer-jobs
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :schema (select-keys ethlance-db/job-schema
-                                                [:job/title :job/total-paid :job/created-on :job/status])
+                           :schema #{:job/title :job/total-paid :job/created-on :job/status}
                            :args {:user/id id :job/status 0}}
         :all-ids-subscribe [:list/ids :list/employer-jobs]
         :title "Employer's Jobs"
@@ -127,20 +127,23 @@
     :initial-dispatch [:list/load-ids {:list-key :list/employer-feedbacks
                                        :fn-key :ethlance-views/get-employer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
-                                       :schema ethlance-db/feedback-schema
+                                       :schema ethlance-db/feedback-entity-fields
                                        :args {:user/id id :contract/status 4 :job/status 0}}]}])
 
 (defn employer-detail-page []
   (let [user-id (subscribe [:user/route-user-id])
         user (subscribe [:user/detail])]
-    (dispatch [:after-eth-contracts-loaded
-               [:contract.db/load-users (merge ethlance-db/user-schema
-                                               ethlance-db/employer-schema
-                                               ethlance-db/user-balance-schema) [@user-id]]])
     (fn []
-      [center-layout
-       [employer-detail @user]
-       (when (:user/employer? @user)
-         [:div
-          [employer-jobs @user]
-          [employer-feedback @user]])])))
+      [misc/call-on-change
+       {:load-on-mount? true
+        :args @user-id
+        :on-change #(dispatch [:after-eth-contracts-loaded
+                               [:contract.db/load-users (set/union ethlance-db/user-entity-fields
+                                                                   ethlance-db/employer-entity-fields
+                                                                   ethlance-db/user-balance-entity-fields) [@user-id]]])}
+       [center-layout
+        [employer-detail @user]
+        (when (:user/employer? @user)
+          [:div
+           [employer-jobs @user]
+           [employer-feedback @user]])]])))

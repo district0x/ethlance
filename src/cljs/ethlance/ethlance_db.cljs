@@ -1,167 +1,74 @@
 (ns ethlance.ethlance-db
-  (:refer-clojure :exclude [int])
   (:require
     [cljs-web3.core :as web3]
     [cljs-web3.eth :as web3-eth]
-    [clojure.string :as string]
-    [ethlance.utils :as u]
-    [medley.core :as medley]
-    [re-frame.core :refer [console dispatch reg-fx]]
+    [cljs.spec :as s]
     [clojure.set :as set]
-    [cljs.spec :as s]))
+    [clojure.string :as string]
+    [ethlance.db]
+    [ethlance.utils :as u]
+    [goog.date.DateTime]
+    [medley.core :as medley]
+    [re-frame.core :refer [console dispatch reg-fx]]))
 
-(def bool 1)
-(def uint8 2)
-(def uint 3)
-(def addr 4)
-(def bytes32 5)
-(def int 6)
-(def string 7)
-(def big-num 8)
-(def uint-coll 9)
-(def date 10)
+(defn spec-form->entity-fields [spec-key & [nmsp]]
+  (cond->> (last (s/form spec-key))
+    nmsp (u/filter-by-namespace nmsp)
+    true set))
 
-(def user-schema
-  {:user/address addr
-   :user/country uint
-   :user/state uint
-   :user/created-on date
-   :user/employer? bool
-   :user/freelancer? bool
-   :user/gravatar bytes32
-   :user/languages uint-coll
-   :user/languages-count uint
-   :user/name string
-   :user/status uint8})
+(def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user) #{:user/balance :user/id}))
+(def user-balance-entity-fields #{:user/balance})
+(def freelancer-entity-fields (spec-form->entity-fields :app/user :freelancer))
+(def employer-entity-fields (spec-form->entity-fields :app/user :employer))
 
-(def user-balance-schema
-  {:user/balance big-num})
+(def account-entitiy-fields
+  (set/union user-entity-fields
+             freelancer-entity-fields
+             employer-entity-fields))
 
-(def freelancer-schema
-  {:freelancer/available? bool
-   :freelancer/avg-rating uint8
-   :freelancer/categories uint-coll
-   :freelancer/categories-count uint
-   :freelancer/contracts uint-coll
-   :freelancer/contracts-count uint
-   :freelancer/description string
-   :freelancer/hourly-rate big-num
-   :freelancer/job-title string
-   :freelancer/ratings-count uint
-   :freelancer/skills uint-coll
-   :freelancer/skills-count uint
-   :freelancer/total-earned big-num
-   :freelancer/total-invoiced big-num})
+(def job-entity-fields (set/difference (spec-form->entity-fields :app/job) #{:job/id}))
 
-(def employer-schema
-  {:employer/avg-rating uint8
-   :employer/description string
-   :employer/jobs uint-coll
-   :employer/jobs-count uint
-   :employer/ratings-count uint
-   :employer/total-paid big-num
-   :employer/total-invoiced big-num
-   })
+(def proposal+invitation-entitiy-fields
+  #{:contract/freelancer
+    :contract/job
+    :contract/status
+    :invitation/created-on
+    :invitation/description
+    :proposal/created-on
+    :proposal/description
+    :proposal/rate})
 
-(def account-schema
-  (merge user-schema
-         freelancer-schema
-         employer-schema))
+(def employer-feedback-entity-fields
+  #{:contract/employer-feedback
+    :contract/employer-feedback-on
+    :contract/employer-feedback-rating})
 
-(def job-schema
-  {:job/budget big-num
-   :job/category uint8
-   :job/contracts uint-coll
-   :job/contracts-count uint
-   :job/created-on date
-   :job/description string
-   :job/employer uint
-   :job/estimated-duration uint8
-   :job/experience-level uint8
-   :job/freelancers-needed uint8
-   :job/hiring-done-on date
-   :job/hours-per-week uint8
-   :job/language uint
-   :job/payment-type uint8
-   :job/skills uint-coll
-   :job/skills-count uint
-   :job/status uint8
-   :job/title string
-   :job/total-paid big-num})
+(def freelancer-feedback-entity-fields
+  #{:contract/freelancer-feedback
+    :contract/freelancer-feedback-on
+    :contract/freelancer-feedback-rating})
 
-(def proposal+invitation-schema
-  {:contract/freelancer uint
-   :contract/job uint
-   :contract/status uint8
-   :invitation/created-on date
-   :invitation/description string
-   :proposal/created-on date
-   :proposal/description string
-   :proposal/rate big-num})
+(def contract-entity-fields (set/difference (spec-form->entity-fields :app/contract :contract)
+                                            employer-feedback-entity-fields
+                                            freelancer-feedback-entity-fields
+                                            #{:contract/id}))
 
-(def contract-schema
-  {:contract/created-on date
-   :contract/description string
-   :contract/done-by-freelancer? bool
-   :contract/done-on date
-   :contract/freelancer uint
-   :contract/invoices uint-coll
-   :contract/invoices-count uint
-   :contract/job uint
-   :contract/status uint8
-   :contract/total-invoiced big-num
-   :contract/total-paid big-num})
+(def feedback-entity-fields
+  (set/union employer-feedback-entity-fields
+             freelancer-feedback-entity-fields
+             #{:contract/freelancer
+               :contract/job
+               :contract/done-by-freelancer?}))
 
-(def employer-feedback-schema
-  {:contract/employer-feedback string
-   :contract/employer-feedback-on date
-   :contract/employer-feedback-rating uint8})
+(def invoice-entity-fields (set/difference (spec-form->entity-fields :app/invoice) #{:invoice/id}))
 
-(def freelancer-feedback-schema
-  {:contract/freelancer-feedback string
-   :contract/freelancer-feedback-on date
-   :contract/freelancer-feedback-rating uint8})
+(def invoices-table-entity-fields
+  #{:invoice/contract :invoice/amount :invoice/created-on :invoice/status :invoice/paid-on})
 
-(def feedback-schema
-  (merge employer-feedback-schema
-         freelancer-feedback-schema
-         (select-keys contract-schema
-                      [:contract/freelancer
-                       :contract/job
-                       :contract/done-by-freelancer?])))
-
-(def contract-all-schema
-  (merge proposal+invitation-schema
-         contract-schema
-         feedback-schema))
-
-(def invoice-schema
-  {:invoice/amount big-num
-   :invoice/cancelled-on date
-   :invoice/contract uint
-   :invoice/created-on date
-   :invoice/description string
-   :invoice/paid-on date
-   :invoice/status uint8
-   :invoice/worked-from date
-   :invoice/worked-hours uint
-   :invoice/worked-to date})
-
-(def invoices-table-schema
-  (select-keys invoice-schema [:invoice/contract :invoice/amount :invoice/created-on :invoice/status :invoice/paid-on]))
-
-(def skill-schema
-  {:skill/name bytes32
-   :skill/creator uint
-   :skill/created-on date
-   :skill/jobs-count uint
-   :skill/jobs uint-coll
-   :skill/blocked? bool
-   :skill/freelancers-count uint
-   :skill/freelancers uint-coll})
+(def skill-entity-fields (set/difference (spec-form->entity-fields :app/skill) #{:skill/id}))
 
 (def user-editable-fields
-  (set/difference (set (keys (merge account-schema user-balance-schema)))
+  (set/difference (set/union account-entitiy-fields user-balance-entity-fields)
                   #{:user/address :user/created-on}))
 
 (def job-editable-fields
@@ -312,42 +219,39 @@
    :ethlance-user/register-employer register-employer-args
    :ethlance-user/set-freelancer set-freelancer-args
    :ethlance-user/set-employer set-employer-args
-   :ethlance-user/set-user set-user-args
-   })
+   :ethlance-user/set-user set-user-args})
 
-(def schema
-  (merge
-    contract-schema
-    employer-schema
-    feedback-schema
-    freelancer-schema
-    invoice-schema
-    job-schema
-    proposal+invitation-schema
-    skill-schema
-    user-schema))
-
-(defn without-strs [schema]
-  (medley/remove-vals (partial = string) schema))
+(defn no-string-types [fields]
+  (remove #(= 'cljs.core/string? (s/form %)) fields))
 
 (defn remove-uint-coll-fields [fields]
-  (remove #(= (schema %) uint-coll) fields))
+  (remove #(= (s/form %) 'ethlance.utils/uint-coll?) fields))
 
-(defn replace-special-types [types]
-  (map #(if (or (contains? #{date big-num} %))
-          uint
-          %) types))
+(def field-pred->solidity-type
+  {'cljs.core/boolean? 1
+   'ethlance.utils/uint8? 2
+   'ethlance.utils/uint? 3
+   'ethlance.utils/address? 4
+   'ethlance.utils/bytes32? 5
+   'cljs.core/int? 6
+   'cljs.core/string? 7
+   'ethlance.utils/string-or-nil? 7
+   'ethlance.utils/big-num? 3
+   'ethlance.utils/date? 3
+   'ethlance.utils/date-or-nil? 3
+   })
 
 (def str-delimiter "99--DELIMITER--11")
 (def list-delimiter "99--DELIMITER-LIST--11")
 
-(defn uint->value [val val-type]
-  (condp = val-type
-    bool (if (.eq val 0) false true)
-    bytes32 (u/remove-zero-chars (web3/to-ascii (web3/from-decimal val)))
-    addr (u/prepend-address-zeros (web3/from-decimal val))
-    date (u/big-num->date-time val)
-    big-num (web3/from-wei val :ether)
+(defn uint->value [val field]
+  (condp = (s/form field)
+    'cljs.core/boolean? (if (.eq val 0) false true)
+    'ethlance.utils/bytes32? (u/remove-zero-chars (web3/to-ascii (web3/from-decimal val)))
+    'ethlance.utils/address? (u/prepend-address-zeros (web3/from-decimal val))
+    'ethlance.utils/date? (u/big-num->date-time val)
+    'ethlance.utils/date-or-nil? (u/big-num->date-time val)
+    'ethlance.utils/big-num? (web3/from-wei val :ether)
     (.toNumber val)))
 
 (defn string-blob->strings [string-blob delimiter]
@@ -358,15 +262,17 @@
 
 (defn parse-entities [ids fields result]
   (let [ids (vec ids)
-        uint-fields (remove #(= string (schema %)) fields)
-        string-fields (filter #(= string (schema %)) fields)
+        grouped-by-string (group-by #(contains? #{'cljs.core/string? 'ethlance.utils/string-or-nil?}
+                                                (s/form %)) fields)
+        string-fields (get grouped-by-string true)
+        uint-fields (get grouped-by-string false)
         uint-fields-count (count uint-fields)]
     (let [parsed-result
           (reduce (fn [acc [i result-item]]
                     (let [entity-index (js/Math.floor (/ i uint-fields-count))
                           field-name (nth uint-fields (mod i uint-fields-count))]
                       (assoc-in acc [(nth ids entity-index) field-name]
-                                (uint->value result-item (schema field-name)))))
+                                (uint->value result-item field-name))))
                   {} (medley/indexed (first result)))]
       (reduce (fn [acc [entity-index entity-strings]]
                 (reduce (fn [acc [string-index string-value]]
@@ -380,7 +286,7 @@
 (defn parse-entities-field-items [ids+sub-ids field result]
   (reduce (fn [acc [i result-item]]
             (let [[id] (nth ids+sub-ids i)]
-              (update-in acc [id field] conj (uint->value result-item uint))))
+              (update-in acc [id field] conj (uint->value result-item field))))
           {} (medley/indexed (first result))))
 
 (defn log-entities [ids fields err res]
@@ -392,31 +298,30 @@
   (let [fields (remove-uint-coll-fields fields)
         records (flatten (for [id ids]
                            (for [field fields]
-                             (u/sha3 field id))))
-        types (replace-special-types (map schema fields))]
-    [fields records types]))
+                             (u/sha3 field id))))]
+    [fields records]))
 
 (defn id-counts->ids [id-counts]
   (reduce (fn [acc [id count]]
             (concat acc (map #(vec [id %]) (range count))))
           [] id-counts))
 
-(defn get-entities-field-items-args [id-counts field]
-  (let [ids+sub-ids (id-counts->ids id-counts)
-        records (map (fn [[id sub-id]]
-                       (u/sha3 field id sub-id)) ids+sub-ids)]
-    [ids+sub-ids field records [uint]]))
-
 (defn get-entities [ids fields instance on-success on-error]
-  (let [[fields records types] (get-entities-args ids fields)]
+  (let [[fields records] (get-entities-args ids fields)]
     (web3-eth/contract-call instance
                             :get-entity-list
                             records
-                            (replace-special-types types)
+                            (map (comp field-pred->solidity-type s/form) fields)
                             (fn [err result]
                               (if err
                                 (on-error err)
                                 (on-success (parse-entities ids fields result)))))))
+
+(defn get-entities-field-items-args [id-counts field]
+  (let [ids+sub-ids (id-counts->ids id-counts)
+        records (map (fn [[id sub-id]]
+                       (u/sha3 field id sub-id)) ids+sub-ids)]
+    [ids+sub-ids field records [(field-pred->solidity-type 'ethlance.utils/uint?)]]))
 
 (defn get-entities-field-items [id-counts field instance on-success on-error]
   (let [[ids+sub-ids field records types] (get-entities-field-items-args id-counts field)]
@@ -470,10 +375,3 @@
                               instance
                               #(dispatch (conj on-success %))
                               #(dispatch (conj on-error %)))))
-
-(comment
-  (create-types-map [:a :b :c] [1 2 1])
-  (get-entities [1] (keys account-schema) (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
-  (get-entities-field-items {1 8} :freelancer/skills
-                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
-  (id-counts->ids {1 0}))

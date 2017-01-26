@@ -17,7 +17,7 @@
              [:list/load-ids {:list-key :list/freelancer-my-open-contracts
                               :fn-key :ethlance-views/get-freelancer-contracts
                               :load-dispatch-key :contract.db/load-contracts
-                              :schema (select-keys ethlance-db/contract-schema [:contract/job #_:contract/freelancer])
+                              :schema #{:contract/job}
                               :args {:user/id user-id :contract/status 3 :job/status 0}}]]))
 
 (defn add-invoice-form []

@@ -1,6 +1,7 @@
 (ns ethlance.pages.freelancer-detail-page
   (:require
     [cljs-react-material-ui.reagent :as ui]
+    [clojure.set :as set]
     [ethlance.components.categories-chips :refer [categories-chips]]
     [ethlance.components.contracts-table :refer [contracts-table]]
     [ethlance.components.feedback-list :refer [feedback-list]]
@@ -140,9 +141,11 @@
         :initial-dispatch {:list-key :list/freelancer-contracts
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema (select-keys ethlance-db/contract-all-schema
-                                                [:contract/job :contract/created-on :proposal/rate :contract/total-paid
-                                                 :contract/status])
+                           :schema #{:contract/job
+                                     :contract/created-on
+                                     :proposal/rate
+                                     :contract/total-paid
+                                     :contract/status}
                            :args {:user/id id :contract/status 0 :job/status 0}}
         :all-ids-subscribe [:list/ids :list/freelancer-contracts]
         :title "Job Activity"
@@ -156,7 +159,7 @@
     :initial-dispatch [:list/load-ids {:list-key :list/freelancer-feedbacks
                                        :fn-key :ethlance-views/get-freelancer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
-                                       :schema ethlance-db/feedback-schema
+                                       :schema ethlance-db/feedback-entity-fields
                                        :args {:user/id id :contract/status 4 :job/status 0}}]}])
 
 (defn employer-jobs-select-field [jobs-list {:keys [:contract/job]} freelancer active-user]
@@ -228,9 +231,9 @@
        {:load-on-mount? true
         :args @user-id
         :on-change #(dispatch [:after-eth-contracts-loaded
-                               [:contract.db/load-users (merge ethlance-db/user-schema
-                                                               ethlance-db/freelancer-schema
-                                                               ethlance-db/user-balance-schema) [@user-id]]])}
+                               [:contract.db/load-users (set/union ethlance-db/user-entity-fields
+                                                                   ethlance-db/freelancer-entity-fields
+                                                                   ethlance-db/user-balance-entity-fields) [@user-id]]])}
        [center-layout
         [freelancer-detail @user]
         [invite-freelancer-form @user]
