@@ -22,12 +22,31 @@
 (s/def ::selected-currency (partial contains? (set (keys constants/currencies))))
 (s/def ::open? boolean?)
 (s/def ::message string?)
-(s/def ::snackbar (s/keys :req-un [::open? ::message]))
+(s/def ::on-request-close fn?)
+(s/def ::auto-hide-duration int?)
+(s/def ::snackbar (s/keys :req-un [::open? ::message ::on-request-close ::auto-hide-duration]))
+(s/def :eth/config (s/map-of keyword? int?))
+(s/def ::name string?)
+(s/def ::address string?)
+(s/def ::bin string?)
+(s/def ::abi array?)
+(s/def ::setter? boolean?)
+(s/def :eth/contracts (s/map-of keyword? (s/keys :req-un [::name] :opt-un [::setter? ::address ::bin ::abi])))
+(s/def ::my-addresses (s/coll-of string?))
+(s/def ::active-address string?)
+(s/def ::my-users-loaded? boolean?)
+(s/def :user/id int?)
+(s/def :address/balance u/big-num?)
+(s/def :blockchain/addresses (s/map-of string? (s/keys :opt [:user/id :address/balance])))
+(s/def :blockchain/connection-error? boolean?)
+(s/def ::conversion-rates (s/map-of keyword? number?))
 
 (s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
                              ::generate-db-on-deploy? ::drawer-open? ::search-freelancers-filter-open?
-                             ::search-jobs-filter-open? ::selected-currency ::snackbar]
-                    :req [:window/width-size]))
+                             ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
+                             ::my-users-loaded? ::conversion-rates]
+                    :req [:window/width-size :eth/config :eth/contracts :blockchain/addresses
+                          :blockchain/connection-error? :app/users]))
 
 (def default-db
   {:devnet? true

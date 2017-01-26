@@ -13,7 +13,7 @@
     [day8.re-frame.http-fx]
     [ethlance.db :refer [default-db]]
     [ethlance.debounce-fx]
-    [ethlance.ethlance-db :as ethlance-db :refer [get-entity get-entities get-entities-field-items]]
+    [ethlance.ethlance-db :as ethlance-db :refer [get-entities get-entities-field-items]]
     [ethlance.generate-db]
     [ethlance.utils :as u]
     [ethlance.window-fx]
@@ -1322,12 +1322,6 @@
   interceptors
   (fn [db [list-db-path offset limit]]
     (update-in db list-db-path merge {:limit limit :offset offset})))
-
-(reg-event-fx
-  :entity-loaded
-  interceptors
-  (fn [_ [fields on-success result]]
-    {:dispatch (conj (u/ensure-vec on-success) (ethlance-db/parse-entity fields result))}))
 
 (reg-event-fx
   :entities-loaded

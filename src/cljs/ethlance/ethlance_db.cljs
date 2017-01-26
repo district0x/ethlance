@@ -338,43 +338,8 @@
           uint
           %) types))
 
-(defn create-types-map [fields types]
-  (reduce
-    (fn [res [i field]]
-      (update res (nth types i) (comp vec conj) field))
-    {} (medley/indexed fields)))
-
-(defn parse-value [val val-type]
-  (condp = val-type
-    bytes32 (web3/to-ascii val)
-    big-num (web3/from-wei val :ether)
-    uint (.toNumber val)
-    uint8 (.toNumber val)
-    val))
-
 (def str-delimiter "99--DELIMITER--11")
 (def list-delimiter "99--DELIMITER-LIST--11")
-
-(defn parse-entity [fields result]
-  (let [types (map schema fields)
-        types-map (create-types-map fields (replace-special-types types))]
-    (reduce (fn [acc [i results-of-type]]
-              (let [result-type (inc i)
-                    results-of-type (if (= result-type string)
-                                      (string/split results-of-type str-delimiter)
-                                      results-of-type)]
-                (merge acc
-                       (into {}
-                             (for [[j res] (medley/indexed results-of-type)]
-                               (when-let [field-name (get-in types-map [result-type j])]
-                                 {field-name
-                                  (parse-value res (schema field-name))}))))))
-            {} (medley/indexed result))))
-
-(defn log-entity [fields err res]
-  (if err
-    (console :error err)
-    (console :log (parse-entity fields res))))
 
 (defn uint->value [val val-type]
   (condp = val-type
@@ -422,16 +387,6 @@
   (if err
     (console :error err)
     (console :log (parse-entities ids fields res))))
-
-(defn get-entity-args [id fields]
-  (let [fields (remove-uint-coll-fields fields)
-        records (map #(u/sha3 % id) fields)
-        types (replace-special-types (map schema fields))]
-    [fields records types]))
-
-(defn get-entity [id fields instance]
-  (let [[fields records types] (get-entity-args id fields)]
-    (web3-eth/contract-call instance :get-entity records (replace-special-types types) (partial log-entity fields))))
 
 (defn get-entities-args [ids fields]
   (let [fields (remove-uint-coll-fields fields)
@@ -518,8 +473,6 @@
 
 (comment
   (create-types-map [:a :b :c] [1 2 1])
-  (get-entity 1 (keys account-schema)
-              (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
   (get-entities [1] (keys account-schema) (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
   (get-entities-field-items {1 8} :freelancer/skills
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
