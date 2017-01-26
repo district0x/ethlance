@@ -418,3 +418,12 @@
 
 (defn uncapitalize [s]
   (str (string/lower-case (first s)) (subs s 1)))
+
+(defn one-of [& all-preds]
+  (fn [& args]
+    (loop [rest-preds all-preds]
+      (when-let [fs (seq rest-preds)]
+        (let [res (apply (first fs) args)]
+          (if res
+            res
+            (recur (rest fs))))))))

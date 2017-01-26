@@ -125,6 +125,9 @@
 (defn gen-skills []
   {:skill/names (set (repeatedly 30 #_ (cfg :max-skills-create-at-once) #(rand-text 20)))})
 
+(comment
+  (dispatch [:contract.config/add-skills (gen-skills) (get-address 0)]))
+
 (reg-event-fx
   :generate-db
   [trim-v]

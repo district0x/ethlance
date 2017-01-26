@@ -149,19 +149,23 @@
               :color "#FFF"
               :thickness 2}]])
          (when @active-user
-           [row-plain
-            {:middle "xs"
-             :style styles/app-bar-user}
-            [user-anchor
-             {:user @active-user}
-             [:h3.bolder {:style styles/app-bar-user}
-              (u/first-word (:user/name @active-user))]]
-            [user-anchor
-             {:user @active-user}
-             [ui/avatar
-              {:size 35
-               :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))
-               :style {:margin-top 5}}]]])
+           [misc/call-on-change
+            {:load-on-mount? true
+             :args (:user/id @active-user)
+             :on-change #(dispatch [:contracts/listen-active-user-events (:user/id @active-user)])}
+            [row-plain
+             {:middle "xs"
+              :style styles/app-bar-user}
+             [user-anchor
+              {:user @active-user}
+              [:h3.bolder {:style styles/app-bar-user}
+               (u/first-word (:user/name @active-user))]]
+             [user-anchor
+              {:user @active-user}
+              [ui/avatar
+               {:size 35
+                :src (u/gravatar-url (:user/gravatar @active-user) (:user/id @active-user))
+                :style {:margin-top 5}}]]]])
          (when (and (seq @my-addresses)
                     @active-address-balance)
            [:h2.bolder {:style styles/app-bar-balance}
@@ -240,9 +244,7 @@
               :on-left-icon-button-touch-tap #(dispatch [:drawer/set true])
               :style styles/app-bar-right}]
             [ui/snackbar (-> @snackbar
-                           (set/rename-keys {:open? :open})
-                           (update :message #(r/as-element %))
-                           (update :action #(if % (r/as-element %) nil)))]
+                           (set/rename-keys {:open? :open}))]
             (when-let [page (route->component handler)]
               [:div {:style (merge styles/content-wrap
                                    (when @lg-width?

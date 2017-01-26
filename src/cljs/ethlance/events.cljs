@@ -27,12 +27,18 @@
     [ethlance.constants :as constants]
     [clojure.string :as string]))
 
-#_(if goog.DEBUG
-    (require '[ethlance.generate-db]))
-
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
-(def interceptors [;check-spec-interceptor
+(defn check-and-throw
+  "throw an exception if db doesn't match the spec"
+  [a-spec db]
+  (when-not (s/valid? a-spec db)
+    (.error js/console (s/explain-str a-spec db))
+    (throw "Spec check failed")))
+
+(def check-spec-interceptor (after (partial check-and-throw :ethlance.db/db)))
+
+(def interceptors [check-spec-interceptor
                    #_(when ^boolean goog.DEBUG debug)
                    trim-v])
 
@@ -130,7 +136,10 @@
         ))
 
 (comment
-  (dispatch [:blockchain/unlock-account "0x4C155E9C387e3ad41fAfB3f4ea5B959F65A88C5f" "m"]))
+  (dispatch [:blockchain/unlock-account "0x98bc90f9bde18341304bd551d693b708e895a2a5" "m"])
+  (dispatch [:blockchain/unlock-account "0x8eb34c6197963a0a8756ec43cb6de9bd8d276b14" "m"])
+
+  )
 
 (reg-fx
   :location/set-hash
@@ -197,12 +206,10 @@
          :window/on-resize {:dispatch [:window/on-resize]
                             :resize-interval 166}
          :ga/page-view [(u/current-location-hash)]}
-        (if (or provides-web3? (:testrpc? default-db))
+        (if (or provides-web3? (:devnet? default-db))
           {:web3-fx.blockchain/fns
            {:web3 web3
-            :fns [[web3-eth/accounts
-                   :blockchain/my-addresses-loaded
-                   [:blockchain/on-error :initialize]]]}}
+            :fns [[web3-eth/accounts :blockchain/my-addresses-loaded [:blockchain/on-error :initialize]]]}}
           {:dispatch-n [[:blockchain/my-addresses-loaded []]]})))))
 
 (reg-event-db
@@ -368,7 +375,7 @@
   :contract/loaded
   interceptors
   (fn [{:keys [db]} [contract-key code-type code]]
-    (let [code (if (= code-type :abi) (clj->js code) code)]
+    (let [code (if (= code-type :abi) (clj->js code) (str "0x" code))]
       (let [new-db (cond-> db
                      true
                      (assoc-in [:eth/contracts contract-key code-type] code)
@@ -656,7 +663,7 @@
   interceptors
   (fn [{:keys [db]} [addresses]]
     (let [addrs (or addresses (:my-addresses db))]
-      (when-not (:contracts-not-found? db)
+      (if-not (:contracts-not-found? db)
         {:dispatch [:list/load-ids {:list-key :list/my-users
                                     :fn-key :ethlance-views/get-users
                                     :load-dispatch-key :contract.db/load-users
@@ -1089,6 +1096,82 @@
     (update db :app/skills merge (zipmap (u/big-nums->nums ids)
                                          (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names)))))
 
+
+(reg-event-fx
+  :contracts/listen-active-user-events
+  [interceptors]
+  (fn [{:keys [db]} [user-id]]
+    (when user-id
+      (let [invoice-instance (get-instance db :ethlance-invoice)
+            contract-instance (get-instance db :ethlance-contract)]
+        {:web3-fx.contract/events
+         {:db db
+          :db-path [:active-user-events]
+          :events [[contract-instance :on-job-proposal-added {:employer-id user-id} "latest"
+                    :contract.contract/on-job-proposal-added [:log-error :on-job-proposal-added]]
+                   [contract-instance :on-job-contract-added {:freelancer-id user-id} "latest"
+                    :contract.contract/on-job-contract-added [:log-error :on-job-contract-added]]
+                   [contract-instance :on-job-contract-feedback-added {:user-id user-id} "latest"
+                    :contract.contract/on-job-contract-feedback-added [:log-error :on-job-contract-feedback-added]]
+                   [contract-instance :on-job-invitation-added {:freelancer-id user-id} "latest"
+                    :contract.contract/on-job-invitation-added [:log-error :on-job-invitation-added]]
+                   [invoice-instance :on-invoice-added {:employer-id user-id} "latest"
+                    :contract.invoice/on-invoice-added [:log-error :on-invoice-added]]
+                   [invoice-instance :on-invoice-paid {:freelancer-id user-id} "latest"
+                    :contract.invoice/on-invoice-paid [:log-error :on-invoice-paid]]
+                   [invoice-instance :on-invoice-cancelled {:employer-id user-id} "latest"
+                    :contract.invoice/on-invoice-cancelled [:log-error :on-invoice-cancelled]]]}}))))
+
+(reg-event-fx
+  :contract.contract/on-job-proposal-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:contract-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "Your job just received a proposal!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+
+(reg-event-fx
+  :contract.contract/on-job-contract-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:contract-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "Your job proposal was accepted!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+
+(reg-event-fx
+  :contract.contract/on-job-contract-feedback-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:contract-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "You just received feedback!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+
+(reg-event-fx
+  :contract.contract/on-job-invitation-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:job-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "You just received job invitation!" :job/detail {:job/id (u/big-num->num job-id)}]}))
+
+(reg-event-fx
+  :contract.invoice/on-invoice-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:invoice-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "You just received invoice to pay!" :invoice/detail {:invoice/id (u/big-num->num invoice-id)}]}))
+
+(reg-event-fx
+  :contract.invoice/on-invoice-paid
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:invoice-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "Your employer just paid your invoice!" :invoice/detail {:invoice/id (u/big-num->num invoice-id)}]}))
+
+(reg-event-fx
+  :contract.invoice/on-invoice-cancelled
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:invoice-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "Your received invoice was just cancelled!" :invoice/detail {:invoice/id (u/big-num->num invoice-id)}]}))
+
+
 (reg-event-fx
   :contract/call
   interceptors
@@ -1282,7 +1365,9 @@
   (fn [db [error-text]]
     (update db :snackbar merge
             {:open? true
-             :message (or error-text "Oops, we got an error while saving to blockchain")})))
+             :message (or error-text "Oops, we got an error while saving to blockchain")
+             :action nil
+             :on-action-touch-tap nil})))
 
 (reg-event-db
   :snackbar/show-message
@@ -1290,7 +1375,19 @@
   (fn [db [message]]
     (update db :snackbar merge
             {:open? true
-             :message message})))
+             :message message
+             :action nil
+             :on-action-touch-tap nil})))
+
+(reg-event-db
+  :snackbar/show-message-redirect-action
+  interceptors
+  (fn [db [message route route-params]]
+    (update db :snackbar merge
+            {:open? true
+             :message message
+             :action "SHOW ME"
+             :on-action-touch-tap #(dispatch [:location/set-hash route route-params])})))
 
 (reg-event-db
   :snackbar/close
@@ -1423,11 +1520,37 @@
              [:log-error :blockchain/unlock-account]]]}}))
 
 (reg-event-fx
+  :blockchain/new-account
+  interceptors
+  (fn [{:keys [db]} [password]]
+    {:web3-fx.blockchain/fns
+     {:web3 (:web3 db)
+      :fns [[web3-personal/new-account password
+             :blockchain/new-account-created
+             [:log-error :blockchain/new-account]]]}}))
+
+(reg-event-fx
+  :blockchain/new-account-created
+  interceptors
+  (fn [{:keys [db]} args]
+    (console :log "Account was created." args)
+    {}))
+
+(reg-event-fx
   :blockchain/account-unlocked
   interceptors
   (fn [{:keys [db]}]
     (console :log "Account was unlocked.")
     {}))
+
+(reg-event-fx
+  :print-accounts
+  interceptors
+  (fn [{:keys [db]}]
+    {:web3-fx.blockchain/fns
+     {:web3 (:web3 db)
+      :fns [[web3-eth/accounts :log [:blockchain/on-error :print-accounts]]]}}))
+
 
 (comment
   (dispatch [:initialize])

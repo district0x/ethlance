@@ -3,13 +3,36 @@
             [ethlance.utils :as u]
             [re-frame.core :refer [dispatch]]
             [cljs-time.core :as t]
-            [ethlance.constants :as constants]))
+            [ethlance.constants :as constants]
+            [cljs.spec :as s]))
 
+(s/def ::devnet? boolean?)
+(s/def ::web3 (complement nil?))
+(s/def ::node-url string?)
+(s/def ::provides-web3? boolean?)
+(s/def ::contracts-not-found? boolean?)
+(s/def ::generate-db-on-deploy? boolean?)
+(s/def ::drawer-open? boolean?)
+(s/def ::search-freelancers-filter-open? boolean?)
+(s/def ::search-jobs-filter-open? boolean?)
+(s/def ::handler keyword?)
+(s/def ::route-params (s/map-of keyword? (u/one-of number? string?)))
+(s/def :window/width-size int?)
+(s/def ::active-page (s/keys :req-un [::handler] :opt-un [::route-params]))
+(s/def ::selected-currency (partial contains? (set (keys constants/currencies))))
+(s/def ::open? boolean?)
+(s/def ::message string?)
+(s/def ::snackbar (s/keys :req-un [::open? ::message]))
+
+(s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
+                             ::generate-db-on-deploy? ::drawer-open? ::search-freelancers-filter-open?
+                             ::search-jobs-filter-open? ::selected-currency ::snackbar]
+                    :req [:window/width-size]))
 
 (def default-db
-  {:testrpc? false #_ true
+  {:devnet? true
    :web3 nil
-   :node-url "http://192.168.0.16:8545/"
+   :node-url "http://localhost:8545" #_"http://192.168.0.16:8545/"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -48,16 +71,17 @@
                 :max-invitation-desc 500
                 :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_ #_ :address "0xb0f1102af4f36290ec7db1461ab23d5a55460715"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true #_ #_ :address "0x2128629f1546072a0a833041fe4445584d792792"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true #_ #_ :address "0xa5d81ebae0dfe33a20a52b6cc76cebea6530e2c5"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_ #_ :address "0x348585f2c1f08abd701846df04ef737aaa2979d5"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true #_ #_ :address "0x410f475553f7e1f701d503fc24fc48822fd1ccb4"}
-                   :ethlance-db {:name "EthlanceDB" #_ #_ :address "0xf3e6364666138d997caf832a7bb0688316ac1e5f"}
-                   :ethlance-views {:name "EthlanceViews" #_ #_ :address "0xa2faa7a777d3efc20453dc073b8d8009db6594a6"}
-                   :ethlance-search {:name "EthlanceSearch" #_ #_ :address "0xac9a6b36d5cbc64238dd34b390e3073c7f30cbeb"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_#_:address "0xb0f1102af4f36290ec7db1461ab23d5a55460715"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true #_#_:address "0x2128629f1546072a0a833041fe4445584d792792"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true #_#_:address "0xa5d81ebae0dfe33a20a52b6cc76cebea6530e2c5"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_#_:address "0x348585f2c1f08abd701846df04ef737aaa2979d5"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true #_#_:address "0x410f475553f7e1f701d503fc24fc48822fd1ccb4"}
+                   :ethlance-db {:name "EthlanceDB" #_#_:address "0xf3e6364666138d997caf832a7bb0688316ac1e5f"}
+                   :ethlance-views {:name "EthlanceViews" #_#_:address "0xa2faa7a777d3efc20453dc073b8d8009db6594a6"}
+                   :ethlance-search {:name "EthlanceSearch" #_#_:address "0xac9a6b36d5cbc64238dd34b390e3073c7f30cbeb"}}
    :my-addresses []
    :active-address nil
+   :active-user-events nil
    :my-users-loaded? false
    :blockchain/addresses {}
    :blockchain/connection-error? false

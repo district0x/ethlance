@@ -8,7 +8,8 @@ import "sharedLibrary.sol";
 contract EthlanceConfig is EthlanceSetter {
 
     event onSkillsAdded(uint[] skillIds, bytes32[] names);
-    event onSkillBlocked(uint skillId);
+    event onSkillsBlocked(uint[] skillIds);
+    event onConfigsChanged(bytes32[] keys, uint[] vals);
 
     function EthlanceConfig(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -20,6 +21,7 @@ contract EthlanceConfig is EthlanceSetter {
         for (uint i = 0; i < keys.length; i++) {
             EthlanceDB(ethlanceDB).setUIntValue(sha3("config/", keys[i]), vals[i]);
         }
+        onConfigsChanged(keys, vals);
     }
 
     function getConfigs(bytes32[] keys) constant returns (uint[] values) {
@@ -51,5 +53,6 @@ contract EthlanceConfig is EthlanceSetter {
         onlyOwner
     {
         SkillLibrary.blockSkills(ethlanceDB, skillIds);
+        onSkillsBlocked(skillIds);
     }
 }

@@ -22,13 +22,13 @@ library InvoiceLibrary {
         uint workedFrom,
         uint workedTo
     )
-        internal
+        internal returns (uint invoiceId)
     {
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var employerId = ContractLibrary.getEmployer(db, contractId);
         if (freelancerId != senderId) throw;
         if (ContractLibrary.getStatus(db, contractId) != 3) throw;
-        var invoiceId = SharedLibrary.createNext(db, "invoice/count");
+        invoiceId = SharedLibrary.createNext(db, "invoice/count");
         EthlanceDB(db).setUIntValue(sha3("invoice/contract", invoiceId), contractId);
         EthlanceDB(db).setStringValue(sha3("invoice/description", invoiceId), description);
         EthlanceDB(db).setUIntValue(sha3("invoice/amount", invoiceId), amount);
@@ -40,6 +40,8 @@ library InvoiceLibrary {
         ContractLibrary.addInvoice(db, contractId, invoiceId, amount);
         UserLibrary.addFreelancerTotalInvoiced(db, freelancerId, amount);
         UserLibrary.addEmployerTotalInvoiced(db, employerId, amount);
+
+        return invoiceId;
     }
 
     function getContract(address db, uint invoiceId) internal returns (uint) {

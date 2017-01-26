@@ -131,6 +131,7 @@
         (when (and (= status 2) (= (:user/id employer) @active-user-id)
                    (= (:job/status job) 1))
           [paper
+           {:loading? loading?}
            [:h2 "Accept Proposal"]
            [misc/textarea
             {:floating-label-text "Message"
@@ -165,6 +166,7 @@
                        (and (= (:user/id freelancer) @active-user-id)
                             (not freelancer-feedback-on))))
           [paper
+           {:loading? loading?}
            [:h2 "Leave Feedback"]
            [star-rating
             {:star-count 10
@@ -189,40 +191,44 @@
 (defn contract-detail-page []
   (let [contract (subscribe [:contract/detail])
         contract-id (subscribe [:contract/route-contract-id])]
-    (dispatch [:after-eth-contracts-loaded
-               [:contract.db/load-contracts
-                (merge ethlance-db/contract-schema ethlance-db/feedback-schema)
-                [@contract-id]]])
-    (dispatch [:after-eth-contracts-loaded
-               [:contract.db/load-contracts
-                ethlance-db/proposal+invitation-schema
-                [@contract-id]]])
     (fn []
       (let [{:keys [:contract/job :contract/done-by-freelancer? :contract/id]} @contract
             {:keys [:job/employer :job/title]} job]
-        [misc/center-layout
-         [paper
-          {:loading? (empty? (:user/name employer))
-           :style styles/paper-section-main}
-          (when (:user/name employer)
-            [:div
+        [misc/call-on-change
+         {:load-on-mount? true
+          :args @contract-id
+          :on-change (fn []
+                       (dispatch [:after-eth-contracts-loaded
+                                  [:contract.db/load-contracts
+                                   (merge ethlance-db/contract-schema ethlance-db/feedback-schema)
+                                   [@contract-id]]])
+                       (dispatch [:after-eth-contracts-loaded
+                                  [:contract.db/load-contracts
+                                   ethlance-db/proposal+invitation-schema
+                                   [@contract-id]]]))}
+         [misc/center-layout
+          [paper
+           {:loading? (empty? (:user/name employer))
+            :style styles/paper-section-main}
+           (when (:user/name employer)
              [:div
-              {:style {:margin-bottom 60}}
-              [:h1
-               "Job Proposal"]
-              [:h3 [a {:route :job/detail
-                       :route-params {:job/id (:job/id job)}}
-                    title]]]
-             [invitation-detail @contract]
-             [proposal-detail @contract]
-             [contract-detail @contract]
-             [invoices-link @contract]
-             (if done-by-freelancer?
-               [:div
-                [freelancer-feedback @contract]
-                [employer-feedback @contract]]
-               [:div
-                [employer-feedback @contract]
-                [freelancer-feedback @contract]])])]
-         [add-contract-form]
-         [add-feedback-form]]))))
+              [:div
+               {:style {:margin-bottom 60}}
+               [:h1
+                "Job Proposal"]
+               [:h3 [a {:route :job/detail
+                        :route-params {:job/id (:job/id job)}}
+                     title]]]
+              [invitation-detail @contract]
+              [proposal-detail @contract]
+              [contract-detail @contract]
+              [invoices-link @contract]
+              (if done-by-freelancer?
+                [:div
+                 [freelancer-feedback @contract]
+                 [employer-feedback @contract]]
+                [:div
+                 [employer-feedback @contract]
+                 [freelancer-feedback @contract]])])]
+          [add-contract-form]
+          [add-feedback-form]]]))))
