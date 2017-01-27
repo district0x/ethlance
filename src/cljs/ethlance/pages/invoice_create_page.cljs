@@ -9,7 +9,8 @@
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [ethlance.ethlance-db :as ethlance-db]))
+    [ethlance.ethlance-db :as ethlance-db]
+    [cljs-time.coerce :as coerce]))
 
 (defn dispatch-contracts-load [user-id]
   (dispatch [:form/set-value :form.invoice/add-invoice :invoice/contract 0 false])
@@ -17,7 +18,7 @@
              [:list/load-ids {:list-key :list/freelancer-my-open-contracts
                               :fn-key :ethlance-views/get-freelancer-contracts
                               :load-dispatch-key :contract.db/load-contracts
-                              :schema #{:contract/job}
+                              :fields #{:contract/job}
                               :args {:user/id user-id :contract/status 3 :job/status 0}}]]))
 
 (defn add-invoice-form []
@@ -57,18 +58,18 @@
             :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-hours (js/parseInt %2) pos?])}]]
          [:div
           [ui/date-picker
-           {:default-date (js/Date. (u/timestamp-sol->js worked-from))
+           {:default-date (js/Date. worked-from)
             :max-date (js/Date.)
             :floating-label-text "Worked From"
             :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-from
-                                   (u/timestamp-js->sol (u/get-time %2))])}]]
+                                   (coerce/to-date-time %2)])}]]
          [:div
           [ui/date-picker
-           {:default-date (js/Date. (u/timestamp-sol->js worked-to))
+           {:default-date (js/Date. worked-to)
             :max-date (js/Date.)
             :floating-label-text "Worked To"
             :on-change #(dispatch [:form/set-value :form.invoice/add-invoice :invoice/worked-to
-                                   (u/timestamp-js->sol (u/get-time %2))])}]]
+                                   (coerce/to-date-time %2)])}]]
          [misc/textarea
           {:floating-label-text "Message"
            :form-key :form.invoice/add-invoice
@@ -78,7 +79,10 @@
            :hint-text misc/privacy-warning-hint}]
          [misc/send-button
           {:disabled (or loading? (boolean (seq errors)))
-           :on-touch-tap #(dispatch [:contract.invoice/add-invoice data])}]]))))
+           :on-touch-tap #(dispatch [:contract.invoice/add-invoice
+                                     (-> data
+                                       (update :invoice/worked-from u/date->sol-timestamp)
+                                       (update :invoice/worked-to u/date->sol-timestamp))])}]]))))
 
 (defn invoice-create-page []
   (fn []

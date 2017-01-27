@@ -70,7 +70,7 @@
           :initial-dispatch {:list-key :list/job-proposals
                              :fn-key :ethlance-views/get-job-contracts
                              :load-dispatch-key :contract.db/load-contracts
-                             :schema #{:contract/freelancer
+                             :fields #{:contract/freelancer
                                        :proposal/rate
                                        :proposal/created-on
                                        :invitation/created-on
@@ -230,7 +230,7 @@
         :initial-dispatch {:list-key :list/job-invoices
                            :fn-key :ethlance-views/get-job-invoices
                            :load-dispatch-key :contract.db/load-invoices
-                           :schema ethlance-db/invoices-table-entity-fields
+                           :fields ethlance-db/invoices-table-entity-fields
                            :args {:job/id @job-id :invoice/status 0}}
         :all-ids-subscribe [:list/ids :list/job-invoices]}])))
 
@@ -244,7 +244,7 @@
         :initial-dispatch [:list/load-ids {:list-key :list/job-feedbacks
                                            :fn-key :ethlance-views/get-job-contracts
                                            :load-dispatch-key :contract.db/load-contracts
-                                           :schema ethlance-db/feedback-entity-fields
+                                           :fields ethlance-db/feedback-entity-fields
                                            :args {:job/id @job-id :contract/status 4}}]}])))
 
 (defn job-detail-page []

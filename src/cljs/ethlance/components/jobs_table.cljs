@@ -59,7 +59,7 @@
       :limit limit
       :all-ids-subscribe all-ids-subscribe
       :list-db-path [(:list-key initial-dispatch)]
-      :load-dispatch [(:load-dispatch-key initial-dispatch) (:schema initial-dispatch)]})])
+      :load-dispatch [(:load-dispatch-key initial-dispatch) (:fields initial-dispatch)]})])
 
 (defn jobs-table [props]
   [list-table

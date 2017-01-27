@@ -46,7 +46,9 @@
                             (on-change items)))}
        (when value
          {:value
-          (let [value (filter (partial >= (count all-items)) value)]
+          (let [value (if (map? all-items)
+                        (filter all-items value)
+                        (filter (partial >= (count all-items)) value))]
             (if all-items-map?
               (u/map->data-source (select-keys all-items value) all-items-val-key)
               (u/results-coll->data-source value all-items)))}))]))

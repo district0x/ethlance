@@ -141,7 +141,7 @@
         :initial-dispatch {:list-key :list/freelancer-contracts
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema #{:contract/job
+                           :fields #{:contract/job
                                      :contract/created-on
                                      :proposal/rate
                                      :contract/total-paid
@@ -159,7 +159,7 @@
     :initial-dispatch [:list/load-ids {:list-key :list/freelancer-feedbacks
                                        :fn-key :ethlance-views/get-freelancer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
-                                       :schema ethlance-db/feedback-entity-fields
+                                       :fields ethlance-db/feedback-entity-fields
                                        :args {:user/id id :contract/status 4 :job/status 0}}]}])
 
 (defn employer-jobs-select-field [jobs-list {:keys [:contract/job]} freelancer active-user]

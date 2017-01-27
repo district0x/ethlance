@@ -113,7 +113,7 @@
         :initial-dispatch {:list-key :list/employer-jobs
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :schema #{:job/title :job/total-paid :job/created-on :job/status}
+                           :fields #{:job/title :job/total-paid :job/created-on :job/status}
                            :args {:user/id id :job/status 0}}
         :all-ids-subscribe [:list/ids :list/employer-jobs]
         :title "Employer's Jobs"
@@ -127,7 +127,7 @@
     :initial-dispatch [:list/load-ids {:list-key :list/employer-feedbacks
                                        :fn-key :ethlance-views/get-employer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
-                                       :schema ethlance-db/feedback-entity-fields
+                                       :fields ethlance-db/feedback-entity-fields
                                        :args {:user/id id :contract/status 4 :job/status 0}}]}])
 
 (defn employer-detail-page []

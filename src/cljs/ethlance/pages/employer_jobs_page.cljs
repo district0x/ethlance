@@ -19,7 +19,7 @@
         :initial-dispatch {:list-key :list/employer-jobs-open
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :schema fields-to-load
+                           :fields fields-to-load
                            :args {:user/id id :job/status 1}}
         :all-ids-subscribe [:list/ids :list/employer-jobs-open]
         :show-created-on? true
@@ -50,7 +50,7 @@
         :initial-dispatch {:list-key :list/employer-jobs-done
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :schema fields-to-load
+                           :fields fields-to-load
                            :args {:user/id id :job/status 2}}
         :all-ids-subscribe [:list/ids :list/employer-jobs-done]
         :title "Closed Hiring Jobs"

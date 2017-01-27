@@ -61,7 +61,7 @@
 (s/def :freelancer/contracts u/uint-coll?)
 (s/def :freelancer/contracts-count u/uint?)
 (s/def :freelancer/description string?)
-(s/def :freelancer/hourly-rate u/big-num?)
+(s/def :freelancer/hourly-rate u/big-num|num|str?)
 (s/def :freelancer/job-title u/string-or-nil?)
 (s/def :freelancer/ratings-count u/uint?)
 (s/def :freelancer/skills u/uint-coll?)
@@ -84,7 +84,7 @@
                                :user/employer?
                                :user/freelancer?
                                :user/gravatar
-                               :user/languages-coll
+                               :user/languages
                                :user/languages-count
                                :user/name
                                :user/status
@@ -113,7 +113,7 @@
 (s/def :app/users (s/map-of pos? :app/user))
 
 (s/def :job/id pos?)
-(s/def :job/budget u/big-num?)
+(s/def :job/budget u/big-num|num|str?)
 (s/def :job/category u/uint8?)
 (s/def :job/contracts u/uint-coll?)
 (s/def :job/contracts-count u/uint?)
@@ -158,12 +158,12 @@
 
 (s/def :contract/id pos?)
 (s/def :invitation/created-on u/date-or-nil?)
-(s/def :invitation/description string?)
+(s/def :invitation/description u/string-or-nil?)
 (s/def :proposal/created-on u/date-or-nil?)
-(s/def :proposal/description string?)
-(s/def :proposal/rate u/big-num?)
+(s/def :proposal/description u/string-or-nil?)
+(s/def :proposal/rate u/big-num|num|str?)
 (s/def :contract/created-on u/date-or-nil?)
-(s/def :contract/description string?)
+(s/def :contract/description u/string-or-nil?)
 (s/def :contract/done-by-freelancer? boolean?)
 (s/def :contract/done-on u/date-or-nil?)
 (s/def :contract/freelancer u/uint?)
@@ -173,10 +173,10 @@
 (s/def :contract/status u/uint8?)
 (s/def :contract/total-invoiced u/big-num?)
 (s/def :contract/total-paid u/big-num?)
-(s/def :contract/employer-feedback string?)
+(s/def :contract/employer-feedback u/string-or-nil?)
 (s/def :contract/employer-feedback-on u/date-or-nil?)
 (s/def :contract/employer-feedback-rating u/uint8?)
-(s/def :contract/freelancer-feedback string?)
+(s/def :contract/freelancer-feedback u/string-or-nil?)
 (s/def :contract/freelancer-feedback-on u/date-or-nil?)
 (s/def :contract/freelancer-feedback-rating u/uint8?)
 
@@ -207,7 +207,7 @@
 (s/def :app/contracts (s/map-of pos? :app/contract))
 
 (s/def :invoice/id pos?)
-(s/def :invoice/amount u/big-num?)
+(s/def :invoice/amount u/big-num|num|str?)
 (s/def :invoice/cancelled-on u/date-or-nil?)
 (s/def :invoice/contract u/uint?)
 (s/def :invoice/created-on u/date?)
@@ -244,7 +244,7 @@
 
 (s/def :app/skill (s/keys :opt [:skill/id
                                 :skill/name
-                                :skill/creator 
+                                :skill/creator
                                 :skill/created-on
                                 :skill/jobs-count
                                 :skill/jobs
@@ -256,13 +256,96 @@
 (s/def :app/skill-count int?)
 (s/def ::skill-load-limit pos?)
 
+
+(s/def ::items (s/coll-of (s/nilable int?)))
+(s/def ::loading? boolean?)
+(s/def ::params (s/map-of keyword? any?))
+(s/def ::limit int?)
+(s/def ::initial-limit int?)
+(s/def ::show-more-limit int?)
+(s/def ::offset int?)
+(s/def ::sort-dir keyword?)
+(s/def ::ids-list (s/keys :req-un [::items ::loading? ::params]
+                          :opt-un [::offset ::limit ::sort-dir ::initial-limit ::show-more-limit]))
+
+(s/def :list/my-users ::ids-list)
+(s/def :list/contract-invoices ::ids-list)
+(s/def :list/job-proposals ::ids-list)
+(s/def :list/job-feedbacks ::ids-list)
+(s/def :list/job-invoices ::ids-list)
+(s/def :list/employer-invoices-pending ::ids-list)
+(s/def :list/employer-invoices-paid ::ids-list)
+(s/def :list/freelancer-invoices-pending ::ids-list)
+(s/def :list/freelancer-invoices-paid ::ids-list)
+(s/def :list/search-freelancers ::ids-list)
+(s/def :list/search-jobs ::ids-list)
+(s/def :list/freelancer-feedbacks ::ids-list)
+(s/def :list/employer-feedbacks ::ids-list)
+(s/def :list/freelancer-invitations ::ids-list)
+(s/def :list/freelancer-proposals ::ids-list)
+(s/def :list/freelancer-contracts ::ids-list)
+(s/def :list/freelancer-contracts-open ::ids-list)
+(s/def :list/freelancer-contracts-done ::ids-list)
+(s/def :list/employer-jobs-open ::ids-list)
+(s/def :list/employer-jobs-done ::ids-list)
+(s/def :list/employer-jobs ::ids-list)
+(s/def :list/freelancer-my-open-contracts ::ids-list)
+(s/def :list/employer-jobs-open-select-field ::ids-list)
+
+;; (.*)$
+;; (s/def $1)
+
+
+(s/def :search/category constants/categories)
+(s/def :search/skills (s/coll-of pos?))
+(s/def :search/payment-types (s/coll-of constants/payment-types))
+(s/def :search/experience-levels (s/coll-of constants/experience-levels))
+(s/def :search/estimated-durations (s/coll-of constants/estimated-durations))
+(s/def :search/hours-per-weeks (s/coll-of constants/hours-per-weeks))
+(s/def :search/min-budget (u/one-of string? number?))
+(s/def :search/min-employer-avg-rating u/rating?)
+(s/def :search/min-employer-ratings-count u/rating?)
+(s/def :search/country (partial >= (count constants/countries)))
+(s/def :search/state (partial >= (count constants/united-states)))
+(s/def :search/language (partial >= (count constants/languages)))
+(s/def :search/offset int?)
+(s/def :search/limit int?)
+(s/def :search/min-avg-rating u/rating?)
+(s/def :search/min-freelancer-ratings-count int?)
+(s/def :search/min-hourly-rate (u/one-of string? number?))
+(s/def :search/max-hourly-rate (u/one-of string? number?))
+
+(s/def :form/search-jobs (s/keys))
+(s/def :form/search-freelancers (s/keys))
+(s/def ::gas-limit pos?)
+(s/def ::errors (s/coll-of keyword?))
+(s/def ::data (s/keys))
+(s/def ::submit-form (s/keys :req-un [::loading? ::gas-limit]
+                             :opt-un [::errors ::data]))
+
+(s/def :form.invoice/pay-invoice ::submit-form)
+(s/def :form.invoice/cancel-invoice ::submit-form)
+(s/def :form.job/set-hiring-done ::submit-form)
+(s/def :form.job/add-job ::submit-form)
+(s/def :form.contract/add-invitation ::submit-form)
+(s/def :form.contract/add-proposal ::submit-form)
+(s/def :form.contract/add-contract ::submit-form)
+(s/def :form.contract/add-feedback ::submit-form)
+(s/def :form.invoice/add-invoice ::submit-form)
+(s/def :form.config/add-skills ::submit-form)
+(s/def :form.user/set-user ::submit-form)
+(s/def :form.user/set-freelancer ::submit-form)
+(s/def :form.user/set-employer ::submit-form)
+(s/def :form.user/register-freelancer ::submit-form)
+(s/def :form.user/register-employer ::submit-form)
+(s/def :form.config/set-configs ::submit-form)
+(s/def :form.config/block-skills ::submit-form)
+(s/def :form.config/set-skill-name ::submit-form)
+
 (s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
                              ::generate-db-on-deploy? ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
-                             ::my-users-loaded? ::conversion-rates ::skill-load-limit]
-                    :req [:window/width-size :eth/config :eth/contracts :blockchain/addresses
-                          :blockchain/connection-error? :app/users :app/jobs :app/contracts :app/invoices
-                          :app/skill-count]))
+                             ::my-users-loaded? ::conversion-rates ::skill-load-limit]))
 
 (def default-db
   {:devnet? true
@@ -327,7 +410,7 @@
    :app/invoices {}
    :app/skills {}
    :app/skill-count 0
-   :skill-load-limit 5
+   :skill-load-limit 30
 
    :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
@@ -396,18 +479,22 @@
 
    :form.invoice/add-invoice {:loading? false
                               :gas-limit 700000
-                              :data {:invoice/contract nil
+                              :data {:invoice/contract 0
                                      :invoice/description ""
                                      :invoice/amount 0
                                      :invoice/worked-hours 0
-                                     :invoice/worked-from (u/timestamp-js->sol (u/get-time (u/week-ago)))
-                                     :invoice/worked-to (u/timestamp-js->sol (u/get-time (t/today-at-midnight)))}
+                                     :invoice/worked-from (u/week-ago)
+                                     :invoice/worked-to (t/today-at-midnight)}
                               :errors #{:invoice/contract}}
 
    :form.config/add-skills {:loading? false
                             :gas-limit 4500000
                             :data {:skill/names []}
                             :errors #{:skill/names}}
+
+   :form.config/set-configs {:loading? false :gas-limit 200000}
+   :form.config/block-skills {:loading? false :gas-limit 200000}
+   :form.config/set-skill-name {:loading? false :gas-limit 200000}
 
    :form.user/set-user {:loading? false
                         :gas-limit 500000

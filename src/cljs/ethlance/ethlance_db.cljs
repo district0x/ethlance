@@ -185,8 +185,17 @@
 (def get-configs-args
   [:config/keys])
 
-(def get-skill-names
+(def set-configs-args
+  [:config/keys :config/values])
+
+(def get-skill-names-args
   [:skill/offset :skill/limit])
+
+(def block-skills-args
+  [:skill/ids])
+
+(def set-skill-name-args
+  [:skill/id :skill/name])
 
 (def eth-contracts-fns
   {:ethlance-views/get-freelancer-contracts get-user-contracts-args
@@ -198,7 +207,7 @@
    :ethlance-views/get-freelancers-job-contracts get-freelancers-job-contracts-args
    :ethlance-views/get-contract-invoices get-contract-invoices-args
    :ethlance-views/get-employer-jobs get-employer-jobs-args
-   :ethlance-views/get-skill-names get-skill-names
+   :ethlance-views/get-skill-names get-skill-names-args
    :ethlance-views/get-skill-count #{}
    :ethlance-views/get-users get-users-args
    :ethlance-views/get-employer-jobs-for-freelancer-invite get-employer-jobs-for-freelancer-invite
@@ -206,6 +215,9 @@
    :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
    :ethlance-config/add-skills add-skills-args
    :ethlance-config/get-configs get-configs-args
+   :ethlance-config/set-configs set-configs-args
+   :ethlance-config/block-skills block-skills-args
+   :ethlance-config/set-skill-name set-skill-name-args
    :ethlance-invoice/cancel-invoice cancel-invoice-args
    :ethlance-invoice/pay-invoice pay-invoice-args
    :ethlance-invoice/add-invoice add-invoice-args
@@ -221,8 +233,11 @@
    :ethlance-user/set-employer set-employer-args
    :ethlance-user/set-user set-user-args})
 
+(defn string-type-pred [field]
+  (contains? #{'cljs.core/string? 'ethlance.utils/string-or-nil?} (s/form field)))
+
 (defn no-string-types [fields]
-  (remove #(= 'cljs.core/string? (s/form %)) fields))
+  (set (remove string-type-pred fields)))
 
 (defn remove-uint-coll-fields [fields]
   (remove #(= (s/form %) 'ethlance.utils/uint-coll?) fields))
@@ -237,6 +252,7 @@
    'cljs.core/string? 7
    'ethlance.utils/string-or-nil? 7
    'ethlance.utils/big-num? 3
+   'ethlance.utils/big-num|num|str? 3
    'ethlance.utils/date? 3
    'ethlance.utils/date-or-nil? 3
    })
@@ -252,6 +268,7 @@
     'ethlance.utils/date? (u/big-num->date-time val)
     'ethlance.utils/date-or-nil? (u/big-num->date-time val)
     'ethlance.utils/big-num? (web3/from-wei val :ether)
+    'ethlance.utils/big-num|num|str? (web3/from-wei val :ether)
     (.toNumber val)))
 
 (defn string-blob->strings [string-blob delimiter]
@@ -262,8 +279,7 @@
 
 (defn parse-entities [ids fields result]
   (let [ids (vec ids)
-        grouped-by-string (group-by #(contains? #{'cljs.core/string? 'ethlance.utils/string-or-nil?}
-                                                (s/form %)) fields)
+        grouped-by-string (group-by string-type-pred fields)
         string-fields (get grouped-by-string true)
         uint-fields (get grouped-by-string false)
         uint-fields-count (count uint-fields)]

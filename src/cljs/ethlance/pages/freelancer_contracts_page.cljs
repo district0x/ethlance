@@ -20,7 +20,7 @@
         :initial-dispatch {:list-key :list/freelancer-invitations
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema #{:contract/job :invitation/created-on}
+                           :fields #{:contract/job :invitation/created-on}
                            :args {:user/id id :contract/status 1 :job/status 1}}
         :all-ids-subscribe [:list/ids :list/freelancer-invitations]
         :title "Invitations"
@@ -35,7 +35,7 @@
     :initial-dispatch {:list-key :list/freelancer-proposals
                        :fn-key :ethlance-views/get-freelancer-contracts
                        :load-dispatch-key :contract.db/load-contracts
-                       :schema #{:contract/job :proposal/created-on :proposal/rate}
+                       :fields #{:contract/job :proposal/created-on :proposal/rate}
                        :args {:user/id id :contract/status 2 :job/status 1}}
     :all-ids-subscribe [:list/ids :list/freelancer-proposals]
     :title "Pending Proposals"
@@ -53,7 +53,7 @@
         :initial-dispatch {:list-key :list/freelancer-contracts-open
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema #{:contract/job :contract/created-on :proposal/rate :contract/total-paid}
+                           :fields #{:contract/job :contract/created-on :proposal/rate :contract/total-paid}
                            :args {:user/id id :contract/status 3 :job/status 0}}
         :all-ids-subscribe [:list/ids :list/freelancer-contracts-open]
         :title "Active Contracts"
@@ -72,7 +72,7 @@
         :initial-dispatch {:list-key :list/freelancer-contracts-done
                            :fn-key :ethlance-views/get-freelancer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :schema #{:contract/job
+                           :fields #{:contract/job
                                      :contract/created-on
                                      :proposal/rate
                                      :contract/total-paid

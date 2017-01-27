@@ -79,7 +79,7 @@
   (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
 
 (defn all-contracts-loaded? [db]
-  (every? #(and (:abi %) (if goog.DEBUG true (:bin %))) (vals (:eth/contracts db))))
+  (every? #(and (:abi %) (if goog.DEBUG (:bin %) true)) (vals (:eth/contracts db))))
 
 
 (defn filter-needed-fields [required-fields items ids & [editable-fields]]
@@ -389,7 +389,10 @@
         (merge
           {:db new-db}
           (when (all-contracts-loaded? new-db)
-            {:dispatch [:eth-contracts-loaded]}))))))
+            {:dispatch [:eth-contracts-loaded]})
+          (when (and (= code-type :abi)
+                     (= contract-key :ethlance-config))
+            {:dispatch-n [[:contract.config/setup-listeners]]}))))))
 
 (reg-event-fx
   :eth-contracts-loaded
@@ -399,24 +402,75 @@
       {:dispatch [:contract.views/load-skill-count]})))
 
 (reg-event-fx
-  :contract.config/set-configs
+  :contract.config/setup-listeners
   interceptors
   (fn [{:keys [db]}]
-    (let [{:keys [eth/config web3 active-address]} db]
-      {:web3-fx.contract/state-fns
-       {:web3 web3
-        :db-path [:contract/state-fns]
-        :fns [[(get-instance db :ethlance-config)
-               :set-configs
-               (keys config)
-               (vals config)
-               {:gas max-gas
-                :from active-address}
-               :contract/transaction-sent
-               [:contract/transaction-error :contract.config/set-configs]
-               [:contract/transaction-receipt :set-configs max-gas (if (:generate-db-on-deploy db)
-                                                                     :generate-db
-                                                                     :do-nothing) false]]]}})))
+    (when-not (:contracts-not-found? db)
+      (let [config-instance (get-instance db :ethlance-config)]
+        {:web3-fx.contract/events
+         {:db db
+          :db-path [:ethlance-config-events]
+          :events [[config-instance :on-skills-added {} "latest"
+                    :contract.config/on-skills-added [:log-error :on-skills-added]]
+                   [config-instance :on-skills-blocked {} "latest"
+                    :contract.config/on-skills-blocked [:log-error :on-skills-blocked]]
+                   [config-instance :on-configs-changed {} "latest"
+                    :contract.config/on-configs-changed [:log-error :on-configs-changed]]]}}))))
+
+
+(reg-event-fx
+  :contract.config/on-skills-added
+  interceptors
+  (fn [{:keys [db]} [{:keys [:skill-ids]}]]
+    {:dispatch [:contract.views/skill-count-loaded (apply max (u/big-nums->nums skill-ids))]}))
+
+(reg-event-fx
+  :contract.config/on-skills-blocked
+  interceptors
+  (fn [{:keys [db]} [{:keys [:skill-ids]}]]
+    {:db (update db :app/skills #(apply dissoc % (u/big-nums->nums skill-ids)))}))
+
+(reg-event-fx
+  :contract.config/on-configs-changed
+  interceptors
+  (fn [{:keys [db]} [args]]
+    (when (seq (:keys args))
+      {:dispatch [:contract.config/get-configs
+                  {:config/keys (map (comp keyword u/remove-zero-chars web3/to-ascii) (:keys args))}]})))
+
+(reg-event-fx
+  :contract.config/set-skill-name
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-config/set-skill-name
+                 :form-key :form.config/set-skill-name
+                 :receipt-dispatch-n [[:snackbar/show-message "Skill name was successfully changed!"]]}]}))
+
+(reg-event-fx
+  :contract.config/block-skills
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-config/block-skills
+                 :form-key :form.config/block-skills
+                 :receipt-dispatch-n [[:snackbar/show-message "Skills were successfully blocked!"]]}]}))
+
+(reg-event-fx
+  :contract.config/set-configs
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-config/set-configs
+                 :form-key :form.config/set-configs
+                 :receipt-dispatch-n [[:snackbar/show-message "Configs were successfully changed!"]
+                                      (if (:generate-db-on-deploy? db) [:generate-db] [:do-nothing])]}]}))
 
 (reg-event-fx
   :contract.config/get-configs
@@ -469,7 +523,9 @@
                  :contract/transaction-sent
                  [:contract/transaction-error :contract.db/add-allowed-contracts]
                  (if (contains? (set contract-keys) :ethlance-config)
-                   :contract.config/set-configs
+                   (let [config (:eth/config db)]
+                     [:contract.config/set-configs {:config/keys (keys config)
+                                                    :config/values (vals config)}])
                    :do-nothing)]]}}))))
 
 (reg-event-fx
@@ -598,7 +654,7 @@
     {:dispatch [:list/load-ids {:list-key :list/search-jobs
                                 :fn-key :ethlance-search/search-jobs
                                 :load-dispatch-key :contract.db/load-jobs
-                                :schema (set/difference ethlance-db/job-entity-fields #{:job/description})
+                                :fields (set/difference ethlance-db/job-entity-fields #{:job/description})
                                 :args args
                                 :keep-items? true}]}))
 
@@ -651,7 +707,7 @@
     {:dispatch [:list/load-ids {:list-key :list/search-freelancers
                                 :fn-key :ethlance-search/search-freelancers
                                 :load-dispatch-key :contract.db/load-users
-                                :schema (set/union (set/difference ethlance-db/freelancer-entity-fields
+                                :fields (set/union (set/difference ethlance-db/freelancer-entity-fields
                                                                    #{:freelancer/description})
                                                    ethlance-db/user-entity-fields)
                                 :args (assoc args :search/seed (calculate-search-seed args (:on-load-seed db)))
@@ -667,7 +723,7 @@
                                     :fn-key :ethlance-views/get-users
                                     :load-dispatch-key :contract.db/load-users
                                     :load-dispatch-opts {:dispatch-after-loaded [:my-users-loaded]}
-                                    :schema (set/difference ethlance-db/account-entitiy-fields
+                                    :fields (set/difference ethlance-db/account-entitiy-fields
                                                             #{:freelancer/description
                                                               :employer/description})
                                     :args {:user/addresses addrs}}]}))))
@@ -902,7 +958,7 @@
     {:dispatch [:list/load-ids {:list-key :list/job-proposals
                                 :fn-key :ethlance-views/get-job-contracts
                                 :load-dispatch-key :contract.db/load-contracts
-                                :schema (ethlance-db/no-string-types ethlance-db/proposal+invitation-entitiy-fields)
+                                :fields (ethlance-db/no-string-types ethlance-db/proposal+invitation-entitiy-fields)
                                 :args args}]}))
 
 (reg-event-fx
@@ -912,7 +968,7 @@
     {:dispatch [:list/load-ids {:list-key :list/employer-jobs-open-select-field
                                 :fn-key :ethlance-views/get-employer-jobs-for-freelancer-invite
                                 :load-dispatch-key :contract.db/load-jobs
-                                :schema #{:job/title}
+                                :fields #{:job/title}
                                 :args args}]}))
 
 (reg-event-fx
@@ -1015,7 +1071,7 @@
 (reg-event-fx
   :list/load-ids
   interceptors
-  (fn [{:keys [db]} [{:keys [:list-key :fn-key :load-dispatch-key :load-dispatch-opts :schema :args :load-per
+  (fn [{:keys [db]} [{:keys [:list-key :fn-key :load-dispatch-key :load-dispatch-opts fields :args :load-per
                              :keep-items?]}]]
     {:db (cond-> db
            (and (not keep-items?) (not= (get-in db [list-key :params]) args))
@@ -1027,7 +1083,7 @@
               [(get-instance db (keyword (namespace fn-key)))
                fn-key]
               (args-map->vec args (ethlance-db/eth-contracts-fns fn-key))
-              [[:contract.views/ids-loaded list-key load-dispatch-key schema load-per load-dispatch-opts]
+              [[:contract.views/ids-loaded list-key load-dispatch-key fields load-per load-dispatch-opts]
                [:log-error :list/load-ids fn-key]])]}}))
 
 (reg-event-fx
@@ -1056,14 +1112,13 @@
     (let [new-skill-count (u/big-num->num new-skill-count)
           old-skill-count (:app/skill-count db)
           skill-load-limit (:skill-load-limit db)]
-      (merge
-        {:db (assoc db :app/skill-count new-skill-count)}
-        (when (< old-skill-count new-skill-count)
-          {:dispatch-n
-           (into []
-                 (for [x (range (js/Math.ceil (/ (- new-skill-count old-skill-count) skill-load-limit)))]
-                   [:contract.views/load-skill-names {:skill/limit skill-load-limit
-                                                      :skill/offset (+ old-skill-count (* x skill-load-limit))}]))})))))
+      (when (< old-skill-count new-skill-count)
+        {:db (assoc db :app/skill-count new-skill-count)
+         :dispatch-n
+         (into []
+               (for [x (range (js/Math.ceil (/ (- new-skill-count old-skill-count) skill-load-limit)))]
+                 [:contract.views/load-skill-names {:skill/limit skill-load-limit
+                                                    :skill/offset (+ old-skill-count (* x skill-load-limit))}]))}))))
 
 (reg-event-fx
   :contract.views/load-skill-names
@@ -1081,8 +1136,8 @@
   :contract.views/skill-names-loaded
   interceptors
   (fn [db [[ids names]]]
-    (update db :app/skills merge (zipmap (u/big-nums->nums ids)
-                                         (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names)))))
+    (update db :app/skills merge (print.foo/look (zipmap (u/big-nums->nums ids)
+                                          (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names))))))
 
 
 (reg-event-fx
@@ -1541,7 +1596,9 @@
   (dispatch [:estimate-contracts])
   (dispatch [:clean-localstorage true])
   (dispatch [:print-localstorage])
-  (dispatch [:contract.config/set-configs])
+  (dispatch [:contract.config/set-configs {:config/keys [:max-freelancer-skills]
+                                           :config/values [11]}])
+  (dispatch [:contract.config/block-skills {:skill/ids [2 4]}])
   (dispatch [:contract.db/add-allowed-contracts])
   (dispatch [:contract/call :ethlance-db :get-allowed-contracts])
   (dispatch [:contract/call :ethlance-db :allowed-contracts-keys 5])

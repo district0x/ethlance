@@ -210,7 +210,15 @@
      "REACH US"]
     [footer-link "http://facebook.com" "Facebook"]
     [footer-link "http://facebook.com" "Twitter"]
-    [footer-link "http://facebook.com" "Github"]]])
+    [footer-link "http://facebook.com" "Github"]]
+   [col {:xs 12}
+    [:img {:src "../images/ethlance-logo-grey.svg"
+           :style (merge styles/margin-top-gutter
+                         {:height 40})}]
+    [:div {:style (merge styles/footer-subheader
+                         {:font-size "0.9em"
+                          :margin-top 5})}
+     "Copyright © 2017 Ethlance.com. All rights reserved."]]])
 
 (defn home-page []
   (let [current-page (subscribe [:db/current-page])]

@@ -50,6 +50,9 @@
 (defn date-or-nil? [x]
   (or (nil? x) (date? x)))
 
+(defn rating? [x]
+  (<= 0 x 100))
+
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
 
@@ -127,6 +130,11 @@
 (defn big-num? [x]
   (and x (aget x "toNumber")))
 
+(defn big-num|num|str? [x]
+  (and x (or (big-num? x)
+             (number? x)
+             (string? x))))
+
 (defn big-num-pos? [x]
   (when x
     (.greaterThan x 0)))
@@ -186,36 +194,6 @@
 
 (defn md5 [s]
   (crypt/byteArrayToHex (md5-bytes s)))
-
-(defn debounce-ch
-  ([c ms] (debounce-ch (chan) c ms false))
-  ([c ms instant] (debounce-ch (chan) c ms instant))
-  ([c' c ms instant]
-   (go
-     (loop [start (js/Date.) timeout nil]
-       (let [loc (<! c)]
-         (when timeout
-           (js/clearTimeout timeout))
-         (let [diff (- (js/Date.) start)
-               delay (if (and instant
-                              (or (>= diff ms)
-                                  (not timeout)))
-                       0 ms)
-               t (js/setTimeout #(go (>! c' loc)) delay)]
-           (recur (js/Date.) t)))))
-   c'))
-
-(defn debounce
-  ([f ms] (debounce f ms false))
-  ([f ms instant]
-   (let [change-ch (chan)
-         debounced-chan (debounce-ch change-ch ms instant)]
-     (go-loop []
-              (let [args (<! debounced-chan)]
-                (apply f args)
-                (recur)))
-     (fn [& args]
-       (go (>! change-ch args))))))
 
 (defn map->data-source [m val-key]
   (map (fn [[k v]] {"text" (get v val-key) "value" k}) (into [] m)))
@@ -385,6 +363,8 @@
 
 (defn get-time [x]
   (.getTime x))
+
+(def date->sol-timestamp (comp timestamp-js->sol get-time))
 
 (defn week-ago []
   (t/minus (t/today-at-midnight) (t/weeks 1)))
