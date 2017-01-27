@@ -8,6 +8,7 @@
             ))
 
 (s/def ::devnet? boolean?)
+(s/def ::active-setters? boolean?)
 (s/def ::web3 (complement nil?))
 (s/def ::node-url string?)
 (s/def ::provides-web3? boolean?)
@@ -34,7 +35,7 @@
 (s/def ::setter? boolean?)
 (s/def :eth/contracts (s/map-of keyword? (s/keys :req-un [::name] :opt-un [::setter? ::address ::bin ::abi])))
 (s/def ::my-addresses (s/coll-of string?))
-(s/def ::active-address string?)
+(s/def ::active-address (s/nilable string?))
 (s/def ::my-users-loaded? boolean?)
 (s/def :user/id pos?)
 (s/def :address/balance u/big-num?)
@@ -236,6 +237,7 @@
 (s/def :skill/name u/bytes32?)
 (s/def :skill/creator u/uint?)
 (s/def :skill/created-on u/date?)
+(s/def :skill/updated-on u/date-or-nil?)
 (s/def :skill/jobs-count u/uint?)
 (s/def :skill/jobs u/uint-coll?)
 (s/def :skill/blocked? boolean?)
@@ -246,6 +248,7 @@
                                 :skill/name
                                 :skill/creator
                                 :skill/created-on
+                                :skill/updated-on
                                 :skill/jobs-count
                                 :skill/jobs
                                 :skill/blocked?
@@ -345,12 +348,12 @@
 (s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
                              ::generate-db-on-deploy? ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
-                             ::my-users-loaded? ::conversion-rates ::skill-load-limit]))
+                             ::my-users-loaded? ::conversion-rates ::skill-load-limit ::active-setters?]))
 
 (def default-db
   {:devnet? true
    :web3 nil
-   :node-url "http://localhost:8545" #_"http://192.168.0.16:8545/"
+   :node-url "http://localhost:8549" #_"http://192.168.0.16:8545/"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -389,6 +392,7 @@
                 :max-invitation-desc 500
                 :max-skills-create-at-once 50 #_10
                 :adding-skills-enabled? 1}
+   :active-setters? true
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_#_:address "0xb0f1102af4f36290ec7db1461ab23d5a55460715"}
                    :ethlance-job {:name "EthlanceJob" :setter? true #_#_:address "0x2128629f1546072a0a833041fe4445584d792792"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true #_#_:address "0xa5d81ebae0dfe33a20a52b6cc76cebea6530e2c5"}
@@ -492,9 +496,9 @@
                             :data {:skill/names []}
                             :errors #{:skill/names}}
 
-   :form.config/set-configs {:loading? false :gas-limit 200000}
-   :form.config/block-skills {:loading? false :gas-limit 200000}
-   :form.config/set-skill-name {:loading? false :gas-limit 200000}
+   :form.config/set-configs {:loading? false :gas-limit 4500000}
+   :form.config/block-skills {:loading? false :gas-limit 4500000}
+   :form.config/set-skill-name {:loading? false :gas-limit 4500000}
 
    :form.user/set-user {:loading? false
                         :gas-limit 500000
@@ -508,7 +512,7 @@
                               :open? false}
 
    :form.user/set-employer {:loading? false
-                            :gas-limit 1000000
+                            :gas-limit 4700000
                             :data {}
                             :errors #{}
                             :open? false}

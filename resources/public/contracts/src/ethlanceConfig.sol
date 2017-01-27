@@ -1,4 +1,4 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "ethlanceDB.sol";
 import "ethlanceSetter.sol";
@@ -9,6 +9,7 @@ contract EthlanceConfig is EthlanceSetter {
 
     event onSkillsAdded(uint[] skillIds);
     event onSkillsBlocked(uint[] skillIds);
+    event onSkillNameSet(uint indexed skillId, bytes32 name);
     event onConfigsChanged(bytes32[] keys);
 
     function EthlanceConfig(address _ethlanceDB) {
@@ -41,7 +42,6 @@ contract EthlanceConfig is EthlanceSetter {
         if (msg.sender != owner) {
             if (0 == getConfig("adding-skills-enabled?")) throw;
             if (names.length > getConfig("max-skills-create-at-once")) throw;
-//            if (0 == userId) throw;
         }
         var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names, userId);
         onSkillsAdded(skillIds);
@@ -54,5 +54,15 @@ contract EthlanceConfig is EthlanceSetter {
     {
         SkillLibrary.blockSkills(ethlanceDB, skillIds);
         onSkillsBlocked(skillIds);
+    }
+
+    function setSkillName(
+        uint skillId,
+        bytes32 name
+    )
+        onlyOwner
+    {
+        SkillLibrary.setSkillName(ethlanceDB, skillId, name);
+        onSkillNameSet(skillId, name);
     }
 }

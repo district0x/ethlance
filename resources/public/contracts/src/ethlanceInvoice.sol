@@ -1,9 +1,11 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "ethlanceSetter.sol";
 import "invoiceLibrary.sol";
+import "strings.sol";
 
 contract EthlanceInvoice is EthlanceSetter {
+    using strings for *;
 
     event onInvoiceAdded(uint invoiceId, uint indexed employerId);
     event onInvoicePaid(uint invoiceId, uint indexed freelancerId);
@@ -25,7 +27,7 @@ contract EthlanceInvoice is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveFreelancer
     {
-        if (bytes(description).length > getConfig("max-invoice-description")) throw;
+        if (description.toSlice().len() > getConfig("max-invoice-description")) throw;
         var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, getSenderUserId(), contractId, description,
             amount, workedHours, workedFrom, workedTo);
         onInvoiceAdded(invoiceId, ContractLibrary.getEmployer(ethlanceDB, contractId));

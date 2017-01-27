@@ -1,4 +1,4 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 /*
  * @title String & slice utility library for Solidity contracts.

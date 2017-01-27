@@ -1,9 +1,11 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "ethlanceSetter.sol";
 import "jobLibrary.sol";
+import "strings.sol";
 
 contract EthlanceJob is EthlanceSetter {
+    using strings for *;
 
     function EthlanceJob(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -21,10 +23,12 @@ contract EthlanceJob is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveEmployer
     {
-        if (bytes(description).length > getConfig("max-job-description")) throw;
-        if (bytes(description).length < getConfig("min-job-description")) throw;
-        if (bytes(title).length > getConfig("max-job-title")) throw;
-        if (bytes(title).length < getConfig("min-job-title")) throw;
+        var descriptionLen = description.toSlice().len();
+        var titleLen = title.toSlice().len();
+        if (descriptionLen > getConfig("max-job-description")) throw;
+        if (descriptionLen < getConfig("min-job-description")) throw;
+        if (titleLen > getConfig("max-job-title")) throw;
+        if (titleLen < getConfig("min-job-title")) throw;
         if (skills.length > getConfig("max-job-skills")) throw;
         if (skills.length < getConfig("min-job-skills")) throw;
         JobLibrary.addJob(ethlanceDB, getSenderUserId(), title, description, skills, language, budget, uint8Items);

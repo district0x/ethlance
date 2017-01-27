@@ -6,6 +6,7 @@
     [cljs-web3.core :as web3]
     [cljs-web3.eth :as web3-eth]
     [cljs-web3.personal :as web3-personal]
+    [cljs-web3.utils :as web3-utils]
     [cljs.spec :as s]
     [clojure.data :as data]
     [clojure.set :as set]
@@ -49,13 +50,14 @@
    :on-success on-success
    :on-failure on-failure})
 
-(def max-gas 4700000)
-
 (defn get-contract [db key]
   (get-in db [:eth/contracts key]))
 
 (defn get-instance [db key]
   (get-in db [:eth/contracts key :instance]))
+
+(defn get-contract-class [db key]
+  (get-in db [:eth/contracts key :class]))
 
 (defn storage-keys [& args]
   (apply web3-eth/contract-call (get-instance @re-frame.db/app-db :ethlance-db) :storage-keys args))
@@ -119,6 +121,9 @@
   (->> my-addresses
     (map (comp users :user/id addresses))
     (remove nil?)))
+
+(defn filter-contract-setters [db]
+  (medley/filter-vals :setter? (:eth/contracts db)))
 
 (defn merge-data-from-query [db {:keys [:handler]} query-data]
   (if-let [form (constants/handler->form handler)]
@@ -235,14 +240,14 @@
        {:web3 (:web3 db)
         :fns [[web3-eth/contract-new
                (:abi ethance-db)
-               {:gas max-gas
+               {:gas u/max-gas-limit
                 :data (:bin ethance-db)
                 :from (:active-address db)}
-               :contract/deployed-ethlance-db
+               :contract/ethlance-db-deployed
                [:log-error :deploy-contracts]]]}})))
 
 (reg-event-fx
-  :contract/deployed-ethlance-db
+  :contract/ethlance-db-deployed
   [interceptors (inject-cofx :localstorage)]
   (fn [{:keys [db localstorage]} [instance]]
     (when-let [db-address (aget instance "address")]
@@ -255,11 +260,11 @@
                [web3-eth/contract-new
                 abi
                 db-address
-                {:gas max-gas
+                {:gas u/max-gas-limit
                  :data bin
                  :from (:active-address db)}
                 [:contract/deployed key]
-                [:log-error :contract/deployed-ethlance-db key]])}})))
+                [:log-error :contract/ethlance-db-deployed key]])}})))
 
 (reg-event-fx
   :contract/deployed
@@ -374,25 +379,30 @@
   :contract/loaded
   interceptors
   (fn [{:keys [db]} [contract-key code-type code]]
-    (let [code (if (= code-type :abi) (clj->js code) (str "0x" code))]
+    (let [code (if (= code-type :abi) (clj->js code) (str "0x" code))
+          contract (get-contract db contract-key)
+          contract-address (:address contract)]
       (let [new-db (cond-> db
                      true
                      (assoc-in [:eth/contracts contract-key code-type] code)
 
                      (= code-type :abi)
-                     (assoc-in [:eth/contracts contract-key :instance]
-                               (when-let [address (:address (get-contract db contract-key))]
-                                 (web3-eth/contract-at (:web3 db) code address)))
+                     (update-in [:eth/contracts contract-key] merge
+                                (when contract-address
+                                  {:instance (web3-eth/contract-at (:web3 db) code contract-address)}))
 
-                     (not (:address (get-contract db contract-key)))
+                     (not contract-address)
                      (assoc :contracts-not-found? true))]
         (merge
-          {:db new-db}
-          (when (all-contracts-loaded? new-db)
-            {:dispatch [:eth-contracts-loaded]})
-          (when (and (= code-type :abi)
-                     (= contract-key :ethlance-config))
-            {:dispatch-n [[:contract.config/setup-listeners]]}))))))
+          {:db new-db
+           :dispatch-n (remove nil?
+                               [(when (all-contracts-loaded? new-db)
+                                  [:eth-contracts-loaded])
+                                (when (and (= code-type :abi)
+                                           (= contract-key :ethlance-config))
+                                  [:contract.config/setup-listeners])
+                                (when (and (= code-type :abi) (:setter? contract) contract-address)
+                                  [:contract/load-and-listen-setter-status contract-key])])})))))
 
 (reg-event-fx
   :eth-contracts-loaded
@@ -400,6 +410,67 @@
   (fn [{:keys [db]}]
     (when-not (:contracts-not-found? db)
       {:dispatch [:contract.views/load-skill-count]})))
+
+(reg-event-fx
+  :contract/load-and-listen-setter-status
+  interceptors
+  (fn [{:keys [db]} [contract-key]]
+    {:dispatch-n [[:contract/load-setter-status contract-key]
+                  [:contract/setup-setter-status-listener contract-key]]}))
+
+(reg-event-fx
+  :contract/load-setter-status
+  interceptors
+  (fn [{:keys [db]} [contract-key]]
+    {:web3-fx.contract/constant-fns
+     {:fns [[(get-instance db contract-key)
+             :smart-contract-status
+             [:contract/setter-status-loaded contract-key]
+             [:log-error :contract/load-setter-status contract-key]]]}}))
+
+(reg-event-fx
+  :contract/setup-setter-status-listener
+  interceptors
+  (fn [{:keys [db]} [contract-key]]
+    {:web3-fx.contract/events
+     {:db db
+      :db-path [:ethlance-config-events]
+      :events [[(get-instance db contract-key)
+                (str :on-smart-contract-status-set "-" contract-key)
+                :on-smart-contract-status-set {} "latest"
+                [:contract.config/on-smart-contract-status-set contract-key]
+                [:log-error :contract/setup-setter-status-listener contract-key]]]}}))
+
+(reg-event-fx
+  :contract.config/on-smart-contract-status-set
+  interceptors
+  (fn [{:keys [db]} [contract-key {:keys [:status]}]]
+    {:dispatch [:contract/setter-status-loaded contract-key status]}))
+
+(reg-event-fx
+  :contract.setter/set-smart-contract-status
+  interceptors
+  (fn [{:keys [db]} [status address]]
+    (let [{:keys [:web3 :active-address]} db
+          contract-keys (keys (filter-contract-setters db))]
+      {:web3-fx.contract/state-fns
+       {:web3 web3
+        :db-path [:contract/state-fns]
+        :fns (for [contract-key contract-keys]
+               [(get-instance db contract-key)
+                :set-smart-contract-status
+                status
+                {:gas u/max-gas-limit
+                 :from (or address active-address)}
+                [:do-nothing]
+                [:log-error :contract/deactivate-all-setters contract-key]
+                [:form/submit-receipt u/max-gas-limit {}]])}})))
+
+(reg-event-fx
+  :contract/setter-status-loaded
+  interceptors
+  (fn [{:keys [db]} [contract-key status]]
+    {:db (assoc db :active-setters? (not (pos? (u/big-num->num status))))}))
 
 (reg-event-fx
   :contract.config/setup-listeners
@@ -414,6 +485,8 @@
                     :contract.config/on-skills-added [:log-error :on-skills-added]]
                    [config-instance :on-skills-blocked {} "latest"
                     :contract.config/on-skills-blocked [:log-error :on-skills-blocked]]
+                   [config-instance :on-skill-name-set {} "latest"
+                    :contract.config/on-skill-name-set [:log-error :on-skill-name-set]]
                    [config-instance :on-configs-changed {} "latest"
                     :contract.config/on-configs-changed [:log-error :on-configs-changed]]]}}))))
 
@@ -431,6 +504,12 @@
     {:db (update db :app/skills #(apply dissoc % (u/big-nums->nums skill-ids)))}))
 
 (reg-event-fx
+  :contract.config/on-skill-name-set
+  interceptors
+  (fn [{:keys [db]} [{:keys [:skill-id :name]}]]
+    {:db (assoc-in db [:app/skills (u/big-num->num skill-id) :skill/name] (u/remove-zero-chars (web3/to-ascii name)))}))
+
+(reg-event-fx
   :contract.config/on-configs-changed
   interceptors
   (fn [{:keys [db]} [args]]
@@ -446,8 +525,7 @@
                 {:form-data form-data
                  :address address
                  :fn-key :ethlance-config/set-skill-name
-                 :form-key :form.config/set-skill-name
-                 :receipt-dispatch-n [[:snackbar/show-message "Skill name was successfully changed!"]]}]}))
+                 :form-key :form.config/set-skill-name}]}))
 
 (reg-event-fx
   :contract.config/block-skills
@@ -457,8 +535,7 @@
                 {:form-data form-data
                  :address address
                  :fn-key :ethlance-config/block-skills
-                 :form-key :form.config/block-skills
-                 :receipt-dispatch-n [[:snackbar/show-message "Skills were successfully blocked!"]]}]}))
+                 :form-key :form.config/block-skills}]}))
 
 (reg-event-fx
   :contract.config/set-configs
@@ -469,8 +546,7 @@
                  :address address
                  :fn-key :ethlance-config/set-configs
                  :form-key :form.config/set-configs
-                 :receipt-dispatch-n [[:snackbar/show-message "Configs were successfully changed!"]
-                                      (if (:generate-db-on-deploy? db) [:generate-db] [:do-nothing])]}]}))
+                 :receipt-dispatch-n [(if (:generate-db-on-deploy? db) [:generate-db] [:do-nothing])]}]}))
 
 (reg-event-fx
   :contract.config/get-configs
@@ -509,8 +585,9 @@
   :contract.db/add-allowed-contracts
   interceptors
   (fn [{:keys [db]} [contract-keys]]
-    (let [contract-keys (if-not contract-keys (keys (medley/filter-vals :setter? (:eth/contracts db)))
-                                              contract-keys)]
+    (let [contract-keys (if-not contract-keys
+                          (keys (filter-contract-setters db))
+                          contract-keys)]
       (let [{:keys [web3 active-address eth/contracts]} db]
         {:web3-fx.contract/state-fns
          {:web3 web3
@@ -518,14 +595,14 @@
           :fns [[(get-instance db :ethlance-db)
                  :add-allowed-contracts
                  (map :address (vals (select-keys contracts contract-keys)))
-                 {:gas max-gas
+                 {:gas u/max-gas-limit
                   :from active-address}
                  :contract/transaction-sent
                  [:contract/transaction-error :contract.db/add-allowed-contracts]
                  (if (contains? (set contract-keys) :ethlance-config)
                    (let [config (:eth/config db)]
                      [:contract.config/set-configs {:config/keys (keys config)
-                                                    :config/values (vals config)}])
+                                                    :config/values (vals config)} nil])
                    :do-nothing)]]}}))))
 
 (reg-event-fx
@@ -1137,7 +1214,7 @@
   interceptors
   (fn [db [[ids names]]]
     (update db :app/skills merge (print.foo/look (zipmap (u/big-nums->nums ids)
-                                          (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names))))))
+                                                         (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names))))))
 
 
 (reg-event-fx
@@ -1232,11 +1309,11 @@
       :fns [(concat [(get-instance db contract-key)
                      method]
                     args
-                    [{:gas max-gas
+                    [{:gas u/max-gas-limit
                       :from (:active-address db)}
                      :contract/transaction-sent
                      [:contract/transaction-error :contract/state-call]
-                     [:contract/transaction-receipt method max-gas nil nil]])]}}))
+                     [:contract/transaction-receipt method u/max-gas-limit nil nil]])]}}))
 
 (reg-event-fx
   :form.search/set-value
@@ -1274,6 +1351,24 @@
                  [:form/start-loading form-key]
                  [:contract/transaction-error :form/submit fn-key form-data value address]
                  [:form/submit-receipt gas-limit props]])]}})))
+
+(defn get-method-name [this method-name]
+  (aget this (if (string/includes? method-name "-")
+               (cs/->camelCase method-name)
+               method-name)))
+
+(reg-event-fx
+  :form/estimate-gas
+  interceptors
+  (fn [{:keys [db]} [form-key fn-key]]
+    (let [form (get db form-key)
+          {:keys [:web3]} db]
+      (print.foo/look (web3-utils/js-apply
+                        (get-method-name (get-contract-class db (keyword (namespace fn-key)))
+                                         (name fn-key))
+                        :get-data
+                        (args-map->vec (:data form) (ethlance-db/eth-contracts-fns fn-key))))
+      nil)))
 
 (reg-event-fx
   :form/submit-receipt
@@ -1599,6 +1694,8 @@
   (dispatch [:contract.config/set-configs {:config/keys [:max-freelancer-skills]
                                            :config/values [11]}])
   (dispatch [:contract.config/block-skills {:skill/ids [2 4]}])
+
+  (dispatch [:contract.config/set-skill-name {:skill/id 4 :skill/name "abc"}])
   (dispatch [:contract.db/add-allowed-contracts])
   (dispatch [:contract/call :ethlance-db :get-allowed-contracts])
   (dispatch [:contract/call :ethlance-db :allowed-contracts-keys 5])

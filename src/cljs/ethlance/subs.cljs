@@ -76,6 +76,11 @@
     (:active-address db)))
 
 (reg-sub
+  :db/active-setters?
+  (fn [db _]
+    (:active-setters? db)))
+
+(reg-sub
   :db/active-address-balance
   :<- [:blockchain/addresses]
   :<- [:db/active-address]

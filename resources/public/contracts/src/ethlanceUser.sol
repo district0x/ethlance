@@ -1,9 +1,11 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "ethlanceSetter.sol";
 import "sharedLibrary.sol";
+import "strings.sol";
 
 contract EthlanceUser is EthlanceSetter {
+    using strings for *;
 
     function EthlanceUser(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -15,8 +17,9 @@ contract EthlanceUser is EthlanceSetter {
     {
         if (languages.length > getConfig("max-user-languages")) throw;
         if (languages.length < getConfig("min-user-languages")) throw;
-        if (bytes(name).length > getConfig("max-user-name")) throw;
-        if (bytes(name).length < getConfig("min-user-name")) throw;
+        var nameLen = name.toSlice().len();
+        if (nameLen > getConfig("max-user-name")) throw;
+        if (nameLen < getConfig("min-user-name")) throw;
         UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, state, languages);
     }
 
@@ -49,9 +52,10 @@ contract EthlanceUser is EthlanceSetter {
         if (categories.length < getConfig("min-freelancer-categories")) throw;
         if (skills.length > getConfig("max-freelancer-skills")) throw;
         if (skills.length < getConfig("min-freelancer-skills")) throw;
-        if (bytes(description).length > getConfig("max-user-description")) throw;
-        if (bytes(jobTitle).length > getConfig("max-freelancer-job-title")) throw;
-        if (bytes(jobTitle).length < getConfig("min-freelancer-job-title")) throw;
+        if (description.toSlice().len() > getConfig("max-user-description")) throw;
+        var jobTitleLen = jobTitle.toSlice().len();
+        if (jobTitleLen > getConfig("max-freelancer-job-title")) throw;
+        if (jobTitleLen < getConfig("min-freelancer-job-title")) throw;
         UserLibrary.setFreelancer(ethlanceDB, getSenderUserId(), isAvailable, jobTitle, hourlyRate, categories,
             skills, description);
     }
@@ -70,7 +74,7 @@ contract EthlanceUser is EthlanceSetter {
     onlyActiveSmartContract
     onlyActiveUser
     {
-        if (bytes(description).length > getConfig("max-user-description")) throw;
+        if (description.toSlice().len() > getConfig("max-user-description")) throw;
         UserLibrary.setEmployer(ethlanceDB, getSenderUserId(), description);
     }
 
@@ -82,17 +86,4 @@ contract EthlanceUser is EthlanceSetter {
     {
         UserLibrary.setStatus(ethlanceDB, userId, status);
     }
-
-//    function diff(uint[] _old, uint[] _new) constant returns(uint[] added, uint[] removed) {
-//        return SharedLibrary.diff(_old, _new);
-//    }
-//
-//    function sort(uint[] array) constant returns(uint[]) {
-//        return SharedLibrary.sort(array);
-//    }
-//
-//    function intersect(uint[] a, uint[] b) constant returns(uint[] c) {
-//        return SharedLibrary.intersect(a, b);
-//    }
-
 }

@@ -175,3 +175,20 @@
     ;(print.foo/look correct-added)
     [(= added (vec correct-added)) (= removed correct-removed)
      (= intersection corrent-intersection)]))
+
+;; 1125 per char
+;; 578483 - 100 utf chars
+;; 690976 - 200 ufg chars - 112493
+;; 803343 - 300 utf chars - 112367
+
+;; 533679 - 100 chars -
+;; 601174 - 200 chars - 67495
+;; 668861 - 300 chars - 67687
+;; 736356 - 400 chars - 67495
+
+;; 36759 - 0 chars
+;; 176025 - 100 chars - 139266
+;; 86980 - 200 chars - 112508
+;; 235849 - 300 chars -
+;; 273230 - 400 chars
+

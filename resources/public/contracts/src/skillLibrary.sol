@@ -1,4 +1,4 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "ethlanceDB.sol";
 import "sharedLibrary.sol";
@@ -75,5 +75,10 @@ library SkillLibrary {
             }
         }
         return (SharedLibrary.take(j, skillIds), SharedLibrary.take(j, names));
+    }
+
+    function setSkillName(address db, uint skillId, bytes32 name) internal {
+        EthlanceDB(db).setBytes32Value(sha3("skill/name", skillId), name);
+        EthlanceDB(db).setUIntValue(sha3("skill/updated-on", skillId), now);
     }
 }

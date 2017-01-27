@@ -197,41 +197,49 @@
 (def set-skill-name-args
   [:skill/id :skill/name])
 
+(def set-smart-contract-status-args
+  [:status])
+
 (def eth-contracts-fns
-  {:ethlance-views/get-freelancer-contracts get-user-contracts-args
-   :ethlance-views/get-employer-contracts get-user-contracts-args
-   :ethlance-views/get-freelancer-invoices get-user-invoices-args
-   :ethlance-views/get-employer-invoices get-user-invoices-args
-   :ethlance-views/get-job-contracts get-job-contracts-args
-   :ethlance-views/get-job-invoices get-job-invoices-args
-   :ethlance-views/get-freelancers-job-contracts get-freelancers-job-contracts-args
-   :ethlance-views/get-contract-invoices get-contract-invoices-args
-   :ethlance-views/get-employer-jobs get-employer-jobs-args
-   :ethlance-views/get-skill-names get-skill-names-args
-   :ethlance-views/get-skill-count #{}
-   :ethlance-views/get-users get-users-args
-   :ethlance-views/get-employer-jobs-for-freelancer-invite get-employer-jobs-for-freelancer-invite
-   :ethlance-search/search-freelancers search-freelancers-args
-   :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
-   :ethlance-config/add-skills add-skills-args
+  {:ethlance-config/add-skills add-skills-args
+   :ethlance-config/block-skills block-skills-args
    :ethlance-config/get-configs get-configs-args
    :ethlance-config/set-configs set-configs-args
-   :ethlance-config/block-skills block-skills-args
    :ethlance-config/set-skill-name set-skill-name-args
+   :ethlance-config/set-smart-contract-status set-smart-contract-status-args
+   :ethlance-contract/add-job-contract add-job-contract-args
+   :ethlance-contract/add-job-contract-feedback add-job-contract-feedback-args
+   :ethlance-contract/add-job-invitation add-job-invitation-args
+   :ethlance-contract/add-job-proposal add-job-proposal-args
+   :ethlance-contract/set-smart-contract-status set-smart-contract-status-args
+   :ethlance-invoice/add-invoice add-invoice-args
    :ethlance-invoice/cancel-invoice cancel-invoice-args
    :ethlance-invoice/pay-invoice pay-invoice-args
-   :ethlance-invoice/add-invoice add-invoice-args
-   :ethlance-contract/add-job-invitation add-job-invitation-args
-   :ethlance-contract/add-job-contract add-job-contract-args
-   :ethlance-contract/add-job-proposal add-job-proposal-args
-   :ethlance-contract/add-job-contract-feedback add-job-contract-feedback-args
+   :ethlance-invoice/set-smart-contract-status set-smart-contract-status-args
    :ethlance-job/add-job add-job-args
    :ethlance-job/set-job-hiring-done set-job-hiring-done-args
-   :ethlance-user/register-freelancer register-freelancer-args
+   :ethlance-job/set-smart-contract-status set-smart-contract-status-args
+   :ethlance-search/search-freelancers search-freelancers-args
+   :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
    :ethlance-user/register-employer register-employer-args
-   :ethlance-user/set-freelancer set-freelancer-args
+   :ethlance-user/register-freelancer register-freelancer-args
    :ethlance-user/set-employer set-employer-args
-   :ethlance-user/set-user set-user-args})
+   :ethlance-user/set-freelancer set-freelancer-args
+   :ethlance-user/set-smart-contract-status set-smart-contract-status-args
+   :ethlance-user/set-user set-user-args
+   :ethlance-views/get-contract-invoices get-contract-invoices-args
+   :ethlance-views/get-employer-contracts get-user-contracts-args
+   :ethlance-views/get-employer-invoices get-user-invoices-args
+   :ethlance-views/get-employer-jobs get-employer-jobs-args
+   :ethlance-views/get-employer-jobs-for-freelancer-invite get-employer-jobs-for-freelancer-invite
+   :ethlance-views/get-freelancer-contracts get-user-contracts-args
+   :ethlance-views/get-freelancer-invoices get-user-invoices-args
+   :ethlance-views/get-freelancers-job-contracts get-freelancers-job-contracts-args
+   :ethlance-views/get-job-contracts get-job-contracts-args
+   :ethlance-views/get-job-invoices get-job-invoices-args
+   :ethlance-views/get-skill-count []
+   :ethlance-views/get-skill-names get-skill-names-args
+   :ethlance-views/get-users get-users-args})
 
 (defn string-type-pred [field]
   (contains? #{'cljs.core/string? 'ethlance.utils/string-or-nil?} (s/form field)))

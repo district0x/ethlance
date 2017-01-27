@@ -1,4 +1,4 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "Ownable.sol";
 import "userLibrary.sol";
@@ -6,6 +6,7 @@ import "userLibrary.sol";
 contract EthlanceSetter is Ownable {
     address public ethlanceDB;
     uint8 public smartContractStatus;
+    event onSmartContractStatusSet(uint8 status);
 
     modifier onlyActiveSmartContract {
       if (smartContractStatus != 0) throw;
@@ -32,7 +33,8 @@ contract EthlanceSetter is Ownable {
     )
       onlyOwner
     {
-      smartContractStatus = _status;
+        smartContractStatus = _status;
+        onSmartContractStatusSet(_status);
     }
 
     function getSenderUserId() returns(uint) {

@@ -53,6 +53,8 @@
 (defn rating? [x]
   (<= 0 x 100))
 
+(def max-gas-limit 4700000)
+
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
 

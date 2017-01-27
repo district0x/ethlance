@@ -1,9 +1,11 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 import "ethlanceSetter.sol";
 import "contractLibrary.sol";
+import "strings.sol";
 
 contract EthlanceContract is EthlanceSetter {
+    using strings for *;
 
     event onJobProposalAdded(uint contractId, uint indexed employerId);
     event onJobContractAdded(uint contractId, uint indexed freelancerId);
@@ -23,7 +25,7 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveEmployer
     {
-        if (bytes(description).length > getConfig("max-contract-desc")) throw;
+        if (description.toSlice().len() > getConfig("max-contract-desc")) throw;
         ContractLibrary.addContract(ethlanceDB, getSenderUserId(), contractId, description, isHiringDone);
         var freelancerId = ContractLibrary.getFreelancer(ethlanceDB, contractId);
         onJobContractAdded(contractId, freelancerId);
@@ -37,8 +39,9 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveUser
     {
-        if (bytes(feedback).length > getConfig("max-feedback")) throw;
-        if (bytes(feedback).length < getConfig("min-feedback")) throw;
+        var feedbackLen = feedback.toSlice().len();
+        if (feedbackLen > getConfig("max-feedback")) throw;
+        if (feedbackLen < getConfig("min-feedback")) throw;
         if (rating > 100) throw;
         var senderId = getSenderUserId();
         ContractLibrary.addFeedback(ethlanceDB, contractId, senderId, feedback, rating);
@@ -61,7 +64,7 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveFreelancer
     {
-        if (bytes(description).length > getConfig("max-proposal-desc")) throw;
+        if (description.toSlice().len() > getConfig("max-proposal-desc")) throw;
         var contractId = ContractLibrary.addProposal(ethlanceDB, jobId, getSenderUserId(), description, rate);
         var employerId = JobLibrary.getEmployer(ethlanceDB, jobId);
         onJobProposalAdded(contractId, employerId);
@@ -75,7 +78,7 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveEmployer
     {
-        if (bytes(description).length > getConfig("max-invitation-desc")) throw;
+        if (description.toSlice().len() > getConfig("max-invitation-desc")) throw;
         ContractLibrary.addInvitation(ethlanceDB, getSenderUserId(), jobId, freelancerId, description);
         onJobInvitationAdded(jobId, freelancerId);
     }

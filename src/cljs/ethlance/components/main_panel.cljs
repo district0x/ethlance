@@ -190,6 +190,11 @@
      :href (u/path-for :how-it-works)
      :label "How it works?"}]])
 
+(defn setters-not-active-page []
+  [centered-rows
+   [:h3 "Ethlance smart contracts are currently disabled. It is because we are trying to fix something
+   very important. Stay tuned :)"]])
+
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
@@ -202,7 +207,8 @@
         search-freelancers-query (subscribe [:location/form-query-string :form/search-freelancers])
         search-jobs-query (subscribe [:location/form-query-string :form/search-jobs])
         lg-width? (subscribe [:window/lg-width?])
-        xs-width? (subscribe [:window/xs-width?])]
+        xs-width? (subscribe [:window/xs-width?])
+        active-setters? (subscribe [:db/active-setters?])]
     (fn []
       (let [{:keys [:user/freelancer? :user/employer?]} @active-user
             {:keys [:handler]} @current-page]
@@ -253,4 +259,7 @@
                                      (styles/padding-all styles/desktop-gutter-mini)))}
                (if @contracts-not-found?
                  [contracts-not-found-page]
-                 [page])])])]))))
+                 (if (or @active-setters?
+                         (contains? #{:about :how-it-works} handler))
+                   [page]
+                   [setters-not-active-page]))])])]))))
