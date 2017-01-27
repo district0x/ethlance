@@ -2,6 +2,7 @@
   (:require
     [cljs-react-material-ui.reagent :as ui]
     [cljs-web3.core :as web3]
+    [clojure.string :as string]
     [ethlance.components.icons :as icons]
     [ethlance.components.linkify :refer [linkify]]
     [ethlance.components.list-pagination :refer [list-pagination]]
@@ -193,7 +194,7 @@
       (let [min-length (get @eth-config min-length-key 0)
             max-length (get @eth-config max-length-key)
             validator (if (and min-length max-length)
-                        #(<= min-length (count %) max-length)
+                        #(<= min-length (if (string? %) (count (string/trim %)) 0) max-length)
                         (constantly true))
             valid? (validator value)]
         [text-field-base
@@ -367,7 +368,8 @@
   (let [[props children] (u/parse-props-children props children)]
     [:div
      (r/merge-props
-       {:style styles/allow-whitespaces}
+       {:style (merge styles/allow-whitespaces
+                      styles/word-wrap-break)}
        props)
      (into [linkify] children)]))
 

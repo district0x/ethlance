@@ -19,6 +19,7 @@
     [re-frame.core :refer [dispatch dispatch-sync clear-subscription-cache!]]
     [reagent.core :as reagent]))
 
+
 (defn mount-root []
   (s/check-asserts goog.DEBUG)
   (google-analytics-fx/set-enabled! (not goog.DEBUG))
@@ -27,6 +28,7 @@
   (reagent/render [main-panel] (.getElementById js/document "app")))
 
 (defn ^:export init []
+  (google-analytics-fx/set-enabled! (not goog.DEBUG))
   (dispatch-sync [:initialize])
   (set! (.-onhashchange js/window) #(dispatch [:set-active-page (u/match-current-location)]))
   (mount-root))

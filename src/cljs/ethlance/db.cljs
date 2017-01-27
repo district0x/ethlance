@@ -13,7 +13,7 @@
 (s/def ::node-url string?)
 (s/def ::provides-web3? boolean?)
 (s/def ::contracts-not-found? boolean?)
-(s/def ::generate-db-on-deploy? boolean?)
+(s/def ::last-transaction-gas-used (s/nilable number?))
 (s/def ::drawer-open? boolean?)
 (s/def ::search-freelancers-filter-open? boolean?)
 (s/def ::search-jobs-filter-open? boolean?)
@@ -53,6 +53,7 @@
 (s/def :user/languages u/uint-coll?)
 (s/def :user/languages-count u/uint?)
 (s/def :user/name string?)
+(s/def :user/email any?)
 (s/def :user/status u/uint8?)
 (s/def :user/balance u/big-num?)
 (s/def :freelancer/available? boolean?)
@@ -180,6 +181,7 @@
 (s/def :contract/freelancer-feedback u/string-or-nil?)
 (s/def :contract/freelancer-feedback-on u/date-or-nil?)
 (s/def :contract/freelancer-feedback-rating u/uint8?)
+(s/def :contract/feedback string?)
 
 (s/def :app/contract (s/keys :opt [:contract/id
                                    :invitation/created-on
@@ -346,23 +348,24 @@
 (s/def :form.config/set-skill-name ::submit-form)
 
 (s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
-                             ::generate-db-on-deploy? ::drawer-open? ::search-freelancers-filter-open?
+                             ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
-                             ::my-users-loaded? ::conversion-rates ::skill-load-limit ::active-setters?]))
+                             ::my-users-loaded? ::conversion-rates ::skill-load-limit ::active-setters?
+                             ::last-transaction-gas-used]))
 
 (def default-db
   {:devnet? true
    :web3 nil
-   :node-url "http://localhost:8549" #_"http://192.168.0.16:8545/"
+   :node-url #_ "http://localhost:8550" "http://localhost:8549" #_"http://192.168.0.16:8545/"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
-   :generate-db-on-deploy? false
    :window/width-size (u/get-window-width-size js/window.innerWidth)
    :drawer-open? false
    :search-freelancers-filter-open? false
    :search-jobs-filter-open? false
    :selected-currency :eth
+   :last-transaction-gas-used nil
    :snackbar {:open? false
               :message ""
               :auto-hide-duration 5000
@@ -390,17 +393,18 @@
                 :max-contract-desc 500
                 :max-proposal-desc 500
                 :max-invitation-desc 500
-                :max-skills-create-at-once 50 #_10
-                :adding-skills-enabled? 1}
+                :max-skills-create-at-once 4
+                :adding-skills-enabled? 1
+                :max-gas-limit 4000000}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_#_:address "0xb0f1102af4f36290ec7db1461ab23d5a55460715"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true #_#_:address "0x2128629f1546072a0a833041fe4445584d792792"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true #_#_:address "0xa5d81ebae0dfe33a20a52b6cc76cebea6530e2c5"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_#_:address "0x348585f2c1f08abd701846df04ef737aaa2979d5"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true #_#_:address "0x410f475553f7e1f701d503fc24fc48822fd1ccb4"}
-                   :ethlance-db {:name "EthlanceDB" #_#_:address "0xf3e6364666138d997caf832a7bb0688316ac1e5f"}
-                   :ethlance-views {:name "EthlanceViews" #_#_:address "0xa2faa7a777d3efc20453dc073b8d8009db6594a6"}
-                   :ethlance-search {:name "EthlanceSearch" #_#_:address "0xac9a6b36d5cbc64238dd34b390e3073c7f30cbeb"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_#_:address "0x26834e5da058f6b48857bf7393cca651d6329cc3"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true #_#_:address "0xa0e5a02a6b43fd9598f50eff82626ddea6996112"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true #_#_:address "0xd1d12f1f2ebe3620312fd88cb687123d3734d149"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_#_:address "0xacf4b057317319f00fd4f608f9a34d4760edb418"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true #_#_:address "0xd42730853ad8a3486c59bf5e6e35ec046643dc4e"}
+                   :ethlance-db {:name "EthlanceDB" #_#_:address "0x88932be812a3d33eca550ad4ee176a15df2212e5"}
+                   :ethlance-views {:name "EthlanceViews" #_#_:address "0x61e9b686cdfa6300ede530d86007abc47bffba3c"}
+                   :ethlance-search {:name "EthlanceSearch" #_#_:address "0xf6a1bfa2e9ad36f1c11e9621b942db0f707f7b2e"}}
    :my-addresses []
    :active-address nil
    :active-user-events nil
@@ -440,9 +444,9 @@
    :list/freelancer-my-open-contracts {:items [] :loading? true :params {}}
    :list/employer-jobs-open-select-field {:items [] :loading? false :params {}}
 
-   :form.invoice/pay-invoice {:loading? false :gas-limit 200000}
-   :form.invoice/cancel-invoice {:loading? false :gas-limit 200000}
-   :form.job/set-hiring-done {:loading? false :gas-limit 200000}
+   :form.invoice/pay-invoice {:loading? false :gas-limit 250000}
+   :form.invoice/cancel-invoice {:loading? false :gas-limit 150000}
+   :form.job/set-hiring-done {:loading? false :gas-limit 120000}
    :form.job/add-job {:loading? false
                       :gas-limit 2000000
                       :data {:job/title ""
@@ -458,31 +462,31 @@
                              :job/freelancers-needed 1}
                       :errors #{:job/title :job/description :job/skills :job/category}}
    :form.contract/add-invitation {:loading? false
-                                  :gas-limit 700000
+                                  :gas-limit 550000
                                   :data {:invitation/description ""
                                          :contract/job 0}
                                   :errors #{:contract/job}}
 
    :form.contract/add-proposal {:loading? false
-                                :gas-limit 700000
+                                :gas-limit 550000
                                 :data {:proposal/description ""
                                        :proposal/rate 0}
-                                :errors #{:proposal/description}}
+                                :errors #{}}
 
    :form.contract/add-contract {:loading? false
-                                :gas-limit 700000
+                                :gas-limit 200000
                                 :data {:contract/description ""
                                        :contract/hiring-done? false}
                                 :errors #{}}
 
    :form.contract/add-feedback {:loading? false
-                                :gas-limit 700000
+                                :gas-limit 550000
                                 :data {:contract/feedback ""
                                        :contract/feedback-rating 0}
                                 :errors #{:contract/feedback}}
 
    :form.invoice/add-invoice {:loading? false
-                              :gas-limit 700000
+                              :gas-limit 550000
                               :data {:invoice/contract 0
                                      :invoice/description ""
                                      :invoice/amount 0
@@ -492,13 +496,13 @@
                               :errors #{:invoice/contract}}
 
    :form.config/add-skills {:loading? false
-                            :gas-limit 4500000
+                            :gas-limit 600000
                             :data {:skill/names []}
                             :errors #{:skill/names}}
 
-   :form.config/set-configs {:loading? false :gas-limit 4500000}
-   :form.config/block-skills {:loading? false :gas-limit 4500000}
-   :form.config/set-skill-name {:loading? false :gas-limit 4500000}
+   :form.config/set-configs {:loading? false :gas-limit u/max-gas-limit}
+   :form.config/block-skills {:loading? false :gas-limit u/max-gas-limit}
+   :form.config/set-skill-name {:loading? false :gas-limit u/max-gas-limit}
 
    :form.user/set-user {:loading? false
                         :gas-limit 500000
@@ -506,19 +510,19 @@
                         :errors #{}}
 
    :form.user/set-freelancer {:loading? false
-                              :gas-limit 1000000
+                              :gas-limit 2000000
                               :data {}
                               :errors #{}
                               :open? false}
 
    :form.user/set-employer {:loading? false
-                            :gas-limit 4700000
+                            :gas-limit 370000
                             :data {}
                             :errors #{}
                             :open? false}
 
    :form.user/register-freelancer {:loading? false
-                                   :gas-limit 2000000
+                                   :gas-limit 4000000
                                    :open? true
                                    :data {:user/name ""
                                           :user/email ""

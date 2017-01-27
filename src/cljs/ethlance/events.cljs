@@ -29,6 +29,8 @@
 
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
+(def generate-mode? true)
+
 (defn check-and-throw
   "throw an exception if db doesn't match the spec"
   [a-spec db]
@@ -58,6 +60,9 @@
 
 (defn get-contract-class [db key]
   (get-in db [:eth/contracts key :class]))
+
+(defn get-max-gas-limit [db]
+  (get-in db [:eth/config :max-gas-limit]))
 
 (defn storage-keys [& args]
   (apply web3-eth/contract-call (get-instance @re-frame.db/app-db :ethlance-db) :storage-keys args))
@@ -103,16 +108,23 @@
               (let [event (:event coeffects)
                     {:keys [gas-used] :as receipt} (last event)
                     gas-limit (first event)]
-                (let [gas-used-percent (* (/ gas-used gas-limit) 100)]
-                  (console :log
-                           (gstring/format "%.2f%" gas-used-percent)
-                           "gas used:" gas-used
-                           (second event)))
-                (-> context
-                  (update-in [:coeffects :event (dec (count event))]
-                             merge
-                             {:success? (< gas-used gas-limit)})
-                  (update-in [:coeffects :event] #(-> % rest vec)))))))
+                (let [gas-used-percent (* (/ gas-used gas-limit) 100)
+                      gas-used-percent-str (gstring/format "%.2f%" gas-used-percent)]
+                  (console :log "gas used:" gas-used-percent-str gas-used (second event))
+                  (-> context
+                    (update-in [:coeffects :event (dec (count event))]
+                               merge
+                               {:success? (< gas-used gas-limit)
+                                :gas-used-percent gas-used-percent-str})
+                    (update-in [:coeffects :event] #(-> % rest vec))
+                    (assoc-in [:coeffects :db :last-transaction-gas-used] gas-used-percent)))))
+    :after (fn [context]
+             (let [event (:event (:coeffects context))]
+               (update context :effects merge
+                       {:ga/event ["log-used-gas"
+                                   (name (:fn-key (first event)))
+                                   (str (select-keys (last event) [:gas-used :gas-used-percent :transaction-hash
+                                                                   :success?]))]})))))
 
 (defn get-active-user [{:keys [:active-address :blockchain/addresses :app/users]}]
   (users (:user/id (addresses active-address))))
@@ -148,7 +160,8 @@
 (reg-fx
   :location/set-hash
   (fn [[route route-params]]
-    (u/nav-to! route route-params)))
+    (when-not generate-mode?
+      (u/nav-to! route route-params))))
 
 (reg-fx
   :location/add-to-query
@@ -181,7 +194,7 @@
 (reg-event-fx
   :location/set-hash
   interceptors
-  (fn [_ args]
+  (fn [{:keys [db]} args]
     {:location/set-hash args}))
 
 (reg-event-fx
@@ -546,7 +559,7 @@
                  :address address
                  :fn-key :ethlance-config/set-configs
                  :form-key :form.config/set-configs
-                 :receipt-dispatch-n [(if (:generate-db-on-deploy? db) [:generate-db] [:do-nothing])]}]}))
+                 :receipt-dispatch-n [(if generate-mode? [:generate-db] [:do-nothing])]}]}))
 
 (reg-event-fx
   :contract.config/get-configs
@@ -567,6 +580,13 @@
     (if (seq config-values)
       {:db (update db :eth/config merge (zipmap config-keys (u/big-nums->nums config-values)))}
       {:db (assoc db :contracts-not-found? true)})))
+
+(reg-event-fx
+  :contract.config/owner-add-skills
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:db (assoc-in db [:form.config/add-skills :gas-limit] u/max-gas-limit)
+     :dispatch [:contract.config/add-skills]}))
 
 (reg-event-fx
   :contract.config/add-skills
@@ -1213,8 +1233,8 @@
   :contract.views/skill-names-loaded
   interceptors
   (fn [db [[ids names]]]
-    (update db :app/skills merge (print.foo/look (zipmap (u/big-nums->nums ids)
-                                                         (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names))))))
+    (update db :app/skills merge (zipmap (u/big-nums->nums ids)
+                                         (map (comp (partial hash-map :skill/name) u/remove-zero-chars web3/to-ascii) names)))))
 
 
 (reg-event-fx
@@ -1335,7 +1355,9 @@
   (fn [{:keys [db]} [{:keys [:form-key :fn-key :form-data :value :address] :as props}]]
     (let [form (get db form-key)
           {:keys [:web3 :active-address]} db
-          {:keys [:gas-limit]} form]
+          {:keys [:gas-limit]} form
+          gas (min (+ gas-limit (ethlance-db/estimate-form-data-gas form-data))
+                   (get-max-gas-limit db))]
       {:web3-fx.contract/state-fns
        {:web3 web3
         :db-path [:contract/state-fns]
@@ -1344,38 +1366,39 @@
                  fn-key]
                 (args-map->vec form-data (ethlance-db/eth-contracts-fns fn-key))
                 [(merge
-                   {:gas gas-limit
+                   {:gas gas
                     :from (or address active-address)}
                    (when value
                      {:value value}))
                  [:form/start-loading form-key]
                  [:contract/transaction-error :form/submit fn-key form-data value address]
-                 [:form/submit-receipt gas-limit props]])]}})))
+                 [:form/submit-receipt gas props]])]}})))
 
-(defn get-method-name [this method-name]
-  (aget this (if (string/includes? method-name "-")
-               (cs/->camelCase method-name)
-               method-name)))
+#_(defn get-method-name [this method-name]
+    (aget this (if (string/includes? method-name "-")
+                 (cs/->camelCase method-name)
+                 method-name)))
 
-(reg-event-fx
-  :form/estimate-gas
-  interceptors
-  (fn [{:keys [db]} [form-key fn-key]]
-    (let [form (get db form-key)
-          {:keys [:web3]} db]
-      (print.foo/look (web3-utils/js-apply
-                        (get-method-name (get-contract-class db (keyword (namespace fn-key)))
-                                         (name fn-key))
-                        :get-data
-                        (args-map->vec (:data form) (ethlance-db/eth-contracts-fns fn-key))))
-      nil)))
+#_(reg-event-fx
+    :form/estimate-gas                                      ;; This is bs
+    interceptors
+    (fn [{:keys [db]} [form-key fn-key]]
+      (let [form (get db form-key)
+            {:keys [:web3]} db]
+        (web3-utils/js-apply
+          (get-method-name (get-contract-class db (keyword (namespace fn-key)))
+                           (name fn-key))
+          :get-data
+          (args-map->vec (:data form) (ethlance-db/eth-contracts-fns fn-key)))
+        nil)))
 
 (reg-event-fx
   :form/submit-receipt
   [interceptors log-used-gas]
   (fn [{:keys [db]} [{:keys [:receipt-dispatch :receipt-dispatch-n :form-data :form-key]} {:keys [success?]}]]
     (merge
-      {:db (assoc-in db [form-key :loading?] false)}
+      (when form-key
+        {:db (assoc-in db [form-key :loading?] false)})
       (when (and success? receipt-dispatch)
         {:dispatch (conj receipt-dispatch form-data)})
       (when (and success? receipt-dispatch-n)
@@ -1414,8 +1437,10 @@
 (reg-event-db
   :form/clear-data
   interceptors
-  (fn [db [form-key]]
-    (assoc-in db [form-key :data] {})))
+  (fn [db [form-key errors]]
+    (cond-> db
+      true (assoc-in [form-key :data] {})
+      errors (assoc-in [form-key :errors] errors))))
 
 (reg-event-db
   :form/add-value
@@ -1491,35 +1516,38 @@
   (fn [db [form-key open?]]
     (assoc-in db [form-key :open?] open?)))
 
-(reg-event-db
+(reg-event-fx
   :snackbar/show-error
   interceptors
-  (fn [db [error-text]]
-    (update db :snackbar merge
-            {:open? true
-             :message (or error-text "Oops, we got an error while saving to blockchain")
-             :action nil
-             :on-action-touch-tap nil})))
+  (fn [{:keys [db]} [error-text]]
+    (when-not generate-mode?
+      {:db (update db :snackbar merge
+                   {:open? true
+                    :message (or error-text "Oops, we got an error while saving to blockchain")
+                    :action nil
+                    :on-action-touch-tap nil})})))
 
-(reg-event-db
+(reg-event-fx
   :snackbar/show-message
   interceptors
-  (fn [db [message]]
-    (update db :snackbar merge
-            {:open? true
-             :message message
-             :action nil
-             :on-action-touch-tap nil})))
+  (fn [{:keys [db]} [message]]
+    (when-not generate-mode?
+      {:db (update db :snackbar merge
+                   {:open? true
+                    :message message
+                    :action nil
+                    :on-action-touch-tap nil})})))
 
-(reg-event-db
+(reg-event-fx
   :snackbar/show-message-redirect-action
   interceptors
-  (fn [db [message route route-params]]
-    (update db :snackbar merge
-            {:open? true
-             :message message
-             :action "SHOW ME"
-             :on-action-touch-tap #(dispatch [:location/set-hash route route-params])})))
+  (fn [{:keys [db]} [message route route-params]]
+    (when-not generate-mode?
+      {:db (update db :snackbar merge
+                   {:open? true
+                    :message message
+                    :action "SHOW ME"
+                    :on-action-touch-tap #(dispatch [:location/set-hash route route-params])})})))
 
 (reg-event-db
   :snackbar/close

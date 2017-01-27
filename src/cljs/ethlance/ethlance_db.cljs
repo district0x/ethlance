@@ -241,14 +241,21 @@
    :ethlance-views/get-skill-names get-skill-names-args
    :ethlance-views/get-users get-users-args})
 
-(defn string-type-pred [field]
+(defn string-type? [field]
   (contains? #{'cljs.core/string? 'ethlance.utils/string-or-nil?} (s/form field)))
 
 (defn no-string-types [fields]
-  (set (remove string-type-pred fields)))
+  (set (remove string-type? fields)))
 
 (defn remove-uint-coll-fields [fields]
   (remove #(= (s/form %) 'ethlance.utils/uint-coll?) fields))
+
+(defn estimate-form-data-gas [form-data]
+  (reduce (fn [acc [k v]]
+            (if (and (s/get-spec k) (string-type? k))
+              (+ acc (u/estimate-string-gas v))
+              acc))
+          0 form-data))
 
 (def field-pred->solidity-type
   {'cljs.core/boolean? 1
@@ -287,7 +294,7 @@
 
 (defn parse-entities [ids fields result]
   (let [ids (vec ids)
-        grouped-by-string (group-by string-type-pred fields)
+        grouped-by-string (group-by string-type? fields)
         string-fields (get grouped-by-string true)
         uint-fields (get grouped-by-string false)
         uint-fields-count (count uint-fields)]

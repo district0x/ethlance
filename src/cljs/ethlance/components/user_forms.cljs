@@ -70,7 +70,7 @@
          (when (u/united-states? country)
            [state-select-field
             {:value state
-             :on-change #(dispatch [:form/set-value form-key :user/country %3])}])
+             :on-change #(dispatch [:form/set-value form-key :user/state %3])}])
          [validated-chip-input
           {:all-items constants/languages
            :value languages

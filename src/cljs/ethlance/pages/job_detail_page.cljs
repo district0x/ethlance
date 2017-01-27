@@ -166,7 +166,7 @@
           :args @job-id
           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-entity-fields [@job-id]]])}
          [paper
-          {:loading? (or (empty? (:user/name employer)) (:loading @set-hiring-done-form))
+          {:loading? (or (empty? (:user/name employer)) (:loading? @set-hiring-done-form))
            :style styles/paper-section-main}
           (when id
             [:div
@@ -218,6 +218,7 @@
                 [ui/raised-button
                  {:label "Close Hiring"
                   :secondary true
+                  :disabled (:loading? @set-hiring-done-form)
                   :on-touch-tap #(dispatch [:contract.job/set-hiring-done {:job/id id}])}]])])]]))))
 
 (defn job-invoices []

@@ -81,6 +81,12 @@
     (:active-setters? db)))
 
 (reg-sub
+  :db/last-transaction-gas-used
+  (fn [db _]
+    (when-let [gas-used (:last-transaction-gas-used db)]
+      (gstring/format "%.0f" gas-used))))
+
+(reg-sub
   :db/active-address-balance
   :<- [:blockchain/addresses]
   :<- [:db/active-address]

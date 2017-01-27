@@ -148,6 +148,9 @@
   {:width 18
    :height 18})
 
+(def position-relative
+  {:position :relative})
+
 (def feedback-style-rating
   {:margin-bottom 3})
 
@@ -175,6 +178,14 @@
    :text-align :center
    :color primary1-color
    :font-style :italic})
+
+(def last-transaction-info
+  {:color "rgba(0, 0, 0, 0.7)"
+   :position :absolute
+   :bottom 10
+   :left 10
+   :text-align :center
+   :font-size "0.85em"})
 
 (def clickable
   {:cursor :pointer})
@@ -323,6 +334,9 @@
   {:padding-right 0
    :padding-left 0
    :overflow :auto})
+
+(def word-wrap-break
+  {:word-wrap :break-word})
 
 (def message-bubble
   {:white-space :pre-wrap

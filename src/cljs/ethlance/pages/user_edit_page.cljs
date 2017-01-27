@@ -2,6 +2,7 @@
   (:require
     [cljs-react-material-ui.reagent :as ui]
     [clojure.set :as set]
+    [ethlance.db :refer [default-db]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.user-forms :refer [user-form freelancer-form employer-form]]
     [ethlance.ethlance-db :as ethlance-db]
@@ -24,6 +25,9 @@
                     :employer/ratings-count
                     :employer/total-paid
                     :employer/total-invoiced}))
+
+(defn get-form-default-errors [form-key nmsp]
+  (set (u/filter-by-namespace nmsp (get-in default-db [form-key :errors]))))
 
 (defn user-edit-page []
   (let [set-user-form (subscribe [:form.user/set-user])
@@ -51,8 +55,12 @@
                             (dispatch [:form/set-open? :form.user/set-employer employer?])
                             (dispatch [:form/set-open? :form.user/set-freelancer freelancer?])
                             (dispatch [:form/clear-data :form.user/set-user])
-                            (dispatch [:form/clear-data :form.user/set-freelancer])
-                            (dispatch [:form/clear-data :form.user/set-employer])
+                            (dispatch [:form/clear-data :form.user/set-freelancer
+                                       (when-not freelancer?
+                                         (get-form-default-errors :form.user/register-freelancer :freelancer))])
+                            (dispatch [:form/clear-data :form.user/set-employer
+                                       (when-not employer?
+                                         (get-form-default-errors :form.user/register-employer :employer))])
                             (dispatch [:contract.db/load-user-languages {user-id @active-user}])
                             (when employer?
                               (dispatch [:after-eth-contracts-loaded

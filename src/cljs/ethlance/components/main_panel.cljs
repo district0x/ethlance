@@ -195,6 +195,13 @@
    [:h3 "Ethlance smart contracts are currently disabled. It is because we are trying to fix something
    very important. Stay tuned :)"]])
 
+(defn last-transaction-info []
+  (let [gas-used-percent (subscribe [:db/last-transaction-gas-used])]
+    (fn []
+      (when @gas-used-percent
+        [:div {:style styles/last-transaction-info}
+         (str "Your last transaction used " @gas-used-percent "% of gas")]))))
+
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
@@ -220,7 +227,8 @@
             [ui/drawer
              {:docked @lg-width?
               :open (or @drawer-open? @lg-width?)
-              :on-request-change #(dispatch [:drawer/set %])}
+              :on-request-change #(dispatch [:drawer/set %])
+              :style styles/position-relative}
              [ui/app-bar
               {:title (r/as-element [misc/logo])
                :show-menu-icon-button false
@@ -242,7 +250,8 @@
               (when (and freelancer? employer?)
                 [ui/subheader "Employer"])
               (when employer?
-                (create-menu-items nav-items-employer))]]
+                (create-menu-items nav-items-employer))]
+             [last-transaction-info]]
             [ui/app-bar
              {:show-menu-icon-button (not @lg-width?)
               :icon-element-right (r/as-element [app-bar-right-elements])

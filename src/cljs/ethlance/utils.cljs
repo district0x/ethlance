@@ -53,7 +53,7 @@
 (defn rating? [x]
   (<= 0 x 100))
 
-(def max-gas-limit 4700000)
+(def max-gas-limit 4000000)
 
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
@@ -405,7 +405,11 @@
 (defn format-currency [value currency & [{:keys [:full-length?]}]]
   (let [currency (keyword currency)
         value (or value 0)
-        value (if (and full-length? (= currency :eth)) value (gstring/format "%.3f" (big-num->num value)))]
+        value (if (and full-length? (= currency :eth))
+                value
+                (if (= currency :eth)
+                  (gstring/format "%.3f" (big-num->num value))
+                  (gstring/format "%.2f" (big-num->num value))))]
     (case currency
       :usd (str (constants/currencies :usd) value)
       (str value (constants/currencies currency)))))
@@ -437,3 +441,14 @@
 (defn filter-by-namespace [nmsp coll]
   (let [nmsp (name nmsp)]
     (filter #(= (namespace %) nmsp) coll)))
+
+(defn ascii-char? [c]
+  (< (.charCodeAt c) 128))
+
+(defn estimate-string-gas [s]
+  (if s
+    (let [ascii-freqs (frequencies (map ascii-char? s))]
+      (+ (* (get ascii-freqs true 0) 800)
+         (* (get ascii-freqs false 0) 1550)))
+    0))
+

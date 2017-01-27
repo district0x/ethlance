@@ -21,7 +21,7 @@
 
 (defn rand-text
   ([max-chars]
-    (rand-text 0 max-chars))
+   (rand-text 0 max-chars))
   ([min-chars max-chars]
    (rand-text* (u/rand-str (inc (rand-int 12)) {:lowercase-only? true}) (+ min-chars
                                                                            (rand-int (inc (- max-chars min-chars)))))))
@@ -123,7 +123,7 @@
   (nth (:my-addresses @re-frame.db/app-db) n))
 
 (defn gen-skills []
-  {:skill/names (set (repeatedly 30 #_ (cfg :max-skills-create-at-once) #(rand-text 20)))})
+  {:skill/names (set (repeatedly 30 #_(cfg :max-skills-create-at-once) #(rand-text 20)))})
 
 (comment
   (dispatch [:contract.config/add-skills (gen-skills) (get-address 0)]))
@@ -133,24 +133,24 @@
   [trim-v]
   (fn [{:keys [db]}]
     #_{:dispatch [:contract.config/add-skills gen-skills (get-address 0)]}
-    {:dispatch-n [[:contract.user/register-freelancer freelancer1 (get-address 0)]]
+    {:dispatch-n [[:contract.config/owner-add-skills (gen-skills) (get-address 0)]
+                  [:contract.user/register-freelancer freelancer1 (get-address 0)]]
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
-                       [{:ms 10 :dispatch [:contract.config/add-skills (gen-skills) (get-address 0)]}]
-                       (map #(hash-map :ms 25 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
-                       [{:ms 20 :dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)]}
-                        {:ms 30 :dispatch [:contract.contract/add-job-proposal proposal1 (get-address 0)]}
-                        {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]
+                       (map #(hash-map :ms 100 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
+                       #_[{:ms 20 :dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)]}
+                          {:ms 30 :dispatch [:contract.contract/add-job-proposal proposal1 (get-address 0)]}
+                          {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]
                        (map #(hash-map :ms 50 :dispatch [:contract.user/register-freelancer (gen-freelancer) (get-address %)]) (range 2 9))
-                       (map #(hash-map :ms 60 :dispatch [:contract.contract/add-job-invitation (gen-invitation 1) (get-address 1)]) (range 5))
-                       (map #(hash-map :ms 70 :dispatch [:contract.contract/add-job-proposal (gen-proposal 1) (get-address %)]) (range 2 5))
+                       #_(map #(hash-map :ms 60 :dispatch [:contract.contract/add-job-invitation (gen-invitation 1) (get-address 1)]) (range 5))
+                       #_(map #(hash-map :ms 70 :dispatch [:contract.contract/add-job-proposal (gen-proposal 1) (get-address %)]) (range 2 5))
                        ;{:ms 60 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
                        ;{:ms 70 :dispatch [:contract.invoice/pay {:invoice/id 1} (:invoice/amount invoice1) (get-address 1)]}
                        ;{:ms 80 :dispatch [:contract.invoice/add (gen-invoice 1) (get-address 0)]}
-                       (map #(hash-map :ms 80 :dispatch [:contract.invoice/add-invoice (gen-invoice 1) (get-address 0)]) (range 10))
-                       [{:ms 90 :dispatch [:contract.invoice/cancel-invoice {:invoice/id 2} (get-address 0)]}
-                        {:ms 100 :dispatch [:contract.contract/add-feedback feedback1 (get-address 0)]}
-                        {:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}]
+                       #_(map #(hash-map :ms 80 :dispatch [:contract.invoice/add-invoice (gen-invoice 1) (get-address 0)]) (range 10))
+                       #_[{:ms 90 :dispatch [:contract.invoice/cancel-invoice {:invoice/id 2} (get-address 0)]}
+                          {:ms 100 :dispatch [:contract.contract/add-feedback feedback1 (get-address 0)]}
+                          {:ms 110 :dispatch [:contract.contract/add-feedback feedback2 (get-address 1)]}]
                        )
 
      }))
@@ -175,20 +175,4 @@
     ;(print.foo/look correct-added)
     [(= added (vec correct-added)) (= removed correct-removed)
      (= intersection corrent-intersection)]))
-
-;; 1125 per char
-;; 578483 - 100 utf chars
-;; 690976 - 200 ufg chars - 112493
-;; 803343 - 300 utf chars - 112367
-
-;; 533679 - 100 chars -
-;; 601174 - 200 chars - 67495
-;; 668861 - 300 chars - 67687
-;; 736356 - 400 chars - 67495
-
-;; 36759 - 0 chars
-;; 176025 - 100 chars - 139266
-;; 86980 - 200 chars - 112508
-;; 235849 - 300 chars -
-;; 273230 - 400 chars
 
