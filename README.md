@@ -1,26 +1,7 @@
 # ethlance
 
-A [re-frame](https://github.com/Day8/re-frame) application designed to ... well, that part is up to you.
+Repository for [ethlance.com](http://ethlance.com) 
 
-## Development Mode
+Ethlance is first job market platform working completely on Ethereum blockchain with 0% service fees
 
-### Run application:
-
-```
-lein clean
-lein figwheel dev
-```
-
-Figwheel will automatically push cljs changes to the browser.
-
-Wait a bit, then browse to [http://localhost:3449](http://localhost:3449).
-
-## Production Build
-
-
-To compile clojurescript to javascript:
-
-```
-lein clean
-lein cljsbuild once min
-```
+Ethereum Smart Contracts are at `/resources/public/contracts/src`

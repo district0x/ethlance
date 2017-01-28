@@ -60,7 +60,6 @@ contract EthlanceUser is EthlanceSetter {
             skills, description);
     }
 
-
     function registerEmployer(string name, bytes32 gravatar, uint country, uint state, uint[] languages,
         string description
     )
@@ -70,9 +69,10 @@ contract EthlanceUser is EthlanceSetter {
         setEmployer(description);
     }
 
-    function setEmployer(string description)
-    onlyActiveSmartContract
-    onlyActiveUser
+    function setEmployer(string description
+    )
+        onlyActiveSmartContract
+        onlyActiveUser
     {
         if (description.toSlice().len() > getConfig("max-user-description")) throw;
         UserLibrary.setEmployer(ethlanceDB, getSenderUserId(), description);

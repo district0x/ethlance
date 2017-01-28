@@ -354,10 +354,11 @@
                              ::my-users-loaded? ::conversion-rates ::skill-load-limit ::active-setters?
                              ::last-transaction-gas-used ::skills-loaded?]))
 
+
 (def default-db
-  {:devnet? true
+  {:devnet? false
    :web3 nil
-   :node-url "http://localhost:8545" #_ "http://localhost:8550" #_ "http://localhost:8549" #_ "http://192.168.0.16:8545/"
+   :node-url "https://mainnet.infura.io/" #_ "http://localhost:8545" #_"http://localhost:8550" #_"http://localhost:8549" #_"http://192.168.0.16:8545/"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -398,14 +399,14 @@
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x26834e5da058f6b48857bf7393cca651d6329cc3"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xa0e5a02a6b43fd9598f50eff82626ddea6996112"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0xd1d12f1f2ebe3620312fd88cb687123d3734d149"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0xacf4b057317319f00fd4f608f9a34d4760edb418"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0xd42730853ad8a3486c59bf5e6e35ec046643dc4e"}
-                   :ethlance-db {:name "EthlanceDB" :address "0x88932be812a3d33eca550ad4ee176a15df2212e5"}
-                   :ethlance-views {:name "EthlanceViews" :address "0x61e9b686cdfa6300ede530d86007abc47bffba3c"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0xf6a1bfa2e9ad36f1c11e9621b942db0f707f7b2e"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x5baf422ed4eb0c678642aee99af8292047c76827"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xc37df6e11bf81b339cc6c02ec14f7b5c7588013f"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x975e833cf7e2b58e5444229aa6646be6c99ff961"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x1a8c7e454cf9c50ae8fe049fa30acbecfcc1b81a"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
+                   :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
+                   :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}
+                   :ethlance-search {:name "EthlanceSearch" :address "0x74cf6656919ebc3bea8ed838a7e9b082399d5db8"}}
    :my-addresses []
    :active-address nil
    :active-user-events nil
@@ -423,26 +424,26 @@
    :skill-load-limit 30
 
    :list/my-users {:items [] :loading? true :params {}}
-   :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :asc}
-   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
-   :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/employer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/employer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/freelancer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/freelancer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 3}
+   :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :asc}
+   :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 8 :sort-dir :desc}
+   :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 10}
    :list/search-jobs {:items [] :loading? true :params {} :offset 0 :limit 10}
-   :list/freelancer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
-   :list/employer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 2 :sort-dir :desc}
-   :list/freelancer-invitations {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/freelancer-proposals {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/freelancer-contracts {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/freelancer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
-   :list/employer-jobs {:items [] :loading? true :params {} :offset 0 :limit 4 :sort-dir :desc}
+   :list/freelancer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 8 :sort-dir :desc}
+   :list/employer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 8 :sort-dir :desc}
+   :list/freelancer-invitations {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-proposals {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-contracts {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-jobs {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/freelancer-my-open-contracts {:items [] :loading? true :params {}}
    :list/employer-jobs-open-select-field {:items [] :loading? false :params {}}
 
@@ -577,6 +578,4 @@
                              :search/state 0
                              :search/language 0
                              :search/offset 0
-                             :search/limit 3}
-   }
-  )
+                             :search/limit 10}})

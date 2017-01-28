@@ -1,7 +1,7 @@
 (ns ethlance.pages.how-it-works-page
   (:require
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain link]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain link a]]
     [ethlance.styles :as styles]))
 
 (defn how-it-works-page []
@@ -43,4 +43,10 @@
      [:li "Read all past feedback of a freelancer/employer."]
      [:li "Send invoices to employer frequently. Don't continue with work until previous invoice is paid."]
      [:li "See balance on his/her wallet, whether there is enough money to pay you."]
-     [:li "Establish good communication with a freelancer/employer."]]]])
+     [:li "Establish good communication with a freelancer/employer."]]
+    [:h3.bolder "Why does it take so long after I submit a form?"]
+    [:p "Ethereum average block time is around 15 seconds. That means, in practice you'll wait around 15-30
+    seconds until you get confirmation. However, occasionally this can be even several minutes. While your
+     form is being submitted into blockchain, you can freely browse website, you will always be notified
+     when your data has been processed. Avoid refreshing page."]
+    [a {:route :about} "About Us"]]])

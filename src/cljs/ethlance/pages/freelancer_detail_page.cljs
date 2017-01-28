@@ -174,6 +174,7 @@
      :value (when (pos? job) job)
      :auto-width true
      :style styles/overflow-ellipsis
+     :disabled (empty? (:items jobs-list))
      :on-change #(dispatch [:form/set-value :form.contract/add-invitation :contract/job %3])}
     (for [{:keys [:job/id :job/title]} (:items jobs-list)]
       [ui/menu-item

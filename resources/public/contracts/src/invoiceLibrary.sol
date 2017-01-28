@@ -68,6 +68,7 @@ library InvoiceLibrary {
         if (getStatus(db, invoiceId) != 1) throw;
         if (employerId != senderId) throw;
         if (amount != sentAmount) throw;
+        if (!UserLibrary.hasStatus(db, freelancerId, 1)) throw;
 
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 2);
         EthlanceDB(db).setUIntValue(sha3("invoice/paid-on", invoiceId), now);

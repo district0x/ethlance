@@ -78,7 +78,8 @@
              :open-secondary true}
             filter-drawer-props)
           filter-sidebar]
-         [col {:xs 12 :md 4}
+         [col {:xs 12 :md 4
+               :style {:min-height 1250}}
           filter-sidebar])
        [col {:xs 12 :md 8}
         [row
@@ -432,11 +433,13 @@
         :icon (icons/chevron-right)
         :on-touch-tap #(on-page-change (+ offset limit))}])]])
 
-(defn logo []
+(defn logo [props]
   [:a
-   {:href (u/path-for :home)}
-   [:img {:style styles/ethlance-logo
-          :src "../images/ethlance-logo-white.svg"}]])
+   (r/merge-props
+     {:href (u/path-for :home)
+      :style styles/ethlance-logo}
+     props)
+   "Ethlance"])
 
 (defn currency [value opts]
   [:span {:title (str (u/big-num->num value) "Ξ")}

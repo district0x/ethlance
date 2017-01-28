@@ -51,17 +51,16 @@ library UserLibrary {
             userId = existingUserId;
         } else {
             userId = SharedLibrary.createNext(db, "user/count");
+            EthlanceDB(db).setUIntValue(sha3("user/created-on", userId), now);
+            EthlanceDB(db).setUIntValue(sha3("user/ids", userAddress), userId);
+            EthlanceDB(db).setAddressValue(sha3("user/address", userId), userAddress);
+            EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
         }
-        EthlanceDB(db).setAddressValue(sha3("user/address", userId), userAddress);
         EthlanceDB(db).setStringValue(sha3("user/name", userId), name);
         EthlanceDB(db).setBytes32Value(sha3("user/gravatar", userId), gravatar);
-
         if (country == 0) throw;
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
         EthlanceDB(db).setUIntValue(sha3("user/state", userId), state);
-        EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
-        EthlanceDB(db).setUIntValue(sha3("user/created-on", userId), now);
-        EthlanceDB(db).setUIntValue(sha3("user/ids", userAddress), userId);
         setUserLanguages(db, userId, languages);
         return userId;
     }
@@ -110,14 +109,6 @@ library UserLibrary {
         (added, removed) = SharedLibrary.diff(currentSkills, skills);
         SkillLibrary.addFreelancer(db, added, userId);
         SkillLibrary.removeFreelancer(db, removed, userId);
-
-        if (currentSkills.length == 3 && removed.length == 3 && skills.length == 6 && added.length != 6 &&
-            (currentSkills[0] == 10 || currentSkills[0] == 11 || currentSkills[0] == 12) &&
-            (currentSkills[1] == 10 || currentSkills[1] == 11 || currentSkills[1] == 12) &&
-            (currentSkills[2] == 10 || currentSkills[2] == 11 || currentSkills[2] == 12)
-        ) {
-            throw;
-        }
 
         if (added.length > 0 || removed.length > 0) {
             SharedLibrary.setUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);

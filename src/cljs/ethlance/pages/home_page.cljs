@@ -24,7 +24,7 @@
      :style styles/full-height}
     [col
      {:xs 12 :sm 9 :md 7 :lg 6}
-     [:img {:src "../images/ethereum.svg"
+     [:img {:src "./images/ethereum.svg"
             :style {:margin-bottom 10}}]
      [:h1
       {:style styles/landing-title}
@@ -118,7 +118,8 @@
     {:xs 8 :sm 6 :sm-offset 1 :md 5
      :style styles/text-left}
     [:h1.black "It’s all on blockchain!"]
-    [:h3.black "Ethlance database is distributed on Ethereum public blockchain. This makes data accessible to everyone forever, without any central authority having control over it."]]])
+    [:h3.black "Ethlance database is distributed on Ethereum public blockchain and source files on IPFS.
+    This makes it accessible to everyone forever, without any central authority having control over it."]]])
 
 (defn feature-no-restrictions []
   [row-plain
@@ -175,12 +176,15 @@
             [:h4 title]
             (when-not (= src (first (last path)))
               [:img {:style styles/diagram-arrow-icon
-                     :src "../images/arrow.svg"}])])]])]]])
+                     :src "./images/arrow.svg"}])])]])]]])
 
-(defn footer-link [route text]
+(defn footer-link [route text & [props]]
   [:div
-   [:a {:href (if (keyword? route) (u/path-for route) route)
-        :style {:color "rgba(255, 255, 255, 0.75)"}}
+   [:a
+    (r/merge-props
+      {:href (if (keyword? route) (u/path-for route) route)
+       :style {:color "rgba(255, 255, 255, 0.75)"}}
+      props)
     text]])
 
 (defn footer []
@@ -208,13 +212,11 @@
     {:xs 12 :sm 4}
     [ui/subheader {:style styles/footer-subheader}
      "REACH US"]
-    [footer-link "http://facebook.com" "Facebook"]
-    [footer-link "http://facebook.com" "Twitter"]
-    [footer-link "http://facebook.com" "Github"]]
+    [footer-link "https://www.facebook.com/ethlance/" "Facebook" {:target :_blank}]
+    [footer-link "https://twitter.com/ethlance" "Twitter" {:target :_blank}]
+    [footer-link "https://github.com/madvas/ethlance" "Github" {:target :_blank}]]
    [col {:xs 12}
-    [:img {:src "../images/ethlance-logo-grey.svg"
-           :style (merge styles/margin-top-gutter
-                         {:height 40})}]
+    [misc/logo {:style styles/ethlance-logo-footer}]
     [:div {:style (merge styles/footer-subheader
                          {:font-size "0.9em"
                           :margin-top 5})}
@@ -225,13 +227,10 @@
     (fn []
       [:div
        [ui/app-bar {:title (r/as-element
-                             [:a
-                              {:href (u/path-for :home)
-                               :on-click (fn []
+                             [misc/logo
+                              {:on-click (fn []
                                            (when (= (:handler @current-page) :home)
-                                             (dispatch [:window/scroll-to-top])))}
-                              [:img {:style styles/ethlance-logo
-                                     :src "../images/ethlance-logo-white.svg"}]])
+                                             (dispatch [:window/scroll-to-top])))}])
                     :icon-element-right (r/as-element [misc/how-it-works-app-bar-link])
                     :show-menu-icon-button false
                     :style styles/landing-app-bar}]

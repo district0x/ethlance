@@ -47,7 +47,7 @@
 
 (defn contract-xhrio [contract-name code-type on-success on-failure]
   {:method :get
-   :uri (gstring/format "./contracts/build/%s.%s?_=%s" contract-name (name code-type) (.getTime (new js/Date)))
+   :uri (gstring/format "./contracts/build/%s.%s?v=%s" contract-name (name code-type) constants/contracts-version)
    :timeout 6000
    :response-format (if (= code-type :abi) (ajax/json-response-format) (ajax/text-response-format))
    :on-success on-success
@@ -154,9 +154,7 @@
 
 (comment
   (dispatch [:blockchain/unlock-account "0x98bc90f9bde18341304bd551d693b708e895a2a5" "m"])
-  (dispatch [:blockchain/unlock-account "0x8eb34c6197963a0a8756ec43cb6de9bd8d276b14" "m"])
-
-  )
+  (dispatch [:blockchain/unlock-account "0x8eb34c6197963a0a8756ec43cb6de9bd8d276b14" "m"]))
 
 (reg-fx
   :location/set-hash
@@ -247,7 +245,7 @@
          (contract-xhrio name code-type [:contract/loaded key code-type] [:log-error :load-eth-contracts])))}))
 
 (reg-event-fx
-  :deploy-contracts
+  :contracts/deploy-all
   interceptors
   (fn [{:keys [db]}]
     (let [ethance-db (get-in db [:eth/contracts :ethlance-db])]
@@ -258,8 +256,8 @@
                {:gas u/max-gas-limit
                 :data (:bin ethance-db)
                 :from (:active-address db)}
-               :contract/ethlance-db-deployed
-               [:log-error :deploy-contracts]]]}})))
+               [:contract/ethlance-db-deployed]
+               [:log-error :contracts/deploy-all]]]}})))
 
 (reg-event-fx
   :contract/ethlance-db-deployed
@@ -269,17 +267,23 @@
       (console :log :ethlance-db " deployed at " db-address)
       {:db (update-in db [:eth/contracts :ethlance-db] merge {:address db-address :instance instance})
        :localstorage (assoc-in localstorage [:eth/contracts :ethlance-db] {:address db-address})
-       :web3-fx.blockchain/fns
-       {:web3 (:web3 db)
-        :fns (for [[key {:keys [abi bin]}] (dissoc (:eth/contracts db) :ethlance-db)]
-               [web3-eth/contract-new
-                abi
-                db-address
-                {:gas u/max-gas-limit
-                 :data bin
-                 :from (:active-address db)}
-                [:contract/deployed key]
-                [:log-error :contract/ethlance-db-deployed key]])}})))
+       :dispatch [:contracts/deploy (keys (dissoc (:eth/contracts db) :ethlance-db))]})))
+
+(reg-event-fx
+  :contracts/deploy
+  [interceptors (inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [contract-keys]]
+    {:web3-fx.blockchain/fns
+     {:web3 (:web3 db)
+      :fns (for [[key {:keys [abi bin]}] (select-keys (:eth/contracts db) contract-keys)]
+             [web3-eth/contract-new
+              abi
+              (:address (get-contract db :ethlance-db))
+              {:gas u/max-gas-limit
+               :data bin
+               :from (:active-address db)}
+              [:contract/deployed key]
+              [:log-error :contracts/deploy key]])}}))
 
 (reg-event-fx
   :contract/deployed
@@ -311,7 +315,7 @@
   interceptors
   (fn [{:keys [db]} []]
     {:http-xhrio {:method :get
-                  :uri "./edn/initial-skills.edn"
+                  :uri (gstring/format "./edn/skills.edn?v=%s" constants/skills-version)
                   :timeout 10000
                   :response-format (ajax-edn/edn-response-format)
                   :on-success [:initial-skills-loaded]
@@ -1392,7 +1396,7 @@
                  fn-key]
                 (args-map->vec form-data (ethlance-db/eth-contracts-fns fn-key))
                 [(merge
-                   {:gas (print.foo/look gas)
+                   {:gas gas
                     :from (or address active-address)}
                    (when value
                      {:value value}))
@@ -1642,12 +1646,14 @@
 (reg-event-fx
   :reintialize
   interceptors
-  (fn [_ [initialize?]]
+  (fn [_ [contract-keys]]
     (.clear js/console)
     {:async-flow {:first-dispatch [:load-eth-contracts]
                   :rules [{:when :seen?
                            :events [:eth-contracts-loaded]
-                           :dispatch-n [[:deploy-contracts]]
+                           :dispatch-n [(if contract-keys
+                                          [:contracts/deploy contract-keys]
+                                          [:contracts/deploy-all])]
                            :halt? true}]}}))
 
 
@@ -1741,7 +1747,7 @@
 (comment
   (dispatch [:initialize])
   (dispatch [:print-db])
-  (dispatch [:deploy-contracts])
+  (dispatch [:contracts/deploy-all])
   (dispatch [:estimate-contracts])
   (dispatch [:clean-localstorage true])
   (dispatch [:print-localstorage])

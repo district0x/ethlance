@@ -19,7 +19,6 @@
     [re-frame.core :refer [dispatch dispatch-sync clear-subscription-cache!]]
     [reagent.core :as reagent]))
 
-
 (defn mount-root []
   (s/check-asserts goog.DEBUG)
   (google-analytics-fx/set-enabled! (not goog.DEBUG))

@@ -1,14 +1,16 @@
 (ns ethlance.styles
   (:require [cljs-react-material-ui.core :refer [color get-mui-theme]]))
 
-(def primary1-color (color #_:teal500 #_:blue600 #_:light-blue600 :indigo500))
+(def primary1-color (color #_ :teal600 #_:blue600 #_:light-blue600 :indigo500))
+(def logo-color (color :light-blue50))
 (def accent1-color (color :pinkA200))
 
 (def palette {:primary1-color primary1-color
               :accent1-color accent1-color})
 
 (def mui-theme (get-mui-theme {:palette palette
-                               :font-family "Open Sans, sans-serif"}))
+                               :font-family "Open Sans, sans-serif"
+                               :text-field {:error-color (color :pink400)}}))
 
 (def desktop-gutter (aget js/MaterialUIStyles "spacing" "desktopGutter"))
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
@@ -133,7 +135,7 @@
     {:text-align :right}))
 
 (def star-rating
-  {:color (color :amberA400) #_ primary1-color})
+  {:color (color :amberA400) #_primary1-color})
 
 (def star-rating-number
   {:color primary1-color
@@ -424,8 +426,17 @@
    :padding-left 0})
 
 (def ethlance-logo
-  {:margin-top 10
-   :max-height 40})
+  {:font-family "BlendaScript"
+   :color logo-color
+   :font-size "35px"
+   :margin-top 4
+   :display :block})
+
+(def ethlance-logo-footer
+  (merge ethlance-logo
+         {:color "rgba(255, 255, 255, 0.75)"
+          :font-size "30px"
+          :margin-top 10}))
 
 (def landing-title-base
   {:color "#FFF"})

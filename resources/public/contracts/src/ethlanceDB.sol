@@ -210,68 +210,6 @@ contract EthlanceDB is Ownable {
       delete IntStorage[record];
     }
 
-    function getTypesCounts(uint8[] types) constant returns(uint[]) {
-        var counts = new uint[](7);
-        for (uint i = 0; i < types.length ; i++) {
-            counts[types[i] - 1]++;
-        }
-        return counts;
-    }
-
-    function getEntity(bytes32[] records, uint8[] types)
-        public constant returns
-    (
-        bool[] bools,
-        uint8[] uint8s,
-        uint[] uints,
-        address[] addresses,
-        bytes32[] bytes32s,
-        int[] ints,
-        string str
-    )
-    {
-        var counts = getTypesCounts(types);
-        bools = new bool[](counts[0]);
-        uint8s = new uint8[](counts[1]);
-        uints = new uint[](counts[2]);
-        addresses = new address[](counts[3]);
-        bytes32s = new bytes32[](counts[4]);
-        ints = new int[](counts[5]);
-        counts = new uint[](7);
-
-        for (uint i = 0; i < records.length; i++) {
-            var recordType = types[i];
-            var record = records[i];
-            if (recordType == 1) {
-                bools[counts[0]] = getBooleanValue(record);
-                counts[0]++;
-            } else if (recordType == 2) {
-                uint8s[counts[1]] = getUInt8Value(record);
-                counts[1]++;
-            } else if (recordType == 3) {
-                uints[counts[2]] = getUIntValue(record);
-                counts[2]++;
-
-            } else if (recordType == 4) {
-                addresses[counts[3]] = getAddressValue(record);
-                counts[3]++;
-
-            } else if (recordType == 5) {
-                bytes32s[counts[4]] = getBytes32Value(record);
-                counts[4]++;
-
-            } else if (recordType == 6) {
-                ints[counts[5]] = getIntValue(record);
-                counts[5]++;
-
-            } else if (recordType == 7) {
-                str = str.toSlice().concat(getStringValue(record).toSlice());
-                str = str.toSlice().concat("99--DELIMITER--11".toSlice());
-            }
-        }
-        return (bools, uint8s, uints, addresses, bytes32s, ints, str);
-    }
-
     function booleanToUInt(bool x) constant returns (uint) {
         if (x) {
             return 1;

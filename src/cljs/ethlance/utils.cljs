@@ -122,7 +122,7 @@
        (str (subs string 0 (- length suffix-len)) suffix)))))
 
 (defn sha3 [& args]
-  (apply js/SoliditySha3.sha3 (map #(if (keyword? %) (ns+name %) %) args)))
+  (apply (aget js/SoliditySha3 "sha3") (map #(if (keyword? %) (ns+name %) %) args)))
 
 (defn big-num->num [x]
   (if (and x (aget x "toNumber"))
