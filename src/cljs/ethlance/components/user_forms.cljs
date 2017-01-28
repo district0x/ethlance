@@ -144,7 +144,7 @@
          :field-key :freelancer/skills
          :min-length-key :min-freelancer-skills
          :max-length-key :max-freelancer-skills}]
-       (when show-add-more-skills?
+       #_ (when show-add-more-skills?
          [row-plain {:end "xs"}
           [misc/add-more-skills-button]])
        [misc/textarea

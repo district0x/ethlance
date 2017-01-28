@@ -17,6 +17,7 @@
 (s/def ::drawer-open? boolean?)
 (s/def ::search-freelancers-filter-open? boolean?)
 (s/def ::search-jobs-filter-open? boolean?)
+(s/def ::skills-loaded? boolean?)
 (s/def ::handler keyword?)
 (s/def ::route-params (s/map-of keyword? (u/one-of number? string?)))
 (s/def :window/width-size int?)
@@ -351,12 +352,12 @@
                              ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
                              ::my-users-loaded? ::conversion-rates ::skill-load-limit ::active-setters?
-                             ::last-transaction-gas-used]))
+                             ::last-transaction-gas-used ::skills-loaded?]))
 
 (def default-db
   {:devnet? true
    :web3 nil
-   :node-url #_ "http://localhost:8550" "http://localhost:8549" #_"http://192.168.0.16:8545/"
+   :node-url "http://localhost:8545" #_ "http://localhost:8550" #_ "http://localhost:8549" #_ "http://192.168.0.16:8545/"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -394,17 +395,17 @@
                 :max-proposal-desc 500
                 :max-invitation-desc 500
                 :max-skills-create-at-once 4
-                :adding-skills-enabled? 1
-                :max-gas-limit 4000000}
+                :adding-skills-enabled? 0
+                :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true #_#_:address "0x26834e5da058f6b48857bf7393cca651d6329cc3"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true #_#_:address "0xa0e5a02a6b43fd9598f50eff82626ddea6996112"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true #_#_:address "0xd1d12f1f2ebe3620312fd88cb687123d3734d149"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true #_#_:address "0xacf4b057317319f00fd4f608f9a34d4760edb418"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true #_#_:address "0xd42730853ad8a3486c59bf5e6e35ec046643dc4e"}
-                   :ethlance-db {:name "EthlanceDB" #_#_:address "0x88932be812a3d33eca550ad4ee176a15df2212e5"}
-                   :ethlance-views {:name "EthlanceViews" #_#_:address "0x61e9b686cdfa6300ede530d86007abc47bffba3c"}
-                   :ethlance-search {:name "EthlanceSearch" #_#_:address "0xf6a1bfa2e9ad36f1c11e9621b942db0f707f7b2e"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x26834e5da058f6b48857bf7393cca651d6329cc3"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xa0e5a02a6b43fd9598f50eff82626ddea6996112"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0xd1d12f1f2ebe3620312fd88cb687123d3734d149"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0xacf4b057317319f00fd4f608f9a34d4760edb418"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0xd42730853ad8a3486c59bf5e6e35ec046643dc4e"}
+                   :ethlance-db {:name "EthlanceDB" :address "0x88932be812a3d33eca550ad4ee176a15df2212e5"}
+                   :ethlance-views {:name "EthlanceViews" :address "0x61e9b686cdfa6300ede530d86007abc47bffba3c"}
+                   :ethlance-search {:name "EthlanceSearch" :address "0xf6a1bfa2e9ad36f1c11e9621b942db0f707f7b2e"}}
    :my-addresses []
    :active-address nil
    :active-user-events nil
@@ -416,6 +417,7 @@
    :app/jobs {}
    :app/contracts {}
    :app/invoices {}
+   :skills-loaded? false
    :app/skills {}
    :app/skill-count 0
    :skill-load-limit 30
@@ -500,7 +502,7 @@
                             :data {:skill/names []}
                             :errors #{:skill/names}}
 
-   :form.config/set-configs {:loading? false :gas-limit u/max-gas-limit}
+   :form.config/set-configs {:loading? false :gas-limit 2000000}
    :form.config/block-skills {:loading? false :gas-limit u/max-gas-limit}
    :form.config/set-skill-name {:loading? false :gas-limit u/max-gas-limit}
 

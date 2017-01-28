@@ -42,6 +42,11 @@
     (:conversion-rates db)))
 
 (reg-sub
+  :db/skills-loaded?
+  (fn [db _]
+    (:skills-loaded? db)))
+
+(reg-sub
   :selected-currency/converted-value
   :<- [:db/selected-currency]
   :<- [:db/conversion-rates]

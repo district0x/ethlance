@@ -125,14 +125,10 @@
 (defn gen-skills []
   {:skill/names (set (repeatedly 30 #_(cfg :max-skills-create-at-once) #(rand-text 20)))})
 
-(comment
-  (dispatch [:contract.config/add-skills (gen-skills) (get-address 0)]))
-
 (reg-event-fx
   :generate-db
   [trim-v]
   (fn [{:keys [db]}]
-    #_{:dispatch [:contract.config/add-skills gen-skills (get-address 0)]}
     {:dispatch-n [[:contract.config/owner-add-skills (gen-skills) (get-address 0)]
                   [:contract.user/register-freelancer freelancer1 (get-address 0)]]
      :dispatch-later (concat

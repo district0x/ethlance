@@ -1,6 +1,7 @@
 (ns ethlance.events
   (:require
     [ajax.core :as ajax]
+    [ajax.edn :as ajax-edn]
     [akiroz.re-frame.storage :as re-frame-storage]
     [camel-snake-kebab.core :as cs :include-macros true]
     [cljs-web3.core :as web3]
@@ -29,7 +30,7 @@
 
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
-(def generate-mode? true)
+(def generate-mode? false)
 
 (defn check-and-throw
   "throw an exception if db doesn't match the spec"
@@ -213,7 +214,8 @@
                    (assoc db :drawer-open? (> (:window/width-size db) 2)))]
       (merge
         {:db db
-         :dispatch [:load-conversion-rate (:selected-currency db)]
+         :dispatch-n [[:load-conversion-rate (:selected-currency db)]
+                      [:load-initial-skills]]
          :async-flow {:first-dispatch [:load-eth-contracts]
                       :rules [{:when :seen?
                                :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
@@ -227,7 +229,7 @@
           {:web3-fx.blockchain/fns
            {:web3 web3
             :fns [[web3-eth/accounts :blockchain/my-addresses-loaded [:blockchain/on-error :initialize]]]}}
-          {:dispatch-n [[:blockchain/my-addresses-loaded []]]})))))
+          {:dispatch [:blockchain/my-addresses-loaded []]})))))
 
 (reg-event-db
   :drawer/set
@@ -303,6 +305,25 @@
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success [:conversion-rate-loaded currency]
                     :on-failure [:log-error :load-conversion-rate currency]}})))
+
+(reg-event-fx
+  :load-initial-skills
+  interceptors
+  (fn [{:keys [db]} []]
+    {:http-xhrio {:method :get
+                  :uri "./edn/initial-skills.edn"
+                  :timeout 10000
+                  :response-format (ajax-edn/edn-response-format)
+                  :on-success [:initial-skills-loaded]
+                  :on-failure [:log-error :load-initial-skills]}}))
+
+(reg-event-fx
+  :initial-skills-loaded
+  interceptors
+  (fn [{:keys [db]} [skills]]
+    (set! constants/skills skills)
+    {:db (assoc db :skills-loaded? true)}
+    #_{:db (update db :app/skills merge (medley/map-vals (partial hash-map :skill/name) skills))}))
 
 (reg-event-db
   :conversion-rate-loaded
@@ -421,8 +442,7 @@
   :eth-contracts-loaded
   interceptors
   (fn [{:keys [db]}]
-    (when-not (:contracts-not-found? db)
-      {:dispatch [:contract.views/load-skill-count]})))
+    ))
 
 (reg-event-fx
   :contract/load-and-listen-setter-status
@@ -494,12 +514,12 @@
         {:web3-fx.contract/events
          {:db db
           :db-path [:ethlance-config-events]
-          :events [[config-instance :on-skills-added {} "latest"
-                    :contract.config/on-skills-added [:log-error :on-skills-added]]
-                   [config-instance :on-skills-blocked {} "latest"
-                    :contract.config/on-skills-blocked [:log-error :on-skills-blocked]]
-                   [config-instance :on-skill-name-set {} "latest"
-                    :contract.config/on-skill-name-set [:log-error :on-skill-name-set]]
+          :events [#_[config-instance :on-skills-added {} "latest"
+                      :contract.config/on-skills-added [:log-error :on-skills-added]]
+                   #_[config-instance :on-skills-blocked {} "latest"
+                      :contract.config/on-skills-blocked [:log-error :on-skills-blocked]]
+                   #_[config-instance :on-skill-name-set {} "latest"
+                      :contract.config/on-skill-name-set [:log-error :on-skill-name-set]]
                    [config-instance :on-configs-changed {} "latest"
                     :contract.config/on-configs-changed [:log-error :on-configs-changed]]]}}))))
 
@@ -549,6 +569,14 @@
                  :address address
                  :fn-key :ethlance-config/block-skills
                  :form-key :form.config/block-skills}]}))
+
+(reg-event-fx
+  :contract.config/set-default-configs
+  interceptors
+  (fn [{:keys [db]}]
+    (let [config (:eth/config default-db)]
+      {:dispatch [:contract.config/set-configs {:config/keys (keys config)
+                                                :config/values (vals config)} nil]})))
 
 (reg-event-fx
   :contract.config/set-configs
@@ -620,10 +648,8 @@
                  :contract/transaction-sent
                  [:contract/transaction-error :contract.db/add-allowed-contracts]
                  (if (contains? (set contract-keys) :ethlance-config)
-                   (let [config (:eth/config db)]
-                     [:contract.config/set-configs {:config/keys (keys config)
-                                                    :config/values (vals config)} nil])
-                   :do-nothing)]]}}))))
+                   [:contract.config/set-default-configs]
+                   [:do-nothing])]]}}))))
 
 (reg-event-fx
   :contract.views/my-new-user-id-loaded
@@ -1366,7 +1392,7 @@
                  fn-key]
                 (args-map->vec form-data (ethlance-db/eth-contracts-fns fn-key))
                 [(merge
-                   {:gas gas
+                   {:gas (print.foo/look gas)
                     :from (or address active-address)}
                    (when value
                      {:value value}))

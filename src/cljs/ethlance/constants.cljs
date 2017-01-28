@@ -91,6 +91,8 @@
    11 "Accounting & Consulting"
    12 "Other"})
 
+(def ^:dynamic skills {})
+
 (def currencies
   {:eth "Ξ"
    :usd "$"

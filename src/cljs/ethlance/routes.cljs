@@ -6,10 +6,6 @@
         ["edit-profile" :user/edit]
         ["become-freelancer" :freelancer/create]
         ["become-employer" :employer/create]
-        #_["my-jobs/" {"freelancer" :freelancer/contracts
-                       "employer" :employer/jobs}]
-        #_["my-invoices/" {"freelancer" :freelancer/invoices
-                           "employer" :employer/invoices}]
         ["search/" {"jobs" :search/jobs
                     "freelancers" :search/freelancers}]
         ["freelancer/" {"my-invoices" :freelancer/invoices
@@ -24,5 +20,4 @@
         [["contract/" :contract/id "/invoices"] :contract/invoices]
         ["invoice/create" :invoice/create]
         [["invoice/" :invoice/id] :invoice/detail]
-        ["skills/create" :skills/create]
         [true :home]]])

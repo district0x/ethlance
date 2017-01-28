@@ -29,7 +29,9 @@
             {:keys [:invoice/contract :invoice/description :invoice/amount :invoice/worked-hours :invoice/worked-from
                     :invoice/worked-to]} data
             contracts (:items @contracts-list)]
-        [:div
+        [paper
+         {:loading? loading?}
+         [:h2 "New Invoice"]
          [:div
           [ui/select-field
            {:floating-label-text "Job"
@@ -90,6 +92,4 @@
      [misc/only-freelancer
       {:on-user-change dispatch-contracts-load}
       [center-layout
-       [paper
-        [:h2 "New Invoice"]
-        [add-invoice-form]]]]]))
+       [add-invoice-form]]]]))

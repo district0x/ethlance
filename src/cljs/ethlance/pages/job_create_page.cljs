@@ -95,7 +95,7 @@
                :on-change #(dispatch [:form/set-value :form.job/add-job :job/skills %1 validator])
                :error-text (when-not (validator skills)
                              (gstring/format "Choose from %s to %s skills" min-job-skills max-job-skills))}]
-             [row-plain {:end "xs"}
+             #_ [row-plain {:end "xs"}
               [misc/add-more-skills-button]]])
           [misc/textarea
            {:floating-label-text "Job description"

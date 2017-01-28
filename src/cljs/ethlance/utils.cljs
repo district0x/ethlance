@@ -53,7 +53,7 @@
 (defn rating? [x]
   (<= 0 x 100))
 
-(def max-gas-limit 4000000)
+(def max-gas-limit 3800000)
 
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
@@ -198,7 +198,8 @@
   (crypt/byteArrayToHex (md5-bytes s)))
 
 (defn map->data-source [m val-key]
-  (map (fn [[k v]] {"text" (get v val-key) "value" k}) (into [] m)))
+  (let [getter (if val-key #(get % val-key) identity)]
+    (map (fn [[k v]] {"text" (getter v) "value" k}) (into [] m))))
 
 (defn coll->data-source [coll]
   (mapv (fn [[k v]] {"text" v "value" (inc k)}) coll))

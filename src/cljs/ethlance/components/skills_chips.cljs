@@ -6,13 +6,15 @@
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    ))
+    [ethlance.constants :as constants]))
 
 (defn skills-chips []
-  (let [all-skills (subscribe [:app/skills])
+  (let [#_ #_ all-skills (subscribe [:app/skills])
+        skills-loaded? (subscribe [:db/skills-loaded?])
         show-all? (r/atom false)]
     (fn [{:keys [:selected-skills :on-touch-tap :always-show-all? :max-count]
           :or {max-count 5}}]
+      @skills-loaded?
       [row-plain
        {:middle "xs"
         :style styles/chip-list-row}
@@ -22,7 +24,8 @@
                                  (not always-show-all?))
                           (take max-count selected-skills)
                           selected-skills)]
-           (let [skill-name (get-in @all-skills [skill-id :skill/name])]
+           (let [#_ #_ skill-name (get-in @all-skills [skill-id :skill/name])
+                 skill-name (constants/skills skill-id)]
              (when (seq skill-name)
                [ui/chip
                 (r/merge-props

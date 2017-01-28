@@ -26,7 +26,6 @@
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
-    [ethlance.pages.skills-create-page :refer [skills-create-page]]
     [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -53,7 +52,6 @@
    :job/create job-create-page
    :job/detail job-detail-page
    :search/freelancers search-freelancers-page
-   :skills/create skills-create-page
    :user/edit user-edit-page
    :search/jobs search-jobs-page})
 
