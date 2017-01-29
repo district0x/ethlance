@@ -56,11 +56,13 @@
                             (dispatch [:form/set-open? :form.user/set-freelancer freelancer?])
                             (dispatch [:form/clear-data :form.user/set-user])
                             (dispatch [:form/clear-data :form.user/set-freelancer
-                                       (when-not freelancer?
-                                         (get-form-default-errors :form.user/register-freelancer :freelancer))])
+                                       (if-not freelancer?
+                                         (get-form-default-errors :form.user/register-freelancer :freelancer)
+                                         #{})])
                             (dispatch [:form/clear-data :form.user/set-employer
-                                       (when-not employer?
-                                         (get-form-default-errors :form.user/register-employer :employer))])
+                                       (if-not employer?
+                                         (get-form-default-errors :form.user/register-employer :employer)
+                                         #{})])
                             (dispatch [:contract.db/load-user-languages {user-id @active-user}])
                             (when employer?
                               (dispatch [:after-eth-contracts-loaded
