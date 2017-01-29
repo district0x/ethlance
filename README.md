@@ -2,7 +2,7 @@
 
 Repository for [ethlance.com](http://ethlance.com) 
 
-Ethlance is first job market platform written in Clojure and Solidity working completely on Ethereum blockchain with 0% service fees
+Ethlance is first job market platform written in Clojurescript and Solidity working completely on Ethereum blockchain with 0% service fees
 
 Ethereum Smart Contracts are at `/resources/public/contracts/src`
 
