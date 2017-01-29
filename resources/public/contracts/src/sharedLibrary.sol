@@ -111,8 +111,9 @@ library SharedLibrary {
         }
 
         if (cycle && j < limit) {
-            for (i = 0; i <= limit - j; i++) {
-                if (length == j) {
+            var k = limit - j;
+            for (i = 0; i <= k; i++) {
+                if (limit == j) {
                     break;
                 }
                 result[j] = array[i];

@@ -8,3 +8,4 @@ out
 /.idea/
 /.lein-repl-history
 /.nrepl-port
+!/resources/public/contracts/build/

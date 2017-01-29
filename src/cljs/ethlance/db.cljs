@@ -406,7 +406,7 @@
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x74cf6656919ebc3bea8ed838a7e9b082399d5db8"}}
+                   :ethlance-search {:name "EthlanceSearch" :address "0x2a420ae47fb84a4ee1a6d97586de11b866f678cd"}}
    :my-addresses []
    :active-address nil
    :active-user-events nil
