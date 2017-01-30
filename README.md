@@ -25,4 +25,11 @@ Ethereum Smart Contracts are at `/resources/public/contracts/src`
 
 # Contributing
 
+Anyone is welcome to contribute to the ethlance project, here are some brief guidelines:
+
+* Squash commits
+* Reference issue numbers in your pull request
+* Rebase your changes on upstream (```git remote add upstream https://github.com/madvas/ethlance.git```) master before pushing (```git pull --rebase upstream master```)
+* Make changes in a separate well-named branch in your forked repo like ```improve-readme```
+
 # Useful Links
