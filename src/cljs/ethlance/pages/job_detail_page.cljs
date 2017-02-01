@@ -147,8 +147,7 @@
               [misc/send-button
                {:disabled (or loading? (boolean (seq errors)))
                 :on-touch-tap #(dispatch [:contract.contract/add-job-proposal
-                                          (merge data {:contract/job (:job/id @job)})])}]])
-           ])))))
+                                          (merge data {:contract/job (:job/id @job)})])}]])])))))
 
 (defn job-details []
   (let [job (subscribe [:job/detail])

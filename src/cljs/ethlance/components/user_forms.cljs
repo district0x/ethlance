@@ -92,7 +92,7 @@
       [:div
        [misc/textarea
         {:floating-label-text "Overview"
-         :hint-text "Describe youself as employer"
+         :hint-text "Introduce youself as an employer, your previous experiences, contact information"
          :form-key form-key
          :field-key :employer/description
          :max-length-key :max-user-description
@@ -149,7 +149,7 @@
           [misc/add-more-skills-button]])
        [misc/textarea
         {:floating-label-text "Overview"
-         :hint-text "Describe youself as freelancer"
+         :hint-text "Introduce youself as a freelancer, your working experiences, portfolio, contact information"
          :form-key form-key
          :field-key :freelancer/description
          :max-length-key :max-user-description
