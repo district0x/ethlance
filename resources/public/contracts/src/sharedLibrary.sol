@@ -191,24 +191,20 @@ library SharedLibrary {
             }
         }
         return (take(ad_i, added), take(re_i, removed));
-    }    
+    }
 
-    function sort(uint[] array) internal returns(uint[]) {
-        uint n = array.length;
-        if (array.length == 0) {
-            return array;
-        }
-
-        for (uint c = 0 ; c < ( n - 1 ); c++) {
-            for (uint d = 0 ; d < n - c - 1; d++) {
-                if (array[d] >= array[d + 1]) {
-                    (array[d], array[d + 1]) = (array[d + 1], array[d]);
-                }
+    function sort (uint[] array) internal returns (uint[]) {
+        for (uint i = 1; i < array.length; i++) {
+            var t = array[i];
+            var j = i;
+            while(j > 0 && array[j-1] > t) {
+                array[j] = array[j-1];
+                j--;
             }
+            array[j] = t;
         }
         return array;
     }
-
 
     function take(uint n, uint[] array) internal returns(uint[] result) {
         if (n > array.length) {
