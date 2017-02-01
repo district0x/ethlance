@@ -143,6 +143,7 @@
                 :max-length-key :max-proposal-desc
                 :value description
                 :hint-text misc/privacy-warning-hint}]
+              [:div "Don't forget to provide your contact information"]
               [misc/send-button
                {:disabled (or loading? (boolean (seq errors)))
                 :on-touch-tap #(dispatch [:contract.contract/add-job-proposal
