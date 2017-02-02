@@ -15,7 +15,9 @@
       @skills-loaded?
       [(if validated? validated-chip-input chip-input)
        (r/merge-props
-         {:all-items constants/skills #_ @skills
+         {:all-items constants/skills
           :floating-label-text "Skills"
-          :chip-backgroud-color styles/skills-chip-color}
+          :chip-backgroud-color styles/skills-chip-color
+          :max-search-results 50
+          :menu-props styles/chip-input-menu-props}
          (dissoc props :validated?))])))

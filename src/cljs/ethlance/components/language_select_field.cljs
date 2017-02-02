@@ -1,6 +1,7 @@
 (ns ethlance.components.language-select-field
   (:require [cljs-react-material-ui.reagent :as ui]
-            [ethlance.constants :refer [languages]]))
+            [ethlance.constants :refer [languages]]
+            [ethlance.styles :as styles]))
 
 (defn language-select-field []
   (fn [{:keys [value] :as props}]
@@ -13,7 +14,7 @@
         :search-text (if (or (not value) (zero? value))
                        ""
                        (nth languages (dec value)))
-        :list-style {:max-height 300}}
+        :menu-props styles/chip-input-menu-props}
        props
        (when-let [on-new-request (:on-new-request props)]
          {:on-new-request (fn [value index]

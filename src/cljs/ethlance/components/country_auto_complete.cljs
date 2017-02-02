@@ -1,8 +1,9 @@
 (ns ethlance.components.country-auto-complete
   (:require
     [cljs-react-material-ui.reagent :as ui]
-    [medley.core :as medley]
-    [ethlance.constants :refer [countries]]))
+    [ethlance.constants :refer [countries]]
+    [ethlance.styles :as styles]
+    [medley.core :as medley]))
 
 (defn country-auto-complete []
   (fn [{:keys [value] :as props}]
@@ -12,7 +13,8 @@
         :open-on-focus true
         :dataSource countries
         :filter (aget js/MaterialUI "AutoComplete" "caseInsensitiveFilter")
-        :max-search-results 5
+        :max-search-results 20
+        :menu-props styles/chip-input-menu-props
         :search-text (if (or (not value) (zero? value))
                        ""
                        (nth countries (dec value)))}

@@ -79,7 +79,9 @@
            :field-key :user/languages
            :min-length-key :min-user-languages
            :max-length-key :max-user-languages
-           :chip-backgroud-color styles/languages-chip-color}]
+           :chip-backgroud-color styles/languages-chip-color
+           :menu-props {:max-height 200}
+           :max-search-results 10}]
          (when show-save-button?
            [misc/send-button
             {:label "Save User"
@@ -135,7 +137,8 @@
          :field-key :freelancer/categories
          :min-length-key :min-freelancer-categories
          :max-length-key :max-freelancer-categories
-         :chip-backgroud-color styles/categories-chip-color}]
+         :chip-backgroud-color styles/categories-chip-color
+         :menu-props styles/chip-input-menu-props}]
        [skills-chip-input
         {:value skills
          :hint-text "Type skills you have"

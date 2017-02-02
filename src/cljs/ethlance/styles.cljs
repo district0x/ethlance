@@ -513,3 +513,6 @@
 
 (def user-forms-text-field
   {:width 300})
+
+(def chip-input-menu-props
+  {:max-height 300})
