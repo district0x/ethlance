@@ -2,7 +2,7 @@
   (:require [clojure.tools.reader :as reader]))
 
 (def contracts-version "1.0.1")
-(def skills-version "1.0")
+(def skills-version "1.1")
 (def list-limit 8)
 
 (def handler->form
