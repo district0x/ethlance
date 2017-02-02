@@ -200,6 +200,24 @@
         [:div {:style styles/last-transaction-info}
          (str "Your last transaction used " @gas-used-percent "% of gas")]))))
 
+(def socials
+  [["https://www.facebook.com/ethlance/" icons/facebook]
+   ["https://github.com/madvas/ethlance" icons/github]
+   ["https://ethlance.slack.com/" icons/slack]
+   ["https://twitter.com/ethlance" icons/twitter]])
+
+(defn social-buttons []
+  [row-plain
+   {:center "xs"
+    :style styles/social-buttons}
+   (for [[href icon] socials]
+     [ui/icon-button
+      {:href href
+       :target :_blank
+       :key href
+       :style styles/social-button}
+      (icon {:color styles/fade-color})])])
+
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
         drawer-open? (subscribe [:db/drawer-open?])
@@ -249,7 +267,7 @@
                 [ui/subheader "Employer"])
               (when employer?
                 (create-menu-items nav-items-employer))]
-             [last-transaction-info]]
+             [social-buttons]]
             [ui/app-bar
              {:show-menu-icon-button (not @lg-width?)
               :icon-element-right (r/as-element [app-bar-right-elements])

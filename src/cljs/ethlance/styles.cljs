@@ -189,6 +189,14 @@
    :text-align :center
    :font-size "0.85em"})
 
+(def social-buttons
+  {:position :absolute
+   :bottom 10
+   :left 10})
+
+(def social-button
+  {:margin-right 12})
+
 (def clickable
   {:cursor :pointer})
 
