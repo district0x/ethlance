@@ -38,6 +38,7 @@ library UserLibrary {
     function setUser(address db,
         address userAddress,
         string name,
+        string email,
         bytes32 gravatar,
         uint country,
         uint state,
@@ -57,6 +58,7 @@ library UserLibrary {
             EthlanceDB(db).setUInt8Value(sha3("user/status", userId), 1);
         }
         EthlanceDB(db).setStringValue(sha3("user/name", userId), name);
+        EthlanceDB(db).setStringValue(sha3("user/email", userId), email);
         EthlanceDB(db).setBytes32Value(sha3("user/gravatar", userId), gravatar);
         if (country == 0) throw;
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);

@@ -12,7 +12,7 @@ contract EthlanceUser is EthlanceSetter {
         ethlanceDB = _ethlanceDB;
     }
 
-    function setUser(string name, bytes32 gravatar, uint country, uint state, uint[] languages)
+    function setUser(string name, string email, bytes32 gravatar, uint country, uint state, uint[] languages)
     onlyActiveSmartContract
     {
         if (languages.length > getConfig("max-user-languages")) throw;
@@ -20,10 +20,12 @@ contract EthlanceUser is EthlanceSetter {
         var nameLen = name.toSlice().len();
         if (nameLen > getConfig("max-user-name")) throw;
         if (nameLen < getConfig("min-user-name")) throw;
-        UserLibrary.setUser(ethlanceDB, msg.sender, name, gravatar, country, state, languages);
+        if (email.toSlice().len() > 254) throw;
+        UserLibrary.setUser(ethlanceDB, msg.sender, name, email, gravatar, country, state, languages);
     }
 
-    function registerFreelancer(string name, bytes32 gravatar, uint country, uint state, uint[] languages,
+    function registerFreelancer(string name,  string email, bytes32 gravatar, uint country, uint state,
+        uint[] languages,
         bool isAvailable,
         string jobTitle,
         uint hourlyRate,
@@ -33,7 +35,7 @@ contract EthlanceUser is EthlanceSetter {
     )
         onlyActiveSmartContract
     {
-        setUser(name, gravatar, country, state, languages);
+        setUser(name, email, gravatar, country, state, languages);
         setFreelancer(isAvailable, jobTitle, hourlyRate, categories, skills, description);
     }
 
@@ -60,12 +62,13 @@ contract EthlanceUser is EthlanceSetter {
             skills, description);
     }
 
-    function registerEmployer(string name, bytes32 gravatar, uint country, uint state, uint[] languages,
+    function registerEmployer(string name, string email, bytes32 gravatar, uint country, uint state,
+        uint[] languages,
         string description
     )
     onlyActiveSmartContract
     {
-        setUser(name, gravatar, country, state, languages);
+        setUser(name, email, gravatar, country, state, languages);
         setEmployer(description);
     }
 
