@@ -38,6 +38,7 @@
 
 (defn gen-freelancer []
   {:user/name (rand-text (cfg :min-user-name) (cfg :max-user-name))
+   :user/email "ethlance@gmail.com"
    :user/gravatar (u/md5 (u/rand-str 10))
    :user/country (rand-id (count constants/countries))
    :user/state (rand-id (count constants/united-states))
@@ -71,6 +72,7 @@
 
 (def employer1
   {:user/name "SomeCorp."
+   :user/email "ethlance@gmail.com"
    :user/gravatar "bfdb252fe9d0ab9759f41e3c26d7700f"
    :user/country 21
    :user/languages [1]

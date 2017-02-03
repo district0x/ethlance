@@ -662,6 +662,7 @@
     (let [user-id (u/big-num->num user-id)
           i (.indexOf (get-in db [:list/my-users :params :user/addresses]) address)]
       {:db (update-in db [:list/my-users :items] (comp #(assoc % i user-id) vec))
+       :dispatch [:contract.db/load-users #{:user/email} [user-id]]
        :location/set-hash [route {:user/id user-id}]})))
 
 (defn clear-invalid-state [form-data]
@@ -707,7 +708,9 @@
                  :fn-key :ethlance-user/set-user
                  :form-key :form.user/set-user
                  :receipt-dispatch-n [[:snackbar/show-message "Your user profile was successfully updated"]
-                                      [:contract.db/load-users ethlance-db/user-entity-fields [(:user/id (get-active-user db))]]]}]}))
+                                      [:contract.db/load-users
+                                       (set/union ethlance-db/user-entity-fields #{:user/email})
+                                       [(:user/id (get-active-user db))]]]}]}))
 
 (reg-event-fx
   :contract.user/set-freelancer
@@ -850,9 +853,9 @@
                                     :fn-key :ethlance-views/get-users
                                     :load-dispatch-key :contract.db/load-users
                                     :load-dispatch-opts {:dispatch-after-loaded [:my-users-loaded]}
-                                    :fields (set/difference ethlance-db/account-entitiy-fields
-                                                            #{:freelancer/description
-                                                              :employer/description})
+                                    :fields (-> ethlance-db/account-entitiy-fields
+                                              (set/difference #{:freelancer/description :employer/description})
+                                              (set/union #{:user/email}))
                                     :args {:user/addresses addrs}}]}))))
 
 (reg-event-fx
@@ -1768,7 +1771,7 @@
   (dispatch [:contract/call :ethlance-db :get-address-value (u/sha3 :user/address 1)])
   (dispatch [:contract/call :ethlance-db :get-bytes32-value (u/sha3 :user/name 1)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :freelancer/hourly-rate 1)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :contract/invoices-count 1)])
+  (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :user/email 2)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :contract/freelancer+job 1 1)])
 
   (dispatch [:contract/call :ethlance-user :diff #{10 11 12} #{1 2 3 4 5 6}])
@@ -1780,7 +1783,7 @@
 
   (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
 
-  (get-entities [1] [:user/address] (get-ethlance-db))
+  (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log]) #(dispatch [:log-error]))
   (get-entities-field-items {5 10} :skill/freelancers
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
 

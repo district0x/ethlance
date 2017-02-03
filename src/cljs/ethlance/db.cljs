@@ -54,7 +54,7 @@
 (s/def :user/languages u/uint-coll?)
 (s/def :user/languages-count u/uint?)
 (s/def :user/name string?)
-(s/def :user/email any?)
+(s/def :user/email u/string-or-nil?)
 (s/def :user/status u/uint8?)
 (s/def :user/balance u/big-num?)
 (s/def :freelancer/available? boolean?)
@@ -87,6 +87,7 @@
                                :user/employer?
                                :user/freelancer?
                                :user/gravatar
+                               :user/email
                                :user/languages
                                :user/languages-count
                                :user/name
@@ -399,7 +400,7 @@
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x5baf422ed4eb0c678642aee99af8292047c76827"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x592940f701e9d4594afb300f8cd6bb5a54171be2"}
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0xc37df6e11bf81b339cc6c02ec14f7b5c7588013f"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x975e833cf7e2b58e5444229aa6646be6c99ff961"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x1a8c7e454cf9c50ae8fe049fa30acbecfcc1b81a"}

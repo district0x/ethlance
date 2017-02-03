@@ -16,7 +16,8 @@
     nmsp (u/filter-by-namespace nmsp)
     true set))
 
-(def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user) #{:user/balance :user/id}))
+(def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user)
+                                        #{:user/balance :user/id :user/email}))
 (def user-balance-entity-fields #{:user/balance})
 (def freelancer-entity-fields (spec-form->entity-fields :app/user :freelancer))
 (def employer-entity-fields (spec-form->entity-fields :app/user :employer))
@@ -68,7 +69,7 @@
 (def skill-entity-fields (set/difference (spec-form->entity-fields :app/skill) #{:skill/id}))
 
 (def user-editable-fields
-  (set/difference (set/union account-entitiy-fields user-balance-entity-fields)
+  (set/difference (set/union account-entitiy-fields user-balance-entity-fields #{:user/email})
                   #{:user/address :user/created-on}))
 
 (def job-editable-fields
@@ -94,7 +95,7 @@
     :proposal/rate :invoice/amount})
 
 (def set-user-args
-  [:user/name :user/gravatar :user/country :user/state :user/languages])
+  [:user/name :user/email :user/gravatar :user/country :user/state :user/languages])
 
 (def set-freelancer-args
   [:freelancer/available? :freelancer/job-title :freelancer/hourly-rate :freelancer/categories :freelancer/skills

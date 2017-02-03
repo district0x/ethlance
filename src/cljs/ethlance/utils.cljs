@@ -38,6 +38,9 @@
 (defn bytes32? [x]
   (string? x))
 
+(defn bytes32-or-nil? [x]
+  (or (nil? x) (string? x)))
+
 (defn uint-coll? [x]
   (and x (every? uint? x)))
 

@@ -40,13 +40,11 @@
             :field-key :user/name
             :max-length-key :max-user-name
             :min-length-key :min-user-name
-            :value name
-            }]]
+            :value name}]]
          [row-plain
           {:bottom "xs"}
           [misc/text-field-base
-           {:floating-label-text "Your Gravatar Email"
-            :hint-text "Email is not stored in blockchain"
+           {:floating-label-text "Your Email"
             :value email
             :style (if @xs-width? {:width 220} {})
             :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
@@ -55,8 +53,7 @@
           [ui/icon-button
            {:tooltip "Gravatar is an avatar calculated from your email address. Click for more"
             :href "http://gravatar.com/"
-            :target :_blank
-            }
+            :target :_blank}
            (icons/help-circle-outline {:color styles/fade-color})]]
          [row-plain
           {:style styles/margin-top-gutter}
