@@ -400,7 +400,8 @@
    "Western Sahara"
    "Yemen"
    "Zambia"
-   "Zimbabwe"])
+   "Zimbabwe"
+   "not specified"])
 
 (def languages
   ["аҧсуа бызшәа, аҧсшәа"
