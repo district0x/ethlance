@@ -203,7 +203,7 @@
 (def socials
   [["https://www.facebook.com/ethlance/" icons/facebook]
    ["https://github.com/madvas/ethlance" icons/github]
-   ["https://ethlance.slack.com/" icons/slack]
+   ["https://ethlance-slack.herokuapp.com/" icons/slack]
    ["https://twitter.com/ethlance" icons/twitter]])
 
 (defn social-buttons []
