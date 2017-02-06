@@ -57,7 +57,7 @@
 
 (def search-nav-items
   [["Find Work" :search/jobs (icons/magnify)]
-   ["Find Freelancers" :search/freelancers (icons/account-search)]])
+   ["Find Candidates" :search/freelancers (icons/account-search)]])
 
 (def nav-items-freelancers
   [["My Contracts" :freelancer/contracts (icons/file-document)]

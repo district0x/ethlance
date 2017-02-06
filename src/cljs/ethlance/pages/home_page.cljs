@@ -48,7 +48,7 @@
        {:label "Find Work"
         :href (u/path-for :search/jobs)}]
       [landing-button
-       {:label "Find Freelancers"
+       {:label "Find Candidates"
         :href (u/path-for :search/freelancers)}]]]
     [col
      {:xs 12
@@ -207,7 +207,7 @@
     [footer-link :freelancer/create "Become Freelancer"]
     [footer-link :employer/create "Become Employer"]
     [footer-link :search/jobs "Find Work"]
-    [footer-link :search/freelancers "Find Freelancers"]]
+    [footer-link :search/freelancers "Find Candidates"]]
    [col
     {:xs 12 :sm 4}
     [ui/subheader {:style styles/footer-subheader}

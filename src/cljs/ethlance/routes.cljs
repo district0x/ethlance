@@ -6,6 +6,8 @@
         ["edit-profile" :user/edit]
         ["become-freelancer" :freelancer/create]
         ["become-employer" :employer/create]
+        ["find/" {"work" :search/jobs
+                  "candidates" :search/freelancers}]
         ["search/" {"jobs" :search/jobs
                     "freelancers" :search/freelancers}]
         ["freelancer/" {"my-invoices" :freelancer/invoices
