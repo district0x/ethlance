@@ -320,7 +320,8 @@
 
 (defn user-address [address]
   [:div
-   {:style styles/margin-bottom-gutter-less}
+   {:style (merge styles/margin-bottom-gutter-less
+                  styles/word-wrap-break)}
    [:a {:target :_blank
         :style {:color styles/primary1-color}
         :href (u/etherscan-url address)} address]])

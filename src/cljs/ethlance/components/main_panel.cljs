@@ -172,7 +172,12 @@
            [my-addresses-select-field]
            [misc/how-it-works-app-bar-link
             {:style {:margin-top 0}}
-            "No accounts connected. How to join?"])
+            [row-plain
+             {:middle "xs"}
+             [:span
+              {:style {:margin-right 5}}
+              "No accounts connected"]
+             (icons/help-circle-outline {:color "#EEE"})]])
          [currency-select-field]]
         [row-plain
          {:middle "xs"
