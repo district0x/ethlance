@@ -260,7 +260,7 @@
                            @active-address)
                   (create-menu-items nav-items-unregistered)))
               (when (and freelancer? employer?)
-                [ui/subheader "Freelancer"])
+                [ui/subheader "Job Seeker"])
               (when freelancer?
                 (create-menu-items nav-items-freelancers))
               (when (and freelancer? employer?)
