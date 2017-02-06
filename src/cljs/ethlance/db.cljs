@@ -400,10 +400,10 @@
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x592940f701e9d4594afb300f8cd6bb5a54171be2"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xc37df6e11bf81b339cc6c02ec14f7b5c7588013f"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x975e833cf7e2b58e5444229aa6646be6c99ff961"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x1a8c7e454cf9c50ae8fe049fa30acbecfcc1b81a"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x6bf5fa628155fc3d33cdd826055a15b46a112678"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x6c9a60215c8c84797b4559f6bea7a3ec962a9eee"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x4a5ae608f7558a00e074224d5eb7ca34b6ddfa19"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x9632234213e5212cd4d4643e7ba61bf7f7b4e990"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}

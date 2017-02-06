@@ -18,7 +18,7 @@ library ContractLibrary {
         uint freelancerId,
         string description
     )
-        internal
+        internal returns (uint contractId)
     {
         var employerId = JobLibrary.getEmployer(db, jobId);
         if (senderId != employerId) throw;
@@ -27,7 +27,8 @@ library ContractLibrary {
         if (JobLibrary.getStatus(db, jobId) != 1) throw;
         if (!UserLibrary.isFreelancerAvailable(db, freelancerId)) throw;
         if (!UserLibrary.hasStatus(db, freelancerId, 1)) throw;
-        var contractId = SharedLibrary.createNext(db, "contract/count");
+
+        contractId = SharedLibrary.createNext(db, "contract/count");
         setFreelancerJobIndex(db, contractId, freelancerId, jobId);
         
         EthlanceDB(db).setStringValue(sha3("invitation/description", contractId), description);
@@ -36,6 +37,8 @@ library ContractLibrary {
         UserLibrary.addFreelancerContract(db, freelancerId, contractId);
         UserLibrary.addEmployerContract(db, employerId, contractId);
         JobLibrary.addContract(db, jobId, contractId);
+
+        return contractId;
     }
     
     function addProposal(

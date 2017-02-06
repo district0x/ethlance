@@ -7,9 +7,9 @@ import "strings.sol";
 contract EthlanceInvoice is EthlanceSetter {
     using strings for *;
 
-    event onInvoiceAdded(uint invoiceId, uint indexed employerId);
-    event onInvoicePaid(uint invoiceId, uint indexed freelancerId);
-    event onInvoiceCancelled(uint invoiceId, uint indexed employerId);
+    event onInvoiceAdded(uint invoiceId, uint indexed employerId, uint freelancerId);
+    event onInvoicePaid(uint invoiceId, uint employerId, uint indexed freelancerId);
+    event onInvoiceCancelled(uint invoiceId, uint indexed employerId, uint freelancerId);
 
     function EthlanceInvoice(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -28,9 +28,10 @@ contract EthlanceInvoice is EthlanceSetter {
         onlyActiveFreelancer
     {
         if (description.toSlice().len() > getConfig("max-invoice-description")) throw;
-        var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, getSenderUserId(), contractId, description,
+        var freelancerId = getSenderUserId();
+        var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, freelancerId, contractId, description,
             amount, workedHours, workedFrom, workedTo);
-        onInvoiceAdded(invoiceId, ContractLibrary.getEmployer(ethlanceDB, contractId));
+        onInvoiceAdded(invoiceId, ContractLibrary.getEmployer(ethlanceDB, contractId), freelancerId);
     }
 
     function payInvoice(
@@ -41,10 +42,11 @@ contract EthlanceInvoice is EthlanceSetter {
         payable
     {
         address freelancerAddress = InvoiceLibrary.getFreelancerAddress(ethlanceDB, invoiceId);
-        InvoiceLibrary.setInvoicePaid(ethlanceDB, getSenderUserId(), msg.value, invoiceId);
+        var employerId = getSenderUserId();
+        InvoiceLibrary.setInvoicePaid(ethlanceDB, employerId, msg.value, invoiceId);
         if (!freelancerAddress.send(msg.value)) throw;
         var contractId = InvoiceLibrary.getContract(ethlanceDB, invoiceId);
-        onInvoicePaid(invoiceId, ContractLibrary.getFreelancer(ethlanceDB, contractId));
+        onInvoicePaid(invoiceId, employerId, ContractLibrary.getFreelancer(ethlanceDB, contractId));
     }
 
     function cancelInvoice(
@@ -53,9 +55,10 @@ contract EthlanceInvoice is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveFreelancer
     {
-        InvoiceLibrary.setInvoiceCancelled(ethlanceDB, getSenderUserId(), invoiceId);
+        var freelancerId = getSenderUserId();
+        InvoiceLibrary.setInvoiceCancelled(ethlanceDB, freelancerId, invoiceId);
         var contractId = InvoiceLibrary.getContract(ethlanceDB, invoiceId);
         var employerId = ContractLibrary.getEmployer(ethlanceDB, contractId);
-        onInvoiceCancelled(invoiceId, employerId);
+        onInvoiceCancelled(invoiceId, employerId, freelancerId);
     }
 }

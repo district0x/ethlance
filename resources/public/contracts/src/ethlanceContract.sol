@@ -7,10 +7,10 @@ import "strings.sol";
 contract EthlanceContract is EthlanceSetter {
     using strings for *;
 
-    event onJobProposalAdded(uint contractId, uint indexed employerId);
-    event onJobContractAdded(uint contractId, uint indexed freelancerId);
-    event onJobContractFeedbackAdded(uint contractId, uint indexed userId);
-    event onJobInvitationAdded(uint jobId, uint indexed freelancerId);
+    event onJobProposalAdded(uint contractId, uint indexed employerId, uint freelancerId);
+    event onJobContractAdded(uint contractId, uint employerId, uint indexed freelancerId);
+    event onJobContractFeedbackAdded(uint contractId, uint indexed receiverId, uint senderId, bool isSenderFreelancer);
+    event onJobInvitationAdded(uint jobId, uint contractId, uint indexed freelancerId);
 
     function EthlanceContract(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -26,9 +26,10 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveEmployer
     {
         if (description.toSlice().len() > getConfig("max-contract-desc")) throw;
-        ContractLibrary.addContract(ethlanceDB, getSenderUserId(), contractId, description, isHiringDone);
+        var employerId = getSenderUserId();
+        ContractLibrary.addContract(ethlanceDB, employerId, contractId, description, isHiringDone);
         var freelancerId = ContractLibrary.getFreelancer(ethlanceDB, contractId);
-        onJobContractAdded(contractId, freelancerId);
+        onJobContractAdded(contractId, employerId, freelancerId);
     }
 
     function addJobContractFeedback(
@@ -48,12 +49,13 @@ contract EthlanceContract is EthlanceSetter {
         var freelancerId = ContractLibrary.getFreelancer(ethlanceDB, contractId);
         var employerId = ContractLibrary.getEmployer(ethlanceDB, contractId);
         uint receiverId;
-        if (senderId == freelancerId) {
+        var isSenderFreelancer = senderId == freelancerId;
+        if (isSenderFreelancer) {
             receiverId = employerId;
         } else {
             receiverId = freelancerId;
         }
-        onJobContractFeedbackAdded(contractId, receiverId);
+        onJobContractFeedbackAdded(contractId, receiverId, senderId, isSenderFreelancer);
     }
 
     function addJobProposal(
@@ -65,9 +67,10 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveFreelancer
     {
         if (description.toSlice().len() > getConfig("max-proposal-desc")) throw;
-        var contractId = ContractLibrary.addProposal(ethlanceDB, jobId, getSenderUserId(), description, rate);
+        var freelancerId = getSenderUserId();
+        var contractId = ContractLibrary.addProposal(ethlanceDB, jobId, freelancerId, description, rate);
         var employerId = JobLibrary.getEmployer(ethlanceDB, jobId);
-        onJobProposalAdded(contractId, employerId);
+        onJobProposalAdded(contractId, employerId, freelancerId);
     }
 
     function addJobInvitation(
@@ -79,7 +82,7 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveEmployer
     {
         if (description.toSlice().len() > getConfig("max-invitation-desc")) throw;
-        ContractLibrary.addInvitation(ethlanceDB, getSenderUserId(), jobId, freelancerId, description);
-        onJobInvitationAdded(jobId, freelancerId);
+        var contractId = ContractLibrary.addInvitation(ethlanceDB, getSenderUserId(), jobId, freelancerId, description);
+        onJobInvitationAdded(jobId, contractId, freelancerId);
     }
 }

@@ -7,13 +7,16 @@ import "strings.sol";
 contract EthlanceUser is EthlanceSetter {
     using strings for *;
 
+    event onFreelancerAdded(uint userId);
+    event onEmployerAdded(uint userId);
+
     function EthlanceUser(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
     }
 
     function setUser(string name, string email, bytes32 gravatar, uint country, uint state, uint[] languages)
-    onlyActiveSmartContract
+        onlyActiveSmartContract
     {
         if (languages.length > getConfig("max-user-languages")) throw;
         if (languages.length < getConfig("min-user-languages")) throw;
@@ -37,6 +40,7 @@ contract EthlanceUser is EthlanceSetter {
     {
         setUser(name, email, gravatar, country, state, languages);
         setFreelancer(isAvailable, jobTitle, hourlyRate, categories, skills, description);
+        onFreelancerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
     }
 
     function setFreelancer(
@@ -70,6 +74,7 @@ contract EthlanceUser is EthlanceSetter {
     {
         setUser(name, email, gravatar, country, state, languages);
         setEmployer(description);
+        onEmployerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
     }
 
     function setEmployer(string description

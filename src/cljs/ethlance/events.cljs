@@ -1284,7 +1284,7 @@
                     :contract.contract/on-job-proposal-added [:log-error :on-job-proposal-added]]
                    [contract-instance :on-job-contract-added {:freelancer-id user-id} "latest"
                     :contract.contract/on-job-contract-added [:log-error :on-job-contract-added]]
-                   [contract-instance :on-job-contract-feedback-added {:user-id user-id} "latest"
+                   [contract-instance :on-job-contract-feedback-added {:receiver-id user-id} "latest"
                     :contract.contract/on-job-contract-feedback-added [:log-error :on-job-contract-feedback-added]]
                    [contract-instance :on-job-invitation-added {:freelancer-id user-id} "latest"
                     :contract.contract/on-job-invitation-added [:log-error :on-job-invitation-added]]
@@ -1783,6 +1783,7 @@
 
   (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
 
+  (get-entities [1] [:invoice/amount] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error %]))
   (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log]) #(dispatch [:log-error]))
   (get-entities-field-items {5 10} :skill/freelancers
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))

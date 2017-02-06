@@ -7,6 +7,8 @@ import "strings.sol";
 contract EthlanceJob is EthlanceSetter {
     using strings for *;
 
+    event onJobAdded(uint jobId);
+
     function EthlanceJob(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
         ethlanceDB = _ethlanceDB;
@@ -31,7 +33,8 @@ contract EthlanceJob is EthlanceSetter {
         if (titleLen < getConfig("min-job-title")) throw;
         if (skills.length > getConfig("max-job-skills")) throw;
         if (skills.length < getConfig("min-job-skills")) throw;
-        JobLibrary.addJob(ethlanceDB, getSenderUserId(), title, description, skills, language, budget, uint8Items);
+        var jobId = JobLibrary.addJob(ethlanceDB, getSenderUserId(), title, description, skills, language, budget, uint8Items);
+        onJobAdded(jobId);
     }
 
     function setJobHiringDone

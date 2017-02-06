@@ -27,10 +27,10 @@ library JobLibrary {
         uint budget,
         uint8[] uint8Items
     )
-        internal
+        internal returns (uint jobId)
     {
         if (!EthlanceDB(db).getBooleanValue(sha3("user/employer?", employerId))) throw;
-        var jobId = SharedLibrary.createNext(db, "job/count");
+        jobId = SharedLibrary.createNext(db, "job/count");
         EthlanceDB(db).setUIntValue(sha3("job/employer", jobId), employerId);
         EthlanceDB(db).setStringValue(sha3("job/title", jobId), title);
         EthlanceDB(db).setStringValue(sha3("job/description", jobId), description);
@@ -61,6 +61,8 @@ library JobLibrary {
         setSkills(db, jobId, skills);
         UserLibrary.addEmployerJob(db, employerId, jobId);
         CategoryLibrary.addJob(db, uint8Items[0], jobId);
+
+        return jobId;
     }
 
     function setSkills(address db, uint jobId, uint[] skills) internal {
