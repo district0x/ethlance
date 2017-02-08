@@ -8,6 +8,7 @@
     [cljsjs.react-flexbox-grid]
     [cljsjs.web3]
     [cljsjs.react-truncate]
+    [cljsjs.oauthio]
     [ethlance.components.main-panel :refer [main-panel]]
     [ethlance.events]
     [ethlance.routes :refer [routes]]
@@ -28,6 +29,7 @@
 
 (defn ^:export init []
   (google-analytics-fx/set-enabled! (not goog.DEBUG))
+  (.initialize js/OAuth "F9gUx3gjNFE0DTO4k6WiiJv5pcA")
   (dispatch-sync [:initialize])
   (set! (.-onhashchange js/window) #(dispatch [:set-active-page (u/match-current-location)]))
   (mount-root))

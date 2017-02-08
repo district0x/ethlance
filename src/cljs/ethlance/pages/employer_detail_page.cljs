@@ -7,6 +7,7 @@
     [ethlance.components.languages-chips :refer [languages-chips]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.star-rating :refer [star-rating]]
+    [ethlance.components.user-detail :as user-detail]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
@@ -22,53 +23,11 @@
                  :employer/description :employer/ratings-count :user/address :user/balance] :as user}]
       (when (seq name)
         [:div
-         [row
-          {:middle "xs"
-           :center "xs"
-           :start "sm"}
-          [col
-           {:xs 12 :sm 2}
-           [ui/avatar
-            {:size (if @xs-width? 150 100)
-             :src (u/gravatar-url gravatar id)}]]
-          [col
-           {:xs 12 :sm 6 :lg 7
-            :style (if @xs-width? {:margin-top 10} {})}
-           [:h1 name]
-           [star-rating
-            {:value (u/rating->star avg-rating)
-             :show-number? true
-             :center "xs"
-             :start "sm"
-             :ratings-count ratings-count
-             :style (if @xs-width? {:margin-top 5} {})}]
-           [misc/country-marker
-            {:row-props {:center "xs"
-                         :start "sm"
-                         :style (if @xs-width? {:margin-top 5} {})}
-             :country country
-             :state state}]]
-          [col {:xs 12 :sm 4 :lg 3
-                :style (if-not @xs-width? styles/text-right {})}
-           (when (= status 2)
-             [row-plain
-              {:center "xs"
-               :end "sm"}
-              [misc/blocked-user-chip]])
-           [misc/elegant-line "spent" [currency total-paid]]
-           [misc/elegant-line "balance" [currency balance]]]]
-         [misc/hr]
-         [misc/user-address address]
-         [misc/user-created-on created-on]
-         [misc/long-text
-          description]
-         [misc/subheader "Speaks languages"]
-         [misc/call-on-change
-          {:load-on-mount? true
-           :args {id (select-keys user [:user/languages-count])}
-           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-user-languages %]])}
-          [languages-chips
-           {:value languages}]]]))))
+         [user-detail/user-info user {:avg-rating avg-rating
+                                   :ratings-count ratings-count
+                                   :description description
+                                   :total-paid total-paid}]
+         [user-detail/languages-section user languages]]))))
 
 (defn employer-detail []
   (let [xs-width? (subscribe [:window/xs-width?])]

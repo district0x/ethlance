@@ -35,6 +35,9 @@
   "rgba(0, 0, 0, 0.45)"
   #_(aget mui-theme "subheader" "color"))
 
+(def fader-color
+  "rgba(0, 0, 0, 0.35)")
+
 (def fade-text
   {:color fade-color})
 

@@ -27,10 +27,64 @@
      :primary true
      :on-touch-tap #(dispatch [:form/set-open? form-key true])}]])
 
+(defn github-text-field [{:keys [:form-key]} {:keys [:user/github]}]
+  (if-not constants/mist?
+    [misc/connect-button-layout
+     {:connected? (seq github)
+      :connect-button-props
+      {:icon (icons/github)
+       :on-touch-tap
+       (partial u/get-my-github-username #(dispatch [:form/set-value form-key :user/github %1]))}
+      :clear-button-props {:on-touch-tap #(dispatch [:form/set-value form-key :user/github ""])}}
+     [misc/form-text-field
+      {:floating-label-text "Your Github profile"
+       :form-key form-key
+       :disabled true
+       :field-key :user/github
+       :floating-label-fixed true
+       :value github}]]
+    [misc/form-text-field
+     {:floating-label-text "Your Github username"
+      :form-key form-key
+      :field-key :user/github
+      :value github}]))
+
+(defn linkedin-text-field []
+  (let [invalid-url? (r/atom false)]
+    (fn [{:keys [:form-key]} {:keys [:user/linkedin]}]
+      (if-not constants/mist?
+        [misc/connect-button-layout
+         {:connected? (seq linkedin)
+          :connect-button-props
+          {:icon (icons/linkedin)
+           :on-touch-tap
+           (partial u/get-my-linkedin-profile-url #(dispatch [:form/set-value form-key :user/linkedin %1]))}
+          :clear-button-props {:on-touch-tap #(dispatch [:form/set-value form-key :user/linkedin ""])}}
+         [misc/form-text-field
+          {:floating-label-text "Your LinkedIn profile"
+           :form-key form-key
+           :disabled true
+           :field-key :user/linkedin
+           :floating-label-fixed true
+           :value linkedin}]]
+        [misc/text-field-base
+         {:floating-label-text "Your LinkedIn profile"
+          :floating-label-fixed true
+          :hint-text (when (empty? linkedin) "Paste LinkedIn profile URL here")
+          :value linkedin
+          :error-text (when @invalid-url? "Oops, it doesn't look like LinkedIn URL")
+          :on-change (fn [_ val]
+                       (if (or (empty? val) (u/linkedin-url? val))
+                         (do
+                           (reset! invalid-url? false)
+                           (dispatch [:form/set-value form-key :user/linkedin (u/parse-linkedin-url-id val)]))
+                         (reset! invalid-url? true)))}]))))
+
 (defn user-form []
   (let [xs-width? (subscribe [:window/xs-width?])]
     (fn [{:keys [:user :form-key :show-save-button? :errors :loading?] :as props}]
-      (let [{:keys [:user/name :user/gravatar :user/languages :user/country :user/state :user/email]} user]
+      (let [{:keys [:user/name :user/gravatar :user/languages :user/country :user/state :user/email
+                    :user/github :user/linkedin]} user]
         [:div
          (dissoc props :user :form-key :show-save-button? :errors :loading? :open?)
          [:div
@@ -68,6 +122,8 @@
            [state-select-field
             {:value state
              :on-change #(dispatch [:form/set-value form-key :user/state %3])}])
+         [github-text-field props user]
+         [linkedin-text-field props user]
          [validated-chip-input
           {:all-items constants/languages
            :value languages

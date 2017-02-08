@@ -8,6 +8,7 @@
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/linkify "2.1.4-0" :exclusions [cljsjs/react]]
                  [cljsjs/material-ui-chip-input "0.12.0-0"]
+                 [cljsjs/oauthio "0.6.1-0"]
                  [cljsjs/react-flexbox-grid "0.10.2-1" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-truncate "2.0.3-0"]
@@ -80,4 +81,5 @@
                 :output-to "resources/public/js/compiled/app.js"
                 :optimizations :advanced
                 :closure-defines {goog.DEBUG false}
-                :pretty-print false}}]})
+                :pretty-print false
+                :externs ["src/js/externs.js"]}}]})

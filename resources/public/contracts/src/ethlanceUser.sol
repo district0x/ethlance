@@ -15,7 +15,10 @@ contract EthlanceUser is EthlanceSetter {
         ethlanceDB = _ethlanceDB;
     }
 
-    function setUser(string name, string email, bytes32 gravatar, uint country, uint state, uint[] languages)
+    function setUser(string name, string email, bytes32 gravatar, uint country, uint state, uint[] languages,
+        string github,
+        string linkedin
+    )
         onlyActiveSmartContract
     {
         if (languages.length > getConfig("max-user-languages")) throw;
@@ -24,11 +27,15 @@ contract EthlanceUser is EthlanceSetter {
         if (nameLen > getConfig("max-user-name")) throw;
         if (nameLen < getConfig("min-user-name")) throw;
         if (email.toSlice().len() > 254) throw;
-        UserLibrary.setUser(ethlanceDB, msg.sender, name, email, gravatar, country, state, languages);
+        if (linkedin.toSlice().len() > 100) throw;
+        if (github.toSlice().len() > 100) throw;
+        UserLibrary.setUser(ethlanceDB, msg.sender, name, email, gravatar, country, state, languages, github, linkedin);
     }
 
-    function registerFreelancer(string name,  string email, bytes32 gravatar, uint country, uint state,
-        uint[] languages,
+    function registerFreelancer(string name,  string email, bytes32 gravatar, uint country, uint state, uint[] languages,
+        string github,
+        string linkedin,
+
         bool isAvailable,
         string jobTitle,
         uint hourlyRate,
@@ -38,7 +45,7 @@ contract EthlanceUser is EthlanceSetter {
     )
         onlyActiveSmartContract
     {
-        setUser(name, email, gravatar, country, state, languages);
+        setUser(name, email, gravatar, country, state, languages, github, linkedin);
         setFreelancer(isAvailable, jobTitle, hourlyRate, categories, skills, description);
         onFreelancerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
     }
@@ -66,13 +73,15 @@ contract EthlanceUser is EthlanceSetter {
             skills, description);
     }
 
-    function registerEmployer(string name, string email, bytes32 gravatar, uint country, uint state,
-        uint[] languages,
+    function registerEmployer(string name, string email, bytes32 gravatar, uint country, uint state, uint[] languages,
+        string github,
+        string linkedin,
+
         string description
     )
     onlyActiveSmartContract
     {
-        setUser(name, email, gravatar, country, state, languages);
+        setUser(name, email, gravatar, country, state, languages, github, linkedin);
         setEmployer(description);
         onEmployerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
     }

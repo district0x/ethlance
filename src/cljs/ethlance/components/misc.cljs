@@ -189,24 +189,31 @@
                                          ;; extracted into a second argument, to match Material-UI's existing API.
                                          (next event (-> event .-target .-value)))}}))
 
+(defn form-text-field [{:keys [:validator :form-key :field-key] :as props}]
+  [text-field-base
+   (r/merge-props
+     (r/merge-props
+       {:style styles/display-block}
+       (dissoc props :validator :form-key :field-key))
+     {:on-change #(dispatch [:form/set-value form-key field-key %2 validator])})])
+
 (defn text-field []
   (let [eth-config (subscribe [:eth/config])]
-    (fn [{:keys [:value :on-change :form-key :field-key :max-length-key :min-length-key] :as props}]
-      (let [min-length (get @eth-config min-length-key 0)
-            max-length (get @eth-config max-length-key)
+    (fn [{:keys [:value :on-change :max-length-key :min-length-key :max-length :min-length] :as props}]
+      (let [min-length (or min-length (get @eth-config min-length-key 0))
+            max-length (or max-length (get @eth-config max-length-key))
             validator (if (and min-length max-length)
                         #(<= min-length (if (string? %) (count (string/trim %)) 0) max-length)
                         (constantly true))
             valid? (validator value)]
-        [text-field-base
+        [form-text-field
          (r/merge-props
-           {:style styles/display-block
-            :on-change #(dispatch [:form/set-value form-key field-key %2 validator])
+           {:validator validator
             :error-text (when-not valid?
                           (if (pos? min-length)
                             (gstring/format "Write between %s and %s characters" min-length max-length)
                             "Text is too long"))}
-           (dissoc props :form-key :field-key :max-length-key :form-key :field-key :min-length-key))]))))
+           (dissoc props :max-length-key :min-length-key :min-length :max-length))]))))
 
 (defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change :allow-empty?] :as props}]
   [text-field-base
@@ -312,23 +319,6 @@
         (when (fn? on-change)
           (on-change args)))
       (into [:div] childen))))
-
-(defn blocked-user-chip []
-  [status-chip
-   {:background-color styles/danger-color}
-   "This user has been blocked"])
-
-(defn user-address [address]
-  [:div
-   {:style (merge styles/margin-bottom-gutter-less
-                  styles/word-wrap-break)}
-   [:a {:target :_blank
-        :style {:color styles/primary1-color}
-        :href (u/etherscan-url address)} address]])
-
-(defn user-created-on [created-on]
-  [:h4 {:style (merge styles/fade-text
-                      {:margin-bottom 5})} "joined on " (u/format-date created-on)])
 
 (defn only-registered [& children]
   (if @(subscribe [:db/active-address-registered?])
@@ -479,3 +469,31 @@
   [:a {:href href
        :target :_blank}
    text])
+
+(defn connect-button-layout []
+  (let [xs-width? (subscribe [:window/xs-width?])]
+    (fn [{:keys [:connect-button-props :connected? :clear-button-props]} text-field]
+      [row-plain
+       {:bottom "xs"}
+       text-field
+       [:div
+        {:style (if @xs-width? (merge styles/full-width
+                                      {:float :left})
+                               {})}
+        (let [btn-style (merge {:margin-bottom 10}
+                               (when-not @xs-width?
+                                 {:margin-left 10}))]
+          (if connected?
+            [ui/raised-button
+             (r/merge-props
+               {:label "Clear"
+                :primary true
+                :style btn-style}
+               clear-button-props)]
+            [ui/raised-button
+             (r/merge-props
+               {:label "Connect"
+                :primary true
+                :label-position "before"
+                :style btn-style}
+               connect-button-props)]))]])))

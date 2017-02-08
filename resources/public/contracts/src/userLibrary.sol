@@ -42,7 +42,9 @@ library UserLibrary {
         bytes32 gravatar,
         uint country,
         uint state,
-        uint[] languages
+        uint[] languages,
+        string github,
+        string linkedin
     )
         internal returns (uint)
     {
@@ -63,6 +65,8 @@ library UserLibrary {
         if (country == 0) throw;
         EthlanceDB(db).setUIntValue(sha3("user/country", userId), country);
         EthlanceDB(db).setUIntValue(sha3("user/state", userId), state);
+        EthlanceDB(db).setStringValue(sha3("user/github", userId), github);
+        EthlanceDB(db).setStringValue(sha3("user/linkedin", userId), linkedin);
         setUserLanguages(db, userId, languages);
         return userId;
     }

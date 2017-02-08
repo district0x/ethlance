@@ -456,3 +456,37 @@
          (* (get ascii-freqs false 0) 1550)))
     0))
 
+(defn linkedin-url? [s]
+  (let [{:keys [:host :path]} (url/url s)]
+    (and (or (= host "www.linkedin.com") (= host "linkedin.com"))
+         (string/starts-with? path "/in/"))))
+
+(defn parse-linkedin-url-id [s]
+  (let [{:keys [:path]} (url/url s)]
+    (string/replace path #"/in/" "")))
+
+(defn get-my-linkedin-profile-url [on-success & [on-error]]
+  (js/IN.User.authorize (fn []
+                          (.. (js/IN.API.Profile "me")
+                              (fields "public-profile-url")
+                              (result (fn [res]
+                                        (-> (js->clj res :keywordize-keys true)
+                                          :values
+                                          first
+                                          :publicProfileUrl
+                                          (string/replace #"https://www.linkedin.com/in/" "")
+                                          on-success)))
+                              (error on-error)))))
+
+(defn get-my-github-username [on-success]
+  (.. js/OAuth
+      (popup "github")
+      (done (fn [res]
+              (.. res
+                  (me)
+                  (done (fn [res]
+                          (on-success (aget res "alias"))))
+                  (fail (fn [err]
+                          (.error js/console err))))))
+      (fail (fn [err]
+              (.error js/console err)))))

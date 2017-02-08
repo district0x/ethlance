@@ -57,6 +57,8 @@
 (s/def :user/email u/string-or-nil?)
 (s/def :user/status u/uint8?)
 (s/def :user/balance u/big-num?)
+(s/def :user/github u/string-or-nil?)
+(s/def :user/linkedin u/string-or-nil?)
 (s/def :freelancer/available? boolean?)
 (s/def :freelancer/avg-rating u/uint8?)
 (s/def :freelancer/categories u/uint-coll?)
@@ -90,6 +92,8 @@
                                :user/email
                                :user/languages
                                :user/languages-count
+                               :user/github
+                               :user/linkedin
                                :user/name
                                :user/status
                                :user/balance
@@ -400,7 +404,7 @@
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x6bf5fa628155fc3d33cdd826055a15b46a112678"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x8f49ab2d7a149329c4dca4a2403389bb7e6004a3"}
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0x6c9a60215c8c84797b4559f6bea7a3ec962a9eee"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x4a5ae608f7558a00e074224d5eb7ca34b6ddfa19"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x9632234213e5212cd4d4643e7ba61bf7f7b4e990"}
@@ -533,6 +537,8 @@
                                           :user/gravatar ""
                                           :user/country 0
                                           :user/languages [40]
+                                          :user/github ""
+                                          :user/linkedin ""
                                           :freelancer/available? true
                                           :freelancer/job-title ""
                                           :freelancer/hourly-rate 1
@@ -550,6 +556,8 @@
                                         :user/gravatar ""
                                         :user/country 0
                                         :user/languages [40]
+                                        :user/github ""
+                                        :user/linkedin ""
                                         :employer/description ""}
                                  :errors #{:user/name :user/country}}
 

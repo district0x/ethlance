@@ -95,7 +95,7 @@
     :proposal/rate :invoice/amount})
 
 (def set-user-args
-  [:user/name :user/email :user/gravatar :user/country :user/state :user/languages])
+  [:user/name :user/email :user/gravatar :user/country :user/state :user/languages :user/github :user/linkedin])
 
 (def set-freelancer-args
   [:freelancer/available? :freelancer/job-title :freelancer/hourly-rate :freelancer/categories :freelancer/skills
