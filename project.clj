@@ -7,7 +7,7 @@
                  [cljs-web3 "0.18.2-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/linkify "2.1.4-0" :exclusions [cljsjs/react]]
-                 [cljsjs/material-ui-chip-input "0.12.0-0"]
+                 [cljsjs/material-ui-chip-input "0.12.2-0"]
                  [cljsjs/oauthio "0.6.1-0"]
                  [cljsjs/react-flexbox-grid "0.10.2-1" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react cljsjs/react-dom]]
