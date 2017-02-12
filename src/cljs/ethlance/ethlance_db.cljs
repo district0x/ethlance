@@ -19,7 +19,7 @@
 (def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user)
                                         #{:user/balance :user/id :user/email}))
 (def user-balance-entity-fields #{:user/balance})
-(def freelancer-entity-fields (spec-form->entity-fields :app/user :freelancer))
+(def freelancer-entity-fields (set/difference (spec-form->entity-fields :app/user :freelancer)))
 (def employer-entity-fields (spec-form->entity-fields :app/user :employer))
 
 (def account-entitiy-fields
@@ -91,15 +91,15 @@
   #{:invoice/status})
 
 (def wei-args
-  #{:freelancer/hourly-rate :search/min-hourly-rate :search/max-hourly-rate :job/budget :search/min-budget
-    :proposal/rate :invoice/amount})
+  #{:freelancer/hourly-rate :search/min-hourly-rates :search/max-hourly-rates :job/budget :search/min-budgets
+    :proposal/rate :invoice/amount :invoice/rate :invoice/conversion-rate})
 
 (def set-user-args
   [:user/name :user/email :user/gravatar :user/country :user/state :user/languages :user/github :user/linkedin])
 
 (def set-freelancer-args
-  [:freelancer/available? :freelancer/job-title :freelancer/hourly-rate :freelancer/categories :freelancer/skills
-   :freelancer/description])
+  [:freelancer/available? :freelancer/job-title :freelancer/hourly-rate :freelancer/hourly-rate-currency
+   :freelancer/categories :freelancer/skills :freelancer/description])
 
 (def register-freelancer-args
   (concat set-user-args set-freelancer-args))
@@ -112,20 +112,20 @@
 
 (def search-freelancers-args
   [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count
-   :search/min-hourly-rate :search/max-hourly-rate :search/country :search/state
+   :search/min-hourly-rates :search/max-hourly-rates :search/country :search/state
    :search/language :search/offset :search/limit :search/seed])
 
 (def add-job-args
   [:job/title :job/description :job/skills :job/language :job/budget
    [:job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
-    :job/freelancers-needed]])
+    :job/freelancers-needed :job/reference-currency]])
 
 (def search-jobs-args
   [:search/category :search/skills :search/payment-types :search/experience-levels :search/estimated-durations
-   :search/hours-per-weeks])
+   :search/hours-per-weeks :search/min-budgets])
 
 (def search-jobs-nested-args
-  [:search/min-budget :search/min-employer-avg-rating :search/min-employer-ratings-count
+  [:search/min-employer-avg-rating :search/min-employer-ratings-count
    :search/country :search/state :search/language :search/offset :search/limit])
 
 (def set-job-hiring-done-args
@@ -144,7 +144,10 @@
   [:contract/id :contract/feedback :contract/feedback-rating])
 
 (def add-invoice-args
-  [:invoice/contract :invoice/description :invoice/amount :invoice/worked-hours :invoice/worked-from
+  [:invoice/contract :invoice/description])
+
+(def add-invoice-nested-args
+  [:invoice/rate :invoice/conversion-rate :invoice/worked-hours :invoice/worked-minutes :invoice/worked-from
    :invoice/worked-to])
 
 (def pay-invoice-args
@@ -213,7 +216,7 @@
    :ethlance-contract/add-job-invitation add-job-invitation-args
    :ethlance-contract/add-job-proposal add-job-proposal-args
    :ethlance-contract/set-smart-contract-status set-smart-contract-status-args
-   :ethlance-invoice/add-invoice add-invoice-args
+   :ethlance-invoice/add-invoice (conj add-invoice-args add-invoice-nested-args)
    :ethlance-invoice/cancel-invoice cancel-invoice-args
    :ethlance-invoice/pay-invoice pay-invoice-args
    :ethlance-invoice/set-smart-contract-status set-smart-contract-status-args
@@ -262,6 +265,7 @@
   {'cljs.core/boolean? 1
    'ethlance.utils/uint8? 2
    'ethlance.utils/uint? 3
+   'ethlance.utils/uint-or-nil? 3
    'ethlance.utils/address? 4
    'ethlance.utils/bytes32? 5
    'cljs.core/int? 6

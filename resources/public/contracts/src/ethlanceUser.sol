@@ -39,6 +39,7 @@ contract EthlanceUser is EthlanceSetter {
         bool isAvailable,
         string jobTitle,
         uint hourlyRate,
+        uint8 hourlyRateCurrency,
         uint[] categories,
         uint[] skills,
         string description
@@ -46,7 +47,7 @@ contract EthlanceUser is EthlanceSetter {
         onlyActiveSmartContract
     {
         setUser(name, email, gravatar, country, state, languages, github, linkedin);
-        setFreelancer(isAvailable, jobTitle, hourlyRate, categories, skills, description);
+        setFreelancer(isAvailable, jobTitle, hourlyRate, hourlyRateCurrency, categories, skills, description);
         onFreelancerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
     }
 
@@ -54,6 +55,7 @@ contract EthlanceUser is EthlanceSetter {
         bool isAvailable,
         string jobTitle,
         uint hourlyRate,
+        uint8 hourlyRateCurrency,
         uint[] categories,
         uint[] skills,
         string description
@@ -69,8 +71,8 @@ contract EthlanceUser is EthlanceSetter {
         var jobTitleLen = jobTitle.toSlice().len();
         if (jobTitleLen > getConfig("max-freelancer-job-title")) throw;
         if (jobTitleLen < getConfig("min-freelancer-job-title")) throw;
-        UserLibrary.setFreelancer(ethlanceDB, getSenderUserId(), isAvailable, jobTitle, hourlyRate, categories,
-            skills, description);
+        UserLibrary.setFreelancer(ethlanceDB, getSenderUserId(), isAvailable, jobTitle, hourlyRate, hourlyRateCurrency,
+            categories, skills, description);
     }
 
     function registerEmployer(string name, string email, bytes32 gravatar, uint country, uint state, uint[] languages,

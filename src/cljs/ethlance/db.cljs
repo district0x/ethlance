@@ -4,8 +4,7 @@
             [cljs.spec :as s]
             [ethlance.constants :as constants]
             [ethlance.utils :as u]
-            [re-frame.core :refer [dispatch]]
-            ))
+            [re-frame.core :refer [dispatch]]))
 
 (s/def ::devnet? boolean?)
 (s/def ::active-setters? boolean?)
@@ -42,7 +41,9 @@
 (s/def :address/balance u/big-num?)
 (s/def :blockchain/addresses (s/map-of string? (s/keys :opt [:user/id :address/balance])))
 (s/def :blockchain/connection-error? boolean?)
-(s/def ::conversion-rates (s/map-of keyword? number?))
+(s/def ::conversion-rates (s/map-of number? number?))
+(s/def ::conversion-rates-historical (s/map-of number? ::conversion-rates))
+(s/def ::load-all-conversion-rates-interval (s/nilable int?))
 
 (s/def :user/address u/address?)
 (s/def :user/country u/uint?)
@@ -67,6 +68,7 @@
 (s/def :freelancer/contracts-count u/uint?)
 (s/def :freelancer/description u/string-or-nil?)
 (s/def :freelancer/hourly-rate u/big-num|num|str?)
+(s/def :freelancer/hourly-rate-currency u/uint8?)
 (s/def :freelancer/job-title u/string-or-nil?)
 (s/def :freelancer/ratings-count u/uint?)
 (s/def :freelancer/skills u/uint-coll?)
@@ -105,6 +107,7 @@
                                :freelancer/contracts-count
                                :freelancer/description
                                :freelancer/hourly-rate
+                               :freelancer/hourly-rate-currency
                                :freelancer/job-title
                                :freelancer/ratings-count
                                :freelancer/skills
@@ -131,6 +134,7 @@
 (s/def :job/estimated-duration u/uint8?)
 (s/def :job/experience-level u/uint8?)
 (s/def :job/freelancers-needed u/uint8?)
+(s/def :job/reference-currency u/uint8?)
 (s/def :job/hiring-done-on u/date-or-nil?)
 (s/def :job/hours-per-week u/uint8?)
 (s/def :job/language u/uint?)
@@ -152,6 +156,7 @@
                               :job/estimated-duration
                               :job/experience-level
                               :job/freelancers-needed
+                              :job/reference-currency
                               :job/hiring-done-on
                               :job/hours-per-week
                               :job/language
@@ -217,26 +222,32 @@
 
 (s/def :invoice/id pos?)
 (s/def :invoice/amount u/big-num|num|str?)
+(s/def :invoice/rate u/big-num|num|str?)
 (s/def :invoice/cancelled-on u/date-or-nil?)
 (s/def :invoice/contract u/uint?)
+(s/def :invoice/conversion-rate u/big-num|num|str?)
 (s/def :invoice/created-on u/date?)
 (s/def :invoice/description string?)
 (s/def :invoice/paid-on u/date-or-nil?)
 (s/def :invoice/status u/uint8?)
 (s/def :invoice/worked-from u/date?)
 (s/def :invoice/worked-hours u/uint?)
+(s/def :invoice/worked-minutes u/uint?)
 (s/def :invoice/worked-to u/date?)
 
 (s/def :app/invoice (s/keys :opt [:invoice/id
                                   :invoice/amount
+                                  :invoice/rate
                                   :invoice/cancelled-on
                                   :invoice/contract
+                                  :invoice/conversion-rate
                                   :invoice/created-on
                                   :invoice/description
                                   :invoice/paid-on
                                   :invoice/status
                                   :invoice/worked-from
                                   :invoice/worked-hours
+                                  :invoice/worked-minutes
                                   :invoice/worked-to]))
 
 (s/def :app/invoices (s/map-of pos? :app/invoice))
@@ -314,6 +325,7 @@
 (s/def :search/estimated-durations (s/coll-of constants/estimated-durations))
 (s/def :search/hours-per-weeks (s/coll-of constants/hours-per-weeks))
 (s/def :search/min-budget (u/one-of string? number?))
+(s/def :search/min-budget-currency (partial contains? (set (keys constants/currencies))))
 (s/def :search/min-employer-avg-rating u/rating?)
 (s/def :search/min-employer-ratings-count u/rating?)
 (s/def :search/country (partial >= (count constants/countries)))
@@ -325,6 +337,7 @@
 (s/def :search/min-freelancer-ratings-count int?)
 (s/def :search/min-hourly-rate (u/one-of string? number?))
 (s/def :search/max-hourly-rate (u/one-of string? number?))
+(s/def :search/hourly-rate-currency (partial contains? (set (keys constants/currencies))))
 
 (s/def :form/search-jobs (s/keys))
 (s/def :form/search-freelancers (s/keys))
@@ -353,11 +366,14 @@
 (s/def :form.config/block-skills ::submit-form)
 (s/def :form.config/set-skill-name ::submit-form)
 
+(s/def :form.invoice/add-invoice-localstorage (s/map-of pos? (s/map-of keyword? any?)))
+
 (s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
                              ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
-                             ::my-users-loaded? ::conversion-rates ::skill-load-limit ::active-setters?
-                             ::last-transaction-gas-used ::skills-loaded?]))
+                             ::my-users-loaded? ::conversion-rates ::conversion-rates-historical
+                             ::skill-load-limit ::active-setters? ::last-transaction-gas-used ::skills-loaded?
+                             ::load-all-conversion-rates-interval]))
 
 
 (def default-db
@@ -371,7 +387,7 @@
    :drawer-open? false
    :search-freelancers-filter-open? false
    :search-jobs-filter-open? false
-   :selected-currency :eth
+   :selected-currency 0
    :last-transaction-gas-used nil
    :snackbar {:open? false
               :message ""
@@ -404,14 +420,14 @@
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x8f49ab2d7a149329c4dca4a2403389bb7e6004a3"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0x6c9a60215c8c84797b4559f6bea7a3ec962a9eee"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x4a5ae608f7558a00e074224d5eb7ca34b6ddfa19"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x9632234213e5212cd4d4643e7ba61bf7f7b4e990"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x2a420ae47fb84a4ee1a6d97586de11b866f678cd"}}
+                   :ethlance-search {:name "EthlanceSearch" :address "0x8c8cf5f0fe7ce048baa9573278c4b44b7a8646e4"}}
    :my-addresses []
    :active-address nil
    :active-user-events nil
@@ -419,6 +435,7 @@
    :blockchain/addresses {}
    :blockchain/connection-error? false
    :conversion-rates {}
+   :conversion-rates-historical {}
    :app/users {}
    :app/jobs {}
    :app/contracts {}
@@ -427,6 +444,7 @@
    :app/skills {}
    :app/skill-count 0
    :skill-load-limit 30
+   :load-all-conversion-rates-interval nil
 
    :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
@@ -457,6 +475,7 @@
    :form.job/set-hiring-done {:loading? false :gas-limit 120000}
    :form.job/add-job {:loading? false
                       :gas-limit 2000000
+                      :budget-enabled? false
                       :data {:job/title ""
                              :job/description ""
                              :job/skills []
@@ -467,7 +486,8 @@
                              :job/experience-level 1
                              :job/estimated-duration 1
                              :job/hours-per-week 1
-                             :job/freelancers-needed 1}
+                             :job/freelancers-needed 1
+                             :job/reference-currency 0}
                       :errors #{:job/title :job/description :job/skills :job/category}}
    :form.contract/add-invitation {:loading? false
                                   :gas-limit 550000
@@ -494,14 +514,19 @@
                                 :errors #{:contract/feedback}}
 
    :form.invoice/add-invoice {:loading? false
-                              :gas-limit 550000
+                              :gas-limit 600000
                               :data {:invoice/contract 0
                                      :invoice/description ""
+                                     :invoice/conversion-rate 0
                                      :invoice/amount 0
+                                     :invoice/rate 0
                                      :invoice/worked-hours 0
+                                     :invoice/worked-minutes 0
                                      :invoice/worked-from (u/week-ago)
                                      :invoice/worked-to (t/today-at-midnight)}
                               :errors #{:invoice/contract}}
+
+   :form.invoice/add-invoice-localstorage {}
 
    :form.config/add-skills {:loading? false
                             :gas-limit 600000
@@ -542,6 +567,7 @@
                                           :freelancer/available? true
                                           :freelancer/job-title ""
                                           :freelancer/hourly-rate 1
+                                          :freelancer/hourly-rate-currency 0
                                           :freelancer/categories []
                                           :freelancer/skills []
                                           :freelancer/description ""}
@@ -564,11 +590,12 @@
 
    :form/search-jobs {:search/category 0
                       :search/skills []
-                      :search/payment-types [1 2]
+                      :search/payment-types [1 2 3]
                       :search/experience-levels [1 2 3]
                       :search/estimated-durations [1 2 3 4]
                       :search/hours-per-weeks [1 2]
                       :search/min-budget 0
+                      :search/min-budget-currency 0
                       :search/min-employer-avg-rating 0
                       :search/min-employer-ratings-count 0
                       :search/country 0
@@ -583,6 +610,7 @@
                              :search/min-freelancer-ratings-count 0
                              :search/min-hourly-rate 0
                              :search/max-hourly-rate 0
+                             :search/hourly-rate-currency 0
                              :search/country 0
                              :search/state 0
                              :search/language 0

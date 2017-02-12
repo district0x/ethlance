@@ -3,6 +3,7 @@
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.chip-input :refer [chip-input]]
     [ethlance.components.country-select-field :refer [country-select-field]]
+    [ethlance.components.currency-select-field :refer [currency-select-field]]
     [ethlance.components.icons :as icons]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.radio-group :refer [radio-group]]
@@ -163,8 +164,8 @@
         :button-label "Become Employer"}])))
 
 (defn freelancer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading? :show-add-more-skills?]}]
-  (let [{:keys [:freelancer/description :freelancer/job-title :freelancer/hourly-rate :freelancer/categories
-                :freelancer/skills :freelancer/available?]} user]
+  (let [{:keys [:freelancer/description :freelancer/job-title :freelancer/hourly-rate :freelancer/hourly-rate-currency
+                :freelancer/categories :freelancer/skills :freelancer/available?]} user]
     (if open?
       [:div
        [misc/text-field
@@ -175,11 +176,15 @@
          :min-length-key :min-freelancer-job-title
          :full-width true
          :value job-title}]
-       [misc/ether-field
-        {:floating-label-text "Hourly rate (Ether)"
-         :form-key form-key
-         :field-key :freelancer/hourly-rate
-         :value hourly-rate}]
+       [misc/ether-field-with-currency-select-field
+        {:ether-field-props
+         {:floating-label-text "Hourly rate"
+          :form-key form-key
+          :field-key :freelancer/hourly-rate
+          :value hourly-rate}
+         :currency-select-field-props
+         {:value hourly-rate-currency
+          :on-change #(dispatch [:form/set-value form-key :freelancer/hourly-rate-currency %3])}}]
        [validated-chip-input
         {:all-items (rest (vals constants/categories))
          :value categories
@@ -200,9 +205,9 @@
          :field-key :freelancer/skills
          :min-length-key :min-freelancer-skills
          :max-length-key :max-freelancer-skills}]
-       #_ (when show-add-more-skills?
-         [row-plain {:end "xs"}
-          [misc/add-more-skills-button]])
+       #_(when show-add-more-skills?
+           [row-plain {:end "xs"}
+            [misc/add-more-skills-button]])
        [misc/textarea
         {:floating-label-text "Overview"
          :hint-text "Introduce youself as a freelancer, your working experiences, portfolio, contact information"

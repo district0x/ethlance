@@ -21,20 +21,19 @@
 
 (defn freelancer-info []
   (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/gravatar :user/name :user/country :user/state :freelancer/job-title :freelancer/avg-rating
-                 :freelancer/ratings-count :freelancer/hourly-rate :freelancer/total-earned
-                 :freelancer/available? :user/created-on :freelancer/description
+    (fn [{:keys [:user/gravatar :user/name :user/country :user/state :freelancer/avg-rating
+                 :freelancer/ratings-count :user/created-on :freelancer/description
                  :freelancer/skills :freelancer/categories :user/languages :user/id
                  :user/status :user/address :user/balance] :as user}]
       [:div
-       [user-detail/user-info user {:avg-rating avg-rating
-                                    :ratings-count ratings-count
-                                    :description description
-                                    :show-availability? true
-                                    :available? available?
-                                    :total-earned total-earned
-                                    :subtitle job-title
-                                    :hourly-rate hourly-rate}]
+       [user-detail/user-info user (merge
+                                     {:avg-rating avg-rating
+                                      :ratings-count ratings-count
+                                      :description description
+                                      :show-availability? true}
+                                     (select-keys user [:freelancer/hourly-rate :freelancer/hourly-rate-currency
+                                                        :freelancer/available? :freelancer/total-earned
+                                                        :freelancer/job-title]))]
        [misc/subheader "Skills"]
        [skills-chips
         {:selected-skills skills

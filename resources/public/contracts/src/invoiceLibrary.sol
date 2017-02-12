@@ -17,24 +17,40 @@ library InvoiceLibrary {
         uint senderId,
         uint contractId,
         string description,
-        uint amount,
-        uint workedHours,
-        uint workedFrom,
-        uint workedTo
+        uint[] uintArgs
+//        uint rate,
+//        uint exchangeRate,
+//        uint workedHours,
+//        uint workedMinutes,
+//        uint workedFrom,
+//        uint workedTo
     )
         internal returns (uint invoiceId)
     {
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var employerId = ContractLibrary.getEmployer(db, contractId);
+        var jobId = ContractLibrary.getJob(db, contractId);
         if (freelancerId != senderId) throw;
         if (ContractLibrary.getStatus(db, contractId) != 3) throw;
+        if (JobLibrary.getStatus(db, jobId) == 3) throw;
+        var paymentType = JobLibrary.getPaymentType(db, jobId);
+        uint amount = SafeMath.safeMul(uintArgs[0], 1000000000000000000) / uintArgs[1];
+        if (paymentType == 1) {
+            var hoursWei = SafeMath.safeMul(uintArgs[2], 1000000000000000000);
+            var minutesWei = SafeMath.safeMul(uintArgs[3], 1000000000000000000);
+            amount = SafeMath.safeMul(amount, SafeMath.safeAdd(hoursWei, minutesWei / 60)) / 1000000000000000000;
+        }
+
         invoiceId = SharedLibrary.createNext(db, "invoice/count");
         EthlanceDB(db).setUIntValue(sha3("invoice/contract", invoiceId), contractId);
         EthlanceDB(db).setStringValue(sha3("invoice/description", invoiceId), description);
+        EthlanceDB(db).setUIntValue(sha3("invoice/rate", invoiceId), uintArgs[0]);
+        EthlanceDB(db).setUIntValue(sha3("invoice/conversion-rate", invoiceId), uintArgs[1]);
         EthlanceDB(db).setUIntValue(sha3("invoice/amount", invoiceId), amount);
-        EthlanceDB(db).setUIntValue(sha3("invoice/worked-hours", invoiceId), workedHours);
-        EthlanceDB(db).setUIntValue(sha3("invoice/worked-from", invoiceId), workedFrom);
-        EthlanceDB(db).setUIntValue(sha3("invoice/worked-to", invoiceId), workedTo);
+        EthlanceDB(db).setUIntValue(sha3("invoice/worked-hours", invoiceId), uintArgs[2]);
+        EthlanceDB(db).setUIntValue(sha3("invoice/worked-minutes", invoiceId), uintArgs[3]);
+        EthlanceDB(db).setUIntValue(sha3("invoice/worked-from", invoiceId), uintArgs[4]);
+        EthlanceDB(db).setUIntValue(sha3("invoice/worked-to", invoiceId), uintArgs[5]);
         EthlanceDB(db).setUIntValue(sha3("invoice/created-on", invoiceId), now);
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 1);
         ContractLibrary.addInvoice(db, contractId, invoiceId, amount);

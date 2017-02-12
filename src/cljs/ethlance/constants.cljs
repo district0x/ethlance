@@ -1,7 +1,7 @@
 (ns ethlance.constants
   (:require [clojure.tools.reader :as reader]))
 
-(def contracts-version "1.0.4")
+(def contracts-version "1.0.5")
 (def skills-version "1.1")
 (def list-limit 8)
 
@@ -19,6 +19,7 @@
    :search/estimated-durations "ed"
    :search/hours-per-weeks "hw"
    :search/min-budget "b"
+   :search/min-budget-currency "bc"
    :search/min-employer-avg-rating "ear"
    :search/min-employer-ratings-count "erc"
    :search/country "c"
@@ -29,7 +30,8 @@
    :search/min-avg-rating "ar"
    :search/min-freelancer-ratings-count "frc"
    :search/min-hourly-rate "nhr"
-   :search/max-hourly-rate "xhr"})
+   :search/max-hourly-rate "xhr"
+   :search/hourly-rate-currency "hrc"})
 
 (def query-parsers
   {:search/category js/parseInt
@@ -45,8 +47,10 @@
    :search/language js/parseInt
    :search/offset js/parseInt
    :search/limit js/parseInt
+   :search/min-budget-currency js/parseInt
    :search/min-avg-rating js/parseInt
-   :search/min-freelancer-ratings-count js/parseInt})
+   :search/min-freelancer-ratings-count js/parseInt
+   :search/hourly-rate-currency js/parseInt})
 
 (def job-statuses
   {1 "Hiring"
@@ -64,8 +68,9 @@
    4 "Finished"})
 
 (def payment-types
-  {1 "Hourly"
-   2 "Fixed"})
+  {1 "Hourly rate"
+   2 "Fixed price"
+   3 "Annual salary"})
 
 (def experience-levels
   {1 "Beginner ($)"
@@ -99,10 +104,37 @@
 
 (def ^:dynamic skills {})
 
+(def currencies-backward-comp
+  {:eth 0
+   :usd 1
+   :eur 2})
+
 (def currencies
-  {:eth "Ξ"
-   :usd "$"
-   :eur "€"})
+  {0 "Ξ"
+   1 "$"
+   2 "€"
+   3 "£"
+   4 "\u20BD"
+   5 "¥"
+   6 "¥"})
+
+(def currency-code->id
+  {:ETH 0
+   :USD 1
+   :EUR 2
+   :GBP 3
+   :RUB 4
+   :CNY 5
+   :JPY 6})
+
+(def currency-id->code
+  {0 :ETH
+   1 :USD
+   2 :EUR
+   3 :GBP
+   4 :RUB
+   5 :CNY
+   6 :JPY})
 
 (def united-states
   ["Alabama"

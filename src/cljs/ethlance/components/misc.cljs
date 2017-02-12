@@ -3,9 +3,11 @@
     [cljs-react-material-ui.reagent :as ui]
     [cljs-web3.core :as web3]
     [clojure.string :as string]
+    [ethlance.components.currency-select-field :refer [currency-select-field]]
     [ethlance.components.icons :as icons]
     [ethlance.components.linkify :refer [linkify]]
     [ethlance.components.list-pagination :refer [list-pagination]]
+    [ethlance.constants :as constants]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
@@ -208,7 +210,8 @@
             valid? (validator value)]
         [form-text-field
          (r/merge-props
-           {:validator validator
+           {:floating-label-fixed (when (empty? (str value)))
+            :validator validator
             :error-text (when-not valid?
                           (if (pos? min-length)
                             (gstring/format "Write between %s and %s characters" min-length max-length)
@@ -221,15 +224,42 @@
      {:style styles/display-block
       :on-change (fn [e value]
                    (if on-change
-                     (on-change value)
+                     (on-change e value)
                      (dispatch [:form/set-value
                                 form-key
                                 field-key
                                 value
                                 #(u/non-neg-ether-value? % (select-keys props [:allow-empty?]))])))
       :error-text (when-not (u/non-neg-ether-value? value (select-keys props [:allow-empty?]))
-                    "Invalid Ether value")}
+                    "Invalid value")}
      (dissoc props :form-key :field-key :on-change :allow-empty?))])
+
+(defn ether-field-with-currency [{:keys [:currency :disabled :currency-style] :as props}]
+  [row-plain
+   {:bottom "xs"}
+   [ether-field (-> props
+                  (dissoc :currency :currency-style)
+                  (->> (r/merge-props {:style {:display :inline-block
+                                               :width 205}})))]
+   [:span
+    {:style (merge styles/ether-field-currency
+                   (when disabled styles/fade-text)
+                   currency-style)}
+    (u/currency-full-name currency)]])
+
+(defn ether-field-with-currency-select-field [{:keys [:ether-field-props :currency-select-field-props]}]
+  [row-plain
+   {:bottom "xs"}
+   [ether-field
+    (r/merge-props
+      {:style (if (:full-width ether-field-props)
+                {:width "calc(100% - 50px)"}
+                {:width 209})}
+      ether-field-props)]
+   [currency-select-field
+    (r/merge-props
+      {:style {:margin-left 5}}
+      currency-select-field-props)]])
 
 (def textarea (u/create-with-default-props text-field {:rows 4
                                                        :full-width true
@@ -497,3 +527,6 @@
                 :label-position "before"
                 :style btn-style}
                connect-button-props)]))]])))
+
+(defn conversion-rate [{:keys [:currency :value]}]
+  [:span "1 ETH = " (u/format-currency value currency {:full-length? true :display-code? true})])

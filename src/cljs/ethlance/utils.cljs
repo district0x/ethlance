@@ -32,6 +32,9 @@
 (defn uint? [x]
   (and x (not (neg? x))))
 
+(defn uint-or-nil? [x]
+  (or (nil? x) (not (neg? x))))
+
 (defn address? [x]
   (string? x))
 
@@ -159,6 +162,9 @@
 (defn empty-string? [x]
   (and (string? x) (empty? x)))
 
+(defn non-neg? [x]
+  (not (neg? x)))
+
 (defn non-neg-ether-value? [x & [{:keys [:allow-empty?]}]]
   (try
     (when (and (not allow-empty?) (empty-string? x))
@@ -179,6 +185,11 @@
 
 (defn ensure-vec [x]
   (if (sequential? x) x [x]))
+
+(defn ensure-number [x]
+  (if (and (number? x)
+           (not (js/isNaN x))
+           (js/isFinite x)) x 0))
 
 (defn empty-user? [user]
   (zero? (:user/created-on user)))
@@ -406,17 +417,35 @@
     (>= width 768) 1
     :else 0))
 
-(defn format-currency [value currency & [{:keys [:full-length?]}]]
-  (let [currency (keyword currency)
-        value (or value 0)
-        value (if (and full-length? (= currency :eth))
-                value
-                (if (= currency :eth)
-                  (gstring/format "%.3f" (big-num->num value))
-                  (gstring/format "%.2f" (big-num->num value))))]
-    (case currency
-      :usd (str (constants/currencies :usd) value)
-      (str value (constants/currencies currency)))))
+(defn to-locale-string [x max-fraction-digits]
+  (let [parsed-x (cond
+                   (string? x) (parse-float x)
+                   (nil? x) ""
+                   :else x)]
+    (if-not (js/isNaN parsed-x)
+      (.toLocaleString parsed-x js/undefined #js {:maximumFractionDigits max-fraction-digits})
+      x)))
+
+(defn with-currency-symbol [value currency]
+  (case currency
+    1 (str (constants/currencies 1) value)
+    (str value (constants/currencies currency))))
+
+(defn number-fraction-part [x]
+  (let [frac (second (string/split (str x) #"\."))]
+    (if frac
+      (str "." frac)
+      "")))
+
+(defn format-currency [value currency & [{:keys [:full-length? :display-code?]}]]
+  (let [value (-> (or value 0)
+                big-num->num)
+        value (if full-length?
+                (str (to-locale-string (js/parseInt value) 0) (number-fraction-part value))
+                (to-locale-string value (if (= currency 0) 3 2)))]
+    (if display-code?
+      (str value " " (name (constants/currency-id->code currency)))
+      (with-currency-symbol value currency))))
 
 (defn united-states? [country-id]
   (= 232 country-id))
@@ -490,3 +519,35 @@
                           (.error js/console err))))))
       (fail (fn [err]
               (.error js/console err)))))
+
+
+(defn currency->ether [value value-currency conversion-rates]
+  (if-not (= value-currency 0)
+    (/ value (conversion-rates value-currency))
+    value))
+
+(defn ether->currency [value target-currency conversion-rates]
+  (if-not (= target-currency 0)
+    (* value (conversion-rates target-currency))
+    value))
+
+(defn value-in-all-currencies [value value-currency conversion-rates]
+  (let [ether-value (currency->ether value value-currency conversion-rates)]
+    (cons
+      ether-value
+      (for [[target-currency rate] (sort-by key conversion-rates)]
+        (if (= value-currency target-currency)
+          value
+          (ether->currency ether-value target-currency conversion-rates))))))
+
+(defn num->wei [value]
+  (web3/to-wei (if (string? value) (replace-comma value) value) :ether))
+
+(defn hours-decimal [hours minutes]
+  (+ hours (/ minutes 60)))
+
+(defn currency-full-name [currency-id]
+  (when currency-id
+    (str (constants/currencies currency-id)
+         " "
+         (name (constants/currency-id->code currency-id)))))

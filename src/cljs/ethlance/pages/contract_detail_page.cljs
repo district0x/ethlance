@@ -45,16 +45,17 @@
                                :contract/freelancer :contract/job]
                         :as contract}]
   (when created-on
-    (let [italic-text [:span (gstring/format "%s applied for the job with rate "
-                                             (freelancer-first-name contract))
-                       [:b [misc/rate rate (:job/payment-type job) {:full-length? true}]]]]
-      [message-bubble
-       {:side :left
-        :user freelancer
-        :date created-on}
-       [:div
-        [italic-description italic-text]
-        description]])))
+    (let [{:keys [:job/payment-type :job/reference-currency]} job]
+      (let [italic-text [:span (gstring/format "%s applied for the job with rate "
+                                               (freelancer-first-name contract))
+                         [:b [misc/rate rate payment-type {:value-currency reference-currency}]]]]
+        [message-bubble
+         {:side :left
+          :user freelancer
+          :date created-on}
+         [:div
+          [italic-description italic-text]
+          description]]))))
 
 (defn contract-detail [{:keys [:contract/created-on :contract/description] :as contract}]
   (when created-on

@@ -76,6 +76,7 @@ library UserLibrary {
         bool isAvailable,
         string jobTitle,
         uint hourlyRate,
+        uint8 hourlyRateCurrency,
         uint[] categories,
         uint[] skills,
         string description
@@ -87,6 +88,7 @@ library UserLibrary {
         EthlanceDB(db).setBooleanValue(sha3("freelancer/available?", userId), isAvailable);
         EthlanceDB(db).setStringValue(sha3("freelancer/job-title", userId), jobTitle);
         EthlanceDB(db).setUIntValue(sha3("freelancer/hourly-rate", userId), hourlyRate);
+        EthlanceDB(db).setUInt8Value(sha3("freelancer/hourly-rate-currency", userId), hourlyRateCurrency);
         EthlanceDB(db).setStringValue(sha3("freelancer/description", userId), description);
         setFreelancerSkills(db, userId, skills);
         setFreelancerCategories(db, userId, categories);
@@ -276,17 +278,22 @@ library UserLibrary {
         return EthlanceDB(db).getUIntValue(sha3("freelancer/hourly-rate", userId));
     }
 
-    function hasHourlyRateWithinRange(address db, uint userId, uint minHourlyRate, uint maxHourlyRate) internal returns(bool) {
-        if (minHourlyRate == 0 && maxHourlyRate == 0) {
+    function getFreelancerHourlyRateCurrency(address db, uint userId) internal returns (uint8) {
+        return EthlanceDB(db).getUInt8Value(sha3("freelancer/hourly-rate-currency", userId));
+    }
+
+    function hasHourlyRateWithinRange(address db, uint userId, uint[] minHourlyRates, uint[] maxHourlyRates) internal returns(bool) {
+        var hourlyRateCurrency = getFreelancerHourlyRateCurrency(db, userId);
+        if (minHourlyRates[hourlyRateCurrency] == 0 && maxHourlyRates[hourlyRateCurrency] == 0) {
             return true;
         }
         var hourlyRate = getFreelancerHourlyRate(db, userId);
 
-        if (minHourlyRate <= hourlyRate && maxHourlyRate == 0) {
+        if (minHourlyRates[hourlyRateCurrency] <= hourlyRate && maxHourlyRates[hourlyRateCurrency] == 0) {
             return true;
         }
 
-        return minHourlyRate <= hourlyRate && hourlyRate <= maxHourlyRate;
+        return minHourlyRates[hourlyRateCurrency] <= hourlyRate && hourlyRate <= maxHourlyRates[hourlyRateCurrency];
     }
 
     function hasLanguage(address db, uint userId, uint languageId) internal returns (bool) {
@@ -312,8 +319,8 @@ library UserLibrary {
         uint[] skills,
         uint8 minAvgRating,
         uint minRatingsCount,
-        uint minHourlyRate,
-        uint maxHourlyRate,
+        uint[] minHourlyRates,
+        uint[] maxHourlyRates,
         uint countryId,
         uint stateId,
         uint languageId
@@ -329,7 +336,7 @@ library UserLibrary {
             if (isFreelancerAvailable(db, userId) &&
                 hasMinRating(db, userId, minAvgRating) &&
                 hasFreelancerMinRatingsCount(db, userId, minRatingsCount) &&
-                hasHourlyRateWithinRange(db, userId, minHourlyRate, maxHourlyRate) &&
+                hasHourlyRateWithinRange(db, userId, minHourlyRates, maxHourlyRates) &&
                 isFromCountry(db, userId, countryId) &&
                 isFromState(db, userId, stateId) &&
                 hasLanguage(db, userId, languageId) &&

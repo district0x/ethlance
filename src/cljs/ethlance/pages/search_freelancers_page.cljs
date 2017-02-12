@@ -23,7 +23,8 @@
     (fn []
       (let [{:keys [:search/category :search/skills :search/min-avg-rating
                     :search/min-freelancer-ratings-count :search/min-hourly-rate :search/max-hourly-rate
-                    :search/country :search/state :search/language :search/offset :search/limit]} @form-data]
+                    :search/country :search/state :search/language :search/offset :search/limit
+                    :search/hourly-rate-currency]} @form-data]
         [misc/call-on-change
          {:load-on-mount? true
           :args @form-data
@@ -38,18 +39,30 @@
            {:value (u/rating->star min-avg-rating)
             :on-star-click #(dispatch [:form.search/set-value :search/min-avg-rating
                                        (u/star->rating %1)])}]
-          [misc/ether-field
-           {:floating-label-text "Min. Hourly Rate (Ether)"
-            :value min-hourly-rate
-            :full-width true
-            :allow-empty? true
-            :on-change #(dispatch [:form.search/set-value :search/min-hourly-rate % u/non-neg-or-empty-ether-value?])}]
-          [misc/ether-field
-           {:floating-label-text "Max. Hourly Rate (Ether)"
-            :value max-hourly-rate
-            :full-width true
-            :allow-empty? true
-            :on-change #(dispatch [:form.search/set-value :search/max-hourly-rate % u/non-neg-or-empty-ether-value?])}]
+          [misc/ether-field-with-currency-select-field
+           {:ether-field-props
+            {:floating-label-text "Min. Hourly Rate"
+             :value min-hourly-rate
+             :full-width true
+             :allow-empty? true
+             :on-change #(dispatch [:form.search/set-value :search/min-hourly-rate %2 u/non-neg-or-empty-ether-value?])}
+            :currency-select-field-props
+            {:value hourly-rate-currency
+             :on-change (fn [_ _ currency]
+                          (dispatch [:form.search/set-value :search/hourly-rate-currency currency])
+                          (dispatch [:selected-currency/set currency]))}}]
+          [misc/ether-field-with-currency-select-field
+           {:ether-field-props
+            {:floating-label-text "Max. Hourly Rate"
+             :value max-hourly-rate
+             :full-width true
+             :allow-empty? true
+             :on-change #(dispatch [:form.search/set-value :search/max-hourly-rate %2 u/non-neg-or-empty-ether-value?])}
+            :currency-select-field-props
+            {:value hourly-rate-currency
+             :on-change (fn [_ _ currency]
+                          (dispatch [:form.search/set-value :search/hourly-rate-currency currency])
+                          (dispatch [:selected-currency/set currency]))}}]
           [misc/text-field
            {:floating-label-text "Min. Number of Feedbacks"
             :type :number
@@ -106,8 +119,8 @@
           :next-button-text "Next"
           :prev-button-text "Previous"
           :on-page-change change-page}
-         (for [{:keys [:freelancer/avg-rating :freelancer/hourly-rate :freelancer/job-title
-                       :freelancer/ratings-count :freelancer/skills
+         (for [{:keys [:freelancer/avg-rating :freelancer/hourly-rate :freelancer/hourly-rate-currency
+                       :freelancer/job-title :freelancer/ratings-count :freelancer/skills
                        :user/id :user/name :user/gravatar :user/country :user/state] :as item} items]
            [row-plain
             {:key id :middle "xs" :center "xs" :start "sm"}
@@ -140,7 +153,7 @@
               (u/pluralize " feedback" ratings-count)]
              [:span [:span {:style (merge styles/dark-text
                                           styles/freelancer-info-item)}
-                     [currency hourly-rate]] " per hour"]
+                     [currency hourly-rate {:value-currency hourly-rate-currency}]] " per hour"]
              [misc/country-marker
               {:country country
                :state state

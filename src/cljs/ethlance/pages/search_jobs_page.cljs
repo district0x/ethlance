@@ -22,7 +22,7 @@
     (fn []
       (let [{:keys [:search/category :search/min-employer-avg-rating :search/country :search/state
                     :search/language :search/experience-levels :search/payment-types
-                    :search/estimated-durations :search/hours-per-weeks :search/min-budget
+                    :search/estimated-durations :search/hours-per-weeks :search/min-budget :search/min-budget-currency
                     :search/min-employer-ratings-count]} @form-data]
         [misc/call-on-change
          {:load-on-mount? true
@@ -57,14 +57,22 @@
            {:options constants/hours-per-weeks
             :values hours-per-weeks
             :on-change #(dispatch [:form.search/set-value :search/hours-per-weeks %2])}]
-          [misc/ether-field
-           {:floating-label-text "Min. Budget (Ether)"
-            :value min-budget
-            :full-width true
-            :allow-empty? true
-            :on-change #(dispatch [:form.search/set-value :search/min-budget % u/non-neg-or-empty-ether-value?])}]
+          [misc/ether-field-with-currency-select-field
+           {:ether-field-props
+            {:floating-label-text "Min. Budget"
+             :floating-label-fixed true
+             :full-width true
+             :allow-empty? true
+             :value min-budget
+             :on-change #(dispatch [:form.search/set-value :search/min-budget %2 u/non-neg-or-empty-ether-value?])}
+            :currency-select-field-props
+            {:value min-budget-currency
+             :on-change (fn [_ _ currency]
+                          (dispatch [:form.search/set-value :search/min-budget-currency currency])
+                          (dispatch [:selected-currency/set currency]))}}]
           [misc/text-field
            {:floating-label-text "Min. Employer Feedbacks"
+            :floating-label-fixed true
             :type :number
             :value min-employer-ratings-count
             :full-width true
@@ -142,7 +150,7 @@
           :on-page-change change-page}
          (for [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                        :job/experience-level :job/hours-per-week :job/created-on
-                       :job/description :job/budget :job/skills] :as item} items]
+                       :job/description :job/budget :job/skills :job/reference-currency] :as item} items]
            [:div {:key id}
             [:h2
              {:style styles/overflow-ellipsis}
@@ -158,7 +166,7 @@
              (when (u/big-num-pos? budget)
                [:span " - Budget: " [:span
                                      {:style styles/dark-text}
-                                     [misc/currency budget]]])]
+                                     [misc/currency budget {:value-currency reference-currency}]]])]
             [skills-chips
              {:selected-skills skills
               :always-show-all? true

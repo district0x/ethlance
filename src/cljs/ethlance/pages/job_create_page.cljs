@@ -2,6 +2,7 @@
   (:require
     [cljs-react-material-ui.reagent :as ui]
     [ethlance.components.category-select-field :refer [category-select-field]]
+    [ethlance.components.currency-select-field :refer [currency-select-field]]
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout]]
     [ethlance.components.radio-group :refer [radio-group]]
@@ -17,10 +18,10 @@
   (let [form (subscribe [:form.job/add-job])
         eth-config (subscribe [:eth/config])]
     (fn []
-      (let [{:keys [:data :loading? :errors]} @form
+      (let [{:keys [:data :loading? :errors :budget-enabled?]} @form
             {:keys [:job/title :job/description :job/skills :job/language :job/budget
                     :job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
-                    :job/freelancers-needed]} data
+                    :job/freelancers-needed :job/reference-currency]} data
             {:keys [:min-job-skills :max-job-skills]} @eth-config]
         [paper
          {:loading? loading?}
@@ -39,25 +40,31 @@
              :no-all-categories? true
              :on-change #(dispatch [:form/set-value :form.job/add-job :job/category %3])}]]
           [:div
-           [misc/ether-field
-            {:floating-label-text "Your budget (Ether)"
-             :form-key :form.job/add-job
-             :field-key :job/budget
-             :value budget}]]
-          [ui/text-field
-           {:floating-label-text "Number of needed freelancers"
-            :type :number
-            :min 1
-            :value freelancers-needed
-            :on-change #(dispatch [:form/set-value :form.job/add-job :job/freelancers-needed %2 pos?])}]
-          [:div
-           [misc/subheader "Payment Type"]
+           [misc/subheader "Candidates should bid for"]
            [radio-group
             {:name "payment-type"
              :form-key :form.job/add-job
              :field-key :job/payment-type
              :default-selected payment-type
              :options constants/payment-types}]]
+          [misc/subheader "Candidates should bid in currency"]
+          [currency-select-field
+           {:value reference-currency
+            :style {:width 80}
+            :on-change #(dispatch [:form/set-value :form.job/add-job :job/reference-currency %3])}]
+          [:div
+           [ui/toggle
+            {:label "Set a Budget"
+             :label-position "right"
+             :toggled budget-enabled?
+             :on-toggle #(dispatch [:form.job.add-job/set-budget-enabled? %2])}]
+           [misc/ether-field-with-currency
+            {:floating-label-text "Your budget"
+             :form-key :form.job/add-job
+             :field-key :job/budget
+             :value budget
+             :disabled (not budget-enabled?)
+             :currency reference-currency}]]
           [:div
            [misc/subheader "Required Experience Level"]
            [radio-group
@@ -82,6 +89,12 @@
              :field-key :job/hours-per-week
              :default-selected hours-per-week
              :options constants/hours-per-weeks}]]
+          [ui/text-field
+           {:floating-label-text "Number of needed freelancers"
+            :type :number
+            :min 1
+            :value freelancers-needed
+            :on-change #(dispatch [:form/set-value :form.job/add-job :job/freelancers-needed %2 pos?])}]
           [:div
            [language-select-field
             {:value language

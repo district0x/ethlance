@@ -50,7 +50,7 @@
             (for [item items]
               (let [{:keys [:contract/job :contract/rate :contract/id :proposal/rate :contract/total-paid
                             :contract/freelancer :contract/status]} item
-                    {:keys [:job/title :job/employer :job/payment-type]} job]
+                    {:keys [:job/title :job/employer :job/payment-type :job/reference-currency]} job]
                 [ui/table-row
                  {:key id
                   :style (merge styles/clickable
@@ -77,7 +77,7 @@
                    [ui/table-row-column
                     (if (= status 1)
                       "-"
-                      [misc/rate rate payment-type])])
+                      [misc/rate rate payment-type {:value-currency reference-currency}])])
                  (when show-invitation-or-proposal-time?
                    [ui/table-row-column
                     (if (= status 1)

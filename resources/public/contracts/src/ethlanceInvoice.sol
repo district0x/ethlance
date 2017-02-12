@@ -19,18 +19,21 @@ contract EthlanceInvoice is EthlanceSetter {
     function addInvoice(
         uint contractId,
         string description,
-        uint amount,
-        uint workedHours,
-        uint workedFrom,
-        uint workedTo
+        uint[] uintArgs
+//        uint rate,
+//        uint exchangeRate,
+//        uint workedHours,
+//        uint workedMinutes,
+//        uint workedFrom,
+//        uint workedTo
     )
         onlyActiveSmartContract
         onlyActiveFreelancer
     {
         if (description.toSlice().len() > getConfig("max-invoice-description")) throw;
+        if (uintArgs[3] > 59) throw;
         var freelancerId = getSenderUserId();
-        var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, freelancerId, contractId, description,
-            amount, workedHours, workedFrom, workedTo);
+        var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, freelancerId, contractId, description, uintArgs);
         onInvoiceAdded(invoiceId, ContractLibrary.getEmployer(ethlanceDB, contractId), freelancerId);
     }
 

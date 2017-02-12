@@ -23,10 +23,11 @@
                  :employer/description :employer/ratings-count :user/address :user/balance] :as user}]
       (when (seq name)
         [:div
-         [user-detail/user-info user {:avg-rating avg-rating
-                                   :ratings-count ratings-count
-                                   :description description
-                                   :total-paid total-paid}]
+         [user-detail/user-info user (merge
+                                       {:avg-rating avg-rating
+                                        :ratings-count ratings-count
+                                        :description description}
+                                       (select-keys user [:employer/total-paid]))]
          [user-detail/languages-section user languages]]))))
 
 (defn employer-detail []

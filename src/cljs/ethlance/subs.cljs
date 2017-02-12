@@ -38,8 +38,23 @@
 
 (reg-sub
   :db/conversion-rates
+  (fn [db [_ timestamp]]
+    (if timestamp
+      (get-in db [:conversion-rates-historical timestamp] {})
+      (:conversion-rates db))))
+
+(reg-sub
+  :db/conversion-rates-historical
   (fn [db _]
-    (:conversion-rates db)))
+    (:conversion-rates-historical db)))
+
+(reg-sub
+  :db/conversion-rate-tampered?
+  :<- [:db/conversion-rates-historical]
+  (fn [conversion-rates-historical [_ timestamp conversion-rate currency]]
+    (when conversion-rate
+      (when-let [rate-historical (get-in conversion-rates-historical [timestamp currency])]
+        [(< 0.02 (js/Math.abs (- 1 (/ rate-historical conversion-rate)))) rate-historical]))))
 
 (reg-sub
   :db/skills-loaded?
@@ -50,15 +65,22 @@
   :selected-currency/converted-value
   :<- [:db/selected-currency]
   :<- [:db/conversion-rates]
-  (fn [[selected-curency conversion-rates] [_ value opts]]
-    (if (and (not= :eth selected-curency)
-             (conversion-rates selected-curency))
-      (let [value (u/parse-float value)]
-        (if (and value
-                 (not (js/isNaN value)))
-          (u/format-currency (* value (conversion-rates selected-curency)) selected-curency opts)
-          (u/format-currency (or value 0) :eth opts)))
-      (u/format-currency value :eth opts))))
+  (fn [[selected-curency conversion-rates] [_ value {:keys [:value-currency] :as opts
+                                                     :or {value-currency 0}}]]
+    (let [value (u/big-num->num value)]
+      (if (and (not= selected-curency 0)
+               (not (conversion-rates selected-curency)))
+        (u/with-currency-symbol "" selected-curency)
+        (if (= value-currency selected-curency)
+          (u/format-currency value value-currency opts)
+          (if (or (conversion-rates value-currency)
+                  (= 0 value-currency))
+            (let [value (u/parse-float value)]
+              (-> (if (and value (not (js/isNaN value))) value 0)
+                (u/currency->ether value-currency conversion-rates)
+                (u/ether->currency selected-curency conversion-rates)
+                (u/format-currency selected-curency opts)))
+            (u/with-currency-symbol "" selected-curency)))))))
 
 (reg-sub
   :db/search-freelancers-filter-open?
@@ -449,6 +471,51 @@
   :form.invoice/add-invoice
   (fn [db]
     (:form.invoice/add-invoice db)))
+
+(reg-sub
+  :form.invoice/add-invoice-localstorage
+  (fn [db]
+    (:form.invoice/add-invoice-localstorage db)))
+
+(reg-sub
+  :form.invoice/add-invoice-prefilled
+  :<- [:list/contracts :list/freelancer-my-open-contracts]
+  :<- [:form.invoice/add-invoice]
+  :<- [:form.invoice/add-invoice-localstorage]
+  :<- [:db/conversion-rates]
+  (fn [[contracts-list form localstorage conversion-rates]]
+    (let [contract-id (get-in form [:data :invoice/contract])
+          contract (medley/find-first #(= (:contract/id %) contract-id) (:items contracts-list))
+          {:keys [:contract/job]} contract
+          {:keys [:job/reference-currency :job/payment-type]} job
+          reference-currency (or reference-currency 0)
+          conversion-rate (if (zero? reference-currency) 1 (conversion-rates reference-currency))
+          needs-conversion? (pos? reference-currency)
+          {:keys [:invoice/worked-hours :invoice/worked-minutes :invoice/rate]} (get localstorage contract-id)
+          worked-hours (u/ensure-number worked-hours)
+          worked-minutes (u/ensure-number worked-minutes)
+          invoice-rate (or rate (if-not (= (:job/payment-type job) 3)
+                                  (:proposal/rate contract)
+                                  0))
+          invoice-rate-parsed (u/ensure-number (u/parse-float (u/big-num->num invoice-rate)))
+          total-amount (if (< 1 payment-type)
+                         invoice-rate-parsed
+                         (* (u/hours-decimal worked-hours worked-minutes) invoice-rate-parsed))
+          invoice-amount (if (or (and (zero? reference-currency)
+                                      (< 1 payment-type))
+                                 (zero? contract-id))
+                           (get-in form [:data :invoice/amount])
+                           (u/currency->ether total-amount reference-currency conversion-rates))]
+      (-> form
+        (merge {:contract contract
+                :needs-conversion? needs-conversion?
+                :hourly-rate? (= 1 payment-type)
+                :total-amount total-amount})
+        (update :data merge {:invoice/conversion-rate conversion-rate
+                             :invoice/rate invoice-rate
+                             :invoice/amount invoice-amount
+                             :invoice/worked-hours worked-hours
+                             :invoice/worked-minutes worked-minutes})))))
 
 (reg-sub
   :form.contract/add-proposal

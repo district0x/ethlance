@@ -4,6 +4,7 @@
     [cljs-react-material-ui.reagent :as ui]
     [cljsjs.material-ui-chip-input]
     [clojure.set :as set]
+    [ethlance.components.currency-select-field :refer [currency-select-field]]
     [ethlance.components.icons :as icons]
     [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows currency]]
     [ethlance.constants :as constants]
@@ -30,8 +31,7 @@
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    ))
+    [reagent.core :as r]))
 
 (def route->component
   {:about about-page
@@ -105,23 +105,6 @@
       :route-params {:user/id id}}
      body]))
 
-(defn currency-select-field []
-  (let [selected-currency (subscribe [:db/selected-currency])]
-    (fn []
-      [ui/select-field
-       {:value @selected-currency
-        :label-style styles/app-bar-select-field-label
-        :auto-width true
-        :on-change #(dispatch [:selected-currency/set %3])
-        :style (merge
-                 styles/app-bar-user
-                 {:width 40})}
-       (for [[key text] constants/currencies]
-         [ui/menu-item
-          {:value key
-           :primary-text text
-           :key key}])])))
-
 (defn app-bar-right-elements []
   (let [active-address-balance (subscribe [:db/active-address-balance])
         active-user (subscribe [:db/active-user])
@@ -129,7 +112,8 @@
         active-address-registered? (subscribe [:db/active-address-registered?])
         connection-error? (subscribe [:blockchain/connection-error?])
         my-addresses (subscribe [:db/my-addresses])
-        contracts-not-found? (subscribe [:db/contracts-not-found?])]
+        contracts-not-found? (subscribe [:db/contracts-not-found?])
+        selected-currency (subscribe [:db/selected-currency])]
     (fn []
       (if-not @connection-error?
         [row-plain
@@ -178,7 +162,11 @@
               {:style {:margin-right 5}}
               "No accounts connected"]
              (icons/help-circle-outline {:color "#EEE"})]])
-         [currency-select-field]]
+         [currency-select-field
+          {:value @selected-currency
+           :label-style styles/app-bar-select-field-label
+           :style styles/app-bar-user
+           :on-change #(dispatch [:selected-currency/set %3])}]]
         [row-plain
          {:middle "xs"
           :end "xs"}

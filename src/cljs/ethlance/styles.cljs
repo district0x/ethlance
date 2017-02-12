@@ -4,9 +4,11 @@
 (def primary1-color (color #_ :teal600 #_:blue600 #_:light-blue600 :indigo500))
 (def logo-color (color :light-blue50))
 (def accent1-color (color :pinkA200))
+(def text-color "rgba(0, 0, 0, 0.87)")
 
 (def palette {:primary1-color primary1-color
-              :accent1-color accent1-color})
+              :accent1-color accent1-color
+              :text-color text-color})
 
 (def mui-theme (get-mui-theme {:palette palette
                                :font-family "Open Sans, sans-serif"
@@ -293,7 +295,8 @@
 
 (def job-payment-type-colors
   {1 (color :blue500)
-   2 (color :cyan500)})
+   2 (color :cyan500)
+   3 (color :teal500)})
 
 (def job-estimation-duration-colors
   {1 (color :pink300)
@@ -527,3 +530,9 @@
 
 (def chip-input-menu-props
   {:max-height 300})
+
+(def ether-field-currency
+  {:font-size "1.2em"
+   :margin-left 5
+   :margin-bottom 9
+   :font-weight 300})

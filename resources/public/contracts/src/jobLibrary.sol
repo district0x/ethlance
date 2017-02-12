@@ -57,6 +57,9 @@ library JobLibrary {
 
         if (uint8Items[5] == 0) throw;
         EthlanceDB(db).setUInt8Value(sha3("job/freelancers-needed", jobId), uint8Items[5]);
+
+        EthlanceDB(db).setUInt8Value(sha3("job/reference-currency", jobId), uint8Items[6]);
+
         EthlanceDB(db).setUInt8Value(sha3("job/status", jobId), 1);
         setSkills(db, jobId, skills);
         UserLibrary.addEmployerJob(db, employerId, jobId);
@@ -92,6 +95,10 @@ library JobLibrary {
         return EthlanceDB(db).getUIntValue(sha3("job/created-on", jobId));
     }
 
+    function getPaymentType(address db, uint jobId) internal returns(uint8) {
+        return EthlanceDB(db).getUInt8Value(sha3("job/payment-type", jobId));
+    }
+
     function setStatus(address db, uint jobId, uint8 status) internal {
         EthlanceDB(db).setUInt8Value(sha3("job/status", jobId), status);
     }
@@ -111,11 +118,16 @@ library JobLibrary {
         EthlanceDB(db).addUIntValue(sha3("job/total-paid", jobId), amount);
     }
 
-    function hasMinBudget(address db, uint jobId, uint minBudget) internal returns(bool) {
-        if (minBudget == 0) {
+    function getReferenceCurrency(address db, uint jobId) internal returns(uint8) {
+        return EthlanceDB(db).getUInt8Value(sha3("job/reference-currency", jobId));
+    }
+
+    function hasMinBudget(address db, uint jobId, uint[] minBudgets) internal returns(bool) {
+        var referenceCurrency = getReferenceCurrency(db, jobId);
+        if (minBudgets[referenceCurrency] == 0) {
             return true;
         }
-        return minBudget <= EthlanceDB(db).getUIntValue(sha3("job/budget", jobId));
+        return minBudgets[referenceCurrency] <= EthlanceDB(db).getUIntValue(sha3("job/budget", jobId));
     }
 
    function hasLanguage(address db, uint jobId, uint languageId) internal returns (bool) {
@@ -148,6 +160,7 @@ library JobLibrary {
         uint categoryId,
         uint[] skills,
         uint8[][4] uint8Filters,
+        uint[] minBudgets,
         uint[] uintArgs
     )
         internal returns (uint[] jobIds)
@@ -166,12 +179,12 @@ library JobLibrary {
                 SharedLibrary.containsValue(db, jobId, "job/experience-level", uint8Filters[1]) &&
                 SharedLibrary.containsValue(db, jobId, "job/estimated-duration", uint8Filters[2]) &&
                 SharedLibrary.containsValue(db, jobId, "job/hours-per-week", uint8Filters[3]) &&
-                hasMinBudget(db, jobId, uintArgs[0]) &&
-                hasEmployerMinRating(db, employerId, uintArgs[1]) &&
-                hasEmployerMinRatingsCount(db, employerId, uintArgs[2]) &&
-                UserLibrary.isFromCountry(db, employerId, uintArgs[3]) &&
-                UserLibrary.isFromState(db, employerId, uintArgs[4]) &&
-                hasLanguage(db, jobId, uintArgs[5]) &&
+                hasMinBudget(db, jobId, minBudgets) &&
+                hasEmployerMinRating(db, employerId, uintArgs[0]) &&
+                hasEmployerMinRatingsCount(db, employerId, uintArgs[1]) &&
+                UserLibrary.isFromCountry(db, employerId, uintArgs[2]) &&
+                UserLibrary.isFromState(db, employerId, uintArgs[3]) &&
+                hasLanguage(db, jobId, uintArgs[4]) &&
                 UserLibrary.hasStatus(db, employerId, 1)
                 )
             {

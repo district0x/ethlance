@@ -41,8 +41,9 @@
   (let [xs-width? (subscribe [:window/xs-width?])]
     (fn [{:keys [:user/gravatar :user/name :user/country :user/state :user/created-on :user/languages :user/id
                  :user/status :user/address :user/balance :user/github :user/linkedin] :as user}
-         {:keys [:avg-rating :ratings-count :total-paid :description :show-availability? :available?
-                 :total-earned :subtitle :hourly-rate]}]
+         {:keys [:avg-rating :ratings-count :employer/total-paid :description :show-availability? :freelancer/available?
+                 :freelancer/total-earned :freelancer/job-title :freelancer/hourly-rate
+                 :freelancer/hourly-rate-currency]}]
       [:div
        [row
         {:middle "xs"
@@ -57,8 +58,8 @@
          {:xs 12 :sm 6 :lg 7
           :style (if @xs-width? {:margin-top 10} {})}
          [:h1 name]
-         (when subtitle
-           [:h3 subtitle])
+         (when job-title
+           [:h3 job-title])
          [star-rating
           {:value (u/rating->star avg-rating)
            :show-number? true
@@ -88,7 +89,7 @@
                  "available for hire!"
                  "not available for hire")]))]
          (when hourly-rate
-           [misc/elegant-line "hourly rate" [currency hourly-rate]])
+           [misc/elegant-line "hourly rate" [currency hourly-rate {:value-currency hourly-rate-currency}]])
          (when total-paid
            [misc/elegant-line "spent" [currency total-paid]])
          (when total-earned

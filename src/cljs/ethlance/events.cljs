@@ -17,6 +17,7 @@
     [ethlance.debounce-fx]
     [ethlance.ethlance-db :as ethlance-db :refer [get-entities get-entities-field-items]]
     [ethlance.generate-db]
+    [ethlance.interval-fx]
     [ethlance.utils :as u]
     [ethlance.window-fx]
     [goog.string :as gstring]
@@ -70,7 +71,9 @@
 
 (defn arg-eth->wei [value arg-key]
   (if (contains? ethlance-db/wei-args arg-key)
-    (web3/to-wei (if (string? value) (u/replace-comma value) value) :ether)
+    (if (sequential? value)
+      (map u/num->wei value)
+      (u/num->wei value))
     value))
 
 (defn args-map->vec [values args-order]
@@ -196,6 +199,10 @@
   (fn [{:keys [db]} args]
     {:location/set-hash args}))
 
+(defn migrate-localstorage [localstorage]
+  (update localstorage :selected-currency #(if (keyword? %) (constants/currencies-backward-comp %)
+                                                            (or % (:selected-currency default-db)))))
+
 (reg-event-fx
   :initialize
   (inject-cofx :localstorage)
@@ -203,6 +210,7 @@
     (let [provides-web3? (boolean (aget js/window "web3"))
           web3 (if provides-web3? (aget js/window "web3") (web3/create-web3 (:node-url default-db)))
           {:keys [:active-page]} default-db
+          localstorage (migrate-localstorage localstorage)
           db (as-> default-db db
                    (merge-data-from-query db active-page (u/current-url-query))
                    (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
@@ -212,7 +220,7 @@
                    (assoc db :drawer-open? (> (:window/width-size db) 2)))]
       (merge
         {:db db
-         :dispatch-n [[:load-conversion-rate (:selected-currency db)]
+         :dispatch-n [[:load-conversion-rates]
                       [:load-initial-skills]]
          :async-flow {:first-dispatch [:load-eth-contracts]
                       :rules [{:when :seen?
@@ -222,7 +230,10 @@
                                :halt? true}]}
          :window/on-resize {:dispatch [:window/on-resize]
                             :resize-interval 166}
-         :ga/page-view [(u/current-location-hash)]}
+         :ga/page-view [(u/current-location-hash)]
+         :dispatch-interval {:dispatch [:load-conversion-rates]
+                             :ms 180000
+                             :db-path [:load-all-conversion-rates-interval]}}
         (if (or provides-web3? (:devnet? default-db))
           {:web3-fx.blockchain/fns
            {:web3 web3
@@ -299,16 +310,40 @@
           {:dispatch [:contract.db/add-allowed-contracts [key]]})))))
 
 (reg-event-fx
-  :load-conversion-rate
+  :load-conversion-rates
   interceptors
-  (fn [{:keys [db]} [currency]]
-    (when (contains? #{:usd :eur} (keyword currency))
+  (fn [{:keys [db]}]
+    {:http-xhrio {:method :get
+                  :uri "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD,EUR,RUB,GBP,CNY,JPY"
+                  :timeout 10000
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success [:conversion-rates-loaded]
+                  :on-failure [:log-error :load-conversion-rates]}}))
+
+(reg-event-fx
+  :load-conversion-rates-historical
+  interceptors
+  (fn [{:keys [db]} [timestamp]]
+    (when-not (get-in db [:conversion-rates-historical timestamp])
       {:http-xhrio {:method :get
-                    :uri (gstring/format "https://api.cryptonator.com/api/ticker/eth-%s" (name currency))
+                    :uri (str "https://min-api.cryptocompare.com/data/pricehistorical?fsym=ETH&tsyms=USD,EUR,RUB,GBP,CNY,JPY&ts="
+                              timestamp)
                     :timeout 10000
                     :response-format (ajax/json-response-format {:keywords? true})
-                    :on-success [:conversion-rate-loaded currency]
-                    :on-failure [:log-error :load-conversion-rate currency]}})))
+                    :on-success [:conversion-rates-loaded-historical timestamp]
+                    :on-failure [:log-error :load-conversion-rates-historical]}})))
+
+(reg-event-db
+  :conversion-rates-loaded-historical
+  interceptors
+  (fn [db [timestamp {:keys [:ETH]}]]
+    (update-in db [:conversion-rates-historical timestamp] merge (medley/map-keys constants/currency-code->id ETH))))
+
+(reg-event-db
+  :conversion-rates-loaded
+  interceptors
+  (fn [db [response]]
+    (update db :conversion-rates merge (medley/map-keys constants/currency-code->id response))))
 
 (reg-event-fx
   :load-initial-skills
@@ -329,22 +364,12 @@
     {:db (assoc db :skills-loaded? true)}
     #_{:db (update db :app/skills merge (medley/map-vals (partial hash-map :skill/name) skills))}))
 
-(reg-event-db
-  :conversion-rate-loaded
-  interceptors
-  (fn [db [currency response]]
-    (assoc-in db [:conversion-rates currency] (-> response :ticker :price js/parseFloat))))
-
 (reg-event-fx
   :selected-currency/set
   [interceptors (inject-cofx :localstorage)]
   (fn [{:keys [db localstorage]} [currency]]
-    (let [currency (keyword currency)]
-      (merge
-        {:db (assoc db :selected-currency currency)
-         :localstorage (assoc localstorage :selected-currency currency)}
-        (when-not (get-in db [:conversion-rates currency])
-          {:dispatch [:load-conversion-rate currency]})))))
+    {:db (assoc db :selected-currency currency)
+     :localstorage (assoc localstorage :selected-currency currency)}))
 
 (reg-event-fx
   :estimate-contracts
@@ -781,12 +806,15 @@
   :contract.search/search-jobs
   interceptors
   (fn [{:keys [db]} [args]]
-    {:dispatch [:list/load-ids {:list-key :list/search-jobs
-                                :fn-key :ethlance-search/search-jobs
-                                :load-dispatch-key :contract.db/load-jobs
-                                :fields (set/difference ethlance-db/job-entity-fields #{:job/description})
-                                :args args
-                                :keep-items? true}]}))
+    (let [{:keys [:conversion-rates]} db
+          {:keys [:search/min-budget :search/min-budget-currency]} args
+          min-budgets (u/value-in-all-currencies (u/parse-float min-budget) min-budget-currency conversion-rates)]
+      {:dispatch [:list/load-ids {:list-key :list/search-jobs
+                                  :fn-key :ethlance-search/search-jobs
+                                  :load-dispatch-key :contract.db/load-jobs
+                                  :fields (set/difference ethlance-db/job-entity-fields #{:job/description})
+                                  :args (assoc args :search/min-budgets min-budgets)
+                                  :keep-items? true}]})))
 
 (reg-event-fx
   :contract.db/load-jobs
@@ -834,14 +862,24 @@
   :contract.search/search-freelancers
   interceptors
   (fn [{:keys [db]} [args]]
-    {:dispatch [:list/load-ids {:list-key :list/search-freelancers
-                                :fn-key :ethlance-search/search-freelancers
-                                :load-dispatch-key :contract.db/load-users
-                                :fields (set/union (set/difference ethlance-db/freelancer-entity-fields
-                                                                   #{:freelancer/description})
-                                                   ethlance-db/user-entity-fields)
-                                :args (assoc args :search/seed (calculate-search-seed args (:on-load-seed db)))
-                                :keep-items? true}]}))
+    (let [{:keys [:conversion-rates]} db
+          {:keys [:search/min-hourly-rate :search/max-hourly-rate :search/hourly-rate-currency]} args
+          min-hourly-rates (u/value-in-all-currencies (u/parse-float min-hourly-rate)
+                                                      hourly-rate-currency
+                                                      conversion-rates)
+          max-hourly-rates (u/value-in-all-currencies (u/parse-float max-hourly-rate)
+                                                      hourly-rate-currency
+                                                      conversion-rates)]
+      {:dispatch [:list/load-ids {:list-key :list/search-freelancers
+                                  :fn-key :ethlance-search/search-freelancers
+                                  :load-dispatch-key :contract.db/load-users
+                                  :fields (set/union (set/difference ethlance-db/freelancer-entity-fields
+                                                                     #{:freelancer/description})
+                                                     ethlance-db/user-entity-fields)
+                                  :args (merge args {:search/seed (calculate-search-seed args (:on-load-seed db))
+                                                     :search/min-hourly-rates min-hourly-rates
+                                                     :search/max-hourly-rates max-hourly-rates})
+                                  :keep-items? true}]})))
 
 (reg-event-fx
   :contract.views/load-my-users
@@ -854,7 +892,8 @@
                                     :load-dispatch-key :contract.db/load-users
                                     :load-dispatch-opts {:dispatch-after-loaded [:my-users-loaded]}
                                     :fields (-> ethlance-db/account-entitiy-fields
-                                              (set/difference #{:freelancer/description :employer/description})
+                                              (set/difference #{:freelancer/description :employer/description
+                                                                :user/github :user/linkedin})
                                               (set/union #{:user/email}))
                                     :args {:user/addresses addrs}}]}))))
 
@@ -991,6 +1030,14 @@
                  :form-key :form.job/add-job
                  :receipt-dispatch-n [[:snackbar/show-message "Job has been successfully created"]
                                       [:location/set-hash :employer/jobs]]}]}))
+
+(reg-event-fx
+  :form.job.add-job/set-budget-enabled?
+  interceptors
+  (fn [{:keys [db]} [budget-enabled?]]
+    {:db (-> db
+           (assoc-in [:form.job/add-job :budget-enabled?] budget-enabled?)
+           (assoc-in [:form.job/add-job :data :job/budget] 0))}))
 
 (reg-event-fx
   :contract.job/set-hiring-done
@@ -1172,6 +1219,18 @@
                  :form-key :form.invoice/add-invoice
                  :receipt-dispatch-n [[:snackbar/show-message "Invoice has been successfully created"]
                                       [:location/set-hash :freelancer/invoices]]}]}))
+
+(reg-event-fx
+  :form.invoice/add-invoice-localstorage
+  [interceptors (inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [contract-id field-key value validator]]
+    (let [new-db (assoc-in db [:form.invoice/add-invoice-localstorage contract-id field-key] value)]
+      {:db new-db
+       :localstorage (update localstorage
+                             :form.invoice/add-invoice-localstorage
+                             merge
+                             (:form.invoice/add-invoice-localstorage new-db))
+       :dispatch [:form/set-value :form.invoice/add-invoice field-key value validator]})))
 
 (reg-event-fx
   :contract.invoice/pay-invoice
@@ -1771,7 +1830,7 @@
   (dispatch [:contract/call :ethlance-db :get-address-value (u/sha3 :user/address 1)])
   (dispatch [:contract/call :ethlance-db :get-bytes32-value (u/sha3 :user/name 1)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :freelancer/hourly-rate 1)])
-  (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :user/email 2)])
+  (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :user/name 58)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :contract/freelancer+job 1 1)])
 
   (dispatch [:contract/call :ethlance-user :diff #{10 11 12} #{1 2 3 4 5 6}])
@@ -1784,7 +1843,10 @@
   (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
 
   (get-entities [1] [:invoice/amount] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error %]))
-  (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log]) #(dispatch [:log-error]))
+  (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error]))
+  (get-entities [23] [:job/budget :job/reference-currency] (get-ethlance-db)
+                #(dispatch [:log %])
+                #(dispatch [:log-error]))
   (get-entities-field-items {5 10} :skill/freelancers
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
 
@@ -1847,6 +1909,7 @@
                                            :search/estimated-durations [1 2 3 4]
                                            :search/hours-per-weeks [1 2]
                                            :search/min-budget 0
+                                           :search/min-budget-currency 0
                                            :search/min-employer-avg-rating 0
                                            :search/min-employer-ratings-count 0
                                            :search/country 0

@@ -55,6 +55,14 @@
 (defn my-contract? [active-user-id {:keys [:contract/freelancer]}]
   (= active-user-id (:user/id freelancer)))
 
+(defn job-proposals-header []
+  (let [job (subscribe [:job/detail])]
+    (fn []
+      [:div
+       {:style (merge styles/margin-top-gutter-less
+                      styles/fade-text)}
+       "Bids for this job are fixed to " (u/currency-full-name (:job/reference-currency @job))])))
+
 (defn job-proposals []
   (let [active-user-id (subscribe [:db/active-user-id])
         xs-width (subscribe [:window/xs-width?])]
@@ -74,10 +82,12 @@
                                        :proposal/rate
                                        :proposal/created-on
                                        :invitation/created-on
-                                       :contract/status}
+                                       :contract/status
+                                       :contract/job}
                              :args {:job/id job-id :contract/status 0}}
           :all-ids-subscribe [:list/ids :list/job-proposals]
           :title "Proposals"
+          :header job-proposals-header
           :no-items-text "No proposals for this job"}]))))
 
 (defn create-proposal-allowed? [{:keys [:contract/status]}]
@@ -131,11 +141,12 @@
              [job-action-buttons @contract form-open?]]]
            (when (and @form-open? (create-proposal-allowed? @contract))
              [:div
-              [misc/ether-field
-               {:floating-label-text (str (constants/payment-types (:job/payment-type @job)) " Rate (Ether)")
+              [misc/ether-field-with-currency
+               {:floating-label-text (str (constants/payment-types (:job/payment-type @job)))
                 :value rate
                 :form-key :form.contract/add-proposal
-                :field-key :proposal/rate}]
+                :field-key :proposal/rate
+                :currency (:job/reference-currency @job)}]
               [misc/textarea
                {:floating-label-text "Proposal Text"
                 :form-key :form.contract/add-proposal
@@ -160,7 +171,7 @@
                     :job/experience-level :job/hours-per-week :job/created-on
                     :job/description :job/budget :job/skills :job/category
                     :job/status :job/hiring-done-on :job/freelancers-needed
-                    :job/employer]} @job]
+                    :job/employer :job/reference-currency]} @job]
         [misc/call-on-change
          {:load-on-mount? true
           :args @job-id
@@ -185,7 +196,7 @@
               [misc/status-chip
                {:background-color (styles/job-payment-type-colors payment-type)
                 :style styles/job-status-chip}
-               (constants/payment-types payment-type) " Rate"]
+               (constants/payment-types payment-type)]
               [misc/status-chip
                {:background-color (styles/job-estimation-duration-colors estimated-duration)
                 :style styles/job-status-chip}
@@ -202,7 +213,7 @@
                 [misc/status-chip
                  {:background-color styles/budget-chip-color
                   :style styles/job-status-chip}
-                 "Budget " [currency budget]])]
+                 "Budget " [currency budget {:value-currency reference-currency}]])]
              [misc/long-text
               description]
              [misc/subheader "Required Skills"]

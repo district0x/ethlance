@@ -22,6 +22,7 @@ contract EthlanceSearch {
         uint8[] experienceLevels,
         uint8[] estimatedDurations,
         uint8[] hoursPerWeeks,
+        uint[] minBudgets,
         uint[] uintArgs
     )
         constant public returns (uint[] jobIds)
@@ -31,9 +32,9 @@ contract EthlanceSearch {
         uint8Filters[1] = experienceLevels;
         uint8Filters[2] = estimatedDurations;
         uint8Filters[3] = hoursPerWeeks;
-        jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, uintArgs);
-        jobIds = SharedLibrary.findTopNValues(jobIds, uintArgs[6] + uintArgs[7]);
-        return SharedLibrary.getPage(jobIds, uintArgs[6], uintArgs[7], false);
+        jobIds = JobLibrary.searchJobs(ethlanceDB, categoryId, skills, uint8Filters, minBudgets, uintArgs);
+        jobIds = SharedLibrary.findTopNValues(jobIds, uintArgs[5] + uintArgs[6]);
+        return SharedLibrary.getPage(jobIds, uintArgs[5], uintArgs[6], false);
     }
 
     function searchFreelancers(
@@ -41,8 +42,8 @@ contract EthlanceSearch {
         uint[] skills,
         uint8 minAvgRating,
         uint minRatingsCount,
-        uint minHourlyRate,
-        uint maxHourlyRate,
+        uint[] minHourlyRates,
+        uint[] maxHourlyRates,
         uint countryId,
         uint stateId,
         uint languageId,
@@ -55,7 +56,7 @@ contract EthlanceSearch {
         uint[] userIds)
     {
         userIds = UserLibrary.searchFreelancers(ethlanceDB, categoryId, skills, minAvgRating, minRatingsCount,
-            minHourlyRate, maxHourlyRate, countryId, stateId, languageId);
+            minHourlyRates, maxHourlyRates, countryId, stateId, languageId);
         if (userIds.length > 0) {
             if (offset > userIds.length) {
                 return SharedLibrary.take(0, userIds);
