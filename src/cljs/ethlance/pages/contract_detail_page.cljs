@@ -70,6 +70,19 @@
         [italic-description italic-text]
         description]])))
 
+(defn contract-cancelled-detail [{:keys [:contract/cancelled-on :contract/cancel-description
+                                         :contract/freelancer] :as contract}]
+  (when cancelled-on
+    (let [italic-text (gstring/format "%s cancelled this contract"
+                                      (freelancer-first-name contract))]
+      [message-bubble
+       {:side :left
+        :user freelancer
+        :date cancelled-on}
+       [:div
+        [italic-description italic-text]
+        cancel-description]])))
+
 (defn invoices-link [{:keys [:contract/id :contract/invoices-count :contract/created-on]
                       :as contract}]
   (when created-on
@@ -150,31 +163,68 @@
             {:disabled (or loading? (boolean (seq errors)))
              :on-touch-tap #(dispatch [:contract.contract/add-contract (merge data {:contract/id id})])}]])))))
 
+(defn cancel-contract-form []
+  (let [contract (subscribe [:contract/detail])
+        active-user-id (subscribe [:db/active-user-id])
+        form (subscribe [:form.contract/cancel-contract])]
+    (fn []
+      (let [{:keys [:contract/status :contract/id :contract/freelancer :contract/invoices-count]} @contract
+            {:keys [:loading? :errors :data]} @form
+            {:keys [:contract/cancel-description]} data]
+        (when (and (= status 3)
+                   (zero? invoices-count)
+                   (= (:user/id freelancer) @active-user-id))
+          [paper
+           {:loading? loading?}
+           [:h2 "Cancel Contract"]
+           [:div {:style (merge styles/fade-text styles/margin-top-gutter-less)}
+            "You can cancel this contract in case you decided for another job or you can't start work for other reasons."
+            [:br] "After you create at least 1 invoice for this contract, this option won't be available anymore."]
+           [misc/textarea
+            {:floating-label-text "Message"
+             :form-key :form.contract/cancel-contract
+             :field-key :contract/cancel-description
+             :max-length-key :max-contract-desc
+             :min-length-key :min-contract-desc
+             :hint-text misc/privacy-warning-hint
+             :value cancel-description}]
+           [misc/send-button
+            {:disabled (or loading? (boolean (seq errors)))
+             :on-touch-tap #(dispatch [:contract.contract/cancel-contract (merge data {:contract/id id})])}]])))))
+
 (defn add-feedback-form []
   (let [contract (subscribe [:contract/detail])
         active-user-id (subscribe [:db/active-user-id])
         form (subscribe [:form.contract/add-feedback])]
     (fn []
       (let [{:keys [:contract/status :contract/job :contract/id :contract/freelancer
-                    :contract/employer-feedback-on :contract/freelancer-feedback-on]} @contract
+                    :contract/employer-feedback-on :contract/freelancer-feedback-on :contract/invoices-count]} @contract
             {:keys [:job/employer]} job
             {:keys [:loading? :errors :data]} @form
-            {:keys [:contract/feedback :contract/feedback-rating]} data]
+            {:keys [:contract/feedback :contract/feedback-rating]} data
+            employer? (= (:user/id employer) @active-user-id)]
         (when (and (or (= status 3)
                        (= status 4))
-                   (or (and (= (:user/id employer) @active-user-id)
+                   (or (and employer?
                             (not employer-feedback-on))
                        (and (= (:user/id freelancer) @active-user-id)
-                            (not freelancer-feedback-on))))
+                            (not freelancer-feedback-on)
+                            (pos? invoices-count))))
           [paper
            {:loading? loading?}
            [:h2 "Leave Feedback"]
-           [star-rating
-            {:star-count 10
-             :value (u/rating->star feedback-rating)
-             :on-star-click #(dispatch [:form/set-value :form.contract/add-feedback :contract/feedback-rating
-                                        (u/star->rating %1)])
-             :style styles/form-item}]
+           [row-plain
+            {:bottom "xs"}
+            [star-rating
+             {:star-count 10
+              :value (u/rating->star feedback-rating)
+              :on-star-click #(dispatch [:form/set-value :form.contract/add-feedback :contract/feedback-rating
+                                         (u/star->rating %1)])
+              :style (merge styles/form-item
+                            {:display :inline-block})}]
+            [:span
+             {:style styles/feedback-form-star-numbers}
+             (u/rating->star feedback-rating) "/5"]]
            [misc/textarea
             {:floating-label-text "Feedback"
              :form-key :form.contract/add-feedback
@@ -184,9 +234,13 @@
              :value feedback}]
            (when (= status 3)
              [:div {:style styles/form-item}
-              "Note, by leaving feedback you will end this contract. That means no more invoices can be sent."])
+              (if (and (zero? invoices-count) employer?)
+                "You will be able to leave feedback only after freelancer sends you at least 1 invoice"
+                "Note, by leaving feedback you will end this contract. That means no more invoices can be sent.")])
            [misc/send-button
-            {:disabled (or loading? (boolean (seq errors)))
+            {:disabled (or loading?
+                           (boolean (seq errors))
+                           (and employer? (zero? invoices-count)))
              :on-touch-tap #(dispatch [:contract.contract/add-feedback (merge data {:contract/id id})])}]])))))
 
 (defn contract-detail-page []
@@ -223,6 +277,7 @@
               [invitation-detail @contract]
               [proposal-detail @contract]
               [contract-detail @contract]
+              [contract-cancelled-detail @contract]
               [invoices-link @contract]
               (if done-by-freelancer?
                 [:div
@@ -231,5 +286,8 @@
                 [:div
                  [employer-feedback @contract]
                  [freelancer-feedback @contract]])])]
-          [add-contract-form]
-          [add-feedback-form]]]))))
+          (when (:user/name employer)
+            [:div
+             [add-contract-form]
+             [cancel-contract-form]
+             [add-feedback-form]])]]))))

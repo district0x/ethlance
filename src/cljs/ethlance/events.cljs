@@ -234,7 +234,7 @@
          :dispatch-interval {:dispatch [:load-conversion-rates]
                              :ms 180000
                              :db-path [:load-all-conversion-rates-interval]}}
-        (if (or provides-web3? (:devnet? default-db))
+        (if (or provides-web3? (:load-node-addresses? default-db))
           {:web3-fx.blockchain/fns
            {:web3 web3
             :fns [[web3-eth/accounts :blockchain/my-addresses-loaded [:blockchain/on-error :initialize]]]}}
@@ -1163,6 +1163,20 @@
                                     [(:contract/id form-data)]]}]}))
 
 (reg-event-fx
+  :contract.contract/cancel-contract
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-contract/cancel-job-contract
+                 :form-key :form.contract/cancel-contract
+                 :receipt-dispatch [:contract.db/load-contracts #{:contract/cancel-description
+                                                                  :contract/cancelled-on
+                                                                  :contract/status}
+                                    [(:contract/id form-data)]]}]}))
+
+(reg-event-fx
   :contract.contract/add-feedback
   interceptors
   (fn [{:keys [db]} [form-data address]]
@@ -1343,6 +1357,8 @@
                     :contract.contract/on-job-proposal-added [:log-error :on-job-proposal-added]]
                    [contract-instance :on-job-contract-added {:freelancer-id user-id} "latest"
                     :contract.contract/on-job-contract-added [:log-error :on-job-contract-added]]
+                   [contract-instance :on-job-contract-cancelled {:employer-id user-id} "latest"
+                    :contract.contract/on-job-contract-cancelled [:log-error :on-job-contract-cancelled]]
                    [contract-instance :on-job-contract-feedback-added {:receiver-id user-id} "latest"
                     :contract.contract/on-job-contract-feedback-added [:log-error :on-job-contract-feedback-added]]
                    [contract-instance :on-job-invitation-added {:freelancer-id user-id} "latest"
@@ -1367,6 +1383,13 @@
   (fn [{:keys [db]} [{:keys [:contract-id]}]]
     {:dispatch [:snackbar/show-message-redirect-action
                 "Your job proposal was accepted!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+
+(reg-event-fx
+  :contract.contract/on-job-contract-cancelled
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:contract-id]}]]
+    {:dispatch [:snackbar/show-message-redirect-action
+                "A freelancer just cancelled your contract" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
 
 (reg-event-fx
   :contract.contract/on-job-contract-feedback-added

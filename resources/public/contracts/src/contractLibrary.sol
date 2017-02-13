@@ -9,7 +9,7 @@ import "invoiceLibrary.sol";
 library ContractLibrary {
 
     //    status:
-    //    1: invited, 2: pending proposal, 3: accepted, 4: finished
+    //    1: invited, 2: pending proposal, 3: accepted, 4: finished, 5: cancelled
 
     function addInvitation(
         address db,
@@ -97,6 +97,23 @@ library ContractLibrary {
         }
     }
 
+    function cancelContract(
+        address db,
+        uint senderId,
+        uint contractId,
+        string description
+    )
+        internal
+    {
+        var freelancerId = getFreelancer(db, contractId);
+        if (senderId != freelancerId) throw;
+        if (getStatus(db, contractId) != 3) throw;
+        if (getInvoicesCount(db, contractId) > 0) throw;
+        EthlanceDB(db).setUIntValue(sha3("contract/cancelled-on", contractId), now);
+        EthlanceDB(db).setStringValue(sha3("contract/cancel-description", contractId), description);
+        setStatus(db, contractId, 5);
+    }
+
     function addFeedback(address db, uint contractId, uint senderId, string feedback, uint8 rating) internal {
         var freelancerId = getFreelancer(db, contractId);
         var employerId = getEmployer(db, contractId);
@@ -105,6 +122,7 @@ library ContractLibrary {
         if (senderId != freelancerId && senderId != employerId) throw;
         if ((status != 3) && (status != 4)) throw;
         if (JobLibrary.getStatus(db, jobId) == 3) throw;
+        if (getInvoicesCount(db, contractId) == 0) throw;
 
         if (status == 3) {
             setStatus(db, contractId, 4);

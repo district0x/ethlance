@@ -365,7 +365,8 @@
               (= (get-in contract [:contract/job :job/employer :user/id]) active-user-id))
     (merge contract {:invitation/description ""
                      :proposal/description ""
-                     :contract/description ""})
+                     :contract/description ""
+                     :contract/cancel-description ""})
     contract))
 
 (defn contract-id->contract [contract-id contracts jobs users blockchain-addresses]
@@ -526,6 +527,11 @@
   :form.contract/add-contract
   (fn [db]
     (:form.contract/add-contract db)))
+
+(reg-sub
+  :form.contract/cancel-contract
+  (fn [db]
+    (:form.contract/cancel-contract db)))
 
 (reg-sub
   :form.contract/add-feedback

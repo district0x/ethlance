@@ -16,7 +16,7 @@ solc --optimize --bin --abi ethlanceInvoice.sol -o ../build/
 solc --optimize --bin --abi ethlanceConfig.sol -o ../build/
 solc --optimize --bin --abi ethlanceViews.sol -o ../build/
 solc --optimize --bin --abi ethlanceSearch.sol -o ../build/
-solc --optimize --bin --abi ethlanceDB.sol -o ../build/
+#solc --optimize --bin --abi ethlanceDB.sol -o ../build/
 wc -c ../build/EthlanceUser.bin | awk '{print "EthlanceUser: " $1}'
 wc -c ../build/EthlanceJob.bin | awk '{print "EthlanceJob: " $1}'
 wc -c ../build/EthlanceContract.bin | awk '{print "EthlanceContract: " $1}'

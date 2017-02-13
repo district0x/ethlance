@@ -9,6 +9,7 @@ contract EthlanceContract is EthlanceSetter {
 
     event onJobProposalAdded(uint contractId, uint indexed employerId, uint freelancerId);
     event onJobContractAdded(uint contractId, uint employerId, uint indexed freelancerId);
+    event onJobContractCancelled(uint contractId, uint indexed employerId, uint freelancerId);
     event onJobContractFeedbackAdded(uint contractId, uint indexed receiverId, uint senderId, bool isSenderFreelancer);
     event onJobInvitationAdded(uint jobId, uint contractId, uint indexed freelancerId);
 
@@ -30,6 +31,20 @@ contract EthlanceContract is EthlanceSetter {
         ContractLibrary.addContract(ethlanceDB, employerId, contractId, description, isHiringDone);
         var freelancerId = ContractLibrary.getFreelancer(ethlanceDB, contractId);
         onJobContractAdded(contractId, employerId, freelancerId);
+    }
+
+    function cancelJobContract(
+        uint contractId,
+        string description
+    )
+        onlyActiveSmartContract
+        onlyActiveFreelancer
+    {
+        if (description.toSlice().len() > getConfig("max-contract-desc")) throw;
+        var freelancerId = getSenderUserId();
+        ContractLibrary.cancelContract(ethlanceDB, freelancerId, contractId, description);
+        var employerId = ContractLibrary.getEmployer(ethlanceDB, contractId);
+        onJobContractCancelled(contractId, employerId, freelancerId);
     }
 
     function addJobContractFeedback(

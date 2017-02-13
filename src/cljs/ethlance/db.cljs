@@ -6,7 +6,7 @@
             [ethlance.utils :as u]
             [re-frame.core :refer [dispatch]]))
 
-(s/def ::devnet? boolean?)
+(s/def ::load-node-addresses? boolean?)
 (s/def ::active-setters? boolean?)
 (s/def ::web3 (complement nil?))
 (s/def ::node-url string?)
@@ -179,6 +179,8 @@
 (s/def :contract/description u/string-or-nil?)
 (s/def :contract/done-by-freelancer? boolean?)
 (s/def :contract/done-on u/date-or-nil?)
+(s/def :contract/cancelled-on u/date-or-nil?)
+(s/def :contract/cancel-description u/string-or-nil?)
 (s/def :contract/freelancer u/uint?)
 (s/def :contract/invoices u/uint-coll?)
 (s/def :contract/invoices-count u/uint?)
@@ -200,22 +202,24 @@
                                    :proposal/created-on
                                    :proposal/description
                                    :proposal/rate
+                                   :contract/cancel-description
+                                   :contract/cancelled-on
                                    :contract/created-on
                                    :contract/description
                                    :contract/done-by-freelancer?
                                    :contract/done-on
+                                   :contract/employer-feedback
+                                   :contract/employer-feedback-on
+                                   :contract/employer-feedback-rating
                                    :contract/freelancer
+                                   :contract/freelancer-feedback
+                                   :contract/freelancer-feedback-on
                                    :contract/invoices
                                    :contract/invoices-count
                                    :contract/job
                                    :contract/status
                                    :contract/total-invoiced
                                    :contract/total-paid
-                                   :contract/employer-feedback
-                                   :contract/employer-feedback-on
-                                   :contract/employer-feedback-rating
-                                   :contract/freelancer-feedback
-                                   :contract/freelancer-feedback-on
                                    :contract/freelancer-feedback-rating]))
 
 (s/def :app/contracts (s/map-of pos? :app/contract))
@@ -308,6 +312,7 @@
 (s/def :list/freelancer-contracts ::ids-list)
 (s/def :list/freelancer-contracts-open ::ids-list)
 (s/def :list/freelancer-contracts-done ::ids-list)
+(s/def :list/freelancer-contracts-cancelled ::ids-list)
 (s/def :list/employer-jobs-open ::ids-list)
 (s/def :list/employer-jobs-done ::ids-list)
 (s/def :list/employer-jobs ::ids-list)
@@ -354,6 +359,7 @@
 (s/def :form.contract/add-invitation ::submit-form)
 (s/def :form.contract/add-proposal ::submit-form)
 (s/def :form.contract/add-contract ::submit-form)
+(s/def :form.contract/cancel-contract ::submit-form)
 (s/def :form.contract/add-feedback ::submit-form)
 (s/def :form.invoice/add-invoice ::submit-form)
 (s/def :form.config/add-skills ::submit-form)
@@ -368,7 +374,7 @@
 
 (s/def :form.invoice/add-invoice-localstorage (s/map-of pos? (s/map-of keyword? any?)))
 
-(s/def ::db (s/keys :req-un [::devnet? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
+(s/def ::db (s/keys :req-un [::load-node-addresses? ::node-url ::web3 ::active-page ::provides-web3? ::contracts-not-found?
                              ::drawer-open? ::search-freelancers-filter-open?
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
                              ::my-users-loaded? ::conversion-rates ::conversion-rates-historical
@@ -377,9 +383,9 @@
 
 
 (def default-db
-  {:devnet? false
-   :web3 nil
-   :node-url "https://mainnet.infura.io/" #_ "http://localhost:8545" #_"http://localhost:8550" #_"http://localhost:8549" #_"http://192.168.0.16:8545/"
+  {:web3 nil
+   :load-node-addresses? false
+   :node-url "https://mainnet.infura.io/" #_"http://localhost:8545" #_ "http://localhost:8549" #_"http://192.168.0.16:8545/" #_"http://localhost:8550"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -422,7 +428,7 @@
    :active-setters? true
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0x6c9a60215c8c84797b4559f6bea7a3ec962a9eee"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x4a5ae608f7558a00e074224d5eb7ca34b6ddfa19"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x12f4abc6c7ae413618d348bfdc855bca8654037d"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
@@ -464,6 +470,7 @@
    :list/freelancer-contracts {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/freelancer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/freelancer-contracts-cancelled {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-jobs {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
@@ -507,10 +514,15 @@
                                        :contract/hiring-done? false}
                                 :errors #{}}
 
+   :form.contract/cancel-contract {:loading? false
+                                   :gas-limit 200000
+                                   :data {:contract/cancel-description ""}
+                                   :errors #{}}
+
    :form.contract/add-feedback {:loading? false
                                 :gas-limit 550000
                                 :data {:contract/feedback ""
-                                       :contract/feedback-rating 0}
+                                       :contract/feedback-rating 100}
                                 :errors #{:contract/feedback}}
 
    :form.invoice/add-invoice {:loading? false

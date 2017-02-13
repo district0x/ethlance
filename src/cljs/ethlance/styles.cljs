@@ -291,7 +291,7 @@
 
 (def job-status-colors
   {1 success-color
-   2 danger-color})
+   2 (color :red800)})
 
 (def job-payment-type-colors
   {1 (color :blue500)
@@ -317,7 +317,8 @@
   {1 (color :deep-purple300)
    2 pending-color
    3 success-color
-   4 (color :red800)})
+   4 (color :red800)
+   5 (color :grey500)})
 
 (def invoice-status-colors
   {1 pending-color
@@ -536,3 +537,8 @@
    :margin-left 5
    :margin-bottom 9
    :font-weight 300})
+
+(def feedback-form-star-numbers
+  {:font-size "1.1em"
+   :margin-bottom 5
+   :margin-left 5})

@@ -82,6 +82,25 @@
         :title "Past Contracts"
         :no-items-text "You have no past contracts"}])))
 
+(defn freelancer-contracts-cancelled []
+  (let [xs-width? (subscribe [:window/xs-width?])]
+    (fn [{:keys [:user/id]}]
+      [contracts-table
+       {:list-subscribe [:list/contracts :list/freelancer-contracts-cancelled]
+        :show-created-on? true
+        :show-cancelled-on? true
+        :show-job? true
+        :initial-dispatch {:list-key :list/freelancer-contracts-cancelled
+                           :fn-key :ethlance-views/get-freelancer-contracts
+                           :load-dispatch-key :contract.db/load-contracts
+                           :fields #{:contract/job
+                                     :contract/created-on
+                                     :contract/cancelled-on}
+                           :args {:user/id id :contract/status 5 :job/status 0}}
+        :all-ids-subscribe [:list/ids :list/freelancer-contracts-cancelled]
+        :title "Cancelled Contracts"
+        :no-items-text "You have no cancelled contracts"}])))
+
 (defn freelancer-contracts-page []
   (let [user (subscribe [:db/active-user])]
     (fn []
@@ -91,4 +110,5 @@
          [freelancer-invitations @user]
          [freelancer-proposals @user]
          [freelancer-contracts-open @user]
-         [freelancer-contracts-done @user]]]])))
+         [freelancer-contracts-done @user]
+         [freelancer-contracts-cancelled @user]]]])))

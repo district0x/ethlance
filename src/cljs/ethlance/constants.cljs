@@ -1,7 +1,7 @@
 (ns ethlance.constants
   (:require [clojure.tools.reader :as reader]))
 
-(def contracts-version "1.0.5")
+(def contracts-version "1.0.6")
 (def skills-version "1.1")
 (def list-limit 8)
 
@@ -65,7 +65,8 @@
   {1 "Invited"
    2 "Pending"
    3 "Hired"
-   4 "Finished"})
+   4 "Finished"
+   5 "Cancelled"})
 
 (def payment-types
   {1 "Hourly rate"

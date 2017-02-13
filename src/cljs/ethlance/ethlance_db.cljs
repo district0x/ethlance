@@ -59,7 +59,9 @@
              freelancer-feedback-entity-fields
              #{:contract/freelancer
                :contract/job
-               :contract/done-by-freelancer?}))
+               :contract/done-by-freelancer?
+               :contract/cancelled-on
+               :contract/cancel-description}))
 
 (def invoice-entity-fields (set/difference (spec-form->entity-fields :app/invoice) #{:invoice/id}))
 
@@ -140,6 +142,9 @@
 (def add-job-contract-args
   [:contract/id :contract/description :contract/hiring-done?])
 
+(def cancel-job-contract-args
+  [:contract/id :contract/cancel-description])
+
 (def add-job-contract-feedback-args
   [:contract/id :contract/feedback :contract/feedback-rating])
 
@@ -215,6 +220,7 @@
    :ethlance-contract/add-job-contract-feedback add-job-contract-feedback-args
    :ethlance-contract/add-job-invitation add-job-invitation-args
    :ethlance-contract/add-job-proposal add-job-proposal-args
+   :ethlance-contract/cancel-job-contract cancel-job-contract-args
    :ethlance-contract/set-smart-contract-status set-smart-contract-status-args
    :ethlance-invoice/add-invoice (conj add-invoice-args add-invoice-nested-args)
    :ethlance-invoice/cancel-invoice cancel-invoice-args
