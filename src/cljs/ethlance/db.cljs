@@ -427,7 +427,7 @@
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x6c9a60215c8c84797b4559f6bea7a3ec962a9eee"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x3d3bb143a6ee72deb9646c14b403ccc3f6e3c2c8"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x12f4abc6c7ae413618d348bfdc855bca8654037d"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}

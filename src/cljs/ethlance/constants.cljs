@@ -1,7 +1,7 @@
 (ns ethlance.constants
   (:require [clojure.tools.reader :as reader]))
 
-(def contracts-version "1.0.6")
+(def contracts-version "1.0.7")
 (def skills-version "1.1")
 (def list-limit 8)
 
