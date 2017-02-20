@@ -64,6 +64,8 @@
                                          (get-form-default-errors :form.user/register-employer :employer)
                                          #{})])
                             (dispatch [:contract.db/load-user-languages {user-id @active-user}])
+                            (dispatch [:after-eth-contracts-loaded
+                                       [:contract.db/load-users #{:user/linkedin :user/github} [user-id]]])
                             (when employer?
                               (dispatch [:after-eth-contracts-loaded
                                          [:contract.db/load-users employer-fields [user-id]]]))
