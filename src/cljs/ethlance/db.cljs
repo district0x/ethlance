@@ -435,6 +435,7 @@
                    :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}
                    :ethlance-search {:name "EthlanceSearch" :address "0x8c8cf5f0fe7ce048baa9573278c4b44b7a8646e4"}}
    :my-addresses []
+   :my-addresses-forced []
    :active-address nil
    :active-user-events nil
    :my-users-loaded? false

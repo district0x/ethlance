@@ -141,7 +141,7 @@
              [user-anchor
               {:user @active-user}
               [:h3.bolder {:style styles/app-bar-user}
-               (u/first-word (:user/name @active-user))]]
+               (u/butlast-word (:user/name @active-user))]]
              [user-anchor
               {:user @active-user}
               [ui/avatar

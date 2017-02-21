@@ -351,6 +351,13 @@
   (memoize (fn [x]
              (first (string/split x #" ")))))
 
+(def butlast-word
+  (memoize (fn [x]
+             (let [words (string/split x #" ")]
+               (if (> (count words) 1)
+                 (string/join " " (butlast words))
+                 x)))))
+
 (defn sort-by-desc [key-fn coll]
   (sort-by key-fn #(compare %2 %1) coll))
 

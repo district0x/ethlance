@@ -415,7 +415,8 @@
   :blockchain/my-addresses-loaded
   [interceptors (inject-cofx :localstorage)]
   (fn [{:keys [db localstorage]} [addresses]]
-    (let [addresses-map (reduce #(assoc %1 %2 {:address %2}) {} addresses)
+    (let [addresses (if (seq (:my-addresses-forced db)) (:my-addresses-forced db) addresses)
+          addresses-map (reduce #(assoc %1 %2 {:address %2}) {} addresses)
           active-address (if (contains? (set addresses) (:active-address localstorage))
                            (:active-address localstorage)
                            (first addresses))]

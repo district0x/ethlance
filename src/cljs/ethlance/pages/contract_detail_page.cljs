@@ -17,10 +17,10 @@
   (get-in contract [:contract/job :job/employer]))
 
 (defn employer-first-name [contract]
-  (u/first-word (:user/name (get-employer contract))))
+  (u/butlast-word (:user/name (get-employer contract))))
 
 (defn freelancer-first-name [contract]
-  (u/first-word (:user/name (:contract/freelancer contract))))
+  (u/butlast-word (:user/name (:contract/freelancer contract))))
 
 (defn italic-description [text]
   [:div
