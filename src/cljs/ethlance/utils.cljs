@@ -10,6 +10,7 @@
     [cljs-time.format :as time-format]
     [cljs-web3.core :as web3]
     [cljs.reader :as reader]
+    [cljsjs.solidity-sha3]
     [clojure.core.async :refer [chan <! >!]]
     [clojure.data :as data]
     [clojure.string :as string]
@@ -128,7 +129,7 @@
        (str (subs string 0 (- length suffix-len)) suffix)))))
 
 (defn sha3 [& args]
-  (apply (aget js/SoliditySha3 "sha3") (map #(if (keyword? %) (ns+name %) %) args)))
+  (apply js/SoliditySha3.sha3 (map #(if (keyword? %) (ns+name %) %) args)))
 
 (defn big-num->num [x]
   (if (and x (aget x "toNumber"))

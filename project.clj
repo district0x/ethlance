@@ -13,6 +13,7 @@
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-truncate "2.0.3-0"]
                  [cljsjs/react-ultimate-pagination "0.8.0-0" :exclusions [cljsjs/react cljsjs/react-dom]]
+                 [cljsjs/solidity-sha3 "0.4.1-0"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [com.cemerick/url "0.1.1"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
