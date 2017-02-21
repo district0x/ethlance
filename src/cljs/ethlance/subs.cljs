@@ -574,7 +574,10 @@
   :<- [:db/active-user]
   (fn [[db active-user]]
     (-> (:form.user/set-user db)
-      (update :data (partial merge (select-keys active-user ethlance-db/set-user-args))))))
+      (update :data (partial merge (-> active-user
+                                     (select-keys ethlance-db/set-user-args)
+                                     (update :user/github #(or % "")) ; backward compatibility
+                                     (update :user/linkedin #(or % ""))))))))
 
 (reg-sub
   :form.user/set-freelancer
