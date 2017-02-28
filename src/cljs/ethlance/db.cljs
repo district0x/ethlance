@@ -313,6 +313,12 @@
 (s/def :list/freelancer-contracts-open ::ids-list)
 (s/def :list/freelancer-contracts-done ::ids-list)
 (s/def :list/freelancer-contracts-cancelled ::ids-list)
+(s/def :list/employer-invitations ::ids-list)
+(s/def :list/employer-proposals ::ids-list)
+(s/def :list/employer-contracts ::ids-list)
+(s/def :list/employer-contracts-open ::ids-list)
+(s/def :list/employer-contracts-done ::ids-list)
+(s/def :list/employer-contracts-cancelled ::ids-list)
 (s/def :list/employer-jobs-open ::ids-list)
 (s/def :list/employer-jobs-done ::ids-list)
 (s/def :list/employer-jobs ::ids-list)
@@ -472,6 +478,12 @@
    :list/freelancer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/freelancer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/freelancer-contracts-cancelled {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-invitations {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-proposals {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-contracts {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-contracts-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-contracts-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
+   :list/employer-contracts-cancelled {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-jobs-open {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-jobs-done {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-jobs {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}

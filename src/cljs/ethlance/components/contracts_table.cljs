@@ -15,7 +15,7 @@
   (let [xs-width? (subscribe [:window/xs-width?])]
     (fn [{:keys [:show-invitation? :show-proposal? :show-created-on? show-done-on?
                  :show-employer? :show-rate? :show-total-paid? :show-status? :show-freelancer?
-                 :show-invitation-or-proposal-time? :show-job? :show-cancelled-on?
+                 :show-invitation-or-proposal-time? :show-job? :show-cancelled-on? :show-total-spent?
                  :no-items-text :initial-dispatch :all-ids-subscribe :highlight-row-pred]}
          {:keys [items offset limit loading?]}]
       (let [xs? @xs-width?]
@@ -34,6 +34,8 @@
              [ui/table-header-column "Time"])
            (when show-total-paid?
              [ui/table-header-column "Total Earned"])
+           (when show-total-spent?
+             [ui/table-header-column "Total Spent"])
            (when show-invitation?
              [ui/table-header-column "Invited"])
            (when show-proposal?
@@ -85,7 +87,7 @@
                     (if (= status 1)
                       (u/time-ago (:invitation/created-on item))
                       (u/time-ago (:proposal/created-on item)))])
-                 (when show-total-paid?
+                 (when (or show-total-paid? show-total-spent?)
                    [ui/table-row-column
                     [currency total-paid]])
                  (when show-invitation?

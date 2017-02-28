@@ -11,6 +11,7 @@
     [ethlance.pages.about-page :refer [about-page]]
     [ethlance.pages.contract-detail-page :refer [contract-detail-page]]
     [ethlance.pages.contract-invoices-page :refer [contract-invoices-page]]
+    [ethlance.pages.employer-contracts-page :refer [employer-contracts-page]]
     [ethlance.pages.employer-create-page :refer [employer-create-page]]
     [ethlance.pages.employer-detail-page :refer [employer-detail-page]]
     [ethlance.pages.employer-invoices-page :refer [employer-invoices-page]]
@@ -40,6 +41,7 @@
    :employer/create employer-create-page
    :employer/detail employer-detail-page
    :employer/invoices employer-invoices-page
+   :employer/contracts employer-contracts-page
    :employer/jobs employer-jobs-page
    :freelancer/contracts freelancer-contracts-page
    :freelancer/create freelancer-create-page
@@ -65,7 +67,8 @@
 
 (def nav-items-employer
   [["My Jobs" :employer/jobs (icons/work)]
-   ["Invoices" :employer/invoices (icons/clipboard-text)]])
+   ["My Contracts" :employer/contracts (icons/file-document)]
+   ["My Invoices" :employer/invoices (icons/clipboard-text)]])
 
 (def nav-items-registered
   [["My Profile" :user/edit (icons/account)]])
