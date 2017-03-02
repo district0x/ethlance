@@ -199,7 +199,8 @@
     [ui/subheader {:style styles/footer-subheader}
      "LEARN MORE"]
     [footer-link :about "About us"]
-    [footer-link :how-it-works "How it works?"]]
+    [footer-link :how-it-works "How it works?"]
+    [footer-link "https://blog.ethlance.com" "Blog"]]
    [col
     {:xs 12 :sm 4}
     [ui/subheader {:style styles/footer-subheader}

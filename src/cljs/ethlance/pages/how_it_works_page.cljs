@@ -30,7 +30,8 @@
     [:p "Obtaining Ether is very similar to obtaining " [link "https://en.wikipedia.org/wiki/Bitcoin" "Bitcoin"]
      ". Most common way is to register at one of worldwide
     cryptocurrency exchanges and they will exchange your fiat currency into cryptocurrency. Note, that exchange from
-    Bitcoin into Ether can be done directly in " [link "https://github.com/ethereum/mist" "Mist browser"] "."]
+    Bitcoin into Ether can be done directly in " [link "https://metamask.io/" "MetaMask"] " or "
+     [link "https://github.com/ethereum/mist" "Mist browser"] "."]
     [:h3.bolder "Why do I have to pay Ethereum gas fees?"]
     [:p "Everytime you'll want to change something in Ethlance database you'll be asked to pay small fee (usually couple of cents)
      called \"gas fees\". These money are used to compensate for electricity costs of computers running Ethereum blockchain.
