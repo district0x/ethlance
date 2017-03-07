@@ -243,6 +243,26 @@
     (:search/skills (:form/search-jobs db))))
 
 (reg-sub
+  :db/search-jobs-skills-open?
+  (fn [db]
+    (:search-jobs-skills-open? db)))
+
+(reg-sub
+  :db/search-freelancers-skills-open?
+  (fn [db]
+    (:search-freelancers-skills-open? db)))
+
+(reg-sub
+  :db/search-freelancers-filter-open?
+  (fn [db]
+    (:search-freelancers-filter-open? db)))
+
+(reg-sub
+  :form/search-job-skills-or
+  (fn [db]
+    (:search/skills-or (:form/search-jobs db))))
+
+(reg-sub
   :list/search-freelancers
   (fn [db]
     (let [jobs (:list/search-freelancers db)]
@@ -254,6 +274,11 @@
   :form/search-freelancer-skills
   (fn [db]
     (:search/skills (:form/search-freelancers db))))
+
+(reg-sub
+  :form/search-freelancer-skills-or
+  (fn [db]
+    (:search/skills-or (:form/search-freelancers db))))
 
 (reg-sub
   :app/skills
@@ -598,4 +623,12 @@
       (update :data (partial merge (if (:user/employer? active-user)
                                      (select-keys active-user ethlance-db/set-employer-args)
                                      (:data (:form.user/register-employer db))))))))
+
+(reg-sub
+  :form.user2/set-user-notifications
+  :<- [:db]
+  :<- [:db/active-user]
+  (fn [[db active-user]]
+    (-> (:form.user2/set-user-notifications db)
+      (update :data (partial merge (select-keys active-user (flatten ethlance-db/set-user-notifications-args)))))))
 

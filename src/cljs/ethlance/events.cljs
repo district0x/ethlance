@@ -203,6 +203,9 @@
   (update localstorage :selected-currency #(if (keyword? %) (constants/currencies-backward-comp %)
                                                             (or % (:selected-currency default-db)))))
 
+(defn assoc-search-skills-form-open [db form-key open-key]
+  (assoc db open-key (boolean (seq (get-in db [form-key :search/skills-or])))))
+
 (reg-event-fx
   :initialize
   (inject-cofx :localstorage)
@@ -217,7 +220,9 @@
                    (assoc db :provides-web3? provides-web3?)
                    (assoc db :web3 web3)
                    (assoc db :on-load-seed (rand-int 99999))
-                   (assoc db :drawer-open? (> (:window/width-size db) 2)))]
+                   (assoc db :drawer-open? (> (:window/width-size db) 2))
+                   (assoc-search-skills-form-open db :form/search-freelancers :search-freelancers-skills-open?)
+                   (assoc-search-skills-form-open db :form/search-jobs :search-jobs-skills-open?))]
       (merge
         {:db db
          :dispatch-n [[:load-conversion-rates]
@@ -691,7 +696,7 @@
        :dispatch [:contract.db/load-users #{:user/email} [user-id]]
        :location/set-hash [route {:user/id user-id}]})))
 
-(defn clear-invalid-state [form-data]
+(defn clear-invalid-country-state [form-data]
   (cond-> form-data
     (not (u/united-states? (:user/country form-data)))
     (assoc :user/state 0)))
@@ -702,7 +707,7 @@
   (fn [{:keys [db]} [form-data address]]
     (let [address (or address (:active-address db))]
       {:dispatch [:form/submit
-                  {:form-data (clear-invalid-state form-data)
+                  {:form-data (clear-invalid-country-state form-data)
                    :address address
                    :fn-key :ethlance-user/register-freelancer
                    :form-key :form.user/register-freelancer
@@ -716,7 +721,7 @@
   (fn [{:keys [db]} [form-data address]]
     (let [address (or address (:active-address db))]
       {:dispatch [:form/submit
-                  {:form-data (clear-invalid-state form-data)
+                  {:form-data (clear-invalid-country-state form-data)
                    :address address
                    :fn-key :ethlance-user/register-employer
                    :form-key :form.user/register-employer
@@ -729,7 +734,7 @@
   interceptors
   (fn [{:keys [db]} [form-data address]]
     {:dispatch [:form/submit
-                {:form-data (clear-invalid-state form-data)
+                {:form-data (clear-invalid-country-state form-data)
                  :address address
                  :fn-key :ethlance-user/set-user
                  :form-key :form.user/set-user
@@ -765,6 +770,20 @@
                                       [:contract.db/load-users
                                        (set/union ethlance-db/employer-entity-fields
                                                   #{:user/employer?})
+                                       [(:user/id (get-active-user db))]]]}]}))
+
+(reg-event-fx
+  :contract.user2/set-user-notifications
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-user2/set-user-notifications
+                 :form-key :form.user2/set-user-notifications
+                 :receipt-dispatch-n [[:snackbar/show-message "Your notification settings were successfully updated"]
+                                      [:contract.db/load-users
+                                       ethlance-db/user-notifications-fields
                                        [(:user/id (get-active-user db))]]]}]}))
 
 (reg-event-fx
@@ -1452,6 +1471,16 @@
                      [:contract/transaction-receipt method u/max-gas-limit nil nil]])]}}))
 
 (reg-event-fx
+  :toggle-search-skills-input
+  interceptors
+  (fn [{:keys [db]} [open-key form-key open?]]
+    (merge
+      {:db (assoc db open-key open?)}
+      (when (and (not open?)
+                 (seq (get-in db [form-key :search/skills-or])))
+        {:dispatch [:form.search/set-value :search/skills-or []]}))))
+
+(reg-event-fx
   :form.search/set-value
   interceptors
   (fn [{:keys [db]} [field-key field-value validator]]
@@ -1732,9 +1761,10 @@
 (reg-event-fx
   :reintialize
   interceptors
-  (fn [_ [contract-keys]]
+  (fn [{:keys [:db]} [contract-keys]]
     (.clear js/console)
-    {:async-flow {:first-dispatch [:load-eth-contracts]
+    {:db (update db :eth/contracts (partial medley/map-vals #(dissoc % :abi :bin)))
+     :async-flow {:first-dispatch [:load-eth-contracts]
                   :rules [{:when :seen?
                            :events [:eth-contracts-loaded]
                            :dispatch-n [(if contract-keys
@@ -1866,13 +1896,16 @@
 
   (dispatch [:contract/call :ethlance-db :get-u-int-value (storage-keys 6)])
 
-  (get-entities [1] [:invoice/amount] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error %]))
+  (get-entities [33] [:user/gravatar] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error %]))
   (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error]))
   (get-entities [23] [:job/budget :job/reference-currency] (get-ethlance-db)
                 #(dispatch [:log %])
                 #(dispatch [:log-error]))
-  (get-entities-field-items {5 10} :skill/freelancers
-                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
+  (get-entities-field-items {10 4}
+                            :job/skills
+                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])
+                            #(dispatch [:log %])
+                            #(dispatch [:log-error]))
 
   (get-entities-field-items {1 6} :freelancer/skills
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
@@ -1928,7 +1961,25 @@
 
   (dispatch [:contract.search/search-jobs {:search/category 0
                                            :search/skills []
-                                           :search/payment-types [1 2]
+                                           :search/skills-or []
+                                           :search/payment-types [1 2 3]
+                                           :search/experience-levels [1 2 3]
+                                           :search/estimated-durations [1 2 3 4]
+                                           :search/hours-per-weeks [1 2]
+                                           :search/min-budget 0
+                                           :search/min-budget-currency 0
+                                           :search/min-employer-avg-rating 0
+                                           :search/min-employer-ratings-count 0
+                                           :search/country 0
+                                           :search/state 0
+                                           :search/language 0
+                                           :search/offset 0
+                                           :search/limit 10}])
+
+  (dispatch [:contract.search/search-jobs {:search/category 0
+                                           :search/skills [2070]
+                                           :search/skills-or [5]
+                                           :search/payment-types [1 2 3]
                                            :search/experience-levels [1 2 3]
                                            :search/estimated-durations [1 2 3 4]
                                            :search/hours-per-weeks [1 2]

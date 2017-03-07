@@ -1,7 +1,6 @@
 (ns ethlance.components.skills-chip-input
   (:require
     [ethlance.components.chip-input :refer [chip-input]]
-    [ethlance.components.misc :as layout :refer [col row paper-thin row-plain]]
     [ethlance.components.validated-chip-input :refer [validated-chip-input]]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]

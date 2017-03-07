@@ -19,13 +19,15 @@
 (def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user)
                                         #{:user/balance :user/id :user/email}))
 (def user-balance-entity-fields #{:user/balance})
+(def user-notifications-fields (spec-form->entity-fields :app/user :user.notif))
 (def freelancer-entity-fields (set/difference (spec-form->entity-fields :app/user :freelancer)))
 (def employer-entity-fields (spec-form->entity-fields :app/user :employer))
 
 (def account-entitiy-fields
   (set/union user-entity-fields
              freelancer-entity-fields
-             employer-entity-fields))
+             employer-entity-fields
+             user-notifications-fields))
 
 (def job-entity-fields (set/difference (spec-form->entity-fields :app/job) #{:job/id}))
 
@@ -112,10 +114,19 @@
 (def register-employer-args
   (concat set-user-args set-employer-args))
 
+(def set-user-notifications-args
+  [[:user.notif/disabled-all? :user.notif/disabled-newsletter? :user.notif/disabled-on-job-invitation-added?
+    :user.notif/disabled-on-job-contract-added? :user.notif/disabled-on-invoice-paid?
+    :user.notif/disabled-on-job-proposal-added? :user.notif/disabled-on-invoice-added?
+    :user.notif/disabled-on-job-contract-feedback-added?]
+   [:user.notif/job-recommendations]])
+
 (def search-freelancers-args
-  [:search/category :search/skills :search/min-avg-rating :search/min-freelancer-ratings-count
-   :search/min-hourly-rates :search/max-hourly-rates :search/country :search/state
-   :search/language :search/offset :search/limit :search/seed])
+  [:search/category :search/skills :search/skills-or :search/min-avg-rating :search/min-freelancer-ratings-count
+   :search/min-hourly-rates :search/max-hourly-rates])
+
+(def search-freelancers-nested-args
+  [:search/country :search/state :search/language :search/job-recommendations :search/offset :search/limit :search/seed])
 
 (def add-job-args
   [:job/title :job/description :job/skills :job/language :job/budget
@@ -123,12 +134,12 @@
     :job/freelancers-needed :job/reference-currency]])
 
 (def search-jobs-args
-  [:search/category :search/skills :search/payment-types :search/experience-levels :search/estimated-durations
-   :search/hours-per-weeks :search/min-budgets])
+  [:search/category :search/skills :search/skills-or :search/payment-types :search/experience-levels
+   :search/estimated-durations :search/hours-per-weeks :search/min-budgets])
 
 (def search-jobs-nested-args
   [:search/min-employer-avg-rating :search/min-employer-ratings-count
-   :search/country :search/state :search/language :search/offset :search/limit])
+   :search/country :search/state :search/language :search/min-created-on :search/offset :search/limit])
 
 (def set-job-hiring-done-args
   [:job/id])
@@ -229,7 +240,7 @@
    :ethlance-job/add-job add-job-args
    :ethlance-job/set-job-hiring-done set-job-hiring-done-args
    :ethlance-job/set-smart-contract-status set-smart-contract-status-args
-   :ethlance-search/search-freelancers search-freelancers-args
+   :ethlance-search/search-freelancers (conj search-freelancers-args search-freelancers-nested-args)
    :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
    :ethlance-user/register-employer register-employer-args
    :ethlance-user/register-freelancer register-freelancer-args
@@ -237,6 +248,7 @@
    :ethlance-user/set-freelancer set-freelancer-args
    :ethlance-user/set-smart-contract-status set-smart-contract-status-args
    :ethlance-user/set-user set-user-args
+   :ethlance-user2/set-user-notifications set-user-notifications-args
    :ethlance-views/get-contract-invoices get-contract-invoices-args
    :ethlance-views/get-employer-contracts get-user-contracts-args
    :ethlance-views/get-employer-invoices get-user-invoices-args

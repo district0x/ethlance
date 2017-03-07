@@ -310,8 +310,8 @@
    3 (color :deep-purple900)})
 
 (def job-hours-per-week-colors
-  {1 (color :amber500)
-   2 (color :amber800)})
+  {1 (color :amber700)
+   2 (color :amber900)})
 
 (def contract-status-colors
   {1 (color :deep-purple300)
@@ -319,6 +319,8 @@
    3 success-color
    4 (color :red800)
    5 (color :grey500)})
+
+(def freelancers-needed-status-color (color :deep-orange500))
 
 (def invoice-status-colors
   {1 pending-color
@@ -542,3 +544,6 @@
   {:font-size "1.1em"
    :margin-bottom 5
    :margin-left 5})
+
+(def skills-input-xs-hint-size
+  {:font-size "11px"})

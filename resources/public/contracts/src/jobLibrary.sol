@@ -137,6 +137,13 @@ library JobLibrary {
         return languageId == EthlanceDB(db).getUIntValue(sha3("job/language", jobId));
    }
 
+   function hasMinCreatedOn(address db, uint jobId, uint minCreatedOn) internal returns (bool) {
+       if (minCreatedOn == 0) {
+           return true;
+       }
+       return minCreatedOn <= EthlanceDB(db).getUIntValue(sha3("job/created-on", jobId));
+  }
+
     function hasEmployerMinRating(address db, uint employerId, uint minAvgRating) internal returns(bool) {
         if (minAvgRating == 0) {
             return true;
@@ -158,7 +165,8 @@ library JobLibrary {
 
     function searchJobs(address db,
         uint categoryId,
-        uint[] skills,
+        uint[] skillsAnd,
+        uint[] skillsOr,
         uint8[][4] uint8Filters,
         uint[] minBudgets,
         uint[] uintArgs
@@ -168,7 +176,7 @@ library JobLibrary {
         uint j = 0;
         uint jobId;
         uint employerId;
-        var allJobIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
+        var allJobIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skillsAnd, skillsOr,
             SkillLibrary.getJobs, CategoryLibrary.getJobs, getJobCount);
         jobIds = new uint[](allJobIds.length);
         for (uint i = 0; i < allJobIds.length ; i++) {
@@ -185,8 +193,8 @@ library JobLibrary {
                 UserLibrary.isFromCountry(db, employerId, uintArgs[2]) &&
                 UserLibrary.isFromState(db, employerId, uintArgs[3]) &&
                 hasLanguage(db, jobId, uintArgs[4]) &&
-                UserLibrary.hasStatus(db, employerId, 1)
-                )
+                hasMinCreatedOn(db, jobId, uintArgs[5]) &&
+                UserLibrary.hasStatus(db, employerId, 1))
             {
                 jobIds[j] = jobId;
                 j++;

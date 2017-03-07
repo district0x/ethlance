@@ -45,21 +45,13 @@
 (s/def ::conversion-rates-historical (s/map-of number? ::conversion-rates))
 (s/def ::load-all-conversion-rates-interval (s/nilable int?))
 
-(s/def :user/address u/address?)
-(s/def :user/country u/uint?)
-(s/def :user/state u/uint?)
-(s/def :user/created-on u/date?)
-(s/def :user/employer? boolean?)
-(s/def :user/freelancer? boolean?)
-(s/def :user/gravatar u/bytes32?)
-(s/def :user/languages u/uint-coll?)
-(s/def :user/languages-count u/uint?)
-(s/def :user/name string?)
-(s/def :user/email u/string-or-nil?)
-(s/def :user/status u/uint8?)
-(s/def :user/balance u/big-num?)
-(s/def :user/github u/string-or-nil?)
-(s/def :user/linkedin u/string-or-nil?)
+(s/def :employer/avg-rating u/uint8?)
+(s/def :employer/description u/string-or-nil?)
+(s/def :employer/jobs u/uint-coll?)
+(s/def :employer/jobs-count u/uint?)
+(s/def :employer/ratings-count u/uint?)
+(s/def :employer/total-invoiced u/big-num?)
+(s/def :employer/total-paid u/big-num?)
 (s/def :freelancer/available? boolean?)
 (s/def :freelancer/avg-rating u/uint8?)
 (s/def :freelancer/categories u/uint-coll?)
@@ -75,30 +67,56 @@
 (s/def :freelancer/skills-count u/uint?)
 (s/def :freelancer/total-earned u/big-num?)
 (s/def :freelancer/total-invoiced u/big-num?)
-(s/def :employer/avg-rating u/uint8?)
-(s/def :employer/description u/string-or-nil?)
-(s/def :employer/jobs u/uint-coll?)
-(s/def :employer/jobs-count u/uint?)
-(s/def :employer/ratings-count u/uint?)
-(s/def :employer/total-paid u/big-num?)
-(s/def :employer/total-invoiced u/big-num?)
+(s/def :user.notif/disabled-all? boolean?)
+(s/def :user.notif/disabled-newsletter? boolean?)
+(s/def :user.notif/disabled-on-invoice-added? boolean?)
+(s/def :user.notif/disabled-on-invoice-paid? boolean?)
+(s/def :user.notif/disabled-on-job-contract-added? boolean?)
+(s/def :user.notif/disabled-on-job-contract-feedback-added? boolean?)
+(s/def :user.notif/disabled-on-job-invitation-added? boolean?)
+(s/def :user.notif/disabled-on-job-proposal-added? boolean?)
+(s/def :user.notif/job-recommendations u/uint8?)
+(s/def :user/address u/address?)
+(s/def :user/balance u/big-num?)
+(s/def :user/country u/uint?)
+(s/def :user/created-on u/date?)
+(s/def :user/email u/string-or-nil?)
+(s/def :user/employer? boolean?)
+(s/def :user/freelancer? boolean?)
+(s/def :user/github u/string-or-nil?)
+(s/def :user/gravatar u/bytes32?)
+(s/def :user/languages u/uint-coll?)
+(s/def :user/languages-count u/uint?)
+(s/def :user/linkedin u/string-or-nil?)
+(s/def :user/name string?)
+(s/def :user/state u/uint?)
+(s/def :user/status u/uint8?)
 
 (s/def :app/user (s/keys :opt [:user/id
                                :user/address
+                               :user/balance
                                :user/country
-                               :user/state
                                :user/created-on
+                               :user/email
                                :user/employer?
                                :user/freelancer?
+                               :user/github
                                :user/gravatar
-                               :user/email
                                :user/languages
                                :user/languages-count
-                               :user/github
                                :user/linkedin
                                :user/name
+                               :user/state
                                :user/status
-                               :user/balance
+                               :user.notif/disabled-all?
+                               :user.notif/disabled-newsletter?
+                               :user.notif/disabled-on-invoice-added?
+                               :user.notif/disabled-on-invoice-paid?
+                               :user.notif/disabled-on-job-contract-added?
+                               :user.notif/disabled-on-job-contract-feedback-added?
+                               :user.notif/disabled-on-job-invitation-added?
+                               :user.notif/disabled-on-job-proposal-added?
+                               :user.notif/job-recommendations
                                :freelancer/available?
                                :freelancer/avg-rating
                                :freelancer/categories
@@ -119,8 +137,8 @@
                                :employer/jobs
                                :employer/jobs-count
                                :employer/ratings-count
-                               :employer/total-paid
-                               :employer/total-invoiced]))
+                               :employer/total-invoiced
+                               :employer/total-paid]))
 (s/def :app/users (s/map-of pos? :app/user))
 
 (s/def :job/id pos?)
@@ -374,6 +392,7 @@
 (s/def :form.user/set-employer ::submit-form)
 (s/def :form.user/register-freelancer ::submit-form)
 (s/def :form.user/register-employer ::submit-form)
+(s/def :form.user2/set-user-notifications ::submit-form)
 (s/def :form.config/set-configs ::submit-form)
 (s/def :form.config/block-skills ::submit-form)
 (s/def :form.config/set-skill-name ::submit-form)
@@ -398,7 +417,9 @@
    :window/width-size (u/get-window-width-size js/window.innerWidth)
    :drawer-open? false
    :search-freelancers-filter-open? false
+   :search-freelancers-skills-open? false
    :search-jobs-filter-open? false
+   :search-jobs-skills-open? false
    :selected-currency 0
    :last-transaction-gas-used nil
    :snackbar {:open? false
@@ -433,13 +454,14 @@
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
+                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x9187a76e8b9165255aedf5e090c191fd547acd65"}
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0x3d3bb143a6ee72deb9646c14b403ccc3f6e3c2c8"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x12f4abc6c7ae413618d348bfdc855bca8654037d"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x8c8cf5f0fe7ce048baa9573278c4b44b7a8646e4"}}
+                   :ethlance-search {:name "EthlanceSearch" :address "0x8f61f16b154d676b05ac03ac1659df3c1e1b7916"}}
    :my-addresses []
    :my-addresses-forced []
    :active-address nil
@@ -579,6 +601,11 @@
                             :errors #{}
                             :open? false}
 
+   :form.user2/set-user-notifications {:loading? false
+                                       :gas-limit 200000
+                                       :data {}
+                                       :errors #{}}
+
    :form.user/register-freelancer {:loading? false
                                    :gas-limit 4000000
                                    :open? true
@@ -615,6 +642,7 @@
 
    :form/search-jobs {:search/category 0
                       :search/skills []
+                      :search/skills-or []
                       :search/payment-types [1 2 3]
                       :search/experience-levels [1 2 3]
                       :search/estimated-durations [1 2 3 4]
@@ -626,11 +654,13 @@
                       :search/country 0
                       :search/state 0
                       :search/language 0
+                      :search/min-created-on 0
                       :search/offset 0
                       :search/limit 10}
 
    :form/search-freelancers {:search/category 0
                              :search/skills []
+                             :search/skills-or []
                              :search/min-avg-rating 0
                              :search/min-freelancer-ratings-count 0
                              :search/min-hourly-rate 0
@@ -639,5 +669,6 @@
                              :search/country 0
                              :search/state 0
                              :search/language 0
+                             :search/job-recommendations 0
                              :search/offset 0
                              :search/limit 10}})

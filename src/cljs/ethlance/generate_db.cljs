@@ -50,7 +50,7 @@
    :freelancer/hourly-rate (rand-int 100)
    :freelancer/hourly-rate-currency (rand-int 3)
    :freelancer/categories (set (rand-uint-coll (cfg :max-freelancer-categories) (dec (count constants/categories))))
-   :freelancer/skills (set (rand-uint-coll (cfg :max-freelancer-skills) 4500))
+   :freelancer/skills (set (rand-uint-coll (cfg :max-freelancer-skills) 29 #_ (dec (count constants/skills))))
    :freelancer/description (rand-text (cfg :max-user-description))})
 
 (def freelancer1
@@ -65,7 +65,7 @@
 (defn gen-job []
   {:job/title (rand-text (cfg :min-job-title) (cfg :max-job-title))
    :job/description (rand-text (cfg :min-job-description) (cfg :max-job-description))
-   :job/skills (set (rand-uint-coll (cfg :max-job-skills) 29))
+   :job/skills (set (rand-uint-coll (cfg :max-job-skills) 29 #_ (dec (count constants/skills))))
    :job/budget (rand-int 100)
    :job/language (rand-id (count constants/languages))
    :job/category (rand-id (count constants/categories))
@@ -143,7 +143,7 @@
                   [:contract.user/register-freelancer freelancer1 (get-address 0)]]
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
-                       (map #(hash-map :ms 100 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 5))
+                       (map #(hash-map :ms 100 :dispatch [:contract.job/add-job (gen-job) (get-address 1)]) (range 10))
                        #_[{:ms 20 :dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)]}
                           {:ms 30 :dispatch [:contract.contract/add-job-proposal proposal1 (get-address 0)]}
                           {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]

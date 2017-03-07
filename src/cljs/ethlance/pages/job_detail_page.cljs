@@ -213,7 +213,12 @@
                 [misc/status-chip
                  {:background-color styles/budget-chip-color
                   :style styles/job-status-chip}
-                 "Budget " [currency budget {:value-currency reference-currency}]])]
+                 "Budget " [currency budget {:value-currency reference-currency}]])
+              (when (< 1 freelancers-needed)
+                [misc/status-chip
+                 {:background-color styles/freelancers-needed-status-color
+                  :style styles/job-status-chip}
+                 "Needs " freelancers-needed " freelancers"])]
              [misc/long-text
               description]
              [misc/subheader "Required Skills"]

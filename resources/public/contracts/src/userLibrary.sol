@@ -143,6 +143,18 @@ library UserLibrary {
         return SharedLibrary.getUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count");
     }
 
+    function setUserNotifications(address db, uint userId, bool[] boolNotifSettings, uint8[] uint8NotifSettings) internal {
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-all?", userId), boolNotifSettings[0]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-newsletter?", userId), boolNotifSettings[1]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-invitation-added?", userId), boolNotifSettings[2]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-contract-added?", userId), boolNotifSettings[3]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-invoice-paid?", userId), boolNotifSettings[4]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-proposal-added?", userId), boolNotifSettings[5]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-invoice-added?", userId), boolNotifSettings[6]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-contract-feedback-added?", userId), boolNotifSettings[7]);
+        EthlanceDB(db).setUInt8Value(sha3("user.notif/job-recommendations", userId), uint8NotifSettings[0]);
+    }
+
     function isActiveEmployer(address db, address userAddress) internal returns(bool) {
         var userId = getUserId(db, userAddress);
         return EthlanceDB(db).getBooleanValue(sha3("user/employer?", userId)) &&
@@ -309,6 +321,22 @@ library UserLibrary {
         return false;
     }
 
+    function hasJobRecommendations(address db, uint userId, uint jobRecommendations) internal returns (bool) {
+        if (jobRecommendations == 0) {
+            return true;
+        }
+        if (EthlanceDB(db).getBooleanValue(sha3("user.notif/disabled-all?", userId))) {
+            return false;
+        }
+
+        uint userJobRecommendations = EthlanceDB(db).getUInt8Value(sha3("user.notif/job-recommendations", userId));
+        if (userJobRecommendations == 0 && jobRecommendations == 1) { // default value
+            return true;
+        }
+
+        return userJobRecommendations == jobRecommendations;
+    }
+
     function isFreelancerAvailable(address db, uint userId) internal returns (bool) {
         return EthlanceDB(db).getBooleanValue(sha3("freelancer/available?", userId));
     }
@@ -316,19 +344,18 @@ library UserLibrary {
     function searchFreelancers(
         address db,
         uint categoryId,
-        uint[] skills,
+        uint[] skillsAnd,
+        uint[] skillsOr,
         uint8 minAvgRating,
         uint minRatingsCount,
         uint[] minHourlyRates,
         uint[] maxHourlyRates,
-        uint countryId,
-        uint stateId,
-        uint languageId
+        uint[] uintArgs
     )
         internal returns (uint[] userIds)
     {
         uint j = 0;
-        var allUserIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skills,
+        var allUserIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skillsAnd, skillsOr,
                          SkillLibrary.getFreelancers, CategoryLibrary.getFreelancers, getUserCount);
         userIds = new uint[](allUserIds.length);
         for (uint i = 0; i < allUserIds.length ; i++) {
@@ -337,9 +364,10 @@ library UserLibrary {
                 hasMinRating(db, userId, minAvgRating) &&
                 hasFreelancerMinRatingsCount(db, userId, minRatingsCount) &&
                 hasHourlyRateWithinRange(db, userId, minHourlyRates, maxHourlyRates) &&
-                isFromCountry(db, userId, countryId) &&
-                isFromState(db, userId, stateId) &&
-                hasLanguage(db, userId, languageId) &&
+                isFromCountry(db, userId, uintArgs[0]) &&
+                isFromState(db, userId, uintArgs[1]) &&
+                hasLanguage(db, userId, uintArgs[2]) &&
+                hasJobRecommendations(db, userId, uintArgs[3]) &&
                 hasStatus(db, userId, 1)
             ) {
                 userIds[j] = userId;

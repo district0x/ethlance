@@ -4,13 +4,14 @@
     [ethlance.components.category-select-field :refer [category-select-field]]
     [ethlance.components.checkbox-group :refer [checkbox-group]]
     [ethlance.components.country-auto-complete :refer [country-auto-complete]]
-    [ethlance.components.state-select-field :refer [state-select-field]]
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a currency]]
+    [ethlance.components.search :refer [skills-input]]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
     [ethlance.components.star-rating :refer [star-rating]]
+    [ethlance.components.state-select-field :refer [state-select-field]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [goog.string :as gstring]
@@ -167,20 +168,20 @@
                                            (conj (into [] selected-skills) skill-id)])))}]
             [misc/hr-small]])]))))
 
-(defn skills-input []
-  (let [selected-skills (subscribe [:form/search-freelancer-skills])]
-    (fn []
-      [paper-thin
-       [skills-chip-input
-        {:value @selected-skills
-         :hint-text "Type skills you want a freelancer to have"
-         :on-change #(dispatch [:form.search/set-value :search/skills %1])}]])))
-
 (defn search-freelancers-page []
   [misc/search-layout
    {:filter-drawer-props {:open @(subscribe [:db/search-freelancers-filter-open?])
                           :on-request-change #(dispatch [:search-filter.freelancers/set-open? %])}
     :filter-open-button-props {:on-touch-tap #(dispatch [:search-filter.freelancers/set-open? true])}}
    [filter-sidebar]
-   [skills-input]
+   [skills-input
+    {:selected-skills-subscribe [:form/search-freelancer-skills]
+     :selected-skills-or-subscribe [:form/search-freelancer-skills-or]
+     :open-subscribe [:db/search-freelancers-skills-open?]
+     :skills-hint-text "Type skills you want a freelancer to have"
+     :skills-and-hint-text "Freelancers have all of entered skills"
+     :skills-or-hint-text "Freelancers have at least one of entered skills"
+     :skills-and-floating-label-text "All of skills are required"
+     :skills-or-floating-label-text "Any of skills is required"
+     :on-toggle-open #(dispatch [:toggle-search-skills-input :search-freelancers-skills-open? :form/search-freelancers %])}]
    [search-results]])

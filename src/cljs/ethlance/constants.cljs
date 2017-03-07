@@ -1,7 +1,7 @@
 (ns ethlance.constants
   (:require [clojure.tools.reader :as reader]))
 
-(def contracts-version "1.0.7")
+(def contracts-version "1.0.8")
 (def skills-version "1.1")
 (def list-limit 8)
 
@@ -14,6 +14,7 @@
 (def keyword->query
   {:search/category "cat"
    :search/skills "s"
+   :search/skills-or "so"
    :search/payment-types "pt"
    :search/experience-levels "el"
    :search/estimated-durations "ed"
@@ -25,6 +26,8 @@
    :search/country "c"
    :search/state "t"
    :search/language "lg"
+   :search/job-recommendations "jr"
+   :search/min-created-on "mco"
    :search/offset "o"
    :search/limit "l"
    :search/min-avg-rating "ar"
@@ -36,12 +39,15 @@
 (def query-parsers
   {:search/category js/parseInt
    :search/skills reader/read-string
+   :search/skills-or reader/read-string
    :search/payment-types reader/read-string
    :search/experience-levels reader/read-string
    :search/estimated-durations reader/read-string
    :search/hours-per-weeks reader/read-string
    :search/min-employer-avg-rating js/parseInt
    :search/min-employer-ratings-count js/parseInt
+   :search/min-created-on js/parseInt
+   :search/job-recommendations js/parseInt
    :search/country js/parseInt
    :search/state js/parseInt
    :search/language js/parseInt
@@ -136,6 +142,14 @@
    4 :RUB
    5 :CNY
    6 :JPY})
+
+(def job-recommendations
+  {1 "Instantly"
+   2 "Every 12 hours"
+   3 "Daily"
+   4 "Every 3 days"
+   5 "Weekly"
+   6 "Never"})
 
 (def united-states
   ["Alabama"

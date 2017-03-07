@@ -123,17 +123,18 @@ library SharedLibrary {
         return take(j, result);
     }
 
+    /* Assumes sorted a & b */
     function intersect(uint[] a, uint[] b) internal returns(uint[] c) {
-        if (a.length == 0 || b.length == 0) {
+        uint aLen = a.length;
+        uint bLen = b.length;
+        if (aLen == 0 || bLen == 0) {
             return c;
         }
-        c = new uint[](a.length);
-//        a = sort(a);
-//        b = sort(b);
+        c = new uint[](aLen);
         uint i = 0;
         uint j = 0;
         uint k = 0;
-        while (i < a.length && j < b.length) {
+        while (i < aLen && j < bLen) {
             if (a[i] > b[j]) {
                 j++;
             } else if (a[i] < b[j]) {
@@ -145,6 +146,44 @@ library SharedLibrary {
                 k++;
             }
         }
+        return take(k, c);
+    }
+
+    /* Assumes sorted a & b */
+    function union(uint[] a, uint[] b) internal returns(uint[] c) {
+        uint aLen = a.length;
+        uint bLen = b.length;
+        c = new uint[](aLen + bLen);
+        uint i = 0;
+        uint j = 0;
+        uint k = 0;
+        while (i < aLen && j < bLen) {
+            if (a[i] < b[j]) {
+                c[k] = a[i];
+                i++;
+            } else if (b[j] < a[i]) {
+                c[k] = b[j];
+                j++;
+            } else {
+                c[k] = a[i];
+                i++;
+                j++;
+            }
+            k++;
+        }
+
+        while (i < aLen) {
+            c[k] = a[i];
+            i++;
+            k++;
+        }
+
+        while (j < bLen) {
+            c[k] = b[j];
+            j++;
+            k++;
+        }
+
         return take(k, c);
     }
     
@@ -256,7 +295,8 @@ library SharedLibrary {
     (
         address db,
         uint categoryId,
-        uint[] skills,
+        uint[] skillsAnd,
+        uint[] skillsOr,
         function(address, uint) returns (uint[] memory) getFromSkills,
         function(address, uint) returns (uint[] memory) getFromCategories,
         function(address) returns (uint) getMaxCount
@@ -268,27 +308,66 @@ library SharedLibrary {
         if (maxCount == 0) {
             return result;
         }
-        if (skills.length == 0 && categoryId == 0) {
+        if (skillsAnd.length == 0 && skillsOr.length == 0 && categoryId == 0) {
             result = new uint[](maxCount);
             for (i = 0; i < maxCount ; i++) {
                 result[i] = i + 1;
             }
         }
 
-        if (skills.length > 0) {
-            result = sort(getFromSkills(db, skills[0]));
-            for (i = 1; i < skills.length ; i++) {
-                result = intersect(result, sort(getFromSkills(db, skills[i])));
+        if (skillsAnd.length > 0) {
+            result = sort(getFromSkills(db, skillsAnd[0]));
+            for (i = 1; i < skillsAnd.length ; i++) {
+                result = intersect(result, sort(getFromSkills(db, skillsAnd[i])));
+            }
+        }
+
+        if (skillsOr.length > 0) {
+            if (skillsAnd.length > 0) {
+                result = unionSkills(db, skillsOr, getFromSkills, result);
+            } else {
+                result = unionSkills(db, skillsOr, getFromSkills);
             }
         }
 
         if (categoryId > 0) {
             var catResult = sort(getFromCategories(db, categoryId));
-            if (skills.length == 0) {
+            if (skillsAnd.length == 0) {
                 result = catResult;
             } else {
                 result = intersect(result, catResult);
             }
+        }
+        return result;
+    }
+
+    function unionSkills
+    (
+        address db,
+        uint[] skillsOr,
+        function(address, uint) returns (uint[] memory) getFromSkills,
+        uint[] fromItems
+    )
+        internal returns (uint[] result)
+    {
+        result = intersect(fromItems, sort(getFromSkills(db, skillsOr[0])));
+        for (uint i = 1; i < skillsOr.length ; i++) {
+            result = union(result, intersect(fromItems, sort(getFromSkills(db, skillsOr[i]))));
+        }
+        return result;
+    }
+
+    function unionSkills
+    (
+        address db,
+        uint[] skillsOr,
+        function(address, uint) returns (uint[] memory) getFromSkills
+    )
+        internal returns (uint[] result)
+    {
+        result = sort(getFromSkills(db, skillsOr[0]));
+        for (uint i = 1; i < skillsOr.length ; i++) {
+            result = union(result, sort(getFromSkills(db, skillsOr[i])));
         }
         return result;
     }
