@@ -435,10 +435,10 @@
                 :max-job-skills 7
                 :min-job-skills 1
                 :max-user-description 1000
-                :max-job-description 1000
+                :max-job-description 1500
                 :min-job-description 100
-                :max-invoice-description 500
-                :max-feedback 1000
+                :max-invoice-description 1000
+                :max-feedback 1500
                 :min-feedback 50
                 :max-job-title 100
                 :min-job-title 10
@@ -446,9 +446,9 @@
                 :min-user-name 5
                 :max-freelancer-job-title 50
                 :min-freelancer-job-title 4
-                :max-contract-desc 500
-                :max-proposal-desc 500
-                :max-invitation-desc 500
+                :max-contract-desc 1500
+                :max-proposal-desc 1500
+                :max-invitation-desc 1500
                 :max-skills-create-at-once 4
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}

@@ -64,7 +64,7 @@
             (when tampered?
               [:div
                {:style {:color styles/accent1-color}}
-               "Looks like this conversion rate is invalid. Correct should be"
+               "Looks like this conversion rate is invalid. Correct should be "
                [misc/conversion-rate
                 {:currency reference-currency
                  :value correct-rate}]
