@@ -1974,9 +1974,11 @@
 
   (get-entities [33] [:user/gravatar] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error %]))
   (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error]))
-  (get-entities [23] [:job/budget :job/reference-currency] (get-ethlance-db)
-                #(dispatch [:log %])
-                #(dispatch [:log-error]))
+  (let [id 1]
+    (dispatch [:contract/state-call :ethlance-db :set-u-int8-value
+               (u/sha3 (u/ns+name :contract/status) id) 2])
+    (dispatch [:contract/state-call :ethlance-db :set-u-int-value
+               (u/sha3 (u/ns+name :contract/created-on) id) 0]))
   (get-entities-field-items {10 4}
                             :job/skills
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])

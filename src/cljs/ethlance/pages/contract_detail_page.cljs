@@ -149,7 +149,6 @@
       (let [{:keys [:contract/id :contract/invoices-count :contract/created-on]} @contract]
         (when created-on
           [row
-           {:style styles/contract-activity-row}
            [col
             {:xs 12}
             [:h3
@@ -349,6 +348,7 @@
                         :route-params {:job/id (:job/id job)}}
                      title]]]
               [invoices-link]
+              [:div {:style {:margin-bottom 20}}]
               [invitation-detail]
               [contract-messages
                {:contract/status 1}]
