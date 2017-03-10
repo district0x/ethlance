@@ -152,6 +152,7 @@ library UserLibrary {
         EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-proposal-added?", userId), boolNotifSettings[5]);
         EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-invoice-added?", userId), boolNotifSettings[6]);
         EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-contract-feedback-added?", userId), boolNotifSettings[7]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-message-added?", userId), boolNotifSettings[8]);
         EthlanceDB(db).setUInt8Value(sha3("user.notif/job-recommendations", userId), uint8NotifSettings[0]);
     }
 

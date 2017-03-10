@@ -204,6 +204,9 @@
 (defn empty-invoice? [invoice]
   (zero? (:invoice/created-on invoice)))
 
+(defn empty-message? [message]
+  (zero? (:message/created-on message)))
+
 (defn md5-bytes [s]
   (let [container (doto (goog.crypt.Md5.)
                     (.update s))]

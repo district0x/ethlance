@@ -37,7 +37,8 @@
   (dispatch [:form/set-value :form.user2/set-user-notifications key value]))
 
 (def notifications
-  [[:user.notif/disabled-on-job-invitation-added? "When I get job invitation" :user/freelancer?]
+  [[:user.notif/disabled-on-message-added? "When I receive message"]
+   [:user.notif/disabled-on-job-invitation-added? "When I get job invitation" :user/freelancer?]
    [:user.notif/disabled-on-job-contract-added? "When I get hired" :user/freelancer?]
    [:user.notif/disabled-on-invoice-paid? "When my invoice is paid" :user/freelancer?]
    [:user.notif/disabled-on-job-proposal-added? "When my job receives a job proposal" :user/employer?]

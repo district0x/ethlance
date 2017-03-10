@@ -40,7 +40,7 @@
        [line "Job" [a {:route-params (select-keys job [:job/id])
                        :route :job/detail}
                     (:job/title job)]]
-       [line "Proposal" [a {:route-params (select-keys contract [:contract/id])
+       [line "Contract" [a {:route-params (select-keys contract [:contract/id])
                             :route :contract/detail}
                          (:contract/id contract)]]
        [:div {:style styles/margin-top-gutter}]
@@ -90,8 +90,8 @@
 (defn invoice-detail-page []
   (let [invoice (subscribe [:invoice/detail])
         invoice-id (subscribe [:invoice/route-invoice-id])
-        by-me? (subscribe [:invoice/by-me?])
-        for-me (subscribe [:invoice/for-me?])
+        from-me? (subscribe [:invoice/from-me?])
+        for-me? (subscribe [:invoice/for-me?])
         form-pay (subscribe [:form.invoice/pay-invoice])
         form-cancel (subscribe [:form.invoice/cancel-invoice])]
     (fn []
@@ -123,14 +123,14 @@
               [invoice-info @invoice]
               [row-plain
                {:end "xs"}
-               (when (and (= status 1) @by-me?)
+               (when (and (= status 1) @from-me?)
                  [ui/raised-button
                   {:secondary true
                    :label "Cancel Invoice"
                    :disabled (:loading? @form-cancel)
                    :style styles/margin-top-gutter-less
                    :on-touch-tap #(dispatch [:contract.invoice/cancel-invoice {:invoice/id id}])}])
-               (when (and (= status 1) @for-me)
+               (when (and (= status 1) @for-me?)
                  [ui/raised-button
                   {:primary true
                    :label "Pay Invoice"

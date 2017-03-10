@@ -75,6 +75,7 @@
 (s/def :user.notif/disabled-on-job-contract-feedback-added? boolean?)
 (s/def :user.notif/disabled-on-job-invitation-added? boolean?)
 (s/def :user.notif/disabled-on-job-proposal-added? boolean?)
+(s/def :user.notif/disabled-on-message-added? boolean?)
 (s/def :user.notif/job-recommendations u/uint8?)
 (s/def :user/address u/address?)
 (s/def :user/balance u/big-num?)
@@ -116,6 +117,7 @@
                                :user.notif/disabled-on-job-contract-feedback-added?
                                :user.notif/disabled-on-job-invitation-added?
                                :user.notif/disabled-on-job-proposal-added?
+                               :user.notif/disabled-on-message-added?
                                :user.notif/job-recommendations
                                :freelancer/available?
                                :freelancer/avg-rating
@@ -193,16 +195,18 @@
 (s/def :proposal/created-on u/date-or-nil?)
 (s/def :proposal/description u/string-or-nil?)
 (s/def :proposal/rate u/big-num|num|str?)
+(s/def :contract/cancel-description u/string-or-nil?)
+(s/def :contract/cancelled-on u/date-or-nil?)
 (s/def :contract/created-on u/date-or-nil?)
 (s/def :contract/description u/string-or-nil?)
 (s/def :contract/done-by-freelancer? boolean?)
 (s/def :contract/done-on u/date-or-nil?)
-(s/def :contract/cancelled-on u/date-or-nil?)
-(s/def :contract/cancel-description u/string-or-nil?)
 (s/def :contract/freelancer u/uint?)
 (s/def :contract/invoices u/uint-coll?)
 (s/def :contract/invoices-count u/uint?)
 (s/def :contract/job u/uint?)
+(s/def :contract/messages u/uint-coll?)
+(s/def :contract/messages-count u/uint?)
 (s/def :contract/status u/uint8?)
 (s/def :contract/total-invoiced u/big-num?)
 (s/def :contract/total-paid u/big-num?)
@@ -235,6 +239,8 @@
                                    :contract/invoices
                                    :contract/invoices-count
                                    :contract/job
+                                   :contract/messages
+                                   :contract/messages-count
                                    :contract/status
                                    :contract/total-invoiced
                                    :contract/total-paid
@@ -300,6 +306,23 @@
 (s/def :app/skill-count int?)
 (s/def ::skill-load-limit pos?)
 
+(s/def :message/id pos?)
+(s/def :message/text string?)
+(s/def :message/created-on u/date?)
+(s/def :message/receiver u/uint?)
+(s/def :message/sender u/uint?)
+(s/def :message/contract u/uint?)
+(s/def :message/contract-status u/uint8?)
+
+(s/def :app/message (s/keys :opt [:message/id
+                                  :message/text
+                                  :message/created-on
+                                  :message/receiver
+                                  :message/sender
+                                  :message/contract
+                                  :message/contract-status]))
+
+(s/def :app/messages (s/map-of pos? :app/message))
 
 (s/def ::items (s/coll-of (s/nilable int?)))
 (s/def ::loading? boolean?)
@@ -342,10 +365,6 @@
 (s/def :list/employer-jobs ::ids-list)
 (s/def :list/freelancer-my-open-contracts ::ids-list)
 (s/def :list/employer-jobs-open-select-field ::ids-list)
-
-;; (.*)$
-;; (s/def $1)
-
 
 (s/def :search/category constants/categories)
 (s/def :search/skills (s/coll-of pos?))
@@ -406,6 +425,7 @@
                              ::skill-load-limit ::active-setters? ::last-transaction-gas-used ::skills-loaded?
                              ::load-all-conversion-rates-interval]))
 
+(def generate-mode? false)
 
 (def default-db
   {:web3 nil
@@ -449,18 +469,20 @@
                 :max-contract-desc 1500
                 :max-proposal-desc 1500
                 :max-invitation-desc 1500
+                :max-message-length 1500
                 :max-skills-create-at-once 4
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
-                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x9187a76e8b9165255aedf5e090c191fd547acd65"}
+                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x19f836f44e1dd9d2c59ffca81ac806b7d033f954"}
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0x3d3bb143a6ee72deb9646c14b403ccc3f6e3c2c8"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x12f4abc6c7ae413618d348bfdc855bca8654037d"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x9d0aba974c3158cc9fd9a530acd83a3ff7c14964"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
+                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x3d4fc3a6fb3186efae7087f74dd489d90980b5ac"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
-                   :ethlance-views {:name "EthlanceViews" :address "0xb7b882d1ea87da8506ba10bfbe8b751246bc3259"}
+                   :ethlance-views {:name "EthlanceViews" :address "0x603e6a38f51850cb467f37e06d7eab7a97bf3bf4"}
                    :ethlance-search {:name "EthlanceSearch" :address "0x8f61f16b154d676b05ac03ac1659df3c1e1b7916"}}
    :my-addresses []
    :my-addresses-forced []
@@ -478,6 +500,7 @@
    :skills-loaded? false
    :app/skills {}
    :app/skill-count 0
+   :app/messages {}
    :skill-load-limit 30
    :load-all-conversion-rates-interval nil
 
@@ -639,6 +662,10 @@
                                         :employer/description ""}
                                  :errors #{:user/name :user/country}}
 
+   :form.message/add-job-contract-message {:loading? false
+                                           :gas-limit 500000
+                                           :data {:message/text ""}
+                                           :errors #{}}
 
    :form/search-jobs {:search/category 0
                       :search/skills []

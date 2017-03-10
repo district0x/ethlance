@@ -13,11 +13,11 @@
 (defn contract-invoices-header [{:keys [:contract/job :contract/freelancer]}]
   (when (and (:job/id job) (:user/id freelancer))
     [:div {:style styles/margin-top-gutter-less}
-     [:div
+     [:h3
       [a {:route :job/detail
           :route-params (select-keys job [:job/id])}
        (:job/title job)]]
-     [:div
+     [:h3
       [a {:route :freelancer/detail
           :route-params (select-keys freelancer [:user/id])}
        (:user/name freelancer)]]]))

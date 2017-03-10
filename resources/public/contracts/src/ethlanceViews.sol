@@ -48,6 +48,10 @@ contract EthlanceViews {
         return ContractLibrary.getInvoicesByStatus(ethlanceDB, contractId, invoiceStatus);
     }
 
+    function getContractMessages(uint contractId) public constant returns (uint[]) {
+        return ContractLibrary.getMessages(ethlanceDB, contractId);
+    }
+
     function getEmployerJobs(uint userId, uint8 jobStatus) public constant returns (uint[]) {
         return JobLibrary.getEmployerJobsByStatus(ethlanceDB, userId, jobStatus);
     }

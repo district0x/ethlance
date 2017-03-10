@@ -17,6 +17,7 @@ solc --optimize --bin --abi ethlanceInvoice.sol -o ../build/
 solc --optimize --bin --abi ethlanceConfig.sol -o ../build/
 solc --optimize --bin --abi ethlanceViews.sol -o ../build/
 solc --optimize --bin --abi ethlanceSearch.sol -o ../build/
+solc --optimize --bin --abi ethlanceMessage.sol -o ../build/
 #solc --optimize --bin --abi ethlanceDB.sol -o ../build/
 cd ../build
 wc -c EthlanceUser.bin | awk '{print "EthlanceUser: " $1}'
@@ -27,6 +28,7 @@ wc -c EthlanceInvoice.bin | awk '{print "EthlanceInvoice: " $1}'
 wc -c EthlanceConfig.bin | awk '{print "EthlanceConfig: " $1}'
 wc -c EthlanceViews.bin | awk '{print "EthlanceViews: " $1}'
 wc -c EthlanceSearch.bin | awk '{print "EthlanceSearch: " $1}'
+wc -c EthlanceMessage.bin | awk '{print "EthlanceMessage: " $1}'
 wc -c EthlanceDB.bin | awk '{print "EthlanceDB: " $1}'
 
 rename -f 's/(.*):(.*)/$2/' *:*

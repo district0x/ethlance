@@ -71,6 +71,7 @@
   #{:invoice/contract :invoice/amount :invoice/created-on :invoice/status :invoice/paid-on})
 
 (def skill-entity-fields (set/difference (spec-form->entity-fields :app/skill) #{:skill/id}))
+(def message-entity-fields (set/difference (spec-form->entity-fields :app/message :message) #{:message/id}))
 
 (def user-editable-fields
   (set/difference (set/union account-entitiy-fields user-balance-entity-fields #{:user/email})
@@ -89,10 +90,15 @@
     :contract/total-invoiced
     :contract/total-paid
     :contract/employer-feedback-rating
-    :contract/freelancer-feedback-rating})
+    :contract/freelancer-feedback-rating
+    :contract/messages
+    :contract/messages-count})
 
 (def invoice-editable-fields
   #{:invoice/status})
+
+(def message-editable-fields
+  #{})
 
 (def wei-args
   #{:freelancer/hourly-rate :search/min-hourly-rates :search/max-hourly-rates :job/budget :search/min-budgets
@@ -118,7 +124,7 @@
   [[:user.notif/disabled-all? :user.notif/disabled-newsletter? :user.notif/disabled-on-job-invitation-added?
     :user.notif/disabled-on-job-contract-added? :user.notif/disabled-on-invoice-paid?
     :user.notif/disabled-on-job-proposal-added? :user.notif/disabled-on-invoice-added?
-    :user.notif/disabled-on-job-contract-feedback-added?]
+    :user.notif/disabled-on-job-contract-feedback-added? :user.notif/disabled-on-message-added?]
    [:user.notif/job-recommendations]])
 
 (def search-freelancers-args
@@ -190,6 +196,9 @@
 (def get-contract-invoices-args
   [:contract/id :invoice/status])
 
+(def get-contract-messages-args
+  [:contract/id])
+
 (def get-freelancers-job-contracts-args
   [:user/ids :job/id])
 
@@ -220,6 +229,9 @@
 (def set-smart-contract-status-args
   [:status])
 
+(def add-job-contract-message-args
+  [:contract/id :message/text])
+
 (def eth-contracts-fns
   {:ethlance-config/add-skills add-skills-args
    :ethlance-config/block-skills block-skills-args
@@ -240,6 +252,7 @@
    :ethlance-job/add-job add-job-args
    :ethlance-job/set-job-hiring-done set-job-hiring-done-args
    :ethlance-job/set-smart-contract-status set-smart-contract-status-args
+   :ethlance-message/add-job-contract-message add-job-contract-message-args
    :ethlance-search/search-freelancers (conj search-freelancers-args search-freelancers-nested-args)
    :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
    :ethlance-user/register-employer register-employer-args
@@ -250,6 +263,7 @@
    :ethlance-user/set-user set-user-args
    :ethlance-user2/set-user-notifications set-user-notifications-args
    :ethlance-views/get-contract-invoices get-contract-invoices-args
+   :ethlance-views/get-contract-messages get-contract-messages-args
    :ethlance-views/get-employer-contracts get-user-contracts-args
    :ethlance-views/get-employer-invoices get-user-invoices-args
    :ethlance-views/get-employer-jobs get-employer-jobs-args
@@ -394,22 +408,25 @@
 (s/def ::fields (s/coll-of keyword?))
 (s/def ::on-success sequential?)
 (s/def ::on-error sequential?)
+(s/def ::partitions (s/and int? pos?))
 
-(s/def ::entities (s/keys :req-un [::instance ::ids ::fields ::on-success ::on-error]))
+(s/def ::entities (s/keys :req-un [::instance ::ids ::fields ::on-success ::on-error]
+                          :opt-un [::partitions]))
 
 (reg-fx
   :ethlance-db/entities
-  (fn [{:keys [:instance :ids :fields :on-success :on-error] :as config}]
+  (fn [{:keys [:instance :ids :fields :on-success :on-error :partitions] :as config}]
     (s/assert ::entities config)
     (let [ids (->> ids
                 (filter pos?)
                 distinct)]
       (if (and (seq ids) (seq fields))
-        (get-entities ids
-                      fields
-                      instance
-                      #(dispatch (conj on-success %))
-                      #(dispatch (conj on-error %)))
+        (doseq [part-ids (partition-all (or partitions (count ids)) ids)]
+          (get-entities part-ids
+                        fields
+                        instance
+                        #(dispatch (conj on-success %))
+                        #(dispatch (conj on-error %))))
         #(dispatch (conj on-success {}))))))
 
 

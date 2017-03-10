@@ -44,19 +44,23 @@
                          :size (if @xs-width? 40 70)
                          :hide-name? @xs-width?}]])))
 
-(defn message-bubble [{:keys [side date user]
+(defn message-bubble [{:keys [:side :date :user :key]
                        :as props
                        :or {side :left}} body]
   [row
-   {:style styles/full-width}
+   (merge
+     {:style styles/full-width}
+     (when key
+       {:key key}))
    (when date
      [date-line date])
-   [col {:xs 12
-         :style styles/message-bubble-row}
-    (if (= side :left)
-      [row
-       [profile-picture* props]
-       [message-bubble* props body]]
-      [row
-       [message-bubble* props body]
-       [profile-picture* props]])]])
+   (let [props (dissoc props :key)]
+     [col {:xs 12
+           :style styles/message-bubble-row}
+      (if (= side :left)
+        [row
+         [profile-picture* props]
+         [message-bubble* props body]]
+        [row
+         [message-bubble* props body]
+         [profile-picture* props]])])])

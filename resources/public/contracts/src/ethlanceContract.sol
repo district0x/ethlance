@@ -61,15 +61,10 @@ contract EthlanceContract is EthlanceSetter {
         if (rating > 100) throw;
         var senderId = getSenderUserId();
         ContractLibrary.addFeedback(ethlanceDB, contractId, senderId, feedback, rating);
-        var freelancerId = ContractLibrary.getFreelancer(ethlanceDB, contractId);
-        var employerId = ContractLibrary.getEmployer(ethlanceDB, contractId);
+
+        bool isSenderFreelancer;
         uint receiverId;
-        var isSenderFreelancer = senderId == freelancerId;
-        if (isSenderFreelancer) {
-            receiverId = employerId;
-        } else {
-            receiverId = freelancerId;
-        }
+        (receiverId, isSenderFreelancer) = ContractLibrary.getOtherContractParticipant(ethlanceDB, contractId, senderId);
         onJobContractFeedbackAdded(contractId, receiverId, senderId, isSenderFreelancer);
     }
 

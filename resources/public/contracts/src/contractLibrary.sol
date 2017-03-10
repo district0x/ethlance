@@ -5,6 +5,7 @@ import "userLibrary.sol";
 import "jobLibrary.sol";
 import "sharedLibrary.sol";
 import "invoiceLibrary.sol";
+import "messageLibrary.sol";
 
 library ContractLibrary {
 
@@ -164,6 +165,25 @@ library ContractLibrary {
         addUserFeedback(db, contractId, receiverId, "contract/employer-feedback",
             "contract/employer-feedback-rating", "contract/employer-feedback-on", "freelancer/ratings-count",
             "freelancer/avg-rating", description, rating);
+    }
+
+    function addMessage(address db, uint contractId, uint messageId) internal {
+        SharedLibrary.addArrayItem(db, contractId, "contract/messages", "contract/messages-count", messageId);
+    }
+
+    function getMessages(address db, uint contractId) internal returns(uint[]) {
+        return SharedLibrary.getUIntArray(db, contractId, "contract/messages", "contract/messages-count");
+    }
+
+    function getOtherContractParticipant(address db, uint contractId, uint user) internal returns (uint, bool) {
+        var freelancerId = getFreelancer(db, contractId);
+        var employerId = getEmployer(db, contractId);
+        if (user != freelancerId && user != employerId) throw;
+        if (user == freelancerId) {
+            return (employerId, true);
+        } else {
+            return (freelancerId, false);
+        }
     }
 
     function addTotalInvoiced(address db, uint contractId, uint amount) internal {

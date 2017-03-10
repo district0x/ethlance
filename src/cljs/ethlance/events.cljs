@@ -13,7 +13,7 @@
     [clojure.set :as set]
     [day8.re-frame.async-flow-fx]
     [day8.re-frame.http-fx]
-    [ethlance.db :refer [default-db]]
+    [ethlance.db :refer [default-db generate-mode?]]
     [ethlance.debounce-fx]
     [ethlance.ethlance-db :as ethlance-db :refer [get-entities get-entities-field-items]]
     [ethlance.generate-db]
@@ -31,14 +31,12 @@
 
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
-(def generate-mode? false)
-
 (defn check-and-throw
-  "throw an exception if db doesn't match the spec"
   [a-spec db]
-  (when-not (s/valid? a-spec db)
-    (.error js/console (s/explain-str a-spec db))
-    (throw "Spec check failed")))
+  (when goog.DEBUG
+    (when-not (s/valid? a-spec db)
+      (.error js/console (s/explain-str a-spec db))
+      (throw "Spec check failed"))))
 
 (def check-spec-interceptor (after (partial check-and-throw :ethlance.db/db)))
 
@@ -152,8 +150,11 @@
         (pr-str a)
         (u/md5-bytes a)
         (reduce + a)
-        (* on-load-seed a)
-        ))
+        (* on-load-seed a)))
+
+(defn active-page-this-contract-detail? [{:keys [:active-page]} contract-id]
+  (and (= (:handler active-page) :contract/detail)
+       (= (js/parseInt (:contract/id (:route-params active-page))) contract-id)))
 
 (comment
   (dispatch [:blockchain/unlock-account "0x98bc90f9bde18341304bd551d693b708e895a2a5" "m"])
@@ -320,7 +321,7 @@
   (fn [{:keys [db]}]
     {:http-xhrio {:method :get
                   :uri "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD,EUR,RUB,GBP,CNY,JPY"
-                  :timeout 10000
+                  :timeout 20000
                   :response-format (ajax/json-response-format {:keywords? true})
                   :on-success [:conversion-rates-loaded]
                   :on-failure [:log-error :load-conversion-rates]}}))
@@ -333,7 +334,7 @@
       {:http-xhrio {:method :get
                     :uri (str "https://min-api.cryptocompare.com/data/pricehistorical?fsym=ETH&tsyms=USD,EUR,RUB,GBP,CNY,JPY&ts="
                               timestamp)
-                    :timeout 10000
+                    :timeout 20000
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success [:conversion-rates-loaded-historical timestamp]
                     :on-failure [:log-error :load-conversion-rates-historical]}})))
@@ -1219,7 +1220,8 @@
   :contract.db/load-invoices
   interceptors
   (fn [{:keys [db]} [fields invoice-ids]]
-    (let [{:keys [fields ids]} (filter-needed-fields fields
+    (let [invoice-ids (u/big-nums->nums invoice-ids)
+          {:keys [fields ids]} (filter-needed-fields fields
                                                      (:app/invoices db)
                                                      invoice-ids
                                                      ethlance-db/invoice-editable-fields)]
@@ -1290,6 +1292,67 @@
                  :form-key :form.invoice/cancel-invoice
                  :receipt-dispatch [:contract.db/load-invoices #{:invoice/status :invoice/cancelled-on}
                                     [(:invoice/id form-data)]]}]}))
+
+;; ============messages
+
+(reg-event-fx
+  :contract.db/load-messages
+  interceptors
+  (fn [{:keys [db]} [fields message-ids]]
+    (let [message-ids (u/big-nums->nums message-ids)
+          {:keys [fields ids]} (filter-needed-fields fields
+                                                     (:app/messages db)
+                                                     message-ids
+                                                     ethlance-db/message-editable-fields)]
+      {:ethlance-db/entities
+       {:instance (get-instance db :ethlance-db)
+        :ids ids
+        :fields fields
+        :partitions 2
+        :on-success [:contract/messages-loaded]
+        :on-error [:log-error :contract.db/load-messages]}})))
+
+(reg-event-fx
+  :contract/messages-loaded
+  interceptors
+  (fn [{:keys [db]} [messages]]
+    (let [messages (->> messages
+                     (remove u/empty-message?)
+                     (u/assoc-key-as-value :message/id))]
+      {:db (update db :app/messages (partial merge-with merge) messages)})))
+
+(reg-event-fx
+  :contract.views/load-contract-messages
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :ethlance-views/get-contract-messages]
+              (args-map->vec values ethlance-db/get-contract-messages-args)
+              [[:contract/contract-messages-loaded values]
+               [:log-error :contract.views/load-contract-messages]])]}}))
+
+(reg-event-fx
+  :contract.message/add-job-contract-message
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-message/add-job-contract-message
+                 :form-key :form.message/add-job-contract-message
+                 :receipt-dispatch-n [[:contract.views/load-contract-messages (select-keys form-data [:contract/id])]
+                                      [:snackbar/show-message "Your message was successfully sent"]
+                                      [:form/set-value :form.message/add-job-contract-message :message/text ""]]}]}))
+
+(reg-event-fx
+  :contract/contract-messages-loaded
+  interceptors
+  (fn [{:keys [db]} [{:keys [:contract/id]} message-ids]]
+    {:db (update-in db [:app/contracts id] merge {:contract/messages (u/big-nums->nums message-ids)
+                                                  :contract/messages-count (count message-ids)})
+     :dispatch [:contract.db/load-messages ethlance-db/message-entity-fields message-ids]}))
 
 (reg-event-fx
   :list/load-ids
@@ -1369,7 +1432,8 @@
   (fn [{:keys [db]} [user-id]]
     (when user-id
       (let [invoice-instance (get-instance db :ethlance-invoice)
-            contract-instance (get-instance db :ethlance-contract)]
+            contract-instance (get-instance db :ethlance-contract)
+            message-instance (get-instance db :ethlance-message)]
         {:web3-fx.contract/events
          {:db db
           :db-path [:active-user-events]
@@ -1388,7 +1452,9 @@
                    [invoice-instance :on-invoice-paid {:freelancer-id user-id} "latest"
                     :contract.invoice/on-invoice-paid [:log-error :on-invoice-paid]]
                    [invoice-instance :on-invoice-cancelled {:employer-id user-id} "latest"
-                    :contract.invoice/on-invoice-cancelled [:log-error :on-invoice-cancelled]]]}}))))
+                    :contract.invoice/on-invoice-cancelled [:log-error :on-invoice-cancelled]]
+                   [message-instance :on-job-contract-message-added {:receiver-id user-id} "latest"
+                    :contract.message/on-job-contract-message-added [:log-error :on-job-contract-message-added]]]}}))))
 
 (reg-event-fx
   :contract.contract/on-job-proposal-added
@@ -1446,6 +1512,16 @@
     {:dispatch [:snackbar/show-message-redirect-action
                 "Your received invoice was just cancelled!" :invoice/detail {:invoice/id (u/big-num->num invoice-id)}]}))
 
+(reg-event-fx
+  :contract.message/on-job-contract-message-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:message-id :contract-id]}]]
+    (let [contract-id (u/big-num->num contract-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "You just received message!" :contract/detail {:contract/id contract-id}]}
+        (when (active-page-this-contract-detail? db contract-id)
+          {:dispatch-n [[:contract.views/load-contract-messages {:contract/id contract-id}]]})))))
 
 (reg-event-fx
   :contract/call
@@ -1907,8 +1983,10 @@
                             #(dispatch [:log %])
                             #(dispatch [:log-error]))
 
-  (get-entities-field-items {1 6} :freelancer/skills
-                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))
+  (get-entities-field-items {1 3} :contract/messages
+                            (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])
+                            #(dispatch [:log %])
+                            #(dispatch [:log-error]))
 
   (get-entities-field-items {13 1} :skill/freelancers-keys
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance]))

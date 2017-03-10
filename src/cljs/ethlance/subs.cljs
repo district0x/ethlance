@@ -83,11 +83,6 @@
             (u/with-currency-symbol "" selected-curency)))))))
 
 (reg-sub
-  :db/search-freelancers-filter-open?
-  (fn [db _]
-    (:search-freelancers-filter-open? db)))
-
-(reg-sub
   :db/search-jobs-filter-open?
   (fn [db _]
     (:search-jobs-filter-open? db)))
@@ -175,6 +170,11 @@
   :app/contracts
   (fn [db]
     (:app/contracts db)))
+
+(reg-sub
+  :app/messages
+  (fn [db]
+    (:app/messages db)))
 
 (reg-sub
   :window/width-size
@@ -378,7 +378,6 @@
     (let [{:keys [items sort-dir]} (get db list-key)]
       (u/sort-in-dir sort-dir items))))
 
-
 (reg-sub
   :contract/route-contract-id
   :<- [:db/active-page]
@@ -409,8 +408,77 @@
   :<- [:db/active-user-id]
   (fn [[contract-id contracts jobs users blockchain-addresses active-user-id]]
     (-> contract-id
-      (contract-id->contract contracts jobs users blockchain-addresses)
-      (remove-unallowed-contract-data active-user-id))))
+      (contract-id->contract contracts jobs users blockchain-addresses))))
+
+(reg-sub
+  :contract/show-add-contract-form?
+  :<- [:contract/detail]
+  :<- [:db/active-user-id]
+  (fn [[{:keys [:contract/status :contract/job]} active-user-id]]
+    (let [{:keys [:job/employer]} job]
+      (and (= status 2)
+           (= (:user/id employer) active-user-id)
+           (= (:job/status job) 1)))))
+
+(reg-sub
+  :contract/show-add-feedback-form?
+  :<- [:contract/detail]
+  :<- [:db/active-user-id]
+  (fn [[{:keys [:contract/status :contract/job :contract/employer-feedback-on :contract/freelancer
+                :contract/freelancer-feedback-on :contract/invoices-count]} active-user-id]]
+    (let [{:keys [:job/employer]} job
+          employer? (= (:user/id employer) active-user-id)]
+      (and (or (= status 3)
+               (= status 4))
+           (or (and employer?
+                    (not employer-feedback-on))
+               (and (= (:user/id freelancer) active-user-id)
+                    (not freelancer-feedback-on)
+                    (pos? invoices-count)))))))
+
+(reg-sub
+  :contract/show-cancel-contract-form?
+  :<- [:contract/detail]
+  :<- [:db/active-user-id]
+  (fn [[{:keys [:contract/status :contract/freelancer :contract/invoices-count]} active-user-id]]
+    (and (= status 3)
+         (zero? invoices-count)
+         (= (:user/id freelancer) active-user-id))))
+
+(reg-sub
+  :contract/show-add-contract-message-form?
+  :<- [:contract/detail]
+  :<- [:db/active-user-id]
+  (fn [[{:keys [:contract/status :contract/freelancer :contract/job]} active-user-id]]
+    (let [{:keys [:job/employer]} job]
+      (and (not (contains? #{4 5} status))
+           (or (= (:user/id freelancer) active-user-id)
+               (= (:user/id employer) active-user-id))))))
+
+(defn message-id->message [message-id messages users blockchain-addresses]
+  (-> (get messages message-id)
+    (update :message/sender #(user-id->user % users blockchain-addresses))
+    (update :message/receiver #(user-id->user % users blockchain-addresses))))
+
+(reg-sub
+  :contract/messages
+  :<- [:contract/detail]
+  :<- [:app/messages]
+  :<- [:app/users]
+  :<- [:blockchain/addresses]
+  (fn [[{:keys [:contract/messages]} app-messages users blockchain-addresses] [_ contract-status]]
+    (->> (sort messages)
+      (map #(message-id->message % app-messages users blockchain-addresses))
+      (filter #(= (:message/contract-status %) contract-status)))))
+
+(reg-sub
+  :contract/messages-loading?
+  :<- [:contract/detail]
+  :<- [:app/messages]
+  (fn [[{:keys [:contract/messages]} app-messages]]
+    (if messages
+      (some #(nil? (get-in app-messages [% :message/created-on])) messages)
+      true)))
 
 (reg-sub
   :list/contracts
@@ -464,11 +532,10 @@
   :<- [:db/active-user-id]
   (fn [[invoice-id invoices contracts jobs users blockchain-addresses active-user-id]]
     (-> invoice-id
-      (invoice-id->invoice invoices contracts jobs users blockchain-addresses)
-      (remove-unallowed-invoice-data active-user-id))))
+      (invoice-id->invoice invoices contracts jobs users blockchain-addresses))))
 
 (reg-sub
-  :invoice/by-me?
+  :invoice/from-me?
   :<- [:invoice/detail]
   :<- [:db/active-user-id]
   (fn [[invoice active-user-id]]
@@ -592,6 +659,11 @@
   :form.user/register-freelancer
   (fn [db]
     (:form.user/register-freelancer db)))
+
+(reg-sub
+  :form.message/add-job-contract-message
+  (fn [db]
+    (:form.message/add-job-contract-message db)))
 
 (reg-sub
   :form.user/set-user
