@@ -1953,7 +1953,7 @@
   (dispatch [:contract/call :ethlance-db :allowed-contracts-keys 5])
   (dispatch [:contract/call :ethlance-user :get-config "max-user-languages"])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :user/count)])
-  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :job/count)])
+  (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :message/count)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :contract/count)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :category/jobs-count 1)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :skill/jobs-count 5)])

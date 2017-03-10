@@ -479,7 +479,7 @@
                    :ethlance-job {:name "EthlanceJob" :setter? true :address "0x3d3bb143a6ee72deb9646c14b403ccc3f6e3c2c8"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x9d0aba974c3158cc9fd9a530acd83a3ff7c14964"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
-                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x3d4fc3a6fb3186efae7087f74dd489d90980b5ac"}
+                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x51075b15962e4f23944cca4628b3e148f9b617b3"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0x603e6a38f51850cb467f37e06d7eab7a97bf3bf4"}

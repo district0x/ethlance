@@ -156,6 +156,14 @@ library UserLibrary {
         EthlanceDB(db).setUInt8Value(sha3("user.notif/job-recommendations", userId), uint8NotifSettings[0]);
     }
 
+    function addReceivedMessage(address db, uint userId, uint messageId) internal {
+        SharedLibrary.addArrayItem(db, userId, "user/received-messages", "user/received-messages-count", messageId);
+    }
+
+    function addSentMessage(address db, uint userId, uint messageId) internal {
+        SharedLibrary.addArrayItem(db, userId, "user/sent-messages", "user/sent-messages-count", messageId);
+    }
+
     function isActiveEmployer(address db, address userAddress) internal returns(bool) {
         var userId = getUserId(db, userAddress);
         return EthlanceDB(db).getBooleanValue(sha3("user/employer?", userId)) &&

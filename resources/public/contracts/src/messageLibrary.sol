@@ -3,6 +3,7 @@ pragma solidity ^0.4.8;
 import "ethlanceDB.sol";
 import "sharedLibrary.sol";
 import "contractLibrary.sol";
+import "userLibrary.sol";
 
 library MessageLibrary {
 
@@ -24,6 +25,8 @@ library MessageLibrary {
         EthlanceDB(db).setUIntValue(sha3("message/created-on", messageId), now);
         EthlanceDB(db).setUIntValue(sha3("message/receiver", messageId), receiverId);
         EthlanceDB(db).setUIntValue(sha3("message/sender", messageId), senderId);
+        UserLibrary.addReceivedMessage(db, receiverId, messageId);
+        UserLibrary.addSentMessage(db, senderId, messageId);
 
         return messageId;
     }
