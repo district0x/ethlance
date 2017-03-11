@@ -64,7 +64,7 @@
              :on-change (fn [_ _ currency]
                           (dispatch [:form.search/set-value :search/hourly-rate-currency currency])
                           (dispatch [:selected-currency/set currency]))}}]
-          [misc/text-field
+          [misc/text-field-base
            {:floating-label-text "Min. Number of Feedbacks"
             :type :number
             :value min-freelancer-ratings-count
