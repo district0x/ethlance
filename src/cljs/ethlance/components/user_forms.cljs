@@ -123,8 +123,8 @@
            [state-select-field
             {:value state
              :on-change #(dispatch [:form/set-value form-key :user/state %3])}])
-         [github-text-field props user]
-         [linkedin-text-field props user]
+         #_ [github-text-field props user]
+         #_ [linkedin-text-field props user]
          [validated-chip-input
           {:all-items constants/languages
            :value languages
