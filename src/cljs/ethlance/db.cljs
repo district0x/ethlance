@@ -483,7 +483,7 @@
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0xb74a8b533241ec36117251e94c01b4e74a456b61"}
                    :ethlance-db {:name "EthlanceDB" :address "0x68d3256b4526ef481b8b0c96792d1d6c47e2ec84"}
                    :ethlance-views {:name "EthlanceViews" :address "0x36926df6b345a8ab33360211c06c6dbf39c60dba"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x2aefe44e103c4af859ea2eb7e14c2010919cfdb0"}}
+                   :ethlance-search {:name "EthlanceSearch" :address "0x9ac52557b130a69e23b68ae211f4314107ba22f3"}}
    :my-addresses []
    :my-addresses-forced []
    :active-address nil
