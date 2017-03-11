@@ -28,7 +28,7 @@
   (reagent/render [main-panel] (.getElementById js/document "app")))
 
 (defn ^:export init []
-  (google-analytics-fx/set-enabled! (not goog.DEBUG))
+  (google-analytics-fx/set-enabled! false)
   (.initialize js/OAuth "F9gUx3gjNFE0DTO4k6WiiJv5pcA")
   (dispatch-sync [:initialize])
   (set! (.-onhashchange js/window) #(dispatch [:set-active-page (u/match-current-location)]))
