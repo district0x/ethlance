@@ -429,8 +429,8 @@
 
 (def default-db
   {:web3 nil
-   :load-node-addresses? false
-   :node-url "https://mainnet.infura.io/" #_"http://localhost:8545" #_ "http://localhost:8549" #_"http://192.168.0.16:8545/" #_"http://localhost:8550"
+   :load-node-addresses? true
+   :node-url #_ "https://mainnet.infura.io/" "http://localhost:8545" #_ "http://localhost:8549" #_"http://192.168.0.16:8545/" #_"http://localhost:8550"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -483,7 +483,7 @@
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0x603e6a38f51850cb467f37e06d7eab7a97bf3bf4"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x8f61f16b154d676b05ac03ac1659df3c1e1b7916"}}
+                   :ethlance-search {:name "EthlanceSearch" :address "0xfc2bf51c1f14eaad6a0d2f3cb132f57caa1a4733"}}
    :my-addresses []
    :my-addresses-forced []
    :active-address nil

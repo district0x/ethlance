@@ -332,7 +332,7 @@ library SharedLibrary {
 
         if (categoryId > 0) {
             var catResult = sort(getFromCategories(db, categoryId));
-            if (skillsAnd.length == 0) {
+            if (skillsAnd.length == 0 && skillsOr.length == 0) {
                 result = catResult;
             } else {
                 result = intersect(result, catResult);
