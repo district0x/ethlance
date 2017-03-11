@@ -455,12 +455,15 @@
         :on-touch-tap #(on-page-change (+ offset limit))}])]])
 
 (defn logo [props]
-  [:a
-   (r/merge-props
-     {:href (u/path-for :home)
-      :style styles/ethlance-logo}
-     props)
-   "Ethlance"])
+  [:div
+   [:a
+    (r/merge-props
+      {:href (u/path-for :home)
+       :style styles/ethlance-logo}
+      props)
+    "Ethlance"
+    [:span {:style {:font-size "16px"
+                    :margin-left 10}} "testnet"]]])
 
 (defn currency [value opts]
   [:span {:title (str (u/big-num->num value) "Ξ")}

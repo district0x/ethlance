@@ -430,7 +430,7 @@
 (def default-db
   {:web3 nil
    :load-node-addresses? false
-   :node-url "https://mainnet.infura.io/" #_"http://localhost:8545" #_ "http://localhost:8549" #_"http://192.168.0.16:8545/" #_"http://localhost:8550"
+   :node-url "https://ropsten.infura.io/" #_"http://localhost:8545" #_ "http://localhost:8549" #_"http://192.168.0.16:8545/" #_"http://localhost:8550"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
@@ -474,16 +474,16 @@
                 :adding-skills-enabled? 0
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
-                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x19f836f44e1dd9d2c59ffca81ac806b7d033f954"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x3d3bb143a6ee72deb9646c14b403ccc3f6e3c2c8"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x9d0aba974c3158cc9fd9a530acd83a3ff7c14964"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
-                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x51075b15962e4f23944cca4628b3e148f9b617b3"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
-                   :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
-                   :ethlance-views {:name "EthlanceViews" :address "0x603e6a38f51850cb467f37e06d7eab7a97bf3bf4"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0x8f61f16b154d676b05ac03ac1659df3c1e1b7916"}}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x5d541463547ab55f83122f66407c2240568261df"}
+                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x7aca0912818cc7b63e9bd4cbc6fe3f057f676e3a"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x694f43f6f062d14358559cd42fe0c04585deb047"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x93459d767c962321eb1ba139ad0f524b67fb6368"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0xca56f86cf0f38ccb870ed3e1bac736a5916e57c0"}
+                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x2aa6b152191abf835be77f6825a6ea3024ed9524"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0xb74a8b533241ec36117251e94c01b4e74a456b61"}
+                   :ethlance-db {:name "EthlanceDB" :address "0x68d3256b4526ef481b8b0c96792d1d6c47e2ec84"}
+                   :ethlance-views {:name "EthlanceViews" :address "0x36926df6b345a8ab33360211c06c6dbf39c60dba"}
+                   :ethlance-search {:name "EthlanceSearch" :address "0x2aefe44e103c4af859ea2eb7e14c2010919cfdb0"}}
    :my-addresses []
    :my-addresses-forced []
    :active-address nil
