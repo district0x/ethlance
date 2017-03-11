@@ -462,8 +462,13 @@
        :style styles/ethlance-logo}
       props)
     "Ethlance"
-    [:span {:style {:font-size "16px"
-                    :margin-left 10}} "testnet"]]])
+    [:img {:style {:margin-left "-40px"
+                   :position :absolute
+                   :width 90
+                   :height "auto"
+                   :transform "rotate(-20deg)"
+                   :top 17}
+           :src "../images/testnet.png"}]]])
 
 (defn currency [value opts]
   [:span {:title (str (u/big-num->num value) "Ξ")}
