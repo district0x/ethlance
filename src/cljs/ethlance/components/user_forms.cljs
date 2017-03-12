@@ -138,17 +138,18 @@
              :disabled (or loading? (boolean (seq errors)))
              :on-touch-tap #(dispatch [:contract.user/set-user user])}])]))))
 
-(defn employer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading?]}]
+(defn employer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading? :edit?]}]
   (let [{:keys [:employer/description]} user]
     (if open?
       [:div
        [misc/textarea
         {:floating-label-text "Overview"
-         :hint-text "Introduce youself as an employer, your previous experiences, contact information"
+         :hint-text (when (or (and edit? (empty? description)) (not edit?)) ; Temp workaround for buggy material-ui
+                      "Introduce youself as an employer, your previous experiences, contact information")
          :form-key form-key
          :field-key :employer/description
          :max-length-key :max-user-description
-         :value (:employer/description user)}]
+         :value description}]
        (when show-save-button?
          [misc/send-button
           {:label "Save Employer"
@@ -159,9 +160,9 @@
         :text "You are not yet registered as an employer"
         :button-label "Become Employer"}])))
 
-(defn freelancer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading? :show-add-more-skills?]}]
+(defn freelancer-form [{:keys [:user :form-key :open? :show-save-button? :errors :loading? :show-add-more-skills? :edit?]}]
   (let [{:keys [:freelancer/description :freelancer/job-title :freelancer/hourly-rate :freelancer/hourly-rate-currency
-                :freelancer/categories :freelancer/skills :freelancer/available?]} user]
+                :freelancer/categories :freelancer/skills :freelancer/available? :user/id]} user]
     (if open?
       [:div
        [misc/text-field
@@ -206,11 +207,12 @@
             [misc/add-more-skills-button]])
        [misc/textarea
         {:floating-label-text "Overview"
-         :hint-text "Introduce youself as a freelancer, your working experiences, portfolio, contact information"
+         :hint-text (when (or (and edit? (empty? description)) (not edit?)) ; Temp workaround for buggy material-ui
+                      "Introduce youself as a freelancer, your working experiences, portfolio, contact information")
          :form-key form-key
          :field-key :freelancer/description
          :max-length-key :max-user-description
-         :value (:freelancer/description user)}]
+         :value description}]
        [ui/checkbox
         {:style styles/margin-top-gutter-less
          :label "I'm available for hire"
