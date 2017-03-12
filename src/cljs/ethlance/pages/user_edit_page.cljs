@@ -152,7 +152,8 @@
                   :show-save-button? true
                   :show-add-more-skills? true
                   :errors errors
-                  :loading? loading?}])
+                  :loading? loading?
+                  :edit? true}])
               [:h2
                {:style styles/margin-top-gutter-more}
                "Employer Information"]
@@ -163,7 +164,8 @@
                   :form-key :form.user/set-employer
                   :show-save-button? true
                   :errors errors
-                  :loading? loading?}])
+                  :loading? loading?
+                  :edit? true}])
               [:h2
                {:style (merge styles/margin-top-gutter-more
                               styles/margin-bottom-gutter)}
