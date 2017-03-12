@@ -404,7 +404,7 @@
   (re-matches #"[a-zA-Z0-9 ]*" x))
 
 (defn etherscan-url [address]
-  (gstring/format "https://etherscan.io/address/%s" address))
+  (gstring/format "https://testnet.etherscan.io/address/%s" address))
 
 (defn prepend-address-zeros [address]
   (let [n (- 42 (count address))]
