@@ -210,7 +210,7 @@
             valid? (validator value)]
         [form-text-field
          (r/merge-props
-           {:floating-label-fixed (when (empty? (str value)))
+           {:floating-label-fixed (boolean (seq (str value)))
             :validator validator
             :error-text (when-not valid?
                           (if (pos? min-length)

@@ -65,7 +65,7 @@
                  [ui/table-row-column
                   [a {:route :contract/detail
                       :route-params (select-keys contract [:contract/id])}
-                   "Go to Contract"]])
+                   (:contract/id contract)]])
                (when show-status?
                  [ui/table-row-column
                   {:style (if @xs-width styles/table-row-column-thin {})}

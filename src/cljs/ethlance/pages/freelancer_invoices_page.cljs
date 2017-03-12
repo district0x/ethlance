@@ -26,6 +26,7 @@
         {:primary true
          :label "New Invoice"
          :icon (icons/plus)
+         :style styles/margin-top-gutter-less
          :href (u/path-for :invoice/create)}]]]]]])
 
 (defn freelancer-pending-invoices [{:keys [:user/id]}]
@@ -43,19 +44,20 @@
     :no-items-text "You have no pending invoices"}])
 
 (defn freelancer-paid-invoices [{:keys [:user/id]}]
-  [invoices-table
-   {:list-subscribe [:list/invoices :list/freelancer-invoices-paid]
-    :show-job? true
-    :show-paid-on? true
-    :show-contract? true
-    :initial-dispatch {:list-key :list/freelancer-invoices-paid
-                       :fn-key :ethlance-views/get-freelancer-invoices
-                       :load-dispatch-key :contract.db/load-invoices
-                       :fields ethlance-db/invoices-table-entity-fields
-                       :args {:user/id id :invoice/status 2}}
-    :all-ids-subscribe [:list/ids :list/freelancer-invoices-paid]
-    :title "Paid Invoices"
-    :no-items-text "You have no paid invoices"}])
+  (let [xs-width? (subscribe [:window/xs-width?])]
+    [invoices-table
+     {:list-subscribe [:list/invoices :list/freelancer-invoices-paid]
+      :show-job? true
+      :show-paid-on? (not @xs-width?)
+      :show-contract? true
+      :initial-dispatch {:list-key :list/freelancer-invoices-paid
+                         :fn-key :ethlance-views/get-freelancer-invoices
+                         :load-dispatch-key :contract.db/load-invoices
+                         :fields ethlance-db/invoices-table-entity-fields
+                         :args {:user/id id :invoice/status 2}}
+      :all-ids-subscribe [:list/ids :list/freelancer-invoices-paid]
+      :title "Paid Invoices"
+      :no-items-text "You have no paid invoices"}]))
 
 (defn freelancer-invoices-page []
   (let [user (subscribe [:db/active-user])]
