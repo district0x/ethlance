@@ -51,7 +51,8 @@
              [ui/table-row-column
               [misc/status-chip
                {:background-color (styles/job-status-colors status)
-                :style styles/table-status-chip}
+                :style styles/table-status-chip
+                :on-touch-tap (u/nav-to-fn :job/detail {:job/id id})}
                (constants/job-statuses status)]])]))
       (misc/create-no-items-row no-items-text loading?))]
    (misc/create-table-pagination

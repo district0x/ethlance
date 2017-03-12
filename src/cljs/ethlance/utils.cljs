@@ -350,6 +350,10 @@
     (when (table-cell-clicked? e)
       (apply nav-to! args))))
 
+(defn nav-to-fn [& args]
+  (fn [e]
+    (apply nav-to! args)))
+
 (def first-word
   (memoize (fn [x]
              (first (string/split x #" ")))))
