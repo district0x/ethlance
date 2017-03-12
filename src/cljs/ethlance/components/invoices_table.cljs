@@ -71,7 +71,8 @@
                   {:style (if @xs-width styles/table-row-column-thin {})}
                   [misc/status-chip
                    {:background-color (styles/invoice-status-colors status)
-                    :style styles/table-status-chip}
+                    :style styles/table-status-chip
+                    :on-touch-tap (u/nav-to-fn :invoice/detail {:invoice/id id})}
                    (constants/invoice-status status)]])]))
           (misc/create-no-items-row (or no-items-text "No invoices") loading?))]
        (misc/create-table-pagination

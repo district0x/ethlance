@@ -110,7 +110,8 @@
                     {:style (when xs? styles/table-row-column-thin)}
                     [misc/status-chip
                      {:background-color (styles/contract-status-colors status)
-                      :style styles/table-status-chip}
+                      :style styles/table-status-chip
+                      :on-touch-tap (u/nav-to-fn :contract/detail {:contract/id id})}
                      (constants/contract-statuses status)]])]))
             (misc/create-no-items-row (or no-items-text "No contracts sent yet") loading?))]
          (misc/create-table-pagination
