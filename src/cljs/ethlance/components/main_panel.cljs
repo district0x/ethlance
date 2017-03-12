@@ -93,7 +93,9 @@
       [ui/select-field
        {:value @active-address
         :on-change #(dispatch [:set-active-address %3])
-        :style styles/app-bar-user
+        :style (merge styles/app-bar-user
+                      {:width 170})
+        :auto-width true
         :label-style styles/app-bar-select-field-label}
        (for [address @my-addresses]
          [ui/menu-item
