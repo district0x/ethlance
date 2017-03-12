@@ -149,10 +149,10 @@
           [paper
            {:loading? (or loading? (:loading? @jobs-list))}
            [row
-            [col {:xs 6}
+            [col {:xs 12}
              (when @form-open?
                [:h2 "New Invitation"])]
-            [col {:xs 6 :style styles/text-right}
+            [col {:xs 12 :style styles/text-right}
              (when-not @form-open?
                [ui/raised-button
                 {:label "Write Invitation"
