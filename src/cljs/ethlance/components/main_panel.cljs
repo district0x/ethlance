@@ -199,22 +199,21 @@
          (str "Your last transaction used " @gas-used-percent "% of gas")]))))
 
 (def socials
-  [["https://www.facebook.com/ethlance/" icons/facebook]
-   ["https://github.com/madvas/ethlance" icons/github]
-   ["https://ethlance-slack.herokuapp.com/" icons/slack]
-   ["https://twitter.com/ethlance" icons/twitter]])
+  [["https://www.facebook.com/ethlance/" icons/facebook "#3b5998"]
+   ["https://github.com/madvas/ethlance" icons/github "#000"]
+   ["https://ethlance-slack.herokuapp.com/" icons/slack "#E01765"]
+   ["https://twitter.com/ethlance" icons/twitter "#00aced"]])
 
 (defn social-buttons []
   [row-plain
-   {:center "xs"
-    :style styles/social-buttons}
-   (for [[href icon] socials]
+   {:center "xs"}
+   (for [[href icon color] socials]
      [ui/icon-button
       {:href href
        :target :_blank
        :key href
        :style styles/social-button}
-      (icon {:color styles/fade-color})])])
+      (icon {:color color})])])
 
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])
@@ -241,31 +240,33 @@
             [ui/drawer
              {:docked @lg-width?
               :open (or @drawer-open? @lg-width?)
-              :on-request-change #(dispatch [:drawer/set %])
-              :style styles/position-relative}
-             [ui/app-bar
-              {:title (r/as-element [misc/logo])
-               :show-menu-icon-button false
-               :style styles/app-bar-left}]
-             [ui/selectable-list
-              {:value (u/ns+name handler)
-               :style styles/nav-list
-               :on-change (fn [])}
-              (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
-              (if @active-address-registered?
-                (create-menu-items nav-items-registered)
-                (when (and (not @my-users-loading?)
-                           @active-address)
-                  (create-menu-items nav-items-unregistered)))
-              (when (and freelancer? employer?)
-                [ui/subheader "Job Seeker"])
-              (when freelancer?
-                (create-menu-items nav-items-freelancers))
-              (when (and freelancer? employer?)
-                [ui/subheader "Employer"])
-              (when employer?
-                (create-menu-items nav-items-employer))]
-             [social-buttons]]
+              :on-request-change #(dispatch [:drawer/set %])}
+             [:div
+              {:style styles/navigation-drawer}
+              [:div
+               [ui/app-bar
+                {:title (r/as-element [misc/logo])
+                 :show-menu-icon-button false
+                 :style styles/app-bar-left}]
+               [ui/selectable-list
+                {:value (u/ns+name handler)
+                 :style styles/nav-list
+                 :on-change (fn [])}
+                (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
+                (if @active-address-registered?
+                  (create-menu-items nav-items-registered)
+                  (when (and (not @my-users-loading?)
+                             @active-address)
+                    (create-menu-items nav-items-unregistered)))
+                (when (and freelancer? employer?)
+                  [ui/subheader "Job Seeker"])
+                (when freelancer?
+                  (create-menu-items nav-items-freelancers))
+                (when (and freelancer? employer?)
+                  [ui/subheader "Employer"])
+                (when employer?
+                  (create-menu-items nav-items-employer))]]
+              [social-buttons]]]
             [ui/app-bar
              {:show-menu-icon-button (not @lg-width?)
               :icon-element-right (r/as-element [app-bar-right-elements])
