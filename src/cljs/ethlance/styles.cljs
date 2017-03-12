@@ -12,7 +12,8 @@
 
 (def mui-theme (get-mui-theme {:palette palette
                                :font-family "Open Sans, sans-serif"
-                               :text-field {:error-color (color :pink400)}}))
+                               :text-field {:error-color (color :pink400)}
+                               :date-picker {:select-color primary1-color}}))
 
 (def desktop-gutter (aget js/MaterialUIStyles "spacing" "desktopGutter"))
 (def desktop-gutter-less (aget js/MaterialUIStyles "spacing" "desktopGutterLess"))
@@ -547,3 +548,9 @@
 
 (def skills-input-xs-hint-size
   {:font-size "11px"})
+
+(def gravatar-hint
+  {:padding-left 10
+   :font-size 12
+   :width 150
+   :text-align :center})

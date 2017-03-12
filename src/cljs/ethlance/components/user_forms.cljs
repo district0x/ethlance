@@ -96,25 +96,21 @@
             :max-length-key :max-user-name
             :min-length-key :min-user-name
             :value name}]]
+         [misc/text-field-base
+          {:floating-label-text "Your Email"
+           :value email
+           :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
+           :error-text (when-not (u/empty-or-valid-email? email)
+                         "Invalid email address")}]
          [row-plain
-          {:bottom "xs"}
-          [misc/text-field-base
-           {:floating-label-text "Your Email"
-            :value email
-            :style (if @xs-width? {:width 220} {})
-            :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
-            :error-text (when-not (u/empty-or-valid-email? email)
-                          "Invalid email address")}]
-          [ui/icon-button
-           {:tooltip "Gravatar is an avatar calculated from your email address. Click for more"
-            :href "http://gravatar.com/"
-            :target :_blank}
-           (icons/help-circle-outline {:color styles/fade-color})]]
-         [row-plain
-          {:style styles/margin-top-gutter}
+          {:style styles/margin-top-gutter
+           :middle "xs"}
           [ui/avatar
            {:size 100
-            :src (u/gravatar-url gravatar)}]]
+            :src (u/gravatar-url gravatar)}]
+          [:div {:style styles/gravatar-hint}
+           "We use " [misc/link "http://gravatar.com" "Gravatar"] " for profile pictures. "
+           "It is a globally recognized avatar associated with your email address."]]
          [:div
           [country-select-field
            {:value country
