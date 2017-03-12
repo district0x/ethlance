@@ -162,6 +162,12 @@
 (def feedback-style-rating
   {:margin-bottom 3})
 
+(def navigation-drawer
+  {:height "100%"
+   :flex-direction "column"
+   :display "flex"
+   :justify-content "space-between"})
+
 (def search-result-headline
   {:color primary1-color
    :font-weight 500})
@@ -194,11 +200,6 @@
    :left 10
    :text-align :center
    :font-size "0.85em"})
-
-(def social-buttons
-  {:position :absolute
-   :bottom 10
-   :left 10})
 
 (def social-button
   {:margin-right 12})
