@@ -1,32 +1,47 @@
 (ns ethlance.pages.how-it-works-page
   (:require
     [cljs-react-material-ui.reagent :as ui]
-    [ethlance.components.misc :as misc :refer [col row paper row-plain link a]]
+    [ethlance.components.misc :as misc :refer [col row paper row-plain link a youtube]]
     [ethlance.styles :as styles]))
+
+(defn video [{:keys [:title :src]}]
+  [row-plain
+   {:center "xs"}
+   [:h2
+    {:style (merge styles/margin-bottom-gutter
+                   styles/margin-top-gutter-more)}
+    title]
+   [youtube {:src src}]])
 
 (defn how-it-works-page []
   [misc/center-layout
    [paper
     [:h2 "How it works?"]
-    [:p "Etlance database is fully distributed on " [link "https://ethereum.org/" "Ethereum"] " public blockchain,
-    therefore you'll need a special tool to be able to interact with it."]
-    [:p "You can choose 1 of those 2 ways to join " [link "https://ethereum.org/" "Ethereum"] " network:"]
-    [:ol
-     [:li
-      {:style styles/margin-bottom-gutter-less}
-      "Download Chrome extension " [link "https://metamask.io/" "MetaMask"] ". This is more lightweight solution and
-     it's super easy to use!" [:br] " Simply add it into Chrome and create your new wallet. After that, you'll need to
-      fund it with little bit of Ether (Ξ), so you are able to pay gas fees for given operations. This wallet will
-      be automatically visible to Ethlance and you can use it to create your account"]
-     [:li "Download " [link "https://github.com/ethereum/mist" "Mist browser"] ".  This is official Ethereum application.
-       It's a complete solution for using " [link "https://ethereum.org/" "Ethereum"] ", but before you can start
-       using it, it needs to download blockchain (several gigabytes) into your computer. After setting up Mist and
-       funding your wallet with some Ether (Ξ), try to open Ethlance inside Mist. To make your wallet visible to Ethlance,
-       click in a right top corner \"Connect\", and choose your wallet. Now you should be able to use Ethlance with that
-       wallet."]]
-    [:h3.bolder
-     {:style styles/margin-top-gutter-more}
-     "How do I get Ether (Ξ) cryptocurrency?"]
+    [:p "Ethlance is running on " [link "https://ethereum.org/" "Ethereum"] " public blockchain,
+    therefore you'll need " [link "https://metamask.io/" "MetaMask"] " browser extension to be able to make
+    changes into a blockchain. See our video tutorials, where everything is clearly explained!"]
+    [video
+     {:title "Installing MetaMask Chrome Extension"
+      :src "https://www.youtube.com/embed/gUZ_XT0a9_U?list=PL4rQUoitSeEH8ybx-yM1ocuvF9OvSVkU4"}]
+    [video
+     {:title "Become Freelancer and Apply for a Job"
+      :src "https://www.youtube.com/embed/gKZsEeISvZ8?list=PL4rQUoitSeEH8ybx-yM1ocuvF9OvSVkU4"}]
+    [video
+     {:title "Become Employer and Create a Job "
+      :src "https://www.youtube.com/embed/sxJlVUvlWwg?list=PL4rQUoitSeEH8ybx-yM1ocuvF9OvSVkU4"}]
+    [video
+     {:title "Creating Invoice and Leaving Feedback to Employer"
+      :src "https://www.youtube.com/embed/p873UP7kwxs?list=PL4rQUoitSeEH8ybx-yM1ocuvF9OvSVkU4"}]
+    [video
+     {:title "Paying Invoice and Leaving Feedback to Freelancer"
+      :src "https://www.youtube.com/embed/trIlOfko3KE?list=PL4rQUoitSeEH8ybx-yM1ocuvF9OvSVkU4"}]
+
+    [:h1
+     {:style (merge styles/margin-top-gutter-more
+                    styles/text-center
+                    styles/margin-bottom-gutter)}
+     "Frequently Asked Questions"]
+    [:h3.bolder "How do I get Ether (Ξ) cryptocurrency?"]
     [:p "Obtaining Ether is very similar to obtaining " [link "https://en.wikipedia.org/wiki/Bitcoin" "Bitcoin"]
      ". Most common way is to register at one of worldwide
     cryptocurrency exchanges and they will exchange your fiat currency into cryptocurrency. Note, that exchange from
@@ -38,11 +53,11 @@
      Thanks to this, Ethlance doesn't need to rent servers and therefore keep service fees as low as 0%! It it also
      great protection against spam. " [:u "Note, money from gas fees are by no means profit of Ethlance"] "."]
     [:h3.bolder "What if employer didn't pay for my work?"]
-    [:p "Ethlance holds no responsibility for resolving conflicts between freelancers and employers. " [:br]
-     "These are some of our advices on how to prevent such conflicts:"]
+    [:p "Ethlance holds no responsibility for resolving disputes between freelancers and employers. " [:br]
+     "These are some of our advices on how to prevent such situations:"]
     [:ul
      [:li "Read all past feedback of a freelancer/employer."]
-     [:li "Send invoices to employer frequently. Don't continue with work until previous invoice is paid."]
+     [:li "Send invoices to an employer frequently. Don't continue with work until previous invoice is paid."]
      [:li "See balance on his/her wallet, whether there is enough money to pay you."]
      [:li "Establish good communication with a freelancer/employer."]]
     [:h3.bolder "Why does it take so long after I submit a form?"]
