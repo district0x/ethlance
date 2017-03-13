@@ -54,7 +54,7 @@
   (fn [conversion-rates-historical [_ timestamp conversion-rate currency]]
     (when conversion-rate
       (when-let [rate-historical (get-in conversion-rates-historical [timestamp currency])]
-        [(< 0.02 (js/Math.abs (- 1 (/ rate-historical conversion-rate)))) rate-historical]))))
+        [(< 0.03 (js/Math.abs (- 1 (/ rate-historical conversion-rate)))) rate-historical]))))
 
 (reg-sub
   :db/skills-loaded?

@@ -238,7 +238,7 @@
                             :resize-interval 166}
          :ga/page-view [(u/current-location-hash)]
          :dispatch-interval {:dispatch [:load-conversion-rates]
-                             :ms 180000
+                             :ms 60000
                              :db-path [:load-all-conversion-rates-interval]}}
         (if (or provides-web3? (:load-node-addresses? default-db))
           {:web3-fx.blockchain/fns
