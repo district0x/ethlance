@@ -530,3 +530,12 @@
 
 (defn conversion-rate [{:keys [:currency :value]}]
   [:span "1 ETH = " (u/format-currency value currency {:full-length? true :display-code? true})])
+
+(defn youtube [props]
+  [:iframe
+   (r/merge-props
+     props
+     {:width 560
+      :height 315
+      :frameBorder 0
+      :allowFullScreen true})])
