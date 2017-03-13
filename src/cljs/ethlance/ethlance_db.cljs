@@ -31,15 +31,22 @@
 
 (def job-entity-fields (set/difference (spec-form->entity-fields :app/job) #{:job/id}))
 
-(def proposal+invitation-entitiy-fields
-  #{:contract/freelancer
-    :contract/job
-    :contract/status
-    :invitation/created-on
-    :invitation/description
-    :proposal/created-on
+(def proposal-entity-fields
+  #{:proposal/created-on
     :proposal/description
     :proposal/rate})
+
+(def invitation-entity-fields
+  #{:invitation/created-on
+    :invitation/description})
+
+(def proposal+invitation-entitiy-fields
+  (set/union
+    #{:contract/freelancer
+      :contract/job
+      :contract/status}
+    invitation-entity-fields
+    proposal-entity-fields))
 
 (def employer-feedback-entity-fields
   #{:contract/employer-feedback

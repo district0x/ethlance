@@ -9,7 +9,8 @@
     [ethlance.utils :as u]
     [goog.string :as gstring]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [ethlance.components.icons :as icons]))
 
 (defn invoice-description [{:keys [:invoice/description :invoice/contract]}]
   (when (seq description)
@@ -87,6 +88,11 @@
        (when cancelled-on
          [line "Cancelled on" (u/format-datetime cancelled-on)])]]]))
 
+(def invoice-status->icon
+  {1 icons/clock
+   2 icons/check
+   3 icons/cancel})
+
 (defn invoice-detail-page []
   (let [invoice (subscribe [:invoice/detail])
         invoice-id (subscribe [:invoice/route-invoice-id])
@@ -97,7 +103,8 @@
     (fn []
       (let [{:keys [:invoice/contract :invoice/id :invoice/created-on :invoice/status
                     :invoice/amount :invoice/conversion-rate]} @invoice
-            job-title (get-in contract [:contract/job :job/title])]
+            job-title (get-in contract [:contract/job :job/title])
+            status-chip-color (styles/invoice-status-colors status)]
         [misc/call-on-change
          {:load-on-mount? true
           :args @invoice-id
@@ -116,7 +123,10 @@
              :style styles/margin-bottom-gutter}
             [:h1 "Invoice #" id]
             [misc/status-chip
-             {:background-color (styles/invoice-status-colors status)}
+             {:background-color status-chip-color}
+             [ui/avatar
+              {:background-color (styles/darken status-chip-color 0.2)
+               :icon ((invoice-status->icon status))}]
              (constants/invoice-status status)]]
            (when (seq job-title)
              [:div

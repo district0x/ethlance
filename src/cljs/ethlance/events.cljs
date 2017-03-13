@@ -156,6 +156,10 @@
   (and (= (:handler active-page) :contract/detail)
        (= (js/parseInt (:contract/id (:route-params active-page))) contract-id)))
 
+(defn active-page-this-invoice-detail? [{:keys [:active-page]} invoice-id]
+  (and (= (:handler active-page) :invoice/detail)
+       (= (js/parseInt (:invoice/id (:route-params active-page))) invoice-id)))
+
 (comment
   (dispatch [:blockchain/unlock-account "0x98bc90f9bde18341304bd551d693b708e895a2a5" "m"])
   (dispatch [:blockchain/unlock-account "0x8eb34c6197963a0a8756ec43cb6de9bd8d276b14" "m"]))
@@ -1460,36 +1464,64 @@
   :contract.contract/on-job-proposal-added
   [interceptors]
   (fn [{:keys [db]} [{:keys [:contract-id]}]]
-    {:dispatch [:snackbar/show-message-redirect-action
-                "Your job just received a proposal!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+    (let [contract-id (u/big-num->num contract-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "Your job just received a proposal!" :contract/detail {:contract/id contract-id}]}
+        (when (active-page-this-contract-detail? db contract-id)
+          {:dispatch-n [[:contract.db/load-contracts
+                         (set/union #{:contract/status} ethlance-db/proposal-entity-fields)
+                         [contract-id]]]})))))
 
 (reg-event-fx
   :contract.contract/on-job-contract-added
   [interceptors]
   (fn [{:keys [db]} [{:keys [:contract-id]}]]
-    {:dispatch [:snackbar/show-message-redirect-action
-                "Your job proposal was accepted!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+    (let [contract-id (u/big-num->num contract-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "Your job proposal was accepted!" :contract/detail {:contract/id contract-id}]}
+        (when (active-page-this-contract-detail? db contract-id)
+          {:dispatch-n [[:contract.db/load-contracts
+                         #{:contract/status :contract/created-on :contract/description}
+                         [contract-id]]]})))))
 
 (reg-event-fx
   :contract.contract/on-job-contract-cancelled
   [interceptors]
   (fn [{:keys [db]} [{:keys [:contract-id]}]]
-    {:dispatch [:snackbar/show-message-redirect-action
-                "A freelancer just cancelled your contract" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+    (let [contract-id (u/big-num->num contract-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "A freelancer just cancelled your contract" :contract/detail {:contract/id contract-id}]}
+        (when (active-page-this-contract-detail? db contract-id)
+          {:dispatch-n [[:contract.db/load-contracts
+                         #{:contract/status :contract/cancelled-on :contract/cancel-description}
+                         [contract-id]]]})))))
 
 (reg-event-fx
   :contract.contract/on-job-contract-feedback-added
   [interceptors]
-  (fn [{:keys [db]} [{:keys [:contract-id]}]]
-    {:dispatch [:snackbar/show-message-redirect-action
-                "You just received feedback!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
+  (fn [{:keys [db]} [{:keys [:contract-id :is-sender-freelancer]}]]
+    (let [contract-id (u/big-num->num contract-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "You just received feedback!" :contract/detail {:contract/id contract-id}]}
+        (when (active-page-this-contract-detail? db contract-id)
+          {:dispatch-n [[:contract.db/load-contracts
+                         (set/union
+                           #{:contract/done-by-freelancer? :contract/done-on}
+                           (if is-sender-freelancer
+                             ethlance-db/freelancer-feedback-entity-fields
+                             ethlance-db/employer-feedback-entity-fields))
+                         [contract-id]]]})))))
 
 (reg-event-fx
   :contract.contract/on-job-invitation-added
   [interceptors]
-  (fn [{:keys [db]} [{:keys [:job-id]}]]
+  (fn [{:keys [db]} [{:keys [:contract-id]}]]
     {:dispatch [:snackbar/show-message-redirect-action
-                "You just received job invitation!" :job/detail {:job/id (u/big-num->num job-id)}]}))
+                "You just received job invitation!" :contract/detail {:contract/id (u/big-num->num contract-id)}]}))
 
 (reg-event-fx
   :contract.invoice/on-invoice-added
@@ -1502,15 +1534,23 @@
   :contract.invoice/on-invoice-paid
   [interceptors]
   (fn [{:keys [db]} [{:keys [:invoice-id]}]]
-    {:dispatch [:snackbar/show-message-redirect-action
-                "Your employer just paid your invoice!" :invoice/detail {:invoice/id (u/big-num->num invoice-id)}]}))
+    (let [invoice-id (u/big-num->num invoice-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "Your employer just paid your invoice!" :invoice/detail {:invoice/id invoice-id}]}
+        (when (active-page-this-invoice-detail? db invoice-id)
+          {:dispatch-n [[:contract.db/load-invoices #{:invoice/status :invoice/paid-on} [invoice-id]]]})))))
 
 (reg-event-fx
   :contract.invoice/on-invoice-cancelled
   [interceptors]
   (fn [{:keys [db]} [{:keys [:invoice-id]}]]
-    {:dispatch [:snackbar/show-message-redirect-action
-                "Your received invoice was just cancelled!" :invoice/detail {:invoice/id (u/big-num->num invoice-id)}]}))
+    (let [invoice-id (u/big-num->num invoice-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    "Your received invoice was just cancelled!" :invoice/detail {:invoice/id invoice-id}]}
+        (when (active-page-this-invoice-detail? db invoice-id)
+          {:dispatch-n [[:contract.db/load-invoices #{:invoice/status :invoice/cancelled-on} [invoice-id]]]})))))
 
 (reg-event-fx
   :contract.message/on-job-contract-message-added
