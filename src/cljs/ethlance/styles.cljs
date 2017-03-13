@@ -25,6 +25,9 @@
 (defn lighten [clr coef]
   (js/MaterialUIUtils.colorManipulator.lighten clr coef))
 
+(defn darken [clr coef]
+  (js/MaterialUIUtils.colorManipulator.darken clr coef))
+
 (def app-bar-left
   {:background-color primary1-color})
 
