@@ -854,6 +854,7 @@
        {:instance (get-instance db :ethlance-db)
         :ids ids
         :fields fields
+        :partitions 5
         :on-success [:contract/jobs-loaded]
         :on-error [:log-error :contract.db/load-jobs]}})))
 
@@ -953,6 +954,7 @@
        {:instance (get-instance db :ethlance-db)
         :ids ids
         :fields (set/difference fields #{:user/balance})
+        :partitions 5
         :on-success [:contract/users-loaded fields load-dispatch-opts]
         :on-error [:log-error :contract.db/load-users]}})))
 
