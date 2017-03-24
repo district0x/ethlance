@@ -1,10 +1,9 @@
 /*.log
 /target
 /*-init.clj
-/resources/public/js/compiled
 out
 /ethlance.iml
-/resources/public/contracts/build/
+/resources/public/contracts/build/*.bin
 /.idea/
 /.lein-repl-history
 /.nrepl-port
