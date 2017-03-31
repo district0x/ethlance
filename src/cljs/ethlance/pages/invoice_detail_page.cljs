@@ -36,15 +36,18 @@
       [invoice-description invoice]
       [col
        {:xs 12}
-       [line "Created by" [a {:route-params (select-keys freelancer [:user/id])
-                              :route :freelancer/detail}
-                           (:user/name freelancer)]]
-       [line "Job" [a {:route-params (select-keys job [:job/id])
-                       :route :job/detail}
-                    (:job/title job)]]
-       [line "Contract" [a {:route-params (select-keys contract [:contract/id])
-                            :route :contract/detail}
-                         (:contract/id contract)]]
+       (when freelancer
+         [line "Created by" [a {:route-params (select-keys freelancer [:user/id])
+                                :route :freelancer/detail}
+                             (:user/name freelancer)]])
+       (when job
+         [line "Job" [a {:route-params (select-keys job [:job/id])
+                         :route :job/detail}
+                      (:job/title job)]])
+       (when contract
+         [line "Contract" [a {:route-params (select-keys contract [:contract/id])
+                              :route :contract/detail}
+                           (:contract/id contract)]])
        (when (and paid-by (not (u/zero-address? paid-by)))
          [misc/call-on-change
           {:args paid-by
@@ -134,7 +137,9 @@
                                                                           :job/allowed-users
                                                                           :job/allowed-users-count
                                                                           :job/sponsorships-balance
-                                                                          :job/status})
+                                                                          :job/status
+                                                                          :job/payment-type
+                                                                          :job/reference-currency})
                                   [@invoice-id]]])}
          [misc/center-layout
           [paper

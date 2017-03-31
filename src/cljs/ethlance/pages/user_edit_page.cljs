@@ -61,7 +61,7 @@
            :label-position "right"
            :on-toggle #(dispatch-notif-form :user.notif/disabled-all? %2)
            :style styles/margin-bottom-gutter-less}]
-          (for [[key label pred] notifications]
+         (for [[key label pred] notifications]
            (when (or (not pred)
                      (pred @active-user))
              [ui/checkbox

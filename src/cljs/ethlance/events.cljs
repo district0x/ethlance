@@ -371,7 +371,7 @@
     (when-not (get-in db [:conversion-rates-historical timestamp])
       {:http-xhrio {:method :get
                     :uri (str "https://min-api.cryptocompare.com/data/pricehistorical?fsym=ETH&tsyms=USD,EUR,RUB,GBP,CNY,JPY&ts="
-                              timestamp)
+                              (/ timestamp 1000))
                     :timeout 20000
                     :response-format (ajax/json-response-format {:keywords? true})
                     :on-success [:conversion-rates-loaded-historical timestamp]
@@ -897,7 +897,7 @@
   interceptors
   (fn [{:keys [db]} [fields jobs]]
     (let [jobs (->> jobs
-                 (remove u/empty-job?)
+                 (medley/remove-keys (complement pos?))
                  (u/assoc-key-as-value :job/id))]
       {:db (-> db
              (update :app/jobs (partial merge-with merge) jobs))
@@ -1000,7 +1000,7 @@
   interceptors
   (fn [{:keys [db]} [fields load-dispatch-opts users]]
     (let [users (->> users
-                  (medley/remove-vals u/empty-user?)
+                  (medley/remove-keys (complement pos?))
                   (u/assoc-key-as-value :user/id))
           address->user-id (into {} (map (fn [[id user]]
                                            {(:user/address user) {:user/id id}})
@@ -1205,7 +1205,7 @@
   interceptors
   (fn [{:keys [db]} [fields contracts]]
     (let [contracts (->> contracts
-                      (remove u/empty-contract?)
+                      (medley/remove-keys (complement pos?))
                       (u/assoc-key-as-value :contract/id))
           contract-vals (vals contracts)
           freelancer-ids (map :contract/freelancer contract-vals)
@@ -1352,7 +1352,7 @@
   interceptors
   (fn [{:keys [db]} [fields invoices]]
     (let [invoices (->> invoices
-                     (remove u/empty-invoice?)
+                     (medley/remove-keys (complement pos?))
                      (u/assoc-key-as-value :invoice/id))
           contract-ids (map :invoice/contract (vals invoices))]
       {:db (update db :app/invoices (partial merge-with merge) invoices)
@@ -1438,7 +1438,7 @@
   interceptors
   (fn [{:keys [db]} [messages]]
     (let [messages (->> messages
-                     (remove u/empty-message?)
+                     (medley/remove-keys (complement pos?))
                      (u/assoc-key-as-value :message/id))]
       {:db (update db :app/messages (partial merge-with merge) messages)})))
 
@@ -1500,7 +1500,7 @@
   interceptors
   (fn [{:keys [db]} [fields sponsorships]]
     (let [sponsorships (->> sponsorships
-                         (remove u/empty-sponsorship?)
+                         (medley/remove-keys (complement pos?))
                          (u/assoc-key-as-value :sponsorship/id))]
       {:db (update db :app/sponsorships (partial merge-with merge) sponsorships)
        :dispatch [:contract.db/load-jobs
