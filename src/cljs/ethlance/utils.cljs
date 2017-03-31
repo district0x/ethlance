@@ -221,7 +221,7 @@
            (js/isFinite x)) x 0))
 
 (defn empty-user? [user]
-  (zero? (:user/created-on user)))
+  (empty? (:user/name user)))
 
 (defn empty-job? [job]
   (zero? (:job/created-on job)))

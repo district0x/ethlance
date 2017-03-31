@@ -292,36 +292,38 @@
                                   allowed-users
                                   {:on-success [:contract.db/load-users #{:user/name
                                                                           :user/freelancer?
-                                                                          :user/gravatar}]}])
+                                                                          :user/gravatar
+                                                                          :user/address}]}])
                        (when (= status 4)
                          (dispatch [:contract.views/load-job-approvals {:job/id id}])))}
          [misc/subheader "Accounts allowed to spend sponsorships"]
-         (for [[i allowed-user] (medley/indexed allowed-users)]
-           (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} (nth allowed-users-data i)
-                 allowed-user-approved? (if (= status 4)
-                                             @(subscribe [:job/allowed-user-approved? (:job/id @job) allowed-user])
-                                             true)]
-             [row-plain
-              {:start "xs"
-               :key allowed-user
-               :style {:margin-bottom 3}}
-              (if name
-                [allowed-user-chip
-                 {:key allowed-user
-                  :approved? allowed-user-approved?
-                  :on-touch-tap (u/nav-to-fn (if freelancer? :freelancer/detail :employer/detail)
-                                             {:user/id id})}
-                 [ui/avatar
-                  {:src (u/gravatar-url gravatar id)}]
-                 name]
-                [allowed-user-chip
-                 {:key allowed-user
-                  :approved? allowed-user-approved?
-                  :on-touch-tap (fn [])}
-                 [:a {:href (u/etherscan-url allowed-user)
-                      :target :_blank
-                      :style {:color styles/text-color}}
-                  allowed-user]])]))]))))
+         (doall
+           (for [[i allowed-user] (medley/indexed allowed-users)]
+             (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} (nth allowed-users-data i)
+                   allowed-user-approved? (if (= status 4)
+                                            @(subscribe [:job/allowed-user-approved? (:job/id @job) allowed-user])
+                                            true)]
+               [row-plain
+                {:start "xs"
+                 :key allowed-user
+                 :style {:margin-bottom 3}}
+                (if name
+                  [allowed-user-chip
+                   {:key allowed-user
+                    :approved? allowed-user-approved?
+                    :on-touch-tap (u/nav-to-fn (if freelancer? :freelancer/detail :employer/detail)
+                                               {:user/id id})}
+                   [ui/avatar
+                    {:src (u/gravatar-url gravatar id)}]
+                   name]
+                  [allowed-user-chip
+                   {:key allowed-user
+                    :approved? allowed-user-approved?
+                    :on-touch-tap (fn [])}
+                   [:a {:href (u/etherscan-url allowed-user)
+                        :target :_blank
+                        :style {:color styles/text-color}}
+                    allowed-user]])])))]))))
 
 (defn job-details []
   (let [job (subscribe [:job/detail])
