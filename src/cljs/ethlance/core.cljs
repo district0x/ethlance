@@ -28,6 +28,7 @@
   (reagent/render [main-panel] (.getElementById js/document "app")))
 
 (defn ^:export init []
+  (s/check-asserts goog.DEBUG)
   (google-analytics-fx/set-enabled! (not goog.DEBUG))
   (.initialize js/OAuth "F9gUx3gjNFE0DTO4k6WiiJv5pcA")
   (dispatch-sync [:initialize])
