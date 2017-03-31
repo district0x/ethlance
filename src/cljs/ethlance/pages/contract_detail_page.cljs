@@ -238,7 +238,7 @@
           [:h2 "Cancel Contract"]
           [:div {:style (merge styles/fade-text styles/margin-top-gutter-less)}
            "You can cancel this contract in case you decided for another job or you can't start work for other reasons."
-           [:br] "After you create at least 1 invoice for -this contract, this option won't be available anymore."]
+           [:br] "After you create at least 1 invoice for this contract, this option won't be available anymore."]
           [misc/textarea
            {:floating-label-text "Message"
             :form-key :form.contract/cancel-contract

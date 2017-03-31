@@ -168,11 +168,11 @@ library ContractLibrary {
     }
 
     function addMessage(address db, uint contractId, uint messageId) internal {
-        SharedLibrary.addArrayItem(db, contractId, "contract/messages", "contract/messages-count", messageId);
+        SharedLibrary.addIdArrayItem(db, contractId, "contract/messages", "contract/messages-count", messageId);
     }
 
     function getMessages(address db, uint contractId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, contractId, "contract/messages", "contract/messages-count");
+        return SharedLibrary.getIdArray(db, contractId, "contract/messages", "contract/messages-count");
     }
 
     function getOtherContractParticipant(address db, uint contractId, uint user) internal returns (uint, bool) {
@@ -195,16 +195,16 @@ library ContractLibrary {
     }
 
     function addInvoice(address db, uint contractId, uint invoiceId, uint amount) internal {
-        SharedLibrary.addArrayItem(db, contractId, "contract/invoices", "contract/invoices-count", invoiceId);
+        SharedLibrary.addIdArrayItem(db, contractId, "contract/invoices", "contract/invoices-count", invoiceId);
         addTotalInvoiced(db, contractId, amount);
     }
 
     function getInvoices(address db, uint contractId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, contractId, "contract/invoices", "contract/invoices-count");
+        return SharedLibrary.getIdArray(db, contractId, "contract/invoices", "contract/invoices-count");
     }
 
     function getInvoicesCount(address db, uint contractId) internal returns(uint) {
-        return SharedLibrary.getArrayItemsCount(db, contractId, "contract/invoices-count");
+        return SharedLibrary.getIdArrayItemsCount(db, contractId, "contract/invoices-count");
     }
 
     function getInvoicesByStatus(address db, uint contractId, uint8 invoiceStatus) internal returns(uint[]) {

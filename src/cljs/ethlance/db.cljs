@@ -18,7 +18,7 @@
 (s/def ::search-jobs-filter-open? boolean?)
 (s/def ::skills-loaded? boolean?)
 (s/def ::handler keyword?)
-(s/def ::route-params (s/map-of keyword? (u/one-of number? string?)))
+(s/def ::route-params (s/map-of keyword? (some-fn number? string?)))
 (s/def :window/width-size int?)
 (s/def ::active-page (s/keys :req-un [::handler] :opt-un [::route-params]))
 (s/def ::selected-currency (partial contains? (set (keys constants/currencies))))
@@ -26,7 +26,10 @@
 (s/def ::message string?)
 (s/def ::on-request-close fn?)
 (s/def ::auto-hide-duration int?)
+(s/def ::title string?)
+(s/def ::modal boolean?)
 (s/def ::snackbar (s/keys :req-un [::open? ::message ::on-request-close ::auto-hide-duration]))
+(s/def ::dialog (s/keys :req-un [::open? ::title ::modal]))
 (s/def :eth/config (s/map-of keyword? int?))
 (s/def ::name string?)
 (s/def ::address string?)
@@ -37,7 +40,6 @@
 (s/def ::my-addresses (s/coll-of string?))
 (s/def ::active-address (s/nilable string?))
 (s/def ::my-users-loaded? boolean?)
-(s/def :user/id pos?)
 (s/def :address/balance u/big-num?)
 (s/def :blockchain/addresses (s/map-of string? (s/keys :opt [:user/id :address/balance])))
 (s/def :blockchain/connection-error? boolean?)
@@ -45,6 +47,7 @@
 (s/def ::conversion-rates-historical (s/map-of number? ::conversion-rates))
 (s/def ::load-all-conversion-rates-interval (s/nilable int?))
 
+(s/def :user/id (some-fn pos? u/address?))
 (s/def :employer/avg-rating u/uint8?)
 (s/def :employer/description u/string-or-nil?)
 (s/def :employer/jobs u/uint-coll?)
@@ -76,6 +79,7 @@
 (s/def :user.notif/disabled-on-job-invitation-added? boolean?)
 (s/def :user.notif/disabled-on-job-proposal-added? boolean?)
 (s/def :user.notif/disabled-on-message-added? boolean?)
+(s/def :user.notif/disabled-on-job-sponsorship-added? boolean?)
 (s/def :user.notif/job-recommendations u/uint8?)
 (s/def :user/address u/address?)
 (s/def :user/balance u/big-num?)
@@ -92,6 +96,8 @@
 (s/def :user/name string?)
 (s/def :user/state u/uint?)
 (s/def :user/status u/uint8?)
+(s/def :user/sponsorships u/uint-coll?)
+(s/def :user/sponsorships-count u/uint?)
 
 (s/def :app/user (s/keys :opt [:user/id
                                :user/address
@@ -109,6 +115,8 @@
                                :user/name
                                :user/state
                                :user/status
+                               :user/sponsorships
+                               :user/sponsorships-count
                                :user.notif/disabled-all?
                                :user.notif/disabled-newsletter?
                                :user.notif/disabled-on-invoice-added?
@@ -118,6 +126,7 @@
                                :user.notif/disabled-on-job-invitation-added?
                                :user.notif/disabled-on-job-proposal-added?
                                :user.notif/disabled-on-message-added?
+                               :user.notif/disabled-on-job-sponsorship-added?
                                :user.notif/job-recommendations
                                :freelancer/available?
                                :freelancer/avg-rating
@@ -143,7 +152,7 @@
                                :employer/total-paid]))
 (s/def :app/users (s/map-of pos? :app/user))
 
-(s/def :job/id pos?)
+(s/def :job/id u/pos-or-zero?)
 (s/def :job/budget u/big-num|num|str?)
 (s/def :job/category u/uint8?)
 (s/def :job/contracts u/uint-coll?)
@@ -164,6 +173,14 @@
 (s/def :job/status u/uint8?)
 (s/def :job/title string?)
 (s/def :job/total-paid u/big-num?)
+(s/def :job/sponsorable? boolean?)
+(s/def :job/allowed-users u/address-coll?)
+(s/def :job/allowed-users-count u/uint?)
+(s/def :job/sponsorships-balance u/big-num?)
+(s/def :job/sponsorships-total u/big-num?)
+(s/def :job/sponsorships-total-refunded u/big-num?)
+(s/def :job/sponsorships u/uint-coll?)
+(s/def :job/sponsorships-count u/uint?)
 
 (s/def :app/job (s/keys :opt [:job/id
                               :job/budget
@@ -183,11 +200,24 @@
                               :job/payment-type
                               :job/skills
                               :job/skills-count
+                              :job/sponsorships
+                              :job/sponsorships-count
+                              :job/sponsorships-balance
+                              :job/sponsorships-total
+                              :job/sponsorships-total-refunded
                               :job/status
                               :job/title
-                              :job/total-paid]))
+                              :job/total-paid
+                              :job/sponsorable?
+                              :job/allowed-users
+                              :job/allowed-users-count]))
 
 (s/def :app/jobs (s/map-of pos? :app/job))
+
+
+(s/def :job.allowed-user/approved? boolean?)
+(s/def :app/job.allowed-user (s/keys :opt [:job.allowed-user/approved?]))
+(s/def :app/jobs.allowed-users (s/map-of (s/cat :job/id :job/id :user/address :user/address) :app/job.allowed-user))
 
 (s/def :contract/id pos?)
 (s/def :invitation/created-on u/date-or-nil?)
@@ -262,6 +292,7 @@
 (s/def :invoice/worked-hours u/uint?)
 (s/def :invoice/worked-minutes u/uint?)
 (s/def :invoice/worked-to u/date?)
+(s/def :invoice/paid-by u/address?)
 
 (s/def :app/invoice (s/keys :opt [:invoice/id
                                   :invoice/amount
@@ -276,7 +307,8 @@
                                   :invoice/worked-from
                                   :invoice/worked-hours
                                   :invoice/worked-minutes
-                                  :invoice/worked-to]))
+                                  :invoice/worked-to
+                                  :invoice/paid-by]))
 
 (s/def :app/invoices (s/map-of pos? :app/invoice))
 
@@ -322,7 +354,29 @@
                                   :message/contract
                                   :message/contract-status]))
 
-(s/def :app/messages (s/map-of pos? :app/message))
+(s/def :sponsorship/id pos?)
+(s/def :sponsorship/user u/address?)
+(s/def :sponsorship/created-on u/date?)
+(s/def :sponsorship/amount u/big-num|num|str?)
+(s/def :sponsorship/job u/uint?)
+(s/def :sponsorship/name string?)
+(s/def :sponsorship/link string?)
+(s/def :sponsorship/updated-on u/date?)
+(s/def :sponsorship/refunded? boolean?)
+(s/def :sponsorship/refunded-amount u/big-num|num|str?)
+
+(s/def :app/sponsorship (s/keys :opt [:sponsorship/id
+                                      :sponsorship/user
+                                      :sponsorship/created-on
+                                      :sponsorship/amount
+                                      :sponsorship/job
+                                      :sponsorship/name
+                                      :sponsorship/link
+                                      :sponsorship/updated-on
+                                      :sponsorship/refunded?
+                                      :sponsorship/refunded-amount]))
+
+(s/def :app/sponsorships (s/map-of pos? :app/sponsorship))
 
 (s/def ::items (s/coll-of (s/nilable int?)))
 (s/def ::loading? boolean?)
@@ -340,6 +394,8 @@
 (s/def :list/job-proposals ::ids-list)
 (s/def :list/job-feedbacks ::ids-list)
 (s/def :list/job-invoices ::ids-list)
+(s/def :list/job-sponsorships ::ids-list)
+(s/def :list/user-sponsorships ::ids-list)
 (s/def :list/employer-invoices-pending ::ids-list)
 (s/def :list/employer-invoices-paid ::ids-list)
 (s/def :list/freelancer-invoices-pending ::ids-list)
@@ -372,7 +428,7 @@
 (s/def :search/experience-levels (s/coll-of constants/experience-levels))
 (s/def :search/estimated-durations (s/coll-of constants/estimated-durations))
 (s/def :search/hours-per-weeks (s/coll-of constants/hours-per-weeks))
-(s/def :search/min-budget (u/one-of string? number?))
+(s/def :search/min-budget (some-fn string? number?))
 (s/def :search/min-budget-currency (partial contains? (set (keys constants/currencies))))
 (s/def :search/min-employer-avg-rating u/rating?)
 (s/def :search/min-employer-ratings-count u/rating?)
@@ -383,8 +439,8 @@
 (s/def :search/limit int?)
 (s/def :search/min-avg-rating u/rating?)
 (s/def :search/min-freelancer-ratings-count int?)
-(s/def :search/min-hourly-rate (u/one-of string? number?))
-(s/def :search/max-hourly-rate (u/one-of string? number?))
+(s/def :search/min-hourly-rate (some-fn string? number?))
+(s/def :search/max-hourly-rate (some-fn string? number?))
 (s/def :search/hourly-rate-currency (partial contains? (set (keys constants/currencies))))
 
 (s/def :form/search-jobs (s/keys))
@@ -398,6 +454,7 @@
 (s/def :form.invoice/pay-invoice ::submit-form)
 (s/def :form.invoice/cancel-invoice ::submit-form)
 (s/def :form.job/set-hiring-done ::submit-form)
+(s/def :form.job/approve-sponsorable-job ::submit-form)
 (s/def :form.job/add-job ::submit-form)
 (s/def :form.contract/add-invitation ::submit-form)
 (s/def :form.contract/add-proposal ::submit-form)
@@ -412,6 +469,7 @@
 (s/def :form.user/register-freelancer ::submit-form)
 (s/def :form.user/register-employer ::submit-form)
 (s/def :form.user2/set-user-notifications ::submit-form)
+(s/def :form.sponsor/add-job-sponsorship ::submit-form)
 (s/def :form.config/set-configs ::submit-form)
 (s/def :form.config/block-skills ::submit-form)
 (s/def :form.config/set-skill-name ::submit-form)
@@ -423,7 +481,7 @@
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
                              ::my-users-loaded? ::conversion-rates ::conversion-rates-historical
                              ::skill-load-limit ::active-setters? ::last-transaction-gas-used ::skills-loaded?
-                             ::load-all-conversion-rates-interval]))
+                             ::load-all-conversion-rates-interval ::dialog]))
 
 (def generate-mode? false)
 
@@ -446,6 +504,12 @@
               :message ""
               :auto-hide-duration 5000
               :on-request-close #(dispatch [:snackbar/close])}
+   :dialog {:open? false
+            :modal false
+            :title ""
+            :actions []
+            :body ""
+            :on-request-close #(dispatch [:dialog/close])}
    :eth/config {:max-user-languages 10
                 :min-user-languages 1
                 :max-freelancer-categories (dec (count constants/categories))
@@ -472,17 +536,24 @@
                 :max-message-length 1500
                 :max-skills-create-at-once 4
                 :adding-skills-enabled? 0
+                :max-sponsor-name 50
+                :max-sponsor-link 255
+                :min-sponsorship-amount (js/parseInt (web3/to-wei 0.02 :ether))
+                :max-job-allowed-users 10
+                :min-job-allowed-users 1
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x85c1b0dc9e3443e06e5f1b09844631378825bb14"}
-                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x19f836f44e1dd9d2c59ffca81ac806b7d033f954"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x3d3bb143a6ee72deb9646c14b403ccc3f6e3c2c8"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x419319579f825b52a44d9e2cf147fd5fe5217f3a"}
+                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x74f363aff36bb2f9ae9e6d1e67ffcb2badb66e84"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x9461a0fbe1b815a06a11161cc2e5ae9e7d2bac91"}
                    :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x9d0aba974c3158cc9fd9a530acd83a3ff7c14964"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x917db76c206f744274375428e261fa6521ac1b05"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x1a79380c8b7aecaf0535cec5f6bef8b8dd740cf4"}
                    :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x51075b15962e4f23944cca4628b3e148f9b617b3"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
+                   :ethlance-sponsor {:name "EthlanceSponsor" :setter? true :address "0x921fd8eb11346ebb803f22208ce81a0043a211a5"}
+                   :ethlance-sponsor-wallet {:name "EthlanceSponsorWallet" :address "0xc80d2cb06ce606395178692de07ea9da1f873aa3"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
-                   :ethlance-views {:name "EthlanceViews" :address "0x603e6a38f51850cb467f37e06d7eab7a97bf3bf4"}
+                   :ethlance-views {:name "EthlanceViews" :address "0xced436de0b821b4c9e33799a2f71b9ae8fc897c9"}
                    :ethlance-search {:name "EthlanceSearch" :address "0xfc2bf51c1f14eaad6a0d2f3cb132f57caa1a4733"}}
    :my-addresses []
    :my-addresses-forced []
@@ -495,11 +566,13 @@
    :conversion-rates-historical {}
    :app/users {}
    :app/jobs {}
+   :app/jobs.allowed-users {}
    :app/contracts {}
    :app/invoices {}
    :skills-loaded? false
    :app/skills {}
    :app/skill-count 0
+   :app/sponsorships {}
    :app/messages {}
    :skill-load-limit 30
    :load-all-conversion-rates-interval nil
@@ -507,6 +580,8 @@
    :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :asc}
+   :list/job-sponsorships {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit}
+   :list/user-sponsorships {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/job-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 8 :sort-dir :desc}
    :list/job-invoices {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/employer-invoices-pending {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
@@ -538,10 +613,12 @@
    :form.invoice/pay-invoice {:loading? false :gas-limit 250000}
    :form.invoice/cancel-invoice {:loading? false :gas-limit 150000}
    :form.job/set-hiring-done {:loading? false :gas-limit 120000}
+   :form.job/approve-sponsorable-job {:loading? false :gas-limit 120000}
    :form.job/add-job {:loading? false
                       :gas-limit 2000000
                       :budget-enabled? false
-                      :data {:job/title ""
+                      :data {:job/id 0
+                             :job/title ""
                              :job/description ""
                              :job/skills []
                              :job/language 40
@@ -552,8 +629,16 @@
                              :job/estimated-duration 1
                              :job/hours-per-week 1
                              :job/freelancers-needed 1
-                             :job/reference-currency 0}
-                      :errors #{:job/title :job/description :job/skills :job/category}}
+                             :job/reference-currency 0
+                             :job/sponsorable? false
+                             :job/allowed-users []}
+                      :errors #{:job/title :job/description :job/skills :job/category :job/allowed-users}}
+
+   :form.job/set-job {:loading? false
+                      :gas-limit 2000000
+                      :data {}
+                      :errors #{}}
+
    :form.contract/add-invitation {:loading? false
                                   :gas-limit 550000
                                   :data {:invitation/description ""
@@ -597,6 +682,16 @@
                               :errors #{:invoice/contract}}
 
    :form.invoice/add-invoice-localstorage {}
+
+   :form.sponsor/add-job-sponsorship {:loading? false
+                                      :gas-limit 600000
+                                      :data {:sponsorship/name ""
+                                             :sponsorship/link ""
+                                             :sponsorship/amount 1
+                                             :sponsorship/currency 0}
+                                      :errors #{}}
+
+   :form.sponsor/refund-job-sponsorships {:loading? false :gas-limit u/max-gas-limit}
 
    :form.config/add-skills {:loading? false
                             :gas-limit 600000

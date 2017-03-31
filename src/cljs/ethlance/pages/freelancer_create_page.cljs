@@ -14,7 +14,7 @@
   (let [register-freelancer-form (subscribe [:form.user/register-freelancer])]
     (fn []
       (let [{:keys [:loading? :data :errors]} @register-freelancer-form]
-        [misc/only-unregistered
+        [misc/only-unregistered-and-connected
          [misc/center-layout
           [paper
            {:loading? loading?}

@@ -26,8 +26,10 @@
     [ethlance.pages.invoice-detail-page :refer [invoice-detail-page]]
     [ethlance.pages.job-create-page :refer [job-create-page]]
     [ethlance.pages.job-detail-page :refer [job-detail-page]]
+    [ethlance.pages.job-edit-page :refer [job-edit-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
+    [ethlance.pages.sponsor-detail-page :refer [sponsor-detail-page]]
     [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
@@ -47,12 +49,14 @@
    :freelancer/create freelancer-create-page
    :freelancer/detail freelancer-detail-page
    :freelancer/invoices freelancer-invoices-page
+   :sponsor/detail sponsor-detail-page
    :home home-page
    :how-it-works how-it-works-page
    :invoice/create invoice-create-page
    :invoice/detail invoice-detail-page
    :job/create job-create-page
    :job/detail job-detail-page
+   :job/edit job-edit-page
    :search/freelancers search-freelancers-page
    :user/edit user-edit-page
    :search/jobs search-jobs-page})
@@ -139,7 +143,7 @@
            [misc/call-on-change
             {:load-on-mount? true
              :args (:user/id @active-user)
-             :on-change #(dispatch [:contracts/listen-active-user-events (:user/id @active-user)])}
+             :on-change #(dispatch [:contracts/listen-active-user-events @active-user])}
             [row-plain
              {:middle "xs"
               :style styles/app-bar-user}
@@ -221,6 +225,7 @@
         active-user (subscribe [:db/active-user])
         active-address (subscribe [:db/active-address])
         snackbar (subscribe [:db/snackbar])
+        dialog (subscribe [:db/dialog])
         active-address-registered? (subscribe [:db/active-address-registered?])
         my-users-loading? (subscribe [:db/my-users-loading?])
         contracts-not-found? (subscribe [:db/contracts-not-found?])
@@ -253,6 +258,13 @@
                  :style styles/nav-list
                  :on-change (fn [])}
                 (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
+                (when @active-address
+                  [ui/list-item
+                   {:primary-text "My Sponsorships"
+                    :left-icon (icons/coin)
+                    :value (u/ns+name :sponsor/detail)
+                    :href (u/path-for :sponsor/detail :user/id @active-address)
+                    :key :sponsor/detail}])
                 (if @active-address-registered?
                   (create-menu-items nav-items-registered)
                   (when (and (not @my-users-loading?)
@@ -275,6 +287,9 @@
               :style styles/app-bar-right}]
             [ui/snackbar (-> @snackbar
                            (set/rename-keys {:open? :open}))]
+            [ui/dialog (-> @dialog
+                         (set/rename-keys {:open? :open}))
+             (r/as-element (:body @dialog))]
             (when-let [page (route->component handler)]
               [:div {:style (merge styles/content-wrap
                                    (when @lg-width?

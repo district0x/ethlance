@@ -11,6 +11,7 @@
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.components.user-detail :as user-detail]
+    [ethlance.components.user-sponsorships :refer [user-sponsorships]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
@@ -96,7 +97,7 @@
                                      :proposal/rate
                                      :contract/total-paid
                                      :contract/status}
-                           :args {:user/id id :contract/status 0 :job/status 0}}
+                           :args {:user/id id :contract/statuses [] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/freelancer-contracts]
         :title "Job Activity"
         :no-items-text "Freelancer has no job activity"}])))
@@ -110,7 +111,7 @@
                                        :fn-key :ethlance-views/get-freelancer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
                                        :fields ethlance-db/feedback-entity-fields
-                                       :args {:user/id id :contract/status 4 :job/status 0}}]}])
+                                       :args {:user/id id :contract/statuses [4] :job/statuses []}}]}])
 
 (defn employer-jobs-select-field [jobs-list {:keys [:contract/job]} freelancer active-user]
   [misc/call-on-change
@@ -191,4 +192,6 @@
         (when (:user/freelancer? @user)
           [:div
            [freelancer-contracts @user]
+           [user-sponsorships
+            {:user/id (:user/address @user)}]
            [freelancer-feedback @user]])]])))

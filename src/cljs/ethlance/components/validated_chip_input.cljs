@@ -1,10 +1,12 @@
 (ns ethlance.components.validated-chip-input
-  (:require [ethlance.components.chip-input :refer [chip-input]]
-            [ethlance.constants :as constants]
-            [ethlance.utils :as u]
-            [goog.string :as gstring]
-            [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]))
+  (:require
+    [ethlance.components.chip-input :refer [chip-input]]
+    [ethlance.components.chip-input-colored :refer [chip-input-colored]]
+    [ethlance.constants :as constants]
+    [ethlance.utils :as u]
+    [goog.string :as gstring]
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]))
 
 (defn validated-chip-input []
   (let [eth-config (subscribe [:eth/config])]
@@ -13,17 +15,23 @@
             max-count (get @eth-config max-length-key)
             value-count (count value)
             validator #(<= min-count (count %) max-count)]
-        [chip-input
+        [(if (:all-items props) chip-input chip-input-colored)
          (r/merge-props
-           {:on-change #(dispatch [:form/set-value form-key field-key %1 validator])
+           {:full-width true
+            :on-change #(dispatch [:form/set-value form-key field-key %1 validator])
             :error-text (cond
                           (or (empty? value) (< value-count min-count))
-                          (gstring/format "Select at least %s %s"
+                          (gstring/format "Add at least %s %s"
                                           min-count
                                           (u/pluralize "item" min-count))
 
                           (> value-count max-count)
-                          (gstring/format "You can select up to %s items" max-count)
+                          (gstring/format "You can add up to %s items" max-count)
 
                           :else nil)}
-           (dissoc props :form-key :field-key :min-length-key :max-length-key))]))))
+           (merge
+             (dissoc props :form-key :field-key :min-length-key :max-length-key)
+             (when-let [on-request-add (:on-request-add props)]
+               {:on-request-add #(on-request-add % validator)})
+             (when-let [on-request-delete (:on-request-delete props)]
+               {:on-request-delete #(on-request-delete % validator)})))]))))

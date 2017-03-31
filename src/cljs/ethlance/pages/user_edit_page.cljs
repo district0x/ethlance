@@ -43,6 +43,7 @@
    [:user.notif/disabled-on-invoice-paid? "When my invoice is paid" :user/freelancer?]
    [:user.notif/disabled-on-job-proposal-added? "When my job receives a job proposal" :user/employer?]
    [:user.notif/disabled-on-invoice-added? "When I receive invoice to pay" :user/employer?]
+   [:user.notif/disabled-on-job-sponsorship-added? "When my job receives sponsorship or I get refunded"]
    [:user.notif/disabled-on-job-contract-feedback-added? "When I receive feedback"]
    [:user.notif/disabled-newsletter? "Ethlance news & announcements (occasional)"]])
 

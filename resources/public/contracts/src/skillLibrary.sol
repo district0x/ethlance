@@ -31,25 +31,25 @@ library SkillLibrary {
     }
 
     function addJob(address db, uint skillId, uint jobId) internal {
-        SharedLibrary.addArrayItem(db, skillId, "skill/jobs", "skill/jobs-count", jobId);
+        SharedLibrary.addIdArrayItem(db, skillId, "skill/jobs", "skill/jobs-count", jobId);
     }
 
     function getJobs(address db, uint skillId) internal returns (uint[]) {
-        return SharedLibrary.getUIntArray(db, skillId, "skill/jobs", "skill/jobs-count");
+        return SharedLibrary.getIdArray(db, skillId, "skill/jobs", "skill/jobs-count");
     }
 
     function addFreelancer(address db, uint[] skills, uint userId) internal {
-        SharedLibrary.addRemovableArrayItem(db, skills, "skill/freelancers", "skill/freelancers-count",
+        SharedLibrary.addRemovableIdArrayItem(db, skills, "skill/freelancers", "skill/freelancers-count",
             "skill/freelancers-keys", userId);
     }
     
     function getFreelancers(address db, uint skillId) internal returns (uint[]){
-        return SharedLibrary.getRemovableArrayItems(db, skillId, "skill/freelancers", "skill/freelancers-count",
+        return SharedLibrary.getRemovableIdArrayItems(db, skillId, "skill/freelancers", "skill/freelancers-count",
             "skill/freelancers-keys");
     }
 
     function removeFreelancer(address db, uint[] skills, uint userId) internal {
-        SharedLibrary.removeArrayItem(db, skills, "skill/freelancers", userId);
+        SharedLibrary.removeIdArrayItem(db, skills, "skill/freelancers", userId);
     }
 
     function blockSkills(address db, uint[] skillIds) internal {

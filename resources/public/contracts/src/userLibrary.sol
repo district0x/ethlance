@@ -8,6 +8,7 @@ import "skillLibrary.sol";
 import "jobLibrary.sol";
 import "contractLibrary.sol";
 import "invoiceLibrary.sol";
+import "sponsorLibrary.sol";
 
 library UserLibrary {
 
@@ -119,12 +120,12 @@ library UserLibrary {
         SkillLibrary.removeFreelancer(db, removed, userId);
 
         if (added.length > 0 || removed.length > 0) {
-            SharedLibrary.setUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);
+            SharedLibrary.setIdArray(db, userId, "freelancer/skills", "freelancer/skills-count", skills);
         }
     }
 
     function getFreelancerSkills(address db, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, userId, "freelancer/skills", "freelancer/skills-count");
+        return SharedLibrary.getIdArray(db, userId, "freelancer/skills", "freelancer/skills-count");
     }
 
     function setFreelancerCategories(address db, uint userId, uint[] categories) internal {
@@ -135,12 +136,12 @@ library UserLibrary {
         CategoryLibrary.addFreelancer(db, added, userId);
         CategoryLibrary.removeFreelancer(db, removed, userId);
         if (added.length > 0 || removed.length > 0) {
-            SharedLibrary.setUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count", categories);
+            SharedLibrary.setIdArray(db, userId, "freelancer/categories", "freelancer/categories-count", categories);
         }
     }
 
     function getFreelancerCategories(address db, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, userId, "freelancer/categories", "freelancer/categories-count");
+        return SharedLibrary.getIdArray(db, userId, "freelancer/categories", "freelancer/categories-count");
     }
 
     function setUserNotifications(address db, uint userId, bool[] boolNotifSettings, uint8[] uint8NotifSettings) internal {
@@ -153,15 +154,16 @@ library UserLibrary {
         EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-invoice-added?", userId), boolNotifSettings[6]);
         EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-contract-feedback-added?", userId), boolNotifSettings[7]);
         EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-message-added?", userId), boolNotifSettings[8]);
+        EthlanceDB(db).setBooleanValue(sha3("user.notif/disabled-on-job-sponsorship-added?", userId), boolNotifSettings[9]);
         EthlanceDB(db).setUInt8Value(sha3("user.notif/job-recommendations", userId), uint8NotifSettings[0]);
     }
 
     function addReceivedMessage(address db, uint userId, uint messageId) internal {
-        SharedLibrary.addArrayItem(db, userId, "user/received-messages", "user/received-messages-count", messageId);
+        SharedLibrary.addIdArrayItem(db, userId, "user/received-messages", "user/received-messages-count", messageId);
     }
 
     function addSentMessage(address db, uint userId, uint messageId) internal {
-        SharedLibrary.addArrayItem(db, userId, "user/sent-messages", "user/sent-messages-count", messageId);
+        SharedLibrary.addIdArrayItem(db, userId, "user/sent-messages", "user/sent-messages-count", messageId);
     }
 
     function isActiveEmployer(address db, address userAddress) internal returns(bool) {
@@ -181,35 +183,35 @@ library UserLibrary {
     }
 
     function setUserLanguages(address db, uint userId, uint[] languages) internal {
-        SharedLibrary.setUIntArray(db, userId, "user/languages", "user/languages-count", languages);
+        SharedLibrary.setIdArray(db, userId, "user/languages", "user/languages-count", languages);
     }
 
     function addEmployerJob(address db, uint userId, uint jobId) internal {
-        SharedLibrary.addArrayItem(db, userId, "employer/jobs", "employer/jobs-count", jobId);
+        SharedLibrary.addIdArrayItem(db, userId, "employer/jobs", "employer/jobs-count", jobId);
     }
 
     function getEmployerJobs(address db, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, userId, "employer/jobs", "employer/jobs-count");
+        return SharedLibrary.getIdArray(db, userId, "employer/jobs", "employer/jobs-count");
     }
 
     function getFreelancerContractsCount(address db, uint userId) internal returns(uint) {
-        return SharedLibrary.getArrayItemsCount(db, userId, "freelancer/contracts-count");
+        return SharedLibrary.getIdArrayItemsCount(db, userId, "freelancer/contracts-count");
     }
 
     function addFreelancerContract(address db, uint userId, uint contractId) internal {
-        SharedLibrary.addArrayItem(db, userId, "freelancer/contracts", "freelancer/contracts-count", contractId);
+        SharedLibrary.addIdArrayItem(db, userId, "freelancer/contracts", "freelancer/contracts-count", contractId);
     }
     
     function getFreelancerContracts(address db, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, userId, "freelancer/contracts", "freelancer/contracts-count");
+        return SharedLibrary.getIdArray(db, userId, "freelancer/contracts", "freelancer/contracts-count");
     }
     
     function addEmployerContract(address db, uint userId, uint contractId) internal {
-        SharedLibrary.addArrayItem(db, userId, "employer/contracts", "employer/contracts-count", contractId);
+        SharedLibrary.addIdArrayItem(db, userId, "employer/contracts", "employer/contracts-count", contractId);
     }
     
     function getEmployerContracts(address db, uint userId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, userId, "employer/contracts", "employer/contracts-count");
+        return SharedLibrary.getIdArray(db, userId, "employer/contracts", "employer/contracts-count");
     }
     
     function addFreelancerTotalInvoiced(address db, uint userId, uint amount) internal {
@@ -226,6 +228,44 @@ library UserLibrary {
     
     function subEmployerTotalInvoiced(address db, uint userId, uint amount) internal {
         EthlanceDB(db).subUIntValue(sha3("employer/total-invoiced", userId), amount);
+    }
+
+    function addSponsorship(address db, address userId, uint sponsorshipId) internal {
+        SharedLibrary.addIdArrayItem(db, userId, "user/sponsorships", "user/sponsorships-count", sponsorshipId);
+    }
+
+    function addTotalSponsored(address db, address userId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("user/total-sponsored", userId), amount);
+    }
+
+    function subTotalSponsored(address db, address userId, uint amount) internal {
+        EthlanceDB(db).subUIntValue(sha3("user/total-sponsored", userId), amount);
+    }
+
+    function getSponsorships(address db, address userId) internal returns (uint[]) {
+        return SharedLibrary.getIdArray(db, userId, "user/sponsorships", "user/sponsorships-count");
+    }
+
+    function getSponsorships(address db, address userId, bool isRefunded) internal returns (uint[]) {
+        var sponsorshipIds = getSponsorships(db, userId);
+        var args = new uint[](1);
+        if (isRefunded) {
+            args[0] = 1;
+        } else {
+            args[0] = 0;
+        }
+        return SharedLibrary.filter(db, userSponsorshipsPred, sponsorshipIds, args);
+    }
+
+    function userSponsorshipsPred(address db, uint[] args, uint sponsorshipId)
+    internal returns(bool)
+    {
+        var isRefunded = SponsorLibrary.isSponsorshipRefunded(db, sponsorshipId);
+        if (args[0] == 1) {
+            return isRefunded;
+        } else {
+            return !isRefunded;
+        }
     }
     
     function addToAvgRating(address db, uint userId, string countKey, string key, uint8 rating) internal {
@@ -321,7 +361,7 @@ library UserLibrary {
         if (languageId == 0) {
             return true;
         }
-        var count = SharedLibrary.getArrayItemsCount(db, userId, "user/languages-count");
+        var count = SharedLibrary.getIdArrayItemsCount(db, userId, "user/languages-count");
         for (uint i = 0; i < count ; i++) {
             if (languageId == EthlanceDB(db).getUIntValue(sha3("user/languages", userId, i))) {
                 return true;
@@ -386,43 +426,40 @@ library UserLibrary {
         return SharedLibrary.take(j, userIds);
     }
 
-    function userContractsPred(address db, uint[] args, uint contractId) internal returns(bool) {
+    function userContractsPred(address db, uint[] contractStatuses, uint[] jobStatuses, uint contractId)
+    internal returns(bool)
+    {
         var jobId = ContractLibrary.getJob(db, contractId);
-        var contractStatus = args[0];
-        var jobStatus = args[1];
-        return ((contractStatus == 0 ||
-                ContractLibrary.getStatus(db, contractId) == contractStatus)
+        return ((contractStatuses.length == 0 ||
+                SharedLibrary.contains(contractStatuses, ContractLibrary.getStatus(db, contractId)))
                 &&
-                (jobStatus == 0 ||
-                JobLibrary.getStatus(db, jobId) == jobStatus));
+                (jobStatuses.length == 0 ||
+                SharedLibrary.contains(jobStatuses, JobLibrary.getStatus(db, jobId))));
     }
 
     function getUserContractsByStatus
     (
         address db,
         uint userId,
-        uint8 contractStatus,
-        uint8 jobStatus,
+        uint[] contractStatuses,
+        uint[] jobStatuses,
         function(address, uint) returns (uint[] memory) getContracts
     )
         internal returns (uint[] result)
     {
-        var args = new uint[](2);
-        args[0] = contractStatus;
-        args[1] = jobStatus;
-        return SharedLibrary.filter(db, userContractsPred, getContracts(db, userId), args);
+        return SharedLibrary.filter(db, userContractsPred, getContracts(db, userId), contractStatuses, jobStatuses);
     }
 
-    function getFreelancerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)
+    function getFreelancerContractsByStatus(address db, uint userId, uint[] contractStatuses, uint[] jobStatuses)
         internal returns (uint[] result)
     {
-        return getUserContractsByStatus(db, userId, contractStatus, jobStatus, getFreelancerContracts);
+        return getUserContractsByStatus(db, userId, contractStatuses, jobStatuses, getFreelancerContracts);
     }
 
-    function getEmployerContractsByStatus(address db, uint userId, uint8 contractStatus, uint8 jobStatus)
+    function getEmployerContractsByStatus(address db, uint userId, uint[] contractStatuses, uint[] jobStatuses)
         internal returns (uint[] result)
     {
-        return getUserContractsByStatus(db, userId, contractStatus, jobStatus, getEmployerContracts);
+        return getUserContractsByStatus(db, userId, contractStatuses, jobStatuses, getEmployerContracts);
     }
 
     function getUserInvoicesByStatus

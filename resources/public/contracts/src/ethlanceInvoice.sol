@@ -3,8 +3,10 @@ pragma solidity ^0.4.8;
 import "ethlanceSetter.sol";
 import "invoiceLibrary.sol";
 import "strings.sol";
+import "sponsorRelated.sol";
+import "ethlanceSponsorWallet.sol";
 
-contract EthlanceInvoice is EthlanceSetter {
+contract EthlanceInvoice is EthlanceSetter, SponsorRelated {
     using strings for *;
 
     event onInvoiceAdded(uint invoiceId, uint indexed employerId, uint freelancerId);
@@ -41,13 +43,19 @@ contract EthlanceInvoice is EthlanceSetter {
         uint invoiceId
     )
         onlyActiveSmartContract
-        onlyActiveEmployer
         payable
     {
         address freelancerAddress = InvoiceLibrary.getFreelancerAddress(ethlanceDB, invoiceId);
         var employerId = getSenderUserId();
-        InvoiceLibrary.setInvoicePaid(ethlanceDB, employerId, msg.value, invoiceId);
-        if (!freelancerAddress.send(msg.value)) throw;
+        uint amount;
+        bool payFromSponsorship;
+        (amount, payFromSponsorship) = InvoiceLibrary.setInvoicePaid(ethlanceDB, employerId, msg.sender, msg.value, invoiceId);
+        if (payFromSponsorship) {
+            EthlanceSponsorWallet(ethlanceSponsorWallet).sendFunds(freelancerAddress, amount);
+        } else {
+            freelancerAddress.transfer(msg.value);
+        }
+
         var contractId = InvoiceLibrary.getContract(ethlanceDB, invoiceId);
         onInvoicePaid(invoiceId, employerId, ContractLibrary.getFreelancer(ethlanceDB, contractId));
     }

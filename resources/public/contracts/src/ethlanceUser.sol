@@ -96,13 +96,4 @@ contract EthlanceUser is EthlanceSetter {
         if (description.toSlice().len() > getConfig("max-user-description")) throw;
         UserLibrary.setEmployer(ethlanceDB, getSenderUserId(), description);
     }
-
-    function setUserStatus(
-        uint userId,
-        uint8 status
-    )
-        onlyOwner
-    {
-        UserLibrary.setStatus(ethlanceDB, userId, status);
-    }
 }

@@ -151,7 +151,8 @@
           :on-page-change change-page}
          (for [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                        :job/experience-level :job/hours-per-week :job/created-on
-                       :job/description :job/budget :job/skills :job/reference-currency] :as item} items]
+                       :job/description :job/budget :job/skills :job/reference-currency
+                       :job/sponsorable?] :as item} items]
            [:div {:key id}
             [:h2
              {:style styles/overflow-ellipsis}
@@ -160,6 +161,10 @@
                  :route-params {:job/id id}} title]]
             [:div {:style styles/job-info}
              [:span (u/time-ago created-on)]
+             (when sponsorable?
+               [:span " - " [:span
+                             {:style styles/sponsorable-search-result-text}
+                             "Looking for Sponsors"]])
              [:span " - " (constants/payment-types payment-type)]
              [:span " - " (constants/experience-levels experience-level)]
              [:span " - Est. Time: " (constants/estimated-durations estimated-duration)]

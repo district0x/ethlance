@@ -44,6 +44,7 @@
                               :color styles/accent1-color}]
          (into [] (concat [:div {:style (merge (if @xs-width styles/paper-secton-thin
                                                              styles/paper-secton)
+                                               styles/word-wrap-break
                                                (:inner-style props))}]
                           children))]))))
 
@@ -191,11 +192,12 @@
                                          ;; extracted into a second argument, to match Material-UI's existing API.
                                          (next event (-> event .-target .-value)))}}))
 
-(defn form-text-field [{:keys [:validator :form-key :field-key] :as props}]
+(defn form-text-field [{:keys [:validator :form-key :field-key :value] :as props}]
   [text-field-base
    (r/merge-props
      (r/merge-props
-       {:style styles/display-block}
+       {:style styles/display-block
+        :floating-label-fixed (boolean (seq (str value)))}
        (dissoc props :validator :form-key :field-key))
      {:on-change #(dispatch [:form/set-value form-key field-key %2 validator])})])
 
@@ -204,35 +206,48 @@
     (fn [{:keys [:value :on-change :max-length-key :min-length-key :max-length :min-length] :as props}]
       (let [min-length (or min-length (get @eth-config min-length-key 0))
             max-length (or max-length (get @eth-config max-length-key))
-            validator (if (and min-length max-length)
-                        #(<= min-length (if (string? %) (count (string/trim %)) 0) max-length)
-                        (constantly true))
+            validator (u/create-length-validator min-length max-length)
             valid? (validator value)]
         [form-text-field
          (r/merge-props
-           {:floating-label-fixed (boolean (seq (str value)))
-            :validator validator
+           {:validator validator
             :error-text (when-not valid?
                           (if (pos? min-length)
                             (gstring/format "Write between %s and %s characters" min-length max-length)
                             "Text is too long"))}
            (dissoc props :max-length-key :min-length-key :min-length :max-length))]))))
 
-(defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change :allow-empty?] :as props}]
-  [text-field-base
-   (r/merge-props
-     {:style styles/display-block
-      :on-change (fn [e value]
-                   (if on-change
-                     (on-change e value)
-                     (dispatch [:form/set-value
-                                form-key
-                                field-key
-                                value
-                                #(u/non-neg-ether-value? % (select-keys props [:allow-empty?]))])))
-      :error-text (when-not (u/non-neg-ether-value? value (select-keys props [:allow-empty?]))
-                    "Invalid value")}
-     (dissoc props :form-key :field-key :on-change :allow-empty?))])
+(defn url-field []
+  (let [eth-config (subscribe [:eth/config])]
+    (fn [{:keys [:value :on-change :max-length-key :max-length :allow-empty?] :as props}]
+      (let [max-length (or max-length (get @eth-config max-length-key))
+            max-length-validator (u/create-length-validator max-length)]
+        [form-text-field
+         (r/merge-props
+           {:validator (every-pred #(u/http-url? % {:allow-empty? true}) max-length-validator)
+            :error-text (if-not (max-length-validator value)
+                          (gstring/format "URL must be shorter than %s characters" max-length)
+                          (when-not (u/http-url? value {:allow-empty? allow-empty?})
+                            "Invalid URL"))}
+           (dissoc props :allow-empty? :max-length-key :max-length))]))))
+
+(defn ether-field [{:keys [:value :on-change :form-key :field-key :on-change :allow-empty?
+                           :only-positive?] :as props}]
+  (let [validator (if only-positive? u/pos-ether-value? u/non-neg-ether-value?)]
+    [text-field-base
+     (r/merge-props
+       {:style styles/display-block
+        :on-change (fn [e value]
+                     (if on-change
+                       (on-change e value)
+                       (dispatch [:form/set-value
+                                  form-key
+                                  field-key
+                                  value
+                                  #(validator % (select-keys props [:allow-empty?]))])))
+        :error-text (when-not (validator value (select-keys props [:allow-empty?]))
+                      "Invalid value")}
+       (dissoc props :form-key :field-key :on-change :allow-empty? :only-positive?))]))
 
 (defn ether-field-with-currency [{:keys [:currency :disabled :currency-style] :as props}]
   [row-plain
@@ -367,7 +382,21 @@
          :label "Become Employer"
          :style styles/margin-top-gutter-less}]])))
 
-(defn only-unregistered [& children]
+(defn not-connected-body []
+  [centered-rows
+   "You have no accounts connected. Please see How it works section for more information"
+   [ui/raised-button
+    {:primary true
+     :href (u/path-for :how-it-works)
+     :label "How it works?"
+     :style styles/margin-top-gutter-less}]])
+
+(defn only-connected [& children]
+  (if @(subscribe [:db/active-address])
+    (into [:div] children)
+    [not-connected-body]))
+
+(defn only-unregistered-and-connected [& children]
   (if @(subscribe [:db/active-address-registered?])
     [centered-rows
      "This address was already registered. See your profile for making changes"
@@ -376,15 +405,7 @@
        :href (u/path-for :user/edit)
        :label "My Profile"
        :style styles/margin-top-gutter-less}]]
-    (if (seq @(subscribe [:db/my-addresses]))
-      (into [:div] children)
-      [centered-rows
-       "You have no accounts connected. Please see How it works section for more information"
-       [ui/raised-button
-        {:primary true
-         :href (u/path-for :how-it-works)
-         :label "How it works?"
-         :style styles/margin-top-gutter-less}]])))
+    (into [only-connected] children)))
 
 (defn long-text [props & children]
   (let [[props children] (u/parse-props-children props children)]

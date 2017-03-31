@@ -1,9 +1,10 @@
 (ns ethlance.constants
   (:require [clojure.tools.reader :as reader]))
 
-(def contracts-version "1.0.11")
+(def contracts-version "1.0.12")
 (def skills-version "1.1")
 (def list-limit 8)
+(def refund-sponsors-limit 20)
 
 (def mist? (boolean (aget js/window "mist")))
 
@@ -60,7 +61,11 @@
 
 (def job-statuses
   {1 "Hiring"
-   2 "Hiring Done"})
+   2 "Hiring Done"
+   3 "Blocked"
+   4 "Waiting for Approval"
+   5 "Refunding Sponsors"
+   6 "Sponsors Refunded"})
 
 (def invoice-status
   {1 "Pending"

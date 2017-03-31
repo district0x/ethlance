@@ -8,14 +8,20 @@
     [ethlance.components.list-pagination :refer [list-pagination]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a currency]]
     [ethlance.components.skills-chips :refer [skills-chips]]
+    [ethlance.components.sponsorships-table :refer [sponsorships-table]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [medley.core :as medley]
+    [cljs-web3.core :as web3]))
 
+
+(defn job-refunding? [job-status]
+  (contains? #{5 6} job-status))
 
 (defn employer-details []
   (let [job (subscribe [:job/detail])]
@@ -90,6 +96,110 @@
           :header job-proposals-header
           :no-items-text "No proposals for this job"}]))))
 
+(defn add-sponsorship-form []
+  (let [form-open? (r/atom false)
+        form (subscribe [:form.sponsor/add-job-sponsorship])
+        job (subscribe [:job/detail])
+        eth-config (subscribe [:eth/config])]
+    (fn []
+      (let [{:keys [:job/id :job/status]} @job
+            {:keys [:loading? :errors :data]} @form
+            {:keys [:sponsorship/name :sponsorship/link :sponsorship/amount
+                    :sponsorship/currency]} data
+            min-ether-amount (web3/from-wei (:min-sponsorship-amount @eth-config) :ether)
+            ether-amount (u/parse-float @(subscribe [:currency/ether-value amount currency]))
+            valid-amount? (u/pos-ether-value? ether-amount)
+            more-than-min-amount? (<= min-ether-amount ether-amount)]
+        (when (contains? #{1 2} status)
+          (if-not @form-open?
+            [row-plain
+             {:end "xs"}
+             [ui/raised-button
+              {:label "Sponsor"
+               :primary true
+               :style styles/margin-top-gutter-less
+               :on-touch-tap #(reset! form-open? true)}]]
+            [:div
+             [misc/text-field
+              {:floating-label-text "Your Name"
+               :form-key :form.sponsor/add-job-sponsorship
+               :field-key :sponsorship/name
+               :max-length-key :max-sponsor-name
+               :value name}]
+             [misc/url-field
+              {:floating-label-text "Your URL"
+               :form-key :form.sponsor/add-job-sponsorship
+               :field-key :sponsorship/link
+               :max-length-key :max-sponsor-link
+               :allow-empty? true
+               :value link}]
+             [misc/ether-field-with-currency-select-field
+              {:ether-field-props
+               {:floating-label-text "Amount"
+                :form-key :form.sponsor/add-job-sponsorship
+                :field-key :sponsorship/amount
+                :value amount
+                :only-positive? true}
+               :currency-select-field-props
+               {:value currency
+                :on-change #(dispatch [:form/set-value :form.sponsor/add-job-sponsorship :sponsorship/currency %3])}}]
+             [:h3
+              {:style styles/margin-top-gutter-less}
+              (let []
+                (if valid-amount?
+                  ether-amount
+                  0))
+              " "
+              (u/currency-full-name 0)]
+             (when (and (not more-than-min-amount?) valid-amount?)
+               [:small
+                {:style {:color styles/accent1-color}}
+                "Min sponsorship amount is " min-ether-amount " " (u/currency-full-name 0)])
+             [misc/send-button
+              {:disabled (or loading? (boolean (seq errors)) (not more-than-min-amount?))
+               :on-touch-tap #(dispatch [:contract.sponsor/add-job-sponsorship
+                                         (merge data {:sponsorship/job id
+                                                      :sponsorship/amount ether-amount})])}]]))))))
+
+(defn job-sponsorships-stats []
+  (let [job (subscribe [:job/detail])]
+    (fn []
+      (let [{:keys [:job/sponsorships-total :job/sponsorships-balance :job/sponsorships-total-refunded
+                    :job/status]} @job]
+        [:div
+         {:style styles/margin-top-gutter-less}
+         [:h3 "Total Sponsored: " [currency sponsorships-total]]
+         [:h3 "Current Balance: " [currency sponsorships-balance]]
+         (when (job-refunding? status)
+           [:h3 "Total Refunded: " [currency sponsorships-total-refunded]])]))))
+
+(defn job-sponsorships []
+  (let [xs-width? (subscribe [:window/xs-width?])
+        job (subscribe [:job/detail])
+        form (subscribe [:form.sponsor/add-job-sponsorship])]
+    (fn []
+      (let [{:keys [:job/status :job/id :job/sponsorable?]} @job
+            refunding? (job-refunding? status)]
+        (when sponsorable?
+          [sponsorships-table
+           {:list-subscribe [:list/sponsorships :list/job-sponsorships]
+            :show-updated-on? (and (not refunding?) (not @xs-width?))
+            :show-name? true
+            :show-refunded-amount? refunding?
+            :title "Sponsors"
+            :no-items-text "Nobody sponsored this job yet"
+            :loading? (:loading? @form)
+            :show-position-number? true
+            :header job-sponsorships-stats
+            :link-to-sponsor-detail? true
+            :initial-dispatch {:list-key :list/job-sponsorships
+                               :fn-key :ethlance-views/get-job-sponsorships
+                               :load-dispatch-key :contract.db/load-sponsorships
+                               :fields ethlance-db/job-sponsorships-table-entity-fields
+                               :args {:job/id id}}
+            :all-ids-subscribe [:list/ids :list/job-sponsorships]}
+           [add-sponsorship-form]])))))
+
 (defn create-proposal-allowed? [{:keys [:contract/status]}]
   (or (not status) (= status 1)))
 
@@ -159,30 +269,93 @@
                 :on-touch-tap #(dispatch [:contract.contract/add-job-proposal
                                           (merge data {:contract/job (:job/id @job)})])}]])])))))
 
+(defn allowed-user-chip [{:keys [:approved?] :as props} & children]
+  (into [ui/chip
+         (r/merge-props
+           {:label-style styles/overflow-ellipsis
+            :style styles/overflow-ellipsis
+            :background-color (if approved?
+                                styles/allowed-user-approved-color
+                                styles/allowed-user-not-approved-color)}
+           (dissoc props :approved?))]
+        children))
+
+(defn allowed-users-list []
+  (let [job (subscribe [:job/detail])]
+    (fn []
+      (let [{:keys [:job/allowed-users-data :job/allowed-users :job/status :job/id]} @job]
+        [misc/call-on-change
+         {:args allowed-users
+          :load-on-mount? true
+          :on-change (fn [allowed-users]
+                       (dispatch [:contract.views/load-user-ids-by-addresses
+                                  allowed-users
+                                  {:on-success [:contract.db/load-users #{:user/name
+                                                                          :user/freelancer?
+                                                                          :user/gravatar}]}])
+                       (when (= status 4)
+                         (dispatch [:contract.views/load-job-approvals {:job/id id}])))}
+         [misc/subheader "Accounts allowed to spend sponsorships"]
+         (for [[i allowed-user] (medley/indexed allowed-users)]
+           (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} (nth allowed-users-data i)
+                 allowed-user-approved? (if (= status 4)
+                                             @(subscribe [:job/allowed-user-approved? (:job/id @job) allowed-user])
+                                             true)]
+             [row-plain
+              {:start "xs"
+               :key allowed-user
+               :style {:margin-bottom 3}}
+              (if name
+                [allowed-user-chip
+                 {:key allowed-user
+                  :approved? allowed-user-approved?
+                  :on-touch-tap (u/nav-to-fn (if freelancer? :freelancer/detail :employer/detail)
+                                             {:user/id id})}
+                 [ui/avatar
+                  {:src (u/gravatar-url gravatar id)}]
+                 name]
+                [allowed-user-chip
+                 {:key allowed-user
+                  :approved? allowed-user-approved?
+                  :on-touch-tap (fn [])}
+                 [:a {:href (u/etherscan-url allowed-user)
+                      :target :_blank
+                      :style {:color styles/text-color}}
+                  allowed-user]])]))]))))
+
 (defn job-details []
   (let [job (subscribe [:job/detail])
         job-id (subscribe [:job/route-job-id])
         my-job? (subscribe [:job/my-job?])
         set-hiring-done-form (subscribe [:form.job/set-hiring-done])
-        xs-width? (subscribe [:window/xs-width?])]
+        approve-sponsorable-job-form (subscribe [:form.job/approve-sponsorable-job])
+        refund-sponsorships-form (subscribe [:form.sponsor/refund-job-sponsorships])
+        xs-width? (subscribe [:window/xs-width?])
+        waiting-for-my-approval? (subscribe [:job/waiting-for-my-approval?])]
     (fn []
       (let [{:keys [:job/title :job/id :job/payment-type :job/estimated-duration
                     :job/experience-level :job/hours-per-week :job/created-on
                     :job/description :job/budget :job/skills :job/category
                     :job/status :job/hiring-done-on :job/freelancers-needed
-                    :job/employer :job/reference-currency]} @job]
+                    :job/employer :job/reference-currency :job/sponsorable?
+                    :job/allowed-users :job/sponsorships-balance]} @job
+            loading? (some true? (map :loading? [@set-hiring-done-form
+                                                 @approve-sponsorable-job-form
+                                                 @refund-sponsorships-form]))]
         [misc/call-on-change
          {:load-on-mount? true
           :args @job-id
           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-entity-fields [@job-id]]])}
          [paper
-          {:loading? (or (empty? (:user/name employer)) (:loading? @set-hiring-done-form))
+          {:loading? (or (empty? (:user/name employer))
+                         (and sponsorable? (empty? allowed-users))
+                         loading?)
            :style styles/paper-section-main}
           (when id
             [:div
              [:h1 title]
              [:h3 {:style {:margin-top 5}} (constants/categories category)]
-             [:h4 {:style styles/fade-text} "Posted on " (u/format-datetime created-on)]
+             [:h4 {:style styles/fade-text} "Created on " (u/format-datetime created-on)]
              (when hiring-done-on
                [:h4 {:style styles/fade-text} "Hiring done on " (u/format-datetime hiring-done-on)])
              [row-plain
@@ -192,6 +365,11 @@
                {:background-color (styles/job-status-colors status)
                 :style styles/job-status-chip}
                (constants/job-statuses status)]
+              (when (and sponsorable? (not (contains? #{3 5 6} status)))
+                [misc/status-chip
+                 {:background-color styles/job-sposorable-chip-color
+                  :style styles/job-status-chip}
+                 "Looking for Sponsors"])
               [misc/status-chip
                {:background-color (styles/job-payment-type-colors payment-type)
                 :style styles/job-status-chip}
@@ -224,17 +402,63 @@
              [skills-chips
               {:selected-skills skills
                :always-show-all? true}]
+             (when sponsorable?
+               [allowed-users-list])
              [misc/hr]
              [employer-details]
-             (when (and @my-job? (= status 1))
-               [row-plain
-                {:end "sm" :center "xs"
-                 :style (when @xs-width? {:margin-top 10})}
+             [row-plain
+              {:end "sm" :center "xs"
+               :style (when @xs-width? {:margin-top 10})}
+              (when (and @my-job? (= status 1))
                 [ui/raised-button
                  {:label "Close Hiring"
                   :secondary true
-                  :disabled (:loading? @set-hiring-done-form)
-                  :on-touch-tap #(dispatch [:contract.job/set-hiring-done {:job/id id}])}]])])]]))))
+                  :disabled loading?
+                  :on-touch-tap #(dispatch [:contract.job/set-hiring-done {:job/id id}])}])
+              (when (and @my-job?
+                         (contains? #{1 2} status)
+                         sponsorable?
+                         (u/big-num-pos? sponsorships-balance))
+                [ui/raised-button
+                 {:label "Refund Sponsors"
+                  :primary true
+                  :style {:margin-left 5}
+                  :disabled loading?
+                  :on-touch-tap #(dispatch [:dialog/open-confirmation
+                                            {:title "Are you sure you want to start refunding?"
+                                             :body
+                                             (str
+                                               "After you start refunding sponsors, no more invoices can be
+                                                paid and no new hires can be made. Use this only when
+                                                you're done with the job. Sponsors will be refunded per " constants/refund-sponsors-limit
+                                               " due to gas limitations, so you might need to use this several
+                                               times to refund all sponsors.")
+                                             :on-confirm (fn []
+                                                           (dispatch [:contract.sponsor/refund-job-sponsorships
+                                                                      {:sponsorship/job id
+                                                                       :limit constants/refund-sponsors-limit}]))}])}])
+              (when (and @my-job? (= status 5))
+                [ui/raised-button
+                 {:label "Continue Refunding"
+                  :primary true
+                  :style {:margin-left 5}
+                  :disabled loading?
+                  :on-touch-tap #(dispatch [:contract.sponsor/refund-job-sponsorships
+                                            {:sponsorship/job id
+                                             :limit constants/refund-sponsors-limit}])}])
+              (when (and @my-job? (= status 4))
+                [ui/raised-button
+                 {:label "Edit Job"
+                  :primary true
+                  :icon (icons/pencil)
+                  :href (u/path-for :job/edit :job/id id)}])
+              (when (and (= status 4) @waiting-for-my-approval?)
+                [ui/raised-button
+                 {:label "Approve"
+                  :primary true
+                  :icon (icons/check)
+                  :disabled loading?
+                  :on-touch-tap #(dispatch [:contract.job/approve-sponsorable-job {:job/id id}])}])]])]]))))
 
 (defn job-invoices []
   (let [job-id (subscribe [:job/route-job-id])]
@@ -270,6 +494,7 @@
       [misc/center-layout
        [job-details]
        [job-proposal-form]
+       [job-sponsorships]
        [job-proposals @job-id]
        [job-invoices]
        [job-feedbacks]])))

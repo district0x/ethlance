@@ -28,26 +28,36 @@ library SharedLibrary {
         return false;
     }
 
-    function getArrayItemsCount(address db, uint id, string countKey) internal returns(uint) {
+    function getIdArrayItemsCount(address db, uint id, string countKey) internal returns(uint) {
         return EthlanceDB(db).getUIntValue(sha3(countKey, id));
     }
 
-    function addArrayItem(address db, uint id, string key, string countKey, uint val) internal {
-        var idx = getArrayItemsCount(db, id, countKey);
+    function getIdArrayItemsCount(address db, address id, string countKey) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3(countKey, id));
+    }
+
+    function addIdArrayItem(address db, uint id, string key, string countKey, uint val) internal {
+        var idx = getIdArrayItemsCount(db, id, countKey);
         EthlanceDB(db).setUIntValue(sha3(key, id, idx), val);
         EthlanceDB(db).setUIntValue(sha3(countKey, id), idx + 1);
     }
 
-    function setUIntArray(address db, uint id, string key, string countKey, uint[] array) internal{
+    function addIdArrayItem(address db, address id, string key, string countKey, uint val) internal {
+        var idx = getIdArrayItemsCount(db, id, countKey);
+        EthlanceDB(db).setUIntValue(sha3(key, id, idx), val);
+        EthlanceDB(db).setUIntValue(sha3(countKey, id), idx + 1);
+    }
+
+    function setIdArray(address db, uint id, string key, string countKey, uint[] array) internal {
         for (uint i = 0; i < array.length; i++) {
             if (array[i] == 0) throw;
             EthlanceDB(db).setUIntValue(sha3(key, id, i), array[i]);
         }
         EthlanceDB(db).setUIntValue(sha3(countKey, id), array.length);
     }
-    
-    function getUIntArray(address db, uint id, string key, string countKey) internal returns(uint[] result) {
-        uint count = getArrayItemsCount(db, id, countKey);
+
+    function getIdArray(address db, uint id, string key, string countKey) internal returns(uint[] result) {
+        uint count = getIdArrayItemsCount(db, id, countKey);
         result = new uint[](count);
         for (uint i = 0; i < count; i++) {
             result[i] = EthlanceDB(db).getUIntValue(sha3(key, id, i));
@@ -55,23 +65,49 @@ library SharedLibrary {
         return result;
     }
 
-    function addRemovableArrayItem(address db, uint[] ids, string key, string countKey, string keysKey, uint val) internal {
+    function getIdArray(address db, address id, string key, string countKey) internal returns(uint[] result) {
+        uint count = getIdArrayItemsCount(db, id, countKey);
+        result = new uint[](count);
+        for (uint i = 0; i < count; i++) {
+            result[i] = EthlanceDB(db).getUIntValue(sha3(key, id, i));
+        }
+        return result;
+    }
+
+    function setIdArray(address db, uint id, string key, string countKey, address[] array) internal {
+        for (uint i = 0; i < array.length; i++) {
+            require(array[i] != 0x0);
+            EthlanceDB(db).setAddressValue(sha3(key, id, i), array[i]);
+        }
+        EthlanceDB(db).setUIntValue(sha3(countKey, id), array.length);
+    }
+
+    function getAddressIdArray(address db, uint id, string key, string countKey) internal returns(address[] result) {
+        uint count = getIdArrayItemsCount(db, id, countKey);
+        result = new address[](count);
+        for (uint i = 0; i < count; i++) {
+            result[i] = EthlanceDB(db).getAddressValue(sha3(key, id, i));
+        }
+        return result;
+    }
+
+    function addRemovableIdArrayItem(address db, uint[] ids, string key, string countKey, string keysKey, uint val) internal {
         if (ids.length == 0) {
             return;
         }
         for (uint i = 0; i < ids.length; i++) {
             if (EthlanceDB(db).getUInt8Value(sha3(key, ids[i], val)) == 0) { // never seen before
-                addArrayItem(db, ids[i], keysKey, countKey, val);
+                addIdArrayItem(db, ids[i], keysKey, countKey, val);
             }
             EthlanceDB(db).setUInt8Value(sha3(key, ids[i], val), 1); // 1 == active
         }
     }
 
 
-    function getRemovableArrayItems(address db, uint id, string key, string countKey, string keysKey)
+    function getRemovableIdArrayItems(address db, uint id, string key, string countKey, string keysKey)
         internal returns (uint[] result)
     {
-        var count = getArrayItemsCount(db, id, countKey);
+        var count = getIdArrayItemsCount(db, id, countKey);
         result = new uint[](count);
         uint j = 0;
         for (uint i = 0; i < count; i++) {
@@ -84,7 +120,7 @@ library SharedLibrary {
         return take(j, result);
     }
 
-    function removeArrayItem(address db, uint[] ids, string key, uint val) internal {
+    function removeIdArrayItem(address db, uint[] ids, string key, uint val) internal {
         if (ids.length == 0) {
             return;
         }
@@ -232,18 +268,31 @@ library SharedLibrary {
         return (take(ad_i, added), take(re_i, removed));
     }    
 
-    function sort(uint[] array) internal returns(uint[]) {
-        uint n = array.length;
-        if (array.length == 0) {
-            return array;
-        }
-
-        for (uint c = 0 ; c < ( n - 1 ); c++) {
-            for (uint d = 0 ; d < n - c - 1; d++) {
-                if (array[d] >= array[d + 1]) {
-                    (array[d], array[d + 1]) = (array[d + 1], array[d]);
-                }
+    function sort(uint[] array) internal returns (uint[]) {
+        for (uint i = 1; i < array.length; i++) {
+            var t = array[i];
+            var j = i;
+            while(j > 0 && array[j - 1] > t) {
+                array[j] = array[j - 1];
+                j--;
             }
+            array[j] = t;
+        }
+        return array;
+    }
+
+    function sortDescBy(uint[] array, uint[] compareArray) internal returns (uint[]) {
+        for (uint i = 1; i < array.length; i++) {
+            var t = array[i];
+            var t2 = compareArray[i];
+            var j = i;
+            while(j > 0 && compareArray[j - 1] < t2) {
+                array[j] = array[j - 1];
+                compareArray[j] = compareArray[j - 1];
+                j--;
+            }
+            array[j] = t;
+            compareArray[j] = t2;
         }
         return array;
     }
@@ -389,5 +438,43 @@ library SharedLibrary {
             }
         }
         return take(j, r);
+    }
+
+    function filter(
+        address db,
+        function (address, uint[] memory, uint[] memory, uint) returns (bool) f,
+        uint[] memory items,
+        uint[] memory args,
+        uint[] memory args2
+    )
+        internal returns (uint[] memory r)
+    {
+        uint j = 0;
+        r = new uint[](items.length);
+        for (uint i = 0; i < items.length; i++) {
+            if (f(db, args, args2, items[i])) {
+                r[j] = items[i];
+                j++;
+            }
+        }
+        return take(j, r);
+    }
+
+    function contains(address[] array, address val) internal returns(bool) {
+        for (uint i = 0; i < array.length ; i++) {
+            if (array[i] == val) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function contains(uint[] array, uint val) internal returns(bool) {
+        for (uint i = 0; i < array.length ; i++) {
+            if (array[i] == val) {
+                return true;
+            }
+        }
+        return false;
     }
 }

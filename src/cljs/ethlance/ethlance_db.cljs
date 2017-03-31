@@ -17,7 +17,8 @@
     true set))
 
 (def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user)
-                                        #{:user/balance :user/id :user/email}))
+                                        #{:user/balance :user/id :user/email :user/sponsorships
+                                          :user/sponsorships-count}))
 (def user-balance-entity-fields #{:user/balance})
 (def user-notifications-fields (spec-form->entity-fields :app/user :user.notif))
 (def freelancer-entity-fields (set/difference (spec-form->entity-fields :app/user :freelancer)))
@@ -30,6 +31,11 @@
              user-notifications-fields))
 
 (def job-entity-fields (set/difference (spec-form->entity-fields :app/job) #{:job/id}))
+
+(def job-sponsorship-stats-fields
+  #{:job/sponsorships-total
+    :job/sponsorships-balance
+    :job/sponsorships-total-refunded})
 
 (def proposal-entity-fields
   #{:proposal/created-on
@@ -80,15 +86,26 @@
 (def skill-entity-fields (set/difference (spec-form->entity-fields :app/skill) #{:skill/id}))
 (def message-entity-fields (set/difference (spec-form->entity-fields :app/message :message) #{:message/id}))
 
+(def sponsorship-entity-fields (set/difference (spec-form->entity-fields :app/sponsorship) #{:sponsorship/id}))
+
+(def job-sponsorships-table-entity-fields
+  #{:sponsorship/amount :sponsorship/name :sponsorship/link :sponsorship/refunded? :sponsorship/updated-on
+    :sponsorship/refunded-amount :sponsorship/user})
+
 (def user-editable-fields
   (set/difference (set/union account-entitiy-fields user-balance-entity-fields #{:user/email})
                   #{:user/address :user/created-on}))
 
-(def job-editable-fields
+#_ (def job-editable-fields
   #{:job/status
     :job/contracts-count
     :job/contracts
-    :job/total-paid})
+    :job/total-paid
+    :job/sponsorships-balance
+    :job/sponsorships-total
+    :job/sponsorships-total-refunded})
+
+(def job-editable-fields (set/difference job-entity-fields #{:job/employer :job/created-on}))
 
 (def contract-editable-fields
   #{:contract/status
@@ -102,10 +119,14 @@
     :contract/messages-count})
 
 (def invoice-editable-fields
-  #{:invoice/status})
+  #{:invoice/status :invoice/paid-by})
 
 (def message-editable-fields
   #{})
+
+(def sponsorship-editable-fields
+  #{:sponsorship/amount :sponsorship/name :sponsorship/link :sponsorship/updated-on :sponsorship/refunded?
+    :sponsorship/refunded-amount})
 
 (def wei-args
   #{:freelancer/hourly-rate :search/min-hourly-rates :search/max-hourly-rates :job/budget :search/min-budgets
@@ -131,7 +152,8 @@
   [[:user.notif/disabled-all? :user.notif/disabled-newsletter? :user.notif/disabled-on-job-invitation-added?
     :user.notif/disabled-on-job-contract-added? :user.notif/disabled-on-invoice-paid?
     :user.notif/disabled-on-job-proposal-added? :user.notif/disabled-on-invoice-added?
-    :user.notif/disabled-on-job-contract-feedback-added? :user.notif/disabled-on-message-added?]
+    :user.notif/disabled-on-job-contract-feedback-added? :user.notif/disabled-on-message-added?
+    :user.notif/disabled-on-job-sponsorship-added?]
    [:user.notif/job-recommendations]])
 
 (def search-freelancers-args
@@ -141,10 +163,11 @@
 (def search-freelancers-nested-args
   [:search/country :search/state :search/language :search/job-recommendations :search/offset :search/limit :search/seed])
 
-(def add-job-args
-  [:job/title :job/description :job/skills :job/language :job/budget
+(def set-job-args
+  [:job/id :job/title :job/description :job/skills :job/language :job/budget
    [:job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
-    :job/freelancers-needed :job/reference-currency]])
+    :job/freelancers-needed :job/reference-currency]
+   :job/sponsorable? :job/allowed-users])
 
 (def search-jobs-args
   [:search/category :search/skills :search/skills-or :search/payment-types :search/experience-levels
@@ -155,6 +178,9 @@
    :search/country :search/state :search/language :search/min-created-on :search/offset :search/limit])
 
 (def set-job-hiring-done-args
+  [:job/id])
+
+(def approve-sponsorable-job-args
   [:job/id])
 
 (def add-job-invitation-args
@@ -192,7 +218,7 @@
   [:user/id :invoice/status])
 
 (def get-user-contracts-args
-  [:user/id :contract/status :job/status])
+  [:user/id :contract/statuses :job/statuses])
 
 (def get-job-contracts-args
   [:job/id :contract/status])
@@ -239,6 +265,21 @@
 (def add-job-contract-message-args
   [:contract/id :message/text])
 
+(def get-job-sponsorships-args
+  [:job/id])
+
+(def get-user-sponsorships-args
+  [:user/id])
+
+(def get-job-approvals-args
+  [:job/id])
+
+(def add-job-sponsorship-args
+  [:sponsorship/job :sponsorship/name :sponsorship/link])
+
+(def refund-job-sponsorship-args
+  [:sponsorship/job :limit])
+
 (def eth-contracts-fns
   {:ethlance-config/add-skills add-skills-args
    :ethlance-config/block-skills block-skills-args
@@ -256,7 +297,8 @@
    :ethlance-invoice/cancel-invoice cancel-invoice-args
    :ethlance-invoice/pay-invoice pay-invoice-args
    :ethlance-invoice/set-smart-contract-status set-smart-contract-status-args
-   :ethlance-job/add-job add-job-args
+   :ethlance-job/approve-sponsorable-job approve-sponsorable-job-args
+   :ethlance-job/set-job set-job-args
    :ethlance-job/set-job-hiring-done set-job-hiring-done-args
    :ethlance-job/set-smart-contract-status set-smart-contract-status-args
    :ethlance-message/add-job-contract-message add-job-contract-message-args
@@ -268,6 +310,8 @@
    :ethlance-user/set-freelancer set-freelancer-args
    :ethlance-user/set-smart-contract-status set-smart-contract-status-args
    :ethlance-user/set-user set-user-args
+   :ethlance-sponsor/add-job-sponsorship add-job-sponsorship-args
+   :ethlance-sponsor/refund-job-sponsorships refund-job-sponsorship-args
    :ethlance-user2/set-user-notifications set-user-notifications-args
    :ethlance-views/get-contract-invoices get-contract-invoices-args
    :ethlance-views/get-contract-messages get-contract-messages-args
@@ -278,10 +322,13 @@
    :ethlance-views/get-freelancer-contracts get-user-contracts-args
    :ethlance-views/get-freelancer-invoices get-user-invoices-args
    :ethlance-views/get-freelancers-job-contracts get-freelancers-job-contracts-args
+   :ethlance-views/get-job-approvals get-job-approvals-args
    :ethlance-views/get-job-contracts get-job-contracts-args
    :ethlance-views/get-job-invoices get-job-invoices-args
+   :ethlance-views/get-job-sponsorships get-job-sponsorships-args
    :ethlance-views/get-skill-count []
    :ethlance-views/get-skill-names get-skill-names-args
+   :ethlance-views/get-user-sponsorships get-user-sponsorships-args
    :ethlance-views/get-users get-users-args})
 
 (defn string-type? [field]
@@ -290,8 +337,8 @@
 (defn no-string-types [fields]
   (set (remove string-type? fields)))
 
-(defn remove-uint-coll-fields [fields]
-  (remove #(= (s/form %) 'ethlance.utils/uint-coll?) fields))
+(defn remove-coll-fields [fields]
+  (remove #(contains? #{'ethlance.utils/uint-coll? 'ethlance.utils/address-coll?}  (s/form %)) fields))
 
 (defn estimate-form-data-gas [form-data]
   (reduce (fn [acc [k v]]
@@ -304,8 +351,10 @@
   {'cljs.core/boolean? 1
    'ethlance.utils/uint8? 2
    'ethlance.utils/uint? 3
+   'ethlance.utils/uint-coll? 3
    'ethlance.utils/uint-or-nil? 3
    'ethlance.utils/address? 4
+   'ethlance.utils/address-coll? 4
    'ethlance.utils/bytes32? 5
    'cljs.core/int? 6
    'cljs.core/string? 7
@@ -324,6 +373,7 @@
     'cljs.core/boolean? (if (.eq val 0) false true)
     'ethlance.utils/bytes32? (u/remove-zero-chars (web3/to-ascii (web3/from-decimal val)))
     'ethlance.utils/address? (u/prepend-address-zeros (web3/from-decimal val))
+    'ethlance.utils/address-coll? (u/prepend-address-zeros (web3/from-decimal val))
     'ethlance.utils/date? (u/big-num->date-time val)
     'ethlance.utils/date-or-nil? (u/big-num->date-time val)
     'ethlance.utils/big-num? (web3/from-wei val :ether)
@@ -370,7 +420,7 @@
     (console :log (parse-entities ids fields res))))
 
 (defn get-entities-args [ids fields]
-  (let [fields (remove-uint-coll-fields fields)
+  (let [fields (remove-coll-fields fields)
         records (flatten (for [id ids]
                            (for [field fields]
                              (u/sha3 field id))))]
@@ -396,7 +446,7 @@
   (let [ids+sub-ids (id-counts->ids id-counts)
         records (map (fn [[id sub-id]]
                        (u/sha3 field id sub-id)) ids+sub-ids)]
-    [ids+sub-ids field records [(field-pred->solidity-type 'ethlance.utils/uint?)]]))
+    [ids+sub-ids field records [(field-pred->solidity-type (s/form field))]]))
 
 (defn get-entities-field-items [id-counts field instance on-success on-error]
   (let [[ids+sub-ids field records types] (get-entities-field-items-args id-counts field)]

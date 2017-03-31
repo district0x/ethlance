@@ -9,25 +9,24 @@
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]))
 
-(def fields-to-load #{:job/title :job/total-paid :job/created-on :job/hiring-done-on})
-
-(defn employer-jobs-open []
+(defn employer-jobs []
   (let [xs-width? (subscribe [:window/xs-width?])]
     (fn [{:keys [:user/id]}]
       [jobs-table
-       {:list-subscribe [:list/jobs :list/employer-jobs-open]
-        :initial-dispatch {:list-key :list/employer-jobs-open
+       {:list-subscribe [:list/jobs :list/employer-jobs]
+        :show-status? true
+        :show-created-on? (not @xs-width?)
+        :show-total-paid? (not @xs-width?)
+        :initial-dispatch {:list-key :list/employer-jobs
                            :fn-key :ethlance-views/get-employer-jobs
                            :load-dispatch-key :contract.db/load-jobs
-                           :fields fields-to-load
-                           :args {:user/id id :job/status 1}}
-        :all-ids-subscribe [:list/ids :list/employer-jobs-open]
-        :show-created-on? true
-        :show-total-paid? true
+                           :fields #{:job/title :job/total-paid :job/created-on :job/status}
+                           :args {:user/id id :job/status 0}}
+        :all-ids-subscribe [:list/ids :list/employer-jobs]
         :title [row
                 {:start "sm"}
                 [col {:xs 12 :sm 6}
-                 [:h2 "Open Hiring Jobs"]]
+                 [:h2 "My Jobs"]]
                 [col {:xs 12 :sm 6
                       :style (if @xs-width?
                                (styles/margin-vertical 10)
@@ -37,24 +36,7 @@
                    :primary true
                    :icon (icons/plus)
                    :href (u/path-for :job/create)}]]]
-        :no-items-text "You have no open hiring jobs"}])))
-
-(defn employer-jobs-done []
-  (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/id]}]
-      [jobs-table
-       {:list-subscribe [:list/jobs :list/employer-jobs-done]
-        :show-hiring-done-on? true
-        :show-created-on? (not @xs-width?)
-        :show-total-paid? true
-        :initial-dispatch {:list-key :list/employer-jobs-done
-                           :fn-key :ethlance-views/get-employer-jobs
-                           :load-dispatch-key :contract.db/load-jobs
-                           :fields fields-to-load
-                           :args {:user/id id :job/status 2}}
-        :all-ids-subscribe [:list/ids :list/employer-jobs-done]
-        :title "Closed Hiring Jobs"
-        :no-items-text "You have no closed hiring jobs"}])))
+        :no-items-text "This employer didn't create any jobs"}])))
 
 
 (defn employer-jobs-page []
@@ -63,5 +45,4 @@
       [misc/only-registered
        [misc/only-employer
         [center-layout
-         [employer-jobs-open @user]
-         [employer-jobs-done @user]]]])))
+         [employer-jobs @user]]]])))

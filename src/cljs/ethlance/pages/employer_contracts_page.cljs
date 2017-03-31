@@ -20,7 +20,7 @@
                            :fn-key :ethlance-views/get-employer-contracts
                            :load-dispatch-key :contract.db/load-contracts
                            :fields #{:contract/job :contract/freelancer :invitation/created-on}
-                           :args {:user/id id :contract/status 1 :job/status 1}}
+                           :args {:user/id id :contract/statuses [1] :job/statuses [1]}}
         :all-ids-subscribe [:list/ids :list/employer-invitations]
         :title "Invitations"
         :no-items-text "You have no pending job invitations"}])))
@@ -36,7 +36,7 @@
                        :fn-key :ethlance-views/get-employer-contracts
                        :load-dispatch-key :contract.db/load-contracts
                        :fields #{:contract/job :contract/freelancer :proposal/created-on :proposal/rate}
-                       :args {:user/id id :contract/status 2 :job/status 1}}
+                       :args {:user/id id :contract/statuses [2] :job/statuses [1]}}
     :all-ids-subscribe [:list/ids :list/employer-proposals]
     :title "Pending Proposals"
     :no-items-text "You have no pending job proposals"}])
@@ -54,7 +54,7 @@
                            :fn-key :ethlance-views/get-employer-contracts
                            :load-dispatch-key :contract.db/load-contracts
                            :fields #{:contract/job :contract/freelancer :proposal/rate :contract/total-paid}
-                           :args {:user/id id :contract/status 3 :job/status 0}}
+                           :args {:user/id id :contract/statuses [3] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/employer-contracts-open]
         :title "Active Contracts"
         :no-items-text "You have no active contracts"}])))
@@ -75,7 +75,7 @@
                                      :contract/freelancer
                                      :contract/total-paid
                                      :contract/done-on}
-                           :args {:user/id id :contract/status 4 :job/status 0}}
+                           :args {:user/id id :contract/statuses [4] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/employer-contracts-done]
         :title "Past Contracts"
         :no-items-text "You have no past contracts"}])))
@@ -94,7 +94,7 @@
                            :fields #{:contract/job
                                      :contract/freelancer
                                      :contract/cancelled-on}
-                           :args {:user/id id :contract/status 5 :job/status 0}}
+                           :args {:user/id id :contract/statuses [5] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/employer-contracts-cancelled]
         :title "Cancelled Contracts"
         :no-items-text "You have no cancelled contracts"}])))

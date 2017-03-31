@@ -19,4 +19,14 @@ contract EthlanceUser2 is EthlanceSetter {
     {
         UserLibrary.setUserNotifications(ethlanceDB, getSenderUserId(), boolNotifSettings, uint8NotifSettings);
     }
+
+    function setUserStatus
+    (
+        uint userId,
+        uint8 status
+    )
+        onlyOwner
+    {
+        UserLibrary.setStatus(ethlanceDB, userId, status);
+    }
 }

@@ -11,80 +11,204 @@ import "sharedLibrary.sol";
 library JobLibrary {
 
     //    status:
-    //    1: hiring, 2: hiringDone, 3: blocked
+    //    1: hiring, 2: hiringDone, 3: blocked, 4: draft, 5: refunding, 6: refunded
 
     function getJobCount(address db) internal returns(uint) {
         return EthlanceDB(db).getUIntValue(sha3("job/count"));
     }
 
-    function addJob(
+    function setJob(
         address db,
-        uint employerId,
+        uint existingJobId,
+        uint senderId,
+        address senderAddress,
         string title,
         string description,
         uint[] skills,
         uint language,
         uint budget,
-        uint8[] uint8Items
+        uint8[] uint8Items,
+        bool isSponsorable,
+        address[] allowedUsers
     )
         internal returns (uint jobId)
     {
-        if (!EthlanceDB(db).getBooleanValue(sha3("user/employer?", employerId))) throw;
-        jobId = SharedLibrary.createNext(db, "job/count");
-        EthlanceDB(db).setUIntValue(sha3("job/employer", jobId), employerId);
+        if (existingJobId > 0) {
+            require(getStatus(db, existingJobId) == 4);
+            require(getEmployer(db, existingJobId) == senderId);
+            jobId = existingJobId;
+        } else {
+            jobId = SharedLibrary.createNext(db, "job/count");
+        }
+        EthlanceDB(db).setUIntValue(sha3("job/employer", jobId), senderId);
         EthlanceDB(db).setStringValue(sha3("job/title", jobId), title);
         EthlanceDB(db).setStringValue(sha3("job/description", jobId), description);
 
-        if (language == 0) throw;
+        require(language > 0);
         EthlanceDB(db).setUIntValue(sha3("job/language", jobId), language);
         EthlanceDB(db).setUIntValue(sha3("job/budget", jobId), budget);
-        EthlanceDB(db).setUIntValue(sha3("job/created-on", jobId), now);
 
-        if (uint8Items[0] == 0) throw;
+        require(uint8Items[0] > 0);
         EthlanceDB(db).setUInt8Value(sha3("job/category", jobId), uint8Items[0]);
 
-        if (uint8Items[1] == 0) throw;
+        require(uint8Items[1] > 0);
         EthlanceDB(db).setUInt8Value(sha3("job/payment-type", jobId), uint8Items[1]);
 
-        if (uint8Items[2] == 0) throw;
+        require(uint8Items[2] > 0);
         EthlanceDB(db).setUInt8Value(sha3("job/experience-level", jobId), uint8Items[2]);
 
-        if (uint8Items[3] == 0) throw;
+        require(uint8Items[3] > 0);
         EthlanceDB(db).setUInt8Value(sha3("job/estimated-duration", jobId), uint8Items[3]);
 
-        if (uint8Items[4] == 0) throw;
+        require(uint8Items[4] > 0);
         EthlanceDB(db).setUInt8Value(sha3("job/hours-per-week", jobId), uint8Items[4]);
 
-        if (uint8Items[5] == 0) throw;
+        require(uint8Items[5] > 0);
         EthlanceDB(db).setUInt8Value(sha3("job/freelancers-needed", jobId), uint8Items[5]);
 
         EthlanceDB(db).setUInt8Value(sha3("job/reference-currency", jobId), uint8Items[6]);
 
-        EthlanceDB(db).setUInt8Value(sha3("job/status", jobId), 1);
+        EthlanceDB(db).setBooleanValue(sha3("job/sponsorable?", jobId), isSponsorable);
+        SharedLibrary.setIdArray(db, jobId, "job/allowed-users", "job/allowed-users-count",
+                        allowedUsers);
+
+        if (existingJobId > 0) {
+            clearSponsorableJobApprovals(db, jobId, allowedUsers);
+            EthlanceDB(db).setUIntValue(sha3("job/updated-on", jobId), now);
+        } else {
+            EthlanceDB(db).setUIntValue(sha3("job/created-on", jobId), now);
+            UserLibrary.addEmployerJob(db, senderId, jobId);
+            CategoryLibrary.addJob(db, uint8Items[0], jobId);
+        }
+
+        if (isSponsorable) {
+            setStatus(db, jobId, 4);
+            approveSponsorableJob(db, jobId, senderAddress, allowedUsers);
+        } else {
+            setStatus(db, jobId, 1);
+        }
+
         setSkills(db, jobId, skills);
-        UserLibrary.addEmployerJob(db, employerId, jobId);
-        CategoryLibrary.addJob(db, uint8Items[0], jobId);
 
         return jobId;
     }
 
+    function approveSponsorableJob(address db, uint jobId, address allowedUser, address[] allowedUsers)
+    internal {
+        if (SharedLibrary.contains(allowedUsers, allowedUser)) {
+            EthlanceDB(db).setBooleanValue(sha3("job.allowed-user/approved?", jobId, allowedUser), true);
+            if (isSponsorableJobApproved(db, jobId, allowedUsers)) {
+                setStatus(db, jobId, 1);
+            }
+        }
+    }
+
+    function approveSponsorableJob(address db, uint jobId, address allowedUser)
+    internal {
+        var allowedUsers = getAllowedUsers(db, jobId);
+        require(SharedLibrary.contains(allowedUsers, allowedUser));
+        approveSponsorableJob(db, jobId, allowedUser, allowedUsers);
+    }
+
+    function isSponsorableJobApproved(address db, uint jobId, address[] allowedUsers)
+    internal returns(bool isApproved)
+    {
+        isApproved = true;
+        for (uint i = 0; i < allowedUsers.length ; i++) {
+            if (!EthlanceDB(db).getBooleanValue(sha3("job.allowed-user/approved?", jobId, allowedUsers[i]))) {
+                isApproved = false;
+            }
+        }
+        return isApproved;
+    }
+
+    function getAllowedUsers(address db, uint jobId) internal returns(address[]) {
+        return SharedLibrary.getAddressIdArray(db, jobId, "job/allowed-users", "job/allowed-users-count");
+    }
+
+    function isAllowedUser(address db, uint jobId, address addr) internal returns(bool) {
+        var allowedUsers = getAllowedUsers(db, jobId);
+        return SharedLibrary.contains(allowedUsers, addr);
+    }
+
+    function isSponsorable(address db, uint jobId) internal returns(bool) {
+        return EthlanceDB(db).getBooleanValue(sha3("job/sponsorable?", jobId));
+    }
+
+    function clearSponsorableJobApprovals(address db, uint jobId, address[] allowedUsers) internal {
+        for (uint i = 0; i < allowedUsers.length ; i++) {
+            EthlanceDB(db).setBooleanValue(sha3("job.allowed-user/approved?", jobId, allowedUsers[i]), false);
+        }
+    }
+
+    function getApprovals(address db, uint jobId) internal returns(address[] allowedUsers, bool[] approvals) {
+        allowedUsers = getAllowedUsers(db, jobId);
+        approvals = new bool[](allowedUsers.length);
+        for (uint i = 0; i < allowedUsers.length ; i++) {
+            approvals[i] = EthlanceDB(db).getBooleanValue(sha3("job.allowed-user/approved?", jobId, allowedUsers[i]));
+        }
+        return (allowedUsers, approvals);
+    }
+
     function setSkills(address db, uint jobId, uint[] skills) internal {
-        SharedLibrary.setUIntArray(db, jobId, "job/skills", "job/skills-count", skills);
+        SharedLibrary.setIdArray(db, jobId, "job/skills", "job/skills-count", skills);
         for (uint i = 0; i < skills.length ; i++) {
             SkillLibrary.addJob(db, skills[i], jobId);
         }
     }
 
     function getSkills(address db, uint jobId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, jobId, "job/skills", "job/skills-count");
+        return SharedLibrary.getIdArray(db, jobId, "job/skills", "job/skills-count");
+    }
+
+    function addSponsorship(address db, uint jobId, uint sponsorId) internal {
+        SharedLibrary.addIdArrayItem(db, jobId, "job/sponsorships", "job/sponsorships-count", sponsorId);
+    }
+
+    function addSponsorshipAmount(address db, uint jobId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("job/sponsorships-total", jobId), amount);
+        EthlanceDB(db).addUIntValue(sha3("job/sponsorships-balance", jobId), amount);
+    }
+
+    function addSponsorshipsTotalRefunded(address db, uint jobId, uint amount) internal {
+        EthlanceDB(db).addUIntValue(sha3("job/sponsorships-total-refunded", jobId), amount);
+    }
+
+    function getSponsorshipsTotal(address db, uint jobId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job/sponsorships-total", jobId));
+    }
+
+    function getSponsorshipsBalance(address db, uint jobId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job/sponsorships-balance", jobId));
+    }
+
+    function getSponsorshipsTotalRefunded(address db, uint jobId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job/sponsorships-total-refunded", jobId));
+    }
+
+    function subJobSponsorshipsBalance(address db, uint jobId, uint amount) internal {
+        EthlanceDB(db).subUIntValue(sha3("job/sponsorships-balance", jobId), amount);
+    }
+
+    function refundSponsorship(address db, uint jobId, uint amount) internal {
+        addSponsorshipsTotalRefunded(db, jobId, amount);
+        subJobSponsorshipsBalance(db, jobId, amount);
+    }
+
+    function getSponsorships(address db, uint jobId) internal returns(uint[]) {
+        return SharedLibrary.getIdArray(db, jobId, "job/sponsorships", "job/sponsorships-count");
+    }
+
+    function getSponsorshipsSortedByAmount(address db, uint jobId) internal returns(uint[]) {
+        var sponsorships = getSponsorships(db, jobId);
     }
     
     function addContract(address db, uint jobId, uint contractId) internal {
-        SharedLibrary.addArrayItem(db, jobId, "job/contracts", "job/contracts-count", contractId);
+        SharedLibrary.addIdArrayItem(db, jobId, "job/contracts", "job/contracts-count", contractId);
     }
 
     function getContracts(address db, uint jobId) internal returns(uint[]) {
-        return SharedLibrary.getUIntArray(db, jobId, "job/contracts", "job/contracts-count");
+        return SharedLibrary.getIdArray(db, jobId, "job/contracts", "job/contracts-count");
     }
 
     function getEmployer(address db, uint jobId) internal returns(uint) {

@@ -20,7 +20,7 @@
                               :fn-key :ethlance-views/get-freelancer-contracts
                               :load-dispatch-key :contract.db/load-contracts
                               :fields #{:contract/job :proposal/rate}
-                              :args {:user/id user-id :contract/status 3 :job/status 0}}]]))
+                              :args {:user/id user-id :contract/statuses [3] :job/statuses [1 2]}}]]))
 
 (defn worked-time-field [{:keys [:contract/id :field-key :validator] :as props}]
   [ui/text-field

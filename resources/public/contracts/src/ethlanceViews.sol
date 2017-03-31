@@ -7,6 +7,7 @@ import "invoiceLibrary.sol";
 import "categoryLibrary.sol";
 import "skillLibrary.sol";
 import "sharedLibrary.sol";
+import "sponsorLibrary.sol";
 
 contract EthlanceViews {
     address public ethlanceDB;
@@ -16,12 +17,12 @@ contract EthlanceViews {
         ethlanceDB = _ethlanceDB;
     }
 
-    function getFreelancerContracts(uint userId, uint8 contractStatus, uint8 jobStatus) public constant returns (uint[]) {
-        return UserLibrary.getFreelancerContractsByStatus(ethlanceDB, userId, contractStatus, jobStatus);
+    function getFreelancerContracts(uint userId, uint[] contractStatuses, uint[] jobStatuses) public constant returns (uint[]) {
+        return UserLibrary.getFreelancerContractsByStatus(ethlanceDB, userId, contractStatuses, jobStatuses);
     }
 
-    function getEmployerContracts(uint userId, uint8 contractStatus, uint8 jobStatus) public constant returns (uint[]) {
-        return UserLibrary.getEmployerContractsByStatus(ethlanceDB, userId, contractStatus, jobStatus);
+    function getEmployerContracts(uint userId, uint[] contractStatuses, uint[] jobStatuses) public constant returns (uint[]) {
+        return UserLibrary.getEmployerContractsByStatus(ethlanceDB, userId, contractStatuses, jobStatuses);
     }
 
     function getFreelancerInvoices(uint userId, uint8 invoiceStatus) public constant returns (uint[]) {
@@ -70,5 +71,19 @@ contract EthlanceViews {
 
     function getEmployerJobsForFreelancerInvite(uint employerId, uint freelancerId) constant returns(uint[]) {
         return JobLibrary.getEmployerJobsForFreelancerInvite(ethlanceDB, employerId, freelancerId);
+    }
+
+    function getJobSponsorships(uint jobId) constant returns(uint[]) {
+        var sponsorshipIds = JobLibrary.getSponsorships(ethlanceDB, jobId);
+        var amounts = SponsorLibrary.getSponsorshipsAmounts(ethlanceDB, sponsorshipIds);
+        return SharedLibrary.sortDescBy(sponsorshipIds, amounts);
+    }
+
+    function getJobApprovals(uint jobId) constant returns(address[], bool[]) {
+        return JobLibrary.getApprovals(ethlanceDB, jobId);
+    }
+
+    function getUserSponsorships(address userId) constant returns(uint[]) {
+        return UserLibrary.getSponsorships(ethlanceDB, userId);
     }
 }

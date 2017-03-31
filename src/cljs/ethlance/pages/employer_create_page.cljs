@@ -14,7 +14,7 @@
   (let [register-employer-form (subscribe [:form.user/register-employer])]
     (fn []
       (let [{:keys [:loading? :data :errors]} @register-employer-form]
-        [misc/only-unregistered
+        [misc/only-unregistered-and-connected
          [misc/center-layout
           [paper
            {:loading? loading?}

@@ -9,7 +9,8 @@
     [goog.string :as gstring]
     [goog.string.format]
     [medley.core :as medley]
-    [re-frame.core :refer [reg-sub]]))
+    [re-frame.core :refer [reg-sub]]
+    [cljs-web3.core :as web3]))
 
 (reg-sub
   :db
@@ -67,20 +68,13 @@
   :<- [:db/conversion-rates]
   (fn [[selected-curency conversion-rates] [_ value {:keys [:value-currency] :as opts
                                                      :or {value-currency 0}}]]
-    (let [value (u/big-num->num value)]
-      (if (and (not= selected-curency 0)
-               (not (conversion-rates selected-curency)))
-        (u/with-currency-symbol "" selected-curency)
-        (if (= value-currency selected-curency)
-          (u/format-currency value value-currency opts)
-          (if (or (conversion-rates value-currency)
-                  (= 0 value-currency))
-            (let [value (u/parse-float value)]
-              (-> (if (and value (not (js/isNaN value))) value 0)
-                (u/currency->ether value-currency conversion-rates)
-                (u/ether->currency selected-curency conversion-rates)
-                (u/format-currency selected-curency opts)))
-            (u/with-currency-symbol "" selected-curency)))))))
+    (u/convert-currency value value-currency selected-curency conversion-rates opts)))
+
+(reg-sub
+  :currency/ether-value
+  :<- [:db/conversion-rates]
+  (fn [conversion-rates [_ value value-currency]]
+    (u/currency->ether (u/parse-float value) value-currency conversion-rates)))
 
 (reg-sub
   :db/search-jobs-filter-open?
@@ -167,6 +161,11 @@
     (:app/jobs db)))
 
 (reg-sub
+  :app/jobs.allowed-users
+  (fn [db]
+    (:app/jobs.allowed-users db)))
+
+(reg-sub
   :app/contracts
   (fn [db]
     (:app/contracts db)))
@@ -175,6 +174,11 @@
   :app/messages
   (fn [db]
     (:app/messages db)))
+
+(reg-sub
+  :app/sponsorships
+  (fn [db]
+    (:app/sponsorships db)))
 
 (reg-sub
   :window/width-size
@@ -215,6 +219,11 @@
   :db/snackbar
   (fn [db]
     (:snackbar db)))
+
+(reg-sub
+  :db/dialog
+  (fn [db]
+    (:dialog db)))
 
 (reg-sub
   :eth/contracts
@@ -289,7 +298,17 @@
   :user/route-user-id
   :<- [:db/active-page]
   (fn [{:keys [route-params]}]
-    (js/parseInt (:user/id route-params))))
+    (let [user-id (:user/id route-params)]
+      (if (web3/address? user-id)
+        user-id
+        (js/parseInt user-id)))))
+
+(reg-sub
+  :user/by-address
+  :<- [:app/users]
+  :<- [:blockchain/addresses]
+  (fn [[users blockchain-addresses] [_ address]]
+    (users (:user/id (blockchain-addresses address)))))
 
 (reg-sub
   :job/route-job-id
@@ -313,12 +332,16 @@
       (= employer-id user-id))))
 
 (defn user-id->user [user-id users blockchain-addresses]
-  (let [user (get users user-id)]
+  (when-let [user (get users user-id)]
     (assoc user :user/balance (:address/balance (blockchain-addresses (:user/address user))))))
 
 (defn job-id->job [job-id jobs users blockchain-addresses]
-  (-> (get jobs job-id)
-    (update :job/employer #(user-id->user % users blockchain-addresses))))
+  (when-let [job (get jobs job-id)]
+    (-> job
+      (update :job/employer #(user-id->user % users blockchain-addresses))
+      (assoc :job/allowed-users-data
+             (map (comp #(user-id->user % users blockchain-addresses) :user/id blockchain-addresses)
+                  (:job/allowed-users job))))))
 
 (reg-sub
   :user/detail
@@ -336,6 +359,20 @@
   :<- [:blockchain/addresses]
   (fn [[job-id jobs users blockchain-addresses]]
     (job-id->job job-id jobs users blockchain-addresses)))
+
+(reg-sub
+  :job/allowed-user-approved?
+  :<- [:app/jobs.allowed-users]
+  (fn [jobs-allowed-users [_ job-id allowed-user]]
+    (get-in jobs-allowed-users [[job-id allowed-user] :job.allowed-user/approved?])))
+
+(reg-sub
+  :job/waiting-for-my-approval?
+  :<- [:job/route-job-id]
+  :<- [:app/jobs.allowed-users]
+  :<- [:db/active-address]
+  (fn [[job-id jobs-allowed-users active-address]]
+    (false? (get-in jobs-allowed-users [[job-id active-address] :job.allowed-user/approved?]))))
 
 (reg-sub
   :list/search-jobs
@@ -383,15 +420,6 @@
   :<- [:db/active-page]
   (fn [{:keys [route-params]}]
     (js/parseInt (:contract/id route-params))))
-
-(defn- remove-unallowed-contract-data [contract active-user-id]
-  (if-not (or (= (get-in contract [:contract/freelancer :user/id]) active-user-id)
-              (= (get-in contract [:contract/job :job/employer :user/id]) active-user-id))
-    (merge contract {:invitation/description ""
-                     :proposal/description ""
-                     :contract/description ""
-                     :contract/cancel-description ""})
-    contract))
 
 (defn contract-id->contract [contract-id contracts jobs users blockchain-addresses]
   (-> (get contracts contract-id)
@@ -496,12 +524,6 @@
         (update :items (partial map #(contract-id->contract % contracts jobs users blockchain-addresses)))
         (u/list-filter-loaded non-empty-pred)))))
 
-(defn- remove-unallowed-invoice-data [invoice active-user-id]
-  (if-not (or (= (get-in invoice [:invoice/contract :contract/freelancer :user/id]) active-user-id)
-              (= (get-in invoice [:invoice/contract :contract/job :job/employer :user/id]) active-user-id))
-    (merge invoice {:invoice/description ""})
-    invoice))
-
 (defn invoice-id->invoice [invoice-id invoices contracts jobs users blockchain-addresses]
   (-> (get invoices invoice-id)
     (update :invoice/contract #(contract-id->contract % contracts jobs users blockchain-addresses))))
@@ -549,6 +571,25 @@
   (fn [[invoice active-user-id]]
     (and active-user-id
          (= active-user-id (get-in invoice [:invoice/contract :contract/job :job/employer :user/id])))))
+
+(defn sponsorship-id->sponsorship [sponsorship-id sponsorships jobs users blockchain-addresses]
+  (-> (get sponsorships sponsorship-id)
+    (update :sponsorship/job #(job-id->job % jobs users blockchain-addresses))))
+
+(reg-sub
+  :list/sponsorships
+  :<- [:db]
+  :<- [:app/sponsorships]
+  :<- [:app/jobs]
+  :<- [:app/users]
+  :<- [:blockchain/addresses]
+  (fn [[db sponsorships jobs users blockchain-addresses] [_ list-key]]
+    (let [sponsorships-list (get db list-key)]
+      (-> sponsorships-list
+        (update :items (partial u/sort-paginate-ids sponsorships-list))
+        (update :items (partial map #(sponsorship-id->sponsorship % sponsorships jobs users blockchain-addresses)))
+        (u/list-filter-loaded :sponsorship/amount)))))
+
 
 (reg-sub
   :form.invoice/pay-invoice
@@ -641,6 +682,11 @@
     (:form.job/set-hiring-done db)))
 
 (reg-sub
+  :form.job/approve-sponsorable-job
+  (fn [db]
+    (:form.job/approve-sponsorable-job db)))
+
+(reg-sub
   :form.job/add-job
   (fn [db]
     (:form.job/add-job db)))
@@ -664,6 +710,16 @@
   :form.message/add-job-contract-message
   (fn [db]
     (:form.message/add-job-contract-message db)))
+
+(reg-sub
+  :form.sponsor/add-job-sponsorship
+  (fn [db]
+    (:form.sponsor/add-job-sponsorship db)))
+
+(reg-sub
+  :form.sponsor/refund-job-sponsorships
+  (fn [db]
+    (:form.sponsor/refund-job-sponsorships db)))
 
 (reg-sub
   :form.user/set-user
@@ -703,4 +759,14 @@
   (fn [[db active-user]]
     (-> (:form.user2/set-user-notifications db)
       (update :data (partial merge (select-keys active-user (flatten ethlance-db/set-user-notifications-args)))))))
+
+(reg-sub
+  :form.job/set-job
+  :<- [:db]
+  :<- [:job/route-job-id]
+  (fn [[db job-id]]
+    (-> (:form.job/set-job db)
+      (update :data (partial merge
+                             (:data (:form.job/add-job default-db))
+                             (get-in db [:app/jobs job-id]))))))
 

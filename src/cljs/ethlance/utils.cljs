@@ -48,6 +48,9 @@
 (defn uint-coll? [x]
   (and x (every? uint? x)))
 
+(defn address-coll? [x]
+  (and x (every? address? x)))
+
 (defn date? [x]
   (instance? goog.date.DateTime x))
 
@@ -148,6 +151,14 @@
   (when x
     (.greaterThan x 0)))
 
+(defn big-num-greater-than-or-equal-to? [x y]
+  (when (and x y)
+    (.greaterThanOrEqualTo x y)))
+
+(defn big-num-less-than? [x y]
+  (when (and x y)
+    (.lessThan x y)))
+
 (defn big-num-neg? [x]
   (when x
     (.isNegative x)))
@@ -162,6 +173,11 @@
 
 (defn empty-string? [x]
   (and (string? x) (empty? x)))
+
+(defn parse-float [number]
+  (if (string? number)
+    (js/parseFloat (replace-comma number))
+    number))
 
 (defn non-neg? [x]
   (not (neg? x)))
@@ -179,6 +195,15 @@
     (catch :default e
       false)))
 
+(defn pos-ether-value? [x & [props]]
+  (and (non-neg-ether-value? x props)
+       (or (and (string? x)
+                (pos? (parse-float x)))
+           (and (number? x)
+                (pos? x))
+           (and (big-num? x)
+                (big-num-pos? x)))))
+
 (def non-neg-or-empty-ether-value? #(non-neg-ether-value? % {:allow-empty? true}))
 
 (defn big-nums->nums [coll]
@@ -186,6 +211,9 @@
 
 (defn ensure-vec [x]
   (if (sequential? x) x [x]))
+
+(defn zero-address? [x]
+  (= x "0x0000000000000000000000000000000000000000"))
 
 (defn ensure-number [x]
   (if (and (number? x)
@@ -198,6 +226,9 @@
 (defn empty-job? [job]
   (zero? (:job/created-on job)))
 
+(defn empty-job-allowed-user? [job-allowed-user]
+  (nil? (:job.allowed-user/approved? job-allowed-user)))
+
 (defn empty-contract? [contract]
   (zero? (:contract/job contract)))
 
@@ -206,6 +237,9 @@
 
 (defn empty-message? [message]
   (zero? (:message/created-on message)))
+
+(defn empty-sponsorship? [sponsorship]
+  (zero? (:sponsorship/created-on sponsorship)))
 
 (defn md5-bytes [s]
   (let [container (doto (goog.crypt.Md5.)
@@ -384,11 +418,6 @@
       (paginate offset limit))
     ids))
 
-(defn parse-float [number]
-  (if (string? number)
-    (js/parseFloat (replace-comma number))
-    number))
-
 (defn pos-or-zero? [x]
   (let [x (parse-float x)]
     (or (pos? x) (zero? x))))
@@ -477,18 +506,24 @@
 (defn uncapitalize [s]
   (str (string/lower-case (first s)) (subs s 1)))
 
-(defn one-of [& all-preds]
-  (fn [& args]
-    (loop [rest-preds all-preds]
-      (when-let [fs (seq rest-preds)]
-        (let [res (apply (first fs) args)]
-          (if res
-            res
-            (recur (rest fs))))))))
-
 (defn filter-by-namespace [nmsp coll]
   (let [nmsp (name nmsp)]
     (filter #(= (namespace %) nmsp) coll)))
+
+(defn filter-by-namespaces [nmsps coll]
+  (let [nmsps (set (map name nmsps))]
+    (filter #(contains? nmsps (namespace %)) coll)))
+
+(defn remove-by-namespace [nmsp coll]
+  (let [nmsp (name nmsp)]
+    (remove #(= (namespace %) nmsp) coll)))
+
+(defn remove-by-namespaces [nmsps coll]
+  (let [nmsps (set (map name nmsps))]
+    (remove #(contains? nmsps (namespace %)) coll)))
+
+(defn distinct-namespaces [ks]
+  (distinct (map namespace ks)))
 
 (defn ascii-char? [c]
   (< (.charCodeAt c) 128))
@@ -555,6 +590,22 @@
           value
           (ether->currency ether-value target-currency conversion-rates))))))
 
+(defn convert-currency [value value-currency target-currency conversion-rates & [format-opts]]
+  (let [value (big-num->num value)]
+    (if (and (not= target-currency 0)
+             (not (conversion-rates target-currency)))
+      (with-currency-symbol "" target-currency)
+      (if (= value-currency target-currency)
+        (format-currency value value-currency format-opts)
+        (if (or (conversion-rates value-currency)
+                (= 0 value-currency))
+          (let [value (parse-float value)]
+            (-> (if (and value (not (js/isNaN value))) value 0)
+              (currency->ether value-currency conversion-rates)
+              (ether->currency target-currency conversion-rates)
+              (format-currency target-currency format-opts)))
+          (with-currency-symbol "" target-currency))))))
+
 (defn num->wei [value]
   (web3/to-wei (if (string? value) (replace-comma value) value) :ether))
 
@@ -566,3 +617,21 @@
     (str (constants/currencies currency-id)
          " "
          (name (constants/currency-id->code currency-id)))))
+
+(def http-url-pattern #"(?i)^(?:(?:https?)://)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$")
+
+(defn http-url? [x & [{:keys [:allow-empty?]}]]
+  (if (and allow-empty? (empty? x))
+    true
+    (when (string? x)
+      (boolean (re-matches http-url-pattern x)))))
+
+(defn create-length-validator
+  ([max-length] (create-length-validator 0 max-length))
+  ([min-length max-length]
+   (if max-length
+     (fn [x]
+       (<= (or min-length 0)
+           (if (string? x) (count (string/trim x)) 0)
+           max-length))
+     (constantly true))))

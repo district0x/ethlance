@@ -8,6 +8,7 @@
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.components.user-detail :as user-detail]
+    [ethlance.components.user-sponsorships :refer [user-sponsorships]]
     [ethlance.constants :as constants]
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
@@ -88,7 +89,7 @@
                                        :fn-key :ethlance-views/get-employer-contracts
                                        :load-dispatch-key :contract.db/load-contracts
                                        :fields ethlance-db/feedback-entity-fields
-                                       :args {:user/id id :contract/status 4 :job/status 0}}]}])
+                                       :args {:user/id id :contract/statuses [4] :job/statuses []}}]}])
 
 (defn employer-detail-page []
   (let [user-id (subscribe [:user/route-user-id])
@@ -106,4 +107,6 @@
         (when (:user/employer? @user)
           [:div
            [employer-jobs @user]
+           [user-sponsorships
+            {:user/id (:user/address @user)}]
            [employer-feedback @user]])]])))

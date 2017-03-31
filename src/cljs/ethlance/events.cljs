@@ -13,6 +13,8 @@
     [clojure.set :as set]
     [day8.re-frame.async-flow-fx]
     [day8.re-frame.http-fx]
+    [ethlance.components.confirm-dialog :as confirm-dialog]
+    [ethlance.constants :as constants]
     [ethlance.db :refer [default-db generate-mode?]]
     [ethlance.debounce-fx]
     [ethlance.ethlance-db :as ethlance-db :refer [get-entities get-entities-field-items]]
@@ -26,7 +28,6 @@
     [madvas.re-frame.web3-fx]
     [medley.core :as medley]
     [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console dispatch dispatch-sync]]
-    [ethlance.constants :as constants]
     [clojure.string :as string]))
 
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
@@ -90,11 +91,14 @@
 (defn all-contracts-loaded? [db]
   (every? #(and (:abi %) (if goog.DEBUG (:bin %) true)) (vals (:eth/contracts db))))
 
+(defn all-contracts-deployed? [db]
+  (every? #(and (:instance %) (:address %)) (vals (:eth/contracts db))))
+
 
 (defn filter-needed-fields [required-fields items ids & [editable-fields]]
   (reduce (fn [acc id]
             (let [item (get items id)
-                  needed-fields (set/difference required-fields
+                  needed-fields (set/difference (set required-fields)
                                                 (set/difference (set (keys (medley/remove-vals nil? item)))
                                                                 editable-fields))]
               (cond-> acc
@@ -159,6 +163,10 @@
 (defn active-page-this-invoice-detail? [{:keys [:active-page]} invoice-id]
   (and (= (:handler active-page) :invoice/detail)
        (= (js/parseInt (:invoice/id (:route-params active-page))) invoice-id)))
+
+(defn active-page-this-job-detail? [{:keys [:active-page]} job-id]
+  (and (= (:handler active-page) :job/detail)
+       (= (js/parseInt (:job/id (:route-params active-page))) job-id)))
 
 (comment
   (dispatch [:blockchain/unlock-account "0x98bc90f9bde18341304bd551d693b708e895a2a5" "m"])
@@ -297,27 +305,53 @@
     {:web3-fx.blockchain/fns
      {:web3 (:web3 db)
       :fns (for [[key {:keys [abi bin]}] (select-keys (:eth/contracts db) contract-keys)]
-             [web3-eth/contract-new
-              abi
-              (:address (get-contract db :ethlance-db))
-              {:gas u/max-gas-limit
-               :data bin
-               :from (:active-address db)}
-              [:contract/deployed key]
-              [:log-error :contracts/deploy key]])}}))
+             (remove nil?
+                     [web3-eth/contract-new
+                      abi
+                      (when-not (= key :ethlance-sponsor-wallet)
+                        (:address (get-contract db :ethlance-db)))
+                      {:gas u/max-gas-limit
+                       :data bin
+                       :from (:active-address db)}
+                      [:contract/deployed key contract-keys]
+                      [:log-error :contracts/deploy key]]))}}))
 
 (reg-event-fx
   :contract/deployed
   [interceptors (inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [key instance]]
+  (fn [{:keys [db localstorage]} [key contract-keys instance]]
     (when-let [contract-address (aget instance "address")]
       (console :log key " deployed at " contract-address)
-      (merge
-        {:db (update-in db [:eth/contracts key] merge {:address contract-address
-                                                       :instance instance})
-         :localstorage (assoc-in localstorage [:eth/contracts key] {:address contract-address})}
-        (when (:setter? (get-contract db key))
-          {:dispatch [:contract.db/add-allowed-contracts [key]]})))))
+      (let [new-db (update-in db [:eth/contracts key] merge {:address contract-address :instance instance})]
+        (merge
+          {:db new-db
+           :localstorage (assoc-in localstorage [:eth/contracts key] {:address contract-address})}
+          (when (:setter? (get-contract db key))
+            {:dispatch [:contract.db/add-allowed-contracts [key]]})
+          (when (all-contracts-deployed? new-db)
+            {:dispatch-n [[:eth-contracts-deployed contract-keys]]}))))))
+
+(reg-event-fx
+  :eth-contracts-deployed
+  interceptors
+  (fn [{:keys [db]} [contract-keys]]
+    (let [ethlance-invoice-address (:address (get-contract db :ethlance-invoice))
+          ethlance-sponsor-address (:address (get-contract db :ethlance-sponsor))
+          ethlance-sponsor-wallet-address (:address (get-contract db :ethlance-sponsor-wallet))
+          contract-keys (set contract-keys)]
+      {:dispatch-n
+       (remove
+         nil?
+         [(when (or (contains? contract-keys :ethlance-sponsor-wallet)
+                    (contains? contract-keys :ethlance-invoice))
+            [:contract/state-call :ethlance-sponsor-wallet :set-ethlance-invoice-contract [ethlance-invoice-address]])
+          (when (or (contains? contract-keys :ethlance-sponsor-wallet)
+                    (contains? contract-keys :ethlance-sponsor))
+            [:contract/state-call :ethlance-sponsor-wallet :set-ethlance-sponsor-contract [ethlance-sponsor-address]])
+          (when (contains? contract-keys :ethlance-sponsor)
+            [:contract/state-call :ethlance-sponsor :set-ethlance-sponsor-wallet-contract [ethlance-sponsor-wallet-address]])
+          (when (contains? contract-keys :ethlance-invoice)
+            [:contract/state-call :ethlance-invoice :set-ethlance-sponsor-wallet-contract [ethlance-sponsor-wallet-address]])])})))
 
 (reg-event-fx
   :load-conversion-rates
@@ -463,10 +497,7 @@
                      (= code-type :abi)
                      (update-in [:eth/contracts contract-key] merge
                                 (when contract-address
-                                  {:instance (web3-eth/contract-at (:web3 db) code contract-address)}))
-
-                     (not contract-address)
-                     (assoc :contracts-not-found? true))]
+                                  {:instance (web3-eth/contract-at (:web3 db) code contract-address)})))]
         (merge
           {:db new-db
            :dispatch-n (remove nil?
@@ -717,8 +748,9 @@
                    :fn-key :ethlance-user/register-freelancer
                    :form-key :form.user/register-freelancer
                    :receipt-dispatch-n [[:snackbar/show-message "Your freelancer profile was successfully created"]
-                                        [:contract.views/load-user-id-by-address address
-                                         [:contract.views/my-new-user-id-loaded :freelancer/detail address]]]}]})))
+                                        [:contract.views/load-user-ids-by-addresses
+                                         [address]
+                                         {:on-success [:contract.views/my-new-user-id-loaded :freelancer/detail address]}]]}]})))
 
 (reg-event-fx
   :contract.user/register-employer
@@ -731,8 +763,9 @@
                    :fn-key :ethlance-user/register-employer
                    :form-key :form.user/register-employer
                    :receipt-dispatch-n [[:snackbar/show-message "Your employer profile was successfully created"]
-                                        [:contract.views/load-user-id-by-address address
-                                         [:contract.views/my-new-user-id-loaded :employer/detail address]]]}]})))
+                                        [:contract.views/load-user-ids-by-addresses
+                                         [address]
+                                         {:on-success [:contract.views/my-new-user-id-loaded :employer/detail address]}]]}]})))
 
 (reg-event-fx
   :contract.user/set-user
@@ -837,7 +870,8 @@
       {:dispatch [:list/load-ids {:list-key :list/search-jobs
                                   :fn-key :ethlance-search/search-jobs
                                   :load-dispatch-key :contract.db/load-jobs
-                                  :fields (set/difference ethlance-db/job-entity-fields #{:job/description})
+                                  :fields (set/difference ethlance-db/job-entity-fields #{:job/description
+                                                                                          :job/allowed-users})
                                   :args (assoc args :search/min-budgets min-budgets)
                                   :keep-items? true}]})))
 
@@ -855,24 +889,27 @@
         :ids ids
         :fields fields
         :partitions 5
-        :on-success [:contract/jobs-loaded]
+        :on-success [:contract/jobs-loaded fields]
         :on-error [:log-error :contract.db/load-jobs]}})))
 
 (reg-event-fx
   :contract/jobs-loaded
   interceptors
-  (fn [{:keys [db]} [jobs]]
+  (fn [{:keys [db]} [fields jobs]]
     (let [jobs (->> jobs
                  (remove u/empty-job?)
                  (u/assoc-key-as-value :job/id))]
       {:db (-> db
              (update :app/jobs (partial merge-with merge) jobs))
-       :dispatch-n [[:contract.db/load-job-skills jobs]
-                    [:contract.db/load-users
-                     (set/union (ethlance-db/no-string-types ethlance-db/employer-entity-fields)
-                                ethlance-db/user-entity-fields
-                                ethlance-db/user-balance-entity-fields)
-                     (map :job/employer (vals jobs))]]})))
+       :dispatch-n (remove nil?
+                           [[:contract.db/load-job-skills jobs]
+                            (when (contains? (set fields) :job/allowed-users)
+                              [:contract.db/load-job-allowed-users jobs])
+                            [:contract.db/load-users
+                             (set/union (ethlance-db/no-string-types ethlance-db/employer-entity-fields)
+                                        ethlance-db/user-entity-fields
+                                        ethlance-db/user-balance-entity-fields)
+                             (map :job/employer (vals jobs))]])})))
 
 ;; ============users
 
@@ -930,16 +967,16 @@
     {:db (assoc db :my-users-loaded? true)}))
 
 (reg-event-fx
-  :contract.views/load-user-id-by-address
+  :contract.views/load-user-ids-by-addresses
   interceptors
-  (fn [{:keys [db]} [address loaded-dispatch]]
+  (fn [{:keys [db]} [addresses {:keys [:on-success]}]]
     (let [fn-key :ethlance-views/get-users]
       {:web3-fx.contract/constant-fns
        {:fns [[(get-instance db (keyword (namespace fn-key)))
                fn-key
-               [address]
-               loaded-dispatch
-               [:log-error :contract.views/load-user-id-by-address address]]]}})))
+               addresses
+               on-success
+               [:log-error :contract.views/load-user-ids-by-addresses addresses]]]}})))
 
 (reg-event-fx
   :contract.db/load-users
@@ -982,18 +1019,29 @@
   interceptors
   (fn [{:keys [db]} [jobs]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items jobs
+                                        :items (select-keys (:app/jobs db) (keys jobs))
                                         :count-key :job/skills-count
                                         :field-key :job/skills
                                         :on-success [:contract/field-items-loaded :app/jobs]
                                         :on-error [:log-error :contract.db/load-job-skills]}}))
 
 (reg-event-fx
+  :contract.db/load-job-allowed-users
+  interceptors
+  (fn [{:keys [db]} [jobs]]
+    {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
+                                        :items (select-keys (:app/jobs db) (keys jobs))
+                                        :count-key :job/allowed-users-count
+                                        :field-key :job/allowed-users
+                                        :on-success [:contract/field-items-loaded :app/jobs]
+                                        :on-error [:log-error :contract.db/load-job-allowed-users]}}))
+
+(reg-event-fx
   :contract.db/load-freelancer-skills
   interceptors
   (fn [{:keys [db]} [users]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items users
+                                        :items (select-keys (:app/users db) (keys users))
                                         :count-key :freelancer/skills-count
                                         :field-key :freelancer/skills
                                         :on-success [:contract/field-items-loaded :app/users]
@@ -1004,7 +1052,7 @@
   interceptors
   (fn [{:keys [db]} [users]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items users
+                                        :items (select-keys (:app/users db) (keys users))
                                         :count-key :freelancer/categories-count
                                         :field-key :freelancer/categories
                                         :on-success [:contract/field-items-loaded :app/users]
@@ -1015,7 +1063,7 @@
   interceptors
   (fn [{:keys [db]} [users]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items users
+                                        :items (select-keys (:app/users db) (keys users))
                                         :count-key :user/languages-count
                                         :field-key :user/languages
                                         :on-success [:contract/field-items-loaded :app/users]
@@ -1047,24 +1095,36 @@
 ;;============jobs
 
 (reg-event-fx
-  :contract.job/add-job
+  :contract.job/set-job
   interceptors
   (fn [{:keys [db]} [form-data address]]
     {:dispatch [:form/submit
                 {:form-data form-data
                  :address address
-                 :fn-key :ethlance-job/add-job
+                 :fn-key :ethlance-job/set-job
                  :form-key :form.job/add-job
-                 :receipt-dispatch-n [[:snackbar/show-message "Job has been successfully created"]
-                                      [:location/set-hash :employer/jobs]]}]}))
+                 :receipt-dispatch-n [[:snackbar/show-message (str "Job has been successfully "
+                                                                   (if (pos? (:job/id form-data))
+                                                                     "updated"
+                                                                     "created"))]
+                                      (if (pos? (:job/id form-data))
+                                        [:location/set-hash :job/detail (select-keys form-data [:job/id])]
+                                        [:location/set-hash :employer/jobs])]}]}))
 
 (reg-event-fx
   :form.job.add-job/set-budget-enabled?
   interceptors
-  (fn [{:keys [db]} [budget-enabled?]]
+  (fn [{:keys [db]} [form-key budget-enabled?]]
     {:db (-> db
-           (assoc-in [:form.job/add-job :budget-enabled?] budget-enabled?)
-           (assoc-in [:form.job/add-job :data :job/budget] 0))}))
+           (assoc-in [form-key :budget-enabled?] budget-enabled?)
+           (assoc-in [form-key :data :job/budget] 0))}))
+
+(reg-event-fx
+  :form.job.add-job/add-me-as-allowed
+  interceptors
+  (fn [{:keys [db]} [form-key allowed-users]]
+    {:dispatch [:form/set-value form-key :job/allowed-users (into [] (conj allowed-users (:active-address db)))
+                #(<= (count %) (:max-job-allowed-users (:eth/config db)))]}))
 
 (reg-event-fx
   :contract.job/set-hiring-done
@@ -1077,14 +1137,59 @@
                  :form-key :form.job/set-hiring-done
                  :receipt-dispatch [:contract.db/load-jobs #{:job/status :job/hiring-done-on} [(:job/id form-data)]]}]}))
 
+(reg-event-fx
+  :contract.job/approve-sponsorable-job
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-job/approve-sponsorable-job
+                 :form-key :form.job/approve-sponsorable-job
+                 :receipt-dispatch-n [[:contract.db/load-jobs #{:job/status} [(:job/id form-data)]]
+                                      [:contract.views/load-job-approvals (select-keys form-data [:job/id])]]}]}))
+
+(reg-event-fx
+  :contract.views/load-job-approvals
+  interceptors
+  (fn [{:keys [db]} [values]]
+    {:web3-fx.contract/constant-fns
+     {:fns [(concat
+              [(get-instance db :ethlance-views)
+               :ethlance-views/get-job-approvals]
+              (args-map->vec values ethlance-db/get-job-approvals-args)
+              [[:contract/job-approvals-loaded values]
+               [:log-error :contract.views/load-job-approvals]])]}}))
+
+(reg-event-fx
+  :contract/job-approvals-loaded
+  interceptors
+  (fn [{:keys [db]} [{:keys [:job/id]} [allowed-users approvals]]]
+    {:dispatch [:contract/jobs.allowed-users-loaded
+                #{:job.allowed-user/approved?}
+                (reduce (fn [acc [i allowed-user]]
+                          (assoc-in acc [[id allowed-user] :job.allowed-user/approved?] (nth approvals i)))
+                        {}
+                        (medley/indexed allowed-users))]}))
+
+(reg-event-fx
+  :contract/jobs.allowed-users-loaded
+  interceptors
+  (fn [{:keys [db]} [fields jobs-allowed-users]]
+    (let [jobs-allowed-users (->> jobs-allowed-users
+                               (medley/remove-vals u/empty-job-allowed-user?))]
+      {:db (update db :app/jobs.allowed-users (partial merge-with merge) jobs-allowed-users)})))
+
 ;; ============contracts
 
 (reg-event-fx
   :contract.db/load-contracts
   interceptors
-  (fn [{:keys [db]} [fields contract-ids {:keys [:load-per]}]]
+  (fn [{:keys [db]} [all-fields contract-ids {:keys [:load-per]}]]
     (let [contract-ids (u/big-nums->nums contract-ids)
-          {:keys [fields ids]} (filter-needed-fields fields
+          {:keys [fields ids]} (filter-needed-fields (u/filter-by-namespaces
+                                                       (u/distinct-namespaces ethlance-db/proposal+invitation-entitiy-fields)
+                                                       all-fields)
                                                      (:app/contracts db)
                                                      contract-ids
                                                      ethlance-db/contract-editable-fields)]
@@ -1092,24 +1197,27 @@
        {:instance (get-instance db :ethlance-db)
         :ids ids
         :fields fields
-        :on-success [:contract/contracts-loaded]
+        :on-success [:contract/contracts-loaded all-fields]
         :on-error [:log-error :contract.db/load-contracts]}})))
 
 (reg-event-fx
   :contract/contracts-loaded
   interceptors
-  (fn [{:keys [db]} [contracts]]
+  (fn [{:keys [db]} [fields contracts]]
     (let [contracts (->> contracts
                       (remove u/empty-contract?)
                       (u/assoc-key-as-value :contract/id))
           contract-vals (vals contracts)
           freelancer-ids (map :contract/freelancer contract-vals)
-          job-ids (map :contract/job contract-vals)]
+          job-ids (map :contract/job contract-vals)
+          job-fields (u/filter-by-namespaces (u/distinct-namespaces ethlance-db/job-entity-fields) fields)
+          job-fields (if (empty? job-fields)
+                       (set/difference ethlance-db/job-entity-fields #{:job/description :job/allowed-users})
+                       job-fields)]
       {:db (-> db
              (update :app/contracts (partial merge-with merge) contracts))
        :dispatch-n [[:contract.db/load-users ethlance-db/user-entity-fields freelancer-ids]
-                    [:contract.db/load-jobs (set/difference ethlance-db/job-entity-fields #{:job/description})
-                     job-ids]]})))
+                    [:contract.db/load-jobs job-fields job-ids]]})))
 
 (reg-event-fx
   :contract.views/load-my-freelancers-contracts-for-job
@@ -1225,9 +1333,10 @@
 (reg-event-fx
   :contract.db/load-invoices
   interceptors
-  (fn [{:keys [db]} [fields invoice-ids]]
+  (fn [{:keys [db]} [all-fields invoice-ids]]
     (let [invoice-ids (u/big-nums->nums invoice-ids)
-          {:keys [fields ids]} (filter-needed-fields fields
+          invoice-fields (u/filter-by-namespaces (u/distinct-namespaces ethlance-db/invoice-entity-fields) all-fields)
+          {:keys [fields ids]} (filter-needed-fields invoice-fields
                                                      (:app/invoices db)
                                                      invoice-ids
                                                      ethlance-db/invoice-editable-fields)]
@@ -1235,19 +1344,21 @@
        {:instance (get-instance db :ethlance-db)
         :ids ids
         :fields fields
-        :on-success [:contract/invoices-loaded]
+        :on-success [:contract/invoices-loaded all-fields]
         :on-error [:log-error :contract.db/load-invoices]}})))
 
 (reg-event-fx
   :contract/invoices-loaded
   interceptors
-  (fn [{:keys [db]} [invoices]]
+  (fn [{:keys [db]} [fields invoices]]
     (let [invoices (->> invoices
                      (remove u/empty-invoice?)
                      (u/assoc-key-as-value :invoice/id))
           contract-ids (map :invoice/contract (vals invoices))]
       {:db (update db :app/invoices (partial merge-with merge) invoices)
-       :dispatch [:contract.db/load-contracts (ethlance-db/no-string-types ethlance-db/contract-entity-fields)
+       :dispatch [:contract.db/load-contracts
+                  (set/union (ethlance-db/no-string-types ethlance-db/contract-entity-fields)
+                             (set (u/remove-by-namespace :invoice fields)))
                   contract-ids]})))
 
 (reg-event-fx
@@ -1260,7 +1371,10 @@
                  :fn-key :ethlance-invoice/add-invoice
                  :form-key :form.invoice/add-invoice
                  :receipt-dispatch-n [[:snackbar/show-message "Invoice has been successfully created"]
-                                      [:location/set-hash :freelancer/invoices]]}]}))
+                                      [:location/set-hash :freelancer/invoices]
+                                      [:contract.db/load-users
+                                       #{:freelancer/total-invoiced}
+                                       [(:user/id (get-active-user db))]]]}]}))
 
 (reg-event-fx
   :form.invoice/add-invoice-localstorage
@@ -1284,7 +1398,8 @@
                  :value (web3/to-wei amount :ether)
                  :fn-key :ethlance-invoice/pay-invoice
                  :form-key :form.invoice/pay-invoice
-                 :receipt-dispatch [:contract.db/load-invoices #{:invoice/status :invoice/paid-on}
+                 :receipt-dispatch [:contract.db/load-invoices #{:invoice/status :invoice/paid-on
+                                                                 :invoice/paid-by}
                                     [(:invoice/id form-data)]]}]}))
 
 (reg-event-fx
@@ -1359,6 +1474,81 @@
     {:db (update-in db [:app/contracts id] merge {:contract/messages (u/big-nums->nums message-ids)
                                                   :contract/messages-count (count message-ids)})
      :dispatch [:contract.db/load-messages ethlance-db/message-entity-fields message-ids]}))
+
+;; ============sponsorships
+
+(reg-event-fx
+  :contract.db/load-sponsorships
+  interceptors
+  (fn [{:keys [db]} [all-fields sponsorship-ids]]
+    (let [sponsorship-ids (u/big-nums->nums sponsorship-ids)
+          sponsorship-fields (u/filter-by-namespaces (u/distinct-namespaces ethlance-db/sponsorship-entity-fields)
+                                                     all-fields)
+          {:keys [fields ids]} (filter-needed-fields sponsorship-fields
+                                                     (:app/sponsorships db)
+                                                     sponsorship-ids
+                                                     ethlance-db/sponsorship-editable-fields)]
+      {:ethlance-db/entities
+       {:instance (get-instance db :ethlance-db)
+        :ids ids
+        :fields fields
+        :on-success [:contract/sponsorships-loaded all-fields]
+        :on-error [:log-error :contract.db/load-sponsorships]}})))
+
+(reg-event-fx
+  :contract/sponsorships-loaded
+  interceptors
+  (fn [{:keys [db]} [fields sponsorships]]
+    (let [sponsorships (->> sponsorships
+                         (remove u/empty-sponsorship?)
+                         (u/assoc-key-as-value :sponsorship/id))]
+      {:db (update db :app/sponsorships (partial merge-with merge) sponsorships)
+       :dispatch [:contract.db/load-jobs
+                  (u/filter-by-namespace :job fields)
+                  (map :sponsorship/job (vals sponsorships))]})))
+
+(reg-event-fx
+  :contract.views/load-job-sponsorships
+  [interceptors]
+  (fn [{:keys [db]} [args]]
+    {:dispatch [:list/load-ids {:list-key :list/job-sponsorships
+                                :fn-key :ethlance-views/get-job-sponsorships
+                                :load-dispatch-key :contract.db/load-sponsorships
+                                :fields ethlance-db/job-sponsorships-table-entity-fields
+                                :args args}]}))
+
+(reg-event-fx
+  :contract.sponsor/add-job-sponsorship
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :value (web3/to-wei (:sponsorship/amount form-data) :ether)
+                 :fn-key :ethlance-sponsor/add-job-sponsorship
+                 :form-key :form.sponsor/add-job-sponsorship
+                 :receipt-dispatch-n [[:snackbar/show-message "Your sponsorship was successfully sent!"]
+                                      [:contract.views/load-job-sponsorships (:params (:list/job-sponsorships db))]
+                                      [:contract.db/load-jobs ethlance-db/job-sponsorship-stats-fields
+                                       [(:sponsorship/job form-data)]]]}]}))
+
+(reg-event-fx
+  :contract.sponsor/refund-job-sponsorships
+  interceptors
+  (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:form/submit
+                {:form-data form-data
+                 :address address
+                 :fn-key :ethlance-sponsor/refund-job-sponsorships
+                 :form-key :form.sponsor/refund-job-sponsorships
+                 :receipt-dispatch-n [[:snackbar/show-message "Sponsorships were successfully refunded"]
+                                      [:contract.views/load-job-sponsorships (:params (:list/job-sponsorships db))]
+                                      [:contract.db/load-jobs
+                                       (set/union ethlance-db/job-sponsorship-stats-fields
+                                                  #{:job/status})
+                                       [(:sponsorship/job form-data)]]]}]}))
+
+;; ============misc
 
 (reg-event-fx
   :list/load-ids
@@ -1435,32 +1625,40 @@
 (reg-event-fx
   :contracts/listen-active-user-events
   [interceptors]
-  (fn [{:keys [db]} [user-id]]
-    (when user-id
+  (fn [{:keys [db]} [{:keys [:user/id :user/address]}]]
+    (when id
       (let [invoice-instance (get-instance db :ethlance-invoice)
             contract-instance (get-instance db :ethlance-contract)
-            message-instance (get-instance db :ethlance-message)]
+            message-instance (get-instance db :ethlance-message)
+            sponsor-instance (get-instance db :ethlance-sponsor)
+            job-instance (get-instance db :ethlance-job)]
         {:web3-fx.contract/events
          {:db db
           :db-path [:active-user-events]
-          :events [[contract-instance :on-job-proposal-added {:employer-id user-id} "latest"
+          :events [[contract-instance :on-job-proposal-added {:employer-id id} "latest"
                     :contract.contract/on-job-proposal-added [:log-error :on-job-proposal-added]]
-                   [contract-instance :on-job-contract-added {:freelancer-id user-id} "latest"
+                   [contract-instance :on-job-contract-added {:freelancer-id id} "latest"
                     :contract.contract/on-job-contract-added [:log-error :on-job-contract-added]]
-                   [contract-instance :on-job-contract-cancelled {:employer-id user-id} "latest"
+                   [contract-instance :on-job-contract-cancelled {:employer-id id} "latest"
                     :contract.contract/on-job-contract-cancelled [:log-error :on-job-contract-cancelled]]
-                   [contract-instance :on-job-contract-feedback-added {:receiver-id user-id} "latest"
+                   [contract-instance :on-job-contract-feedback-added {:receiver-id id} "latest"
                     :contract.contract/on-job-contract-feedback-added [:log-error :on-job-contract-feedback-added]]
-                   [contract-instance :on-job-invitation-added {:freelancer-id user-id} "latest"
+                   [contract-instance :on-job-invitation-added {:freelancer-id id} "latest"
                     :contract.contract/on-job-invitation-added [:log-error :on-job-invitation-added]]
-                   [invoice-instance :on-invoice-added {:employer-id user-id} "latest"
+                   [invoice-instance :on-invoice-added {:employer-id id} "latest"
                     :contract.invoice/on-invoice-added [:log-error :on-invoice-added]]
-                   [invoice-instance :on-invoice-paid {:freelancer-id user-id} "latest"
+                   [invoice-instance :on-invoice-paid {:freelancer-id id} "latest"
                     :contract.invoice/on-invoice-paid [:log-error :on-invoice-paid]]
-                   [invoice-instance :on-invoice-cancelled {:employer-id user-id} "latest"
+                   [invoice-instance :on-invoice-cancelled {:employer-id id} "latest"
                     :contract.invoice/on-invoice-cancelled [:log-error :on-invoice-cancelled]]
-                   [message-instance :on-job-contract-message-added {:receiver-id user-id} "latest"
-                    :contract.message/on-job-contract-message-added [:log-error :on-job-contract-message-added]]]}}))))
+                   [message-instance :on-job-contract-message-added {:receiver-id id} "latest"
+                    :contract.message/on-job-contract-message-added [:log-error :on-job-contract-message-added]]
+                   [sponsor-instance :on-job-sponsorship-added {:employer-id id} "latest"
+                    :contract.sponsor/on-job-sponsorship-added [:log-error :contract.sponsor/on-job-sponsorship-added]]
+                   [sponsor-instance :on-job-sponsorship-refunded {:receiver-id address} "latest"
+                    :contract.sponsor/on-job-sponsorship-refunded [:log-error :contract.sponsor/on-job-sponsorship-refunded]]
+                   [job-instance :on-sponsorable-job-approved {:employer-id id} "latest"
+                    :contract.job/on-sponsorable-job-approved [:log-error :contract.job/on-sponsorable-job-approved]]]}}))))
 
 (reg-event-fx
   :contract.contract/on-job-proposal-added
@@ -1564,6 +1762,47 @@
                     "You just received message!" :contract/detail {:contract/id contract-id}]}
         (when (active-page-this-contract-detail? db contract-id)
           {:dispatch-n [[:contract.views/load-contract-messages {:contract/id contract-id}]]})))))
+
+(reg-event-fx
+  :contract.sponsor/on-job-sponsorship-added
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:job-id :amount]}]]
+    (let [job-id (u/big-num->num job-id)
+          amount (u/format-currency (web3/from-wei amount :ether) 0)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    (str "Your job received sponsorship " amount)
+                    :job/detail {:job/id job-id}]}
+        (when (active-page-this-job-detail? db job-id)
+          {:dispatch-n [[:contract.views/load-job-sponsorships {:job/id job-id}]
+                        [:contract.db/load-jobs ethlance-db/job-sponsorship-stats-fields [job-id]]]})))))
+
+(reg-event-fx
+  :contract.sponsor/on-job-sponsorship-refunded
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:job-id :amount]}]]
+    (let [job-id (u/big-num->num job-id)
+          amount (u/format-currency (web3/from-wei amount :ether) 0)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action
+                    (str "Your sponsorship was refunded with " amount)
+                    :job/detail {:job/id job-id}]}
+        (when (active-page-this-job-detail? db job-id)
+          {:dispatch-n [[:contract.views/load-job-sponsorships {:job/id job-id}]
+                        [:contract.db/load-jobs
+                         (set/union ethlance-db/job-sponsorship-stats-fields #{:job/status})
+                         [job-id]]]})))))
+
+(reg-event-fx
+  :contract.job/on-sponsorable-job-approved
+  [interceptors]
+  (fn [{:keys [db]} [{:keys [:job-id]}]]
+    (let [job-id (u/big-num->num job-id)]
+      (merge
+        {:dispatch [:snackbar/show-message-redirect-action "Your job just got approval" :job/detail {:job/id job-id}]}
+        (when (active-page-this-job-detail? db job-id)
+          {:dispatch-n [[:contract.views/load-job-approvals {:job/id job-id}]
+                        [:contract.db/load-jobs #{:job/status} [job-id]]]})))))
 
 (reg-event-fx
   :contract/call
@@ -1705,17 +1944,17 @@
       true (assoc-in [form-key :data] {})
       errors (assoc-in [form-key :errors] errors))))
 
-(reg-event-db
+(reg-event-fx
   :form/add-value
   interceptors
-  (fn [db [form-key field-key value & [validator]]]
+  (fn [{:keys [:db]} [form-key field-key value & [validator]]]
     (let [existing-values (get-in db [form-key :data field-key])]
       {:dispatch [:form/set-value form-key field-key (into [] (conj existing-values value)) validator]})))
 
-(reg-event-db
+(reg-event-fx
   :form/remove-value
   interceptors
-  (fn [db [form-key field-key value & [validator]]]
+  (fn [{:keys [:db]} [form-key field-key value & [validator]]]
     (let [existing-values (get-in db [form-key :data field-key])]
       {:dispatch [:form/set-value form-key field-key (into [] (remove (partial = value) existing-values)) validator]})))
 
@@ -1748,18 +1987,6 @@
   interceptors
   (fn [db [list-db-path offset limit]]
     (update-in db list-db-path merge {:limit limit :offset offset})))
-
-(reg-event-fx
-  :entities-loaded
-  interceptors
-  (fn [_ [ids fields on-success result]]
-    {:dispatch (conj (u/ensure-vec on-success) (ethlance-db/parse-entities ids fields result))}))
-
-(reg-event-fx
-  :entities-field-items-loaded
-  interceptors
-  (fn [_ [ids+sub-ids field on-success result]]
-    {:dispatch (conj (u/ensure-vec on-success) (ethlance-db/parse-entities-field-items ids+sub-ids field result))}))
 
 (reg-event-db
   :form/start-loading
@@ -1817,6 +2044,23 @@
   interceptors
   (fn [db _]
     (assoc-in db [:snackbar :open?] false)))
+
+(reg-event-fx
+  :dialog/open-confirmation
+  interceptors
+  (fn [{:keys [db]} [{:keys [:on-confirm] :as dialog}]]
+    {:db (update db :dialog merge
+                 (merge {:open? true
+                         :message dialog
+                         :actions (confirm-dialog/create-confirm-dialog-action-buttons
+                                    {:confirm-button-props {:on-confirm on-confirm}})}
+                        (dissoc dialog :on-confirm)))}))
+
+(reg-event-db
+  :dialog/close
+  interceptors
+  (fn [db _]
+    (assoc-in db [:dialog :open?] false)))
 
 (reg-event-db
   :search-filter.freelancers/set-open?
@@ -1881,7 +2125,11 @@
   interceptors
   (fn [{:keys [:db]} [contract-keys]]
     (.clear js/console)
-    {:db (update db :eth/contracts (partial medley/map-vals #(dissoc % :abi :bin)))
+    {:db (update db :eth/contracts (partial medley/map-kv (fn [contract-key contract]
+                                                            (if (or (not contract-keys)
+                                                                    (contains? (set contract-keys) contract-key))
+                                                              [contract-key (dissoc contract :abi :bin :address :instance)]
+                                                              [contract-key contract]))))
      :async-flow {:first-dispatch [:load-eth-contracts]
                   :rules [{:when :seen?
                            :events [:eth-contracts-loaded]
@@ -1918,7 +2166,9 @@
   :log
   interceptors
   (fn [db result]
-    (apply console :log (u/big-nums->nums result))))
+    (apply console :log (u/big-nums->nums (if (and (not (string? result)) (sequential? result))
+                                            (map u/big-nums->nums result)
+                                            result)))))
 
 (reg-event-fx
   :do-nothing
@@ -2069,7 +2319,7 @@
                                                          :search/offset 0
                                                          :search/limit 5}]))
 
-  (dispatch [:contract.job/add-job {:job/title "This is Job 1"
+  (dispatch [:contract.job/set-job {:job/title "This is Job 1"
                                     :job/description "Asdkaas  aspokd aps asopdk ap"
                                     :job/skills [3 4 5]
                                     :job/budget 10

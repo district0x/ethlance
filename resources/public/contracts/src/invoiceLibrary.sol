@@ -30,9 +30,10 @@ library InvoiceLibrary {
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var employerId = ContractLibrary.getEmployer(db, contractId);
         var jobId = ContractLibrary.getJob(db, contractId);
-        if (freelancerId != senderId) throw;
-        if (ContractLibrary.getStatus(db, contractId) != 3) throw;
-        if (JobLibrary.getStatus(db, jobId) == 3) throw;
+        var jobStatus = JobLibrary.getStatus(db, jobId);
+        require(freelancerId == senderId);
+        require(ContractLibrary.getStatus(db, contractId) == 3);
+        require(jobStatus == 1 || jobStatus == 2);
         var paymentType = JobLibrary.getPaymentType(db, jobId);
         uint amount = SafeMath.safeMul(uintArgs[0], 1000000000000000000) / uintArgs[1];
         if (paymentType == 1) {
@@ -74,17 +75,32 @@ library InvoiceLibrary {
         return UserLibrary.getUserAddress(db, freelancerId);
     }
 
-    function setInvoicePaid(address db, uint senderId, uint sentAmount, uint invoiceId) internal {
-        var amount = EthlanceDB(db).getUIntValue(sha3("invoice/amount", invoiceId));
+    function setInvoicePaid(address db, uint senderId, address senderAddress, uint sentAmount, uint invoiceId
+    )
+        internal returns(uint amount, bool payFromSponsorship)
+    {
+        amount = EthlanceDB(db).getUIntValue(sha3("invoice/amount", invoiceId));
         var contractId = getContract(db, invoiceId);
         var employerId = ContractLibrary.getEmployer(db, contractId);
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var jobId = ContractLibrary.getJob(db, contractId);
+        var jobStatus = JobLibrary.getStatus(db, jobId);
+        var isSponsorable = JobLibrary.isSponsorable(db, jobId);
+        payFromSponsorship = false;
 
-        if (getStatus(db, invoiceId) != 1) throw;
-        if (employerId != senderId) throw;
-        if (amount != sentAmount) throw;
-        if (!UserLibrary.hasStatus(db, freelancerId, 1)) throw;
+        require(getStatus(db, invoiceId) == 1);
+        require(UserLibrary.hasStatus(db, freelancerId, 1));
+        require(jobStatus == 1 || jobStatus == 2);
+
+        if (sentAmount != amount) {
+            require(isSponsorable);
+            require(JobLibrary.isAllowedUser(db, jobId, senderAddress));
+            EthlanceDB(db).setAddressValue(sha3("invoice/paid-by", invoiceId), senderAddress);
+            JobLibrary.subJobSponsorshipsBalance(db, jobId, amount);
+            payFromSponsorship = true;
+        } else {
+            require(employerId == senderId);
+        }
 
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 2);
         EthlanceDB(db).setUIntValue(sha3("invoice/paid-on", invoiceId), now);
@@ -93,6 +109,8 @@ library InvoiceLibrary {
         UserLibrary.addToEmployerTotalPaid(db, employerId, amount);
         UserLibrary.subEmployerTotalInvoiced(db, employerId, amount);
         JobLibrary.addTotalPaid(db, jobId, amount);
+
+        return (amount, payFromSponsorship);
     }
 
     function setInvoiceCancelled(address db, uint senderId, uint invoiceId) internal {
@@ -101,8 +119,8 @@ library InvoiceLibrary {
         var employerId = ContractLibrary.getEmployer(db, contractId);
         var amount = EthlanceDB(db).getUIntValue(sha3("invoice/amount", invoiceId));
 
-        if (freelancerId != senderId) throw;
-        if (getStatus(db, invoiceId) != 1) throw;
+        require(freelancerId == senderId);
+        require(getStatus(db, invoiceId) == 1);
 
         EthlanceDB(db).setUInt8Value(sha3("invoice/status", invoiceId), 3);
         EthlanceDB(db).setUIntValue(sha3("invoice/cancelled-on", invoiceId), now);

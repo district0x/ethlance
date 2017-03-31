@@ -132,7 +132,9 @@
   {:min-height 300})
 
 (def subheader
-  {:padding-left 0})
+  {:padding-left 0
+   :margin "17px 0"
+   :line-height "inherit"})
 
 (def search-slider
   {:margin-top 0
@@ -296,7 +298,13 @@
 
 (def job-status-colors
   {1 success-color
-   2 (color :red800)})
+   2 (color :red800)
+   3 (color :red600)
+   4 pending-color
+   5 (color :deep-purple500)
+   6 (color :deep-purple900)})
+
+(def job-sposorable-chip-color (color :teal-A700))
 
 (def job-payment-type-colors
   {1 (color :blue500)
@@ -533,6 +541,9 @@
          {:margin-top 5
           :margin-bottom 5}))
 
+(def sponsorable-search-result-text
+  {:color (color :blue400)})
+
 (def user-forms-text-field
   {:width 300})
 
@@ -558,3 +569,11 @@
    :font-size 12
    :width 150
    :text-align :center})
+
+(def allowed-user-approved-color (color :green100))
+(def allowed-user-not-approved-color (color :orange100))
+
+(def table-position-column
+  {:width 30
+   :padding-right 0
+   :padding-left 5})
