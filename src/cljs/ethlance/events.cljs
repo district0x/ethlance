@@ -2121,7 +2121,7 @@
     (assoc db :on-load-seed (or number (rand-int 99999)))))
 
 (reg-event-fx
-  :reintialize
+  :reinitialize
   interceptors
   (fn [{:keys [:db]} [contract-keys]]
     (.clear js/console)
