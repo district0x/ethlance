@@ -139,7 +139,7 @@
              {:size 30
               :color "#FFF"
               :thickness 2}]])
-         (when @active-user
+         (when (seq (:user/name @active-user))
            [misc/call-on-change
             {:load-on-mount? true
              :args (:user/id @active-user)

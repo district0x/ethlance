@@ -1,6 +1,8 @@
 (ns ethlance.pages.job-detail-page
   (:require
     [cljs-react-material-ui.reagent :as ui]
+    [cljs-web3.core :as web3]
+    [clojure.set :as set]
     [ethlance.components.contracts-table :refer [contracts-table]]
     [ethlance.components.feedback-list :refer [feedback-list]]
     [ethlance.components.icons :as icons]
@@ -14,10 +16,9 @@
     [ethlance.ethlance-db :as ethlance-db]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
-    [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
     [medley.core :as medley]
-    [cljs-web3.core :as web3]))
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]))
 
 
 (defn job-refunding? [job-status]
@@ -70,7 +71,7 @@
        "Bids for this job are fixed to " (u/currency-full-name (:job/reference-currency @job))])))
 
 (defn job-proposals []
-  (let [active-user-id (subscribe [:db/active-user-id])
+  (let [active-user-id (subscribe [:db/active-address])
         xs-width (subscribe [:window/xs-width?])]
     (fn [job-id]
       (when job-id
@@ -84,12 +85,7 @@
           :initial-dispatch {:list-key :list/job-proposals
                              :fn-key :ethlance-views/get-job-contracts
                              :load-dispatch-key :contract.db/load-contracts
-                             :fields #{:contract/freelancer
-                                       :proposal/rate
-                                       :proposal/created-on
-                                       :invitation/created-on
-                                       :contract/status
-                                       :contract/job}
+                             :fields ethlance-db/job-proposals-list-fields
                              :args {:job/id job-id :contract/status 0}}
           :all-ids-subscribe [:list/ids :list/job-proposals]
           :title "Proposals"
@@ -283,23 +279,21 @@
 (defn allowed-users-list []
   (let [job (subscribe [:job/detail])]
     (fn []
-      (let [{:keys [:job/allowed-users-data :job/allowed-users :job/status :job/id]} @job]
+      (let [{:keys [:job/allowed-users :job/status :job/id]} @job]
         [misc/call-on-change
          {:args allowed-users
           :load-on-mount? true
           :on-change (fn [allowed-users]
-                       (dispatch [:contract.views/load-user-ids-by-addresses
-                                  allowed-users
-                                  {:on-success [:contract.db/load-users #{:user/name
-                                                                          :user/freelancer?
-                                                                          :user/gravatar
-                                                                          :user/address}]}])
+                       (dispatch [:contract.db/load-users #{:user/name
+                                                            :user/freelancer?
+                                                            :user/gravatar}
+                                  allowed-users])
                        (when (= status 4)
                          (dispatch [:contract.views/load-job-approvals {:job/id id}])))}
          [misc/subheader "Accounts allowed to spend sponsorships"]
          (doall
-           (for [[i allowed-user] (medley/indexed allowed-users)]
-             (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} (nth allowed-users-data i)
+           (for [allowed-user allowed-users]
+             (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} @(subscribe [:user/by-id allowed-user])
                    allowed-user-approved? (if (= status 4)
                                             @(subscribe [:job/allowed-user-approved? (:job/id @job) allowed-user])
                                             true)]
@@ -347,7 +341,12 @@
         [misc/call-on-change
          {:load-on-mount? true
           :args @job-id
-          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs ethlance-db/job-entity-fields [@job-id]]])}
+          :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-jobs
+                                                              (set/union ethlance-db/job-entity-fields
+                                                                         #{:user/name :user/gravatar :employer/avg-rating
+                                                                           :employer/total-paid :employer/ratings-count
+                                                                           :user/country :user/balance :user/state})
+                                                              [@job-id]]])}
          [paper
           {:loading? (or (empty? (:user/name employer))
                          (and sponsorable? (empty? allowed-users))
@@ -363,31 +362,36 @@
              [row-plain
               {:style (merge styles/margin-top-gutter-less
                              styles/margin-bottom-gutter-less)}
-              [misc/status-chip
-               {:background-color (styles/job-status-colors status)
-                :style styles/job-status-chip}
-               (constants/job-statuses status)]
+              (when (pos? status)
+                [misc/status-chip
+                 {:background-color (styles/job-status-colors status)
+                  :style styles/job-status-chip}
+                 (constants/job-statuses status)])
               (when (and sponsorable? (not (contains? #{3 5 6} status)))
                 [misc/status-chip
                  {:background-color styles/job-sposorable-chip-color
                   :style styles/job-status-chip}
                  "Looking for Sponsors"])
-              [misc/status-chip
-               {:background-color (styles/job-payment-type-colors payment-type)
-                :style styles/job-status-chip}
-               (constants/payment-types payment-type)]
-              [misc/status-chip
-               {:background-color (styles/job-estimation-duration-colors estimated-duration)
-                :style styles/job-status-chip}
-               "For " (constants/estimated-durations estimated-duration)]
-              [misc/status-chip
-               {:background-color (styles/job-experience-level-colors experience-level)
-                :style styles/job-status-chip}
-               "For " (constants/experience-levels experience-level)]
-              [misc/status-chip
-               {:background-color (styles/job-hours-per-week-colors hours-per-week)
-                :style styles/job-status-chip}
-               (constants/hours-per-weeks hours-per-week)]
+              (when (pos? payment-type)
+                [misc/status-chip
+                 {:background-color (styles/job-payment-type-colors payment-type)
+                  :style styles/job-status-chip}
+                 (constants/payment-types payment-type)])
+              (when (pos? estimated-duration)
+                [misc/status-chip
+                 {:background-color (styles/job-estimation-duration-colors estimated-duration)
+                  :style styles/job-status-chip}
+                 "For " (constants/estimated-durations estimated-duration)])
+              (when (pos? experience-level)
+                [misc/status-chip
+                 {:background-color (styles/job-experience-level-colors experience-level)
+                  :style styles/job-status-chip}
+                 "For " (constants/experience-levels experience-level)])
+              (when (pos? hours-per-week)
+                [misc/status-chip
+                 {:background-color (styles/job-hours-per-week-colors hours-per-week)
+                  :style styles/job-status-chip}
+                 (constants/hours-per-weeks hours-per-week)])
               (when (u/big-num-pos? budget)
                 [misc/status-chip
                  {:background-color styles/budget-chip-color
@@ -472,7 +476,12 @@
         :initial-dispatch {:list-key :list/job-invoices
                            :fn-key :ethlance-views/get-job-invoices
                            :load-dispatch-key :contract.db/load-invoices
-                           :fields ethlance-db/invoices-table-entity-fields
+                           :fields #{:invoice/created-on
+                                     :invoice/amount
+                                     :invoice/status
+                                     :invoice/contract
+                                     :contract/freelancer
+                                     :user/name}
                            :args {:job/id @job-id :invoice/status 0}}
         :all-ids-subscribe [:list/ids :list/job-invoices]}])))
 
@@ -486,7 +495,7 @@
         :initial-dispatch [:list/load-ids {:list-key :list/job-feedbacks
                                            :fn-key :ethlance-views/get-job-contracts
                                            :load-dispatch-key :contract.db/load-contracts
-                                           :fields ethlance-db/feedback-entity-fields
+                                           :fields ethlance-db/feedback-list-fields
                                            :args {:job/id @job-id :contract/status 4}}]}])))
 
 (defn job-detail-page []

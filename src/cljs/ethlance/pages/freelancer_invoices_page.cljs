@@ -1,6 +1,7 @@
 (ns ethlance.pages.freelancer-invoices-page
   (:require
     [cljs-react-material-ui.reagent :as ui]
+    [clojure.set :as set]
     [ethlance.components.icons :as icons]
     [ethlance.components.invoices-table :refer [invoices-table]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
@@ -8,6 +9,13 @@
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]))
+
+(def invoice-fields-to-load
+  #{:invoice/amount
+    :invoice/created-on
+    :invoice/contract
+    :contract/job
+    :job/title})
 
 (defn invoices-stats [{:keys [:freelancer/total-earned :freelancer/total-invoiced]}]
   [paper
@@ -31,13 +39,13 @@
 
 (defn freelancer-pending-invoices [{:keys [:user/id]}]
   [invoices-table
-   {:list-subscribe [:list/invoices :list/freelancer-invoices-pending]
+   {:list-subscribe [:list/invoices :list/freelancer-invoices-pending (comp :job/title :contract/job :invoice/contract)]
     :show-job? true
     :show-contract? true
     :initial-dispatch {:list-key :list/freelancer-invoices-pending
                        :fn-key :ethlance-views/get-freelancer-invoices
                        :load-dispatch-key :contract.db/load-invoices
-                       :fields ethlance-db/invoices-table-entity-fields
+                       :fields invoice-fields-to-load
                        :args {:user/id id :invoice/status 1}}
     :all-ids-subscribe [:list/ids :list/freelancer-invoices-pending]
     :title "Pending Invoices"
@@ -46,14 +54,15 @@
 (defn freelancer-paid-invoices [{:keys [:user/id]}]
   (let [xs-width? (subscribe [:window/xs-width?])]
     [invoices-table
-     {:list-subscribe [:list/invoices :list/freelancer-invoices-paid]
+     {:list-subscribe [:list/invoices :list/freelancer-invoices-paid (comp :job/title :contract/job :invoice/contract)]
       :show-job? true
       :show-paid-on? (not @xs-width?)
       :show-contract? true
       :initial-dispatch {:list-key :list/freelancer-invoices-paid
                          :fn-key :ethlance-views/get-freelancer-invoices
                          :load-dispatch-key :contract.db/load-invoices
-                         :fields ethlance-db/invoices-table-entity-fields
+                         :fields (set/union invoice-fields-to-load
+                                            #{:invoice/paid-on})
                          :args {:user/id id :invoice/status 2}}
       :all-ids-subscribe [:list/ids :list/freelancer-invoices-paid]
       :title "Paid Invoices"

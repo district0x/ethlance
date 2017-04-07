@@ -7,7 +7,16 @@
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch]]
-    ))
+    [clojure.set :as set]))
+
+(def invoice-fields-to-load
+  #{:invoice/amount
+    :invoice/created-on
+    :invoice/contract
+    :contract/job
+    :contract/freelancer
+    :job/title
+    :user/name})
 
 (defn invoices-stats [{:keys [:employer/total-paid :employer/total-invoiced]}]
   [paper
@@ -26,7 +35,7 @@
     :initial-dispatch {:list-key :list/employer-invoices-pending
                        :fn-key :ethlance-views/get-employer-invoices
                        :load-dispatch-key :contract.db/load-invoices
-                       :fields ethlance-db/invoices-table-entity-fields
+                       :fields invoice-fields-to-load
                        :args {:user/id id :invoice/status 1}}
     :all-ids-subscribe [:list/ids :list/employer-invoices-pending]
     :title "Pending Invoices"
@@ -43,7 +52,8 @@
         :initial-dispatch {:list-key :list/employer-invoices-paid
                            :fn-key :ethlance-views/get-employer-invoices
                            :load-dispatch-key :contract.db/load-invoices
-                           :fields ethlance-db/invoices-table-entity-fields
+                           :fields (set/union invoice-fields-to-load
+                                              #{:invoice/paid-on})
                            :args {:user/id id :invoice/status 2}}
         :all-ids-subscribe [:list/ids :list/employer-invoices-paid]
         :title "Paid Invoices"

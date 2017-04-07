@@ -225,7 +225,7 @@
 
 (defn cancel-contract-form []
   (let [contract (subscribe [:contract/detail])
-        active-user-id (subscribe [:db/active-user-id])
+        active-user-id (subscribe [:db/active-address])
         form (subscribe [:form.contract/cancel-contract])]
     (fn []
       (let [{:keys [:contract/id]} @contract
@@ -254,7 +254,7 @@
 
 (defn add-feedback-form []
   (let [contract (subscribe [:contract/detail])
-        active-user-id (subscribe [:db/active-user-id])
+        active-user-id (subscribe [:db/active-address])
         form (subscribe [:form.contract/add-feedback])]
     (fn []
       (let [{:keys [:contract/status :contract/job :contract/id :contract/invoices-count]} @contract
@@ -324,11 +324,22 @@
           :on-change (fn []
                        (dispatch [:after-eth-contracts-loaded
                                   [:contract.db/load-contracts
-                                   (set/union ethlance-db/contract-entity-fields ethlance-db/feedback-entity-fields)
+                                   (set/union ethlance-db/contract-entity-fields
+                                              #{:job/employer
+                                                :user/name
+                                                :user/gravatar})
                                    [@contract-id]]])
                        (dispatch [:after-eth-contracts-loaded
                                   [:contract.db/load-contracts
-                                   ethlance-db/proposal+invitation-entitiy-fields
+                                   (set/union
+                                     ethlance-db/invitation-entity-fields
+                                     ethlance-db/proposal-entity-fields)
+                                   [@contract-id]]])
+                       (dispatch [:after-eth-contracts-loaded
+                                  [:contract.db/load-contracts
+                                   (set/union
+                                     ethlance-db/employer-feedback-entity-fields
+                                     ethlance-db/freelancer-feedback-entity-fields)
                                    [@contract-id]]])
                        (dispatch [:after-eth-contracts-loaded
                                   [:contract.views/load-contract-messages {:contract/id @contract-id}]]))}

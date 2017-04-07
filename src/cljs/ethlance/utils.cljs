@@ -10,9 +10,9 @@
     [cljs-time.format :as time-format]
     [cljs-web3.core :as web3]
     [cljs.reader :as reader]
-    [cljsjs.solidity-sha3]
     [clojure.core.async :refer [chan <! >!]]
     [clojure.data :as data]
+    [clojure.set :as set]
     [clojure.string :as string]
     [ethlance.constants :as constants]
     [ethlance.routes :refer [routes]]
@@ -23,8 +23,7 @@
     [goog.string :as gstring]
     [goog.string.format]
     [medley.core :as medley]
-    [reagent.core :as r]
-    [clojure.set :as set])
+    [reagent.core :as r])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn uint8? [x]
@@ -37,7 +36,7 @@
   (or (nil? x) (not (neg? x))))
 
 (defn address? [x]
-  (string? x))
+  (web3/address? x))
 
 (defn bytes32? [x]
   (string? x))
@@ -63,7 +62,7 @@
 (defn rating? [x]
   (<= 0 x 100))
 
-(def max-gas-limit 3800000)
+(def max-gas-limit 4000000)
 
 (defn path-for [& args]
   (str "#" (apply bidi/path-for routes args)))
@@ -150,6 +149,10 @@
 (defn big-num-pos? [x]
   (when x
     (.greaterThan x 0)))
+
+(defn big-num-zero? [x]
+  (when x
+    (.equals x 0)))
 
 (defn big-num-greater-than-or-equal-to? [x y]
   (when (and x y)

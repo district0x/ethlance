@@ -9,9 +9,9 @@ import "ethlanceSponsorWallet.sol";
 contract EthlanceInvoice is EthlanceSetter, SponsorRelated {
     using strings for *;
 
-    event onInvoiceAdded(uint invoiceId, uint indexed employerId, uint freelancerId);
-    event onInvoicePaid(uint invoiceId, uint employerId, uint indexed freelancerId);
-    event onInvoiceCancelled(uint invoiceId, uint indexed employerId, uint freelancerId);
+    event onInvoiceAdded(uint invoiceId, address indexed employerId, address freelancerId);
+    event onInvoicePaid(uint invoiceId, address employerId, address indexed freelancerId);
+    event onInvoiceCancelled(uint invoiceId, address indexed employerId, address freelancerId);
 
     function EthlanceInvoice(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -34,9 +34,8 @@ contract EthlanceInvoice is EthlanceSetter, SponsorRelated {
     {
         if (description.toSlice().len() > getConfig("max-invoice-description")) throw;
         if (uintArgs[3] > 59) throw;
-        var freelancerId = getSenderUserId();
-        var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, freelancerId, contractId, description, uintArgs);
-        onInvoiceAdded(invoiceId, ContractLibrary.getEmployer(ethlanceDB, contractId), freelancerId);
+        var invoiceId = InvoiceLibrary.addInvoice(ethlanceDB, msg.sender, contractId, description, uintArgs);
+        onInvoiceAdded(invoiceId, ContractLibrary.getEmployer(ethlanceDB, contractId), msg.sender);
     }
 
     function payInvoice(
@@ -45,19 +44,18 @@ contract EthlanceInvoice is EthlanceSetter, SponsorRelated {
         onlyActiveSmartContract
         payable
     {
-        address freelancerAddress = InvoiceLibrary.getFreelancerAddress(ethlanceDB, invoiceId);
-        var employerId = getSenderUserId();
+        var freelancerId = InvoiceLibrary.getFreelancer(ethlanceDB, invoiceId);
+        require(freelancerId != 0x0);
         uint amount;
         bool payFromSponsorship;
-        (amount, payFromSponsorship) = InvoiceLibrary.setInvoicePaid(ethlanceDB, employerId, msg.sender, msg.value, invoiceId);
+        (amount, payFromSponsorship) = InvoiceLibrary.setInvoicePaid(ethlanceDB, msg.sender, msg.value, invoiceId);
         if (payFromSponsorship) {
-            EthlanceSponsorWallet(ethlanceSponsorWallet).sendFunds(freelancerAddress, amount);
+            EthlanceSponsorWallet(ethlanceSponsorWallet).sendFunds(freelancerId, amount);
         } else {
-            freelancerAddress.transfer(msg.value);
+            freelancerId.transfer(msg.value);
         }
 
-        var contractId = InvoiceLibrary.getContract(ethlanceDB, invoiceId);
-        onInvoicePaid(invoiceId, employerId, ContractLibrary.getFreelancer(ethlanceDB, contractId));
+        onInvoicePaid(invoiceId, msg.sender, freelancerId);
     }
 
     function cancelInvoice(
@@ -66,10 +64,9 @@ contract EthlanceInvoice is EthlanceSetter, SponsorRelated {
         onlyActiveSmartContract
         onlyActiveFreelancer
     {
-        var freelancerId = getSenderUserId();
-        InvoiceLibrary.setInvoiceCancelled(ethlanceDB, freelancerId, invoiceId);
+        InvoiceLibrary.setInvoiceCancelled(ethlanceDB, msg.sender, invoiceId);
         var contractId = InvoiceLibrary.getContract(ethlanceDB, invoiceId);
         var employerId = ContractLibrary.getEmployer(ethlanceDB, contractId);
-        onInvoiceCancelled(invoiceId, employerId, freelancerId);
+        onInvoiceCancelled(invoiceId, employerId, msg.sender);
     }
 }

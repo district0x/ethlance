@@ -38,12 +38,11 @@ contract EthlanceConfig is EthlanceSetter {
     )
         onlyActiveSmartContract
     {
-        var userId = getSenderUserId();
         if (msg.sender != owner) {
             if (0 == getConfig("adding-skills-enabled?")) throw;
             if (names.length > getConfig("max-skills-create-at-once")) throw;
         }
-        var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names, userId);
+        var skillIds = SkillLibrary.addSkillNames(ethlanceDB, names, msg.sender);
         onSkillsAdded(skillIds);
     }
 

@@ -14,9 +14,9 @@ library ContractLibrary {
 
     function addInvitation(
         address db,
-        uint senderId,
+        address senderId,
         uint jobId,
-        uint freelancerId,
+        address freelancerId,
         string description
     )
         internal returns (uint contractId)
@@ -45,16 +45,16 @@ library ContractLibrary {
     function addProposal(
         address db,
         uint jobId,
-        uint freelancerId,
+        address freelancerId,
         string description,
         uint rate
     )
         internal returns (uint contractId)
     {
         var employerId = JobLibrary.getEmployer(db, jobId);
-        if (employerId == 0) throw;
-        if (freelancerId == employerId) throw;
-        if (JobLibrary.getStatus(db, jobId) != 1) throw;
+        require(employerId != 0x0);
+        require(freelancerId != employerId);
+        require(JobLibrary.getStatus(db, jobId) == 1);
         contractId = getContract(db, freelancerId, jobId);
         if (contractId == 0) {
             contractId = SharedLibrary.createNext(db, "contract/count");
@@ -74,7 +74,7 @@ library ContractLibrary {
 
     function addContract(
         address db,
-        uint senderId,
+        address senderId,
         uint contractId,
         string description,
         bool isHiringDone
@@ -84,11 +84,11 @@ library ContractLibrary {
         var jobId = getJob(db, contractId);
         var freelancerId = getFreelancer(db, contractId);
         var employerId = JobLibrary.getEmployer(db, jobId);
-        if (employerId == 0) throw;
-        if (senderId != employerId) throw;
-        if (senderId == freelancerId) throw;
-        if (getStatus(db, contractId) != 2) throw;
-        if (JobLibrary.getStatus(db, jobId) != 1) throw;
+        require(employerId != 0x0);
+        require(senderId == employerId);
+        require(senderId != freelancerId);
+        require(getStatus(db, contractId) == 2);
+        require(JobLibrary.getStatus(db, jobId) == 1);
 
         EthlanceDB(db).setUIntValue(sha3("contract/created-on", contractId), now);
         EthlanceDB(db).setStringValue(sha3("contract/description", contractId), description);
@@ -100,22 +100,22 @@ library ContractLibrary {
 
     function cancelContract(
         address db,
-        uint senderId,
+        address senderId,
         uint contractId,
         string description
     )
         internal
     {
         var freelancerId = getFreelancer(db, contractId);
-        if (senderId != freelancerId) throw;
-        if (getStatus(db, contractId) != 3) throw;
-        if (getInvoicesCount(db, contractId) > 0) throw;
+        require(senderId == freelancerId);
+        require(getStatus(db, contractId) == 3);
+        require(getInvoicesCount(db, contractId) == 0);
         EthlanceDB(db).setUIntValue(sha3("contract/cancelled-on", contractId), now);
         EthlanceDB(db).setStringValue(sha3("contract/cancel-description", contractId), description);
         setStatus(db, contractId, 5);
     }
 
-    function addFeedback(address db, uint contractId, uint senderId, string feedback, uint8 rating) internal {
+    function addFeedback(address db, uint contractId, address senderId, string feedback, uint8 rating) internal {
         var freelancerId = getFreelancer(db, contractId);
         var employerId = getEmployer(db, contractId);
         var status = getStatus(db, contractId);
@@ -140,16 +140,17 @@ library ContractLibrary {
         }
     }
 
-    function addUserFeedback(address db, uint contractId, uint receiverId, string feedbackKey,
+    function addUserFeedback(address db, uint contractId, address receiverId, string feedbackKey,
         string ratingKey, string dateKey, string ratingsCountKey, string avgRatingKey, string description,
-        uint8 rating) internal {
+        uint8 rating)
+    internal {
         EthlanceDB(db).setStringValue(sha3(feedbackKey, contractId), description);
         EthlanceDB(db).setUInt8Value(sha3(ratingKey, contractId), rating);
         EthlanceDB(db).setUIntValue(sha3(dateKey, contractId), now);
         UserLibrary.addToAvgRating(db, receiverId, ratingsCountKey, avgRatingKey, rating);
     }
 
-    function addFreelancerFeedback(address db, uint contractId, uint receiverId, string description, uint8 rating
+    function addFreelancerFeedback(address db, uint contractId, address receiverId, string description, uint8 rating
     )
         internal
     {
@@ -158,7 +159,7 @@ library ContractLibrary {
             "employer/avg-rating", description, rating);
     }
 
-    function addEmployerFeedback(address db, uint contractId, uint receiverId, string description, uint8 rating
+    function addEmployerFeedback(address db, uint contractId, address receiverId, string description, uint8 rating
     )
         internal
     {
@@ -175,10 +176,12 @@ library ContractLibrary {
         return SharedLibrary.getIdArray(db, contractId, "contract/messages", "contract/messages-count");
     }
 
-    function getOtherContractParticipant(address db, uint contractId, uint user) internal returns (uint, bool) {
+    function getOtherContractParticipant(address db, uint contractId, address user)
+        internal returns (address, bool)
+    {
         var freelancerId = getFreelancer(db, contractId);
         var employerId = getEmployer(db, contractId);
-        if (user != freelancerId && user != employerId) throw;
+        require(user == freelancerId || user == employerId);
         if (user == freelancerId) {
             return (employerId, true);
         } else {
@@ -242,11 +245,11 @@ library ContractLibrary {
         return EthlanceDB(db).getUIntValue(sha3("contract/total-paid", contractId));
     }
 
-    function getFreelancer(address db, uint contractId) internal returns (uint) {
-        return EthlanceDB(db).getUIntValue(sha3("contract/freelancer", contractId));
+    function getFreelancer(address db, uint contractId) internal returns (address) {
+        return EthlanceDB(db).getAddressValue(sha3("contract/freelancer", contractId));
     }
 
-    function getEmployer(address db, uint contractId) internal returns (uint) {
+    function getEmployer(address db, uint contractId) internal returns (address) {
         var jobId = getJob(db, contractId);
         return JobLibrary.getEmployer(db, jobId);
     }
@@ -279,11 +282,11 @@ library ContractLibrary {
         return EthlanceDB(db).getUIntValue(sha3("invitation/created-on", contractId));
     }
     
-    function getContract(address db, uint freelancerId, uint jobId) internal returns (uint) {
+    function getContract(address db, address freelancerId, uint jobId) internal returns (uint) {
         return EthlanceDB(db).getUIntValue(sha3("contract/freelancer+job", freelancerId, jobId));
     }
 
-    function getContracts(address db, uint[] freelancerIds, uint jobId) internal returns (uint[] result) {
+    function getContracts(address db, address[] freelancerIds, uint jobId) internal returns (uint[] result) {
         result = new uint[](freelancerIds.length);
         for (uint i = 0; i < freelancerIds.length ; i++) {
             result[i] = getContract(db, freelancerIds[i], jobId);
@@ -300,12 +303,12 @@ library ContractLibrary {
         return args[0] == 0 || status == args[0];
     }
 
-    function notContractPred(address db, uint[] args, uint jobId) internal returns(bool) {
+    function notContractPred(address db, address[] args, uint jobId) internal returns(bool) {
         return getContract(db, args[0], jobId) == 0;
     }
     
-    function setFreelancerJobIndex(address db, uint contractId, uint freelancerId, uint jobId) internal {
-        EthlanceDB(db).setUIntValue(sha3("contract/freelancer", contractId), freelancerId);
+    function setFreelancerJobIndex(address db, uint contractId, address freelancerId, uint jobId) internal {
+        EthlanceDB(db).setAddressValue(sha3("contract/freelancer", contractId), freelancerId);
         EthlanceDB(db).setUIntValue(sha3("contract/job", contractId), jobId);
         EthlanceDB(db).setUIntValue(sha3("contract/freelancer+job", freelancerId, jobId), contractId);
     }

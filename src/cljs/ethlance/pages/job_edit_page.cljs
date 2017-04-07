@@ -13,7 +13,7 @@
 (defn job-edit-page []
   (let [form (subscribe [:form.job/set-job])
         job-id (subscribe [:job/route-job-id])
-        active-user-id (subscribe [:db/active-user-id])]
+        active-user-id (subscribe [:db/active-address])]
     (fn []
       [misc/only-registered
        [misc/only-employer

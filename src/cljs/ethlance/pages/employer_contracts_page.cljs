@@ -19,7 +19,11 @@
         :initial-dispatch {:list-key :list/employer-invitations
                            :fn-key :ethlance-views/get-employer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :fields #{:contract/job :contract/freelancer :invitation/created-on}
+                           :fields #{:invitation/created-on
+                                     :contract/job
+                                     :contract/freelancer
+                                     :job/title
+                                     :user/name}
                            :args {:user/id id :contract/statuses [1] :job/statuses [1]}}
         :all-ids-subscribe [:list/ids :list/employer-invitations]
         :title "Invitations"
@@ -35,7 +39,14 @@
     :initial-dispatch {:list-key :list/employer-proposals
                        :fn-key :ethlance-views/get-employer-contracts
                        :load-dispatch-key :contract.db/load-contracts
-                       :fields #{:contract/job :contract/freelancer :proposal/created-on :proposal/rate}
+                       :fields #{:proposal/created-on
+                                 :proposal/rate
+                                 :contract/job
+                                 :contract/freelancer
+                                 :job/title
+                                 :job/payment-type
+                                 :job/reference-currency
+                                 :user/name}
                        :args {:user/id id :contract/statuses [2] :job/statuses [1]}}
     :all-ids-subscribe [:list/ids :list/employer-proposals]
     :title "Pending Proposals"
@@ -53,7 +64,14 @@
         :initial-dispatch {:list-key :list/employer-contracts-open
                            :fn-key :ethlance-views/get-employer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :fields #{:contract/job :contract/freelancer :proposal/rate :contract/total-paid}
+                           :fields #{:proposal/rate
+                                     :contract/job
+                                     :contract/freelancer
+                                     :contract/total-paid
+                                     :job/title
+                                     :job/payment-type
+                                     :job/reference-currency
+                                     :user/name}
                            :args {:user/id id :contract/statuses [3] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/employer-contracts-open]
         :title "Active Contracts"
@@ -71,10 +89,12 @@
         :initial-dispatch {:list-key :list/employer-contracts-done
                            :fn-key :ethlance-views/get-employer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :fields #{:contract/job
+                           :fields #{:contract/done-on
+                                     :contract/job
                                      :contract/freelancer
                                      :contract/total-paid
-                                     :contract/done-on}
+                                     :job/title
+                                     :user/name}
                            :args {:user/id id :contract/statuses [4] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/employer-contracts-done]
         :title "Past Contracts"
@@ -91,9 +111,11 @@
         :initial-dispatch {:list-key :list/employer-contracts-cancelled
                            :fn-key :ethlance-views/get-employer-contracts
                            :load-dispatch-key :contract.db/load-contracts
-                           :fields #{:contract/job
+                           :fields #{:contract/cancelled-on
+                                     :contract/job
                                      :contract/freelancer
-                                     :contract/cancelled-on}
+                                     :job/title
+                                     :user/name}
                            :args {:user/id id :contract/statuses [5] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/employer-contracts-cancelled]
         :title "Cancelled Contracts"

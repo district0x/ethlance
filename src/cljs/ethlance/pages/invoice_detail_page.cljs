@@ -52,12 +52,10 @@
          [misc/call-on-change
           {:args paid-by
            :load-on-mount? true
-           :on-change (fn [allowed-users]
-                        (dispatch [:contract.views/load-user-ids-by-addresses
-                                   [paid-by]
-                                   {:on-success [:contract.db/load-users #{:user/name :user/freelancer?}]}]))}]
+           :on-change (fn [paid-by]
+                        (dispatch [:contract.db/load-users #{:user/name :user/freelancer?} [paid-by]]))}]
          [line "Paid from sponsorships by"
-          (if-let [{:keys [:user/freelancer? :user/name :user/id]} @(subscribe [:user/by-address paid-by])]
+          (if-let [{:keys [:user/freelancer? :user/name :user/id]} @(subscribe [:user/by-id paid-by])]
             [a {:route (if freelancer? :freelancer/detail :employer/detail)
                 :route-params {:user/id id}}
              name]
@@ -133,13 +131,15 @@
           :args @invoice-id
           :on-change #(dispatch [:after-eth-contracts-loaded
                                  [:contract.db/load-invoices (set/union ethlance-db/invoice-entity-fields
-                                                                        #{:job/title
+                                                                        #{:contract/job
+                                                                          :job/title
                                                                           :job/allowed-users
                                                                           :job/allowed-users-count
                                                                           :job/sponsorships-balance
                                                                           :job/status
                                                                           :job/payment-type
-                                                                          :job/reference-currency})
+                                                                          :job/reference-currency
+                                                                          :job/employer})
                                   [@invoice-id]]])}
          [misc/center-layout
           [paper
@@ -153,7 +153,7 @@
              :between "xs"
              :style styles/margin-bottom-gutter}
             [:h1 "Invoice #" id]
-            (when (seq title)
+            (when (seq status-chip-color)
               [misc/status-chip
                {:background-color status-chip-color}
                [ui/avatar

@@ -8,7 +8,7 @@ contract EthlanceJob is EthlanceSetter {
     using strings for *;
 
     event onJobAdded(uint jobId);
-    event onSponsorableJobApproved(uint jobId, uint indexed employerId, address approver);
+    event onSponsorableJobApproved(uint jobId, address indexed employerId, address approver);
 
     function EthlanceJob(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -42,7 +42,7 @@ contract EthlanceJob is EthlanceSetter {
             require(allowedUsers.length >= getConfig("min-job-allowed-users"));
         }
 
-        var newJobId = JobLibrary.setJob(ethlanceDB, jobId, getSenderUserId(), msg.sender, title, description, skills,
+        var newJobId = JobLibrary.setJob(ethlanceDB, jobId, msg.sender, title, description, skills,
             language, budget, uint8Items, isSponsorable, allowedUsers);
         if (jobId == 0) {
             onJobAdded(newJobId);
@@ -66,7 +66,7 @@ contract EthlanceJob is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveEmployer
     {
-        JobLibrary.setHiringDone(ethlanceDB, jobId, getSenderUserId());
+        JobLibrary.setHiringDone(ethlanceDB, jobId, msg.sender);
     }
 
     function setJobStatus(

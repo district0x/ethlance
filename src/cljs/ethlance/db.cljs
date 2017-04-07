@@ -40,15 +40,15 @@
 (s/def ::my-addresses (s/coll-of string?))
 (s/def ::active-address (s/nilable string?))
 (s/def ::my-users-loaded? boolean?)
-(s/def :address/balance u/big-num?)
-(s/def :blockchain/addresses (s/map-of string? (s/keys :opt [:user/id :address/balance])))
 (s/def :blockchain/connection-error? boolean?)
 (s/def ::conversion-rates (s/map-of number? number?))
 (s/def ::conversion-rates-historical (s/map-of number? ::conversion-rates))
 (s/def ::load-all-conversion-rates-interval (s/nilable int?))
+(s/def ::legacy-user-ids (s/map-of pos? (s/keys :opt [:user/address])))
 
-(s/def :user/id (some-fn pos? u/address?))
+(s/def :user/id u/address?)
 (s/def :employer/avg-rating u/uint8?)
+(s/def :employer/contracts-count u/uint?)
 (s/def :employer/description u/string-or-nil?)
 (s/def :employer/jobs u/uint-coll?)
 (s/def :employer/jobs-count u/uint?)
@@ -84,7 +84,7 @@
 (s/def :user/address u/address?)
 (s/def :user/balance u/big-num?)
 (s/def :user/country u/uint?)
-(s/def :user/created-on u/date?)
+(s/def :user/created-on u/date-or-nil?)
 (s/def :user/email u/string-or-nil?)
 (s/def :user/employer? boolean?)
 (s/def :user/freelancer? boolean?)
@@ -93,14 +93,14 @@
 (s/def :user/languages u/uint-coll?)
 (s/def :user/languages-count u/uint?)
 (s/def :user/linkedin u/string-or-nil?)
-(s/def :user/name string?)
+(s/def :user/name u/string-or-nil?)
 (s/def :user/state u/uint?)
 (s/def :user/status u/uint8?)
 (s/def :user/sponsorships u/uint-coll?)
 (s/def :user/sponsorships-count u/uint?)
 
 (s/def :app/user (s/keys :opt [:user/id
-                               :user/address
+                               :user/address                ;; backward compatibility
                                :user/balance
                                :user/country
                                :user/created-on
@@ -152,14 +152,14 @@
                                :employer/total-paid]))
 (s/def :app/users (s/map-of pos? :app/user))
 
-(s/def :job/id u/pos-or-zero?)
+(s/def :job/id u/uint?)
 (s/def :job/budget u/big-num|num|str?)
 (s/def :job/category u/uint8?)
 (s/def :job/contracts u/uint-coll?)
 (s/def :job/contracts-count u/uint?)
 (s/def :job/created-on u/date?)
 (s/def :job/description string?)
-(s/def :job/employer u/uint?)
+(s/def :job/employer :user/id)
 (s/def :job/estimated-duration u/uint8?)
 (s/def :job/experience-level u/uint8?)
 (s/def :job/freelancers-needed u/uint8?)
@@ -217,9 +217,9 @@
 
 (s/def :job.allowed-user/approved? boolean?)
 (s/def :app/job.allowed-user (s/keys :opt [:job.allowed-user/approved?]))
-(s/def :app/jobs.allowed-users (s/map-of (s/cat :job/id :job/id :user/address :user/address) :app/job.allowed-user))
+(s/def :app/jobs.allowed-users (s/map-of (s/cat :job/id :job/id :user/id :user/id) :app/job.allowed-user))
 
-(s/def :contract/id pos?)
+(s/def :contract/id u/uint?)
 (s/def :invitation/created-on u/date-or-nil?)
 (s/def :invitation/description u/string-or-nil?)
 (s/def :proposal/created-on u/date-or-nil?)
@@ -231,10 +231,10 @@
 (s/def :contract/description u/string-or-nil?)
 (s/def :contract/done-by-freelancer? boolean?)
 (s/def :contract/done-on u/date-or-nil?)
-(s/def :contract/freelancer u/uint?)
+(s/def :contract/freelancer :user/id)
 (s/def :contract/invoices u/uint-coll?)
 (s/def :contract/invoices-count u/uint?)
-(s/def :contract/job u/uint?)
+(s/def :contract/job :job/id)
 (s/def :contract/messages u/uint-coll?)
 (s/def :contract/messages-count u/uint?)
 (s/def :contract/status u/uint8?)
@@ -282,7 +282,7 @@
 (s/def :invoice/amount u/big-num|num|str?)
 (s/def :invoice/rate u/big-num|num|str?)
 (s/def :invoice/cancelled-on u/date-or-nil?)
-(s/def :invoice/contract u/uint?)
+(s/def :invoice/contract :contract/id)
 (s/def :invoice/conversion-rate u/big-num|num|str?)
 (s/def :invoice/created-on u/date?)
 (s/def :invoice/description string?)
@@ -292,7 +292,7 @@
 (s/def :invoice/worked-hours u/uint?)
 (s/def :invoice/worked-minutes u/uint?)
 (s/def :invoice/worked-to u/date?)
-(s/def :invoice/paid-by u/address?)
+(s/def :invoice/paid-by :user/id)
 
 (s/def :app/invoice (s/keys :opt [:invoice/id
                                   :invoice/amount
@@ -314,7 +314,7 @@
 
 (s/def :skill/id pos?)
 (s/def :skill/name u/bytes32?)
-(s/def :skill/creator u/uint?)
+(s/def :skill/creator :user/id)
 (s/def :skill/created-on u/date?)
 (s/def :skill/updated-on u/date-or-nil?)
 (s/def :skill/jobs-count u/uint?)
@@ -341,9 +341,9 @@
 (s/def :message/id pos?)
 (s/def :message/text string?)
 (s/def :message/created-on u/date?)
-(s/def :message/receiver u/uint?)
-(s/def :message/sender u/uint?)
-(s/def :message/contract u/uint?)
+(s/def :message/receiver :user/id)
+(s/def :message/sender :user/id)
+(s/def :message/contract :contract/id)
 (s/def :message/contract-status u/uint8?)
 
 (s/def :app/message (s/keys :opt [:message/id
@@ -355,10 +355,10 @@
                                   :message/contract-status]))
 
 (s/def :sponsorship/id pos?)
-(s/def :sponsorship/user u/address?)
+(s/def :sponsorship/user :user/id)
 (s/def :sponsorship/created-on u/date?)
 (s/def :sponsorship/amount u/big-num|num|str?)
-(s/def :sponsorship/job u/uint?)
+(s/def :sponsorship/job :job/id)
 (s/def :sponsorship/name string?)
 (s/def :sponsorship/link string?)
 (s/def :sponsorship/updated-on u/date?)
@@ -378,7 +378,8 @@
 
 (s/def :app/sponsorships (s/map-of pos? :app/sponsorship))
 
-(s/def ::items (s/coll-of (s/nilable int?)))
+(s/def ::items (s/or :int-ids (s/coll-of (s/nilable int?))
+                     :address-ids (s/coll-of (s/nilable u/address?))))
 (s/def ::loading? boolean?)
 (s/def ::params (s/map-of keyword? any?))
 (s/def ::limit int?)
@@ -389,7 +390,6 @@
 (s/def ::ids-list (s/keys :req-un [::items ::loading? ::params]
                           :opt-un [::offset ::limit ::sort-dir ::initial-limit ::show-more-limit]))
 
-(s/def :list/my-users ::ids-list)
 (s/def :list/contract-invoices ::ids-list)
 (s/def :list/job-proposals ::ids-list)
 (s/def :list/job-feedbacks ::ids-list)
@@ -481,7 +481,7 @@
                              ::search-jobs-filter-open? ::selected-currency ::snackbar ::my-addresses ::active-address
                              ::my-users-loaded? ::conversion-rates ::conversion-rates-historical
                              ::skill-load-limit ::active-setters? ::last-transaction-gas-used ::skills-loaded?
-                             ::load-all-conversion-rates-interval ::dialog]))
+                             ::load-all-conversion-rates-interval ::dialog ::legacy-user-ids]))
 
 (def generate-mode? false)
 
@@ -543,24 +543,25 @@
                 :min-job-allowed-users 1
                 :max-gas-limit u/max-gas-limit}
    :active-setters? true
-   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x419319579f825b52a44d9e2cf147fd5fe5217f3a"}
-                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x74f363aff36bb2f9ae9e6d1e67ffcb2badb66e84"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x9461a0fbe1b815a06a11161cc2e5ae9e7d2bac91"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x9d0aba974c3158cc9fd9a530acd83a3ff7c14964"}
-                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x1a79380c8b7aecaf0535cec5f6bef8b8dd740cf4"}
-                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0x51075b15962e4f23944cca4628b3e148f9b617b3"}
-                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0x613e3395622eabdb2b12f9b77a0e5eb2b9a57f36"}
-                   :ethlance-sponsor {:name "EthlanceSponsor" :setter? true :address "0x921fd8eb11346ebb803f22208ce81a0043a211a5"}
+   :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x27d233fa6032e848a016092d70493b2a5f13a95f"}
+                   :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x42c3e6bf6e47ad3d6cbb0b966c44e9331e96dd3e"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0x56b9190099243fbacdebe9f9868694d1c7665dc5"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x697dc59dfd77c6f72f26548c89705d455fc5c756"}
+                   :ethlance-feedback {:name "EthlanceFeedback" :setter? true :address "0x2249713725c8a4a070a61de0bdce6b1081014185"}
+                   :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x78f1072964d7f110e06670c229794afbdce7e474"}
+                   :ethlance-message {:name "EthlanceMessage" :setter? true :address "0xf94aa98bde7589719f1f08c6fb032debd0d7e9e6"}
+                   :ethlance-config {:name "EthlanceConfig" :setter? true :address "0xe7d8d05f8328ea5b8fba5a77d4e4172487264bda"}
+                   :ethlance-sponsor {:name "EthlanceSponsor" :setter? true :address "0xba31fad9602e73adbaf94d7ec55201cad7f2139d"}
                    :ethlance-sponsor-wallet {:name "EthlanceSponsorWallet" :address "0xc80d2cb06ce606395178692de07ea9da1f873aa3"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
-                   :ethlance-views {:name "EthlanceViews" :address "0xced436de0b821b4c9e33799a2f71b9ae8fc897c9"}
-                   :ethlance-search {:name "EthlanceSearch" :address "0xfc2bf51c1f14eaad6a0d2f3cb132f57caa1a4733"}}
+                   :ethlance-views {:name "EthlanceViews" :address "0xca5fc0f374f0da59fd50c4a146c13ba0657ad288"}
+                   :ethlance-search-freelancers {:name "EthlanceSearchFreelancers" :address "0x43386ad7af76ca5384bc06ae0c74e230f32744ee"}
+                   :ethlance-search-jobs {:name "EthlanceSearchJobs" :address "0x017be8ab41ddb10ca3660f00bf4ec975a5382f04"}}
    :my-addresses []
    :my-addresses-forced []
    :active-address nil
    :active-user-events nil
    :my-users-loaded? false
-   :blockchain/addresses {}
    :blockchain/connection-error? false
    :conversion-rates {}
    :conversion-rates-historical {}
@@ -576,8 +577,8 @@
    :app/messages {}
    :skill-load-limit 30
    :load-all-conversion-rates-interval nil
+   :legacy-user-ids {}
 
-   :list/my-users {:items [] :loading? true :params {}}
    :list/contract-invoices {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/job-proposals {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :asc}
    :list/job-sponsorships {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit}
@@ -720,7 +721,7 @@
                             :open? false}
 
    :form.user2/set-user-notifications {:loading? false
-                                       :gas-limit 200000
+                                       :gas-limit 400000
                                        :data {}
                                        :errors #{}}
 

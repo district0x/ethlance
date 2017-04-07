@@ -7,8 +7,8 @@ import "strings.sol";
 contract EthlanceUser is EthlanceSetter {
     using strings for *;
 
-    event onFreelancerAdded(uint userId);
-    event onEmployerAdded(uint userId);
+    event onFreelancerAdded(address userId);
+    event onEmployerAdded(address userId);
 
     function EthlanceUser(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -48,7 +48,7 @@ contract EthlanceUser is EthlanceSetter {
     {
         setUser(name, email, gravatar, country, state, languages, github, linkedin);
         setFreelancer(isAvailable, jobTitle, hourlyRate, hourlyRateCurrency, categories, skills, description);
-        onFreelancerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
+        onFreelancerAdded(msg.sender);
     }
 
     function setFreelancer(
@@ -71,7 +71,7 @@ contract EthlanceUser is EthlanceSetter {
         var jobTitleLen = jobTitle.toSlice().len();
         if (jobTitleLen > getConfig("max-freelancer-job-title")) throw;
         if (jobTitleLen < getConfig("min-freelancer-job-title")) throw;
-        UserLibrary.setFreelancer(ethlanceDB, getSenderUserId(), isAvailable, jobTitle, hourlyRate, hourlyRateCurrency,
+        UserLibrary.setFreelancer(ethlanceDB, msg.sender, isAvailable, jobTitle, hourlyRate, hourlyRateCurrency,
             categories, skills, description);
     }
 
@@ -85,7 +85,7 @@ contract EthlanceUser is EthlanceSetter {
     {
         setUser(name, email, gravatar, country, state, languages, github, linkedin);
         setEmployer(description);
-        onEmployerAdded(UserLibrary.getUserId(ethlanceDB, msg.sender));
+        onEmployerAdded(msg.sender);
     }
 
     function setEmployer(string description
@@ -94,6 +94,6 @@ contract EthlanceUser is EthlanceSetter {
         onlyActiveUser
     {
         if (description.toSlice().len() > getConfig("max-user-description")) throw;
-        UserLibrary.setEmployer(ethlanceDB, getSenderUserId(), description);
+        UserLibrary.setEmployer(ethlanceDB, msg.sender, description);
     }
 }

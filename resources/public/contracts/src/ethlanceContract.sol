@@ -7,11 +7,11 @@ import "strings.sol";
 contract EthlanceContract is EthlanceSetter {
     using strings for *;
 
-    event onJobProposalAdded(uint contractId, uint indexed employerId, uint freelancerId);
-    event onJobContractAdded(uint contractId, uint employerId, uint indexed freelancerId);
-    event onJobContractCancelled(uint contractId, uint indexed employerId, uint freelancerId);
-    event onJobContractFeedbackAdded(uint contractId, uint indexed receiverId, uint senderId, bool isSenderFreelancer);
-    event onJobInvitationAdded(uint jobId, uint contractId, uint indexed freelancerId);
+    event onJobProposalAdded(uint contractId, address indexed employerId, address freelancerId);
+    event onJobContractAdded(uint contractId, address employerId, address indexed freelancerId);
+    event onJobContractCancelled(uint contractId, address indexed employerId, address freelancerId);
+    event onJobContractFeedbackAdded(uint contractId, address indexed receiverId, address senderId, bool isSenderFreelancer);
+    event onJobInvitationAdded(uint jobId, uint contractId, address indexed freelancerId);
 
     function EthlanceContract(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -27,10 +27,9 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveEmployer
     {
         if (description.toSlice().len() > getConfig("max-contract-desc")) throw;
-        var employerId = getSenderUserId();
-        ContractLibrary.addContract(ethlanceDB, employerId, contractId, description, isHiringDone);
+        ContractLibrary.addContract(ethlanceDB, msg.sender, contractId, description, isHiringDone);
         var freelancerId = ContractLibrary.getFreelancer(ethlanceDB, contractId);
-        onJobContractAdded(contractId, employerId, freelancerId);
+        onJobContractAdded(contractId, msg.sender, freelancerId);
     }
 
     function cancelJobContract(
@@ -41,31 +40,9 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveFreelancer
     {
         if (description.toSlice().len() > getConfig("max-contract-desc")) throw;
-        var freelancerId = getSenderUserId();
-        ContractLibrary.cancelContract(ethlanceDB, freelancerId, contractId, description);
+        ContractLibrary.cancelContract(ethlanceDB, msg.sender, contractId, description);
         var employerId = ContractLibrary.getEmployer(ethlanceDB, contractId);
-        onJobContractCancelled(contractId, employerId, freelancerId);
-    }
-
-    function addJobContractFeedback(
-        uint contractId,
-        string feedback,
-        uint8 rating
-    )
-        onlyActiveSmartContract
-        onlyActiveUser
-    {
-        var feedbackLen = feedback.toSlice().len();
-        if (feedbackLen > getConfig("max-feedback")) throw;
-        if (feedbackLen < getConfig("min-feedback")) throw;
-        if (rating > 100) throw;
-        var senderId = getSenderUserId();
-        ContractLibrary.addFeedback(ethlanceDB, contractId, senderId, feedback, rating);
-
-        bool isSenderFreelancer;
-        uint receiverId;
-        (receiverId, isSenderFreelancer) = ContractLibrary.getOtherContractParticipant(ethlanceDB, contractId, senderId);
-        onJobContractFeedbackAdded(contractId, receiverId, senderId, isSenderFreelancer);
+        onJobContractCancelled(contractId, employerId, msg.sender);
     }
 
     function addJobProposal(
@@ -77,22 +54,21 @@ contract EthlanceContract is EthlanceSetter {
         onlyActiveFreelancer
     {
         if (description.toSlice().len() > getConfig("max-proposal-desc")) throw;
-        var freelancerId = getSenderUserId();
-        var contractId = ContractLibrary.addProposal(ethlanceDB, jobId, freelancerId, description, rate);
+        var contractId = ContractLibrary.addProposal(ethlanceDB, jobId, msg.sender, description, rate);
         var employerId = JobLibrary.getEmployer(ethlanceDB, jobId);
-        onJobProposalAdded(contractId, employerId, freelancerId);
+        onJobProposalAdded(contractId, employerId, msg.sender);
     }
 
     function addJobInvitation(
         uint jobId,
-        uint freelancerId,
+        address freelancerId,
         string description
     )
         onlyActiveSmartContract
         onlyActiveEmployer
     {
         if (description.toSlice().len() > getConfig("max-invitation-desc")) throw;
-        var contractId = ContractLibrary.addInvitation(ethlanceDB, getSenderUserId(), jobId, freelancerId, description);
+        var contractId = ContractLibrary.addInvitation(ethlanceDB, msg.sender, jobId, freelancerId, description);
         onJobInvitationAdded(jobId, contractId, freelancerId);
     }
 }

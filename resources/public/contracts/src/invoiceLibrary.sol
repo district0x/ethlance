@@ -14,7 +14,7 @@ library InvoiceLibrary {
 
     function addInvoice(
         address db,
-        uint senderId,
+        address senderId,
         uint contractId,
         string description,
         uint[] uintArgs
@@ -69,13 +69,12 @@ library InvoiceLibrary {
         return EthlanceDB(db).getUIntValue(sha3("invoice/amount", invoiceId));
     }
 
-    function getFreelancerAddress(address db, uint invoiceId) internal returns (address) {
+    function getFreelancer(address db, uint invoiceId) internal returns (address) {
         var contractId = getContract(db, invoiceId);
-        var freelancerId = ContractLibrary.getFreelancer(db, contractId);
-        return UserLibrary.getUserAddress(db, freelancerId);
+        return ContractLibrary.getFreelancer(db, contractId);
     }
 
-    function setInvoicePaid(address db, uint senderId, address senderAddress, uint sentAmount, uint invoiceId
+    function setInvoicePaid(address db, address senderId, uint sentAmount, uint invoiceId
     )
         internal returns(uint amount, bool payFromSponsorship)
     {
@@ -94,8 +93,8 @@ library InvoiceLibrary {
 
         if (sentAmount != amount) {
             require(isSponsorable);
-            require(JobLibrary.isAllowedUser(db, jobId, senderAddress));
-            EthlanceDB(db).setAddressValue(sha3("invoice/paid-by", invoiceId), senderAddress);
+            require(JobLibrary.isAllowedUser(db, jobId, senderId));
+            EthlanceDB(db).setAddressValue(sha3("invoice/paid-by", invoiceId), senderId);
             JobLibrary.subJobSponsorshipsBalance(db, jobId, amount);
             payFromSponsorship = true;
         } else {
@@ -113,7 +112,7 @@ library InvoiceLibrary {
         return (amount, payFromSponsorship);
     }
 
-    function setInvoiceCancelled(address db, uint senderId, uint invoiceId) internal {
+    function setInvoiceCancelled(address db, address senderId, uint invoiceId) internal {
         var contractId = getContract(db, invoiceId);
         var freelancerId = ContractLibrary.getFreelancer(db, contractId);
         var employerId = ContractLibrary.getEmployer(db, contractId);

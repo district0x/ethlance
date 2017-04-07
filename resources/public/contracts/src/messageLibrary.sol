@@ -9,22 +9,22 @@ library MessageLibrary {
 
     function addMessage(
         address db,
-        uint senderId,
-        uint receiverId,
+        address senderId,
+        address receiverId,
         string text
     )
         internal returns (uint messageId)
     {
-        if (senderId == receiverId) throw;
-        if (receiverId == 0) throw;
-        if (senderId == 0) throw;
+        require(senderId != receiverId);
+        require(receiverId != 0x0);
+        require(senderId != 0x0);
 
         messageId = SharedLibrary.createNext(db, "message/count");
 
         EthlanceDB(db).setStringValue(sha3("message/text", messageId), text);
         EthlanceDB(db).setUIntValue(sha3("message/created-on", messageId), now);
-        EthlanceDB(db).setUIntValue(sha3("message/receiver", messageId), receiverId);
-        EthlanceDB(db).setUIntValue(sha3("message/sender", messageId), senderId);
+        EthlanceDB(db).setAddressValue(sha3("message/receiver", messageId), receiverId);
+        EthlanceDB(db).setAddressValue(sha3("message/sender", messageId), senderId);
         UserLibrary.addReceivedMessage(db, receiverId, messageId);
         UserLibrary.addSentMessage(db, senderId, messageId);
 
@@ -33,15 +33,15 @@ library MessageLibrary {
 
     function addJobContractMessage(
         address db,
-        uint senderId,
-        uint receiverId,
+        address senderId,
+        address receiverId,
         string text,
         uint contractId
     )
         internal returns (uint messageId)
     {
         var status = ContractLibrary.getStatus(db, contractId);
-        if (status == 4 || status == 5) throw;
+        require(status != 4 && status != 5);
         messageId = addMessage(db, senderId, receiverId, text);
         EthlanceDB(db).setUIntValue(sha3("message/contract", messageId), contractId);
         EthlanceDB(db).setUInt8Value(sha3("message/contract-status", messageId), status);

@@ -9,16 +9,16 @@ library SkillLibrary {
         return EthlanceDB(db).getUIntValue(sha3("skill/count"));
     }
 
-    function addSkillName(address db, bytes32 name, uint userId) internal returns(uint) {
+    function addSkillName(address db, bytes32 name, address userId) internal returns(uint) {
         var skillId = SharedLibrary.createNext(db, "skill/count");
         EthlanceDB(db).setBytes32Value(sha3("skill/name", skillId), name);
-        EthlanceDB(db).setUIntValue(sha3("skill/creator", skillId), userId);
+        EthlanceDB(db).setAddressValue(sha3("skill/creator", skillId), userId);
         EthlanceDB(db).setUIntValue(sha3("skill/created-on", skillId), now);
         EthlanceDB(db).setUIntValue(sha3("skill/name->id", name), skillId);
         return skillId;
     }
 
-    function addSkillNames(address db, bytes32[] names, uint userId) internal returns(uint[] skillIds) {
+    function addSkillNames(address db, bytes32[] names, address userId) internal returns(uint[] skillIds) {
         skillIds = new uint[](names.length);
         uint j;
         for (uint i = 0; i < names.length ; i++) {
@@ -38,17 +38,17 @@ library SkillLibrary {
         return SharedLibrary.getIdArray(db, skillId, "skill/jobs", "skill/jobs-count");
     }
 
-    function addFreelancer(address db, uint[] skills, uint userId) internal {
+    function addFreelancer(address db, uint[] skills, address userId) internal {
         SharedLibrary.addRemovableIdArrayItem(db, skills, "skill/freelancers", "skill/freelancers-count",
             "skill/freelancers-keys", userId);
     }
     
-    function getFreelancers(address db, uint skillId) internal returns (uint[]){
-        return SharedLibrary.getRemovableIdArrayItems(db, skillId, "skill/freelancers", "skill/freelancers-count",
+    function getFreelancers(address db, uint skillId) internal returns (address[]){
+        return SharedLibrary.getRemovableIdArrayAddressItems(db, skillId, "skill/freelancers", "skill/freelancers-count",
             "skill/freelancers-keys");
     }
 
-    function removeFreelancer(address db, uint[] skills, uint userId) internal {
+    function removeFreelancer(address db, uint[] skills, address userId) internal {
         SharedLibrary.removeIdArrayItem(db, skills, "skill/freelancers", userId);
     }
 

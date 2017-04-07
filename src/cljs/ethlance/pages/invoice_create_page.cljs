@@ -19,7 +19,11 @@
              [:list/load-ids {:list-key :list/freelancer-my-open-contracts
                               :fn-key :ethlance-views/get-freelancer-contracts
                               :load-dispatch-key :contract.db/load-contracts
-                              :fields #{:contract/job :proposal/rate}
+                              :fields #{:contract/job
+                                        :proposal/rate
+                                        :job/title
+                                        :job/payment-type
+                                        :job/reference-currency}
                               :args {:user/id user-id :contract/statuses [3] :job/statuses [1 2]}}]]))
 
 (defn worked-time-field [{:keys [:contract/id :field-key :validator] :as props}]

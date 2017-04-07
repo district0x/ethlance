@@ -20,8 +20,7 @@ library JobLibrary {
     function setJob(
         address db,
         uint existingJobId,
-        uint senderId,
-        address senderAddress,
+        address senderId,
         string title,
         string description,
         uint[] skills,
@@ -40,7 +39,7 @@ library JobLibrary {
         } else {
             jobId = SharedLibrary.createNext(db, "job/count");
         }
-        EthlanceDB(db).setUIntValue(sha3("job/employer", jobId), senderId);
+        EthlanceDB(db).setAddressValue(sha3("job/employer", jobId), senderId);
         EthlanceDB(db).setStringValue(sha3("job/title", jobId), title);
         EthlanceDB(db).setStringValue(sha3("job/description", jobId), description);
 
@@ -83,7 +82,7 @@ library JobLibrary {
 
         if (isSponsorable) {
             setStatus(db, jobId, 4);
-            approveSponsorableJob(db, jobId, senderAddress, allowedUsers);
+            approveSponsorableJob(db, jobId, senderId, allowedUsers);
         } else {
             setStatus(db, jobId, 1);
         }
@@ -211,8 +210,8 @@ library JobLibrary {
         return SharedLibrary.getIdArray(db, jobId, "job/contracts", "job/contracts-count");
     }
 
-    function getEmployer(address db, uint jobId) internal returns(uint) {
-        return EthlanceDB(db).getUIntValue(sha3("job/employer", jobId));
+    function getEmployer(address db, uint jobId) internal returns(address) {
+        return EthlanceDB(db).getAddressValue(sha3("job/employer", jobId));
     }
     
     function getCreatedOn(address db, uint jobId) internal returns(uint) {
@@ -227,9 +226,9 @@ library JobLibrary {
         EthlanceDB(db).setUInt8Value(sha3("job/status", jobId), status);
     }
 
-    function setHiringDone(address db, uint jobId, uint senderId) internal {
-        if (getEmployer(db, jobId) != senderId) throw;
-        if (getStatus(db, jobId) != 1) throw;
+    function setHiringDone(address db, uint jobId, address senderId) internal {
+        require(getEmployer(db, jobId) == senderId);
+        require(getStatus(db, jobId) == 1);
         setStatus(db, jobId, 2);
         EthlanceDB(db).setUIntValue(sha3("job/hiring-done-on", jobId), now);
     }
@@ -268,14 +267,14 @@ library JobLibrary {
        return minCreatedOn <= EthlanceDB(db).getUIntValue(sha3("job/created-on", jobId));
   }
 
-    function hasEmployerMinRating(address db, uint employerId, uint minAvgRating) internal returns(bool) {
+    function hasEmployerMinRating(address db, address employerId, uint minAvgRating) internal returns(bool) {
         if (minAvgRating == 0) {
             return true;
         }
         return minAvgRating <= UserLibrary.getEmployerAvgRating(db, employerId);
     }
 
-    function hasEmployerMinRatingsCount(address db, uint employerId, uint minRatingsCount) internal returns(bool) {
+    function hasEmployerMinRatingsCount(address db, address employerId, uint minRatingsCount) internal returns(bool) {
         if (minRatingsCount == 0) {
             return true;
         }
@@ -299,7 +298,7 @@ library JobLibrary {
     {
         uint j = 0;
         uint jobId;
-        uint employerId;
+        address employerId;
         var allJobIds = SharedLibrary.intersectCategoriesAndSkills(db, categoryId, skillsAnd, skillsOr,
             SkillLibrary.getJobs, CategoryLibrary.getJobs, getJobCount);
         jobIds = new uint[](allJobIds.length);
@@ -327,7 +326,7 @@ library JobLibrary {
         return SharedLibrary.take(j, jobIds);
     }
 
-    function getEmployerJobsByStatus(address db, uint userId, uint8 jobStatus)
+    function getEmployerJobsByStatus(address db, address userId, uint8 jobStatus)
         internal returns (uint[] jobIds)
     {
         var args = new uint[](1);
@@ -335,10 +334,10 @@ library JobLibrary {
         return SharedLibrary.filter(db, statusPred, UserLibrary.getEmployerJobs(db, userId), args);
     }
 
-    function getEmployerJobsForFreelancerInvite(address db, uint employerId, uint freelancerId)
+    function getEmployerJobsForFreelancerInvite(address db, address employerId, address freelancerId)
         internal returns (uint[] jobIds)
     {
-        var args = new uint[](1);
+        var args = new address[](1);
         args[0] = freelancerId;
         return SharedLibrary.filter(db, ContractLibrary.notContractPred, getEmployerJobsByStatus(db, employerId, 1), args);
     }

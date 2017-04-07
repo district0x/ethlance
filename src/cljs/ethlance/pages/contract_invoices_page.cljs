@@ -28,26 +28,36 @@
     (fn []
       (let [{:keys [:contract/total-paid :contract/total-invoiced]} @contract]
         [center-layout
-         [invoices-table
-          {:title "Contract Invoices"
-           :header (partial contract-invoices-header @contract)
-           :list-subscribe [:list/invoices :list/contract-invoices]
-           :initial-dispatch {:list-key :list/contract-invoices
-                              :fn-key :ethlance-views/get-contract-invoices
-                              :load-dispatch-key :contract.db/load-invoices
-                              :fields ethlance-db/invoices-table-entity-fields
-                              :args {:contract/id @contract-id :invoice/status 0}}
-           :show-status? true
-           :always-show-created-on? true
-           :all-ids-subscribe [:list/ids :list/contract-invoices]}
-          [row
-           [col {:xs 12
-                 :style styles/margin-top-gutter-less}
-            [line "Total Invoiced" [currency total-invoiced]]]
-           [col {:xs 12}
-            [line "Total Paid" [currency total-paid]]]]
-          [ui/raised-button
-           {:primary true
-            :href (u/path-for :contract/detail :contract/id @contract-id)
-            :label "Go to Proposal"
-            :icon (icons/chevron-left)}]]]))))
+         [misc/call-on-change
+          {:args @contract-id
+           :load-on-mount? true
+           :on-change (fn [contract-id]
+                        (dispatch [:after-eth-contracts-loaded
+                                   [:contract.db/load-contracts #{:contract/job
+                                                                  :contract/freelancer
+                                                                  :job/title
+                                                                  :user/name}
+                                    [contract-id]]]))}
+          [invoices-table
+           {:title "Contract Invoices"
+            :header (partial contract-invoices-header @contract)
+            :list-subscribe [:list/invoices :list/contract-invoices :invoice/amount]
+            :initial-dispatch {:list-key :list/contract-invoices
+                               :fn-key :ethlance-views/get-contract-invoices
+                               :load-dispatch-key :contract.db/load-invoices
+                               :fields #{:invoice/amount :invoice/created-on :invoice/status}
+                               :args {:contract/id @contract-id :invoice/status 0}}
+            :show-status? true
+            :always-show-created-on? true
+            :all-ids-subscribe [:list/ids :list/contract-invoices]}
+           [row
+            [col {:xs 12
+                  :style styles/margin-top-gutter-less}
+             [line "Total Invoiced" [currency total-invoiced]]]
+            [col {:xs 12}
+             [line "Total Paid" [currency total-paid]]]]
+           [ui/raised-button
+            {:primary true
+             :href (u/path-for :contract/detail :contract/id @contract-id)
+             :label "Go to Proposal"
+             :icon (icons/chevron-left)}]]]]))))

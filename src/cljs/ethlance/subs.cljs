@@ -104,10 +104,9 @@
 
 (reg-sub
   :db/active-address-balance
-  :<- [:blockchain/addresses]
-  :<- [:db/active-address]
-  (fn [[blockchain-addresses active-address]]
-    (:address/balance (blockchain-addresses active-address))))
+  :<- [:db/active-user]
+  (fn [active-user]
+    (:user/balance active-user)))
 
 (reg-sub
   :location/form-query-string
@@ -127,33 +126,34 @@
     (:eth/config db)))
 
 (reg-sub
-  :db/active-user-id
-  (fn [db]
-    (:user/id ((:blockchain/addresses db) (:active-address db)))))
-
-(reg-sub
   :db/active-user
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   :<- [:app/users]
   (fn [[active-user-id users]]
     (get users active-user-id)))
 
 (reg-sub
   :db/my-users-loading?
-  (fn [db]
-    (:loading? (:list/my-users db))))
+  :<- [:db/my-addresses]
+  :<- [:app/users]
+  (fn [[my-addresses users]]
+    (some (comp nil? :user/status) (vals (select-keys users my-addresses)))))
 
 (reg-sub
   :db/active-address-registered?
-  (fn [db]
-    (when-let [items (seq (get-in db [:list/my-users :items]))]
-      (let [i (.indexOf (get-in db [:list/my-users :params :user/addresses]) (:active-address db))]
-        (pos? (nth items i))))))
+  :<- [:db/active-user]
+  (fn [active-user]
+    (pos? (:user/status active-user))))
 
 (reg-sub
   :app/users
   (fn [db]
     (:app/users db)))
+
+(reg-sub
+  :legacy-user-ids
+  (fn [db]
+    (:legacy-user-ids db)))
 
 (reg-sub
   :app/jobs
@@ -209,11 +209,6 @@
   :db/active-page
   (fn [db]
     (:active-page db)))
-
-(reg-sub
-  :blockchain/addresses
-  (fn [db]
-    (:blockchain/addresses db)))
 
 (reg-sub
   :db/snackbar
@@ -304,11 +299,10 @@
         (js/parseInt user-id)))))
 
 (reg-sub
-  :user/by-address
+  :user/by-id
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[users blockchain-addresses] [_ address]]
-    (users (:user/id (blockchain-addresses address)))))
+  (fn [users [_ user-id]]
+    (users user-id)))
 
 (reg-sub
   :job/route-job-id
@@ -325,40 +319,42 @@
 (reg-sub
   :job/my-job?
   :<- [:job/route-job-id]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   :<- [:app/jobs]
   (fn [[job-id user-id jobs]]
     (when-let [employer-id (get-in jobs [job-id :job/employer])]
       (= employer-id user-id))))
 
-(defn user-id->user [user-id users blockchain-addresses]
-  (when-let [user (get users user-id)]
-    (assoc user :user/balance (:address/balance (blockchain-addresses (:user/address user))))))
+(defn user-id->user [user-id users]
+  (get users user-id))
 
-(defn job-id->job [job-id jobs users blockchain-addresses]
+(defn job-id->job [job-id jobs users]
   (when-let [job (get jobs job-id)]
     (-> job
-      (update :job/employer #(user-id->user % users blockchain-addresses))
-      (assoc :job/allowed-users-data
-             (map (comp #(user-id->user % users blockchain-addresses) :user/id blockchain-addresses)
-                  (:job/allowed-users job))))))
+      (update :job/employer #(user-id->user % users)))))
 
 (reg-sub
   :user/detail
   :<- [:user/route-user-id]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[user-id users blockchain-addresses]]
-    (user-id->user user-id users blockchain-addresses)))
+  (fn [[user-id users]]
+    (user-id->user user-id users)))
+
+(reg-sub
+  :user/address-by-legacy-id
+  :<- [:user/route-user-id]
+  :<- [:legacy-user-ids]
+  (fn [[user-id legacy-user-ids]]
+    (when (number? user-id)
+      (:user/address (legacy-user-ids user-id)))))
 
 (reg-sub
   :job/detail
   :<- [:job/route-job-id]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[job-id jobs users blockchain-addresses]]
-    (job-id->job job-id jobs users blockchain-addresses)))
+  (fn [[job-id jobs users]]
+    (job-id->job job-id jobs users)))
 
 (reg-sub
   :job/allowed-user-approved?
@@ -379,11 +375,10 @@
   :<- [:db]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[db jobs users blockchain-addresses]]
+  (fn [[db jobs users]]
     (let [jobs-list (:list/search-jobs db)]
       (-> jobs-list
-        (update :items (partial map #(job-id->job % jobs users blockchain-addresses)))
+        (update :items (partial map #(job-id->job % jobs users)))
         (u/list-filter-loaded :job/title)))))
 
 (reg-sub
@@ -391,17 +386,16 @@
   :<- [:db]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[db jobs users blockchain-addresses] [_ list-key]]
+  (fn [[db jobs users] [_ list-key]]
     (let [jobs-list (get db list-key)]
       (-> jobs-list
         (update :items (partial u/sort-paginate-ids jobs-list))
-        (update :items (partial map #(job-id->job % jobs users blockchain-addresses)))
+        (update :items (partial map #(job-id->job % jobs users)))
         (u/list-filter-loaded :job/title)))))
 
 (reg-sub
   :db/active-freelancer-job-detail-contract
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   :<- [:job/route-job-id]
   :<- [:app/contracts]
   (fn [[user-id job-id contracts]]
@@ -421,10 +415,10 @@
   (fn [{:keys [route-params]}]
     (js/parseInt (:contract/id route-params))))
 
-(defn contract-id->contract [contract-id contracts jobs users blockchain-addresses]
+(defn contract-id->contract [contract-id contracts jobs users]
   (-> (get contracts contract-id)
-    (update :contract/job #(job-id->job % jobs users blockchain-addresses))
-    (update :contract/freelancer #(user-id->user % users blockchain-addresses))))
+    (update :contract/job #(job-id->job % jobs users))
+    (update :contract/freelancer #(user-id->user % users))))
 
 (reg-sub
   :contract/detail
@@ -432,16 +426,15 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  :<- [:db/active-user-id]
-  (fn [[contract-id contracts jobs users blockchain-addresses active-user-id]]
+  :<- [:db/active-address]
+  (fn [[contract-id contracts jobs users active-user-id]]
     (-> contract-id
-      (contract-id->contract contracts jobs users blockchain-addresses))))
+      (contract-id->contract contracts jobs users))))
 
 (reg-sub
   :contract/show-add-contract-form?
   :<- [:contract/detail]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   (fn [[{:keys [:contract/status :contract/job]} active-user-id]]
     (let [{:keys [:job/employer]} job]
       (and (= status 2)
@@ -451,7 +444,7 @@
 (reg-sub
   :contract/show-add-feedback-form?
   :<- [:contract/detail]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   (fn [[{:keys [:contract/status :contract/job :contract/employer-feedback-on :contract/freelancer
                 :contract/freelancer-feedback-on :contract/invoices-count]} active-user-id]]
     (let [{:keys [:job/employer]} job
@@ -467,7 +460,7 @@
 (reg-sub
   :contract/show-cancel-contract-form?
   :<- [:contract/detail]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   (fn [[{:keys [:contract/status :contract/freelancer :contract/invoices-count]} active-user-id]]
     (and (= status 3)
          (zero? invoices-count)
@@ -476,27 +469,26 @@
 (reg-sub
   :contract/show-add-contract-message-form?
   :<- [:contract/detail]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   (fn [[{:keys [:contract/status :contract/freelancer :contract/job]} active-user-id]]
     (let [{:keys [:job/employer]} job]
       (and (not (contains? #{4 5} status))
            (or (= (:user/id freelancer) active-user-id)
                (= (:user/id employer) active-user-id))))))
 
-(defn message-id->message [message-id messages users blockchain-addresses]
+(defn message-id->message [message-id messages users]
   (-> (get messages message-id)
-    (update :message/sender #(user-id->user % users blockchain-addresses))
-    (update :message/receiver #(user-id->user % users blockchain-addresses))))
+    (update :message/sender #(user-id->user % users))
+    (update :message/receiver #(user-id->user % users))))
 
 (reg-sub
   :contract/messages
   :<- [:contract/detail]
   :<- [:app/messages]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[{:keys [:contract/messages]} app-messages users blockchain-addresses] [_ contract-status]]
+  (fn [[{:keys [:contract/messages]} app-messages users] [_ contract-status]]
     (->> (sort messages)
-      (map #(message-id->message % app-messages users blockchain-addresses))
+      (map #(message-id->message % app-messages users))
       (filter #(= (:message/contract-status %) contract-status)))))
 
 (reg-sub
@@ -514,19 +506,18 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[db contracts jobs users blockchain-addresses] [_ list-key {:keys [:loading-till-freelancer?]}]]
+  (fn [[db contracts jobs users] [_ list-key {:keys [:loading-till-freelancer?]}]]
     (let [contracts-list (get db list-key)
           non-empty-pred (if loading-till-freelancer? (comp :user/name :contract/freelancer)
                                                       (comp :job/title :contract/job))]
       (-> contracts-list
         (update :items (partial u/sort-paginate-ids contracts-list))
-        (update :items (partial map #(contract-id->contract % contracts jobs users blockchain-addresses)))
+        (update :items (partial map #(contract-id->contract % contracts jobs users)))
         (u/list-filter-loaded non-empty-pred)))))
 
-(defn invoice-id->invoice [invoice-id invoices contracts jobs users blockchain-addresses]
+(defn invoice-id->invoice [invoice-id invoices contracts jobs users]
   (-> (get invoices invoice-id)
-    (update :invoice/contract #(contract-id->contract % contracts jobs users blockchain-addresses))))
+    (update :invoice/contract #(contract-id->contract % contracts jobs users))))
 
 (reg-sub
   :list/invoices
@@ -535,13 +526,12 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[db invoices contracts jobs users blockchain-addresses] [_ list-key]]
+  (fn [[db invoices contracts jobs users] [_ list-key loaded-pred]]
     (let [invoices-list (get db list-key)]
       (-> invoices-list
         (update :items (partial u/sort-paginate-ids invoices-list))
-        (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users blockchain-addresses)))
-        (u/list-filter-loaded (comp :user/name :contract/freelancer :invoice/contract))))))
+        (update :items (partial map #(invoice-id->invoice % invoices contracts jobs users)))
+        (u/list-filter-loaded (or loaded-pred (comp :user/name :contract/freelancer :invoice/contract)))))))
 
 (reg-sub
   :invoice/detail
@@ -550,16 +540,15 @@
   :<- [:app/contracts]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  :<- [:db/active-user-id]
-  (fn [[invoice-id invoices contracts jobs users blockchain-addresses active-user-id]]
+  :<- [:db/active-address]
+  (fn [[invoice-id invoices contracts jobs users active-user-id]]
     (-> invoice-id
-      (invoice-id->invoice invoices contracts jobs users blockchain-addresses))))
+      (invoice-id->invoice invoices contracts jobs users))))
 
 (reg-sub
   :invoice/from-me?
   :<- [:invoice/detail]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   (fn [[invoice active-user-id]]
     (and active-user-id
          (= active-user-id (get-in invoice [:invoice/contract :contract/freelancer :user/id])))))
@@ -567,14 +556,14 @@
 (reg-sub
   :invoice/for-me?
   :<- [:invoice/detail]
-  :<- [:db/active-user-id]
+  :<- [:db/active-address]
   (fn [[invoice active-user-id]]
     (and active-user-id
          (= active-user-id (get-in invoice [:invoice/contract :contract/job :job/employer :user/id])))))
 
-(defn sponsorship-id->sponsorship [sponsorship-id sponsorships jobs users blockchain-addresses]
+(defn sponsorship-id->sponsorship [sponsorship-id sponsorships jobs users]
   (-> (get sponsorships sponsorship-id)
-    (update :sponsorship/job #(job-id->job % jobs users blockchain-addresses))))
+    (update :sponsorship/job #(job-id->job % jobs users))))
 
 (reg-sub
   :list/sponsorships
@@ -582,12 +571,11 @@
   :<- [:app/sponsorships]
   :<- [:app/jobs]
   :<- [:app/users]
-  :<- [:blockchain/addresses]
-  (fn [[db sponsorships jobs users blockchain-addresses] [_ list-key]]
+  (fn [[db sponsorships jobs users] [_ list-key]]
     (let [sponsorships-list (get db list-key)]
       (-> sponsorships-list
         (update :items (partial u/sort-paginate-ids sponsorships-list))
-        (update :items (partial map #(sponsorship-id->sponsorship % sponsorships jobs users blockchain-addresses)))
+        (update :items (partial map #(sponsorship-id->sponsorship % sponsorships jobs users)))
         (u/list-filter-loaded :sponsorship/amount)))))
 
 

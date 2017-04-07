@@ -24,7 +24,7 @@ contract EthlanceSetter is Ownable {
     }
 
     modifier onlyActiveUser {
-      if (!UserLibrary.hasStatus(ethlanceDB, getSenderUserId(), 1)) throw;
+      if (!UserLibrary.hasStatus(ethlanceDB, msg.sender, 1)) throw;
       _;
     }
 
@@ -35,10 +35,6 @@ contract EthlanceSetter is Ownable {
     {
         smartContractStatus = _status;
         onSmartContractStatusSet(_status);
-    }
-
-    function getSenderUserId() returns(uint) {
-        return UserLibrary.getUserId(ethlanceDB, msg.sender);
     }
 
     function getConfig(bytes32 key) constant returns(uint) {

@@ -11,7 +11,7 @@ import "sponsorRelated.sol";
 contract EthlanceSponsor is EthlanceSetter, SponsorRelated {
     using strings for *;
 
-    event onJobSponsorshipAdded(uint sponsorshipId, uint jobId, uint indexed employerId, uint amount);
+    event onJobSponsorshipAdded(uint sponsorshipId, uint jobId, address indexed employerId, uint amount);
     event onJobSponsorshipRefunded(uint sponsorshipId, uint jobId, address indexed receiverId, uint amount);
 
     function EthlanceSponsor(address _ethlanceDB) {
@@ -40,7 +40,7 @@ contract EthlanceSponsor is EthlanceSetter, SponsorRelated {
         var sponsorshipsBalance = JobLibrary.getSponsorshipsBalance(ethlanceDB, jobId);
         var sponsorshipsTotal = JobLibrary.getSponsorshipsTotal(ethlanceDB, jobId);
         var sponsorshipsRefunded = JobLibrary.getSponsorshipsTotalRefunded(ethlanceDB, jobId);
-        require(JobLibrary.getEmployer(ethlanceDB, jobId) == getSenderUserId());
+        require(JobLibrary.getEmployer(ethlanceDB, jobId) == msg.sender);
         require(jobStatus == 1 || jobStatus == 2 || jobStatus == 5);
         require(sponsorshipsBalance > 0);
         require(sponsorshipsTotal > 0);

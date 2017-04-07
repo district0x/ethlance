@@ -8,7 +8,7 @@ import "strings.sol";
 contract EthlanceMessage is EthlanceSetter {
     using strings for *;
 
-    event onJobContractMessageAdded(uint messageId, uint contractId, uint indexed receiverId, uint senderId);
+    event onJobContractMessageAdded(uint messageId, uint contractId, address indexed receiverId, address senderId);
 
     function EthlanceMessage(address _ethlanceDB) {
         if(_ethlanceDB == 0x0) throw;
@@ -23,11 +23,10 @@ contract EthlanceMessage is EthlanceSetter {
         onlyActiveUser
     {
         if (message.toSlice().len() > getConfig("max-message-length")) throw;
-        var senderId = getSenderUserId();
         bool isSenderFreelancer;
-        uint receiverId;
-        (receiverId, isSenderFreelancer) = ContractLibrary.getOtherContractParticipant(ethlanceDB, contractId, senderId);
-        var messageId = MessageLibrary.addJobContractMessage(ethlanceDB, senderId, receiverId, message, contractId);
-        onJobContractMessageAdded(messageId, contractId, receiverId, senderId);
+        address receiverId;
+        (receiverId, isSenderFreelancer) = ContractLibrary.getOtherContractParticipant(ethlanceDB, contractId, msg.sender);
+        var messageId = MessageLibrary.addJobContractMessage(ethlanceDB, msg.sender, receiverId, message, contractId);
+        onJobContractMessageAdded(messageId, contractId, receiverId, msg.sender);
     }
 }

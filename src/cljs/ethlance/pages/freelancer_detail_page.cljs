@@ -21,68 +21,73 @@
     [reagent.core :as r]))
 
 (defn freelancer-info []
-  (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/gravatar :user/name :user/country :user/state :freelancer/avg-rating
-                 :freelancer/ratings-count :user/created-on :freelancer/description
-                 :freelancer/skills :freelancer/categories :user/languages :user/id
-                 :user/status :user/address :user/balance] :as user}]
-      [:div
-       [user-detail/user-info user (merge
-                                     {:avg-rating avg-rating
-                                      :ratings-count ratings-count
-                                      :description description
-                                      :show-availability? true}
-                                     (select-keys user [:freelancer/hourly-rate :freelancer/hourly-rate-currency
-                                                        :freelancer/available? :freelancer/total-earned
-                                                        :freelancer/job-title]))]
-       [misc/subheader "Skills"]
-       [skills-chips
-        {:selected-skills skills
-         :always-show-all? true}]
-       [misc/subheader "Interested in categories"]
-       [misc/call-on-change
-        {:load-on-mount? true
-         :args {id (select-keys user [:freelancer/categories-count])}
-         :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-freelancer-categories %]])}
-        [categories-chips
-         {:value categories}]]
-       [user-detail/languages-section user languages]])))
+  (let [xs-width? (subscribe [:window/xs-width?])
+        user (subscribe [:user/detail])]
+    (fn []
+      (let [{:keys [:user/gravatar :user/name :user/country :user/state :freelancer/avg-rating
+                    :freelancer/ratings-count :user/created-on :freelancer/description
+                    :freelancer/skills :freelancer/categories :user/languages :user/id
+                    :user/status :user/balance] :as user} @user]
+        [:div
+         [user-detail/user-info user (merge
+                                       {:avg-rating avg-rating
+                                        :ratings-count ratings-count
+                                        :description description
+                                        :show-availability? true}
+                                       (select-keys user [:freelancer/hourly-rate :freelancer/hourly-rate-currency
+                                                          :freelancer/available? :freelancer/total-earned
+                                                          :freelancer/job-title]))]
+         [misc/subheader "Skills"]
+         [skills-chips
+          {:selected-skills skills
+           :always-show-all? true}]
+         [misc/subheader "Interested in categories"]
+         [misc/call-on-change
+          {:load-on-mount? true
+           :args {id (select-keys user [:freelancer/categories-count])}
+           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.db/load-freelancer-categories %]])}
+          [categories-chips
+           {:value categories}]]
+         [user-detail/languages-section user languages]]))))
 
 (defn freelancer-detail []
-  (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/id :user/name :user/gravatar :user/employer? :user/freelancer?] :as user}]
-      [paper
-       {:loading? (empty? name)
-        :style styles/paper-section-main}
-       (when (seq name)
-         [:div
-          [row
-           {:middle "xs"
-            :start "sm"
-            :center "xs"
-            :style styles/margin-bottom-gutter}
-           [col
-            {:xs 12 :sm 6}
-            [:h2 "Freelancer Profile"]]
-           [col
-            {:xs 12 :sm 6
-             :style (if @xs-width?
-                      {:margin-top 10}
-                      styles/text-right)}
-            (when employer?
-              [ui/flat-button
-               {:label "Employer Profile"
-                :primary true
-                :href (u/path-for :employer/detail :user/id id)}])]]
-          (if freelancer?
-            [freelancer-info user]
-            [row-plain
-             {:center "xs"}
-             "This user is not registered as a freelancer"])])])))
+  (let [xs-width? (subscribe [:window/xs-width?])
+        user (subscribe [:user/detail])]
+    (fn []
+      (let [{:keys [:user/id :user/name :user/gravatar :user/employer? :user/freelancer?]} @user]
+        [paper
+         {:loading? (empty? name)
+          :style styles/paper-section-main}
+         (when (seq name)
+           [:div
+            [row
+             {:middle "xs"
+              :start "sm"
+              :center "xs"
+              :style styles/margin-bottom-gutter}
+             [col
+              {:xs 12 :sm 6}
+              [:h2 "Freelancer Profile"]]
+             [col
+              {:xs 12 :sm 6
+               :style (if @xs-width?
+                        {:margin-top 10}
+                        styles/text-right)}
+              (when employer?
+                [ui/flat-button
+                 {:label "Employer Profile"
+                  :primary true
+                  :href (u/path-for :employer/detail :user/id id)}])]]
+            (if freelancer?
+              [freelancer-info]
+              [row-plain
+               {:center "xs"}
+               "This user is not registered as a freelancer"])])]))))
 
 (defn freelancer-contracts []
-  (let [xs-width? (subscribe [:window/xs-width?])]
-    (fn [{:keys [:user/id]}]
+  (let [xs-width? (subscribe [:window/xs-width?])
+        user-id (subscribe [:user/route-user-id])]
+    (fn []
       [contracts-table
        {:list-subscribe [:list/contracts :list/freelancer-contracts]
         :show-rate? (not @xs-width?)
@@ -96,22 +101,26 @@
                                      :contract/created-on
                                      :proposal/rate
                                      :contract/total-paid
-                                     :contract/status}
-                           :args {:user/id id :contract/statuses [] :job/statuses []}}
+                                     :contract/status
+                                     :job/title
+                                     :job/payment-type
+                                     :job/reference-currency}
+                           :args {:user/id @user-id :contract/statuses [] :job/statuses []}}
         :all-ids-subscribe [:list/ids :list/freelancer-contracts]
         :title "Job Activity"
         :no-items-text "Freelancer has no job activity"}])))
 
-(defn freelancer-feedback [{:keys [:user/id]}]
-  [feedback-list
-   {:list-subscribe [:list/contracts :list/freelancer-feedbacks]
-    :list-db-path [:list/freelancer-feedbacks]
-    :all-ids-subscribe [:list/ids :list/freelancer-feedbacks]
-    :initial-dispatch [:list/load-ids {:list-key :list/freelancer-feedbacks
-                                       :fn-key :ethlance-views/get-freelancer-contracts
-                                       :load-dispatch-key :contract.db/load-contracts
-                                       :fields ethlance-db/feedback-entity-fields
-                                       :args {:user/id id :contract/statuses [4] :job/statuses []}}]}])
+(defn freelancer-feedback []
+  (let [user-id (subscribe [:user/route-user-id])]
+    [feedback-list
+     {:list-subscribe [:list/contracts :list/freelancer-feedbacks]
+      :list-db-path [:list/freelancer-feedbacks]
+      :all-ids-subscribe [:list/ids :list/freelancer-feedbacks]
+      :initial-dispatch [:list/load-ids {:list-key :list/freelancer-feedbacks
+                                         :fn-key :ethlance-views/get-freelancer-contracts
+                                         :load-dispatch-key :contract.db/load-contracts
+                                         :fields ethlance-db/feedback-list-fields
+                                         :args {:user/id @user-id :contract/statuses [4] :job/statuses []}}]}]))
 
 (defn employer-jobs-select-field [jobs-list {:keys [:contract/job]} freelancer active-user]
   [misc/call-on-change
@@ -137,9 +146,11 @@
   (let [form-open? (r/atom false)
         active-user (subscribe [:db/active-user])
         form (subscribe [:form.contract/add-invitation])
-        jobs-list (subscribe [:list/jobs :list/employer-jobs-open-select-field])]
-    (fn [user]
-      (let [{:keys [:loading? :errors :data]} @form
+        jobs-list (subscribe [:list/jobs :list/employer-jobs-open-select-field])
+        user (subscribe [:user/detail])]
+    (fn []
+      (let [user @user
+            {:keys [:loading? :errors :data]} @form
             {:keys [:invitation/description :contract/job]} data
             {:keys [:user/employer?]} @active-user]
         (when (and employer?
@@ -179,19 +190,17 @@
   (let [user-id (subscribe [:user/route-user-id])
         user (subscribe [:user/detail])]
     (fn []
-      [misc/call-on-change
-       {:load-on-mount? true
-        :args @user-id
-        :on-change #(dispatch [:after-eth-contracts-loaded
-                               [:contract.db/load-users (set/union ethlance-db/user-entity-fields
-                                                                   ethlance-db/freelancer-entity-fields
-                                                                   ethlance-db/user-balance-entity-fields) [@user-id]]])}
+      [user-detail/user-loader
+       {:fields (set/union ethlance-db/user-entity-fields
+                           ethlance-db/freelancer-entity-fields
+                           ethlance-db/user-balance-entity-fields)
+        :route :freelancer/detail}
        [center-layout
-        [freelancer-detail @user]
-        [invite-freelancer-form @user]
+        [freelancer-detail]
+        [invite-freelancer-form]
         (when (:user/freelancer? @user)
           [:div
-           [freelancer-contracts @user]
+           [freelancer-contracts]
            [user-sponsorships
-            {:user/id (:user/address @user)}]
-           [freelancer-feedback @user]])]])))
+            (select-keys @user [:user/id])]
+           [freelancer-feedback]])]])))

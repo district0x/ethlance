@@ -18,7 +18,7 @@
 
 (def user-entity-fields (set/difference (spec-form->entity-fields :app/user :user)
                                         #{:user/balance :user/id :user/email :user/sponsorships
-                                          :user/sponsorships-count}))
+                                          :user/sponsorships-count :user/address}))
 (def user-balance-entity-fields #{:user/balance})
 (def user-notifications-fields (spec-form->entity-fields :app/user :user.notif))
 (def freelancer-entity-fields (set/difference (spec-form->entity-fields :app/user :freelancer)))
@@ -54,6 +54,15 @@
     invitation-entity-fields
     proposal-entity-fields))
 
+(def job-proposals-list-fields
+  #{:contract/freelancer
+    :proposal/rate
+    :proposal/created-on
+    :invitation/created-on
+    :contract/status
+    :contract/job
+    :user/name})
+
 (def employer-feedback-entity-fields
   #{:contract/employer-feedback
     :contract/employer-feedback-on
@@ -78,9 +87,15 @@
                :contract/cancelled-on
                :contract/cancel-description}))
 
+(def feedback-list-fields
+  (set/union feedback-entity-fields
+             #{:job/employer
+               :user/name
+               :user/gravatar}))
+
 (def invoice-entity-fields (set/difference (spec-form->entity-fields :app/invoice) #{:invoice/id}))
 
-(def invoices-table-entity-fields
+(def invoices-list-fields
   #{:invoice/contract :invoice/amount :invoice/created-on :invoice/status :invoice/paid-on})
 
 (def skill-entity-fields (set/difference (spec-form->entity-fields :app/skill) #{:skill/id}))
@@ -94,16 +109,16 @@
 
 (def user-editable-fields
   (set/difference (set/union account-entitiy-fields user-balance-entity-fields #{:user/email})
-                  #{:user/address :user/created-on}))
+                  #{:user/created-on}))
 
-#_ (def job-editable-fields
-  #{:job/status
-    :job/contracts-count
-    :job/contracts
-    :job/total-paid
-    :job/sponsorships-balance
-    :job/sponsorships-total
-    :job/sponsorships-total-refunded})
+#_(def job-editable-fields
+    #{:job/status
+      :job/contracts-count
+      :job/contracts
+      :job/total-paid
+      :job/sponsorships-balance
+      :job/sponsorships-total
+      :job/sponsorships-total-refunded})
 
 (def job-editable-fields (set/difference job-entity-fields #{:job/employer :job/created-on}))
 
@@ -116,7 +131,8 @@
     :contract/employer-feedback-rating
     :contract/freelancer-feedback-rating
     :contract/messages
-    :contract/messages-count})
+    :contract/messages-count
+    :contract/job})
 
 (def invoice-editable-fields
   #{:invoice/status :invoice/paid-by})
@@ -288,7 +304,7 @@
    :ethlance-config/set-skill-name set-skill-name-args
    :ethlance-config/set-smart-contract-status set-smart-contract-status-args
    :ethlance-contract/add-job-contract add-job-contract-args
-   :ethlance-contract/add-job-contract-feedback add-job-contract-feedback-args
+   :ethlance-feedback/add-job-contract-feedback add-job-contract-feedback-args
    :ethlance-contract/add-job-invitation add-job-invitation-args
    :ethlance-contract/add-job-proposal add-job-proposal-args
    :ethlance-contract/cancel-job-contract cancel-job-contract-args
@@ -302,8 +318,8 @@
    :ethlance-job/set-job-hiring-done set-job-hiring-done-args
    :ethlance-job/set-smart-contract-status set-smart-contract-status-args
    :ethlance-message/add-job-contract-message add-job-contract-message-args
-   :ethlance-search/search-freelancers (conj search-freelancers-args search-freelancers-nested-args)
-   :ethlance-search/search-jobs (conj search-jobs-args search-jobs-nested-args)
+   :ethlance-search-freelancers/search-freelancers (conj search-freelancers-args search-freelancers-nested-args)
+   :ethlance-search-jobs/search-jobs (conj search-jobs-args search-jobs-nested-args)
    :ethlance-user/register-employer register-employer-args
    :ethlance-user/register-freelancer register-freelancer-args
    :ethlance-user/set-employer set-employer-args
@@ -338,7 +354,7 @@
   (set (remove string-type? fields)))
 
 (defn remove-coll-fields [fields]
-  (remove #(contains? #{'ethlance.utils/uint-coll? 'ethlance.utils/address-coll?}  (s/form %)) fields))
+  (remove #(contains? #{'ethlance.utils/uint-coll? 'ethlance.utils/address-coll?} (s/form %)) fields))
 
 (defn estimate-form-data-gas [form-data]
   (reduce (fn [acc [k v]]
@@ -461,7 +477,8 @@
 
 
 (s/def ::instance (complement nil?))
-(s/def ::ids (s/coll-of (s/nilable int?)))
+(s/def ::ids (s/or :int-ids (s/coll-of (s/nilable int?))
+                   :address-ids (s/coll-of (s/nilable u/address?))))
 (s/def ::fields (s/coll-of keyword?))
 (s/def ::on-success sequential?)
 (s/def ::on-error sequential?)

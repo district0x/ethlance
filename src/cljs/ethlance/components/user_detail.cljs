@@ -1,13 +1,14 @@
 (ns ethlance.components.user-detail
   (:require
     [cljs-react-material-ui.reagent :as ui]
+    [cljs-web3.core :as web3]
+    [ethlance.components.icons :as icons]
     [ethlance.components.languages-chips :refer [languages-chips]]
     [ethlance.components.misc :as misc :refer [col row paper row-plain line a center-layout currency]]
     [ethlance.components.star-rating :refer [star-rating]]
     [ethlance.styles :as styles]
     [ethlance.utils :as u]
     [re-frame.core :refer [subscribe dispatch dispatch-sync]]
-    [ethlance.components.icons :as icons]
     [reagent.core :as r]))
 
 (defn user-address [address]
@@ -40,7 +41,7 @@
 (defn user-info []
   (let [xs-width? (subscribe [:window/xs-width?])]
     (fn [{:keys [:user/gravatar :user/name :user/country :user/state :user/created-on :user/languages :user/id
-                 :user/status :user/address :user/balance :user/github :user/linkedin] :as user}
+                 :user/status :user/balance :user/github :user/linkedin] :as user}
          {:keys [:avg-rating :ratings-count :employer/total-paid :description :show-availability? :freelancer/available?
                  :freelancer/total-earned :freelancer/job-title :freelancer/hourly-rate
                  :freelancer/hourly-rate-currency]}]
@@ -101,7 +102,7 @@
          :top "xs"}
         [col
          {:xs 12 :sm 8}
-         [user-address address]]
+         [user-address id]]
         [col
          {:xs 12 :sm 4
           :style (if @xs-width? (merge styles/text-left
@@ -119,3 +120,25 @@
        [user-created-on created-on]
        [misc/long-text
         description]])))
+
+(defn user-loader []
+  (let [user-id (subscribe [:user/route-user-id])
+        address-by-legacy-id (subscribe [:user/address-by-legacy-id])]
+    (fn [{:keys [:fields :route]} & children]
+      (into
+        [misc/call-on-change
+         {:load-on-mount? true
+          :args @user-id
+          :on-change (fn [user-id]
+                       (if (number? user-id)
+                         (dispatch [:after-eth-contracts-loaded
+                                    [:contract.db/load-user-addresses-by-legacy-ids [user-id]]])
+                         (dispatch [:after-eth-contracts-loaded
+                                    [:contract.db/load-users fields [user-id]]])))}
+         [misc/call-on-change
+          {:load-on-mount? true
+           :args @address-by-legacy-id
+           :on-change (fn [user-address]
+                        (when (web3/address? user-address)
+                          (dispatch [:location/set-hash route {:user/id user-address}])))}]]
+        children))))

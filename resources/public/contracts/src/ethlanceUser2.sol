@@ -17,12 +17,12 @@ contract EthlanceUser2 is EthlanceSetter {
         onlyActiveSmartContract
         onlyActiveUser
     {
-        UserLibrary.setUserNotifications(ethlanceDB, getSenderUserId(), boolNotifSettings, uint8NotifSettings);
+        UserLibrary.setUserNotifications(ethlanceDB, msg.sender, boolNotifSettings, uint8NotifSettings);
     }
 
     function setUserStatus
     (
-        uint userId,
+        address userId,
         uint8 status
     )
         onlyOwner

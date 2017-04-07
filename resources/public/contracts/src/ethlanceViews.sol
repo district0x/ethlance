@@ -17,19 +17,19 @@ contract EthlanceViews {
         ethlanceDB = _ethlanceDB;
     }
 
-    function getFreelancerContracts(uint userId, uint[] contractStatuses, uint[] jobStatuses) public constant returns (uint[]) {
+    function getFreelancerContracts(address userId, uint[] contractStatuses, uint[] jobStatuses) public constant returns (uint[]) {
         return UserLibrary.getFreelancerContractsByStatus(ethlanceDB, userId, contractStatuses, jobStatuses);
     }
 
-    function getEmployerContracts(uint userId, uint[] contractStatuses, uint[] jobStatuses) public constant returns (uint[]) {
+    function getEmployerContracts(address userId, uint[] contractStatuses, uint[] jobStatuses) public constant returns (uint[]) {
         return UserLibrary.getEmployerContractsByStatus(ethlanceDB, userId, contractStatuses, jobStatuses);
     }
 
-    function getFreelancerInvoices(uint userId, uint8 invoiceStatus) public constant returns (uint[]) {
+    function getFreelancerInvoices(address userId, uint8 invoiceStatus) public constant returns (uint[]) {
         return UserLibrary.getFreelancerInvoicesByStatus(ethlanceDB, userId, invoiceStatus);
     }
     
-    function getEmployerInvoices(uint userId, uint8 invoiceStatus) public constant returns (uint[]) {
+    function getEmployerInvoices(address userId, uint8 invoiceStatus) public constant returns (uint[]) {
         return UserLibrary.getEmployerInvoicesByStatus(ethlanceDB, userId, invoiceStatus);
     }
     
@@ -41,7 +41,7 @@ contract EthlanceViews {
         return JobLibrary.getJobInvoicesByStatus(ethlanceDB, jobId, invoiceStatus);
     }
 
-    function getFreelancersJobContracts(uint[] userIds, uint jobId) public constant returns (uint[]) {
+    function getFreelancersJobContracts(address[] userIds, uint jobId) public constant returns (uint[]) {
         return ContractLibrary.getContracts(ethlanceDB, userIds, jobId);
     }
 
@@ -53,7 +53,7 @@ contract EthlanceViews {
         return ContractLibrary.getMessages(ethlanceDB, contractId);
     }
 
-    function getEmployerJobs(uint userId, uint8 jobStatus) public constant returns (uint[]) {
+    function getEmployerJobs(address userId, uint8 jobStatus) public constant returns (uint[]) {
         return JobLibrary.getEmployerJobsByStatus(ethlanceDB, userId, jobStatus);
     }
 
@@ -65,11 +65,7 @@ contract EthlanceViews {
         return SkillLibrary.getSkillCount(ethlanceDB);
     }
 
-    function getUsers(address[] addresses) constant returns(uint[]) {
-        return UserLibrary.getUserIds(ethlanceDB, addresses);
-    }
-
-    function getEmployerJobsForFreelancerInvite(uint employerId, uint freelancerId) constant returns(uint[]) {
+    function getEmployerJobsForFreelancerInvite(address employerId, address freelancerId) constant returns(uint[]) {
         return JobLibrary.getEmployerJobsForFreelancerInvite(ethlanceDB, employerId, freelancerId);
     }
 
