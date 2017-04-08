@@ -3,13 +3,13 @@
                  [bidi "2.0.14"]
                  [camel-snake-kebab "0.4.0"]
                  [cljs-ajax "0.5.8"]
-                 [cljs-react-material-ui "0.2.38"]
+                 [cljs-react-material-ui "0.2.39"]
                  [cljsjs/web3 "0.18.4-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/linkify "2.1.4-0" :exclusions [cljsjs/react]]
                  [cljsjs/material-ui-chip-input "0.13.0-0"]
                  [cljsjs/oauthio "0.6.1-0"]
-                 [cljsjs/react-flexbox-grid "0.10.2-1" :exclusions [cljsjs/react cljsjs/react-dom]]
+                 [cljsjs/react-flexbox-grid "1.0.0-0" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-highlight "1.0.5-0" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/react-truncate "2.0.3-0"]
                  [cljsjs/react-ultimate-pagination "0.8.0-0" :exclusions [cljsjs/react cljsjs/react-dom]]
@@ -17,15 +17,15 @@
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [com.cemerick/url "0.1.1"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
-                 [day8.re-frame/http-fx "0.0.4"]
+                 [day8.re-frame/http-fx "0.1.3"]
                  [kibu/pushy "0.3.6"]
                  [madvas.re-frame/google-analytics-fx "0.1.0"]
                  [madvas.re-frame/web3-fx "0.1.4"]
                  [medley "0.8.3"]
                  [org.clojure/clojure "1.9.0-alpha10"]
-                 [org.clojure/clojurescript "1.9.293"]
+                 [org.clojure/clojurescript "1.9.473"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.9.1"]
+                 [re-frame "0.9.2"]
                  [reagent "0.6.1p-SNAPSHOT" :exclusions [cljsjs/react cljsjs/react-dom]]]
 
   :plugins [[lein-auto "0.1.2"]
@@ -83,4 +83,5 @@
                 :optimizations :advanced
                 :closure-defines {goog.DEBUG false}
                 :pretty-print false
+                :pseudo-names false
                 :externs ["src/js/externs.js"]}}]})

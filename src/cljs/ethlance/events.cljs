@@ -267,9 +267,10 @@
   interceptors
   (fn [{:keys [db]}]
     {:http-xhrio
-     (for [[key {:keys [name]}] (:eth/contracts db)]
-       (for [code-type (if goog.DEBUG [:abi :bin] [:abi])]
-         (contract-xhrio name code-type [:contract/loaded key code-type] [:log-error :load-eth-contracts])))}))
+     (flatten
+       (for [[key {:keys [name]}] (:eth/contracts db)]
+         (for [code-type (if goog.DEBUG [:abi :bin] [:abi])]
+           (contract-xhrio name code-type [:contract/loaded key code-type] [:log-error :load-eth-contracts]))))}))
 
 (reg-event-fx
   :contracts/deploy-all
@@ -872,17 +873,7 @@
       {:dispatch [:list/load-ids {:list-key :list/search-jobs
                                   :fn-key :ethlance-search-jobs/search-jobs
                                   :load-dispatch-key :contract.db/load-jobs
-                                  :fields (set/union
-                                            (set/difference ethlance-db/job-entity-fields #{:job/description
-                                                                                            :job/allowed-users})
-                                            #{:employer/jobs-count
-                                              :employer/avg-rating
-                                              :employer/total-paid
-                                              :user/name
-                                              :employer/ratings-count
-                                              :user/country
-                                              :user/state
-                                              :user/balance})
+                                  :fields ethlance-db/search-jobs-fields
                                   :args (assoc args :search/min-budgets min-budgets)
                                   :keep-items? true}]})))
 
@@ -949,9 +940,7 @@
       {:dispatch [:list/load-ids {:list-key :list/search-freelancers
                                   :fn-key :ethlance-search-freelancers/search-freelancers
                                   :load-dispatch-key :contract.db/load-users
-                                  :fields (set/union (set/difference ethlance-db/freelancer-entity-fields
-                                                                     #{:freelancer/description})
-                                                     ethlance-db/user-entity-fields)
+                                  :fields ethlance-db/search-freelancers-fields
                                   :args (merge args {:search/seed (calculate-search-seed args (:on-load-seed db))
                                                      :search/min-hourly-rates min-hourly-rates
                                                      :search/max-hourly-rates max-hourly-rates})
