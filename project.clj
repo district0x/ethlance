@@ -3,7 +3,7 @@
                  [bidi "2.0.14"]
                  [camel-snake-kebab "0.4.0"]
                  [cljs-ajax "0.5.8"]
-                 [cljs-react-material-ui "0.2.39"]
+                 [cljs-react-material-ui "0.2.40"]
                  [cljsjs/web3 "0.18.4-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/linkify "2.1.4-0" :exclusions [cljsjs/react]]

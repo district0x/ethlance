@@ -109,14 +109,14 @@
 
 (def search-jobs-fields
   #{:job/title :job/payment-type :job/estimated-duration :job/experience-level :job/hours-per-week
-    :job/created-on :job/description :job/budget :job/skills :job/skills-count :job/employer :job/reference-currency
-    :job/sponsorable? :employer/jobs-count :employer/avg-rating :employer/total-paid :user/name
+    :job/created-on :job/budget :job/skills :job/skills-count :job/employer :job/reference-currency
+    :job/category :job/sponsorable? :employer/jobs-count :employer/avg-rating :employer/total-paid :user/name
     :employer/ratings-count :user/country :user/state :user/balance})
 
 (def search-freelancers-fields
   #{:freelancer/avg-rating :freelancer/hourly-rate :freelancer/hourly-rate-currency :freelancer/job-title
     :freelancer/ratings-count :freelancer/skills :freelancer/skills-count :user/name :user/gravatar
-    :user/country :user/state})
+    :user/country :user/state :user/freelancer? :user/employer? :freelancer/available?})
 
 (def user-editable-fields
   (set/difference (set/union account-entitiy-fields user-balance-entity-fields #{:user/email})
