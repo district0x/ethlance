@@ -142,8 +142,8 @@
 
 (defn center-layout [& children]
   [row {:center "xs"}
-   (into [] (concat [col {:xs 12 :md 10 :lg 9 :style styles/text-left}]
-                    children))])
+   (into [col {:xs 12 :md 10 :lg 9 :style styles/text-left}]
+         children)])
 
 (def text-field-base
   (tmpl/adapt-react-class (aget js/MaterialUI "TextField")
@@ -439,41 +439,6 @@
              :primary true
              :label "Done"}
             props)]]))))
-
-(defn search-paper-thin []
-  (let [xs-sm-width? (subscribe [:window/xs-sm-width?])]
-    (fn [& children]
-      (into
-        [paper-thin
-         {:style (if @xs-sm-width? styles/no-box-shadow {})}]
-        children))))
-
-(defn search-results [{:keys [:items-count :loading? :offset :limit :no-items-found-text :no-more-items-text
-                              :next-button-text :prev-button-text :on-page-change]} body]
-  [paper-thin
-   {:loading? loading?}
-   (if (pos? items-count)
-     body
-     [row {:center "xs" :middle "xs"
-           :style {:min-height 200}}
-      (when-not loading?
-        (if (zero? offset)
-          [:div no-items-found-text]
-          [:div no-more-items-text]))])
-   [row-plain {:end "xs"}
-    (when (pos? offset)
-      [ui/flat-button
-       {:secondary true
-        :label prev-button-text
-        :icon (icons/chevron-left)
-        :on-touch-tap #(on-page-change (- offset limit))}])
-    (when (= items-count limit)
-      [ui/flat-button
-       {:secondary true
-        :label next-button-text
-        :label-position :before
-        :icon (icons/chevron-right)
-        :on-touch-tap #(on-page-change (+ offset limit))}])]])
 
 (defn logo [props]
   [:a

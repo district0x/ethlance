@@ -402,6 +402,7 @@
 (s/def :list/freelancer-invoices-paid ::ids-list)
 (s/def :list/search-freelancers ::ids-list)
 (s/def :list/search-jobs ::ids-list)
+(s/def :list/sponsorable-jobs ::ids-list)
 (s/def :list/freelancer-feedbacks ::ids-list)
 (s/def :list/employer-feedbacks ::ids-list)
 (s/def :list/freelancer-invitations ::ids-list)
@@ -554,7 +555,7 @@
                    :ethlance-sponsor {:name "EthlanceSponsor" :setter? true :address "0xba31fad9602e73adbaf94d7ec55201cad7f2139d"}
                    :ethlance-sponsor-wallet {:name "EthlanceSponsorWallet" :address "0xc80d2cb06ce606395178692de07ea9da1f873aa3"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
-                   :ethlance-views {:name "EthlanceViews" :address "0xca5fc0f374f0da59fd50c4a146c13ba0657ad288"}
+                   :ethlance-views {:name "EthlanceViews" :address "0x1f286cB2EB7AE530FD85FD6EcE2e17d4f60D8DaA"}
                    :ethlance-search-freelancers {:name "EthlanceSearchFreelancers" :address "0x43386ad7af76ca5384bc06ae0c74e230f32744ee"}
                    :ethlance-search-jobs {:name "EthlanceSearchJobs" :address "0x017be8ab41ddb10ca3660f00bf4ec975a5382f04"}}
    :my-addresses []
@@ -591,6 +592,7 @@
    :list/freelancer-invoices-paid {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}
    :list/search-freelancers {:items [] :loading? true :params {} :offset 0 :limit 10}
    :list/search-jobs {:items [] :loading? true :params {} :offset 0 :limit 10}
+   :list/sponsorable-jobs {:items [] :loading? true :params {} :offset 0 :limit 10}
    :list/freelancer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 8 :sort-dir :desc}
    :list/employer-feedbacks {:items [] :loading? true :params {} :offset 0 :initial-limit 1 :limit 1 :show-more-limit 8 :sort-dir :desc}
    :list/freelancer-invitations {:items [] :loading? true :params {} :offset 0 :limit constants/list-limit :sort-dir :desc}

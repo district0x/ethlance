@@ -82,4 +82,8 @@ contract EthlanceViews {
     function getUserSponsorships(address userId) constant returns(uint[]) {
         return UserLibrary.getSponsorships(ethlanceDB, userId);
     }
+
+    function getSponsorableJobs() constant returns(uint[]) {
+        return JobLibrary.getSponsorableJobs(ethlanceDB);
+    }
 }

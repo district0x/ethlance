@@ -113,6 +113,12 @@
     :job/category :job/sponsorable? :employer/jobs-count :employer/avg-rating :employer/total-paid :user/name
     :employer/ratings-count :user/country :user/state :user/balance})
 
+(def get-sponsorable-jobs-fields
+  #{:job/title :job/created-on :job/skills :job/skills-count :job/employer :job/category :job/sponsorable?
+    :job/sponsorships-balance :job/sponsorships-count :job/sponsorships-total :employer/jobs-count
+    :job/status :employer/avg-rating :employer/total-paid :user/name :employer/ratings-count :user/country
+    :user/state})
+
 (def search-freelancers-fields
   #{:freelancer/avg-rating :freelancer/hourly-rate :freelancer/hourly-rate-currency :freelancer/job-title
     :freelancer/ratings-count :freelancer/skills :freelancer/skills-count :user/name :user/gravatar
@@ -203,6 +209,9 @@
 (def search-jobs-nested-args
   [:search/min-employer-avg-rating :search/min-employer-ratings-count
    :search/country :search/state :search/language :search/min-created-on :search/offset :search/limit])
+
+(def get-sponsorable-jobs-args
+  [])
 
 (def set-job-hiring-done-args
   [:job/id])
@@ -315,11 +324,11 @@
    :ethlance-config/set-skill-name set-skill-name-args
    :ethlance-config/set-smart-contract-status set-smart-contract-status-args
    :ethlance-contract/add-job-contract add-job-contract-args
-   :ethlance-feedback/add-job-contract-feedback add-job-contract-feedback-args
    :ethlance-contract/add-job-invitation add-job-invitation-args
    :ethlance-contract/add-job-proposal add-job-proposal-args
    :ethlance-contract/cancel-job-contract cancel-job-contract-args
    :ethlance-contract/set-smart-contract-status set-smart-contract-status-args
+   :ethlance-feedback/add-job-contract-feedback add-job-contract-feedback-args
    :ethlance-invoice/add-invoice (conj add-invoice-args add-invoice-nested-args)
    :ethlance-invoice/cancel-invoice cancel-invoice-args
    :ethlance-invoice/pay-invoice pay-invoice-args
@@ -331,14 +340,14 @@
    :ethlance-message/add-job-contract-message add-job-contract-message-args
    :ethlance-search-freelancers/search-freelancers (conj search-freelancers-args search-freelancers-nested-args)
    :ethlance-search-jobs/search-jobs (conj search-jobs-args search-jobs-nested-args)
+   :ethlance-sponsor/add-job-sponsorship add-job-sponsorship-args
+   :ethlance-sponsor/refund-job-sponsorships refund-job-sponsorship-args
    :ethlance-user/register-employer register-employer-args
    :ethlance-user/register-freelancer register-freelancer-args
    :ethlance-user/set-employer set-employer-args
    :ethlance-user/set-freelancer set-freelancer-args
    :ethlance-user/set-smart-contract-status set-smart-contract-status-args
    :ethlance-user/set-user set-user-args
-   :ethlance-sponsor/add-job-sponsorship add-job-sponsorship-args
-   :ethlance-sponsor/refund-job-sponsorships refund-job-sponsorship-args
    :ethlance-user2/set-user-notifications set-user-notifications-args
    :ethlance-views/get-contract-invoices get-contract-invoices-args
    :ethlance-views/get-contract-messages get-contract-messages-args
@@ -355,6 +364,7 @@
    :ethlance-views/get-job-sponsorships get-job-sponsorships-args
    :ethlance-views/get-skill-count []
    :ethlance-views/get-skill-names get-skill-names-args
+   :ethlance-views/get-sponsorable-jobs get-sponsorable-jobs-args
    :ethlance-views/get-user-sponsorships get-user-sponsorships-args
    :ethlance-views/get-users get-users-args})
 

@@ -29,6 +29,7 @@
     [ethlance.pages.job-edit-page :refer [job-edit-page]]
     [ethlance.pages.search-freelancers-page :refer [search-freelancers-page]]
     [ethlance.pages.search-jobs-page :refer [search-jobs-page]]
+    [ethlance.pages.search-sponsorable-jobs-page :refer [search-sponsorable-jobs-page]]
     [ethlance.pages.sponsor-detail-page :refer [sponsor-detail-page]]
     [ethlance.pages.user-edit-page :refer [user-edit-page]]
     [ethlance.styles :as styles]
@@ -59,11 +60,13 @@
    :job/edit job-edit-page
    :search/freelancers search-freelancers-page
    :user/edit user-edit-page
-   :search/jobs search-jobs-page})
+   :search/jobs search-jobs-page
+   :search/sponsorable-jobs search-sponsorable-jobs-page})
 
 (def search-nav-items
   [["Find Work" :search/jobs (icons/magnify)]
-   ["Find Candidates" :search/freelancers (icons/account-search)]])
+   ["Find Candidates" :search/freelancers (icons/account-search)]
+   ["Find Jobs to Sponsor" :search/sponsorable-jobs (icons/magnify)]])
 
 (def nav-items-freelancers
   [["My Contracts" :freelancer/contracts (icons/file-document)]
@@ -257,7 +260,7 @@
                 {:value (u/ns+name handler)
                  :style styles/nav-list
                  :on-change (fn [])}
-                (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query]))
+                (create-menu-items (u/conj-colls search-nav-items [@search-jobs-query @search-freelancers-query nil]))
                 (when @active-address
                   [ui/list-item
                    {:primary-text "My Sponsorships"

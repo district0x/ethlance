@@ -8,6 +8,7 @@
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a currency]]
     [ethlance.components.search :refer [skills-input]]
+    [ethlance.components.search-results :as search-results]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.star-rating :refer [star-rating]]
@@ -29,7 +30,7 @@
          {:load-on-mount? true
           :args @form-data
           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-jobs-deb @form-data]])}
-         [misc/search-paper-thin
+         [search-results/search-paper-thin
           [category-select-field
            {:value category
             :full-width true
@@ -96,38 +97,6 @@
           [misc/search-filter-done-button
            {:on-touch-tap #(dispatch [:search-filter.jobs/set-open? false])}]]]))))
 
-(defn search-results-employer [{:keys [:employer/jobs-count :employer/avg-rating :employer/total-paid
-                                       :user/name :user/id :employer/ratings-count :user/country :user/state
-                                       :user/balance]}]
-  [:div {:style styles/employer-info-wrap}
-   (when (seq name)
-     [row-plain
-      {:middle "xs"
-       :style styles/employer-info}
-      [:span [a {:route :employer/detail
-                 :route-params {:user/id id}
-                 :style {:color styles/primary1-color}
-                 } name]]
-      [star-rating
-       {:value (u/rating->star avg-rating)
-        :small? true
-        :style styles/employer-rating-search}]
-      [:span
-       {:style styles/employer-info-item}
-       [:span {:style styles/dark-text} ratings-count]
-       (u/pluralize " feedback" ratings-count)]
-      [:span
-       {:style styles/employer-info-item}
-       [:span {:style styles/dark-text} [currency total-paid]] " spent"]
-      [:span
-       {:style styles/employer-info-item}
-       [:span {:style styles/dark-text} [currency balance]] " balance"]
-      [misc/country-marker
-       {:country country
-        :state state
-        :row-props {:style styles/employer-info-item}}]])])
-
-
 (defn change-page [new-offset]
   (dispatch [:form.search/set-value :search/offset new-offset])
   (dispatch [:window/scroll-to-top]))
@@ -139,7 +108,7 @@
     (fn []
       (let [{:keys [:loading? :items]} @list
             {:keys [:search/offset :search/limit]} @form-data]
-        [misc/search-results
+        [search-results/search-results
          {:items-count (count items)
           :loading? loading?
           :offset offset
@@ -180,7 +149,9 @@
                               (when-not (contains? (set @selected-skills) skill-id)
                                 (dispatch [:form.search/set-value :search/skills
                                            (conj (into [] @selected-skills) skill-id)])))}]
-            [search-results-employer (:job/employer item)]
+            [search-results/search-results-employer
+             {:user (:job/employer item)
+              :show-balance? true}]
             [misc/hr-small]])]))))
 
 (defn search-jobs-page []

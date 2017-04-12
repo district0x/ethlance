@@ -878,6 +878,17 @@
                                   :keep-items? true}]})))
 
 (reg-event-fx
+  :contract.views/get-sponsorable-jobs
+  interceptors
+  (fn [{:keys [db]} [args]]
+    {:dispatch [:list/load-ids {:list-key :list/sponsorable-jobs
+                                :fn-key :ethlance-views/get-sponsorable-jobs
+                                :load-dispatch-key :contract.db/load-jobs
+                                :fields ethlance-db/get-sponsorable-jobs-fields
+                                :args args
+                                :keep-items? true}]}))
+
+(reg-event-fx
   :contract.db/load-jobs
   interceptors
   (fn [{:keys [db]} [all-fields job-ids]]

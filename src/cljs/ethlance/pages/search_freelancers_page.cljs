@@ -7,6 +7,7 @@
     [ethlance.components.language-select-field :refer [language-select-field]]
     [ethlance.components.misc :as misc :refer [col row paper-thin row-plain a currency]]
     [ethlance.components.search :refer [skills-input]]
+    [ethlance.components.search-results :as search-results]
     [ethlance.components.skills-chip-input :refer [skills-chip-input]]
     [ethlance.components.skills-chips :refer [skills-chips]]
     [ethlance.components.slider-with-counter :refer [slider-with-counter]]
@@ -30,7 +31,7 @@
          {:load-on-mount? true
           :args @form-data
           :on-change #(dispatch [:after-eth-contracts-loaded [:contract.search/search-freelancers-deb @form-data]])}
-         [misc/search-paper-thin
+         [search-results/search-paper-thin
           [category-select-field
            {:value category
             :full-width true
@@ -110,7 +111,7 @@
             {:keys [:search/offset :search/limit]} @form-data
             xs? @xs-width?
             selected-skills @selected-skills]
-        [misc/search-results
+        [search-results/search-results
          {:items-count (count items)
           :loading? loading?
           :offset offset

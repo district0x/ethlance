@@ -9,7 +9,8 @@
         ["find/" {"work" :search/jobs
                   "candidates" :search/freelancers}]
         ["search/" {"jobs" :search/jobs
-                    "freelancers" :search/freelancers}]
+                    "freelancers" :search/freelancers
+                    "jobs-to-sponsor" :search/sponsorable-jobs}]
         ["freelancer/" {"my-invoices" :freelancer/invoices
                         "my-contracts" :freelancer/contracts}]
         ["employer/" {"my-invoices" :employer/invoices

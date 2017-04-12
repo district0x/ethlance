@@ -326,6 +326,27 @@ library JobLibrary {
         return SharedLibrary.take(j, jobIds);
     }
 
+    function getSponsorableJobs(address db)
+        internal returns (uint[] jobIds)
+    {
+        uint j = 0;
+        address employerId;
+        uint jobsCount = getJobCount(db);
+        jobIds = new uint[](jobsCount);
+        for (uint jobId = jobsCount; jobId > 0; jobId--) {
+            employerId = getEmployer(db, jobId);
+            uint8 jobStatus = getStatus(db, jobId);
+            if ((jobStatus == 1 || jobStatus == 2) &&
+                isSponsorable(db, jobId) &&
+                UserLibrary.hasStatus(db, employerId, 1))
+            {
+                jobIds[j] = jobId;
+                j++;
+            }
+        }
+        return SharedLibrary.take(j, jobIds);
+    }
+
     function getEmployerJobsByStatus(address db, address userId, uint8 jobStatus)
         internal returns (uint[] jobIds)
     {
