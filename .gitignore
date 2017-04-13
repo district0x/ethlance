@@ -2,6 +2,7 @@
 /target
 /ethlance.iml
 /resources/public/contracts/build/*.bin
+/resources/public/js/compiled/out
 /.idea
 /.lein-repl-history
 /.nrepl-port
