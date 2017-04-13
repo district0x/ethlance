@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="Leiningen: javax.inject:1">
-    <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
