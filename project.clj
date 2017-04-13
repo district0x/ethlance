@@ -4,7 +4,6 @@
                  [camel-snake-kebab "0.4.0"]
                  [cljs-ajax "0.5.8"]
                  [cljs-react-material-ui "0.2.40"]
-                 [cljsjs/web3 "0.18.4-0"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/linkify "2.1.4-0" :exclusions [cljsjs/react]]
                  [cljsjs/material-ui-chip-input "0.13.0-0"]
@@ -14,6 +13,7 @@
                  [cljsjs/react-truncate "2.0.3-0"]
                  [cljsjs/react-ultimate-pagination "0.8.0-0" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [cljsjs/solidity-sha3 "0.4.1-0"]
+                 [cljsjs/web3 "0.18.4-0"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [com.cemerick/url "0.1.1"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
@@ -26,7 +26,7 @@
                  [org.clojure/clojurescript "1.9.473"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.9.2"]
-                 [reagent "0.6.1p-SNAPSHOT" :exclusions [cljsjs/react cljsjs/react-dom]]]
+                 [reagent "0.6.1" :exclusions [cljsjs/react cljsjs/react-dom]]]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.4"]
@@ -73,9 +73,7 @@
                 :source-map-timestamp true
                 :preloads [print.foo.preloads.devtools]
                 :closure-defines {goog.DEBUG true}
-                :external-config {:devtools/config {:features-to-install :all}}
-                }}
-
+                :external-config {:devtools/config {:features-to-install :all}}}}
     {:id "min"
      :source-paths ["src/cljs"]
      :compiler {:main ethlance.core
