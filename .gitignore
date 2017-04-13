@@ -1,10 +1,7 @@
 /*.log
 /target
-/*-init.clj
-out
 /ethlance.iml
 /resources/public/contracts/build/*.bin
-/.idea/
+/.idea
 /.lein-repl-history
 /.nrepl-port
-ip

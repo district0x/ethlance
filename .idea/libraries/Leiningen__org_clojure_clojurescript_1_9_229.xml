@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="Leiningen: org.clojure/clojurescript:1.9.229">
-    <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/clojure/clojurescript/1.9.229/clojurescript-1.9.229.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
