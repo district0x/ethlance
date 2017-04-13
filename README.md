@@ -60,6 +60,10 @@ To redeploy only single or few specific smart contracts run:
 (dispatch [:reinitialize [:ethlance-user]])
 ```
 
+To build advanced compilation run:
+```clojure
+lein clean && lein cljsbuild once min
+```
 
 # Contributing
 
