@@ -65,7 +65,7 @@
               [employer-info]
               [row-plain
                {:center "xs"}
-               "This user is not registered as a employer"])])]))))
+               "This user is not registered as an employer"])])]))))
 
 (defn employer-jobs []
   (let [xs-width? (subscribe [:window/xs-width?])

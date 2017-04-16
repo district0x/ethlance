@@ -84,7 +84,7 @@
            :value worked-minutes
            :max 59
            :error-text (when (< 59 worked-minutes)
-                         "Choose value between 0 and 59")}]
+                         "Choose a value between 0 and 59")}]
          (when (pos? contract-id)
            [misc/ether-field-with-currency
             {:floating-label-text (cond

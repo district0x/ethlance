@@ -150,7 +150,7 @@
              (when (and (not more-than-min-amount?) valid-amount?)
                [:small
                 {:style {:color styles/accent1-color}}
-                "Min sponsorship amount is " min-ether-amount " " (u/currency-full-name 0)])
+                "Min. sponsorship amount is " min-ether-amount " " (u/currency-full-name 0)])
              [misc/send-button
               {:disabled (or loading? (boolean (seq errors)) (not more-than-min-amount?))
                :on-touch-tap #(dispatch [:contract.sponsor/add-job-sponsorship
@@ -290,7 +290,7 @@
                                   allowed-users])
                        (when (= status 4)
                          (dispatch [:contract.views/load-job-approvals {:job/id id}])))}
-         [misc/subheader "Accounts allowed to spend sponsorships"]
+         [misc/subheader "Accounts Allowed for Sponsorships"]
          (doall
            (for [allowed-user allowed-users]
              (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} @(subscribe [:user/by-id allowed-user])
