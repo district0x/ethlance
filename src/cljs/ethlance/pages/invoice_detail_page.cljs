@@ -81,11 +81,11 @@
             (when tampered?
               [:div
                {:style {:color styles/accent1-color}}
-               "Looks like this conversion rate is invalid. Correct should be "
+               "Looks like this conversion rate is invalid. The correct rate should be "
                [misc/conversion-rate
                 {:currency reference-currency
                  :value correct-rate}]
-               ". Please report this to Ethlance team"]))])
+               ". Please report this to the Ethlance team"]))])
        (when (and (pos? reference-currency)
                   (= payment-type 1))
          [line (str "Amount in " (u/currency-full-name reference-currency))
@@ -195,6 +195,6 @@
                       :on-touch-tap #(dispatch [:contract.invoice/pay-invoice {:invoice/id id} 0])}]]
                    [:small
                     (case (:job/status job)
-                      5 "This invoice can't be paid, because you are in process of refunding sponsors"
+                      5 "This invoice can't be paid, because you are in the process of refunding sponsors"
                       6 "This invoice can't be paid, because you already refunded sponsors"
                       "")]))]])]]]))))

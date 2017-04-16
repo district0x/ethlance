@@ -66,13 +66,13 @@
                                       (remove-error :max-skills-create-at-once)))))
            :error-text (cond
                          (contains? errors :not-alphanumeric)
-                         "You can use only alphanumeric characters"
+                         "You can only use alphanumeric characters"
 
                          (contains? errors :max-skill-name-length)
                          "Maximum length is 32 characters"
 
                          (contains? errors :skill-already-exists)
-                         "Such skill already exists"
+                         "This skill already exists"
 
                          (contains? errors :max-skills-create-at-once)
                          (gstring/format "You can add max %s skills at once" max-skills-create-at-once)

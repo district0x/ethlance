@@ -238,7 +238,7 @@
           [:h2 "Cancel Contract"]
           [:div {:style (merge styles/fade-text styles/margin-top-gutter-less)}
            "You can cancel this contract in case you decided for another job or you can't start work for other reasons."
-           [:br] "After you create at least 1 invoice for this contract, this option won't be available anymore."]
+           [:br] "After you create at least one invoice for this contract, this option will be unavailable."]
           [misc/textarea
            {:floating-label-text "Message"
             :form-key :form.contract/cancel-contract
@@ -289,8 +289,8 @@
           (when (= status 3)
             [:div {:style styles/form-item}
              (if (and (zero? invoices-count) employer?)
-               "You will be able to leave feedback only after freelancer sends you at least 1 invoice"
-               "Note, by leaving feedback you will end this contract. That means no more invoices can be sent.")])
+               "You will be able to leave feedback after the freelancer sends you at least one invoice."
+               "Note that by leaving feedback you will end this contract, which means no more invoices can be sent.")])
           [misc/send-button
            {:disabled (or loading?
                           (boolean (seq errors))

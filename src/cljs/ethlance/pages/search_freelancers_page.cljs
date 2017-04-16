@@ -66,7 +66,7 @@
                           (dispatch [:form.search/set-value :search/hourly-rate-currency currency])
                           (dispatch [:selected-currency/set currency]))}}]
           [misc/text-field-base
-           {:floating-label-text "Min. Number of Feedbacks"
+           {:floating-label-text "Min. Number of Ratings"
             :type :number
             :value min-freelancer-ratings-count
             :full-width true
@@ -179,7 +179,7 @@
     {:selected-skills-subscribe [:form/search-freelancer-skills]
      :selected-skills-or-subscribe [:form/search-freelancer-skills-or]
      :open-subscribe [:db/search-freelancers-skills-open?]
-     :skills-hint-text "Type skills you want a freelancer to have"
+     :skills-hint-text "Type of skills you want a freelancer to have"
      :skills-and-hint-text "Freelancers have all of entered skills"
      :skills-or-hint-text "Freelancers have at least one of entered skills"
      :skills-and-floating-label-text "All of skills are required"

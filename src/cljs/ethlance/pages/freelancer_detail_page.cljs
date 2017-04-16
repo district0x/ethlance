@@ -41,7 +41,7 @@
          [skills-chips
           {:selected-skills skills
            :always-show-all? true}]
-         [misc/subheader "Interested in categories"]
+         [misc/subheader "Interested in Categories"]
          [misc/call-on-change
           {:load-on-mount? true
            :args {id (select-keys user [:freelancer/categories-count])}

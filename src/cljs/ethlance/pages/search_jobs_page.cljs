@@ -73,7 +73,7 @@
                           (dispatch [:form.search/set-value :search/min-budget-currency currency])
                           (dispatch [:selected-currency/set currency]))}}]
           [misc/text-field-base
-           {:floating-label-text "Min. Employer Feedbacks"
+           {:floating-label-text "Min. Employer Ratings"
             :floating-label-fixed true
             :type :number
             :value min-employer-ratings-count

@@ -98,7 +98,8 @@
     {:xs 10 :sm 7 :md 5 :lg 4
      :style styles/text-left}
     [:h1.black "We take no cut!"]
-    [:h3.black "Ethlance doesn’t take any percentage of your earned Ether. Amount of Ether employer pays is exactly what freelancer gets."]]
+    [:h3.black "Ethlance doesn’t take a percentage of your earned Ether.
+    The amount of Ether the employer pays is the amount the freelancer gets."]]
    [col
     {:xs 5 :sm 3 :md 3 :lg 2}
     [:img
@@ -118,7 +119,7 @@
     {:xs 8 :sm 6 :sm-offset 1 :md 5
      :style styles/text-left}
     [:h1.black "It’s all on blockchain!"]
-    [:h3.black "Ethlance database is distributed on Ethereum public blockchain and source files on IPFS.
+    [:h3.black "The Ethlance database is distributed on the Ethereum public blockchain and the source files are on IPFS.
     This makes it accessible to everyone forever, without any central authority having control over it."]]])
 
 (defn feature-no-restrictions []
@@ -129,7 +130,8 @@
     {:xs 8 :sm 8 :md 4
      :style styles/text-left}
     [:h1.black "No artificial restrictions!"]
-    [:h3.black "Everybody can apply for, or create unlimited number of jobs. All that is needed, is to pay Ethereum gas fees associated with these operations."]]
+    [:h3.black "Everybody can apply for, or create, an unlimited number of jobs.
+    All that is needed is to pay Ethereum gas fees associated with these operations."]]
    [col
     {:xs 10 :sm 8 :md 6 :lg 5}
     [:img
