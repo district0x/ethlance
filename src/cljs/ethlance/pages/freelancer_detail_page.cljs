@@ -54,9 +54,10 @@
   (let [xs-width? (subscribe [:window/xs-width?])
         user (subscribe [:user/detail])]
     (fn []
-      (let [{:keys [:user/id :user/name :user/gravatar :user/employer? :user/freelancer?]} @user]
+      (let [{:keys [:user/id :user/name :user/gravatar :user/employer? :user/freelancer?
+                    :freelancer/description]} @user]
         [paper
-         {:loading? (empty? name)
+         {:loading? (nil? description)
           :style styles/paper-section-main}
          (when (seq name)
            [:div
@@ -80,9 +81,10 @@
                   :href (u/path-for :employer/detail :user/id id)}])]]
             (if freelancer?
               [freelancer-info]
-              [row-plain
-               {:center "xs"}
-               "This user is not registered as a freelancer"])])]))))
+              (when (false? freelancer?)
+                [row-plain
+                 {:center "xs"}
+                 "This user is not registered as a freelancer"]))])]))))
 
 (defn freelancer-contracts []
   (let [xs-width? (subscribe [:window/xs-width?])

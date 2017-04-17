@@ -18,7 +18,7 @@
         :search-text (if (or (not value) (zero? value))
                        ""
                        (nth countries (dec value)))}
-       props
+       (dissoc props :value)
        (when-let [on-new-request (:on-new-request props)]
          {:on-new-request (fn [value index]
                             (on-new-request value (inc index)))

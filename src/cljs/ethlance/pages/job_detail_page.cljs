@@ -349,6 +349,7 @@
                                                               [@job-id]]])}
          [paper
           {:loading? (or (empty? (:user/name employer))
+                         (nil? description)
                          (and sponsorable? (empty? allowed-users))
                          loading?)
            :style styles/paper-section-main}

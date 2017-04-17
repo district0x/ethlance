@@ -15,7 +15,7 @@
                        ""
                        (nth languages (dec value)))
         :menu-props styles/chip-input-menu-props}
-       props
+       (dissoc props :value)
        (when-let [on-new-request (:on-new-request props)]
          {:on-new-request (fn [value index]
                             (on-new-request value (inc index)))
