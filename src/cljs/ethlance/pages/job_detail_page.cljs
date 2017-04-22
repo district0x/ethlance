@@ -359,7 +359,7 @@
              [:h3 {:style {:margin-top 5}} (constants/categories category)]
              [:h4 {:style styles/fade-text} "Created on " (u/format-datetime created-on)]
              (when hiring-done-on
-               [:h4 {:style styles/fade-text} "Hiring done on " (u/format-datetime hiring-done-on)])
+               [:h4 {:style styles/fade-text} "Hiring closed on " (u/format-datetime hiring-done-on)])
              [row-plain
               {:style (merge styles/margin-top-gutter-less
                              styles/margin-bottom-gutter-less)}
@@ -424,26 +424,32 @@
                   :on-touch-tap #(dispatch [:contract.job/set-hiring-done {:job/id id}])}])
               (when (and @my-job?
                          (contains? #{1 2} status)
-                         sponsorable?
-                         (u/big-num-pos? sponsorships-balance))
-                [ui/raised-button
-                 {:label "Refund Sponsors"
-                  :primary true
-                  :style {:margin-left 5}
-                  :disabled loading?
-                  :on-touch-tap #(dispatch [:dialog/open-confirmation
-                                            {:title "Are you sure you want to start refunding?"
-                                             :body
-                                             (str
-                                               "After you start refunding sponsors, no more invoices can be
-                                                paid and no new hires can be made. Use this only when
-                                                you're done with the job. Sponsors will be refunded per " constants/refund-sponsors-limit
-                                               " due to gas limitations, so you might need to use this several
-                                               times to refund all sponsors.")
-                                             :on-confirm (fn []
-                                                           (dispatch [:contract.sponsor/refund-job-sponsorships
-                                                                      {:sponsorship/job id
-                                                                       :limit constants/refund-sponsors-limit}]))}])}])
+                         sponsorable?)
+                (if (u/big-num-pos? sponsorships-balance)
+                  [ui/raised-button
+                   {:label "Refund Sponsors"
+                    :primary true
+                    :style {:margin-left 5}
+                    :disabled loading?
+                    :on-touch-tap #(dispatch [:dialog/open-confirmation
+                                              {:title "Are you sure you want to start refunding?"
+                                               :body
+                                               (str
+                                                 "After you start refunding sponsors, no more invoices can be
+                                                  paid and no new hires can be made. Use this only when
+                                                  you're done with the job. Sponsors will be refunded per " constants/refund-sponsors-limit
+                                                 " due to gas limitations, so you might need to use this several
+                                                 times to refund all sponsors.")
+                                               :on-confirm (fn []
+                                                             (dispatch [:contract.sponsor/refund-job-sponsorships
+                                                                        {:sponsorship/job id
+                                                                         :limit constants/refund-sponsors-limit}]))}])}]
+                  [ui/raised-button
+                   {:label "Close Job"
+                    :secondary true
+                    :style {:margin-left 5}
+                    :disabled loading?
+                    :on-touch-tap #(dispatch [:contract.sponsor/refund-job-sponsorships {:sponsorship/job id :limit 0}])}]))
               (when (and @my-job? (= status 5))
                 [ui/raised-button
                  {:label "Continue Refunding"

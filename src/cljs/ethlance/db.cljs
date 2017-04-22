@@ -552,7 +552,7 @@
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x78f1072964d7f110e06670c229794afbdce7e474"}
                    :ethlance-message {:name "EthlanceMessage" :setter? true :address "0xf94aa98bde7589719f1f08c6fb032debd0d7e9e6"}
                    :ethlance-config {:name "EthlanceConfig" :setter? true :address "0xe7d8d05f8328ea5b8fba5a77d4e4172487264bda"}
-                   :ethlance-sponsor {:name "EthlanceSponsor" :setter? true :address "0xba31fad9602e73adbaf94d7ec55201cad7f2139d"}
+                   :ethlance-sponsor {:name "EthlanceSponsor" :setter? true :address "0xb9f7d3b60ec29bd73fd66428f140ed5b0e1ef6ec"}
                    :ethlance-sponsor-wallet {:name "EthlanceSponsorWallet" :address "0xc80d2cb06ce606395178692de07ea9da1f873aa3"}
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0x1f286cB2EB7AE530FD85FD6EcE2e17d4f60D8DaA"}

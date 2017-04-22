@@ -1,7 +1,7 @@
 (ns ethlance.constants
   (:require [clojure.tools.reader :as reader]))
 
-(def contracts-version "1.0.14")
+(def contracts-version "1.0.15")
 (def skills-version "1.1")
 (def list-limit 8)
 (def refund-sponsors-limit 20)
@@ -65,7 +65,7 @@
    3 "Blocked"
    4 "Waiting for Approval"
    5 "Refunding Sponsors"
-   6 "Sponsors Refunded"})
+   6 "Done"})
 
 (def invoice-status
   {1 "Pending"

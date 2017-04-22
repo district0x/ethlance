@@ -42,31 +42,33 @@ contract EthlanceSponsor is EthlanceSetter, SponsorRelated {
         var sponsorshipsRefunded = JobLibrary.getSponsorshipsTotalRefunded(ethlanceDB, jobId);
         require(JobLibrary.getEmployer(ethlanceDB, jobId) == msg.sender);
         require(jobStatus == 1 || jobStatus == 2 || jobStatus == 5);
-        require(sponsorshipsBalance > 0);
-        require(sponsorshipsTotal > 0);
-        var ratioSpent = SafeMath.safeMul(SafeMath.safeAdd(sponsorshipsBalance, sponsorshipsRefunded),
-            1000000000000000000) / sponsorshipsTotal;
-        uint i = 0;
-        uint refundedCount = 0;
-        var jobSponsorshipsIds = JobLibrary.getSponsorships(ethlanceDB, jobId);
-        while (i < jobSponsorshipsIds.length && refundedCount < limit) {
-            var sponsorshipId = jobSponsorshipsIds[i];
-            if (!SponsorLibrary.isSponsorshipRefunded(ethlanceDB, sponsorshipId)) {
-                var sponsor = SponsorLibrary.getSponsorshipUser(ethlanceDB, sponsorshipId);
-                var proportionalAmount = SponsorLibrary.getSponsorshipProportionalAmount(ethlanceDB, sponsorshipId, ratioSpent);
-                EthlanceSponsorWallet(ethlanceSponsorWallet).sendFunds(sponsor, proportionalAmount);
-                SponsorLibrary.setAsRefunded(ethlanceDB, sponsorshipId, proportionalAmount);
-                JobLibrary.refundSponsorship(ethlanceDB, jobId, proportionalAmount);
-                UserLibrary.subTotalSponsored(ethlanceDB, sponsor, proportionalAmount);
-                onJobSponsorshipRefunded(sponsorshipId, jobId, sponsor, proportionalAmount);
-                refundedCount++;
+        if (sponsorshipsBalance > 0 && sponsorshipsTotal > 0) {
+            var ratioSpent = SafeMath.safeMul(SafeMath.safeAdd(sponsorshipsBalance, sponsorshipsRefunded),
+                1000000000000000000) / sponsorshipsTotal;
+            uint i = 0;
+            uint refundedCount = 0;
+            var jobSponsorshipsIds = JobLibrary.getSponsorships(ethlanceDB, jobId);
+            while (i < jobSponsorshipsIds.length && refundedCount < limit) {
+                var sponsorshipId = jobSponsorshipsIds[i];
+                if (!SponsorLibrary.isSponsorshipRefunded(ethlanceDB, sponsorshipId)) {
+                    var sponsor = SponsorLibrary.getSponsorshipUser(ethlanceDB, sponsorshipId);
+                    var proportionalAmount = SponsorLibrary.getSponsorshipProportionalAmount(ethlanceDB, sponsorshipId, ratioSpent);
+                    EthlanceSponsorWallet(ethlanceSponsorWallet).sendFunds(sponsor, proportionalAmount);
+                    SponsorLibrary.setAsRefunded(ethlanceDB, sponsorshipId, proportionalAmount);
+                    JobLibrary.refundSponsorship(ethlanceDB, jobId, proportionalAmount);
+                    UserLibrary.subTotalSponsored(ethlanceDB, sponsor, proportionalAmount);
+                    onJobSponsorshipRefunded(sponsorshipId, jobId, sponsor, proportionalAmount);
+                    refundedCount++;
+                }
+                i++;
             }
-            i++;
-        }
-        if (i == jobSponsorshipsIds.length) {
+            if (i == jobSponsorshipsIds.length) {
+                JobLibrary.setStatus(ethlanceDB, jobId, 6);
+            } else if (jobStatus != 5) {
+                JobLibrary.setStatus(ethlanceDB, jobId, 5);
+            }
+        } else {
             JobLibrary.setStatus(ethlanceDB, jobId, 6);
-        } else if (jobStatus != 5) {
-            JobLibrary.setStatus(ethlanceDB, jobId, 5);
         }
     }
 }
