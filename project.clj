@@ -45,7 +45,8 @@
   :auto {"compile-solidity" {:file-pattern #"\.(sol)$"
                              :paths ["resources/public/contracts/src"]}}
 
-  :aliases {"compile-solidity" ["shell" "./compile-solidity.sh"]}
+  :aliases {"compile-solidity" ["shell" "./compile-solidity.sh"]
+            "start-testrpc" ["shell" "./start-testrpc.sh"]}
 
   :less {:source-paths ["resources/public/less"]
          :target-path "resources/public/css"
@@ -73,8 +74,7 @@
                 :source-map-timestamp true
                 :preloads [print.foo.preloads.devtools]
                 :closure-defines {goog.DEBUG true}
-                :external-config {:devtools/config {:features-to-install :all}}
-                }}
+                :external-config {:devtools/config {:features-to-install :all}}}}
 
     {:id "min"
      :source-paths ["src/cljs"]

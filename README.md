@@ -41,6 +41,9 @@ lein repl
 (figwheel-sidecar.repl-api/start-figwheel! (figwheel-sidecar.config/fetch-config))
 (figwheel-sidecar.repl-api/cljs-repl)
 ```
+
+See `ethlance.el` on how to run the above commands in Emacs via `ethlance-jack-in` and `ethlance-start`.
+
 Make sure in [ethlance.db/default-db](https://github.com/madvas/ethlance/blob/master/src/cljs/ethlance/db.cljs) you have following configuration:
 ```clojure
 :load-node-addresses? true
