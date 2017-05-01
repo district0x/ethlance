@@ -66,8 +66,7 @@
   (nth (:my-addresses @re-frame.db/app-db) n))
 
 (defn gen-job []
-  {:job/id 0
-   :job/title (rand-text (cfg :min-job-title) (cfg :max-job-title))
+  {:job/title (rand-text (cfg :min-job-title) (cfg :max-job-title))
    :job/description (rand-text (cfg :min-job-description) (cfg :max-job-description))
    :job/skills (set (rand-uint-coll (cfg :max-job-skills) 29 #_(dec (count constants/skills))))
    :job/budget (rand-int 100)
@@ -146,8 +145,8 @@
                   [:contract.user/register-freelancer freelancer1 (get-address 0)]]
      :dispatch-later (concat
                        [{:ms 10 :dispatch [:contract.user/register-employer employer1 (get-address 1)]}]
-                       #_(map #(hash-map :ms 100 :dispatch [:contract.job/set-job (gen-job) (get-address 1)]) (range 10))
-                       (map #(hash-map :ms 100 :dispatch [:contract.job/set-job (gen-job-sponsorable) (get-address 1)]) (range 10))
+                       #_(map #(hash-map :ms 100 :dispatch [:contract.job/add-job (gen-job) (get-address 1) :form.job/add-job]) (range 10))
+                       (map #(hash-map :ms 100 :dispatch [:contract.job/add-job (gen-job-sponsorable) (get-address 1)]) (range 10))
                        #_[{:ms 20 :dispatch [:contract.contract/add-job-invitation invitation1 (get-address 1)]}
                           {:ms 30 :dispatch [:contract.contract/add-job-proposal proposal1 (get-address 0)]}
                           {:ms 40 :dispatch [:contract.contract/add-contract (gen-contract 1) (get-address 1)]}]

@@ -1108,14 +1108,20 @@
 ;;============jobs
 
 (reg-event-fx
-  :contract.job/set-job
+  :contract.job/add-job
   interceptors
   (fn [{:keys [db]} [form-data address]]
+    {:dispatch [:contract.job/set-job (assoc form-data :job/id 0) :form.job/add-job address]}))
+
+(reg-event-fx
+  :contract.job/set-job
+  interceptors
+  (fn [{:keys [db]} [form-data form-key address]]
     {:dispatch [:form/submit
                 {:form-data form-data
                  :address address
                  :fn-key :ethlance-job/set-job
-                 :form-key :form.job/add-job
+                 :form-key form-key
                  :receipt-dispatch-n [[:snackbar/show-message (str "Job has been successfully "
                                                                    (if (pos? (:job/id form-data))
                                                                      "updated"
@@ -2340,7 +2346,7 @@
                                                          :search/offset 0
                                                          :search/limit 5}]))
 
-  (dispatch [:contract.job/set-job {:job/title "This is Job 1"
+  (dispatch [:contract.job/add-job {:job/title "This is Job 1"
                                     :job/description "Asdkaas  aspokd aps asopdk ap"
                                     :job/skills [3 4 5]
                                     :job/budget 10

@@ -155,8 +155,10 @@
                                      true (set/difference #{:invalid-address})
                                      true seq
                                      true boolean))
-            :on-touch-tap #(dispatch [:contract.job/set-job (cond-> data
-                                                              (not sponsorable?) (assoc :job/allowed-users []))])}]
+            :on-touch-tap #(dispatch [:contract.job/set-job
+                                      (cond-> data
+                                        (not sponsorable?) (assoc :job/allowed-users []))
+                                      form-key])}]
           (when (and sponsorable?
                      (not (only-me-allowed? @active-address allowed-users)))
             [row-plain

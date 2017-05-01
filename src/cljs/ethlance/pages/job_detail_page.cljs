@@ -468,6 +468,7 @@
                  {:label "Edit Job"
                   :primary true
                   :style {:margin-left 5}
+                  :disabled loading?
                   :icon (icons/pencil)
                   :href (u/path-for :job/edit :job/id id)}])
               (when (and (= status 4) @waiting-for-my-approval?)
