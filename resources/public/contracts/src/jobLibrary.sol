@@ -27,14 +27,17 @@ library JobLibrary {
         uint language,
         uint budget,
         uint8[] uint8Items,
-        bool isSponsorable,
+        bool _isSponsorable,
         address[] allowedUsers
     )
         internal returns (uint jobId)
     {
         if (existingJobId > 0) {
-            require(getStatus(db, existingJobId) == 4);
+            var currentJobStatus = getStatus(db, existingJobId);
             require(getEmployer(db, existingJobId) == senderId);
+            require(getContractsCount(db, existingJobId) == 0);
+            require(getSponsorshipsCount(db, existingJobId) == 0);
+            require(currentJobStatus == 4 || currentJobStatus == 1);
             jobId = existingJobId;
         } else {
             jobId = SharedLibrary.createNext(db, "job/count");
@@ -67,7 +70,7 @@ library JobLibrary {
 
         EthlanceDB(db).setUInt8Value(sha3("job/reference-currency", jobId), uint8Items[6]);
 
-        EthlanceDB(db).setBooleanValue(sha3("job/sponsorable?", jobId), isSponsorable);
+        EthlanceDB(db).setBooleanValue(sha3("job/sponsorable?", jobId), _isSponsorable);
         SharedLibrary.setIdArray(db, jobId, "job/allowed-users", "job/allowed-users-count",
                         allowedUsers);
 
@@ -80,7 +83,7 @@ library JobLibrary {
             CategoryLibrary.addJob(db, uint8Items[0], jobId);
         }
 
-        if (isSponsorable) {
+        if (_isSponsorable) {
             setStatus(db, jobId, 4);
             approveSponsorableJob(db, jobId, senderId, allowedUsers);
         } else {
@@ -198,6 +201,10 @@ library JobLibrary {
         return SharedLibrary.getIdArray(db, jobId, "job/sponsorships", "job/sponsorships-count");
     }
 
+    function getSponsorshipsCount(address db, uint jobId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job/sponsorships-count", jobId));
+    }
+
     function getSponsorshipsSortedByAmount(address db, uint jobId) internal returns(uint[]) {
         var sponsorships = getSponsorships(db, jobId);
     }
@@ -208,6 +215,10 @@ library JobLibrary {
 
     function getContracts(address db, uint jobId) internal returns(uint[]) {
         return SharedLibrary.getIdArray(db, jobId, "job/contracts", "job/contracts-count");
+    }
+
+    function getContractsCount(address db, uint jobId) internal returns(uint) {
+        return EthlanceDB(db).getUIntValue(sha3("job/contracts-count", jobId));
     }
 
     function getEmployer(address db, uint jobId) internal returns(address) {

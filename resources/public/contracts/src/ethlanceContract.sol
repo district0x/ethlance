@@ -7,7 +7,7 @@ import "strings.sol";
 contract EthlanceContract is EthlanceSetter {
     using strings for *;
 
-    event onJobProposalAdded(uint contractId, address indexed employerId, address freelancerId);
+    event onJobProposalAdded(uint contractId, uint jobId, address indexed employerId, address freelancerId);
     event onJobContractAdded(uint contractId, address employerId, address indexed freelancerId);
     event onJobContractCancelled(uint contractId, address indexed employerId, address freelancerId);
     event onJobContractFeedbackAdded(uint contractId, address indexed receiverId, address senderId, bool isSenderFreelancer);
@@ -56,7 +56,7 @@ contract EthlanceContract is EthlanceSetter {
         if (description.toSlice().len() > getConfig("max-proposal-desc")) throw;
         var contractId = ContractLibrary.addProposal(ethlanceDB, jobId, msg.sender, description, rate);
         var employerId = JobLibrary.getEmployer(ethlanceDB, jobId);
-        onJobProposalAdded(contractId, employerId, msg.sender);
+        onJobProposalAdded(contractId, jobId, employerId, msg.sender);
     }
 
     function addJobInvitation(

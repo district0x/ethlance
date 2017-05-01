@@ -334,7 +334,8 @@
                     :job/description :job/budget :job/skills :job/category
                     :job/status :job/hiring-done-on :job/freelancers-needed
                     :job/employer :job/reference-currency :job/sponsorable?
-                    :job/allowed-users :job/sponsorships-balance]} @job
+                    :job/allowed-users :job/sponsorships-balance :job/contracts-count
+                    :job/sponsorships-count]} @job
             loading? (some true? (map :loading? [@set-hiring-done-form
                                                  @approve-sponsorable-job-form
                                                  @refund-sponsorships-form]))]
@@ -459,10 +460,14 @@
                   :on-touch-tap #(dispatch [:contract.sponsor/refund-job-sponsorships
                                             {:sponsorship/job id
                                              :limit constants/refund-sponsors-limit}])}])
-              (when (and @my-job? (= status 4))
+              (when (and @my-job?
+                         (zero? contracts-count)
+                         (zero? sponsorships-count)
+                         (contains? #{1 4} status))
                 [ui/raised-button
                  {:label "Edit Job"
                   :primary true
+                  :style {:margin-left 5}
                   :icon (icons/pencil)
                   :href (u/path-for :job/edit :job/id id)}])
               (when (and (= status 4) @waiting-for-my-approval?)

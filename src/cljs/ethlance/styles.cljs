@@ -302,7 +302,7 @@
    3 (color :red600)
    4 pending-color
    5 (color :deep-purple500)
-   6 (color :deep-purple900)})
+   6 (color :red800)})
 
 (def job-sposorable-chip-color (color :teal-A700))
 

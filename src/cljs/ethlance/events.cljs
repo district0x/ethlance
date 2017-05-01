@@ -1272,7 +1272,8 @@
                  :fn-key :ethlance-contract/add-job-proposal
                  :form-key :form.contract/add-proposal
                  :receipt-dispatch-n [[:snackbar/show-message "Your proposal was successfully sent!"]
-                                      [:contract.views/load-job-proposals (:params (:list/job-proposals db))]]}]}))
+                                      [:contract.views/load-job-proposals (:params (:list/job-proposals db))]
+                                      [:contract.db/load-jobs #{:job/contracts-count} [(:contract/job form-data)]]]}]}))
 
 (reg-event-fx
   :contract.views/load-job-proposals
@@ -1543,7 +1544,8 @@
                  :form-key :form.sponsor/add-job-sponsorship
                  :receipt-dispatch-n [[:snackbar/show-message "Your sponsorship was successfully sent!"]
                                       [:contract.views/load-job-sponsorships (:params (:list/job-sponsorships db))]
-                                      [:contract.db/load-jobs ethlance-db/job-sponsorship-stats-fields
+                                      [:contract.db/load-jobs (set/union ethlance-db/job-sponsorship-stats-fields
+                                                                         #{:job/sponsorships-count})
                                        [(:sponsorship/job form-data)]]]}]}))
 
 (reg-event-fx
@@ -1677,11 +1679,14 @@
 (reg-event-fx
   :contract.contract/on-job-proposal-added
   [interceptors]
-  (fn [{:keys [db]} [{:keys [:contract-id]}]]
-    (let [contract-id (u/big-num->num contract-id)]
+  (fn [{:keys [db]} [{:keys [:contract-id :job-id]}]]
+    (let [contract-id (u/big-num->num contract-id)
+          job-id (u/big-num->num job-id)]
       (merge
         {:dispatch [:snackbar/show-message-redirect-action
                     "Your job just received a proposal!" :contract/detail {:contract/id contract-id}]}
+        (when (active-page-this-job-detail? db job-id)
+          {:dispatch-n [[:contract.db/load-jobs #{:job/contracts-count} [job-id]]]})
         (when (active-page-this-contract-detail? db contract-id)
           {:dispatch-n [[:contract.db/load-contracts
                          (set/union ethlance-db/job-proposals-list-fields)
@@ -1789,7 +1794,9 @@
                     :job/detail {:job/id job-id}]}
         (when (active-page-this-job-detail? db job-id)
           {:dispatch-n [[:contract.views/load-job-sponsorships {:job/id job-id}]
-                        [:contract.db/load-jobs ethlance-db/job-sponsorship-stats-fields [job-id]]]})))))
+                        [:contract.db/load-jobs (set/union ethlance-db/job-sponsorship-stats-fields
+                                                           #{:job/sponsorships-count})
+                         [job-id]]]})))))
 
 (reg-event-fx
   :contract.sponsor/on-job-sponsorship-refunded

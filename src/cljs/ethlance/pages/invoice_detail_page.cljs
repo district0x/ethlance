@@ -139,7 +139,9 @@
                                                                           :job/status
                                                                           :job/payment-type
                                                                           :job/reference-currency
-                                                                          :job/employer})
+                                                                          :job/employer
+                                                                          :user/name
+                                                                          :user/gravatar})
                                   [@invoice-id]]])}
          [misc/center-layout
           [paper
