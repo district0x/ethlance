@@ -24,6 +24,7 @@ contract EthlanceJob is EthlanceSetter {
         uint budget,
         uint8[] uint8Items,
         bool isSponsorable,
+        bool isInvitationOnly,
         address[] allowedUsers
     )
         onlyActiveSmartContract
@@ -43,7 +44,7 @@ contract EthlanceJob is EthlanceSetter {
         }
 
         var newJobId = JobLibrary.setJob(ethlanceDB, jobId, msg.sender, title, description, skills,
-            language, budget, uint8Items, isSponsorable, allowedUsers);
+            language, budget, uint8Items, isSponsorable, isInvitationOnly, allowedUsers);
         if (jobId == 0) {
             onJobAdded(newJobId);
         }

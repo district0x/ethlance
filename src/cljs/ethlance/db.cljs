@@ -174,6 +174,7 @@
 (s/def :job/title string?)
 (s/def :job/total-paid u/big-num?)
 (s/def :job/sponsorable? boolean?)
+(s/def :job/invitation-only? boolean?)
 (s/def :job/allowed-users u/address-coll?)
 (s/def :job/allowed-users-count u/uint?)
 (s/def :job/sponsorships-balance u/big-num?)
@@ -209,6 +210,7 @@
                               :job/title
                               :job/total-paid
                               :job/sponsorable?
+                              :job/invitation-only?
                               :job/allowed-users
                               :job/allowed-users-count]))
 
@@ -546,8 +548,8 @@
    :active-setters? true
    :eth/contracts {:ethlance-user {:name "EthlanceUser" :setter? true :address "0x27d233fa6032e848a016092d70493b2a5f13a95f"}
                    :ethlance-user2 {:name "EthlanceUser2" :setter? true :address "0x42c3e6bf6e47ad3d6cbb0b966c44e9331e96dd3e"}
-                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xe3714093a5e3f8A84104AF2549350a3a33aD5065"}
-                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x502daE3a206F0186C4dc4A7B1Db5A65F1287Bb5e"}
+                   :ethlance-job {:name "EthlanceJob" :setter? true :address "0xB9E80ce5A7CbbA0Aab685797F6585AD1f3c90028"}
+                   :ethlance-contract {:name "EthlanceContract" :setter? true :address "0x8F24AF20ad202C77686B771AD3dBc6b1fe28dDdD"}
                    :ethlance-feedback {:name "EthlanceFeedback" :setter? true :address "0x2249713725c8a4a070a61de0bdce6b1081014185"}
                    :ethlance-invoice {:name "EthlanceInvoice" :setter? true :address "0x78f1072964d7f110e06670c229794afbdce7e474"}
                    :ethlance-message {:name "EthlanceMessage" :setter? true :address "0xf94aa98bde7589719f1f08c6fb032debd0d7e9e6"}
@@ -634,6 +636,7 @@
                              :job/freelancers-needed 1
                              :job/reference-currency 0
                              :job/sponsorable? false
+                             :job/invitation-only? false
                              :job/allowed-users []}
                       :errors #{:job/title :job/description :job/skills :job/category :job/allowed-users}}
 

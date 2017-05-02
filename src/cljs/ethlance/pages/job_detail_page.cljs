@@ -20,7 +20,6 @@
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]))
 
-
 (defn job-refunding? [job-status]
   (contains? #{5 6} job-status))
 
@@ -196,34 +195,42 @@
             :all-ids-subscribe [:list/ids :list/job-sponsorships]}
            [add-sponsorship-form]])))))
 
-(defn create-proposal-allowed? [{:keys [:contract/status]}]
-  (or (not status) (= status 1)))
+(defn create-proposal-allowed? [{:keys [:job/invitation-only?]} {:keys [:contract/status]}]
+  (or
+    (and invitation-only? (= status 1))
+    (and (not invitation-only?)
+         (or
+           (not status)
+           (= status 1)))))
 
-(defn job-action-buttons [contract form-open?]
-  (let [{:keys [:contract/status :contract/id]} contract]
-    [row-plain
-     {:end "xs"}
-     (when (and (not @form-open?) (create-proposal-allowed? contract))
-       [ui/raised-button
-        {:label "Write Proposal"
-         :primary true
-         :on-touch-tap #(reset! form-open? true)
-         :style styles/detail-action-button
-         :icon (icons/pencil)}])
-     (when (= status 1)
-       [ui/raised-button
-        {:label "You were invited!"
-         :style (merge {:margin-left 10}
-                       styles/detail-action-button)
-         :href (u/path-for :contract/detail :contract/id id)
-         :secondary true}])
-     (when (>= status 2)
-       [ui/raised-button
-        {:label "My Proposal"
-         :href (u/path-for :contract/detail :contract/id id)
-         :style styles/detail-action-button
-         :primary true
-         :icon (icons/pencil)}])]))
+(defn job-action-buttons []
+  (let [job (subscribe [:job/detail])
+        contract (subscribe [:db/active-freelancer-job-detail-contract])]
+    (fn [{:keys [:form-open?]}]
+      (let [{:keys [:contract/status :contract/id]} @contract]
+        [row-plain
+         {:end "xs"}
+         (when (and (not @form-open?) (create-proposal-allowed? @job @contract))
+           [ui/raised-button
+            {:label "Write Proposal"
+             :primary true
+             :on-touch-tap #(reset! form-open? true)
+             :style styles/detail-action-button
+             :icon (icons/pencil)}])
+         (when (= status 1)
+           [ui/raised-button
+            {:label "You were invited!"
+             :style (merge {:margin-left 10}
+                           styles/detail-action-button)
+             :href (u/path-for :contract/detail :contract/id id)
+             :secondary true}])
+         (when (>= status 2)
+           [ui/raised-button
+            {:label "My Proposal"
+             :href (u/path-for :contract/detail :contract/id id)
+             :style styles/detail-action-button
+             :primary true
+             :icon (icons/pencil)}])]))))
 
 (defn job-proposal-form []
   (let [form-open? (r/atom false)
@@ -236,16 +243,20 @@
             {:keys [:proposal/description :proposal/rate]} data]
         (when (and (= (:job/status @job) 1)
                    (:user/freelancer? @active-user)
-                   (not= (:user/id (:job/employer @job)) (:user/id @active-user)))
+                   (not= (:user/id (:job/employer @job)) (:user/id @active-user))
+                   (or (and (:job/invitation-only? @job)
+                            (pos? (:contract/status @contract)))
+                       (not (:job/invitation-only? @job))))
           [paper
            {:loading? loading?}
            [row
             [col {:xs 12 :sm 6}
-             (when (and @form-open? (create-proposal-allowed? @contract))
+             (when (and @form-open? (create-proposal-allowed? @job @contract))
                [:h2 "New Proposal"])]
             [col {:xs 12 :sm 6}
-             [job-action-buttons @contract form-open?]]]
-           (when (and @form-open? (create-proposal-allowed? @contract))
+             [job-action-buttons
+              {:form-open? form-open?}]]]
+           (when (and @form-open? (create-proposal-allowed? @job @contract))
              [:div
               [misc/ether-field-with-currency
                {:floating-label-text (str (constants/payment-types (:job/payment-type @job)))
@@ -333,7 +344,7 @@
                     :job/experience-level :job/hours-per-week :job/created-on
                     :job/description :job/budget :job/skills :job/category
                     :job/status :job/hiring-done-on :job/freelancers-needed
-                    :job/employer :job/reference-currency :job/sponsorable?
+                    :job/employer :job/reference-currency :job/sponsorable? :job/invitation-only?
                     :job/allowed-users :job/sponsorships-balance :job/contracts-count
                     :job/sponsorships-count]} @job
             loading? (some true? (map :loading? [@set-hiring-done-form
@@ -374,6 +385,11 @@
                  {:background-color styles/job-sposorable-chip-color
                   :style styles/job-status-chip}
                  "Looking for Sponsors"])
+              (when invitation-only?
+                [misc/status-chip
+                 {:background-color styles/job-invitation-only-chip-color
+                  :style styles/job-status-chip}
+                 "Invitation Only"])
               (when (pos? payment-type)
                 [misc/status-chip
                  {:background-color (styles/job-payment-type-colors payment-type)

@@ -55,6 +55,9 @@ library ContractLibrary {
         require(employerId != 0x0);
         require(freelancerId != employerId);
         require(JobLibrary.getStatus(db, jobId) == 1);
+        if (JobLibrary.isInvitationOnly(db, jobId)) {
+            require(isFreelancerInvited(db, freelancerId, jobId));
+        }
         contractId = getContract(db, freelancerId, jobId);
         if (contractId == 0) {
             contractId = SharedLibrary.createNext(db, "contract/count");
@@ -282,8 +285,13 @@ library ContractLibrary {
         return EthlanceDB(db).getUIntValue(sha3("invitation/created-on", contractId));
     }
     
-    function getContract(address db, address freelancerId, uint jobId) internal returns (uint) {
+    function getContract(address db, address freelancerId, uint jobId) internal returns(uint) {
         return EthlanceDB(db).getUIntValue(sha3("contract/freelancer+job", freelancerId, jobId));
+    }
+
+    function isFreelancerInvited(address db, address freelancerId, uint jobId) internal returns(bool) {
+        var contractId = getContract(db, freelancerId, jobId);
+        return getStatus(db, contractId) == 1;
     }
 
     function getContracts(address db, address[] freelancerIds, uint jobId) internal returns (uint[] result) {

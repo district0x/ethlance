@@ -114,8 +114,8 @@
     :employer/ratings-count :user/country :user/state :user/balance})
 
 (def get-sponsorable-jobs-fields
-  #{:job/title :job/created-on :job/skills :job/skills-count :job/employer :job/category :job/sponsorable?
-    :job/sponsorships-balance :job/sponsorships-count :job/sponsorships-total :employer/jobs-count
+  #{:job/title :job/created-on :job/skills :job/skills-count :job/employer :job/category :job/invitation-only?
+    :job/sponsorable? :job/sponsorships-balance :job/sponsorships-count :job/sponsorships-total :employer/jobs-count
     :job/status :employer/avg-rating :employer/total-paid :user/name :employer/ratings-count :user/country
     :user/state})
 
@@ -200,7 +200,7 @@
   [:job/id :job/title :job/description :job/skills :job/language :job/budget
    [:job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
     :job/freelancers-needed :job/reference-currency]
-   :job/sponsorable? :job/allowed-users])
+   :job/sponsorable? :job/invitation-only? :job/allowed-users])
 
 (def search-jobs-args
   [:search/category :search/skills :search/skills-or :search/payment-types :search/experience-levels

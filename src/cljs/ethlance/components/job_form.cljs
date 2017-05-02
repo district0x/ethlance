@@ -27,7 +27,8 @@
     (fn [{:keys [:data :form-key :errors :loading? :budget-enabled?]}]
       (let [{:keys [:job/title :job/description :job/skills :job/language :job/budget
                     :job/category :job/payment-type :job/experience-level :job/estimated-duration :job/hours-per-week
-                    :job/freelancers-needed :job/reference-currency :job/sponsorable? :job/allowed-users]} data
+                    :job/freelancers-needed :job/reference-currency :job/sponsorable? :job/allowed-users
+                    :job/invitation-only?]} data
             {:keys [:min-job-skills :max-job-skills]} @eth-config]
         [paper
          {:loading? loading?}
@@ -122,10 +123,16 @@
             :min-length-key :min-job-description
             :value description}]
           [ui/toggle
+           {:label "This job is invitation only"
+            :label-position "right"
+            :toggled invitation-only?
+            :style styles/margin-top-gutter-more
+            :on-toggle #(dispatch [:form/set-value form-key :job/invitation-only? %2])}]
+          [ui/toggle
            {:label "Accept sponsorships for this job"
             :label-position "right"
             :toggled sponsorable?
-            :style styles/margin-top-gutter-more
+            :style styles/margin-top-gutter-less
             :on-toggle #(dispatch [:form/set-value form-key :job/sponsorable? %2])}]
           (when sponsorable?
             [:div

@@ -79,6 +79,7 @@
    :job/freelancers-needed (inc (rand-int 10))
    :job/reference-currency (rand-int (count constants/currencies))
    :job/sponsorable? false
+   :job/invitation-only? false
    :job/allowed-users []})
 
 (defn gen-job-sponsorable []

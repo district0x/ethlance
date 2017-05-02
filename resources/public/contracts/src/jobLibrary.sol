@@ -28,6 +28,7 @@ library JobLibrary {
         uint budget,
         uint8[] uint8Items,
         bool _isSponsorable,
+        bool _isInvitationOnly,
         address[] allowedUsers
     )
         internal returns (uint jobId)
@@ -73,6 +74,8 @@ library JobLibrary {
         EthlanceDB(db).setBooleanValue(sha3("job/sponsorable?", jobId), _isSponsorable);
         SharedLibrary.setIdArray(db, jobId, "job/allowed-users", "job/allowed-users-count",
                         allowedUsers);
+
+        EthlanceDB(db).setBooleanValue(sha3("job/invitation-only?", jobId), _isInvitationOnly);
 
         if (existingJobId > 0) {
             clearSponsorableJobApprovals(db, jobId, allowedUsers);
@@ -237,6 +240,10 @@ library JobLibrary {
         EthlanceDB(db).setUInt8Value(sha3("job/status", jobId), status);
     }
 
+    function isInvitationOnly(address db, uint jobId) internal returns(bool) {
+        return EthlanceDB(db).getBooleanValue(sha3("job/invitation-only?", jobId));
+    }
+
     function setHiringDone(address db, uint jobId, address senderId) internal {
         require(getEmployer(db, jobId) == senderId);
         require(getStatus(db, jobId) == 1);
@@ -328,7 +335,8 @@ library JobLibrary {
                 UserLibrary.isFromState(db, employerId, uintArgs[3]) &&
                 hasLanguage(db, jobId, uintArgs[4]) &&
                 hasMinCreatedOn(db, jobId, uintArgs[5]) &&
-                UserLibrary.hasStatus(db, employerId, 1))
+                UserLibrary.hasStatus(db, employerId, 1) &&
+                !isInvitationOnly(db, jobId))
             {
                 jobIds[j] = jobId;
                 j++;

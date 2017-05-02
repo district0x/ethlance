@@ -305,6 +305,7 @@
    6 (color :red800)})
 
 (def job-sposorable-chip-color (color :teal-A700))
+(def job-invitation-only-chip-color (color :indigo-A200))
 
 (def job-payment-type-colors
   {1 (color :blue500)
