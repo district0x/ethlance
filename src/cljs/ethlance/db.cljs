@@ -559,7 +559,7 @@
                    :ethlance-db {:name "EthlanceDB" :address "0x5371a8d8d8a86c76de935821ad1a3e9b908cfced"}
                    :ethlance-views {:name "EthlanceViews" :address "0x1f286cB2EB7AE530FD85FD6EcE2e17d4f60D8DaA"}
                    :ethlance-search-freelancers {:name "EthlanceSearchFreelancers" :address "0x43386ad7af76ca5384bc06ae0c74e230f32744ee"}
-                   :ethlance-search-jobs {:name "EthlanceSearchJobs" :address "0x017be8ab41ddb10ca3660f00bf4ec975a5382f04"}}
+                   :ethlance-search-jobs {:name "EthlanceSearchJobs" :address "0x9e2f85eea233047e527039681ad84448c8926690"}}
    :my-addresses []
    :my-addresses-forced []
    :active-address nil
