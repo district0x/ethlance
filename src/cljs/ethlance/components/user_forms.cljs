@@ -99,6 +99,8 @@
          [misc/text-field-base
           {:floating-label-text "Your Email"
            :value email
+           :hint-style {:font-size "11px"}
+           :hint-text "Email address will be stored on public blockchain"
            :on-change #(dispatch [:form.user/set-email form-key %2 u/empty-or-valid-email?])
            :error-text (when-not (u/empty-or-valid-email? email)
                          "Invalid email address")}]

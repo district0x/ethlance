@@ -132,6 +132,7 @@
           :on-change #(dispatch [:after-eth-contracts-loaded
                                  [:contract.db/load-invoices (set/union ethlance-db/invoice-entity-fields
                                                                         #{:contract/job
+                                                                          :contract/freelancer
                                                                           :job/title
                                                                           :job/allowed-users
                                                                           :job/allowed-users-count

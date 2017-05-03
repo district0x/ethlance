@@ -149,7 +149,8 @@
     :contract/freelancer-feedback-rating
     :contract/messages
     :contract/messages-count
-    :contract/job})
+    :contract/job
+    :contract/freelancer})
 
 (def invoice-editable-fields
   #{:invoice/status :invoice/paid-by :invoice/contract})

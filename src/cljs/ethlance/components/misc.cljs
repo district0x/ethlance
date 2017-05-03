@@ -145,7 +145,7 @@
    (into [col {:xs 12 :md 10 :lg 9 :style styles/text-left}]
          children)])
 
-(def text-field-base
+(def text-field-base*
   (tmpl/adapt-react-class (aget js/MaterialUI "TextField")
                           ;; Optional...
                           {:synthetic-input
@@ -191,6 +191,13 @@
                                          ;; All we do here is continue processing but with the event target value
                                          ;; extracted into a second argument, to match Material-UI's existing API.
                                          (next event (-> event .-target .-value)))}}))
+
+(defn text-field-base [{:keys [:value] :as props}]
+  [text-field-base*
+   (r/merge-props
+     {:style styles/display-block
+      :floating-label-fixed (boolean (seq (str value)))}
+     props)])
 
 (defn form-text-field [{:keys [:validator :form-key :field-key :value] :as props}]
   [text-field-base

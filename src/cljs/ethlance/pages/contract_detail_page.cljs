@@ -326,6 +326,7 @@
                                   [:contract.db/load-contracts
                                    (set/union ethlance-db/contract-entity-fields
                                               #{:job/employer
+                                                :job/title
                                                 :user/name
                                                 :user/gravatar})
                                    [@contract-id]]])
