@@ -210,6 +210,18 @@
   (fn [{:keys [db]} args]
     {:location/set-hash args}))
 
+(defn select-db-users [{:keys [:app/users]} loaded-users]
+  (select-keys users (keys loaded-users)))
+
+(defn select-db-jobs [{:keys [:app/jobs]} loaded-jobs]
+  (select-keys jobs (keys loaded-jobs)))
+
+(defn select-db-contracts [{:keys [:app/contracts]} loaded-contracts]
+  (select-keys contracts (keys loaded-contracts)))
+
+(defn select-db-invoices [{:keys [:app/invoices]} loaded-invoices]
+  (select-keys invoices (keys loaded-invoices)))
+
 (defn migrate-localstorage [localstorage]
   (update localstorage :selected-currency #(if (keyword? %) (constants/currencies-backward-comp %)
                                                             (or % (:selected-currency default-db)))))
@@ -922,9 +934,9 @@
                             (when (contains? fields :job/allowed-users)
                               [:contract.db/load-job-allowed-users jobs])
                             (when (contains? fields :job/employer)
-                              [:contract.db/load-users
-                               fields
-                               (map :job/employer (vals (select-keys (:app/jobs new-db) (keys jobs))))])])})))
+                              [:contract.db/load-users fields (->> (select-db-jobs new-db jobs)
+                                                                vals
+                                                                (map :job/employer))])])})))
 
 ;; ============users
 
@@ -1018,7 +1030,7 @@
   interceptors
   (fn [{:keys [db]} [jobs]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items (select-keys (:app/jobs db) (keys jobs))
+                                        :items (select-db-jobs db jobs)
                                         :count-key :job/skills-count
                                         :field-key :job/skills
                                         :on-success [:contract/field-items-loaded :app/jobs]
@@ -1029,7 +1041,7 @@
   interceptors
   (fn [{:keys [db]} [jobs]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items (select-keys (:app/jobs db) (keys jobs))
+                                        :items (select-db-jobs db jobs)
                                         :count-key :job/allowed-users-count
                                         :field-key :job/allowed-users
                                         :on-success [:contract/field-items-loaded :app/jobs]
@@ -1040,7 +1052,7 @@
   interceptors
   (fn [{:keys [db]} [users]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items (select-keys (:app/users db) (keys users))
+                                        :items (select-db-users db users)
                                         :count-key :freelancer/skills-count
                                         :field-key :freelancer/skills
                                         :on-success [:contract/field-items-loaded :app/users]
@@ -1051,7 +1063,7 @@
   interceptors
   (fn [{:keys [db]} [users]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items (select-keys (:app/users db) (keys users))
+                                        :items (select-db-users db users)
                                         :count-key :freelancer/categories-count
                                         :field-key :freelancer/categories
                                         :on-success [:contract/field-items-loaded :app/users]
@@ -1062,7 +1074,7 @@
   interceptors
   (fn [{:keys [db]} [users]]
     {:ethlance-db/entities-field-items {:instance (get-instance db :ethlance-db)
-                                        :items (select-keys (:app/users db) (keys users))
+                                        :items (select-db-users db users)
                                         :count-key :user/languages-count
                                         :field-key :user/languages
                                         :on-success [:contract/field-items-loaded :app/users]
@@ -1226,15 +1238,16 @@
     (let [contracts (->> contracts
                       (medley/remove-keys (complement pos?))
                       (u/assoc-key-as-value :contract/id))
-          contract-vals (vals contracts)
-          freelancer-ids (map :contract/freelancer contract-vals)
-          job-ids (map :contract/job contract-vals)]
-      {:db (-> db
-             (update :app/contracts (partial merge-with merge) contracts))
+          new-db (update db :app/contracts (partial merge-with merge) contracts)]
+      {:db new-db
        :dispatch-n (remove nil? [(when (contains? fields :contract/freelancer)
-                                   [:contract.db/load-users fields freelancer-ids])
+                                   [:contract.db/load-users fields (->> (select-db-contracts new-db contracts)
+                                                                     vals
+                                                                     (map :contract/freelancer))])
                                  (when (contains? fields :contract/job)
-                                   [:contract.db/load-jobs fields job-ids])])})))
+                                   [:contract.db/load-jobs fields (->> (select-db-contracts new-db contracts)
+                                                                    vals
+                                                                    (map :contract/job))])])})))
 
 (reg-event-fx
   :contract.views/load-my-freelancers-contracts-for-job
@@ -1372,11 +1385,13 @@
     (let [invoices (->> invoices
                      (medley/remove-keys (complement pos?))
                      (u/assoc-key-as-value :invoice/id))
-          contract-ids (map :invoice/contract (vals invoices))]
+          new-db (update db :app/invoices (partial merge-with merge) invoices)]
       (merge
-        {:db (update db :app/invoices (partial merge-with merge) invoices)}
+        {:db new-db}
         (when (contains? fields :invoice/contract)
-          {:dispatch [:contract.db/load-contracts fields contract-ids]})))))
+          {:dispatch [:contract.db/load-contracts fields (->> (select-db-invoices new-db invoices)
+                                                           vals
+                                                           (map :invoice/contract))]})))))
 
 (reg-event-fx
   :contract.invoice/add-invoice

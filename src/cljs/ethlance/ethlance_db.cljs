@@ -137,7 +137,7 @@
       :job/sponsorships-total
       :job/sponsorships-total-refunded})
 
-(def job-editable-fields (set/difference job-entity-fields #{:job/created-on}))
+(def job-editable-fields (set/difference job-entity-fields #{:job/created-on :job/employer}))
 
 (def contract-editable-fields
   #{:contract/status
@@ -148,12 +148,10 @@
     :contract/employer-feedback-rating
     :contract/freelancer-feedback-rating
     :contract/messages
-    :contract/messages-count
-    :contract/job
-    :contract/freelancer})
+    :contract/messages-count})
 
 (def invoice-editable-fields
-  #{:invoice/status :invoice/paid-by :invoice/contract})
+  #{:invoice/status :invoice/paid-by})
 
 (def message-editable-fields
   #{})
