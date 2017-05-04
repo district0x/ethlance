@@ -287,7 +287,7 @@
 (reg-event-fx
   :contracts/deploy-all
   interceptors
-  (fn [{:keys [db]}]
+  (fn [{:keys [db]} [address-index]]
     (let [ethance-db (get-in db [:eth/contracts :ethlance-db])]
       {:web3-fx.blockchain/fns
        {:web3 (:web3 db)
@@ -295,24 +295,26 @@
                (:abi ethance-db)
                {:gas u/max-gas-limit
                 :data (:bin ethance-db)
-                :from (:active-address db)}
-               [:contract/ethlance-db-deployed]
+                :from (if address-index
+                        (nth (:my-addresses db) address-index)
+                        (:active-address db))}
+               [:contract/ethlance-db-deployed address-index]
                [:log-error :contracts/deploy-all]]]}})))
 
 (reg-event-fx
   :contract/ethlance-db-deployed
   [interceptors (inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [instance]]
+  (fn [{:keys [db localstorage]} [address-index instance]]
     (when-let [db-address (aget instance "address")]
       (console :log :ethlance-db " deployed at " db-address)
       {:db (update-in db [:eth/contracts :ethlance-db] merge {:address db-address :instance instance})
        :localstorage (assoc-in localstorage [:eth/contracts :ethlance-db] {:address db-address})
-       :dispatch [:contracts/deploy (keys (dissoc (:eth/contracts db) :ethlance-db))]})))
+       :dispatch [:contracts/deploy (keys (dissoc (:eth/contracts db) :ethlance-db)) address-index]})))
 
 (reg-event-fx
   :contracts/deploy
   [interceptors (inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [contract-keys]]
+  (fn [{:keys [db localstorage]} [contract-keys address-index]]
     {:web3-fx.blockchain/fns
      {:web3 (:web3 db)
       :fns (for [[key {:keys [abi bin]}] (select-keys (:eth/contracts db) contract-keys)]
@@ -323,14 +325,16 @@
                         (:address (get-contract db :ethlance-db)))
                       {:gas u/max-gas-limit
                        :data bin
-                       :from (:active-address db)}
-                      [:contract/deployed key contract-keys]
+                       :from (if address-index
+                               (nth (:my-addresses db) address-index)
+                               (:active-address db))}
+                      [:contract/deployed key contract-keys address-index]
                       [:log-error :contracts/deploy key]]))}}))
 
 (reg-event-fx
   :contract/deployed
   [interceptors (inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [key contract-keys instance]]
+  (fn [{:keys [db localstorage]} [key contract-keys address-index instance]]
     (when-let [contract-address (aget instance "address")]
       (console :log key " deployed at " contract-address)
       (let [new-db (update-in db [:eth/contracts key] merge {:address contract-address :instance instance})]
@@ -338,31 +342,47 @@
           {:db new-db
            :localstorage (assoc-in localstorage [:eth/contracts key] {:address contract-address})}
           (when (:setter? (get-contract db key))
-            {:dispatch [:contract.db/add-allowed-contracts [key]]})
+            {:dispatch [:contract.db/add-allowed-contracts [key] address-index]})
           (when (all-contracts-deployed? new-db)
-            {:dispatch-n [[:eth-contracts-deployed contract-keys]]}))))))
+            {:dispatch-n [[:eth-contracts-deployed contract-keys address-index]]}))))))
 
 (reg-event-fx
   :eth-contracts-deployed
   interceptors
-  (fn [{:keys [db]} [contract-keys]]
+  (fn [{:keys [db]} [contract-keys address-index]]
     (let [ethlance-invoice-address (:address (get-contract db :ethlance-invoice))
           ethlance-sponsor-address (:address (get-contract db :ethlance-sponsor))
           ethlance-sponsor-wallet-address (:address (get-contract db :ethlance-sponsor-wallet))
-          contract-keys (set contract-keys)]
+          contract-keys (set contract-keys)
+          address-from (if address-index
+                         (nth (:my-addresses db) address-index)
+                         (:active-address db))
+          transaction-opts {:from address-from
+                            :gas 500000}]
       {:dispatch-n
        (remove
          nil?
-         [(when (or (contains? contract-keys :ethlance-sponsor-wallet)
-                    (contains? contract-keys :ethlance-invoice))
-            [:contract/state-call :ethlance-sponsor-wallet :set-ethlance-invoice-contract [ethlance-invoice-address]])
-          (when (or (contains? contract-keys :ethlance-sponsor-wallet)
-                    (contains? contract-keys :ethlance-sponsor))
-            [:contract/state-call :ethlance-sponsor-wallet :set-ethlance-sponsor-contract [ethlance-sponsor-address]])
-          (when (contains? contract-keys :ethlance-sponsor)
-            [:contract/state-call :ethlance-sponsor :set-ethlance-sponsor-wallet-contract [ethlance-sponsor-wallet-address]])
-          (when (contains? contract-keys :ethlance-invoice)
-            [:contract/state-call :ethlance-invoice :set-ethlance-sponsor-wallet-contract [ethlance-sponsor-wallet-address]])])})))
+         (concat
+           (when (or (contains? contract-keys :ethlance-sponsor-wallet)
+                     (contains? contract-keys :ethlance-invoice))
+             [[:contract/state-call {:contract-key :ethlance-sponsor-wallet
+                                     :contract-method :set-ethlance-invoice-contract
+                                     :args [ethlance-invoice-address]
+                                     :transaction-opts transaction-opts}]
+              [:contract/state-call {:contract-key :ethlance-invoice
+                                     :contract-method :set-ethlance-sponsor-wallet-contract
+                                     :args [ethlance-sponsor-wallet-address]
+                                     :transaction-opts transaction-opts}]])
+           (when (or (contains? contract-keys :ethlance-sponsor-wallet)
+                     (contains? contract-keys :ethlance-sponsor))
+             [[:contract/state-call {:contract-key :ethlance-sponsor-wallet
+                                     :contract-method :set-ethlance-sponsor-contract
+                                     :args [ethlance-sponsor-address]
+                                     :transaction-opts transaction-opts}]
+              [:contract/state-call {:contract-key :ethlance-sponsor
+                                     :contract-method :set-ethlance-sponsor-wallet-contract
+                                     :args [ethlance-sponsor-wallet-address]
+                                     :transaction-opts transaction-opts}]])))})))
 
 (reg-event-fx
   :load-conversion-rates
@@ -671,10 +691,13 @@
 (reg-event-fx
   :contract.config/set-default-configs
   interceptors
-  (fn [{:keys [db]}]
+  (fn [{:keys [db]} [address-index]]
     (let [config (:eth/config default-db)]
-      {:dispatch [:contract.config/set-configs {:config/keys (keys config)
-                                                :config/values (vals config)} nil]})))
+      {:dispatch [:contract.config/set-configs
+                  {:config/keys (keys config)
+                   :config/values (vals config)}
+                  (when address-index
+                    (nth (:my-addresses db) address-index))]})))
 
 (reg-event-fx
   :contract.config/set-configs
@@ -730,23 +753,25 @@
 (reg-event-fx
   :contract.db/add-allowed-contracts
   interceptors
-  (fn [{:keys [db]} [contract-keys]]
+  (fn [{:keys [db]} [contract-keys address-index]]
     (let [contract-keys (if-not contract-keys
                           (keys (filter-contract-setters db))
                           contract-keys)]
-      (let [{:keys [web3 active-address eth/contracts]} db]
+      (let [{:keys [:web3 :active-address :eth/contracts]} db]
         {:web3-fx.contract/state-fns
          {:web3 web3
           :db-path [:contract/state-fns]
           :fns [[(get-instance db :ethlance-db)
                  :add-allowed-contracts
                  (map :address (vals (select-keys contracts contract-keys)))
-                 {:gas u/max-gas-limit
-                  :from active-address}
+                 {:gas 500000
+                  :from (if address-index
+                          (nth (:my-addresses db) address-index)
+                          active-address)}
                  :contract/transaction-sent
                  [:contract/transaction-error :contract.db/add-allowed-contracts]
                  (if (contains? (set contract-keys) :ethlance-config)
-                   [:contract.config/set-default-configs]
+                   [:contract.config/set-default-configs address-index]
                    [:do-nothing])]]}}))))
 
 (defn clear-invalid-country-state [form-data]
@@ -1856,18 +1881,22 @@
 (reg-event-fx
   :contract/state-call
   interceptors
-  (fn [{:keys [db]} [contract-key method & args]]
-    {:web3-fx.contract/state-fns
-     {:web3 (:web3 db)
-      :db-path [:contract/state-fns]
-      :fns [(concat [(get-instance db contract-key)
-                     method]
-                    args
-                    [{:gas u/max-gas-limit
-                      :from (:active-address db)}
-                     :contract/transaction-sent
-                     [:contract/transaction-error :contract/state-call]
-                     [:contract/transaction-receipt method u/max-gas-limit nil nil]])]}}))
+  (fn [{:keys [db]} [{:keys [:contract-key :contract-method :args :transaction-opts]}]]
+    (let [transaction-opts (merge {:gas u/max-gas-limit
+                                   :from (:active-address db)}
+                                  transaction-opts)]
+      {:web3-fx.contract/state-fns
+       {:web3 (:web3 db)
+        :db-path [:contract/state-fns]
+        :fns [(concat [(get-instance db contract-key)
+                       contract-method]
+                      args
+                      [transaction-opts
+                       :contract/transaction-sent
+                       [:contract/transaction-error :contract/state-call]
+                       [:contract/transaction-receipt contract-method (:gas transaction-opts) nil nil]])]}})))
+
+
 
 (reg-event-fx
   :toggle-search-skills-input
@@ -2165,20 +2194,24 @@
 (reg-event-fx
   :reinitialize
   interceptors
-  (fn [{:keys [:db]} [contract-keys]]
-    (.clear js/console)
-    {:db (update db :eth/contracts (partial medley/map-kv (fn [contract-key contract]
-                                                            (if (or (not contract-keys)
-                                                                    (contains? (set contract-keys) contract-key))
-                                                              [contract-key (dissoc contract :abi :bin :address :instance)]
-                                                              [contract-key contract]))))
-     :async-flow {:first-dispatch [:load-eth-contracts]
-                  :rules [{:when :seen?
-                           :events [:eth-contracts-loaded]
-                           :dispatch-n [(if contract-keys
-                                          [:contracts/deploy contract-keys]
-                                          [:contracts/deploy-all])]
-                           :halt? true}]}}))
+  (fn [{:keys [:db]} args]
+    (let [{:keys [:contract-keys :address-index]} (s/conform (s/cat :contract-keys (s/? sequential?)
+                                                                    :address-index (s/? number?))
+                                                             args)]
+      (.clear js/console)
+      {:db (update db :eth/contracts (partial medley/map-kv
+                                              (fn [contract-key contract]
+                                                (if (or (not contract-keys)
+                                                        (contains? (set contract-keys) contract-key))
+                                                  [contract-key (dissoc contract :abi :bin :address :instance)]
+                                                  [contract-key contract]))))
+       :async-flow {:first-dispatch [:load-eth-contracts]
+                    :rules [{:when :seen?
+                             :events [:eth-contracts-loaded]
+                             :dispatch-n [(if contract-keys
+                                            [:contracts/deploy contract-keys address-index]
+                                            [:contracts/deploy-all address-index])]
+                             :halt? true}]}})))
 
 
 
@@ -2297,6 +2330,12 @@
   (dispatch [:contract/call :ethlance-db :get-string-value (u/sha3 :user/name 58)])
   (dispatch [:contract/call :ethlance-db :get-u-int-value (u/sha3 :contract/freelancer+job 1 1)])
 
+  (dispatch [:contract/call :ethlance-sponsor-wallet :ethlance-invoice])
+  (dispatch [:contract/call :ethlance-sponsor-wallet :ethlance-sponsor])
+  (dispatch [:contract/call :ethlance-sponsor :ethlance-sponsor-wallet])
+  (dispatch [:contract/call :ethlance-invoice :ethlance-sponsor-wallet])
+  (dispatch [:print-contract-addresses])
+
   (dispatch [:contract/call :ethlance-user :diff #{10 11 12} #{1 2 3 4 5 6}])
   (dispatch [:contract/call :ethlance-user :diff [10 11 12] [1 2 3 4 5 6]])
   (dispatch [:contract/call :ethlance-user :diff [2] [1]])
@@ -2308,11 +2347,7 @@
 
   (get-entities [33] [:user/gravatar] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error %]))
   (get-entities [1] [:user/address] (get-ethlance-db) #(dispatch [:log %]) #(dispatch [:log-error]))
-  (let [id 1]
-    (dispatch [:contract/state-call :ethlance-db :set-u-int8-value
-               (u/sha3 (u/ns+name :contract/status) id) 2])
-    (dispatch [:contract/state-call :ethlance-db :set-u-int-value
-               (u/sha3 (u/ns+name :contract/created-on) id) 0]))
+
   (get-entities-field-items {10 4}
                             :job/skills
                             (get-in @re-frame.db/app-db [:eth/contracts :ethlance-db :instance])
@@ -2406,7 +2441,6 @@
                                            :search/language 0
                                            :search/offset 0
                                            :search/limit 10}])
-  (dispatch [:contract/state-call :ethlance-user :test-db 5])
 
   (dispatch [:contract.views/get-freelancer-contracts {:user/id 1
                                                        :contract/status 1

@@ -301,7 +301,7 @@
                                   allowed-users])
                        (when (= status 4)
                          (dispatch [:contract.views/load-job-approvals {:job/id id}])))}
-         [misc/subheader "Accounts Allowed for Sponsorships"]
+         [misc/subheader "Accounts Allowed to spend Sponsorships"]
          (doall
            (for [allowed-user allowed-users]
              (let [{:keys [:user/name :user/freelancer? :user/gravatar :user/id]} @(subscribe [:user/by-id allowed-user])
@@ -438,6 +438,7 @@
                  {:label "Close Hiring"
                   :secondary true
                   :disabled loading?
+                  :style styles/job-manage-button
                   :on-touch-tap #(dispatch [:contract.job/set-hiring-done {:job/id id}])}])
               (when (and @my-job?
                          (contains? #{1 2} status)
@@ -446,7 +447,7 @@
                   [ui/raised-button
                    {:label "Refund Sponsors"
                     :primary true
-                    :style {:margin-left 5}
+                    :style styles/job-manage-button
                     :disabled loading?
                     :on-touch-tap #(dispatch [:dialog/open-confirmation
                                               {:title "Are you sure you want to start refunding?"
@@ -464,14 +465,14 @@
                   [ui/raised-button
                    {:label "Close Job"
                     :secondary true
-                    :style {:margin-left 5}
+                    :style styles/job-manage-button
                     :disabled loading?
                     :on-touch-tap #(dispatch [:contract.sponsor/refund-job-sponsorships {:sponsorship/job id :limit 0}])}]))
               (when (and @my-job? (= status 5))
                 [ui/raised-button
                  {:label "Continue Refunding"
                   :primary true
-                  :style {:margin-left 5}
+                  :style styles/job-manage-button
                   :disabled loading?
                   :on-touch-tap #(dispatch [:contract.sponsor/refund-job-sponsorships
                                             {:sponsorship/job id
@@ -483,7 +484,7 @@
                 [ui/raised-button
                  {:label "Edit Job"
                   :primary true
-                  :style {:margin-left 5}
+                  :style styles/job-manage-button
                   :disabled loading?
                   :icon (icons/pencil)
                   :href (u/path-for :job/edit :job/id id)}])
@@ -493,6 +494,7 @@
                   :primary true
                   :icon (icons/check)
                   :disabled loading?
+                  :style styles/job-manage-button
                   :on-touch-tap #(dispatch [:contract.job/approve-sponsorable-job {:job/id id}])}])]])]]))))
 
 (defn job-invoices []

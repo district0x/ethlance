@@ -731,7 +731,7 @@
                                        :errors #{}}
 
    :form.user/register-freelancer {:loading? false
-                                   :gas-limit 3800000
+                                   :gas-limit 3000000
                                    :open? true
                                    :data {:user/name ""
                                           :user/email ""

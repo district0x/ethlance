@@ -97,18 +97,19 @@
   (let [my-addresses (subscribe [:db/my-addresses])
         active-address (subscribe [:db/active-address])]
     (fn []
-      [ui/select-field
-       {:value @active-address
-        :on-change #(dispatch [:set-active-address %3])
-        :style (merge styles/app-bar-user
-                      {:width 170})
-        :auto-width true
-        :label-style styles/app-bar-select-field-label}
-       (for [address @my-addresses]
-         [ui/menu-item
-          {:value address
-           :primary-text (u/truncate address 25)
-           :key address}])])))
+      (when (< 1 (count @my-addresses))
+        [ui/select-field
+         {:value @active-address
+          :on-change #(dispatch [:set-active-address %3])
+          :style (merge styles/app-bar-user
+                        {:width 170})
+          :auto-width true
+          :label-style styles/app-bar-select-field-label}
+         (for [address @my-addresses]
+           [ui/menu-item
+            {:value address
+             :primary-text (u/truncate address 25)
+             :key address}])]))))
 
 (defn user-anchor [{:keys [:user]} body]
   (let [{:keys [:user/freelancer? :user/id]} user]

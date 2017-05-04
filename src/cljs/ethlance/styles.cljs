@@ -578,3 +578,7 @@
   {:width 30
    :padding-right 0
    :padding-left 5})
+
+(def job-manage-button
+  {:margin-left 5
+   :margin-top 5})
