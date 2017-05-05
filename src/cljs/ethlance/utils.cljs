@@ -1,8 +1,6 @@
 (ns ethlance.utils
   (:require
     [bidi.bidi :as bidi]
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [camel-snake-kebab.extras :refer [transform-keys]]
     [cemerick.url :as url]
     [cljs-react-material-ui.reagent :as ui]
     [cljs-time.coerce :refer [to-date-time to-long to-local-date-time]]
@@ -23,7 +21,8 @@
     [goog.string :as gstring]
     [goog.string.format]
     [medley.core :as medley]
-    [reagent.core :as r])
+    [reagent.core :as r]
+    [reagent.impl.component :refer [camelify-map-keys]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn uint8? [x]
@@ -375,7 +374,7 @@
 (defn set-default-props! [react-class default-props]
   (let [current-defaults (-> (aget react-class "defaultProps")
                            (js->clj :keywordize-keys true))
-        new-props (merge current-defaults (transform-keys cs/->camelCase default-props))]
+        new-props (merge current-defaults (camelify-map-keys default-props))]
     (aset react-class "defaultProps" (clj->js new-props))))
 
 (defn table-cell-clicked? [e]

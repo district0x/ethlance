@@ -3,7 +3,6 @@
     [ajax.core :as ajax]
     [ajax.edn :as ajax-edn]
     [akiroz.re-frame.storage :as re-frame-storage]
-    [camel-snake-kebab.core :as cs :include-macros true]
     [cljs-web3.core :as web3]
     [cljs-web3.eth :as web3-eth]
     [cljs-web3.personal :as web3-personal]
