@@ -1,6 +1,5 @@
 (ns ethlance.core
   (:require
-    [bidi.bidi :as bidi]
     [cljs-time.extend]
     [cljs.spec :as s]
     [cljsjs.bignumber]
