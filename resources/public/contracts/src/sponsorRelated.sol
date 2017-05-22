@@ -1,6 +1,6 @@
 pragma solidity ^0.4.8;
 
-import "Ownable.sol";
+import "ownable.sol";
 
 contract SponsorRelated is Ownable {
     address public ethlanceSponsorWallet;

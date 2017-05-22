@@ -1,6 +1,6 @@
 pragma solidity ^0.4.8;
 
-import "Ownable.sol";
+import "ownable.sol";
 import "safeMath.sol";
 import "strings.sol";
 
@@ -55,7 +55,7 @@ contract EthlanceDB is Ownable {
     }
 
     mapping(bytes32 => uint8) UInt8Storage;
-    
+
     function getUInt8Value(bytes32 record) constant returns (uint8){
         return UInt8Storage[record];
     }
