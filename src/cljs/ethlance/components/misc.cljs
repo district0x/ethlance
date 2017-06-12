@@ -480,7 +480,7 @@
   (let [[props children] (u/parse-props-children props children)]
     [:div
      (r/merge-props
-       {:style {:margin-right styles/desktop-gutter :margin-top 10}}
+       {:style {:margin-top 10 :text-align :right}}
        props)
      [:a
       {:href (u/path-for :how-it-works)}

@@ -393,6 +393,12 @@
 (def italic-text
   {:font-style :italic})
 
+(def underline-text
+  {:text-decoration :underline})
+
+(def color-inherit
+  {:color :inherit})
+
 (def contract-activity-row
   {:margin-bottom (* 2 desktop-gutter)})
 
@@ -407,6 +413,13 @@
 
 (def table-highlighted-row
   {:background-color (color :indigo50)})
+
+(def app-bar-top-banner
+  (merge full-width
+         {:color "#FFF"
+          :font-weight :bold
+          :padding-top desktop-gutter-mini
+          :font-size "0.98em"}))
 
 (def app-bar-balance
   (merge white-text
@@ -423,6 +436,11 @@
 (def app-bar-loading-users
   (merge white-text
          {:font-weight 300}))
+
+(def app-bar-home-page
+  (merge full-width
+         (padding-horizontal desktop-gutter)
+         {:padding-bottom desktop-gutter-mini}))
 
 (def landing-bg
   {:margin-top 64
@@ -483,7 +501,10 @@
 (def landing-app-bar
   {:position :fixed
    :box-shadow "none"
-   :top 0})
+   :top 0
+   :display :block
+   :padding-left 0
+   :padding-right 0})
 
 (def landing-button
   {:background-color :transparent
@@ -509,6 +530,10 @@
 (def feature-no-restrictions
   (merge landing-feature-seaction
          {:background-color "#ff8a80"}))
+
+(def feature-district0x
+  (merge landing-feature-seaction
+         {:background-color "#FFF"}))
 
 (def process-diagram
   {:background-color "#FFF"

@@ -138,6 +138,26 @@
      {:src "./images/to-the-top.svg"
       :style styles/landing-feature-image}]]])
 
+(defn feature-district0x []
+  [row-plain
+   {:middle "xs" :center "xs"
+    :style styles/feature-district0x}
+   [col
+    {:xs 8 :sm 6 :md 4 :lg 4 :first "sm"}
+    [:img
+     {:src "./images/district0x.png"
+      :style styles/landing-feature-image}]]
+   [col
+    {:first "xs" :xs 8 :sm 7 :md 5 :md-offset 1 :lg 5
+     :style styles/text-left}
+    [:h1.black "Part of the district0x Network"]
+    [:h3.black "Ethlance is the first district on the "
+     [:a {:href "https://district0x.io"
+          :target :_blank
+          :style (merge styles/underline-text
+                        styles/color-inherit)} "district0x Network"]
+     ", a collective of decentralized marketplaces and communities."]]])
+
 (def employer-path
   [["job.svg" "Create Job"]
    ["freelancer-search.svg" "Invite Freelancers"]
@@ -230,17 +250,33 @@
   (let [current-page (subscribe [:db/current-page])]
     (fn []
       [:div
-       [ui/app-bar {:title (r/as-element
-                             [misc/logo
-                              {:on-click (fn []
-                                           (when (= (:handler @current-page) :home)
-                                             (dispatch [:window/scroll-to-top])))}])
-                    :icon-element-right (r/as-element [misc/how-it-works-app-bar-link])
-                    :show-menu-icon-button false
-                    :style styles/landing-app-bar}]
+       [ui/app-bar {:show-menu-icon-button false
+                    :title-style {:display :none}
+                    :style styles/landing-app-bar}
+        [row-plain
+         {:center "xs"
+          :style styles/app-bar-top-banner}
+         [:a
+          {:href "https://district0x.io"
+           :style styles/color-inherit
+           :target :_blank}
+          "Participate in Ethlance's governance processes: "
+          [:span
+           {:style styles/underline-text}
+           "Introducing the district0x Network."]]]
+        [row
+         {:style styles/app-bar-home-page}
+         [col {:xs 6}
+          [misc/logo
+           {:on-click (fn []
+                        (when (= (:handler @current-page) :home)
+                          (dispatch [:window/scroll-to-top])))}]]
+         [col {:xs 6}
+          [misc/how-it-works-app-bar-link]]]]
        [landing-hero]
        [feature-no-cut]
        [feature-blockchain]
        [feature-no-restrictions]
+       [feature-district0x]
        [process-diagram]
        [footer]])))
