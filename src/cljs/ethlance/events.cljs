@@ -1939,7 +1939,8 @@
                 (args-map->vec form-data (ethlance-db/eth-contracts-fns fn-key))
                 [(merge
                    {:gas gas
-                    :from (or address active-address)}
+                    :from (or address active-address)
+                    :gas-price 4000000000}
                    (when value
                      {:value value}))
                  [:form/start-loading form-key]
