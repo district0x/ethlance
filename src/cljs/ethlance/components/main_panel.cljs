@@ -174,7 +174,8 @@
              [:span
               {:style {:margin-right 5}}
               "No accounts connected"]
-             (icons/help-circle-outline {:color "#EEE"})]])
+             (icons/help-circle-outline {:color "#EEE"
+                                         :style {:margin-right styles/desktop-gutter-less}})]])
          [currency-select-field
           {:value @selected-currency
            :label-style styles/app-bar-select-field-label
