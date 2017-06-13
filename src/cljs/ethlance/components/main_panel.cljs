@@ -215,6 +215,19 @@
 (defn social-buttons []
   [row-plain
    {:center "xs"}
+   [row-plain
+    {:center "xs"
+     :style (merge styles/full-width
+                   {:margin-bottom styles/desktop-gutter-mini})}
+    [:div
+     {:style styles/district0x-logo-small-text}
+     "Participate in Ethlance's governance at"]
+    [:a
+     {:href "https://district0x.io"
+      :target :_blank}
+     [:img {:alt "district0x"
+            :src "./images/district0x-logo-small.png"
+            :style styles/district0x-logo-small}]]]
    (for [[href icon color] socials]
      [ui/icon-button
       {:href href

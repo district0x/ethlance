@@ -607,3 +607,11 @@
 (def job-manage-button
   {:margin-left 5
    :margin-top 5})
+
+(def district0x-logo-small-text
+  {:font-size "0.8em"
+   :margin-bottom "10px"})
+
+(def district0x-logo-small
+  {:width "auto"
+   :height 30})
