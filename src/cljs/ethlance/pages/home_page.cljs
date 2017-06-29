@@ -238,7 +238,7 @@
     [footer-link "https://www.facebook.com/ethlance/" "Facebook" {:target :_blank}]
     [footer-link "https://twitter.com/ethlance" "Twitter" {:target :_blank}]
     [footer-link "https://github.com/madvas/ethlance" "Github" {:target :_blank}]
-    [footer-link "https://ethlance-slack.herokuapp.com/" "Slack" {:target :_blank}]]
+    [footer-link "https://district0x-slack.herokuapp.com/" "Slack" {:target :_blank}]]
    [col {:xs 12}
     [misc/logo {:style styles/ethlance-logo-footer}]
     [:div {:style (merge styles/footer-subheader
