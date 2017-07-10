@@ -19,7 +19,7 @@
     files written in " [link "https://clojurescript.org/" "ClojureScript"] " and served via decentralised file storage using "
          [link "https://ipfs.io/" "IPFS"] ". Ethlance is completely open-source and you can find its
     code on " [link "https://github.com/madvas/ethlance" "github.com/madvas/ethlance"] ". If you found a bug,
-    please don't hesitate " [link "to open an issue there" "https://github.com/madvas/ethlance/issues/new"] "."]
+    please don't hesitate to " [link "https://github.com/madvas/ethlance/issues/new" "open an issue on Github"] "."]
         [:p "If you're unsure how to use Ethereum, please see the " [a {:route :how-it-works} "How it works"] " page"]
         [:p "The Ethlance backend logic consists of " (count @eth-contracts) " smart-contracts, deployed on the following addresses:"]
         [:ul
