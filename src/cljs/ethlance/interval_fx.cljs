@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console]]
             [medley.core :as medley]
             [ethlance.utils :as u]
-            [cljs.spec :as s]))
+            [cljs.spec.alpha :as s]))
 
 (s/def ::dispatch (s/coll-of keyword))
 (s/def ::ms int?)

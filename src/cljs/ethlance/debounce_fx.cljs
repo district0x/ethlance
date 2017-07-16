@@ -1,7 +1,7 @@
 (ns ethlance.debounce-fx
   (:require
     [re-frame.core :refer [reg-fx dispatch console]]
-    [cljs.spec :as s]))
+    [cljs.spec.alpha :as s]))
 
 (defn now [] (.getTime (js/Date.)))
 

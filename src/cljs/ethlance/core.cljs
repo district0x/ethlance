@@ -1,7 +1,7 @@
 (ns ethlance.core
   (:require
     [cljs-time.extend]
-    [cljs.spec :as s]
+    [cljs.spec.alpha :as s]
     [cljsjs.bignumber]
     [cljsjs.material-ui]
     [cljsjs.react-flexbox-grid]

@@ -35,45 +35,46 @@
        [ui/table-body
         {:show-row-hover true}
         (if (seq items)
-          (for [item items]
-            (let [{:keys [:invoice/contract :invoice/id :invoice/created-on :invoice/status
-                          :invoice/amount :invoice/paid-on]} item
-                  {:keys [:contract/freelancer :contract/job]} contract]
-              [ui/table-row
-               {:key id
-                :style styles/clickable
-                :on-touch-tap (u/table-row-nav-to-fn :invoice/detail {:invoice/id id})}
-               (when show-freelancer?
+          (doall
+            (for [item items]
+              (let [{:keys [:invoice/contract :invoice/id :invoice/created-on :invoice/status
+                            :invoice/amount :invoice/paid-on]} item
+                    {:keys [:contract/freelancer :contract/job]} contract]
+                [ui/table-row
+                 {:key id
+                  :style styles/clickable
+                  :on-touch-tap (u/table-row-nav-to-fn :invoice/detail {:invoice/id id})}
+                 (when show-freelancer?
+                   [ui/table-row-column
+                    [a {:route-params {:user/id (:user/id freelancer)}
+                        :route :freelancer/detail}
+                     (:user/name freelancer)]])
+                 (when show-job?
+                   [ui/table-row-column
+                    [a {:route-params {:job/id (:job/id job)}
+                        :route :job/detail}
+                     (:job/title job)]])
                  [ui/table-row-column
-                  [a {:route-params {:user/id (:user/id freelancer)}
-                      :route :freelancer/detail}
-                   (:user/name freelancer)]])
-               (when show-job?
-                 [ui/table-row-column
-                  [a {:route-params {:job/id (:job/id job)}
-                      :route :job/detail}
-                   (:job/title job)]])
-               [ui/table-row-column
-                [currency amount]]
-               (when (or (not @xs-width) always-show-created-on?)
-                 [ui/table-row-column
-                  (u/time-ago created-on)])
-               (when show-paid-on?
-                 [ui/table-row-column
-                  (u/time-ago paid-on)])
-               (when show-contract?
-                 [ui/table-row-column
-                  [a {:route :contract/detail
-                      :route-params (select-keys contract [:contract/id])}
-                   (:contract/id contract)]])
-               (when show-status?
-                 [ui/table-row-column
-                  {:style (if @xs-width styles/table-row-column-thin {})}
-                  [misc/status-chip
-                   {:background-color (styles/invoice-status-colors status)
-                    :style styles/table-status-chip
-                    :on-touch-tap (u/nav-to-fn :invoice/detail {:invoice/id id})}
-                   (constants/invoice-status status)]])]))
+                  [currency amount]]
+                 (when (or (not @xs-width) always-show-created-on?)
+                   [ui/table-row-column
+                    (u/time-ago created-on)])
+                 (when show-paid-on?
+                   [ui/table-row-column
+                    (u/time-ago paid-on)])
+                 (when show-contract?
+                   [ui/table-row-column
+                    [a {:route :contract/detail
+                        :route-params (select-keys contract [:contract/id])}
+                     (:contract/id contract)]])
+                 (when show-status?
+                   [ui/table-row-column
+                    {:style (if @xs-width styles/table-row-column-thin {})}
+                    [misc/status-chip
+                     {:background-color (styles/invoice-status-colors status)
+                      :style styles/table-status-chip
+                      :on-touch-tap (u/nav-to-fn :invoice/detail {:invoice/id id})}
+                     (constants/invoice-status status)]])])))
           (misc/create-no-items-row (or no-items-text "No invoices") loading?))]
        (misc/create-table-pagination
          {:offset offset

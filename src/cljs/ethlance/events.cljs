@@ -7,7 +7,7 @@
     [cljs-web3.eth :as web3-eth]
     [cljs-web3.personal :as web3-personal]
     [cljs-web3.utils :as web3-utils]
-    [cljs.spec :as s]
+    [cljs.spec.alpha :as s]
     [clojure.data :as data]
     [clojure.set :as set]
     [day8.re-frame.async-flow-fx]

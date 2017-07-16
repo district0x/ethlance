@@ -88,7 +88,7 @@
           [show-more-pagination
            {:all-ids-subscribe all-ids-subscribe
             :list-db-path list-db-path
-            :load-dispatch [:contract.db/load-contracts ethlance-db/feedback-entity-fields]
+            :load-dispatch [:contract.db/load-contracts ethlance-db/feedback-list-fields]
             :load-per 1
             :offset offset
             :initial-limit initial-limit

@@ -1,7 +1,7 @@
 (ns ethlance.db
   (:require [cljs-web3.core :as web3]
             [cljs-time.core :as t]
-            [cljs.spec :as s]
+            [cljs.spec.alpha :as s]
             [ethlance.constants :as constants]
             [ethlance.utils :as u]
             [re-frame.core :refer [dispatch]]))

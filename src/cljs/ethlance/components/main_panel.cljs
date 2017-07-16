@@ -105,11 +105,12 @@
                         {:width 170})
           :auto-width true
           :label-style styles/app-bar-select-field-label}
-         (for [address @my-addresses]
-           [ui/menu-item
-            {:value address
-             :primary-text (u/truncate address 25)
-             :key address}])]))))
+         (doall
+           (for [address @my-addresses]
+             [ui/menu-item
+              {:value address
+               :primary-text (u/truncate address 25)
+               :key address}]))]))))
 
 (defn user-anchor [{:keys [:user]} body]
   (let [{:keys [:user/freelancer? :user/id]} user]
@@ -229,13 +230,14 @@
      [:img {:alt "district0x"
             :src "./images/district0x-logo-small.png"
             :style styles/district0x-logo-small}]]]
-   (for [[href icon color] socials]
-     [ui/icon-button
-      {:href href
-       :target :_blank
-       :key href
-       :style styles/social-button}
-      (icon {:color color})])])
+   (doall
+     (for [[href icon color] socials]
+       [ui/icon-button
+        {:href href
+         :target :_blank
+         :key href
+         :style styles/social-button}
+        (icon {:color color})]))])
 
 (defn main-panel []
   (let [current-page (subscribe [:db/current-page])

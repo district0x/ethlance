@@ -108,15 +108,16 @@
           :style (if @xs-width? (merge styles/text-left
                                        {:margin-bottom 5})
                                 styles/text-right)}
-         (for [[base-url profile icon color] [["https://github.com/" github icons/github "#000"]
-                                              ["https://www.linkedin.com/in/" linkedin icons/linkedin "#127cb3"]]]
-           (when (seq profile)
-             [:span {:style {:margin-left 5}
-                     :key base-url}
-              [misc/link
-               (str base-url profile)
-               [icon {:style (if @xs-width? {:width 35 :height 35} {})
-                      :color color}]]]))]]
+         (doall
+           (for [[base-url profile icon color] [["https://github.com/" github icons/github "#000"]
+                                                ["https://www.linkedin.com/in/" linkedin icons/linkedin "#127cb3"]]]
+             (when (seq profile)
+               [:span {:style {:margin-left 5}
+                       :key base-url}
+                [misc/link
+                 (str base-url profile)
+                 [icon {:style (if @xs-width? {:width 35 :height 35} {})
+                        :color color}]]])))]]
        [user-created-on created-on]
        [misc/long-text
         description]])))

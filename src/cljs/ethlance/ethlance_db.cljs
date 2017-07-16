@@ -2,7 +2,7 @@
   (:require
     [cljs-web3.core :as web3]
     [cljs-web3.eth :as web3-eth]
-    [cljs.spec :as s]
+    [cljs.spec.alpha :as s]
     [clojure.set :as set]
     [clojure.string :as string]
     [ethlance.db]

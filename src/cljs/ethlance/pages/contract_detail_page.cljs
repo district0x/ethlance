@@ -57,15 +57,16 @@
     (fn []
       (when (seq @messages)
         [:div
-         (for [{:keys [:message/id :message/created-on :message/text :message/sender]} @messages]
-           [message-bubble
-            {:key id
-             :side (if (= (:user/id (:contract/freelancer @contract)) (:user/id sender))
-                     :left
-                     :right)
-             :user sender
-             :date created-on}
-            text])]))))
+         (doall
+           (for [{:keys [:message/id :message/created-on :message/text :message/sender]} @messages]
+             [message-bubble
+              {:key id
+               :side (if (= (:user/id (:contract/freelancer @contract)) (:user/id sender))
+                       :left
+                       :right)
+               :user sender
+               :date created-on}
+              text]))]))))
 
 (defn tabs-with-message-form [tab-props body]
   [ui/tabs
