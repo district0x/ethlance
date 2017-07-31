@@ -490,11 +490,11 @@
 
 (def default-db
   {:web3 nil
-   :load-node-addresses? true
+   :load-node-addresses? false
    :node-url
-   "https://ropsten.etherscan.io"
+   #_"https://ropsten.etherscan.io"
    #_"http://localhost:8549"
-   #_"https://mainnet.infura.io/"
+   "https://mainnet.infura.io/"
    #_ "http://localhost:8545"
    #_"http://localhost:8549"
    #_"http://192.168.0.16:8545/"
