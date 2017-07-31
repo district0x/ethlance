@@ -490,8 +490,15 @@
 
 (def default-db
   {:web3 nil
-   :load-node-addresses? false
-   :node-url "https://mainnet.infura.io/" #_ "http://localhost:8545" #_ "http://localhost:8549" #_"http://192.168.0.16:8545/" #_"http://localhost:8550"
+   :load-node-addresses? true
+   :node-url
+   "https://ropsten.etherscan.io"
+   #_"http://localhost:8549"
+   #_"https://mainnet.infura.io/"
+   #_ "http://localhost:8545"
+   #_"http://localhost:8549"
+   #_"http://192.168.0.16:8545/"
+   #_"http://localhost:8550"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
