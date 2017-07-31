@@ -25,6 +25,7 @@
                  [org.clojure/clojurescript "1.9.671"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.9.2" :exclusions [reagent]]
+                 [re-frisk "0.3.2"]
                  [madvas/reagent-patched "0.6.1" :exclusions [cljsjs/react cljsjs/react-dom]]]
 
   :plugins [[lein-auto "0.1.2"]
@@ -55,12 +56,14 @@
 
   :profiles
   {:dev
-   {:dependencies [[binaryage/devtools "0.8.3"]
+   {:source-paths ["dev"]
+    :dependencies [[binaryage/devtools "0.8.3"]
                    [com.cemerick/piggieback "0.2.1"]
-                   [figwheel-sidecar "0.5.8"]
-                   [org.clojure/tools.nrepl "0.2.11"]]
-    :plugins [[lein-figwheel "0.5.8"]]}}
-
+                   [org.clojure/tools.nrepl "0.2.13"]
+                   [figwheel-sidecar "0.5.10"]]                   
+    :plugins [[lein-figwheel "0.5.10" :exclusions [cider/cider-nrepl]]]
+    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
+  
   :cljsbuild
   {:builds
    [{:id "dev"
