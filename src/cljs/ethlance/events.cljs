@@ -233,7 +233,9 @@
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
     (let [provides-web3? (boolean (aget js/window "web3"))
-          web3 (if provides-web3? (aget js/window "web3") (web3/create-web3 (:node-url default-db)))
+          web3 (if provides-web3?
+                 (new (aget js/window "Web3") (web3/current-provider (aget js/window "web3")))
+                 (web3/create-web3 (:node-url default-db)))
           {:keys [:active-page]} default-db
           localstorage (migrate-localstorage localstorage)
           db (as-> default-db db
