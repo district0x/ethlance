@@ -490,6 +490,7 @@
 
 (def default-db
   {:web3 nil
+   :web3-read-only nil
    :load-node-addresses? false
    :node-url "https://mainnet.district0x.io/" #_ "http://localhost:8545" #_ "http://localhost:8549"
    :active-page (u/match-current-location)

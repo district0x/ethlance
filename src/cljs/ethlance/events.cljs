@@ -233,8 +233,9 @@
   (inject-cofx :localstorage)
   (fn [{:keys [localstorage]} [deploy-contracts?]]
     (let [provides-web3? (boolean (aget js/window "web3"))
+          current-provider (and provides-web3? (web3/current-provider (aget js/window "web3")))
           web3 (if provides-web3?
-                 (new (aget js/window "Web3") (web3/current-provider (aget js/window "web3")))
+                 (new (aget js/window "Web3") current-provider)
                  (web3/create-web3 (:node-url default-db)))
           {:keys [:active-page]} default-db
           localstorage (migrate-localstorage localstorage)
@@ -243,6 +244,9 @@
                    (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
                    (assoc db :provides-web3? provides-web3?)
                    (assoc db :web3 web3)
+                   (assoc db :web3-read-only (if (aget current-provider "isMetaMask")
+                                               (web3/create-web3 (:node-url default-db))
+                                               web3))
                    (assoc db :on-load-seed (rand-int 99999))
                    (assoc db :drawer-open? (> (:window/width-size db) 2))
                    (assoc-search-skills-form-open db :form/search-freelancers :search-freelancers-skills-open?)
@@ -520,7 +524,10 @@
   (fn [{:keys [db]} [contract-key code-type code]]
     (let [code (if (= code-type :abi) (clj->js code) (str "0x" code))
           contract (get-contract db contract-key)
-          contract-address (:address contract)]
+          contract-address (:address contract)
+          web3 (if (contains? #{:ethlance-search-freelancers :ethlance-search-jobs} contract-key)
+                 (:web3-read-only db)
+                 (:web3 db))]
       (let [new-db (cond-> db
                      true
                      (assoc-in [:eth/contracts contract-key code-type] code)
@@ -528,7 +535,7 @@
                      (= code-type :abi)
                      (update-in [:eth/contracts contract-key] merge
                                 (when contract-address
-                                  {:instance (web3-eth/contract-at (:web3 db) code contract-address)})))]
+                                  {:instance (web3-eth/contract-at web3 code contract-address)})))]
         (merge
           {:db new-db
            :dispatch-n (remove nil?
