@@ -33,6 +33,19 @@ a.no-decor:hover {
   text-decoration: none;
 }
 
+.hoverlinks a,
+.hoverlinks a * {
+  -webkit-transition: opacity 0.2s linear;
+  -moz-transition: opacity 0.2s linear;
+  -o-transition: opacity 0.2s linear;
+  transition: opacity 0.2s linear;
+}
+
+.hoverlinks a:hover,
+.hoverlinks a:hover * {
+  opacity:0.8;
+}
+
 html {
   font-family: 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -70,7 +83,7 @@ h1.bolder, h2.bolder, h3.bolder {
 }
 
 h3 {
-    line-height: 1.4em;
+    line-height: 1.5em;
 }
 
 body {
