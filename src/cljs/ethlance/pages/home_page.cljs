@@ -23,13 +23,13 @@
      :middle "xs"
      :style styles/full-height}
     [col
-     {:xs 12 :sm 9 :md 7 :lg 6}
+     {:xs 12 :sm 9 :md 8 :lg 7}
      [:img {:src "./images/ethereum.svg"
             :style {:margin-bottom 39}}]
-     [:h1
+     [:h1.sm-font-2-7em.md-font-3-7em
       {:style styles/landing-title}
       "The future of work is now"]
-     [:h3.bolder
+     [:h3.bolder.sm-font-1-5em.md-font-1-7em
       {:style styles/landing-subtitle}
       "hire or work for Ether cryptocurrency"]
      [row-plain

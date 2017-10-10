@@ -505,12 +505,12 @@
 
 (def landing-title
   (merge landing-title-base
-         {:font-size 55
+         {:font-size 30
           :margin-bottom 8}))
 
 (def landing-subtitle
   (merge landing-title-base
-         {:font-size 25}))
+         {:font-size 18}))
 
 (def landing-app-bar
   {:position :fixed
