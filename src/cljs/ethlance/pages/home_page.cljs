@@ -23,7 +23,7 @@
      :middle "xs"
      :style styles/full-height}
     [col
-     {:xs 12 :sm 9 :md 8 :lg 6}
+     {:xs 12 :sm 9 :md 7 :lg 6}
      [:img {:src "./images/ethereum.svg"
             :style {:margin-bottom 39}}]
      [:h1
@@ -234,7 +234,7 @@
     :style {:background-color "#181a1a"
             :padding-top "70px"
             :padding-bottom "20px"
-            :line-height "1.9em"}}
+            :line-height "1.8em"}}
    [col
     {:xs 12 :sm 4
      :class "hoverlinks"}
