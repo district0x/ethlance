@@ -395,7 +395,7 @@
    [ui/raised-button
     {:primary true
      :href (u/path-for :how-it-works)
-     :label "How it works?"
+     :label "How it works"
      :style styles/margin-top-gutter-less}]])
 
 (defn only-connected [& children]
@@ -480,13 +480,13 @@
   (let [[props children] (u/parse-props-children props children)]
     [:div
      (r/merge-props
-       {:style {:margin-top 10 :text-align :right}}
+       {:style {:margin-top 15 :text-align :right}}
        props)
      [:a
       {:href (u/path-for :how-it-works)}
       [:h3.bolder
-       {:style styles/white-text}
-       (or (first children) "How it works?")]]]))
+       {:style styles/app-bar-link}
+       (or (first children) "How it works")]]]))
 
 (defn- link [href text]
   [:a {:href href

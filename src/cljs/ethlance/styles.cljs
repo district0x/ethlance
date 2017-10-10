@@ -90,7 +90,6 @@
    :padding-right x
    :padding-left x})
 
-
 (def full-width
   {:width "100%"})
 
@@ -417,9 +416,15 @@
 (def app-bar-top-banner
   (merge full-width
          {:color "#FFF"
-          :font-weight :bold
-          :padding-top desktop-gutter-mini
-          :font-size "0.98em"}))
+          :font-weight 400
+          :padding-top 11
+          :font-size "1em"
+          :max-width 700
+          :position "absolute"
+          :left 0
+          :right 0
+          :margin-left "auto"
+          :margin-right "auto"}))
 
 (def app-bar-balance
   (merge white-text
@@ -440,10 +445,17 @@
 (def app-bar-home-page
   (merge full-width
          (padding-horizontal desktop-gutter)
-         {:padding-bottom desktop-gutter-mini}))
+         {:padding-bottom desktop-gutter-mini
+          :padding-top "6px"}))
+
+(def app-bar-link
+  (merge white-text
+         {:max-width "auto" :display "inline-block"}))
+
+
 
 (def landing-bg
-  {:margin-top 64
+  {:margin-top 60
    :width "100%"
    :height "700px"
    :background-color primary1-color})
@@ -471,28 +483,31 @@
   {:max-height "80px"})
 
 (def footer-subheader
-  {:color "#a3a3a3"
-   :padding-left 0})
+  {:color "#777777"
+   :padding-left 0
+   :letter-spacing "0.05em"
+   :font-size "1.1em"})
 
 (def ethlance-logo
   {:font-family "BlendaScript"
    :color logo-color
    :font-size "35px"
    :margin-top 4
-   :display :block})
+   :display :inline-block})
 
 (def ethlance-logo-footer
   (merge ethlance-logo
-         {:color "rgba(255, 255, 255, 0.75)"
-          :font-size "30px"
-          :margin-top 10}))
+         {:color "rgba(255, 255, 255, 0.8)"
+          :font-size "34px"
+          :margin-top 65}))
 
 (def landing-title-base
   {:color "#FFF"})
 
 (def landing-title
   (merge landing-title-base
-         {:font-size 55}))
+         {:font-size 55
+          :margin-bottom 8}))
 
 (def landing-subtitle
   (merge landing-title-base
@@ -511,7 +526,13 @@
    :box-shadow "none"
    :border "1px solid #FFF"
    :width 200
-   :margin "2px 10px"})
+   :margin "3px 10px"})
+
+(def landing-feature-title
+  {:margin-bottom "15px"})
+
+(def landing-feature-text
+  {:max-width 650})
 
 (def landing-feature-seaction
   {:width "100%"
@@ -537,7 +558,7 @@
 
 (def process-diagram
   {:background-color "#FFF"
-   :padding "36px 0"})
+   :padding "36px 0 136px 0"})
 
 (def landing-feature-image
   {:width "100%"

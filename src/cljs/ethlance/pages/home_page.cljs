@@ -25,25 +25,26 @@
     [col
      {:xs 12 :sm 9 :md 7 :lg 6}
      [:img {:src "./images/ethereum.svg"
-            :style {:margin-bottom 10}}]
+            :style {:margin-bottom 39}}]
      [:h1
       {:style styles/landing-title}
-      "Future of work is now"]
+      "The future of work is now"]
      [:h3.bolder
       {:style styles/landing-subtitle}
       "hire or work for Ether cryptocurrency"]
      [row-plain
       {:center "xs"
-       :style {:margin-top 15}}
+       :style {:margin-top 32}}
       [landing-button
-       {:label "Become Freelancer"
+       {:label "Become a Freelancer"
         :href (u/path-for :freelancer/create)}]
       [landing-button
-       {:label "Become Employer"
+       {:label "Become an Employer"
         :href (u/path-for :employer/create)}]]
      [row-plain
       {:center "xs"
-       :style {:margin-top 10}}
+       :style {:margin-top 10
+               :margin-bottom 5}}
       [landing-button
        {:label "Find Work"
         :href (u/path-for :search/jobs)}]
@@ -97,9 +98,13 @@
    [col
     {:xs 10 :sm 7 :md 5 :lg 4
      :style styles/text-left}
-    [:h1.black "We take no cut!"]
-    [:h3.black "Ethlance doesn’t take a percentage of your earned Ether.
-    The amount of Ether the employer pays is the amount the freelancer gets."]]
+    [:h1.black
+     {:style styles/landing-feature-title}
+     "We take no cut!"]
+    [:h3.black
+     {:style styles/landing-feature-text}
+     "Ethlance doesn’t take a percentage of your earned Ether.
+     The amount of Ether the employer pays is the amount the freelancer gets."]]
    [col
     {:xs 5 :sm 3 :md 3 :lg 2}
     [:img
@@ -118,9 +123,13 @@
    [col
     {:xs 8 :sm 6 :sm-offset 1 :md 5
      :style styles/text-left}
-    [:h1.black "It’s all on blockchain!"]
-    [:h3.black "The Ethlance database is distributed on the Ethereum public blockchain and the source files are on IPFS.
-    This makes it accessible to everyone forever, without any central authority having control over it."]]])
+    [:h1.black
+     {:style styles/landing-feature-title}
+     "It’s all on blockchain!"]
+    [:h3.black
+    {:style styles/landing-feature-text}
+    "The Ethlance database is distributed on the Ethereum public blockchain and the source files are on IPFS.
+    Ethlance is accessible to everyone forever, without any central authority having control over it."]]])
 
 (defn feature-no-restrictions []
   [row-plain
@@ -129,8 +138,12 @@
    [col
     {:xs 8 :sm 8 :md 4
      :style styles/text-left}
-    [:h1.black "No artificial restrictions!"]
-    [:h3.black "Everybody can apply for, or create, an unlimited number of jobs.
+    [:h1.black
+     {:style styles/landing-feature-title}
+     "No artificial costs or restrictions"]
+    [:h3.black
+     {:style styles/landing-feature-text}
+     "Everybody can apply for, or create, an unlimited number of jobs.
     All that is needed is to pay Ethereum gas fees associated with these operations."]]
    [col
     {:xs 10 :sm 8 :md 6 :lg 5}
@@ -150,8 +163,12 @@
    [col
     {:first "xs" :xs 8 :sm 7 :md 5 :md-offset 1 :lg 5
      :style styles/text-left}
-    [:h1.black "Part of the district0x Network"]
-    [:h3.black "Ethlance is the first district on the "
+    [:h1.black
+     {:style styles/landing-feature-title}
+     "Part of the district0x Network"]
+    [:h3.black
+     {:style styles/landing-feature-text}
+     "Ethlance is the first district on the "
      [:a {:href "https://district0x.io"
           :target :_blank
           :style (merge styles/underline-text
@@ -179,11 +196,12 @@
    {:center "xs"
     :style styles/process-diagram}
    [col {:xs 12}
-    [:h1.black {:style styles/text-center} "How it works?"]]
+    [:h1.black {:style styles/text-center} "How it works"]]
    [col {:xs 12}
     [row
-     {:center "xs"}
-     (for [[title path] [["Become Freelancer" freelancer-path] ["Become Employer" employer-path]]]
+     {:center "xs"
+      :style {:padding-top "25px"}}
+     (for [[title path] [["Become a Freelancer" freelancer-path] ["Become an Employer" employer-path]]]
        [col
         {:xs 12 :sm 6 :md 4 :lg 3 :key (ffirst path)}
         [:div
@@ -214,25 +232,29 @@
    {:around "sm"
     :center "xs"
     :style {:background-color "#181a1a"
-            :padding-top styles/desktop-gutter
-            :padding-bottom "40px"}}
+            :padding-top "70px"
+            :padding-bottom "20px"
+            :line-height "1.8em"}}
    [col
-    {:xs 12 :sm 4}
+    {:xs 12 :sm 4
+     :class "hoverlinks"}
     [ui/subheader {:style styles/footer-subheader}
      "LEARN MORE"]
     [footer-link :about "About us"]
-    [footer-link :how-it-works "How it works?"]
+    [footer-link :how-it-works "How it works"]
     [footer-link "https://blog.ethlance.com" "Blog"]]
    [col
-    {:xs 12 :sm 4}
+    {:xs 12 :sm 4
+     :class "hoverlinks"}
     [ui/subheader {:style styles/footer-subheader}
      "GET STARTED"]
-    [footer-link :freelancer/create "Become Freelancer"]
-    [footer-link :employer/create "Become Employer"]
+    [footer-link :freelancer/create "Become a Freelancer"]
+    [footer-link :employer/create "Become an Employer"]
     [footer-link :search/jobs "Find Work"]
     [footer-link :search/freelancers "Find Candidates"]]
    [col
-    {:xs 12 :sm 4}
+    {:xs 12 :sm 4
+     :class "hoverlinks"}
     [ui/subheader {:style styles/footer-subheader}
      "REACH US"]
     [footer-link "https://www.facebook.com/ethlance/" "Facebook" {:target :_blank}]
@@ -243,7 +265,7 @@
     [misc/logo {:style styles/ethlance-logo-footer}]
     [:div {:style (merge styles/footer-subheader
                          {:font-size "0.9em"
-                          :margin-top 5})}
+                          :margin-top 44})}
      "Copyright © 2017 Ethlance.com. All rights reserved."]]])
 
 (defn home-page []
@@ -263,7 +285,7 @@
           "Participate in Ethlance's governance processes: "
           [:span
            {:style styles/underline-text}
-           "Introducing the district0x Network."]]]
+           "Introducing the district0x Network"]]]
         [row
          {:style styles/app-bar-home-page}
          [col {:xs 6}
