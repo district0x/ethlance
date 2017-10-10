@@ -418,9 +418,8 @@
          {:color "#FFF"
           :font-weight 400
           :padding-top 11
-          :font-size "1em"
+          :font-size "0.8em"
           :max-width 700
-          :position "absolute"
           :left 0
           :right 0
           :margin-left "auto"
