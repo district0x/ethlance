@@ -206,7 +206,7 @@
         {:xs 12 :sm 6 :md 4 :lg 3 :key (ffirst path)}
         [:div
          {:style {:padding styles/desktop-gutter}}
-         [:h2.black {:style styles/margin-bottom-gutter}
+         [:h2.black {:style {:margin-bottom "35px" :font-style "italic"}}
           title]
          (for [[src title] path]
            [:div
@@ -277,6 +277,7 @@
                     :style styles/landing-app-bar}
         [row-plain
          {:center "xs"
+          :class "sm-absolute md-font-1em"
           :style styles/app-bar-top-banner}
          [:a
           {:href "https://district0x.io"

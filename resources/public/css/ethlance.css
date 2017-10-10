@@ -15,5 +15,5 @@ h2.bolder,
 h3.bolder{font-weight:400 !important;} .black{color:#000;} .white{color:#FFF;} h3{line-height:1.5em;} body{font-size:15px;} strong,
 b{font-weight:600;} .sm-visible,
 .md-visible,
-.lg-visible{display:none;}@media only screen and (min-width:48em){ .sm-visible{display:block;} .sm-margin-0{margin:0;} .sm-margin-top-0{margin-top:0 !important;}}@media only screen and (min-width:64em){ .md-visible{display:block;} .md-margin-0{margin:0;}}@media only screen and (min-width:75em){ .lg-visible{display:block;} .lg-margin-0{margin:0;}} .icon svg path{color:rgba(0, 0, 0, 0.87);fill:rgba(0, 0, 0, 0.87);}
+.lg-visible{display:none;}@media only screen and (min-width:48em){ .sm-visible{display:block;} .sm-margin-0{margin:0;} .sm-margin-top-0{margin-top:0 !important;} .sm-absolute{position:absolute;} .sm-font-1em{font-size:1em !important;}}@media only screen and (min-width:64em){ .md-visible{display:block;} .md-margin-0{margin:0;} .md-absolute{position:absolute;} .md-font-1em{font-size:1em !important;}}@media only screen and (min-width:75em){ .lg-visible{display:block;} .lg-margin-0{margin:0;} .lg-absolute{position:absolute;} .lg-font-1em{font-size:1em !important;}} .icon svg path{color:rgba(0, 0, 0, 0.87);fill:rgba(0, 0, 0, 0.87);}
 /*# sourceMappingURL=ethlance.main.css.map */
