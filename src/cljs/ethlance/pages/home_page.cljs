@@ -96,7 +96,7 @@
    {:middle "xs" :center "xs"
     :style styles/feature-no-cut}
    [col
-    {:xs 10 :sm 7 :md 5 :lg 4
+    {:xs 9 :sm 7 :md 5 :lg 4
      :style styles/text-left}
     [:h1.black
      {:style styles/landing-feature-title}
@@ -121,7 +121,7 @@
      {:src "./images/ethereum.png"
       :style styles/landing-feature-image}]]
    [col
-    {:xs 8 :sm 6 :sm-offset 1 :md 5
+    {:xs 9 :sm 6 :sm-offset 1 :md 5
      :style styles/text-left}
     [:h1.black
      {:style styles/landing-feature-title}
@@ -136,7 +136,7 @@
    {:middle "xs" :center "xs"
     :style styles/feature-no-restrictions}
    [col
-    {:xs 8 :sm 8 :md 4
+    {:xs 9 :sm 8 :md 4
      :style styles/text-left}
     [:h1.black
      {:style styles/landing-feature-title}
@@ -156,12 +156,12 @@
    {:middle "xs" :center "xs"
     :style styles/feature-district0x}
    [col
-    {:xs 8 :sm 6 :md 4 :lg 4 :first "sm"}
+    {:xs 9 :sm 6 :md 4 :lg 4 :first "sm"}
     [:img
      {:src "./images/district0x.png"
       :style styles/landing-feature-image}]]
    [col
-    {:first "xs" :xs 8 :sm 7 :md 5 :md-offset 1 :lg 5
+    {:first "xs" :xs 9 :sm 7 :md 5 :md-offset 1 :lg 5
      :style styles/text-left}
     [:h1.black
      {:style styles/landing-feature-title}
@@ -200,13 +200,13 @@
    [col {:xs 12}
     [row
      {:center "xs"
-      :style {:padding-top "25px"}}
+      :style {:padding-top "10px"}}
      (for [[title path] [["Become a Freelancer" freelancer-path] ["Become an Employer" employer-path]]]
        [col
         {:xs 12 :sm 6 :md 4 :lg 3 :key (ffirst path)}
         [:div
          {:style {:padding styles/desktop-gutter}}
-         [:h2.black {:style {:margin-bottom "35px" :font-style "italic"}}
+         [:h2.black {:style {:margin-bottom "35px" :margin-top "35px" :font-style "italic"}}
           title]
          (for [[src title] path]
            [:div
@@ -232,8 +232,8 @@
    {:around "sm"
     :center "xs"
     :style {:background-color "#181a1a"
-            :padding-top "70px"
-            :padding-bottom "20px"
+            :padding-top 42
+            :padding-bottom 27
             :line-height "1.8em"}}
    [col
     {:xs 12 :sm 4
@@ -265,6 +265,7 @@
     [misc/logo {:style styles/ethlance-logo-footer}]
     [:div {:style (merge styles/footer-subheader
                          {:font-size "0.9em"
+                          :line-height "1.2em"
                           :margin-top 44})}
      "Copyright © 2017 Ethlance.com. All rights reserved."]]])
 
@@ -277,7 +278,7 @@
                     :style styles/landing-app-bar}
         [row-plain
          {:center "xs"
-          :class "sm-absolute md-font-1em"
+          :class "sm-absolute md-font-1em sm-margin-top-5 md-margin-top-10"
           :style styles/app-bar-top-banner}
          [:a
           {:href "https://district0x.io"

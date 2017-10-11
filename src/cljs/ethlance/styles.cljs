@@ -415,11 +415,12 @@
 
 (def app-bar-top-banner
   (merge full-width
+         (padding-horizontal desktop-gutter)
          {:color "#FFF"
           :font-weight 400
-          :padding-top 11
-          :font-size "0.8em"
+          :font-size "0.75em"
           :max-width 700
+          :margin-top 3
           :left 0
           :right 0
           :margin-left "auto"
@@ -444,6 +445,7 @@
 (def app-bar-home-page
   (merge full-width
          (padding-horizontal desktop-gutter)
+         (margin-horizontal 0)
          {:padding-bottom desktop-gutter-mini
           :padding-top "6px"}))
 
@@ -484,6 +486,7 @@
 (def footer-subheader
   {:color "#777777"
    :padding-left 0
+   :margin-top 35
    :letter-spacing "0.05em"
    :font-size "1.1em"})
 
@@ -498,19 +501,19 @@
   (merge ethlance-logo
          {:color "rgba(255, 255, 255, 0.8)"
           :font-size "34px"
-          :margin-top 65}))
+          :margin-top 70}))
 
 (def landing-title-base
   {:color "#FFF"})
 
 (def landing-title
   (merge landing-title-base
-         {:font-size 30
+         {:font-size 35
           :margin-bottom 8}))
 
 (def landing-subtitle
   (merge landing-title-base
-         {:font-size 18}))
+         {:font-size 20}))
 
 (def landing-app-bar
   {:position :fixed
