@@ -420,7 +420,7 @@
           :font-weight 400
           :font-size "0.75em"
           :max-width 700
-          :margin-top 3
+          :margin-top 5
           :left 0
           :right 0
           :margin-left "auto"
