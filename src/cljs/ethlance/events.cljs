@@ -1949,7 +1949,7 @@
                 [(merge
                    {:gas gas
                     :from (or address active-address)
-                    :gas-price 4000000000}
+                    :gas-price 5000000000}
                    (when value
                      {:value value}))
                  [:form/start-loading form-key]
