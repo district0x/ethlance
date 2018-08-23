@@ -13,6 +13,15 @@
 ;;;; use M-x ethlance-jack-in to jack-in a Clojure and ClojureScript REPL
 ;;;;     M-x ethlance-start to start auto-compiling Solidity and testrpc
 ;;;;     M-x ethlance-quit to quit all processes
+;;;;
+;;;; Notes:
+;;;;
+;;;; testrpc has been replaced by ganache-cli, a workaround:
+;;;; - remove testrpc
+;;;; - install ganache-cli
+;;;; - run command as root `ln -s /usr/bin/ganache-cli /usr/bin/testrpc`
+;;;;
+;;;; TODO: Replace testrpc calls with ganache-cli calls.
 
 
 (defcustom ethlance-root
@@ -20,23 +29,27 @@
   "The root directory of the Ethlance repo.")
 
 (defun start-compile-solidity-auto ()
+  (message "Starting auto-compiling Solidity Smart Contracts")
   (start-process-shell-command "compile-solidity"
-                               "compile-solidity"
+                               "*compile-solidity*"
                                (concat "cd " ethlance-root " && " "lein auto compile-solidity")))
+
+
 (defun start-testrpc ()
-  (message "Start testrpc")
+  (message "Starting testrpc...")
   (start-process-shell-command "testrpc"
-                               "testrpc"
+                               "*testrpc*"
                                (concat "cd " ethlance-root " && "  "lein start-testrpc")))
 
+
 (defun stop-compile-solidity-auto ()
-  (message "Stop autocompiling Solidity Smart Contracts")
-  (when-let ((buf (get-buffer "compile-solidity")))
+  (message "Stopping auto-compiling Solidity Smart Contracts")
+  (when-let ((buf (get-buffer "*compile-solidity*")))
     (kill-buffer buf)))
 
 (defun stop-testrpc ()
-  (message "Stop testrpc")
-  (when-let ((buf (get-buffer "testrpc")))
+  (message "Stopping testrpc...")
+  (when-let ((buf (get-buffer "*testrpc*")))
     (kill-buffer buf)))
 
 (defun quit-cider (repl-buffer)
@@ -49,8 +62,10 @@
 
 (defun ethlance-jack-in* ()
   (message "Jack in REPL")
-  (find-file (concat ethlance-root "/project.clj"))
-  (cider-jack-in-clojurescript))
+  ;; Not Required: you can include project-dir in later version of cider
+  ;;(find-file (concat ethlance-root "/project.clj"))
+  (cider-jack-in-clojurescript `(:project-dir ,ethlance-root
+                                 :cljs-repl-type "figwheel")))
 
 (defun ethlance-jack-in ()
   (interactive)
