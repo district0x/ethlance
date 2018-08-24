@@ -34,13 +34,18 @@ Start [testrpc](https://github.com/ethereumjs/testrpc)
 ```bash
 testrpc --port 8549
 ```
-Start Clojurescript browser REPL
+
+Start Clojurescript browser REPL, first start a clojure repl
 ```
 lein repl
-(require 'figwheel-sidecar.repl-api)
-(figwheel-sidecar.repl-api/start-figwheel! (figwheel-sidecar.config/fetch-config))
-(figwheel-sidecar.repl-api/cljs-repl)
 ```
+
+When a clojure prompt is present, type:
+```
+(start-ui!)
+```
+The clojurescript repl will appear once you navigate to http:://localhost:6229
+
 
 See `ethlance.el` on how to run the above commands in Emacs via `ethlance-jack-in` and `ethlance-start`.
 
