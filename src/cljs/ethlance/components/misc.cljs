@@ -3,6 +3,7 @@
     [cljs-react-material-ui.reagent :as ui]
     [cljs-web3.core :as web3]
     [clojure.string :as string]
+    [district.ui.mobile.subs :as mobile-subs]
     [ethlance.components.currency-select-field :refer [currency-select-field]]
     [ethlance.components.icons :as icons]
     [ethlance.components.linkify :refer [linkify]]
@@ -480,13 +481,38 @@
   (let [[props children] (u/parse-props-children props children)]
     [:div
      (r/merge-props
-       {:style {:margin-top 15 :text-align :right}}
-       props)
+      {:style {:margin-top 15 :text-align :right}}
+      props)
      [:a
       {:href (u/path-for :how-it-works)}
       [:h3.bolder
        {:style styles/app-bar-link}
        (or (first children) "How it works")]]]))
+
+
+(defn mobile-coinbase-app-bar-link []
+  (let [android? @(subscribe [::mobile-subs/android?])
+        ios? @(subscribe [::mobile-subs/ios?])
+        coinbase-mobile-store-link
+        (cond
+          (true? android?) (:android-mobile-link constants/coinbase)
+          (true? ios?) (:ios-mobile-link constants/coinbase)
+          :else (:main-mobile-link constants/coinbase))]
+    (fn []
+      [:a {:href coinbase-mobile-store-link}
+        [:div {:style (merge styles/app-bar-link
+                             {:display "flex" :align-items "center"})}
+         [:span {:style {:color "white"
+                         :height "2em"
+                         :line-height "2em"}} "Pay with"]
+         [:img {:style {:height "2em"
+                        :width "103.7px"
+                        :background-color "white"
+                        :border-radius "3px"
+                        :margin-left "0.7em"
+                        :margin-right "0.7em"}
+                :src "/images/coinbase-logo.png"}]]])))
+
 
 (defn- link [href text]
   [:a {:href href
