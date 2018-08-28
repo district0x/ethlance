@@ -8,6 +8,7 @@
     [cljsjs.web3]
     [cljsjs.react-truncate]
     [cljsjs.oauthio]
+    [district.ui.mobile]
     [ethlance.components.main-panel :refer [main-panel]]
     [ethlance.events]
     [ethlance.routes :refer [routes]]
@@ -15,6 +16,7 @@
     [ethlance.utils :as u]
     [goog.string.format]
     [madvas.re-frame.google-analytics-fx :as google-analytics-fx]
+    [mount.core :as mount]
     [print.foo :include-macros true]
     [re-frame.core :refer [dispatch dispatch-sync clear-subscription-cache!]]
     [reagent.core :as reagent]))
@@ -31,5 +33,6 @@
   (google-analytics-fx/set-enabled! (not goog.DEBUG))
   (.initialize js/OAuth "F9gUx3gjNFE0DTO4k6WiiJv5pcA")
   (dispatch-sync [:initialize])
+  (mount/start)
   (set! (.-onhashchange js/window) #(dispatch [:set-active-page (u/match-current-location)]))
   (mount-root))

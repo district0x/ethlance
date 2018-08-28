@@ -4,6 +4,7 @@
     [cljs-react-material-ui.reagent :as ui]
     [cljsjs.material-ui-chip-input]
     [clojure.set :as set]
+    [district.ui.mobile.subs :as mobile-subs]
     [ethlance.components.currency-select-field :refer [currency-select-field]]
     [ethlance.components.icons :as icons]
     [ethlance.components.misc :as misc :refer [row-plain col a center-layout row paper centered-rows currency]]
@@ -121,12 +122,13 @@
 
 (defn app-bar-right-elements []
   (let [active-address-balance (subscribe [:db/active-address-balance])
-        active-user (subscribe [:db/active-user])
-        my-users-loading? (subscribe [:db/my-users-loading?])
         active-address-registered? (subscribe [:db/active-address-registered?])
+        active-user (subscribe [:db/active-user])
         connection-error? (subscribe [:blockchain/connection-error?])
-        my-addresses (subscribe [:db/my-addresses])
         contracts-not-found? (subscribe [:db/contracts-not-found?])
+        mobile-coinbase-compatible? @(subscribe [::mobile-subs/coinbase-compatible?])
+        my-addresses (subscribe [:db/my-addresses])
+        my-users-loading? (subscribe [:db/my-users-loading?])
         selected-currency (subscribe [:db/selected-currency])]
     (fn []
       (if-not @connection-error?
@@ -166,8 +168,10 @@
                     @active-address-balance)
            [:h2.bolder {:style styles/app-bar-balance}
             [currency @active-address-balance]])
-         (if (or (seq @my-addresses) @my-users-loading?)
-           [my-addresses-select-field]
+         (cond
+           (or (seq @my-addresses) @my-users-loading?) [my-addresses-select-field]
+           mobile-coinbase-compatible? [misc/mobile-coinbase-app-bar-link]
+           :else
            [misc/how-it-works-app-bar-link
             {:style {:margin-top 0}}
             [row-plain
