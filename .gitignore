@@ -6,3 +6,5 @@
 /.idea
 /.lein-repl-history
 /.nrepl-port
+/node_modules
+/dist
