@@ -5,6 +5,7 @@
 /resources/public/js/compiled
 /.idea
 /.lein-repl-history
+/.lein-failures
 /.nrepl-port
 /node_modules
 /dist
