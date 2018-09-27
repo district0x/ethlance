@@ -122,17 +122,18 @@
   :profiles
   {:dev
    {:source-paths ["src/clj" "dev/clj"]
-    ;; :resource-paths ["dev/resources"]
-    :dependencies [[com.cemerick/piggieback "0.2.2"]
+    :resource-paths ["dev/resources"]
+    :dependencies [[cider/piggieback "0.3.9"]
                    [figwheel "0.5.16"]
                    [figwheel-sidecar "0.5.16"]
                    [org.clojure/tools.nrepl "0.2.13"]
-                   [binaryage/devtools "0.9.10"]]
+                   [binaryage/devtools "0.9.10"]
+                   [doo "0.1.10"]]
     :plugins [[lein-figwheel "0.5.16"]
-              [lein-doo "0.1.8"]]
+              [lein-doo "0.1.10"]]
     :repl-options {:init-ns ethlance.dev.user
-                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
-                   :port 6499}}}
+                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]
+                   :port 6450}}}
 
   :cljsbuild
   {:builds
