@@ -94,7 +94,23 @@
 
   :exclusions [cljsjs/react-with-addons]
 
-  :npm {:dependencies [[ws "4.0.0"]]}
+  :npm {:dependencies
+        [[chalk "2.3.0"]
+         [cors "2.8.4"]
+         [deasync "0.1.11"]
+         [express "4.15.3"]
+         ;; needed until v0.6.13 is officially released
+         #_[express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
+         [graphql "0.13.1"]
+         [graphql-fields "1.0.2"]
+         [graphql-tools "3.0.1"]
+         [solc "0.4.20"]
+         [source-map-support "0.5.3"]
+         [ws "4.0.0"]
+
+         ;; Note: district0x/district-server-web3 uses ganache-core@2.0.2, which depends on 0.6.0
+         ;; Note: https://github.com/ethereumjs/ethereumjs-wallet/issues/64
+         [ethereumjs-wallet "0.6.0"]]}
 
   :solc {:src-path "resources/public/contracts/src"
          :build-path "resources/public/contracts/build"
@@ -154,7 +170,7 @@
     {:id "prod-server"
      :source-paths ["src/server" "src/shared"]
      :compiler {:main ethlance.server.core
-                :output-to "dist/ethlance_server.min.js"
+                :output-to "dist/ethlance_server.js"
                 :output-dir "target/node/out-prod-server"
                 :target :nodejs
                 :optimizations :simple
