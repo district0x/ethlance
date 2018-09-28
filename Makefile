@@ -4,6 +4,8 @@
 .PHONY: dev-server
 .PHONY: fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build
+.PHONY: watch-contracts watch-tests
+.PHONY: run
 .PHONY: test
 .PHONY: clean
 
@@ -13,22 +15,30 @@ help:
 	@echo "Development Commands:"
 	@echo "  dev-server              :: Run Development Node Server for Figwheel Server Build"
 	@echo "  repl                    :: Start CLJ Repl."
+	@echo "  --"
 	@echo "  fig-dev-server          :: Start and watch Figwheel Server Build."
 	@echo "  fig-dev-ui              :: Start and watch Figwheel UI Build."
+	@echo "  --"
 	@echo "  watch-contracts         :: Start and watch Solidity Contracts."
+	@echo "  watch-tests             :: Start and watch Server tests."
 	@echo ""
 	@echo "Production Commands:"
 	@echo "  build                   :: Perform Production Build of Ethlance."
+	@echo "  --"
 	@echo "  build-ui                :: Perform Production Build of Browser UI Only."
 	@echo "  build-server            :: Perform Production Build of Node Server Only."
 	@echo "  build-contracts         :: Build Solidity Contracts Once."
+	@echo "  build-dist              :: Perform Resource Exports into ./dist folder."
+	@echo "  --"
+	@echo "  run                     :: Run Production Server."
 	@echo ""
 	@echo "Testing Commands:"
-	@echo "  test                    :: Run Server Tests."
-
+	@echo "  test                    :: Run Server Tests (once)."
+	@echo ""
 	@echo "Misc Commands:"
-	@echo "  clean                   :: Clean out build artifacts"
-	@echo "  help                    :: Display this help message"
+	@echo "  clean                   :: Clean out build artifacts."
+	@echo "  clean-all               :: Clean out more build artifacts."
+	@echo "  help                    :: Display this help message."
 
 
 dev-server:
@@ -56,6 +66,14 @@ deps:
 	lein deps
 
 
+watch-contracts:
+	lein solc auto
+
+
+watch-tests:
+	lein doo node "test-server"
+
+
 build-ui:
 	lein cljsbuild once prod-ui
 
@@ -79,3 +97,7 @@ build: clean-all deps build-ui build-server build-contracts build-dist
 
 test:
 	lein doo node "test-server" once
+
+
+run:
+	cd ./dist && node ./ethlance_server.js
