@@ -1,0 +1,292 @@
+#+TITLE: Ethlance Smart Contracts Design
+#+AUTHOR: Benjamin Zaporzan
+#+DATE: 2018-09-14
+#+EMAIL: benzaporzan@gmail.com
+#+LANGUAGE: en
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+* Requirements
+  - Users are defined by their unique ethereum account address.
+    - Users define a profile as an employer.
+    - Users define a profile as an arbiter.
+    - Users define a profile as a candidate.
+  - An employer creates jobs.
+    - An employer requests arbiters to the job.
+    - Only the first arbiter to accept becomes the arbiter for the job.
+  - Arbiters accept requests for jobs
+    - Only the first arbiter that accepts will be assigned to a job.
+
+* Specification
+
+  #+BEGIN_SRC plantuml :file class_diagram.png
+  title Ethlance Smart Contract Class Diagram
+
+  class User << (s,yellow) Struct >> {
+    user_address : address
+    email : string
+    date_joined : integer
+    profile_image_ipfs : string
+    country_code : integer
+    {field} github_id : string(?)
+    {field} linkedin_id : string(?)
+    languages_listing : array[integer]
+  }
+
+  class Candidate << (s,yellow) Struct >> {
+    user_id : integer{User ID}
+    candidate_profession_title : string
+    hourly_rate : float
+    currency_type : integer
+    candidate_category_listing : array[integer]
+    candidate_skills_listing : array[integer]
+    candidate_biography : string
+  }
+
+  class Employer << (s,yellow) Struct >> {
+    user_id : integer {User ID}
+    {field} job_title : string
+    employer_biography : string
+  }
+
+  class Arbiter << (s,yellow) Struct >> {
+    user_id : integer{User ID}
+    arbiter_profession_title : string
+    type_of_payment : uint{enum[Flat Rate, Percentage]}
+    payment_value : float
+  }
+
+  EthlanceUserFactory "1" *-- "*" User
+  EthlanceUserFactory "1" *-- "*" Candidate
+  EthlanceUserFactory "1" *-- "*" Employer
+  EthlanceUserFactory "1" *-- "*" Arbiter
+
+  class EthlanceUserFactory << Contract >> {
+    user_listing : array[User]
+    user_address_mapping : mapping{address => integer}
+
+    candidate_listing : array[Candidate]
+    employer_listing : array[Employer]
+    arbiter_listing : array[Arbiter]
+
+    -createUser(_email, _profile_image_ipfs, _country_code, _github_id, _linkedin_id, _languages_listing) : integer
+    -updateUser_email(_s : string)
+    -updateUser_profile_image_ipfs(_s : string)
+    +updateCandidate(_title, _hourly_rate, _currency_type, _category_listing, _skills_listing, _biography)
+    +updateEmployer(...)
+    +updateArbiter(...)
+
+    -- Views --
+    getUserListing(offset : uint, limit : uint) : array[User]
+    getUserCount() : uint
+
+    getCandidateListing(offset: uint, limit : uint) : array[Candidate]
+    getArbiterListing(offset : uint, limit : uint) : array[Arbiter]
+    getEmployerListing(offset : uint, limit : uint) : array[Employer]
+
+    -- Modifiers --
+    isRegisteredUser()
+  }
+
+  EthlanceUserFactory -- EthlanceUserEventsProxy
+  class EthlanceUserEventsProxy << Contract >> {
+    +setProxy(_address)
+  }
+
+  EthlanceUserEventsProxy -- EthlanceUserEvents
+  class EthlanceUserEvents << Contract >> {
+    -- User Events --
+    UserCreatedEvent(_id)
+    UserUpdatedEvent(_id)
+    UserCreatedCandidate(_id)
+    UserUpdatedCandidate(_id)
+    UserCreatedEmployer(_id)
+    UserUpdatedEmployer(_id)
+    UserCreatedArbiter(_id)
+    UserUpdatedArbiter(_id)
+
+    -- Candidate Events --
+    CandidateRequestedJob(_job_id)
+    CandidateFiledDispute(_job_id)
+    CandidateSentInvoice(_job_id)
+    CandidateRatedEmployeeJob(_job_id, _rating)
+    CandidateRatedArbiterJob(_job_id, _rating)
+
+    -- Employer Events --
+    EmployerCreatedJob(_job_id)
+    EmployerRequestedArbiter(_job_id, _address)
+    EmployerAssignedJob(_job_id, _address)
+    EmployerFiledDispute(_job_id)
+    EmployerTransferedAndAcceptedInvoice(_job_id)
+    EmployerRatedCandidateJob(_job_id, _rating)
+    EmployerRatedArbiterJob(_job_id, _rating)
+
+    -- Arbiter Events --
+    ArbiterResolveDispute(_job_id)
+    ArbiterRequestedJob(_job_id)
+  }
+
+  class JobContract << (s,yellow) Struct >> {
+    accepted_arbiter : nullable{address}
+    accepted_candidate : nullable{address}
+    arbiter_request_listing : array[address]
+    candidate_request_listing : array[address]
+    bid_mask : bitmask-8-bit
+    category_code : integer
+    date_created : integer{datetime}
+    date_started : integer{datetime}
+    date_finished : integer{datetime}
+    employer_user_id : uint
+    estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
+    experience_level : bitmask-8-bit
+    is_bounty: boolean
+    is_eth_payment : boolean
+    is_invitation_only : boolean
+    job_description : string
+    job_title : string
+    required_availability : uint{enum[Part Time, Full Time]}
+    required_skills_listing : array[integer]
+    reward_value : float
+    snt_payment_address_listing : array[address]
+  }
+
+  EthlanceJobFactory "1" *-- "Many" JobContract
+  class EthlanceJobFactory << Contract >> {
+    job_contract_listing : array[JobContract]
+
+    +createJobContract(...)
+    +performCandidateJobRequest(job_id)
+    +performArbiterAcceptJobRequest(job_id)
+    +performEmployeeArbiterRequest(job_id)
+    +performEmployeeAcceptCandidate(job_id)
+
+    -- Views --
+    +getJobContractListing()
+    +getJobStatus(_job_id)
+
+    -- Modifiers --
+    is_job_owner()
+  }
+
+  EthlanceJobEventsProxy -- EthlanceJobFactory
+  class EthlanceJobEventsProxy << Contract >> {
+    job_events_address : address
+    +setProxy(_address)
+  }
+
+  EthlanceJobEvents "1" --* "1" EthlanceJobEventsProxy
+  class EthlanceJobEvents << Contract >> {
+    
+  }
+
+  EthlanceJobFactory "1" *-- "Many" JobInvoice
+  class JobInvoice << (s,yellow) Struct >> {
+    job_id : uint
+    date_created: uint{DateTime}
+    date_approved: uint{DateTime}
+    duration_seconds: uint
+  }
+
+  EthlanceJobFactory "1" *-- "Many" JobDispute
+  class JobDispute << (s,yellow) Struct >> {
+    dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
+    job_id : uint
+    date_created: uint{DateTime}
+    date_resolved: uint{DateTime}
+    resolution_favouring: boolean [Employee, Candidate]
+  }
+
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:class_diagram.png]]
+
+** Actions
+*** Employer Creates Job
+    - Must be a registered user
+    - Creates a profile with required fields, 
+
+* Issues
+** Specification
+
+*** EthlanceJobContract
+    - Unclear if some of the options are a radio, or a checklist
+      (multi-select versus single-select)
+    - Not familiar with the ability to transfer funds into the smart
+      contract from a particular address. Could be a discussion
+      point. This is also seen in Job Bounties.
+
+*** Job Contract and Bounty
+    Should be extended
+
+* Comments
+  - Centralized Contract for Jobs and Users
+    - fires events related to users and related to jobs
+      - 
+
+  - Users
+    - UserFactory, updated once a month.
+      - Generates Users in the user listing.
+
+      - Whenever we make changes to user contracts, we update user
+        factory
+
+    - UserEvents
+      - Centralized contract for firing events
+
+      - Updated once in 6 months, so deploy proxy for latest
+        UserEvents contract
+
+      - On server-side, only listen to proxy address which will never
+        change.
+
+  - Jobs
+    - Similar to Users
+    - Is both a 'Contract' and a 'Bounty' determined by a flag.
+    - Can create job contract without money
+    - Money transferred into the account is not handled by the
+      contractor anymore, and instead is handled by the arbiter.
+    - Can send money to address for job, which increases the incentive
+      to take the job.
+    - Bounty involves getting the reward for finishing work.
+      - Invoice is created on applying for the job.
+    - Contract involves getting money for invoicing.
+
+  - Arbiters
+    - as long as everything goes fine, arbiters shouldn't be doing
+      anything.
+    - either the employer or the consultant can call for a dispute.
+    - when a bounty is submitted, the employer can raise a dispute
+      suggesting that the bounty had not been finished.
+    - Edge Case: what if arbiter doesn't show up?
+      - countdown timer for like a week, then reassign arbiter.
+
+  - How to handle currency?
+    - Applies for $30/hr
+      - works for 10 hours
+      - converts to ether automatically based on current market-value
+      - candidate could raise disputes on conversions to be handled by
+        the arbiter.
+      - raise disputes on price.
+
+
+  - Disputes
+    - disputes on price.
+    - incorrect currency conversion.
+    - work has not been finished.
+
+* Programming Tasks
+  - Fix class diagram
+
+  - Create ethlance branch called 'newlance'.
+    - Focus on server-side.
+    - Use leiningen system that we've been following. Too many issues
+      with figwheel.main as it stands.
+
+  - Get to the same point as the RecipeBounty example project.
+    - Smart contracts deployed
+    - Look at [[https://github.com/district0x/tcrfactory][tcrfactory]]
+      - generator.cljs
+      - deployer.cljs
+
+  - SemanticUI
+    - Don't worry about it right now.

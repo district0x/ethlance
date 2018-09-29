@@ -9,3 +9,4 @@
 /.nrepl-port
 /node_modules
 /dist
+/.rebel_readline_history
