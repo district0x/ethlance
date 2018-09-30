@@ -1,4 +1,6 @@
 (ns ethlance.server.deployer
+  "Includes functions for deploying smart contracts into a
+  testnet (ganache-cli), or the ethereum mainnet."
   (:require
    [district.server.smart-contracts :as contracts]))
 
@@ -13,20 +15,24 @@
     opts)))
 
 
+
+
+
+
 (defn deploy-all!
   "Deploy all smart contracts.
-   
-   Keyword Arguments:
-  
-   opts -- map of contract options for
-   #'contracts/deploy-smart-contract!
   
    Optional Arguments:
   
+   general-contract-options -- map of contract options for all
+  #'contracts/deploy-smart-contract!
+
    write? -- If true, will also write the deployed contract addresses
   into ethlance.shared.smart-contracts. [default: false]"
-  [opts & {:keys [write?] :or {write? false}}]
-  (deploy-district-config! opts)
+  [{:keys [general-contract-options write?]
+    :or {general-contract-options {}
+         write? false}}]
+  (deploy-district-config! general-contract-options)
 
   (when write?
     (contracts/write-smart-contracts!)))

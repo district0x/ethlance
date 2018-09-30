@@ -27,34 +27,51 @@
 
 
 (def dev-config
+  "Default district development configuration for mount components."
   (-> ethlance.server.core/main-config
       (merge {:logging {:level "debug" :console? true}})
       (update :smart-contracts merge {:print-gas-usage? true
                                       :auto-mining? true})))
 
 
-(defn start []
+(defn start
+  "Start the mount components."
+  []
   (mount/start (mount/with-args dev-config)))
 
 
-(defn stop []
+(defn stop
+  "Stop the mount components."
+  []
   (mount/stop))
 
 
-(defn restart []
+(defn restart
+  "Restart the mount components."
+  []
   (stop)
   (start))
 
 
-(defn redeploy []
-  (deployer/deploy-all! {} :write? true))
+(defn redeploy
+  "Redeploy the smart contracts for development.
+
+   Notes:
+
+   - please read the docs for `ethlance.server.deployer/deploy-all!`"
+  [& opts]
+  (apply deployer/deploy-all! opts))
 
 
-(defn help []
+(defn help
+  "Display a help message on development commands."
+  []
   (println help-message))
 
 
-(defn -dev-main [& args]
+(defn -dev-main
+  "Commandline Entry-point for node dev_server.js"
+  [& args]
   (help)
   (start))
 

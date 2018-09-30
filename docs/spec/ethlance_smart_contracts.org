@@ -1,51 +1,108 @@
 #+TITLE: Ethlance Smart Contracts Design
 #+AUTHOR: Benjamin Zaporzan
 #+DATE: 2018-09-14
-#+EMAIL: benzaporzan@gmail.com
+#+EMAIL: ben@district0x.io
 #+LANGUAGE: en
 #+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
 
 * Requirements
   - Users are defined by their unique ethereum account address.
-    - Users define a profile as an employer.
-    - Users define a profile as an arbiter.
-    - Users define a profile as a candidate.
-  - An employer creates jobs.
-    - An employer requests arbiters to the job.
-    - Only the first arbiter to accept becomes the arbiter for the job.
-  - Arbiters accept requests for jobs
-    - Only the first arbiter that accepts will be assigned to a job.
+    - A User defines a profile as an Employer.
+    - A User defines a profile as an Arbiter.
+    - A User defines a profile as a Candidate.
+  - An Employer is a User who creates jobs.
+    - An Employer creates a job contract
+    - An Employer updates a job contract
+    - An Employer creates a job bounty
+    - An Employer updates a job bounty
+    - An Employer requests Arbiters to a job contract.
+      - Only one Arbiter can accept and be assigned to a job contract.
+    - An employer requests Arbiters to a job bounty.
+      - Only one Arbiter can accept and be assigned to a job bounty.
+    - An Employer Accepts a Candidate to be assigned to a job contract.
+    - An Employer can accept an invoice for a job contract supplied to
+      them by the accepted Candidate, transferring the invoice's
+      currency value from the job contract to the Candidate.
+    - An Employer can 'raise a dispute' on an invoice supplied to him
+      from the Candidate.
+    - An Employer can provide comments on a 'raised dispute' for job
+      contracts that he owns.
+    - An Employer can accept an invoice on a job bounty reward
+      supplied by a Candidate, transferring the invoices's currency
+      value from the job contract to the Candidate.
+    - An Employer can 'raise a dispute' on an invoice for a job bounty
+      supplied to him from a Candidate
+  - An Arbiter accepts requests for jobs, and resolves disputes between
+    a Candidate and an Employer's job contract.
+    - Only the first Arbiter that accepts will be assigned to a job.
+    - An Arbiter can request to be assigned to a job contract.
+    - Employees can request an Arbiter to be assigned to a job
+      contract.
+    - An Arbiter can request to be assigned to a job bounty.
+    - Employees can request an Arbiter to be assigned to a job bounty.
+    - An Arbiter can resolve disputes for assigned jobs.
+      - Arbiters can resolve a dispute in favour of the Employer. The
+        Arbiter will receive an agreed upon payment for resolving the
+        dispute.
+      - Arbiters can resolve a dispute in favour of the Candidate. The
+        Arbiter will receive an agreed upon payment for resolving teh
+        dispute.
+  - A Candidate is a User who requests jobs, and invoices jobs.
+    - A Candidate requests job contracts
+    - A Candidate can be requested for job contracts by an Employer
+    - A Candidate can be accepted by an Employer for a previously
+      requested job contract.
+    - A Candidate can accept a job contract after previously being
+      requested by an Employer.
+    - A Candidate can invoice an accepted job contract.
+    - A Candidate can 'raise a dispute' on a job contract.
+    - A Candidate can invoice a job bounty.
 
 * Specification
 
   #+BEGIN_SRC plantuml :file class_diagram.png
   title Ethlance Smart Contract Class Diagram
 
+  class UserMetahash << (I,blue) IPFS >> {
+    country_code : string,
+    date_joined : integer
+    email : string
+    github_id : map{...}
+    known_languages : array[string]
+    linkedin_id : map{...}
+    profile_image : map{filename : string, :filetype : string, ...}
+  }
+
+  User "1" *-- "1" UserMetahash
   class User << (s,yellow) Struct >> {
     user_address : address
-    email : string
-    date_joined : integer
-    profile_image_ipfs : string
-    country_code : integer
-    {field} github_id : string(?)
-    {field} linkedin_id : string(?)
-    languages_listing : array[integer]
+    metahash_ipfs : string
   }
 
+  class CandidateMetahash << (I,blue) IPFS >> {
+    profession_title : string
+    category_listing : array[integer]
+    skills_listing : array[integer]
+    biography : string
+  }
+
+  Candidate "1" *-- "1" CandidateMetahash
   class Candidate << (s,yellow) Struct >> {
+    metahash_ipfs : string
     user_id : integer{User ID}
-    candidate_profession_title : string
     hourly_rate : float
-    currency_type : integer
-    candidate_category_listing : array[integer]
-    candidate_skills_listing : array[integer]
-    candidate_biography : string
+    currency_type : uint{enum[ethereum]}
   }
 
+  class EmployerMetahash << (I,blue) IPFS >> {
+    job_title : string
+    biography : string
+  }
+
+  Employer "1" *-- "1" EmployerMetahash
   class Employer << (s,yellow) Struct >> {
     user_id : integer {User ID}
-    {field} job_title : string
-    employer_biography : string
+    metahash_ipfs : string
   }
 
   class Arbiter << (s,yellow) Struct >> {
@@ -71,7 +128,7 @@
     -createUser(_email, _profile_image_ipfs, _country_code, _github_id, _linkedin_id, _languages_listing) : integer
     -updateUser_email(_s : string)
     -updateUser_profile_image_ipfs(_s : string)
-    +updateCandidate(_title, _hourly_rate, _currency_type, _category_listing, _skills_listing, _biography)
+    +updateCandidate(_title, _hourly_rate, _currency_type, _category_listing, _skills_listing, _biography_ipfs)
     +updateEmployer(...)
     +updateArbiter(...)
 
@@ -94,70 +151,76 @@
 
   EthlanceUserEventsProxy -- EthlanceUserEvents
   class EthlanceUserEvents << Contract >> {
-    -- User Events --
-    UserCreatedEvent(_id)
-    UserUpdatedEvent(_id)
-    UserCreatedCandidate(_id)
-    UserUpdatedCandidate(_id)
-    UserCreatedEmployer(_id)
-    UserUpdatedEmployer(_id)
-    UserCreatedArbiter(_id)
-    UserUpdatedArbiter(_id)
+    
+    UserEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
 
-    -- Candidate Events --
-    CandidateRequestedJob(_job_id)
-    CandidateFiledDispute(_job_id)
-    CandidateSentInvoice(_job_id)
-    CandidateRatedEmployeeJob(_job_id, _rating)
-    CandidateRatedArbiterJob(_job_id, _rating)
+    +fireUserEvent(event_name : string, version : uint, data : uint[])
 
-    -- Employer Events --
-    EmployerCreatedJob(_job_id)
-    EmployerRequestedArbiter(_job_id, _address)
-    EmployerAssignedJob(_job_id, _address)
-    EmployerFiledDispute(_job_id)
-    EmployerTransferedAndAcceptedInvoice(_job_id)
-    EmployerRatedCandidateJob(_job_id, _rating)
-    EmployerRatedArbiterJob(_job_id, _rating)
+    -- User Event Names --
+    "UserCreated"
+    "UserUpdated"
+    "UserCreatedCandidate"
+    "UserUpdatedCandidate"
+    "UserCreatedEmployer"
+    "UserUpdatedEmployer"
+    "UserCreatedArbiter"
+    "UserUpdatedArbiter"
 
-    -- Arbiter Events --
-    ArbiterResolveDispute(_job_id)
-    ArbiterRequestedJob(_job_id)
+    -- Candidate Event Names --
+    "CandidateRequestedJob" [_job_id]
+    "CandidateFiledDispute" [_job_id]
+    "CandidateSentInvoice" [_job_id]
+    "CandidateRatedEmployeeJob" [_job_id, _rating]
+    "CandidateRatedArbiterJob" [_job_id, _rating]
+
+    -- Employer Event Names --
+    "EmployerCreatedJob" [_job_id]
+    "EmployerRequestedArbiter" [_job_id, user_id]
+    "EmployerAssignedJob" [_job_id, user_id]
+    "EmployerFiledDispute" [_job_id]
+    "EmployerTransferredAndAcceptedInvoice" [_job_id]
+    "EmployerRatedCandidateJob" [_job_id, _rating]
+    "EmployerRatedArbiterJob" [_job_id, _rating]
+
+    -- Arbiter Event Names --
+    "ArbiterResolveDispute" [_job_id]
+    "ArbiterRequestedJob" [_job_id]
   }
 
+  class JobContractMetahash << (I,blue) IPFS >> {
+    category_code : integer
+    job_title : string
+    job_description : string
+    required_skills_listing : array[string]
+    required_availability : uint{enum[Part Time, Full Time]}
+    experience_level : bitmask-8-bit
+  }
+
+  JobContract "1" *-- "1" JobContractMetahash
   class JobContract << (s,yellow) Struct >> {
     accepted_arbiter : nullable{address}
     accepted_candidate : nullable{address}
+    accepted_token_address_listing : array[string]
     arbiter_request_listing : array[address]
     candidate_request_listing : array[address]
-    bid_mask : bitmask-8-bit
-    category_code : integer
+    bid_mask : bitmask-8-bit [Hourly Rate, Fixed Price, Annual Salary]
     date_created : integer{datetime}
     date_started : integer{datetime}
     date_finished : integer{datetime}
     employer_user_id : uint
     estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
-    experience_level : bitmask-8-bit
     is_bounty: boolean
     is_eth_payment : boolean
     is_invitation_only : boolean
-    job_description : string
-    job_title : string
-    required_availability : uint{enum[Part Time, Full Time]}
-    required_skills_listing : array[integer]
+    metahash_ipfs : string
     reward_value : float
-    snt_payment_address_listing : array[address]
   }
 
-  EthlanceJobFactory "1" *-- "Many" JobContract
+  EthlanceJobFactory "1" *-- "*" JobContract
   class EthlanceJobFactory << Contract >> {
     job_contract_listing : array[JobContract]
 
     +createJobContract(...)
-    +performCandidateJobRequest(job_id)
-    +performArbiterAcceptJobRequest(job_id)
-    +performEmployeeArbiterRequest(job_id)
-    +performEmployeeAcceptCandidate(job_id)
 
     -- Views --
     +getJobContractListing()
@@ -175,10 +238,17 @@
 
   EthlanceJobEvents "1" --* "1" EthlanceJobEventsProxy
   class EthlanceJobEvents << Contract >> {
-    
+
+    JobEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
+
+    +fireJobEvent(event_name : string, version : uint, data : uint[])
+
+    -- Job Event Names --
+    "JobCreated"
+    "JobUpdated"
   }
 
-  EthlanceJobFactory "1" *-- "Many" JobInvoice
+  EthlanceJobFactory "1" *-- "*" JobInvoice
   class JobInvoice << (s,yellow) Struct >> {
     job_id : uint
     date_created: uint{DateTime}
@@ -186,7 +256,7 @@
     duration_seconds: uint
   }
 
-  EthlanceJobFactory "1" *-- "Many" JobDispute
+  EthlanceJobFactory "1" *-- "*" JobDispute
   class JobDispute << (s,yellow) Struct >> {
     dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
     job_id : uint
@@ -277,16 +347,8 @@
 * Programming Tasks
   - Fix class diagram
 
-  - Create ethlance branch called 'newlance'.
-    - Focus on server-side.
-    - Use leiningen system that we've been following. Too many issues
-      with figwheel.main as it stands.
-
   - Get to the same point as the RecipeBounty example project.
     - Smart contracts deployed
     - Look at [[https://github.com/district0x/tcrfactory][tcrfactory]]
       - generator.cljs
       - deployer.cljs
-
-  - SemanticUI
-    - Don't worry about it right now.
