@@ -14,7 +14,7 @@
 
 
 (def main-config
-  {:web3 {:port 8545 :url "localhost"}
+  {:web3 {:port 8545 :url "127.0.0.1"}
    :smart-contracts {:contracts-var #'ethlance.shared.smart-contracts/smart-contracts
                      :print-gas-usage? false
                      :auto-mining? false}})

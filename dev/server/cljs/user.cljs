@@ -2,6 +2,12 @@
   "Development Entrypoint for CLJS-Server."
   (:require
    [mount.core :as mount]
+   [cljs-web3.eth :as web3-eth]
+   
+   [district.server.web3 :refer [web3]]
+   [district.server.smart-contracts :as contracts]
+
+   [ethlance.shared.smart-contracts]
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]))
 
