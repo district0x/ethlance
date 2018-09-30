@@ -145,6 +145,8 @@
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"
+                :optimizations :none
+                :source-map true
                 :source-map-timestamp true
                 :closure-defines {goog.DEBUG true}}}
 
@@ -156,6 +158,8 @@
                 :output-to "target/node/ethlance_server.js"
                 :output-dir "target/node/out-dev-server"
                 :target :nodejs
+                :optimizations :none
+                :source-map true
                 :source-map-timestamp true
                 :closure-defines {goog.DEBUG true}}}
 

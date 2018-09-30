@@ -9,8 +9,8 @@
   (contracts/deploy-smart-contract!
    :district-config
    (merge
-    opts
-    {:gas 1000000 :arguments ["test"]})))
+    {:gas 1000000 :arguments ["test"]}
+    opts)))
 
 
 (defn deploy-all!

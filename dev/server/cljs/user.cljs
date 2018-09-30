@@ -54,5 +54,9 @@
   (println help-message))
 
 
-(defonce start-up (do (help) (start)))
+(defn -dev-main [& args]
+  (help)
+  (start))
 
+
+(set! *main-cli-fn* -dev-main)
