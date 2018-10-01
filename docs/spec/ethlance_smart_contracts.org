@@ -72,7 +72,7 @@
   class UserMetahash << (I,blue) IPFS >> {
     -- 'user' Map --
     country_code : string,
-    date_joined : integer
+    date_last_active : uint{DateTime}
     email : string
     github_id : map{...}
     known_languages : array[string]
@@ -96,14 +96,15 @@
   User "1" *-- "1" UserMetahash
   class User << (s,yellow) Struct >> {
     user_address : address
+    date_joined : uint{DateTime}
     metahash_ipfs : string
   }
 
   Candidate -- UserMetahash
   class Candidate << (s,yellow) Struct >> {
     user_id : integer{User ID}
-    hourly_rate : float
-    currency_type : uint{enum[ethereum]}
+    hourly_rate : uint //wei, cents
+    currency_type : uint{enum[Ethereum, USD, ...]}
   }
 
   Employer -- UserMetahash
@@ -113,9 +114,10 @@
 
   Arbiter -- UserMetahash
   class Arbiter << (s,yellow) Struct >> {
-    payment_value : float
-    type_of_payment : uint{enum[Flat Rate, Percentage]}
     user_id : integer{User ID}
+    currency_type : uint{enum[Ethereum, USD, ...]}
+    payment_value : uint
+    type_of_payment : uint{enum[Flat Rate, Percentage]}
   }
 
   EthlanceUserFactory "1" *-- "*" User
@@ -131,20 +133,23 @@
     employer_listing : array[Employer]
     arbiter_listing : array[Arbiter]
 
-    -createUser(_email, _profile_image_ipfs, _country_code, _github_id, _linkedin_id, _languages_listing) : integer
-    -updateUser_email(_s : string)
-    -updateUser_profile_image_ipfs(_s : string)
-    +updateCandidate(_title, _hourly_rate, _currency_type, _category_listing, _skills_listing, _biography_ipfs)
+    #createUser(_address : address, _metahash : string) : integer
+    +updateUser_metahash(_metahash : string)
+    
+    +updateCandidate(...)
     +updateEmployer(...)
     +updateArbiter(...)
 
     -- Views --
-    getUserListing(offset : uint, limit : uint) : array[User]
+    getUserByAddress(_address : address) : string // metahash
+    getUserAddressById(_id : uint) : address
+    getUserById(_id : uint) : string // metahash
+    getCurrentUser() : string // metahash
     getUserCount() : uint
 
-    getCandidateListing(offset: uint, limit : uint) : array[Candidate]
-    getArbiterListing(offset : uint, limit : uint) : array[Arbiter]
-    getEmployerListing(offset : uint, limit : uint) : array[Employer]
+    getCandidateByAddress(_address : address) : (user_id : uint,
+                                                 hourly_rate : uint64,
+                                                 currency_type : uint16)
 
     -- Modifiers --
     isRegisteredUser()
