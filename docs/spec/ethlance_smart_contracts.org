@@ -11,10 +11,11 @@
     - A User defines a profile as an Arbiter.
     - A User defines a profile as a Candidate.
   - An Employer is a User who creates jobs.
-    - An Employer creates a job contract
-    - An Employer updates a job contract
-    - An Employer creates a job bounty
-    - An Employer updates a job bounty
+    - An Employee is only an Employee if he has defined a profile as a User.
+    - An Employer creates a job contract.
+    - An Employer updates a job contract.
+    - An Employer creates a job bounty.
+    - An Employer updates a job bounty.
     - An Employer requests Arbiters to a job contract.
       - Only one Arbiter can accept and be assigned to a job contract.
     - An employer requests Arbiters to a job bounty.
@@ -34,6 +35,7 @@
       supplied to him from a Candidate
   - An Arbiter accepts requests for jobs, and resolves disputes between
     a Candidate and an Employer's job contract.
+    - An Arbiter is only an Arbiter if he has defined a profile as a User.
     - Only the first Arbiter that accepts will be assigned to a job.
     - An Arbiter can request to be assigned to a job contract.
     - Employees can request an Arbiter to be assigned to a job
@@ -45,11 +47,15 @@
         Arbiter will receive an agreed upon payment for resolving the
         dispute.
       - Arbiters can resolve a dispute in favour of the Candidate. The
-        Arbiter will receive an agreed upon payment for resolving teh
+        Arbiter will receive an agreed upon payment for resolving the
         dispute.
+      - Arbiter can resolve a dispute with fractions of payment in
+        favour of either the Employee, or the Candidate. The Arbiter
+        will receive an agreed upon payment for resolving the dispute.
   - A Candidate is a User who requests jobs, and invoices jobs.
-    - A Candidate requests job contracts
-    - A Candidate can be requested for job contracts by an Employer
+    - A Customer is only a Customer if he has defined a profile as a User.
+    - A Candidate requests job contracts.
+    - A Candidate can be requested for job contracts by an Employer.
     - A Candidate can be accepted by an Employer for a previously
       requested job contract.
     - A Candidate can accept a job contract after previously being
@@ -64,6 +70,7 @@
   title Ethlance Smart Contract Class Diagram
 
   class UserMetahash << (I,blue) IPFS >> {
+    -- 'user' Map --
     country_code : string,
     date_joined : integer
     email : string
@@ -71,6 +78,19 @@
     known_languages : array[string]
     linkedin_id : map{...}
     profile_image : map{filename : string, :filetype : string, ...}
+
+    -- 'candidate' Map --
+    biography : string
+    category_listing : array[integer]
+    profession_title : string
+    skills_listing : array[integer]
+
+    -- 'employer' Map --
+    biography : string
+    job_title : string
+
+    -- 'arbiter' Map --
+    profession_title : string
   }
 
   User "1" *-- "1" UserMetahash
@@ -79,37 +99,23 @@
     metahash_ipfs : string
   }
 
-  class CandidateMetahash << (I,blue) IPFS >> {
-    profession_title : string
-    category_listing : array[integer]
-    skills_listing : array[integer]
-    biography : string
-  }
-
-  Candidate "1" *-- "1" CandidateMetahash
+  Candidate -- UserMetahash
   class Candidate << (s,yellow) Struct >> {
-    metahash_ipfs : string
     user_id : integer{User ID}
     hourly_rate : float
     currency_type : uint{enum[ethereum]}
   }
 
-  class EmployerMetahash << (I,blue) IPFS >> {
-    job_title : string
-    biography : string
-  }
-
-  Employer "1" *-- "1" EmployerMetahash
+  Employer -- UserMetahash
   class Employer << (s,yellow) Struct >> {
     user_id : integer {User ID}
-    metahash_ipfs : string
   }
 
+  Arbiter -- UserMetahash
   class Arbiter << (s,yellow) Struct >> {
-    user_id : integer{User ID}
-    arbiter_profession_title : string
-    type_of_payment : uint{enum[Flat Rate, Percentage]}
     payment_value : float
+    type_of_payment : uint{enum[Flat Rate, Percentage]}
+    user_id : integer{User ID}
   }
 
   EthlanceUserFactory "1" *-- "*" User
@@ -144,8 +150,9 @@
     isRegisteredUser()
   }
 
-  EthlanceUserFactory -- EthlanceUserEventsProxy
+  EthlanceUserFactory "1" *-- "1" EthlanceUserEventsProxy
   class EthlanceUserEventsProxy << Contract >> {
+    user_events_address : address
     +setProxy(_address)
   }
 
@@ -189,11 +196,21 @@
 
   class JobContractMetahash << (I,blue) IPFS >> {
     category_code : integer
-    job_title : string
-    job_description : string
-    required_skills_listing : array[string]
-    required_availability : uint{enum[Part Time, Full Time]}
+    dispute_listing : array[Dispute]
     experience_level : bitmask-8-bit
+    invoice_listing : array[Invoice]
+    job_description : string
+    job_title : string
+    required_availability : uint{enum[Part Time, Full Time]}
+    required_skills_listing : array[string]
+
+    -- Invoice from 'invoice_listing' Array --
+    invoice_id : uint
+    comments : []
+
+    -- Dispute from 'dispute_listing' Array --
+    dispute_id : uint
+    comments : []
   }
 
   JobContract "1" *-- "1" JobContractMetahash
@@ -216,18 +233,43 @@
     reward_value : float
   }
 
+  JobInvoice -- JobContractMetahash
+  class JobInvoice << (s,yellow) Struct >> {
+    job_id : uint
+    date_created: uint{DateTime}
+    date_approved: uint{DateTime}
+    duration_seconds: uint
+  }
+
+  JobDispute -- JobContractMetahash
+  class JobDispute << (s,yellow) Struct >> {
+    dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
+    job_id : uint
+    date_created: uint{DateTime}
+    date_resolved: uint{DateTime}
+    
+    employer_resolution_amount: nullable{uint}
+    candidate_resolution_amount: nullable{uint}
+  }
+
   EthlanceJobFactory "1" *-- "*" JobContract
+  EthlanceJobFactory "1" *-- "*" JobInvoice
+  EthlanceJobFactory "1" *-- "*" JobDispute
+
   class EthlanceJobFactory << Contract >> {
     job_contract_listing : array[JobContract]
+    job_invoice_listing : array[JobInvoice]
+    job_dispute_listing : array[JobDispute]
 
     +createJobContract(...)
 
     -- Views --
     +getJobContractListing()
+    +getJobInvoiceListing()
     +getJobStatus(_job_id)
 
     -- Modifiers --
-    is_job_owner()
+    isJobOwner()
   }
 
   EthlanceJobEventsProxy -- EthlanceJobFactory
@@ -248,45 +290,19 @@
     "JobUpdated"
   }
 
-  EthlanceJobFactory "1" *-- "*" JobInvoice
-  class JobInvoice << (s,yellow) Struct >> {
-    job_id : uint
-    date_created: uint{DateTime}
-    date_approved: uint{DateTime}
-    duration_seconds: uint
-  }
-
-  EthlanceJobFactory "1" *-- "*" JobDispute
-  class JobDispute << (s,yellow) Struct >> {
-    dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
-    job_id : uint
-    date_created: uint{DateTime}
-    date_resolved: uint{DateTime}
-    resolution_favouring: boolean [Employee, Candidate]
-  }
-
   #+END_SRC
 
   #+RESULTS:
   [[file:class_diagram.png]]
 
-** Actions
-*** Employer Creates Job
-    - Must be a registered user
-    - Creates a profile with required fields, 
-
 * Issues
 ** Specification
-
 *** EthlanceJobContract
     - Unclear if some of the options are a radio, or a checklist
       (multi-select versus single-select)
     - Not familiar with the ability to transfer funds into the smart
       contract from a particular address. Could be a discussion
       point. This is also seen in Job Bounties.
-
-*** Job Contract and Bounty
-    Should be extended
 
 * Comments
   - Centralized Contract for Jobs and Users
@@ -313,13 +329,15 @@
     - Similar to Users
     - Is both a 'Contract' and a 'Bounty' determined by a flag.
     - Can create job contract without money
-    - Money transferred into the account is not handled by the
-      contractor anymore, and instead is handled by the arbiter.
+    - Money is transferred into the contract
     - Can send money to address for job, which increases the incentive
       to take the job.
-    - Bounty involves getting the reward for finishing work.
-      - Invoice is created on applying for the job.
-    - Contract involves getting money for invoicing.
+    - Job Bounty involves getting the reward for finishing work.
+      - Invoice is created when completing the job, does not require
+        Employer Acceptance.
+    - Job Contract involves getting money for invoicing a duration of
+      work, with proof of full or partial completion investigated by
+      the Employee.
 
   - Arbiters
     - as long as everything goes fine, arbiters shouldn't be doing
@@ -338,17 +356,8 @@
         the arbiter.
       - raise disputes on price.
 
-
   - Disputes
     - disputes on price.
     - incorrect currency conversion.
     - work has not been finished.
 
-* Programming Tasks
-  - Fix class diagram
-
-  - Get to the same point as the RecipeBounty example project.
-    - Smart contracts deployed
-    - Look at [[https://github.com/district0x/tcrfactory][tcrfactory]]
-      - generator.cljs
-      - deployer.cljs
