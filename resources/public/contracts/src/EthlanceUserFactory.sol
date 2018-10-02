@@ -48,7 +48,8 @@ contract EthlanceUserFactory {
     /// @param _address Address to the create the user for.
     /// @param _metahash IPNS metahash.
     function createUser(address _address, string _metahash)
-	internal returns (uint) {
+	// FIXME: isAuthorized
+	public returns (uint) {
 	require(user_address_mapping[_address] == 0,
 		"Given address already has a registered user.");
 
@@ -83,7 +84,8 @@ contract EthlanceUserFactory {
     function createCandidate(address _address,
 			     uint64 hourly_rate,
 			     uint16 currency_type)
-	internal
+	public
+        // FIXME: isAuthorized
 	isRegisteredUser(_address)
 	returns (uint) {
 	require(candidate_address_mapping[_address] == 0,
@@ -136,8 +138,9 @@ contract EthlanceUserFactory {
 			   uint payment_value,
 			   uint16 currency_type,
 			   uint8 type_of_payment)
+	//FIXME: isAuthorized
 	isRegisteredUser(_address)
-	internal returns(uint) {
+	public returns(uint) {
 	require(arbiter_address_mapping[_address] == 0,
 		"Given address is already an Arbiter.");
 	uint user_id = user_address_mapping[_address];
