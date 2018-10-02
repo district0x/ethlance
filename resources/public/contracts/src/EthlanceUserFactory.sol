@@ -46,7 +46,7 @@ contract EthlanceUserFactory {
 
     /// @dev Create User for the given address
     /// @param _address Address to the create the user for.
-    /// @param _metahash IPNS metahash.
+    /// @param _metahash IPFS metahash.
     function createUser(address _address, string _metahash)
 	// FIXME: isAuthorized
 	public returns (uint) {
@@ -62,9 +62,9 @@ contract EthlanceUserFactory {
     }
 
 
-    /// @dev Updates the IPNS metahash endpoint.
+    /// @dev Updates the IPFS metahash endpoint.
     /// @param user_id User Id for the given user.
-    /// @param _metahash Updated IPNS metahash.
+    /// @param _metahash Updated IPFS metahash.
     function updateUserMetahash(uint user_id, string _metahash)
 	// FIXME: isAuthorized
 	public {
@@ -186,9 +186,9 @@ contract EthlanceUserFactory {
     //
 
 
-    /// @dev Returns IPNS metahash for the given `user_id`
+    /// @dev Returns IPFS metahash for the given `user_id`
     /// @param user_id User Id for the given user
-    /// @return The IPNS metahash for the given user
+    /// @return The IPFS metahash for the given user
     function getUserByID(uint user_id)
 	public view returns(string _metahash) {
 	require(user_id <= user_listing.length,
@@ -212,9 +212,9 @@ contract EthlanceUserFactory {
     }
 
 
-    /// @dev Returns IPNS metahash for the given address
+    /// @dev Returns IPFS metahash for the given address
     /// @param _address The address of the user.
-    /// @return The IPNS metahash for the given user.
+    /// @return The IPFS metahash for the given user.
     function getUserByAddress(address _address)
 	public view
 	returns(string _metahash) {
@@ -228,8 +228,8 @@ contract EthlanceUserFactory {
     }
 
 
-    /// @dev Returns the user IPNS metahash for the current address
-    /// @return The IPNS metahash for current user's data.
+    /// @dev Returns the user IPFS metahash for the current address
+    /// @return The IPFS metahash for current user's data.
     function getCurrentUser() public view returns (string _metahash) {
 	require(user_address_mapping[msg.sender] != 0,
 		"Current user is not registered.");

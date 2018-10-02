@@ -232,7 +232,7 @@
     employer_user_id : uint
     estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
     is_bounty: boolean
-    is_eth_payment : boolean
+    include_ether_token : boolean
     is_invitation_only : boolean
     metahash_ipfs : string
     reward_value : float
