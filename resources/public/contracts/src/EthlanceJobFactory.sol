@@ -11,14 +11,12 @@ contract EthlanceJobFactory {
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
     struct ArbiterRequest {
-	uint arbiter_id;
 	bool is_employer_request;
     }
 
     /// Represents a particular candidate requesting, or being
     /// requested by an employer for a job contract.
     struct CandidateRequest {
-	uint candidate_id;
 	bool is_employer_request;
     }
 
