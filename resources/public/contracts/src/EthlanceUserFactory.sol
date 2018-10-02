@@ -6,6 +6,8 @@ pragma solidity ^0.4.24;
 contract EthlanceUserFactory {
     struct User {
 	address user_address;
+	uint date_created;
+	uint date_updated;
 	string metahash_ipfs;
     }
 
@@ -53,7 +55,7 @@ contract EthlanceUserFactory {
 	require(user_address_mapping[_address] == 0,
 		"Given address already has a registered user.");
 
-	User memory user = User(_address, _metahash);
+	User memory user = User(_address, now, now, _metahash);
 
 	user_listing.push(user);
 	user_address_mapping[_address] = user_listing.length;
@@ -70,6 +72,7 @@ contract EthlanceUserFactory {
 	public {
 	require(user_id <= user_listing.length,
 		"Given user id is out of the user_listing range.");
+	user_listing[user_id].date_updated = now;
 	user_listing[user_id].metahash_ipfs = _metahash;
     }
 

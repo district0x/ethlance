@@ -1,12 +1,7 @@
 pragma solidity ^0.4.24;
 
-/// @title For creation and management of Job Contracts.
-contract EthlanceJobFactory {
-    /// Represents Token Addresses for including new ERC20 tokens as
-    /// forms of payment.
-    struct JobToken {
-	address token_address;
-    }
+/// @title For creation of Job Contracts.
+contract EthlanceJobContractFactory {
     
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -20,7 +15,7 @@ contract EthlanceJobFactory {
 	bool is_employer_request;
     }
 
-    /// Represents Different Bid Options for Candidate Requests
+    /// Represents Available Bid Options for Candidate Requests
     struct BidOptions {
 	bool hourly_rate;
 	bool fixed_price;
@@ -32,14 +27,14 @@ contract EthlanceJobFactory {
 	address accepted_arbiter;
 	address accepted_candidate;
 
-	uint32[] accepted_token_listing;
-	mapping(uint32 => JobToken) accepted_token_mapping;
+	//uint[] accepted_token_listing;
+	//mapping(uint => JobToken) accepted_token_mapping;
 
-	uint32[] arbiter_request_listing;
-	mapping(uint32 => ArbiterRequest) arbiter_request_mapping;
+	//uint[] arbiter_request_listing;
+	//mapping(uint => ArbiterRequest) arbiter_request_mapping;
 
-	uint32[] candidate_request_listing;
-	mapping(uint32 => CandidateRequest) candidate_request_mapping;
+	//uint[] candidate_request_listing;
+	//mapping(uint => CandidateRequest) candidate_request_mapping;
 
 	// Mask of allowed bid options for the contract
 	BidOptions bid_options;
@@ -108,13 +103,33 @@ contract EthlanceJobFactory {
     function createJobContract(bool bid_hourly_rate,
 			       bool bid_fixed_price,
 			       bool bid_annual_salary,
-			       uint employer_id,
+			       uint employer_user_id,
 			       uint estimated_length_seconds,
 			       bool include_ether_token,
 			       bool is_bounty,
 			       bool is_invitation_only,
+			       string metahash_ipfs,
 			       uint reward_value)
-	public {
+	internal {
+        BidOptions memory bid_options = BidOptions(bid_hourly_rate,
+						   bid_fixed_price,
+						   bid_annual_salary);
+	JobContract memory jobContract = JobContract({
+          accepted_arbiter: 0,
+          accepted_candidate: 0,
+          bid_options: bid_options,
+          date_created: now,
+          date_started: 0,
+          date_finished: 0,
+          employer_user_id: employer_user_id,
+          estimated_length_seconds: estimated_length_seconds,
+          include_ether_token: include_ether_token,
+          is_bounty: is_bounty,
+          is_invitation_only: is_invitation_only,
+          metahash_ipfs: metahash_ipfs,
+          reward_value: reward_value
+        });
+
 	
     }
 }
