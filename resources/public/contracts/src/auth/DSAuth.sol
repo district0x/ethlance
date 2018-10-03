@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 contract DSAuthority {
   function canCall(
@@ -28,9 +28,9 @@ contract DSAuth is DSAuthEvents {
   DSAuthority  public  authority;
   address      public  owner;
 
-  function DSAuth() public {
+  constructor() public {
     owner = msg.sender;
-    LogSetOwner(msg.sender);
+    emit LogSetOwner(msg.sender);
   }
 
   function setOwner(address owner_)
@@ -38,7 +38,7 @@ contract DSAuth is DSAuthEvents {
   auth
   {
     owner = owner_;
-    LogSetOwner(owner);
+    emit LogSetOwner(owner);
   }
 
   function setAuthority(DSAuthority authority_)
@@ -46,7 +46,7 @@ contract DSAuth is DSAuthEvents {
   auth
   {
     authority = authority_;
-    LogSetAuthority(authority);
+    emit LogSetAuthority(authority);
   }
 
   modifier auth {
@@ -54,7 +54,9 @@ contract DSAuth is DSAuthEvents {
     _;
   }
 
-  function isAuthorized(address src, bytes4 sig) internal view returns (bool) {
+  function isAuthorized(address src, bytes4 sig)
+      internal view returns (bool)
+  {
     if (src == address(this)) {
       return true;
     } else if (src == owner) {

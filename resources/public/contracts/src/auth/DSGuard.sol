@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 import "../auth/DSAuth.sol";
 
@@ -54,12 +54,12 @@ contract DSGuard is DSAuth, DSAuthority, DSGuardEvents {
 
   function permit(bytes32 src, bytes32 dst, bytes32 sig) public auth {
     acl[src][dst][sig] = true;
-    LogPermit(src, dst, sig);
+    emit LogPermit(src, dst, sig);
   }
 
   function forbid(bytes32 src, bytes32 dst, bytes32 sig) public auth {
     acl[src][dst][sig] = false;
-    LogForbid(src, dst, sig);
+    emit LogForbid(src, dst, sig);
   }
 
   function permit(address src, address dst, bytes32 sig) public {
