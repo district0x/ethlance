@@ -2,6 +2,9 @@ pragma solidity ^0.4.24;
 
 import "proxy/MutableForwarder.sol";
 
+/*
+  EventDispatcher deployment should make use of the mutable forwarder.
+ */
 
 /// @title Dynamic Event Dispatch
 contract EthlanceEventDispatcher {
@@ -12,7 +15,7 @@ contract EthlanceEventDispatcher {
 			uint[] event_data);
 		   
 
-    /// @dev Emit the dynamic UserEvent.
+    /// @dev Emit the dynamic Ethlance Event.
     /// @param event_name - Name of the event.
     /// @param event_version - Version of the event.
     /// @param event_data - Array of data within the event.

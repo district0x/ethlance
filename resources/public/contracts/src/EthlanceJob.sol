@@ -136,8 +136,12 @@ contract EthlanceJob is EthlanceJobToken {
     // Methods
     //
 
+    /// @dev Fire events specific to the job contract
+    /// @param event_name Unique to give the fired event
+    /// @param event_data Additional event data to include in the
+    /// fired event.
     function emitEvent(string event_name, uint[] event_data) private {
-	
+	event_dispatcher.fireEvent(event_name, version, event_data);
     }
 
     /// @dev Set the accepted arbiter

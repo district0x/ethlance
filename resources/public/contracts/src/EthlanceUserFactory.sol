@@ -1,9 +1,15 @@
 pragma solidity ^0.4.24;
 
+import "proxy/MutableForwarder.sol";
+import "./EthlanceEventDispatcher.sol";
+
 /// @title Ethlance User Factory
 /// @dev Used for the creation of users, along with the relation to
 /// Candidates, Employers and Arbiters.
 contract EthlanceUserFactory {
+    uint public constant version = 1;
+    address public event_dispatcher;
+
     struct User {
 	address user_address;
 	uint date_created;
@@ -45,6 +51,21 @@ contract EthlanceUserFactory {
     //
     // Methods
     //
+
+    /// @dev Contructor for UserFactory
+    /// @params _event_dispatcher Event Dispatcher address
+    constructor(address _event_dispatcher) public {
+	event_dispatcher = _event_dispatcher;
+    }
+
+    /// @dev Fire events specific to the UserFactory
+    /// @param event_name Unique to give the fired event
+    /// @param event_data Additional event data to include in the
+    /// fired event.
+    function emitEvent(string event_name, uint[] event_data) private {
+	event_dispatcher.fireEvent(event_name, version, event_data);
+    }
+
 
     /// @dev Create User for the given address
     /// @param _address Address to the create the user for.
