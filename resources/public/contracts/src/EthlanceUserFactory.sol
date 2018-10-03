@@ -53,7 +53,7 @@ contract EthlanceUserFactory {
     //
 
     /// @dev Contructor for UserFactory
-    /// @params _event_dispatcher Event Dispatcher address
+    /// @param _event_dispatcher Event Dispatcher address
     constructor(address _event_dispatcher) public {
 	event_dispatcher = _event_dispatcher;
     }
@@ -63,7 +63,8 @@ contract EthlanceUserFactory {
     /// @param event_data Additional event data to include in the
     /// fired event.
     function emitEvent(string event_name, uint[] event_data) private {
-	event_dispatcher.fireEvent(event_name, version, event_data);
+	// FIXME: fix implementation.
+	// event_dispatcher.fireEvent(event_name, version, event_data);
     }
 
 

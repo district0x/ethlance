@@ -2,19 +2,20 @@ pragma solidity ^0.4.24;
 
 import "./EthlanceEventDispatcher.sol";
 import "./EthlanceJob.sol";
+import "./proxy/MutableForwarder.sol";
 import "./proxy/Forwarder.sol";
 
 /// @title For creation of Job Contracts.
 contract EthlanceJobFactory {
     uint public constant version = 1;
-    address public event_dispatcher;
+    MutableForwarder public event_dispatcher = new MutableForwarder();
 
     address[] public job_listing;
 
     /// @dev Constructor
     /// @param _event_dispatcher The main dynamic event dispatcher
     constructor(address _event_dispatcher) public {
-	event_dispatcher = _event_dispatcher;
+	event_dispatcher.setTarget(_event_dispatcher);
     }
 
     //

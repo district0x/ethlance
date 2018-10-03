@@ -1,13 +1,19 @@
 pragma solidity ^0.4.24;
 
+import "./EthlanceJobInvoice.sol";
+import "./EthlanceJobDispute.sol";
 import "./EthlanceEventDispatcher.sol";
 import "./EthlanceJobToken.sol";
+import "proxy/MutableForwarder.sol";
 
 /// @title Job Contracts to tie candidates, employers, and arbiters to
 /// an agreement.
-contract EthlanceJob is EthlanceJobToken {
+contract EthlanceJob is  EthlanceJobToken,
+                         EthlanceJobInvoice,
+                         EthlanceJobDispute
+{
     uint public constant version = 1;
-    address public event_dispatcher;
+    MutableForwarder public event_dispatcher;
 
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -26,24 +32,6 @@ contract EthlanceJob is EthlanceJobToken {
 	bool hourly_rate;
 	bool fixed_price;
 	bool annual_salary;
-    }
-
-    /// Represents a job invoice sent by the candidate to the employer.
-    struct JobInvoice {
-	uint job_id;
-	uint date_created;
-	uint date_approved;
-	uint duration_seconds;
-    }
-
-    // Represents a job dispute between the candidate and the employee
-    struct JobDispute {
-	uint job_id;
-	uint dispute_type; // enum
-	uint date_created;
-	uint date_resolved;
-	uint employer_resolution_amount;
-        uint candidate_resolution_amount;
     }
 
     //
@@ -92,12 +80,6 @@ contract EthlanceJob is EthlanceJobToken {
     // Collections
     //
 
-    // Job Disputes
-    JobDispute[] public dispute_listing;
-
-    // Job Invoices
-    JobInvoice[] public invoice_listing;
-
     // Arbiter Requests
     ArbiterRequest[] public arbiter_request_listing;
 
@@ -105,7 +87,7 @@ contract EthlanceJob is EthlanceJobToken {
     CandidateRequest[] public candidate_request_listing;
 
     /// @dev Forwarder Constructor
-    function construct(address _event_dispatcher,
+    function construct(MutableForwarder _event_dispatcher,
 		       bool _bid_hourly_rate,
 		       bool _bid_fixed_price,
 		       bool _bid_annual_salary,
@@ -118,6 +100,10 @@ contract EthlanceJob is EthlanceJobToken {
 		       uint _reward_value)
 	public
     {
+	// Supers
+	EthlanceJobInvoice(_event_dispatcher);
+	EthlanceJobDispute(_event_dispatcher);
+	
 	event_dispatcher = _event_dispatcher;
 	bid_options.hourly_rate = _bid_hourly_rate;
 	bid_options.fixed_price = _bid_fixed_price;
@@ -141,7 +127,8 @@ contract EthlanceJob is EthlanceJobToken {
     /// @param event_data Additional event data to include in the
     /// fired event.
     function emitEvent(string event_name, uint[] event_data) private {
-	event_dispatcher.fireEvent(event_name, version, event_data);
+	//FIXME: possible incorrect implementation.
+	//event_dispatcher.fireEvent(event_name, version, event_data);
     }
 
     /// @dev Set the accepted arbiter
