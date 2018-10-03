@@ -1,12 +1,15 @@
 pragma solidity ^0.4.24;
 
+import "proxy/MutableForwarder.sol";
+
+
 /// @title Dynamic Event Dispatch
-contract EthlanceUserEvents {
-    event UserEvent(address indexed _address,
-		    string event_name,
-		    uint event_version,
-		    uint timestamp,
-		    uint[] event_data);
+contract EthlanceEventDispatcher {
+    event EthlanceEvent(address indexed _address,
+			string event_name,
+			uint event_version,
+			uint timestamp,
+			uint[] event_data);
 		   
 
     /// @dev Emit the dynamic UserEvent.
@@ -18,10 +21,10 @@ contract EthlanceUserEvents {
                        uint[] event_data)
         public {
 
-        emit UserEvent(msg.sender,
-		       event_name,
-		       event_version,
-		       now,
-		       event_data);
+        emit EthlanceEvent(msg.sender,
+			   event_name,
+			   event_version,
+			   now,
+			   event_data);
     }
 }

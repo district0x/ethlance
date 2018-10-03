@@ -1,10 +1,13 @@
 pragma solidity ^0.4.24;
 
+import "./EthlanceEventDispatcher.sol";
 import "./EthlanceJobToken.sol";
 
 /// @title Job Contracts to tie candidates, employers, and arbiters to
 /// an agreement.
 contract EthlanceJob is EthlanceJobToken {
+    uint public constant version = 1;
+    address public event_dispatcher;
 
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -64,7 +67,7 @@ contract EthlanceJob is EthlanceJobToken {
     uint public date_finished;
     
     // Employer who created the job contract
-    uint public employer_user_id;
+    address public employer_address;
 
     // Estimated amount of time to finish the contract (in seconds)
     uint public estimated_length_seconds;
@@ -101,25 +104,26 @@ contract EthlanceJob is EthlanceJobToken {
     // Candidate Requests
     CandidateRequest[] public candidate_request_listing;
 
-    //
-    // Constructor
-    //
-    
-    constructor(bool _bid_hourly_rate,
-		bool _bid_fixed_price,
-		bool _bid_annual_salary,
-		uint _employer_user_id,
-		uint _estimated_length_seconds,
-		bool _include_ether_token,
-		bool _is_bounty,
-		bool _is_invitation_only,
-		string _metahash_ipfs,
-		uint _reward_value) {
+    /// @dev Forwarder Constructor
+    function construct(address _event_dispatcher,
+		       bool _bid_hourly_rate,
+		       bool _bid_fixed_price,
+		       bool _bid_annual_salary,
+		       address _employer_address,
+		       uint _estimated_length_seconds,
+		       bool _include_ether_token,
+		       bool _is_bounty,
+		       bool _is_invitation_only,
+		       string _metahash_ipfs,
+		       uint _reward_value)
+	public
+    {
+	event_dispatcher = _event_dispatcher;
 	bid_options.hourly_rate = _bid_hourly_rate;
 	bid_options.fixed_price = _bid_fixed_price;
 	bid_options.annual_salary = _bid_annual_salary;
 	date_created = now;
-	employer_user_id = _employer_user_id;
+	employer_address = _employer_address;
 	estimated_length_seconds = _estimated_length_seconds;
 	include_ether_token = _include_ether_token;
 	is_bounty = _is_bounty;
@@ -132,5 +136,24 @@ contract EthlanceJob is EthlanceJobToken {
     // Methods
     //
 
-    
+    function emitEvent(string event_name, uint[] event_data) private {
+	
+    }
+
+    /// @dev Set the accepted arbiter
+    /// @param arbiter_address Address of the accepted arbiter.
+    function setAcceptedArbiter(address arbiter_address)
+	public
+	//FIXME: has to be employer
+    {
+	accepted_arbiter = arbiter_address;
+    }
+
+    /// @dev Set the accepted candidate
+    /// @param candidate_address The accepted candidate
+    function setAcceptedCandidate(address candidate_address)
+	public
+    {
+	accepted_candidate = candidate_address;
+    }
 }
