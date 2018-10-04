@@ -6,7 +6,7 @@ import "./EthlanceEventDispatcher.sol";
 /// @title EthlanceJob Invoice members and methods
 contract EthlanceJobInvoice {
     uint public constant version = 1;
-    MutableForwarder public event_dispatcher;
+    EthlanceEventDispatcher public event_dispatcher;
 
     /// Represents a job invoice sent by the candidate to the employer.
     struct JobInvoice {
@@ -23,7 +23,7 @@ contract EthlanceJobInvoice {
     // Methods
     //
     
-    constructor(MutableForwarder _event_dispatcher) public {
+    function setInvoiceEventDispatcher(EthlanceEventDispatcher _event_dispatcher) internal {
 	event_dispatcher = _event_dispatcher;
     }
 

@@ -6,7 +6,7 @@ import "./EthlanceEventDispatcher.sol";
 /// @title Job Dispute
 contract EthlanceJobDispute {
     uint public constant version = 1;
-    MutableForwarder public event_dispatcher;
+    EthlanceEventDispatcher public event_dispatcher;
 
     // Represents a job dispute between the candidate and the employee
     struct JobDispute {
@@ -25,7 +25,7 @@ contract EthlanceJobDispute {
     // Methods
     //
     
-    constructor(MutableForwarder _event_dispatcher) {
+    function setDisputeEventDispatcher(EthlanceEventDispatcher _event_dispatcher) internal {
 	event_dispatcher = _event_dispatcher;
     }
 }

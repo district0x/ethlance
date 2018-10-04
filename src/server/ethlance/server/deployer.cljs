@@ -4,6 +4,15 @@
   (:require
    [district.server.smart-contracts :as contracts]))
 
+(def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
+(def district-config-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
+(def event-dispatcher-placeholder "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
+(def job-placeholder "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed")
+(def user-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
+(def candidate-placeholder "deafdeafdeafdeafdeafdeafdeafdeafdeafdeaf")
+(def employee-placeholder "feeffeeffeeffeeffeeffeeffeeffeeffeeffeef")
+(def arbiter-placeholder "feaffeaffeaffeaffeaffeaffeaffeaffeaffeaf")
+
 
 (defn deploy-district-config!
   "Deploy DistrictConfig contract."
@@ -13,10 +22,6 @@
    (merge
     {:gas 1000000 :arguments ["test"]}
     opts)))
-
-
-
-
 
 
 (defn deploy-all!

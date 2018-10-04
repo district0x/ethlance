@@ -8,15 +8,9 @@ import "./proxy/Forwarder.sol";
 /// @title For creation of Job Contracts.
 contract EthlanceJobFactory {
     uint public constant version = 1;
-    MutableForwarder public event_dispatcher = new MutableForwarder();
+    EthlanceEventDispatcher public constant event_dispatcher = EthlanceEventDispatcher(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
-    address[] public job_listing;
-
-    /// @dev Constructor
-    /// @param _event_dispatcher The main dynamic event dispatcher
-    constructor(address _event_dispatcher) public {
-	event_dispatcher.setTarget(_event_dispatcher);
-    }
+    EthlanceJob[] public job_listing;
 
     //
     // Methods
@@ -37,8 +31,9 @@ contract EthlanceJobFactory {
 			       uint reward_value)
 	public
     {
-	address job = new Forwarder(); // Proxy Contract with
-				       // target(EthlanceJob)
+	address job_fwd = new Forwarder(); // Proxy Contract with
+					   // target(EthlanceJob)
+	EthlanceJob job = EthlanceJob(address(job_fwd));
 	job.construct(event_dispatcher,
 		      bid_hourly_rate,
 		      bid_fixed_price,

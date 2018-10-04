@@ -13,7 +13,7 @@ contract EthlanceJob is  EthlanceJobToken,
                          EthlanceJobDispute
 {
     uint public constant version = 1;
-    MutableForwarder public event_dispatcher;
+    EthlanceEventDispatcher public event_dispatcher;
 
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -87,7 +87,7 @@ contract EthlanceJob is  EthlanceJobToken,
     CandidateRequest[] public candidate_request_listing;
 
     /// @dev Forwarder Constructor
-    function construct(MutableForwarder _event_dispatcher,
+    function construct(EthlanceEventDispatcher _event_dispatcher,
 		       bool _bid_hourly_rate,
 		       bool _bid_fixed_price,
 		       bool _bid_annual_salary,
@@ -99,11 +99,12 @@ contract EthlanceJob is  EthlanceJobToken,
 		       string _metahash_ipfs,
 		       uint _reward_value)
 	public
-    {
-	// Supers
-	EthlanceJobInvoice(_event_dispatcher);
-	EthlanceJobDispute(_event_dispatcher);
-	
+    {	
+	// Satisfy our inherited classes
+	setInvoiceEventDispatcher(_event_dispatcher);
+	setDisputeEventDispatcher(_event_dispatcher);
+
+	// Main members
 	event_dispatcher = _event_dispatcher;
 	bid_options.hourly_rate = _bid_hourly_rate;
 	bid_options.fixed_price = _bid_fixed_price;
@@ -127,8 +128,7 @@ contract EthlanceJob is  EthlanceJobToken,
     /// @param event_data Additional event data to include in the
     /// fired event.
     function emitEvent(string event_name, uint[] event_data) private {
-	//FIXME: possible incorrect implementation.
-	//event_dispatcher.fireEvent(event_name, version, event_data);
+	event_dispatcher.fireEvent(event_name, version, event_data);
     }
 
     /// @dev Set the accepted arbiter
