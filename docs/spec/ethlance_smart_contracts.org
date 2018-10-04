@@ -155,18 +155,19 @@
     isRegisteredUser()
   }
 
-  EthlanceUserFactory "1" *-- "1" EthlanceUserEventsProxy
-  class EthlanceUserEventsProxy << Contract >> {
-    user_events_address : address
+  EthlanceUserFactory "1" *-- "1" EthlanceEventDispatcherProxy
+  EthlanceJobFactory "1" *-- "1" EthlanceEventDispatcherProxy
+  class EthlanceEventDispatcherProxy << Contract >> {
+    events_address : address
     +setProxy(_address)
   }
 
-  EthlanceUserEventsProxy -- EthlanceUserEvents
-  class EthlanceUserEvents << Contract >> {
+  EthlanceEventDispatcherProxy -- EthlanceEventDispatcher
+  class EthlanceEventDispatcher << Contract >> {
     
-    UserEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
+    EthlanceEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
 
-    +fireUserEvent(event_name : string, version : uint, data : uint[])
+    +fireEvent(event_name : string, version : uint, data : uint[])
 
     -- User Event Names --
     "UserCreated"
@@ -197,9 +198,13 @@
     -- Arbiter Event Names --
     "ArbiterResolveDispute" [_job_id]
     "ArbiterRequestedJob" [_job_id]
+
+    -- Job Event Names --
+    "JobCreated"
+    "JobUpdated"
   }
 
-  class JobContractMetahash << (I,blue) IPFS >> {
+  class EthlanceJobMetahash << (I,blue) IPFS >> {
     category_code : integer
     dispute_listing : array[Dispute]
     experience_level : bitmask-8-bit
@@ -218,8 +223,10 @@
     comments : []
   }
 
-  JobContract "1" *-- "1" JobContractMetahash
-  class JobContract << (s,yellow) Struct >> {
+  EthlanceJob "1" *-- "1" EthlanceJobMetahash
+  EthlanceJob --> EthlanceJobInvoice
+  EthlanceJob --> EthlanceJobDispute
+  class EthlanceJob << (f,green) Forwarded Contract >> {
     accepted_arbiter : nullable{address}
     accepted_candidate : nullable{address}
     accepted_token_address_listing : array[string]
@@ -238,7 +245,12 @@
     reward_value : float
   }
 
-  JobInvoice -- JobContractMetahash
+  EthlanceJobInvoice -- EthlanceJobMetahash
+  EthlanceJobInvoice "1" *-- "*" JobInvoice
+  class EthlanceJobInvoice << Contract >> {
+    invoice_listing : array[JobInvoice]
+  }
+
   class JobInvoice << (s,yellow) Struct >> {
     job_id : uint
     date_created: uint{DateTime}
@@ -246,7 +258,12 @@
     duration_seconds: uint
   }
 
-  JobDispute -- JobContractMetahash
+  EthlanceJobDispute -- EthlanceJobMetahash
+  EthlanceJobDispute "1" *-- "*" JobDispute
+  class EthlanceJobDispute << Contract >> {
+    dispute_listing : array[JobDispute]
+  }
+
   class JobDispute << (s,yellow) Struct >> {
     dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
     job_id : uint
@@ -254,17 +271,14 @@
     date_resolved: uint{DateTime}
     
     employer_resolution_amount: nullable{uint}
-    candidate_resolution_amount: nullable{uint}
+    candidate_resolution_amount: nullable{uint}    
   }
 
-  EthlanceJobFactory "1" *-- "*" JobContract
-  EthlanceJobFactory "1" *-- "*" JobInvoice
-  EthlanceJobFactory "1" *-- "*" JobDispute
-
+  EthlanceJobFactory "1" *-- "*" EthlanceJob
   class EthlanceJobFactory << Contract >> {
-    job_contract_listing : array[JobContract]
-    job_invoice_listing : array[JobInvoice]
-    job_dispute_listing : array[JobDispute]
+    job_listing : array[address{EthlanceJob}]
+    job_invoice_listing : array[EthlanceJobInvoice]
+    job_dispute_listing : array[EthlanceJobDispute]
 
     +createJobContract(...)
 
@@ -275,24 +289,6 @@
 
     -- Modifiers --
     isJobOwner()
-  }
-
-  EthlanceJobEventsProxy -- EthlanceJobFactory
-  class EthlanceJobEventsProxy << Contract >> {
-    job_events_address : address
-    +setProxy(_address)
-  }
-
-  EthlanceJobEvents "1" --* "1" EthlanceJobEventsProxy
-  class EthlanceJobEvents << Contract >> {
-
-    JobEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
-
-    +fireJobEvent(event_name : string, version : uint, data : uint[])
-
-    -- Job Event Names --
-    "JobCreated"
-    "JobUpdated"
   }
 
   #+END_SRC
