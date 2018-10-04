@@ -10,7 +10,9 @@
 
    [ethlance.shared.smart-contracts]
    [ethlance.server.core]
-   [ethlance.server.deployer :as deployer]))
+   [ethlance.server.deployer :as deployer]
+
+   [ethlance.server.test-runner :as server.test-runner]))
 
 
 (def help-message "
@@ -20,7 +22,9 @@
   (stop)          ;; Stops the state components (reloaded workflow)
   (restart)       ;; Restarts the state components (reloaded workflow)
 
-  (redeploy)      ;; Deploy to the testnet
+  (run-tests)     ;; Run the Server Tests
+  (redeploy)      ;; Deploy to the testnet asynchronously
+  (redeploy-sync) ;; Deploy to the testnet synchronously
 
   (help)          ;; Display this help message
 
@@ -72,6 +76,11 @@
   (.nextTick js/process
    (fn []
     (apply redeploy-sync opts))))
+
+
+(defn run-tests []
+  (log/info "Running Server Tests...")
+  (server.test-runner/run-tests))
 
 
 (defn help
