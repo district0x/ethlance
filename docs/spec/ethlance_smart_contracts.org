@@ -249,6 +249,8 @@
   EthlanceJobInvoice "1" *-- "*" JobInvoice
   class EthlanceJobInvoice << Contract >> {
     invoice_listing : array[JobInvoice]
+
+    +createInvoice(...)
   }
 
   class JobInvoice << (s,yellow) Struct >> {
@@ -262,6 +264,8 @@
   EthlanceJobDispute "1" *-- "*" JobDispute
   class EthlanceJobDispute << Contract >> {
     dispute_listing : array[JobDispute]
+
+    +createDispute(...)
   }
 
   class JobDispute << (s,yellow) Struct >> {
@@ -277,14 +281,11 @@
   EthlanceJobFactory "1" *-- "*" EthlanceJob
   class EthlanceJobFactory << Contract >> {
     job_listing : array[address{EthlanceJob}]
-    job_invoice_listing : array[EthlanceJobInvoice]
-    job_dispute_listing : array[EthlanceJobDispute]
 
     +createJobContract(...)
 
     -- Views --
-    +getJobContractListing()
-    +getJobInvoiceListing()
+    +getJobListing()
     +getJobStatus(_job_id)
 
     -- Modifiers --
