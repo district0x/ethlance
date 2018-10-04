@@ -134,7 +134,7 @@ contract EthlanceUser {
     /// @dev Registers an Employee for the User.
     function registerEmployee()
     public {
-	employee_data.is_registered = true;
+	employer_data.is_registered = true;
 	updateDateUpdated();
     }
     

@@ -3,7 +3,7 @@
    [mount.core :as mount]
    [taoensso.timbre :as log]
    [cljs.nodejs :as nodejs]
-   [cljs-oweb3.eth :as web3-eth]
+   [cljs-web3.eth :as web3-eth]
 
    ;; District Server Components
    [district.server.web3]

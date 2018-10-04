@@ -1,9 +1,22 @@
 (ns ethlance.shared.smart-contracts) 
 
 (def smart-contracts 
-{:ethlance
- {:name "Ethlance",
-  :address "0x0000000000000000000000000000000000000000"},
- :district-config
- {:name "DistrictConfig",
-  :address "0x984af105970d82837d99c27631cf1ce9adaf0df5"}})
+  {:district-config
+   {:name "DistrictConfig",
+    :address "0x984af105970d82837d99c27631cf1ce9adaf0df5"}
+   :ethlance-user
+   {:name "EthlanceUser"}
+   :ethlance-job
+   {:name "EthlanceJob"}
+   :ethlance-user-factory
+   {:name "EthlanceUserFactory"}
+   :ethlance-user-factory-fwd
+   {:name "MutableForwarder"}
+   :ethlance-job-factory
+   {:name "EthlanceJobFactory"}
+   :ethlance-job-factory-fwd
+   {:name "MutableForwarder"}
+   :ethlance-event-dispatcher
+   {:name "EthlanceEventDispatcher"}
+   :ethlance-event-dispatcher-fwd
+   {:name "MutableForwarder"}})

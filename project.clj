@@ -152,7 +152,8 @@
 
     {:id "dev-server"
      :source-paths ["src/server" "src/shared"
-                    "dev/server" "dev/shared"]
+                    "dev/server" "dev/shared"
+                    "test/server" "test/shared"]
      :figwheel true
      :compiler {:main cljs.user ;; ./dev/server
                 :output-to "target/node/ethlance_server.js"
