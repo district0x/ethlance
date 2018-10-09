@@ -12,10 +12,12 @@ contract EthlanceUser {
 	bool is_registered;
 	uint64 hourly_rate; // In units of currency
 	uint16 currency_type; // 0: Ethereum, 1: USD, ...
+	// Additional Data in Metahash
     }
 
     struct Employer {
 	bool is_registered;
+	// Additional Data in Metahash
     }
 
     struct Arbiter {
@@ -25,6 +27,7 @@ contract EthlanceUser {
                             // [1] 1-100 for percentage
 	uint16 currency_type; // 0: Ethereum, 1: USD, ...
 	uint8 type_of_payment; // 0: Flat Rate, 1: Percentage
+	// Additonal Data in Metahash
     }
 
     address public user_address;

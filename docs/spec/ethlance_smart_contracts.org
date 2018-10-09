@@ -64,7 +64,7 @@
     - A Candidate can 'raise a dispute' on a job contract.
     - A Candidate can invoice a job bounty.
 
-* Specification
+* Specification & Design
 
   #+BEGIN_SRC plantuml :file class_diagram.png
   title Ethlance Smart Contract Class Diagram
@@ -93,8 +93,8 @@
     profession_title : string
   }
 
-  User "1" *-- "1" UserMetahash
-  class User << (s,yellow) Struct >> {
+  EthlanceUser "1" *-- "1" UserMetahash
+  class EthlanceUser << (f,green) Forwarded Contract >> {
     user_address : address
     date_joined : uint{DateTime}
     metahash_ipfs : string
@@ -102,36 +102,31 @@
 
   Candidate -- UserMetahash
   class Candidate << (s,yellow) Struct >> {
-    user_id : integer{User ID}
+    is_registered : bool
     hourly_rate : uint //wei, cents
     currency_type : uint{enum[Ethereum, USD, ...]}
   }
 
   Employer -- UserMetahash
   class Employer << (s,yellow) Struct >> {
-    user_id : integer {User ID}
+    is_registered :  bool
   }
 
   Arbiter -- UserMetahash
   class Arbiter << (s,yellow) Struct >> {
-    user_id : integer{User ID}
+    is_registered : bool
     currency_type : uint{enum[Ethereum, USD, ...]}
     payment_value : uint
     type_of_payment : uint{enum[Flat Rate, Percentage]}
   }
 
-  EthlanceUserFactory "1" *-- "*" User
-  EthlanceUserFactory "1" *-- "*" Candidate
-  EthlanceUserFactory "1" *-- "*" Employer
-  EthlanceUserFactory "1" *-- "*" Arbiter
+  EthlanceUserFactory "1" *-- "*" EthlanceUser
+  EthlanceUser "1" *-- "1" Candidate
+  EthlanceUser "1" *-- "1" Employer
+  EthlanceUser "1" *-- "1" Arbiter
 
   class EthlanceUserFactory << Contract >> {
-    user_listing : array[User]
-    user_address_mapping : mapping{address => integer}
-
-    candidate_listing : array[Candidate]
-    employer_listing : array[Employer]
-    arbiter_listing : array[Arbiter]
+    registry : EthlanceRegistry
 
     #createUser(_address : address, _metahash : string) : integer
     +updateUser_metahash(_metahash : string)
@@ -155,14 +150,26 @@
     isRegisteredUser()
   }
 
-  EthlanceUserFactory "1" *-- "1" EthlanceEventDispatcherProxy
-  EthlanceJobFactory "1" *-- "1" EthlanceEventDispatcherProxy
-  class EthlanceEventDispatcherProxy << Contract >> {
-    events_address : address
-    +setProxy(_address)
+  EthlanceUserFactory "1" *-- "1" EthlanceRegistry
+  EthlanceJobFactory "1" *-- "1" EthlanceRegistry
+  class EthlanceRegistry << (d,violet) Database Contract >> {
+    user_listing : array[address(EthlanceUser)]
+    user_address_mapping : mapping{address => uint}
+    job_listing : array[address(EthlanceJob)]
+
+    -- User Database Methods --
+    +addUser(eth_address : address, contract_address : address) : uint
+    +getUserByIndex(index : uint) : address
+    +getUserByAddress(eth_address : address) : address
+    +getUserCount() : uint
+
+    -- Job Database Methods --
+    +addJob(eth_address : address, contract_address : address) : uint
+    +getJobByIndex(index : uint) : address
+    +getJobCount() : uint
   }
 
-  EthlanceEventDispatcherProxy -- EthlanceEventDispatcher
+  EthlanceRegistry --> EthlanceEventDispatcher
   class EthlanceEventDispatcher << Contract >> {
     
     EthlanceEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
@@ -280,7 +287,7 @@
 
   EthlanceJobFactory "1" *-- "*" EthlanceJob
   class EthlanceJobFactory << Contract >> {
-    job_listing : array[address{EthlanceJob}]
+    registry : EthlanceRegistry
 
     +createJobContract(...)
 
