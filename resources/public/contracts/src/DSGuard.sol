@@ -17,8 +17,9 @@
 
 pragma solidity ^0.4.24;
 
-import "../auth/DSAuth.sol";
+import "./DSAuth.sol";
 
+/// @title DSGuard Events
 contract DSGuardEvents {
   event LogPermit(
     bytes32 indexed src,
@@ -32,6 +33,8 @@ contract DSGuardEvents {
   );
 }
 
+
+/// @title Simple whitelist implementation of DSAuthority
 contract DSGuard is DSAuth, DSAuthority, DSGuardEvents {
   bytes32 constant public ANY = bytes32(uint(- 1));
   mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => bool))) acl;
@@ -52,28 +55,61 @@ contract DSGuard is DSAuth, DSAuthority, DSGuardEvents {
     || acl[ANY][ANY][ANY];
   }
 
+
+  /// @dev Permits the authority of `src` to `dst` for the given
+  /// function identifier `sig`. Note that DSGuard.ANY can be
+  /// substituted in `src, `dst`, or `sig` to slacken authority
+  /// further.
+  /// @param src The byte representation of a source address
+  /// @param dst The byte representation of a destination address
+  /// @param sig The calldata function signature
   function permit(bytes32 src, bytes32 dst, bytes32 sig) public auth {
     acl[src][dst][sig] = true;
     emit LogPermit(src, dst, sig);
   }
 
+
+  /// @dev Forbids the authority of `src` to `dst` for the given
+  /// function identifier `sig`.
+  /// @param src The byte representation of a source address
+  /// @param dst The byte representation of a destination address
+  /// @param sig The calldata function signature
   function forbid(bytes32 src, bytes32 dst, bytes32 sig) public auth {
     acl[src][dst][sig] = false;
     emit LogForbid(src, dst, sig);
   }
 
+
+  /// @dev Permits the authority of `src` to `dst` for the given
+  /// function identifier `sig`. Note that DSGuard.ANY can be
+  /// substituted in `src, `dst`, or `sig` to slacken authority
+  /// further.
+  /// @param src The address representation of a source address
+  /// @param dst The address representation of a destination address
+  /// @param sig The calldata function signature
   function permit(address src, address dst, bytes32 sig) public {
     permit(bytes32(src), bytes32(dst), sig);
   }
 
+
+  /// @dev Forbids the authority of `src` to `dst` for the given
+  /// function identifier `sig`.
+  /// @param src The address representation of a source address
+  /// @param dst The address representation of a destination address
+  /// @param sig The calldata function signature
   function forbid(address src, address dst, bytes32 sig) public {
     forbid(bytes32(src), bytes32(dst), sig);
   }
 }
 
+
+/// @title DSGuard Authority Factory
+/// @dev Maintains a listing of active Guard Authorities.
 contract DSGuardFactory {
   mapping(address => bool)  public  isGuard;
 
+  /// @dev Create a new DSGuard, containing a DSAuthority Implementation.
+  /// @return The newly created DSGuard contract
   function newGuard() public returns (DSGuard guard) {
     guard = new DSGuard();
     guard.setOwner(msg.sender);

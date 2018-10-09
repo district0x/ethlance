@@ -4,8 +4,11 @@
    [district.server.smart-contracts :as contracts]))
 
 
-(defn call [& args]
-  (apply contracts/contract-call :ethlance-user-factory args))
+(defn call
+  "Call the EthlanceUserFactory contract method with the given
+  `method-name` and `args`."
+  [method-name & args]
+  (apply contracts/contract-call :ethlance-user-factory method-name args))
 
 
 (defn create-user

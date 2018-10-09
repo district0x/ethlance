@@ -4,6 +4,8 @@
   {:district-config
    {:name "DistrictConfig",
     :address "0x984af105970d82837d99c27631cf1ce9adaf0df5"}
+   :ds-guard
+   {:name "DSGuard"}
    :ethlance-user
    {:name "EthlanceUser"}
    :ethlance-job

@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+import "DSAuth.sol";
 import "proxy/MutableForwarder.sol";
 
 
@@ -34,7 +35,7 @@ contract EthlanceEventDispatcher {
 }
 
 
-contract EthlanceRegistry is EthlanceEventDispatcher {
+contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 
     // Only one contract user address per an ethereum user address
     address[] user_address_listing;
@@ -50,7 +51,7 @@ contract EthlanceRegistry is EthlanceEventDispatcher {
     /// @return The user_id of the pushed user address.
     function pushUser(address _eth_address,
 		      address _user_address)
-	// FIXME: authorization
+	auth
 	public returns(uint) {
 	user_address_listing.push(_user_address);
 	user_address_mapping[_eth_address] = user_address_listing.length;
@@ -92,7 +93,7 @@ contract EthlanceRegistry is EthlanceEventDispatcher {
     /// @param _address The address to place in the job listing.
     /// @return The job_id of the pushed contract address.
     function pushJob(address _address)
-	// FIXME: authorization
+	auth
 	public returns(uint) {
 	job_address_listing.push(_address);
 	return job_address_listing.length;

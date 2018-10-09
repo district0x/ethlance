@@ -13,25 +13,41 @@
 
 pragma solidity ^0.4.24;
 
+/// @title Interface for a defined District Authority Handler
 contract DSAuthority {
   function canCall(
     address src, address dst, bytes4 sig
   ) public view returns (bool);
 }
 
+
+/// @title District Authority Events
 contract DSAuthEvents {
   event LogSetAuthority (address indexed authority);
   event LogSetOwner     (address indexed owner);
 }
 
+
+/// @title District User Authority @dev A properly constructed DSAuth
+/// contract requires ANY of this.setOwner(...) with an appropriaate
+/// authority address to be set, or this.setAuthority(...) to be set
+/// to a contract containing the DSAuthority.canCall interface method
+/// defined. see ./auth/DSGuard for an example of a defined
+/// DSAuthority.canCall method.
 contract DSAuth is DSAuthEvents {
   DSAuthority  public  authority;
   address      public  owner;
 
+
+  /// @dev 
   constructor() public {
     owner = msg.sender;
     emit LogSetOwner(msg.sender);
   }
+
+  //
+  // Methods
+  //
 
   function setOwner(address owner_)
   public
@@ -49,11 +65,26 @@ contract DSAuth is DSAuthEvents {
     emit LogSetAuthority(authority);
   }
 
+  //
+  // Modifiers
+  //
+
+  /// @dev Checks if the given message sender is authorized
   modifier auth {
     require(isAuthorized(msg.sender, msg.sig));
     _;
   }
 
+  //
+  // Views
+  //
+
+  /// @dev Returns true, if the given address and signature pair are
+  /// authorized as designed by DSAuthority.canCall interface.
+  /// @param src The address we are checking authority against.
+  /// @param sig The 4-byte signature we are checking authority with.
+  /// @return Returns true, if the given address/sig pair is
+  /// authorized, false otherwise.
   function isAuthorized(address src, bytes4 sig)
       internal view returns (bool)
   {
