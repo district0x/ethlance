@@ -1,12 +1,12 @@
 pragma solidity ^0.4.24;
 
 import "proxy/MutableForwarder.sol";
-import "./EthlanceEventDispatcher.sol";
+import "./EthlanceRegistry.sol";
 
 /// @title User Contract
 contract EthlanceUser {
     uint public constant version = 1;
-    EthlanceEventDispatcher public event_dispatcher;
+    EthlanceRegistry public registry;
 
     struct Candidate {
 	bool is_registered;
@@ -36,10 +36,10 @@ contract EthlanceUser {
     Employer employer_data;
     Arbiter arbiter_data;
 
-    function construct(EthlanceEventDispatcher _event_dispatcher,
+    function construct(EthlanceRegistry _registry,
 		       address _address,
 		       string _metahash) public {
-	event_dispatcher = _event_dispatcher;
+	registry = _registry;
 	user_address = _address;
 	date_created = now;
 	date_updated = now;
@@ -52,7 +52,7 @@ contract EthlanceUser {
     /// @param event_data Additional event data to include in the
     /// fired event.
     function fireEvent(string event_name, uint[] event_data) private {
-	event_dispatcher.fireEvent(event_name, version, event_data);
+	registry.fireEvent(event_name, version, event_data);
     }
 
 

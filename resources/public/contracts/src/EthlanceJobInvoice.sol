@@ -1,16 +1,15 @@
 pragma solidity ^0.4.24;
 
 import "./proxy/MutableForwarder.sol";
-import "./EthlanceEventDispatcher.sol";
+import "./EthlanceRegistry.sol";
 
 /// @title EthlanceJob Invoice members and methods
 contract EthlanceJobInvoice {
     uint public constant version = 1;
-    EthlanceEventDispatcher public event_dispatcher;
+    EthlanceRegistry public registry;
 
     /// Represents a job invoice sent by the candidate to the employer.
     struct JobInvoice {
-	uint job_id;
 	uint date_created;
 	uint date_approved;
 	uint duration_seconds;
@@ -23,8 +22,8 @@ contract EthlanceJobInvoice {
     // Methods
     //
     
-    function setInvoiceEventDispatcher(EthlanceEventDispatcher _event_dispatcher) internal {
-	event_dispatcher = _event_dispatcher;
+    function setInvoiceEventDispatcher(EthlanceRegistry _registry) internal {
+	registry = _registry;
     }
 
 }

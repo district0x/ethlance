@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./EthlanceJobInvoice.sol";
 import "./EthlanceJobDispute.sol";
-import "./EthlanceEventDispatcher.sol";
+import "./EthlanceRegistry.sol";
 import "./EthlanceJobToken.sol";
 import "proxy/MutableForwarder.sol";
 
@@ -13,7 +13,7 @@ contract EthlanceJob is  EthlanceJobToken,
                          EthlanceJobDispute
 {
     uint public constant version = 1;
-    EthlanceEventDispatcher public event_dispatcher;
+    EthlanceRegistry public registry;
 
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -87,7 +87,7 @@ contract EthlanceJob is  EthlanceJobToken,
     CandidateRequest[] public candidate_request_listing;
 
     /// @dev Forwarder Constructor
-    function construct(EthlanceEventDispatcher _event_dispatcher,
+    function construct(EthlanceRegistry _registry,
 		       bool _bid_hourly_rate,
 		       bool _bid_fixed_price,
 		       bool _bid_annual_salary,
@@ -101,11 +101,11 @@ contract EthlanceJob is  EthlanceJobToken,
 	public
     {	
 	// Satisfy our inherited classes
-	setInvoiceEventDispatcher(_event_dispatcher);
-	setDisputeEventDispatcher(_event_dispatcher);
+	setInvoiceEventDispatcher(_registry);
+	setDisputeEventDispatcher(_registry);
 
 	// Main members
-	event_dispatcher = _event_dispatcher;
+	registry = _registry;
 	bid_options.hourly_rate = _bid_hourly_rate;
 	bid_options.fixed_price = _bid_fixed_price;
 	bid_options.annual_salary = _bid_annual_salary;
@@ -128,7 +128,7 @@ contract EthlanceJob is  EthlanceJobToken,
     /// @param event_data Additional event data to include in the
     /// fired event.
     function emitEvent(string event_name, uint[] event_data) private {
-	event_dispatcher.fireEvent(event_name, version, event_data);
+	registry.fireEvent(event_name, version, event_data);
     }
 
     /// @dev Set the accepted arbiter

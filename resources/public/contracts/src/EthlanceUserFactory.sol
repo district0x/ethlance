@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "./EthlanceEventDispatcher.sol";
+import "./EthlanceRegistry.sol";
 import "./EthlanceUser.sol";
 import "proxy/MutableForwarder.sol";
 import "proxy/Forwarder.sol";
@@ -10,10 +10,7 @@ import "proxy/Forwarder.sol";
 /// Candidates, Employers and Arbiters.
 contract EthlanceUserFactory {
     uint public constant version = 1;
-    EthlanceEventDispatcher public constant event_dispatcher = EthlanceEventDispatcher(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
-
-    EthlanceUser[] user_listing;
-    mapping(address => uint) user_address_mapping;
+    EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
     //
     // Methods
@@ -24,7 +21,7 @@ contract EthlanceUserFactory {
     /// @param event_data Additional event data to include in the
     /// fired event.
     function fireEvent(string event_name, uint[] event_data) private {
-	event_dispatcher.fireEvent(event_name, version, event_data);
+	registry.fireEvent(event_name, version, event_data);
     }
 
 
@@ -33,23 +30,22 @@ contract EthlanceUserFactory {
     /// @param _metahash IPFS metahash.
     function createUser(address _address, string _metahash)
 	// FIXME: isAuthorized
-	public returns (uint) {
-	require(user_address_mapping[_address] == 0,
-		"Given address already has a registered user.");
+	public
+	isRegisteredUser(_address)
+	returns (uint) {
 
 	address user_fwd = new Forwarder(); // Proxy Contract with
 					    // target(EthlanceUser)
 	EthlanceUser user = EthlanceUser(address(user_fwd));
-	user.construct(event_dispatcher, _address, _metahash);
+	user.construct(registry, _address, _metahash);
 
-	user_listing.push(user);
-	user_address_mapping[_address] = user_listing.length;
+	uint user_id = registry.pushUser(_address, address(user));
 
 	uint[] memory edata = new uint[](1);
-	edata[0] = user_listing.length;
-	fireEvent("UserFactoryCreateUser", edata);
+	edata[0] = user_id;
+	fireEvent("UserFactoryCreatedUser", edata);
 
-	return user_listing.length;
+	return user_id;
     }
 
 
@@ -63,24 +59,13 @@ contract EthlanceUserFactory {
     /// @return The IPFS metahash for the given user
     function getUserByID(uint user_id)
 	public view returns(EthlanceUser) {
-	require(user_id <= user_listing.length,
-		"Given user id index is out of bounds.");
+	require(user_id <= registry.getUserCount(),
+		"Given user_id is out of bounds.");
 	
-	EthlanceUser user = user_listing[user_id];
+	// Note: user_id is +1 of the index.
+	EthlanceUser user = EthlanceUser(registry.getUserByIndex(user_id-1));
 
 	return user;
-    }
-
-
-    /// @dev Returns the address of the given User ID
-    /// @param user_id User Id for the given user
-    function getUserAddressByID(uint user_id)
-	public view returns(address _address) {
-	require(user_id <= user_listing.length,
-		"Given user id is out of the user_listing range.");
-	EthlanceUser user = user_listing[user_id];
-	
-	_address = user.user_address();
     }
 
 
@@ -88,25 +73,24 @@ contract EthlanceUserFactory {
     /// @param _address The address of the user.
     /// @return The IPFS metahash for the given user.
     function getUserByAddress(address _address)
-	public view returns(EthlanceUser) {
-	require(user_address_mapping[_address] != 0,
-		"Given user address is not registered.");
-
-	uint user_id = user_address_mapping[_address];
-	EthlanceUser user = user_listing[user_id];
+	public view
+	isRegisteredUser(_address)
+	returns(EthlanceUser)
+    {
+	EthlanceUser user = EthlanceUser(registry.getUserByAddress(_address));
 
 	return user;
     }
 
 
-    /// @dev Returns the user IPFS metahash for the current address
-    /// @return The IPFS metahash for current user's data.
-    function getCurrentUser() public view returns (EthlanceUser) {
-	require(user_address_mapping[msg.sender] != 0,
-		"Current user is not registered.");
-	
-	uint user_id = user_address_mapping[msg.sender];
-	EthlanceUser user = user_listing[user_id];
+    /// @dev Returns the current User Contract Address
+    /// @return The current user contract address.
+    function getCurrentUser()
+	public view
+	isRegisteredUser(msg.sender)
+	returns (EthlanceUser)
+    {
+	EthlanceUser user = EthlanceUser(registry.getUserByAddress(msg.sender));
 	
 	return user;
     }
@@ -117,7 +101,7 @@ contract EthlanceUserFactory {
     function getUserCount()
 	public view returns (uint) {
 
-	return user_listing.length;
+	return registry.getUserCount();
     }
 
 
@@ -128,7 +112,7 @@ contract EthlanceUserFactory {
 
     /// @dev Checks if the given address is a registered User.
     modifier isRegisteredUser(address _address) {
-	require(user_address_mapping[_address] != 0,
+	require(registry.getUserByAddress(_address) != 0x0,
 		"Given address identity is not a registered User.");
 	_;
     }

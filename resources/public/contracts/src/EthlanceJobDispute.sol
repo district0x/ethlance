@@ -1,16 +1,15 @@
 pragma solidity ^0.4.24;
 
 import "./proxy/MutableForwarder.sol";
-import "./EthlanceEventDispatcher.sol";
+import "./EthlanceRegistry.sol";
 
 /// @title Job Dispute
 contract EthlanceJobDispute {
     uint public constant version = 1;
-    EthlanceEventDispatcher public event_dispatcher;
+    EthlanceRegistry public registry;
 
     // Represents a job dispute between the candidate and the employee
     struct JobDispute {
-	uint job_id;
 	uint dispute_type; // enum
 	uint date_created;
 	uint date_resolved;
@@ -25,7 +24,7 @@ contract EthlanceJobDispute {
     // Methods
     //
     
-    function setDisputeEventDispatcher(EthlanceEventDispatcher _event_dispatcher) internal {
-	event_dispatcher = _event_dispatcher;
+    function setDisputeEventDispatcher(EthlanceRegistry _registry) internal {
+	registry = _registry;
     }
 }

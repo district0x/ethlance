@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "./EthlanceEventDispatcher.sol";
+import "./EthlanceRegistry.sol";
 import "./EthlanceJob.sol";
 import "./proxy/MutableForwarder.sol";
 import "./proxy/Forwarder.sol";
@@ -8,7 +8,7 @@ import "./proxy/Forwarder.sol";
 /// @title For creation of Job Contracts.
 contract EthlanceJobFactory {
     uint public constant version = 1;
-    EthlanceEventDispatcher public constant event_dispatcher = EthlanceEventDispatcher(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
+    EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
     EthlanceJob[] public job_listing;
 
@@ -34,7 +34,7 @@ contract EthlanceJobFactory {
 	address job_fwd = new Forwarder(); // Proxy Contract with
 					   // target(EthlanceJob)
 	EthlanceJob job = EthlanceJob(address(job_fwd));
-	job.construct(event_dispatcher,
+	job.construct(registry,
 		      bid_hourly_rate,
 		      bid_fixed_price,
 		      bid_annual_salary,
@@ -45,24 +45,24 @@ contract EthlanceJobFactory {
 		      is_invitation_only,
 		      metahash_ipfs,
 		      reward_value);
-	job_listing.push(job);
+	registry.pushJob(address(job));
     }
 
     //
     // Views
     //
     
-    function getJobListingLength()
+    function getJobCount()
 	public view returns(uint) {
-	return job_listing.length;
+	return registry.getJobCount();
     }
 
     /// @dev Get the job address at `idx` within the job listing
-    /// @param idx The index of the job address within the job listing.
+    /// @param index The index of the job address within the job listing.
     /// @return The address of the given index
-    function getJobByIndex(uint idx)
+    function getJobByIndex(uint index)
 	public view returns (address)
     {
-	return job_listing[idx];
+	return registry.getJobByIndex(index);
     }
 }
