@@ -7,7 +7,7 @@
 
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
 (def district-config-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
-(def event-dispatcher-placeholder "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
+(def registry-placeholder "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
 ;;(def job-factory-placeholder "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed")
 ;;(def user-factory-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
 
@@ -22,22 +22,22 @@
     opts)))
 
 
-(defn deploy-ethlance-event-dispatcher!
-  "Deploy EthlanceEventDispatcher."
+(defn deploy-ethlance-registry!
+  "Deploy EthlanceRegistry."
   [opts]
   (contracts/deploy-smart-contract!
-   :ethlance-event-dispatcher
+   :ethlance-registry
    (merge
     {:gas 1000000}
     opts))
 
   ;; Attach to forwarder
   (contracts/deploy-smart-contract!
-   :ethlance-event-dispatcher-fwd
+   :ethlance-registry-fwd
    (merge
     {:gas 1000000
      :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-event-dispatcher}}
+     {forwarder-target-placeholder :ethlance-registry}}
     opts)))
 
 
@@ -51,7 +51,7 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {event-dispatcher-placeholder :ethlance-event-dispatcher-fwd}}
+     {registry-placeholder :ethlance-registry-fwd}}
     opts))
 
   ;; Attach to forwarder
@@ -73,7 +73,7 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {event-dispatcher-placeholder :ethlance-event-dispatcher}}
+     {registry-placeholder :ethlance-registry}}
     opts))
   
   ;; Attach to forwarder
@@ -99,7 +99,7 @@
     :or {general-contract-options {}
          write? false}}]
   (deploy-district-config! general-contract-options)
-  (deploy-ethlance-event-dispatcher! general-contract-options)
+  (deploy-ethlance-registry! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)
 

@@ -16,7 +16,7 @@
    {:name "EthlanceJobFactory"}
    :ethlance-job-factory-fwd
    {:name "MutableForwarder"}
-   :ethlance-event-dispatcher
-   {:name "EthlanceEventDispatcher"}
-   :ethlance-event-dispatcher-fwd
+   :ethlance-registry
+   {:name "EthlanceRegistry"}
+   :ethlance-registry-fwd
    {:name "MutableForwarder"}})
