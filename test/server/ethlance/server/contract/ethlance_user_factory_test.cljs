@@ -27,5 +27,6 @@
   
   (testing "Register New Users"
     (let [[user1 user2 user3 user4] (web3-eth/accounts @web3)
+          _ (log/debug "Account: " user1)
           user-count (user-factory/user-count)]
       (is (bn/= user-count 0)))))

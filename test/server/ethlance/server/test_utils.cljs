@@ -56,7 +56,7 @@
   []
   (if @*deployment-testnet-snapshot
     (do
-      (log/debug "Reverting Testnet Blockchain...")
+      (log/debug "Reverting Testnet Blockchain..." @*deployment-testnet-snapshot)
       (reset! *revert-lock true)
       (web3-evm/revert!
        @web3 @*deployment-testnet-snapshot
@@ -127,7 +127,8 @@
 (defn fixture-stop
   "Test Fixture Teardown."
   []
-  (mount/stop)
+  ;; FIXME: only remount between deployments
+  ;; (mount/stop)
   (async done (js/setTimeout #(done) 1000)))
 
 
