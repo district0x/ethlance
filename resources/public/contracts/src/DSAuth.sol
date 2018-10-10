@@ -29,7 +29,7 @@ contract DSAuthEvents {
 
 
 /// @title District User Authority @dev A properly constructed DSAuth
-/// contract requires ANY of this.setOwner(...) with an appropriaate
+/// contract requires ANY of this.setOwner(...) with an appropriate
 /// authority address to be set, or this.setAuthority(...) to be set
 /// to a contract containing the DSAuthority.canCall interface method
 /// defined. see ./auth/DSGuard for an example of a defined
@@ -82,7 +82,7 @@ contract DSAuth is DSAuthEvents {
   /// @dev Returns true, if the given address and signature pair are
   /// authorized as designed by DSAuthority.canCall interface.
   /// @param src The address we are checking authority against.
-  /// @param sig The 4-byte signature we are checking authority with.
+  /// @param sig The 4-byte function signature we are checking authority against.
   /// @return Returns true, if the given address/sig pair is
   /// authorized, false otherwise.
   function isAuthorized(address src, bytes4 sig)

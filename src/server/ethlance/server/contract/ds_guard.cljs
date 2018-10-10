@@ -5,11 +5,16 @@
    [district.server.smart-contracts :as contracts]))
 
 
+(def ^:dynamic *guard-key*
+  "The default guard contract key."
+  :ds-guard)
+
+
 (defn call
   "Call the DSGuard contract with the given `method-name` and using the
   given `args`."
   [method-name & args]
-  (apply contracts/contract-call :ds-guard method-name args))
+  (apply contracts/contract-call *guard-key* method-name args))
 
 
 (def ANY
@@ -56,3 +61,10 @@
   perform the given contract-call defined by `sig`, otherwise false."
   [{:keys [:src :dst :sig]}]
   (call :can-call src dst sig))
+
+
+(defn permit-any!
+  "Permits all actions by source addresses on the given destination
+  contract address."
+  [dst & [opts]]
+  (permit! {:src ANY :dst dst :sig ANY} opts))

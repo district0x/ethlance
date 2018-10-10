@@ -11,11 +11,11 @@
   (apply contracts/contract-call :ethlance-user-factory method-name args))
 
 
-(defn create-user
+(defn register-user!
   "Create a User with the given address, and with the given ipfs
   metahash."
   [{:keys [address metahash-ipfs]} & [opts]]
-  (call :create-user address metahash-ipfs
+  (call :register-user address metahash-ipfs
         (merge {:gas 3000000} opts)))
 
 
@@ -26,9 +26,9 @@
         (merge {:gas 3000000} opts)))
 
 
-(defn user-address-by-id
-  [user-id & [opts]]
-  (call :get-user-address-by-id user-id
+(defn user-by-address
+  [user-address & [opts]]
+  (call :get-user-by-address user-address
         (merge {:gas 3000000} opts)))
 
 
@@ -36,3 +36,9 @@
   [& [opts]]
   (call :get-user-count
         (merge {:gas 3000000} opts)))
+
+
+(defn is-registered-user?
+  [user-address & [opts]]
+  (call :is-registered-user
+        (merge {:gas 1000000} opts)))

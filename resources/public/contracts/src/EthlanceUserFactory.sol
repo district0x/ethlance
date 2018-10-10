@@ -25,25 +25,24 @@ contract EthlanceUserFactory {
     }
 
 
-    /// @dev Create User for the given address
-    /// @param _address Address to the create the user for.
+    /// @dev Register user for the current address.
     /// @param _metahash IPFS metahash.
-    function createUser(address _address, string _metahash)
-	// FIXME: isAuthorized
+    /// @return The user_id of the registered user.
+    function registerUser(string _metahash)
 	public
-	isRegisteredUser(_address)
+	registeredUser(msg.sender)
 	returns (uint) {
 
 	address user_fwd = new Forwarder(); // Proxy Contract with
 					    // target(EthlanceUser)
 	EthlanceUser user = EthlanceUser(address(user_fwd));
-	user.construct(registry, _address, _metahash);
+	user.construct(registry, msg.sender, _metahash);
 
-	uint user_id = registry.pushUser(_address, address(user));
+	uint user_id = registry.pushUser(msg.sender, address(user));
 
 	uint[] memory edata = new uint[](1);
 	edata[0] = user_id;
-	fireEvent("UserFactoryCreatedUser", edata);
+	fireEvent("UserRegistered", edata);
 
 	return user_id;
     }
@@ -74,7 +73,7 @@ contract EthlanceUserFactory {
     /// @return The IPFS metahash for the given user.
     function getUserByAddress(address _address)
 	public view
-	isRegisteredUser(_address)
+	registeredUser(_address)
 	returns(EthlanceUser)
     {
 	EthlanceUser user = EthlanceUser(registry.getUserByAddress(_address));
@@ -87,7 +86,7 @@ contract EthlanceUserFactory {
     /// @return The current user contract address.
     function getCurrentUser()
 	public view
-	isRegisteredUser(msg.sender)
+	registeredUser(msg.sender)
 	returns (EthlanceUser)
     {
 	EthlanceUser user = EthlanceUser(registry.getUserByAddress(msg.sender));
@@ -105,14 +104,23 @@ contract EthlanceUserFactory {
     }
 
 
+    /// @dev Returns true, if the given user address is registered.
+    /// @param _address The address of the user.
+    /// @return True, if the address is registered.
+    function isRegisteredUser(address _address)
+	public view returns(bool) {
+	return registry.getUserByAddress(_address) != 0x0;
+    }
+
+
     //
     // Modifiers
     //
 
 
     /// @dev Checks if the given address is a registered User.
-    modifier isRegisteredUser(address _address) {
-	require(registry.getUserByAddress(_address) != 0x0,
+    modifier registeredUser(address _address) {
+	require(isRegisteredUser(_address),
 		"Given address identity is not a registered User.");
 	_;
     }

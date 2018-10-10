@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
 import "../proxy/DelegateProxy.sol";
-import "../auth/DSAuth.sol";
+import "../DSAuth.sol";
 
 /**
  * @title Forwarder proxy contract with editable target

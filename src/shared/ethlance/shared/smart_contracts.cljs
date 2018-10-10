@@ -19,6 +19,4 @@
    :ethlance-job-factory-fwd
    {:name "MutableForwarder"}
    :ethlance-registry
-   {:name "EthlanceRegistry"}
-   :ethlance-registry-fwd
-   {:name "MutableForwarder"}})
+   {:name "EthlanceRegistry"}})
