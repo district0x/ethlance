@@ -1,8 +1,10 @@
 (ns ethlance.server.contract.ethlance-user-factory-test
   "Unit Tests for EthlanceUserFactory wrapper."
   (:require
+   [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
    [cljs-web3.eth :as web3-eth]
+   [taoensso.timbre :as log]
 
    [district.server.web3 :refer [web3]]
 
@@ -25,5 +27,5 @@
   
   (testing "Register New Users"
     (let [[user1 user2 user3 user4] (web3-eth/accounts @web3)
-          uid-1 (register-user! user1 sample-meta-hash-1)]
-      (is (= uid-1 1)))))
+          user-count (user-factory/user-count)]
+      (is (bn/= user-count 0)))))

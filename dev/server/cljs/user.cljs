@@ -12,21 +12,22 @@
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]
 
+   [ethlance.server.test-utils :as server.test-utils]
    [ethlance.server.test-runner :as server.test-runner]))
 
 
 (def help-message "
   CLJS-Server Repl Commands:
 
-  (start)         ;; Starts the state components (reloaded workflow)
-  (stop)          ;; Stops the state components (reloaded workflow)
-  (restart)       ;; Restarts the state components (reloaded workflow)
+  (start)                         ;; Starts the state components (reloaded workflow)
+  (stop)                          ;; Stops the state components (reloaded workflow)
+  (restart)                       ;; Restarts the state components (reloaded workflow)
 
-  (run-tests)     ;; Run the Server Tests
-  (redeploy)      ;; Deploy to the testnet asynchronously
-  (redeploy-sync) ;; Deploy to the testnet synchronously
+  (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the snapshot)
+  (redeploy)                      ;; Deploy to the testnet asynchronously
+  (redeploy-sync)                 ;; Deploy to the testnet synchronously
 
-  (help)          ;; Display this help message
+  (help)                          ;; Display this help message
 
 ")
 
@@ -82,10 +83,15 @@
 (defn run-tests-sync
   "Run server tests synchronously on the dev server.
 
+  Optional Arguments
+
+  reset? - Reset the smart-contract deployment snapshot
+
    Note: This will perform several smart contract redeployments with
   test defaults."
-  []
+  [& {:keys [reset?]}]
   (log/info "Started Running Tests!")
+  (when reset? (server.test-utils/reset-testnet!))
   (server.test-runner/run-tests)
   (log/info "Finished Running Tests!"))
 
@@ -95,9 +101,9 @@
   
    Note: This will perform several smart contract redeployments with
   test defaults."
-  []
+  [& {:keys [reset?]}]
   (log/info "Running Server Tests Asynchronously...")
-  (.nextTick js/process run-tests-sync))
+  (.nextTick js/process #(run-tests-sync :reset? reset?)))
   
 
 

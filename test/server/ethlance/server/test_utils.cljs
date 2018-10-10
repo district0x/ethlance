@@ -39,7 +39,9 @@
   (web3-evm/snapshot! @web3
    (fn [error result]
      (if result
-       (reset! *deployment-testnet-snapshot result)
+       (do
+         (reset! *deployment-testnet-snapshot result)
+         (log/debug "Snapshot Saved!"))
        (log/error "Failed to retrieve the blockchain snapshot!" error))
      (reset! *snapshot-lock false)))
   (.loopWhile deasync (fn [] @*snapshot-lock)))
