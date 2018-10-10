@@ -14,8 +14,8 @@
 (defn register-user!
   "Create a User with the given address, and with the given ipfs
   metahash."
-  [{:keys [address metahash-ipfs]} & [opts]]
-  (call :register-user address metahash-ipfs
+  [{:keys [metahash-ipfs]} & [opts]]
+  (call :register-user metahash-ipfs
         (merge {:gas 3000000} opts)))
 
 

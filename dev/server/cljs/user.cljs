@@ -73,14 +73,32 @@
 (defn redeploy
   "Performs a redeployment asynchronously"
   [& opts]
-  (.nextTick js/process
+  (.nextTick
+   js/process
    (fn []
-    (apply redeploy-sync opts))))
+     (apply redeploy-sync opts))))
 
 
-(defn run-tests []
-  (log/info "Running Server Tests...")
-  (server.test-runner/run-tests))
+(defn run-tests-sync
+  "Run server tests synchronously on the dev server.
+
+   Note: This will perform several smart contract redeployments with
+  test defaults."
+  []
+  (log/info "Started Running Tests!")
+  (server.test-runner/run-tests)
+  (log/info "Finished Running Tests!"))
+
+
+(defn run-tests
+  "Runs the server tests asynchronously on the dev server.
+  
+   Note: This will perform several smart contract redeployments with
+  test defaults."
+  []
+  (log/info "Running Server Tests Asynchronously...")
+  (.nextTick js/process run-tests-sync))
+  
 
 
 (defn help

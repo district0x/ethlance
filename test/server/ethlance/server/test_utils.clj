@@ -2,12 +2,14 @@
 
 
 (defmacro deftest-smart-contract
-  [name & body]
+  "deftest for smart-contracts.
+  
+  Note:
+  
+  - The testnet is reverted to an initial deployment before running
+  the testcase."
+  [name opts & body]
   `(clojure.test/deftest ~name
-     (ethlance.server.test-utils/fixture-start {})
+     (ethlance.server.test-utils/fixture-start ~opts)
      ~@body
      (ethlance.server.test-utils/fixture-stop)))
-
-
-#_(defmacro defvalue [name value]
-    `(def ~name ~value))
