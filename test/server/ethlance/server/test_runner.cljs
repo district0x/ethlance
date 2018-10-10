@@ -4,7 +4,8 @@
    ;;[doo.runner :refer-macros [doo-tests]]
 
    ;; Test Namespaces
-   [ethlance.server.core-test]))
+   [ethlance.server.core-test]
+   [ethlance.server.contract.ethlance-user-factory-test]))
 
 
 (defn run-tests

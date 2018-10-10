@@ -121,7 +121,9 @@
 
   :profiles
   {:dev
-   {:source-paths ["src/clj" "dev/clj"]
+   {:source-paths ["src/clj" "src/ui" "src/shared" "src/server"
+                   "dev/clj" "dev/ui" "dev/shared" "dev/server"
+                   "test/clj" "test/ui" "test/shared" "test/server"]
     :resource-paths ["dev/resources"]
     :dependencies [[cider/piggieback "0.3.9"]
                    [org.clojure/tools.nrepl "0.2.13"]
@@ -139,7 +141,8 @@
   {:builds
    [{:id "dev-ui"
      :source-paths ["src/ui" "src/shared"
-                    "dev/ui" "dev/shared"]
+                    "dev/ui" "dev/shared"
+                    "test/ui" "test/shared"]
      :figwheel true
      :compiler {:main cljs.user ;; ./dev/ui
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
