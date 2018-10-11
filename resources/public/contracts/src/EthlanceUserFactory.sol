@@ -35,8 +35,11 @@ contract EthlanceUserFactory {
 	address user_fwd = new Forwarder(); // Proxy Contract with
 					    // target(EthlanceUser)
 	EthlanceUser user = EthlanceUser(address(user_fwd));
-	user.construct(registry, msg.sender, _metahash);
+
+	// Note: contract address needs to be registered before it can
+	// be constructed due to permission checks.
 	uint user_id = registry.pushUser(msg.sender, address(user));
+	user.construct(msg.sender, _metahash);
 
 	uint[] memory edata = new uint[](1);
 	edata[0] = user_id;

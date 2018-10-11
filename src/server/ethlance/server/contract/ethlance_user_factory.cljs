@@ -1,4 +1,5 @@
 (ns ethlance.server.contract.ethlance-user-factory
+  "EthlanceUserFactory contract methods"
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -37,12 +38,14 @@
 
 
 (defn user-by-address
+  "Get user contract linked to the given address"
   [user-address & [opts]]
   (call :get-user-by-address user-address
         (merge {:gas 3000000} opts)))
 
 
 (defn user-count
+  "Returns the number of user contracts in the registry."
   [& [opts]]
   (call :get-user-count
         (merge {:gas 3000000} opts)))

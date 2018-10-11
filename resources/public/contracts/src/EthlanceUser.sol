@@ -6,7 +6,7 @@ import "./EthlanceRegistry.sol";
 /// @title User Contract
 contract EthlanceUser {
     uint public constant version = 1;
-    EthlanceRegistry public registry;
+    EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
     struct Candidate {
 	bool is_registered;
@@ -39,10 +39,9 @@ contract EthlanceUser {
     Employer employer_data;
     Arbiter arbiter_data;
 
-    function construct(EthlanceRegistry _registry,
-		       address _address,
-		       string _metahash) public {
-	registry = _registry;
+    function construct(address _address, string _metahash)
+	external {
+	// TODO: ensure only the userfactory constructs this
 	user_address = _address;
 	date_created = now;
 	date_updated = now;
@@ -59,8 +58,9 @@ contract EthlanceUser {
     }
 
 
-    function updateMetahash(string _metahash) public {
-	require(msg.sender == user_address);
+    function updateMetahash(string _metahash)
+	public
+        isOwner {
 	updateDateUpdated();
 	metahash_ipfs = _metahash;
     }
@@ -76,7 +76,9 @@ contract EthlanceUser {
     /// @param hourly_rate Based on currency, the hourly suggested
     /// amount for payment.
     /// @param currency_type The type of currency to be paid in.
-    function registerCandidate(uint64 hourly_rate, uint16 currency_type) public {
+    function registerCandidate(uint64 hourly_rate, uint16 currency_type)
+	public 
+        isOwner {
 	candidate_data.is_registered = true;
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
@@ -91,7 +93,8 @@ contract EthlanceUser {
     /// @param currency_type Type of hourly pay. 0 - Eth, 1 - USD.
     function updateCandidateRate(uint64 hourly_rate,
 				 uint16 currency_type)
-	public {
+	public
+        isOwner {
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
 	updateDateUpdated();
@@ -107,7 +110,9 @@ contract EthlanceUser {
     ///        0 - Flat Rate, 1 - Percentage
     function registerArbiter(uint payment_value,
 			     uint16 currency_type,
-			     uint8 type_of_payment) public {
+			     uint8 type_of_payment)
+	public
+        isOwner {
 	arbiter_data.is_registered = true;
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
@@ -126,7 +131,8 @@ contract EthlanceUser {
     function updateArbiterRate(uint payment_value,
 			       uint16 currency_type,
 			       uint8 type_of_payment)
-	public {
+	public
+        isOwner {
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
 	arbiter_data.type_of_payment = type_of_payment;
@@ -136,9 +142,22 @@ contract EthlanceUser {
     
     /// @dev Registers an Employee for the User.
     function registerEmployee()
-    public {
+	public
+	isOwner {
 	employer_data.is_registered = true;
 	updateDateUpdated();
+    }
+    
+    
+    //
+    // Modifiers
+    //
+    
+    /// @dev Checks if the msg.sender is the owner of the user contract.
+    modifier isOwner {
+	require(user_address == msg.sender,
+		"Unauthorized: Given user does not own this user contract.");
+	_;
     }
     
 

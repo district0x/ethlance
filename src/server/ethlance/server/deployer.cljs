@@ -64,7 +64,11 @@
   (log/debug "Deploying EthlanceUser...")
   (contracts/deploy-smart-contract!
    :ethlance-user
-   (merge {:gas 2000000} opts)))
+   (merge
+    {:gas 2000000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}}
+    opts)))
 
 
 (defn deploy-ethlance-user-factory!

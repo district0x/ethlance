@@ -68,7 +68,8 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     }
 
 
-    /// @dev Get the current user address based on the assigned address
+    /// @dev Get the current user address based on the assigned
+    /// address, or return 0x0 if the given user does not exist.
     /// @param _eth_address The ethereum address of the user
     /// @return The user contract address.
     function getUserByAddress(address _eth_address) 

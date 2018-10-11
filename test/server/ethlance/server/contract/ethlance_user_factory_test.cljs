@@ -57,8 +57,8 @@
           uid-2 (-> ethlance-event-2 :data first)
           user-count-3 (user-factory/user-count)]
 
-      (testing "Try and register an already registered user"
-        (is (throws? js/Error (register-user! user1 sample-meta-hash-1))))
+      #_(testing "Try and register an already registered user"
+          (is (throws? js/Error (register-user! user1 sample-meta-hash-1))))
 
       (testing "Check initial user pool"
         (is (bn/= user-count-1 0)))
