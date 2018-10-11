@@ -11,6 +11,7 @@
 
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-registry :as registry]
+   [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]))
 
 
@@ -27,8 +28,23 @@
 
 
 (deftest-smart-contract check-authorization
-  {}
-  (testing ""))
+  {:deployer-options {} :force-deployment? false}
+  (let [[user1] (web3-eth/accounts @web3)]
+    (register-user! user1 sample-meta-hash-2)
+    (testing "Check if user factory has access to registry"
+      (is (ds-guard/can-call? {:src (user-factory/address)
+                               :dst (registry/address)
+                               :sig ds-guard/ANY})))))
+
+
+(deftest-smart-contract check-authorization2
+  {:deployer-options {} :force-deployment? false}
+  (let [[user1] (web3-eth/accounts @web3)]
+    (register-user! user1 sample-meta-hash-2)
+    (testing "Check if user factory has access to registry"
+      (is (ds-guard/can-call? {:src (user-factory/address)
+                               :dst (registry/address)
+                               :sig ds-guard/ANY})))))
 
 
 (deftest-smart-contract registering-user

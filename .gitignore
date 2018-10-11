@@ -10,3 +10,4 @@
 /node_modules
 /dist
 /.rebel_readline_history
+.node-xmlhttprequest-*

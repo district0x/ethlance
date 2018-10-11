@@ -12,6 +12,10 @@
    [district.server.smart-contracts :as contracts]))
 
 
+(defn address []
+  (contracts/contract-address :ethlance-registry))
+
+
 (defn ethlance-event-in-tx
   "Retrieve the first EthlanceEvent emitted since `transaction-hash`.
   

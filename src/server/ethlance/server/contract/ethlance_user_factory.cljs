@@ -9,6 +9,10 @@
   [:ethlance-user-factory :ethlance-user-factory-fwd])
 
 
+(defn address []
+  (contracts/contract-address :ethlance-user-factory-fwd))
+
+
 (defn call
   "Call the EthlanceUserFactory contract method with the given
   `method-name` and `args`."

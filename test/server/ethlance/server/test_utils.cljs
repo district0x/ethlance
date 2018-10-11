@@ -52,7 +52,11 @@
 (def *revert-lock (atom false)) ; Lock to force deasync
 (defn revert-testnet!
   "Reverts the testnet blockchain to the most recent
-  `*deployment-testnet-snapshot`."
+  `*deployment-testnet-snapshot`.
+
+  Notes:
+
+  - Can only revert to the previous snapshot 'once'. (Possible Bug)"
   []
   (if @*deployment-testnet-snapshot
     (do
@@ -110,7 +114,10 @@
       (deployer/deploy-all!
        (merge default-deployer-config deployer-options))
       (snapshot-testnet!))
-    (revert-testnet!)))
+    (do (revert-testnet!)
+        ;; Snapshot is 'used up' after reversion, so take another snapshot
+        ;; Possibly a bug.
+        (snapshot-testnet!))))
 
 
 (defn fixture-start
