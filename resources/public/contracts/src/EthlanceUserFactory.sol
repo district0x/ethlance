@@ -27,24 +27,20 @@ contract EthlanceUserFactory {
 
     /// @dev Register user for the current address.
     /// @param _metahash IPFS metahash.
-    /// @return The user_id of the registered user.
     function registerUser(string _metahash)
-	public
-	registeredUser(msg.sender)
-	returns (uint) {
+	public {
+	require(registry.getUserByAddress(msg.sender) == 0x0,
+		"Given user is already registered.");
 
 	address user_fwd = new Forwarder(); // Proxy Contract with
 					    // target(EthlanceUser)
 	EthlanceUser user = EthlanceUser(address(user_fwd));
 	user.construct(registry, msg.sender, _metahash);
-
 	uint user_id = registry.pushUser(msg.sender, address(user));
 
 	uint[] memory edata = new uint[](1);
 	edata[0] = user_id;
 	fireEvent("UserRegistered", edata);
-
-	return user_id;
     }
 
 
@@ -109,6 +105,9 @@ contract EthlanceUserFactory {
     /// @return True, if the address is registered.
     function isRegisteredUser(address _address)
 	public view returns(bool) {
+	if (getUserCount() == 0) {
+	    return false;
+	}
 	return registry.getUserByAddress(_address) != 0x0;
     }
 

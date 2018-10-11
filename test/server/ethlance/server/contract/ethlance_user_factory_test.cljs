@@ -7,8 +7,10 @@
    [taoensso.timbre :as log]
 
    [district.server.web3 :refer [web3]]
+   [district.server.smart-contracts :as contracts]
 
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
+   [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]))
 
 
@@ -27,6 +29,14 @@
   
   (testing "Register New Users"
     (let [[user1 user2 user3 user4] (web3-eth/accounts @web3)
-          _ (log/debug "Account: " user1)
-          user-count (user-factory/user-count)]
-      (is (bn/= user-count 0)))))
+          user-count-1 (user-factory/user-count)
+          tx-1 (user-factory/register-user!
+                {:metahash-ipfs sample-meta-hash-1}
+                {:from user1})
+          ethlance-event (registry/ethlance-event-in-tx tx-1)
+          uid-1 (-> ethlance-event :data first)
+          user-count-2 (user-factory/user-count)]
+      (is (= (:name ethlance-event) "UserRegistered"))
+      (is (bn/= uid-1 1))
+      (is (bn/= user-count-1 0))
+      (is (bn/= user-count-2 1)))))

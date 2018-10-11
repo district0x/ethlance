@@ -62,9 +62,9 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @dev Get the number of users currently registered.
     /// @return The number of users.
     function getUserCount()
-	public
+	public view
         returns(uint) {
-	user_address_listing.length;
+	return user_address_listing.length;
     }
 
 
@@ -72,8 +72,12 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @param _eth_address The ethereum address of the user
     /// @return The user contract address.
     function getUserByAddress(address _eth_address) 
-	public returns(address) {
+	public view
+	returns(address) {
 	uint user_id = user_address_mapping[_eth_address];
+	if (user_id == 0) {
+	    return 0x0;
+	}
 	return user_address_listing[user_id - 1];
     }
 
@@ -82,7 +86,8 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @param index The user contract index.
     /// @return The address of the user contract.
     function getUserByIndex(uint index)
-	public returns(address) {
+	public view
+	returns(address) {
 	require(index < user_address_listing.length,
 		"Given index is out of bounds.");
 	return user_address_listing[index];
@@ -103,7 +108,8 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @dev Get the total number of jobs
     /// @return The number of job contract addresses.
     function getJobCount()
-	public returns(uint) {
+	public view
+	returns(uint) {
 	return job_address_listing.length;
     }
     
@@ -111,7 +117,8 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @param index The index of the job contract.
     /// @return The address at the given job contract.
     function getJobByIndex(uint index)
-	public returns(address) {
+	public view
+	returns(address) {
 	require(index < job_address_listing.length,
 		"Given index is out of bounds.");
 	return job_address_listing[index];

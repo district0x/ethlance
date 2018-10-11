@@ -4,11 +4,16 @@
    [district.server.smart-contracts :as contracts]))
 
 
+(def ^:dynamic *user-factory-key*
+  "Main User Factory Key"
+  [:ethlance-user-factory :ethlance-user-factory-fwd])
+
+
 (defn call
   "Call the EthlanceUserFactory contract method with the given
   `method-name` and `args`."
   [method-name & args]
-  (apply contracts/contract-call :ethlance-user-factory method-name args))
+  (apply contracts/contract-call *user-factory-key* method-name args))
 
 
 (defn register-user!

@@ -71,7 +71,8 @@ contract DSAuth is DSAuthEvents {
 
   /// @dev Checks if the given message sender is authorized
   modifier auth {
-    require(isAuthorized(msg.sender, msg.sig));
+    require(isAuthorized(msg.sender, msg.sig),
+	    "Unauthorized Access");
     _;
   }
 

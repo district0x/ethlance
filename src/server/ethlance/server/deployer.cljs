@@ -56,6 +56,17 @@
   (ds-auth/set-authority! :ethlance-registry (contracts/contract-address guard-contract-key) opts))
 
 
+(defn deploy-ethlance-user!
+  "Deploy EthlanceUser."
+  [opts]
+
+  ;; Deploy ethlance user contract
+  (log/debug "Deploying EthlanceUser...")
+  (contracts/deploy-smart-contract!
+   :ethlance-user
+   (merge {:gas 2000000} opts)))
+
+
 (defn deploy-ethlance-user-factory!
   "Deploy EthlanceUserFactory."
   [opts]
@@ -67,7 +78,8 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {forwarder-target-placeholder :ethlance-user
+      registry-placeholder :ethlance-registry}}
     opts))
 
   ;; Attach to forwarder
@@ -92,7 +104,7 @@
     (log/debug "EthlanceUserFactory Forwarder (permit ANY)")
     (ds-guard/permit-any! user-factory-fwd-address opts)
 
-    (log/debug "EthlanceUserFactory Forwarder --> EthlanceRegistry")
+    (log/debug "EthlanceUserFactory Forwarder (permit -->EthlanceRegistry)")
     (ds-guard/permit! {:src user-factory-fwd-address
                        :dst registry-address
                        :sig ds-guard/ANY} opts)))
@@ -133,7 +145,7 @@
     (log/debug "EthlanceJobFactory Forwarder (permit ANY)")
     (ds-guard/permit-any! job-factory-fwd-address)
 
-    (log/debug "EthlanceJobFactory Forwarder --> EthlanceRegistry")
+    (log/debug "EthlanceJobFactory Forwarder (permit -->EthlanceRegistry)")
     (ds-guard/permit! {:src job-factory-fwd-address
                        :dst registry-address
                        :sig ds-guard/ANY} opts)))
@@ -160,6 +172,7 @@
   (deploy-district-config! general-contract-options)
   (deploy-ds-guard! general-contract-options)
   (deploy-ethlance-registry! general-contract-options)
+  (deploy-ethlance-user! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)
 
