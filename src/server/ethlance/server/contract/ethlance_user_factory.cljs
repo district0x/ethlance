@@ -1,5 +1,6 @@
 (ns ethlance.server.contract.ethlance-user-factory
   (:require
+   [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]))
 
@@ -31,7 +32,7 @@
 (defn user-by-id
   "Get a user contract by the given user id."
   [user-id & [opts]]
-  (call :get-user-by-id user-id
+  (call :get-user-by-i-d (bn/number user-id)
         (merge {:gas 3000000} opts)))
 
 

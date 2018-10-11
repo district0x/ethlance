@@ -51,7 +51,7 @@ contract EthlanceUserFactory {
 
     /// @dev Returns IPFS metahash for the given `user_id`
     /// @param user_id User Id for the given user
-    /// @return The IPFS metahash for the given user
+    /// @return The EthlanceUser address.
     function getUserByID(uint user_id)
 	public view returns(EthlanceUser) {
 	require(user_id <= registry.getUserCount(),
@@ -66,7 +66,7 @@ contract EthlanceUserFactory {
 
     /// @dev Returns IPFS metahash for the given address
     /// @param _address The address of the user.
-    /// @return The IPFS metahash for the given user.
+    /// @return The EthlanceUser address.
     function getUserByAddress(address _address)
 	public view
 	registeredUser(_address)

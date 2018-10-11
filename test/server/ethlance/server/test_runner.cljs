@@ -11,13 +11,13 @@
 (defn run-tests
   "Run tests, can be used within figwheel server instance."
   []
-  (run-all-tests #"ethlance.*"))
+  (run-all-tests #"^ethlance.*-test$"))
 
 
 (defn -test-main
   "Main Entrypoint."
   [& args]
-  (run-all-tests #"ethlance.*"))
+  (run-all-tests #"^ethlance.*-test$"))
 
 
 (set! *main-cli-fn* -test-main)
