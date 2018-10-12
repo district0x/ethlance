@@ -34,7 +34,7 @@
   "Retrieves the current blockchain snapshot, and places it in
   `*deployment-testnet-snapshot`."
   []
-  (log/debug "Saving blockchain snapshot!")
+  (log/debug "Saving Testnet Blockchain Snapshot...")
   (reset! *snapshot-lock true)
   (web3-evm/snapshot! @web3
    (fn [error result]
@@ -60,7 +60,7 @@
   []
   (if @*deployment-testnet-snapshot
     (do
-      (log/debug "Reverting Testnet Blockchain..." @*deployment-testnet-snapshot)
+      (log/debug "Reverting to Testnet Blockchain Snapshot..." @*deployment-testnet-snapshot)
       (reset! *revert-lock true)
       (web3-evm/revert!
        @web3 @*deployment-testnet-snapshot
