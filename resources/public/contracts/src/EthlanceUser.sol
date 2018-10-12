@@ -3,7 +3,10 @@ pragma solidity ^0.4.24;
 import "proxy/MutableForwarder.sol";
 import "./EthlanceRegistry.sol";
 
-/// @title User Contract
+
+/// @title User Contract which represents a User's information
+/// describing their price points and skills for employment, for being
+/// a candidate, and for being an Arbiter for jobs.
 contract EthlanceUser {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
@@ -12,12 +15,12 @@ contract EthlanceUser {
 	bool is_registered;
 	uint64 hourly_rate; // In units of currency
 	uint16 currency_type; // 0: Ethereum, 1: USD, ...
-	// Additional Data in Metahash
+	// Additional Data in IPFS Metahash
     }
 
     struct Employer {
 	bool is_registered;
-	// Additional Data in Metahash
+	// Additional Data in IPFS Metahash
     }
 
     struct Arbiter {
@@ -27,7 +30,7 @@ contract EthlanceUser {
                             // [1] 1-100 for percentage
 	uint16 currency_type; // 0: Ethereum, 1: USD, ...
 	uint8 type_of_payment; // 0: Flat Rate, 1: Percentage
-	// Additonal Data in Metahash
+	// Additonal Data in IPFS Metahash
     }
 
     address public user_address;
@@ -41,7 +44,9 @@ contract EthlanceUser {
 
     function construct(address _address, string _metahash)
 	external {
-	// TODO: ensure only the userfactory constructs this
+	require(registry.checkFactoryPrivilege(msg.sender),
+		"You are not privileged to carry out construction.");
+
 	user_address = _address;
 	date_created = now;
 	date_updated = now;
@@ -60,9 +65,9 @@ contract EthlanceUser {
 
     function updateMetahash(string _metahash)
 	public
-        isOwner {
-	updateDateUpdated();
+        isUser {
 	metahash_ipfs = _metahash;
+	updateDateUpdated();
     }
 
 
@@ -78,7 +83,7 @@ contract EthlanceUser {
     /// @param currency_type The type of currency to be paid in.
     function registerCandidate(uint64 hourly_rate, uint16 currency_type)
 	public 
-        isOwner {
+        isUser {
 	candidate_data.is_registered = true;
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
@@ -94,7 +99,7 @@ contract EthlanceUser {
     function updateCandidateRate(uint64 hourly_rate,
 				 uint16 currency_type)
 	public
-        isOwner {
+        isUser {
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
 	updateDateUpdated();
@@ -112,7 +117,7 @@ contract EthlanceUser {
 			     uint16 currency_type,
 			     uint8 type_of_payment)
 	public
-        isOwner {
+        isUser {
 	arbiter_data.is_registered = true;
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
@@ -132,7 +137,7 @@ contract EthlanceUser {
 			       uint16 currency_type,
 			       uint8 type_of_payment)
 	public
-        isOwner {
+        isUser {
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
 	arbiter_data.type_of_payment = type_of_payment;
@@ -143,7 +148,7 @@ contract EthlanceUser {
     /// @dev Registers an Employee for the User.
     function registerEmployee()
 	public
-	isOwner {
+	isUser {
 	employer_data.is_registered = true;
 	updateDateUpdated();
     }
@@ -153,10 +158,11 @@ contract EthlanceUser {
     // Modifiers
     //
     
-    /// @dev Checks if the msg.sender is the owner of the user contract.
-    modifier isOwner {
+    /// @dev Checks if the msg.sender is the user assigned to the user
+    /// contract.
+    modifier isUser {
 	require(user_address == msg.sender,
-		"Unauthorized: Given user does not own this user contract.");
+		"Unauthorized: Given User does not own this user contract.");
 	_;
     }
     

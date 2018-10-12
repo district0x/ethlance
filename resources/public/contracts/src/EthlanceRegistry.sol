@@ -15,23 +15,6 @@ contract EthlanceEventDispatcher {
 			uint event_version,
 			uint timestamp,
 			uint[] event_data);
-
-
-    /// @dev Emit the dynamic Ethlance Event.
-    /// @param event_name - Name of the event.
-    /// @param event_version - Version of the event.
-    /// @param event_data - Array of data within the event.
-    function fireEvent(string event_name,
-                       uint event_version,
-                       uint[] event_data)
-        public {
-
-        emit EthlanceEvent(msg.sender,
-			   event_name,
-			   event_version,
-			   now,
-			   event_data);
-    }
 }
 
 
@@ -44,9 +27,11 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     // Ethereum users can have multiple jobs.
     address[] job_address_listing;
 
-    // List of privileged factories to carry out contract construction
+    // Mapping of privileged factories to carry out contract construction
     mapping(address => bool) public privileged_factory_contracts;
 
+    // Mapping of contracts that can send an EthlanceEvent
+    mapping(address => bool) public event_dispatch_whitelist;
 
     /// @dev Push user address into the user listing.
     /// @param _eth_address The address of the ethereum user.
@@ -58,6 +43,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	public returns(uint) {
 	user_address_listing.push(_user_address);
 	user_address_mapping[_eth_address] = user_address_listing.length;
+	permitEventDispatch(_user_address);
 	return user_address_listing.length;
     }
 
@@ -105,6 +91,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	auth
 	public returns(uint) {
 	job_address_listing.push(_address);
+	permitEventDispatch(_address);
 	return job_address_listing.length;
     }
 
@@ -148,4 +135,34 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	public view returns(bool) {
 	return privileged_factory_contracts[factory_address];
     }
+
+
+    /// @dev Emit the dynamic Ethlance Event.
+    /// @param event_name - Name of the event.
+    /// @param event_version - Version of the event.
+    /// @param event_data - Array of data within the event.
+    function fireEvent(string event_name,
+                       uint event_version,
+                       uint[] event_data)
+        public {
+	require(event_dispatch_whitelist[msg.sender] ||
+		isAuthorized(msg.sender, msg.sig),
+		"Not Permitted to fire EthlanceEvent.");
+	
+        emit EthlanceEvent(msg.sender,
+			   event_name,
+			   event_version,
+			   now,
+			   event_data);
+    }
+
+    
+    /// @dev Permits the given address to call fireEvent.
+    /// @param _address The address to permit the use of fireEvent.
+    function permitEventDispatch(address _address)
+	auth
+	public {
+	event_dispatch_whitelist[_address] = true;
+    }
+
 }
