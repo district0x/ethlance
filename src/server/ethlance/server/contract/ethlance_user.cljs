@@ -15,7 +15,7 @@
   (def uid) ;; defined user-id
   ;;...
 
-  (user/with-ethlance-user (user-factory/user-by-address 1)
+  (user/with-ethlance-user (user-factory/user-by-address uid)
     (user/update-metahash! \"<New Metahash>\"))
   ```"
   (:require
@@ -26,18 +26,22 @@
 
 (def ^:dynamic *user-key*
   "This is rebound by the `with-ethlance-user` macro"
-  [:ethlance-user "0x0"])
+  nil) ;; [:ethlance-user "0x0"]
 
 
 (defn metahash-ipfs
   "Retrieve the user's IPFS metahash."
   [& [opts]]
+  (assert *user-key*)
   (contracts/contract-call *user-key* :metahash_ipfs (merge {:gas 1000000} opts)))
 
 
 (defn update-metahash!
   "Update the user's IPFS metahash to `new-metahash`"
   [new-metahash & [opts]]
+  (assert *user-key*)
   (contracts/contract-call
    *user-key* :update-metahash new-metahash
    (merge {:gas 2000000} opts)))
+
+

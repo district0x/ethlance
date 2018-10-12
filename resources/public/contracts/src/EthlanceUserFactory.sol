@@ -39,7 +39,7 @@ contract EthlanceUserFactory {
 	// Note: contract address needs to be registered before it can
 	// be constructed due to permission checks.
 	uint user_id = registry.pushUser(msg.sender, address(user));
-	user.construct(msg.sender, _metahash);
+	user.construct(user_id, msg.sender, _metahash);
 
 	uint[] memory edata = new uint[](1);
 	edata[0] = user_id;

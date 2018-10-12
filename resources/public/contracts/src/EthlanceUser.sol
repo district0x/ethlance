@@ -34,6 +34,7 @@ contract EthlanceUser {
     }
 
     address public user_address;
+    uint public user_id;
     uint public date_created;
     uint public date_updated;
     string public metahash_ipfs;
@@ -42,11 +43,12 @@ contract EthlanceUser {
     Employer employer_data;
     Arbiter arbiter_data;
 
-    function construct(address _address, string _metahash)
+    function construct(uint _user_id, address _address, string _metahash)
 	external {
 	require(registry.checkFactoryPrivilege(msg.sender),
 		"You are not privileged to carry out construction.");
 
+	user_id = _user_id;
 	user_address = _address;
 	date_created = now;
 	date_updated = now;
@@ -68,6 +70,11 @@ contract EthlanceUser {
         isUser {
 	metahash_ipfs = _metahash;
 	updateDateUpdated();
+
+	// Fire "UserUpdated" Event
+	uint[] memory edata = new uint[](1);
+	edata[0] = user_id;
+	fireEvent("UserUpdated", edata);
     }
 
 
