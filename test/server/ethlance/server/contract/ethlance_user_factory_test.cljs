@@ -38,6 +38,12 @@
                                :sig ds-guard/ANY})))))
 
 
+(deftest-smart-contract check-factory-privilege
+  {:deployer-options {} :force-deployment? false}
+  (testing "EthlanceUserFactory Forward is privileged to carry out construction."
+    (is (true? (registry/check-factory-privilege (contracts/contract-address :ethlance-user-factory-fwd))))))
+
+
 (deftest-smart-contract registering-user
   {:deployer-options {} :force-deployment? false}
 

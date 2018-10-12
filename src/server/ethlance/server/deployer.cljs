@@ -7,7 +7,9 @@
    [district.server.smart-contracts :as contracts]
 
    [ethlance.server.contract.ds-guard :as ds-guard]
-   [ethlance.server.contract.ds-auth :as ds-auth]))
+   [ethlance.server.contract.ds-auth :as ds-auth]
+   [ethlance.server.contract.ethlance-registry :as registry]
+   [ethlance.server.contract.ethlance-user-factory :as user-factory]))
 
 
 (def guard-contract-key ds-guard/*guard-key*)
@@ -111,7 +113,12 @@
     (log/debug "EthlanceUserFactory Forwarder (permit -->EthlanceRegistry)")
     (ds-guard/permit! {:src user-factory-fwd-address
                        :dst registry-address
-                       :sig ds-guard/ANY} opts)))
+                       :sig ds-guard/ANY} opts))
+
+  ;; Configure Factory Privilege
+  (log/debug "Permitting EthlanceUserFactory Factory Privilege")
+  (registry/permit-factory-privilege!
+   (contracts/contract-address :ethlance-user-factory-fwd)))
 
 
 (defn deploy-ethlance-job-factory!

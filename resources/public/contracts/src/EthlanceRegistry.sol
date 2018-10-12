@@ -44,6 +44,9 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     // Ethereum users can have multiple jobs.
     address[] job_address_listing;
 
+    // List of privileged factories to carry out contract construction
+    mapping(address => bool) public privileged_factory_contracts;
+
 
     /// @dev Push user address into the user listing.
     /// @param _eth_address The address of the ethereum user.
@@ -113,6 +116,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	returns(uint) {
 	return job_address_listing.length;
     }
+
     
     /// @dev Gets the job contract address at the given index.
     /// @param index The index of the job contract.
@@ -123,5 +127,25 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	require(index < job_address_listing.length,
 		"Given index is out of bounds.");
 	return job_address_listing[index];
+    }
+
+
+    /// @dev Allow a factory contract to be privileged for contract
+    /// construction.
+    /// @param factory_address The address of the privileged factory.
+    function permitFactoryPrivilege(address factory_address)
+	auth
+	public {
+	privileged_factory_contracts[factory_address] = true;
+    }
+
+    
+    /// @dev Checks if the given factory_address is privileged to
+    /// carry out contract construction.
+    /// @param factory_address The address of the factory contract
+    /// @return True, if the factory is privileged
+    function checkFactoryPrivilege(address factory_address)
+	public view returns(bool) {
+	return privileged_factory_contracts[factory_address];
     }
 }
