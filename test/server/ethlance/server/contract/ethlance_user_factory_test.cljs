@@ -44,6 +44,14 @@
     (is (true? (registry/check-factory-privilege (contracts/contract-address :ethlance-user-factory-fwd))))))
 
 
+(deftest-smart-contract registering-duplicate-user
+  {:deployer-options [] :force-deployment? false}
+  (testing "Registering twice should fail the second time."
+   (let [[user1] (web3-eth/accounts @web3)]
+     (register-user! user1 sample-meta-hash-1)
+     (is (thrown? js/Error (register-user! user1 sample-meta-hash-1))))))
+
+
 (deftest-smart-contract registering-user
   {:deployer-options {} :force-deployment? false}
 
@@ -63,9 +71,6 @@
           uid-2 (-> ethlance-event-2 :data first)
           user-count-3 (user-factory/user-count)]
 
-      #_(testing "Try and register an already registered user"
-          (is (throws? js/Error (register-user! user1 sample-meta-hash-1))))
-
       (testing "Check initial user pool"
         (is (bn/= user-count-1 0)))
 
@@ -81,4 +86,14 @@
 
       (testing "Check user ID versus address 1"
         (is (= (user-factory/user-by-id uid-1)
-               (user-factory/user-by-address user1)))))))
+               (user-factory/user-by-address user1))))
+
+      (testing "Check user ID versus address 1"
+        (is (= (user-factory/user-by-id uid-2)
+               (user-factory/user-by-address user2))))
+
+      (testing "Getting an invalid user-id should throw out of bounds"
+        (is (thrown? js/Error (user-factory/user-by-id 99))))
+
+      (testing "Getting an invalid user address should throw."
+        (is (thrown? js/Error (user-factory/user-by-address user4)))))))

@@ -24,6 +24,7 @@
   (restart)                       ;; Restarts the state components (reloaded workflow)
 
   (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the snapshot)
+  (run-test <ns>)                 ;; Run a single test from the given namespace
   (redeploy)                      ;; Deploy to the testnet asynchronously
   (redeploy-sync)                 ;; Deploy to the testnet synchronously
 
@@ -105,6 +106,18 @@
   (log/info "Running Server Tests Asynchronously...")
   (.nextTick js/process #(run-tests-sync :reset? reset?)))
   
+
+(defn run-test-sync
+  "Run a single test by the given namespace"
+  [ns]
+  (log/info "Running Tests for namespace: " ns)
+  (server.test-runner/run-test ns))
+
+
+(defn run-test
+  "Run a single test asynchronously"
+  [ns]
+  (.nextTick js/process #(run-test-sync ns)))
 
 
 (defn help
