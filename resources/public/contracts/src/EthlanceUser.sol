@@ -91,10 +91,19 @@ contract EthlanceUser {
     function registerCandidate(uint64 hourly_rate, uint16 currency_type)
 	public 
         isUser {
+	require(!candidate_data.is_registered,
+		"Given user is already registered as a Candidate");
+	require(currency_type <= 1, "Currency Type out of range");
+
 	candidate_data.is_registered = true;
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
 	updateDateUpdated();
+
+	// Fire "UserRegisteredCandidate" Event
+	uint[] memory edata = new uint[](1);
+	edata[0] = user_id;
+	fireEvent("UserRegisteredCandidate", edata);
     }
 
 
@@ -110,6 +119,18 @@ contract EthlanceUser {
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
 	updateDateUpdated();
+    }
+
+    
+    /// @dev Return the user's candidate data
+    /// @return Tuple of candidate data.
+    function getCandidateData()
+	public view returns(bool is_registered,
+			    uint64 hourly_rate,
+			    uint16 currency_type) {
+	is_registered = candidate_data.is_registered;
+	hourly_rate = candidate_data.hourly_rate;
+	currency_type = candidate_data.currency_type;
     }
 
 
@@ -151,9 +172,24 @@ contract EthlanceUser {
 	updateDateUpdated();
     }
 
-    
+
+    /// @dev Gets the user's arbiter data.
+    /// @return Tuple containing the arbiter data
+    function getArbiterData()
+	public view
+	returns(bool is_registered,
+		uint payment_value,
+		uint16 currency_type,
+		uint8 type_of_payment) {
+	is_registered = arbiter_data.is_registered;
+	payment_value = arbiter_data.payment_value;
+	currency_type = arbiter_data.currency_type;
+	type_of_payment = arbiter_data.type_of_payment;
+    }
+
+
     /// @dev Registers an Employee for the User.
-    function registerEmployee()
+    function registerEmployer()
 	public
 	isUser {
 	employer_data.is_registered = true;

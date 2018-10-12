@@ -69,3 +69,17 @@
    (testing "User can't update another users contract"
      (user/with-ethlance-user (user-factory/user-by-address user1)
        (is (thrown? js/Error (user/update-metahash! sample-meta-hash-1 {:from user2})))))))
+
+
+(deftest-smart-contract register-candidate {}
+  (let [[user1] (web3-eth/accounts @web3)
+        tx-1 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-1}
+              {:from user1})]
+
+    (testing "Register as a candidate"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (user/register-candidate!
+         {:hourly-rate 100
+          :currency-type 1} ;; USD
+         {:from user1})))))
