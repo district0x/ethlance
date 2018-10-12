@@ -1,5 +1,23 @@
 (ns ethlance.server.contract.ethlance-user
-  "EthlanceUser contract methods"
+  "EthlanceUser contract methods
+
+  Notes:
+
+  - In order to apply the functions to a particular user's contract
+  the function calls need to be wrapped in `with-ethlance-user`.
+
+  Examples:
+
+  ```clojure
+  (require '[ethlance.server.contract.ethlance-user-factory :as user-factory])
+  (require '[ethlance.server.contract.ethlance-user :as user :include-macros true])
+
+  (def uid) ;; defined user-id
+  ;;...
+
+  (user/with-ethlance-user (user-factory/user-by-address 1)
+    (user/update-metahash! \"<New Metahash>\"))
+  ```"
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -11,7 +29,15 @@
   [:ethlance-user "0x0"])
 
 
-(defn metahash-ipfs [& [opts]]
+(defn metahash-ipfs
+  "Retrieve the user's IPFS metahash."
+  [& [opts]]
   (contracts/contract-call *user-key* :metahash_ipfs (merge {:gas 1000000} opts)))
 
 
+(defn update-metahash!
+  "Update the user's IPFS metahash to `new-metahash`"
+  [new-metahash & [opts]]
+  (contracts/contract-call
+   *user-key* :update-metahash new-metahash
+   (merge {:gas 2000000} opts)))

@@ -29,3 +29,43 @@
     (testing "Check if metahash is correct"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (is (= sample-meta-hash-1 (user/metahash-ipfs)))))))
+
+
+(deftest-smart-contract attempt-reconstruction {}
+  (let [[user1 user2] (web3-eth/accounts @web3)
+        tx-1 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-1}
+              {:from user1})]
+    (testing "Attempt to reconstruct user from unprivileged account"
+      ;; Only the factory is privileged to construct the user contract
+      (is (thrown?
+           js/Error
+           (user/with-ethlance-user (user-factory/user-by-address user1)
+             (contracts/contract-call
+              user/*user-key* :construct user2 sample-meta-hash-2
+              {:from user1}))))
+
+      ;; Other users shouldn't be able to construct it.
+      (is (thrown?
+           js/Error
+           (user/with-ethlance-user (user-factory/user-by-address user1)
+             (contracts/contract-call
+              user/*user-key* :construct user2 sample-meta-hash-2
+              {:from user2})))))))
+
+
+(deftest-smart-contract update-user-metahash {}
+  (let [[user1 user2] (web3-eth/accounts @web3)
+        tx-1 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-1}
+              {:from user1})]
+
+   (testing "Update the user metahash"
+     (user/with-ethlance-user (user-factory/user-by-address user1)
+       (is (= (user/metahash-ipfs) sample-meta-hash-1))
+       (user/update-metahash! sample-meta-hash-2 {:from user1})
+       (is (= (user/metahash-ipfs) sample-meta-hash-2))))
+
+   (testing "User can't update another users contract"
+     (user/with-ethlance-user (user-factory/user-by-address user1)
+       (is (thrown? js/Error (user/update-metahash! sample-meta-hash-1 {:from user2})))))))
