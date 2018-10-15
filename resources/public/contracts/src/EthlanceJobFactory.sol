@@ -2,6 +2,8 @@ pragma solidity ^0.4.24;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceJob.sol";
+import "./EthlanceUserFactory.sol";
+import "./EthlanceUser.sol";
 import "./proxy/MutableForwarder.sol";
 import "./proxy/Forwarder.sol";
 
@@ -16,29 +18,43 @@ contract EthlanceJobFactory {
     // Methods
     //
 
+
+    /// @dev Returns true, if the given user address is a registered employer
+    /// @param _address Address of the user
+    /// @return Returns true, if the it is an employer address.
+    function isRegisteredEmployer(address _address)
+	public view returns(bool) {
+	EthlanceUser user = EthlanceUser(registry.getUserByAddress(_address));
+	if (address(user) == 0x0) {
+	    return false;
+	}
+
+	bool is_registered = user.getEmployerData();
+	return is_registered;
+    }
+
+
     /// @dev Create Job Contract for given user defined by
     /// 'employer_user_id'. Note that parameters are described in
     /// EthlanceJob contract.
-    function createJobContract(bool bid_hourly_rate,
-			       bool bid_fixed_price,
-			       bool bid_annual_salary,
-			       address employer_address,
-			       uint estimated_length_seconds,
-			       bool include_ether_token,
-			       bool is_bounty,
-			       bool is_invitation_only,
-			       string metahash_ipfs,
-			       uint reward_value)
-	public
-    {
+    function createJob(uint8 bid_option,
+		       uint estimated_length_seconds,
+		       bool include_ether_token,
+		       bool is_bounty,
+		       bool is_invitation_only,
+		       string metahash_ipfs,
+		       uint reward_value)
+	public {
+	require(isRegisteredEmployer(msg.sender),
+		"You are not a registered employer.");
+
+	// TODO: bounds on parameters
+
 	address job_fwd = new Forwarder(); // Proxy Contract with
 					   // target(EthlanceJob)
 	EthlanceJob job = EthlanceJob(address(job_fwd));
-	job.construct(registry,
-		      bid_hourly_rate,
-		      bid_fixed_price,
-		      bid_annual_salary,
-		      employer_address,
+	job.construct(msg.sender,
+		      bid_option,
 		      estimated_length_seconds,
 		      include_ether_token,
 		      is_bounty,
@@ -57,7 +73,7 @@ contract EthlanceJobFactory {
 	return registry.getJobCount();
     }
 
-    /// @dev Get the job address at `idx` within the job listing
+    /// @dev Get the job address at `index` within the job listing
     /// @param index The index of the job address within the job listing.
     /// @return The address of the given index
     function getJobByIndex(uint index)

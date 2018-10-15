@@ -6,6 +6,7 @@
    ;; Test Namespaces
    [ethlance.server.core-test]
    [ethlance.server.contract.ethlance-user-factory-test]
+   [ethlance.server.contract.ethlance-job-factory-test]
    [ethlance.server.contract.ethlance-user-test]))
 
 

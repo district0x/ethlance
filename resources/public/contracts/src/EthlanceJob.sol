@@ -13,7 +13,7 @@ contract EthlanceJob is  EthlanceJobToken,
                          EthlanceJobDispute
 {
     uint public constant version = 1;
-    EthlanceRegistry public registry;
+    EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -27,13 +27,6 @@ contract EthlanceJob is  EthlanceJobToken,
 	bool is_employer_request;
     }
 
-    /// Represents Available Bid Options for Candidate Requests
-    struct BidOptions {
-	bool hourly_rate;
-	bool fixed_price;
-	bool annual_salary;
-    }
-
     //
     // Members
     //
@@ -41,8 +34,11 @@ contract EthlanceJob is  EthlanceJobToken,
     address public accepted_arbiter;
     address public accepted_candidate;
 
-    // Mask of allowed bid options for the contract
-    BidOptions public bid_options;
+    /// Bid Option Enumeration
+    // 0 - Hourly Rate
+    // 1 - Fixed Price
+    // 2 - Annual Salary
+    uint8 public bid_option;
 
     // Datetime of job contract creation
     uint public date_created;
@@ -87,28 +83,24 @@ contract EthlanceJob is  EthlanceJobToken,
     CandidateRequest[] public candidate_request_listing;
 
     /// @dev Forwarder Constructor
-    function construct(EthlanceRegistry _registry,
-		       bool _bid_hourly_rate,
-		       bool _bid_fixed_price,
-		       bool _bid_annual_salary,
-		       address _employer_address,
+    function construct(address _employer_address,
+		       uint8 _bid_option,
 		       uint _estimated_length_seconds,
 		       bool _include_ether_token,
 		       bool _is_bounty,
 		       bool _is_invitation_only,
 		       string _metahash_ipfs,
 		       uint _reward_value)
-	public
-    {	
+	external {
+	require(registry.checkFactoryPrivilege(msg.sender),
+		"You are not privileged to carry out construction.");
+
 	// Satisfy our inherited classes
-	setInvoiceEventDispatcher(_registry);
-	setDisputeEventDispatcher(_registry);
+	setInvoiceEventDispatcher(registry);
+	setDisputeEventDispatcher(registry);
 
 	// Main members
-	registry = _registry;
-	bid_options.hourly_rate = _bid_hourly_rate;
-	bid_options.fixed_price = _bid_fixed_price;
-	bid_options.annual_salary = _bid_annual_salary;
+	bid_option = _bid_option;
 	date_created = now;
 	employer_address = _employer_address;
 	estimated_length_seconds = _estimated_length_seconds;

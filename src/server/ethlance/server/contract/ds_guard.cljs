@@ -10,6 +10,12 @@
   :ds-guard)
 
 
+(defn address
+  "Address of the Deployed DSGuard Instance."
+  []
+  (contracts/contract-address *guard-key*))
+
+
 (defn call
   "Call the DSGuard contract with the given `method-name` and using the
   given `args`."

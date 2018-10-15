@@ -9,10 +9,9 @@
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.contract.ds-auth :as ds-auth]
    [ethlance.server.contract.ethlance-registry :as registry]
-   [ethlance.server.contract.ethlance-user-factory :as user-factory]))
+   [ethlance.server.contract.ethlance-user-factory :as user-factory]
+   [ethlance.server.contract.ethlance-job-factory :as job-factory]))
 
-
-(def guard-contract-key ds-guard/*guard-key*)
 
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
 (def district-config-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
@@ -35,12 +34,12 @@
   [opts]
   (log/debug "Deploying DSGuard Contract...")
   (contracts/deploy-smart-contract!
-   guard-contract-key
+   ds-guard/*guard-key*
    (merge {:gas 1000000} opts))
   
   ;; Assign to its own authority
   (log/debug "Setting up DSGuard Authority...")
-  (ds-auth/set-authority! guard-contract-key (contracts/contract-address guard-contract-key)))
+  (ds-auth/set-authority! ds-guard/*guard-key* (ds-guard/address)))
 
 
 (defn deploy-ethlance-registry!
@@ -55,7 +54,7 @@
 
   ;; Assign the DSGuard authority
   (log/debug "Setting up EthlanceRegistry Authority...")
-  (ds-auth/set-authority! :ethlance-registry (contracts/contract-address guard-contract-key) opts))
+  (ds-auth/set-authority! :ethlance-registry (ds-guard/address) opts))
 
 
 (defn deploy-ethlance-user!
@@ -100,7 +99,7 @@
 
   ;; Assign the DSGuard authority
   (log/debug "Setting up EthlanceUserFactory Authority...")
-  (ds-auth/set-authority! :ethlance-user-factory-fwd (contracts/contract-address guard-contract-key) opts)
+  (ds-auth/set-authority! :ethlance-user-factory-fwd (ds-guard/address) opts)
 
   ;; Configure DSGuard Authority
   (log/debug "Configure DSGuard for EthlanceUserFactory Forwarder")
@@ -121,6 +120,21 @@
    (contracts/contract-address :ethlance-user-factory-fwd)))
 
 
+(defn deploy-ethlance-job!
+  "Deploy EthlanceJob."
+  [opts]
+
+  ;; Deploy ethlance job contract
+  (log/debug "Deploying EthlanceJob...")
+  (contracts/deploy-smart-contract!
+   :ethlance-job
+   (merge
+    {:gas 2000000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}}
+    opts)))
+
+
 (defn deploy-ethlance-job-factory!
   "Deploy EthlanceJobFactory."
   [opts]
@@ -132,7 +146,8 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {forwarder-target-placeholder :ethlance-job
+      registry-placeholder :ethlance-registry}}
     opts))
 
   ;; Attach to forwarder
@@ -146,7 +161,7 @@
 
   ;; Assign the DSGuard authority
   (log/debug "Setting up EthlanceJobFactory Authority...")
-  (ds-auth/set-authority! :ethlance-job-factory-fwd (contracts/contract-address guard-contract-key) opts)
+  (ds-auth/set-authority! :ethlance-job-factory-fwd (ds-guard/address) opts)
 
   ;; Configure DSGuard Authority
   (log/debug "Configure DSGuard for EthlanceJobFactory Forwarder")
@@ -159,7 +174,12 @@
     (log/debug "EthlanceJobFactory Forwarder (permit -->EthlanceRegistry)")
     (ds-guard/permit! {:src job-factory-fwd-address
                        :dst registry-address
-                       :sig ds-guard/ANY} opts)))
+                       :sig ds-guard/ANY} opts))
+
+  ;; Configure Factory Privilege
+  (log/debug "Permitting EthlanceJobFactory Factory Privilege")
+  (registry/permit-factory-privilege!
+   (contracts/contract-address :ethlance-job-factory-fwd)))
 
 
 (defn deploy-all!
@@ -185,6 +205,7 @@
   (deploy-ethlance-registry! general-contract-options)
   (deploy-ethlance-user! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
+  (deploy-ethlance-job! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)
 
   (when write?

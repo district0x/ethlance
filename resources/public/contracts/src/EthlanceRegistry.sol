@@ -85,13 +85,13 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 
 
     /// @dev Push job address into the job listing
-    /// @param _address The address to place in the job listing.
+    /// @param _job_address The address to place in the job listing.
     /// @return The job_id of the pushed contract address.
-    function pushJob(address _address)
+    function pushJob(address _job_address)
 	auth
 	public returns(uint) {
-	job_address_listing.push(_address);
-	permitEventDispatch(_address);
+	job_address_listing.push(_job_address);
+	permitEventDispatch(_job_address);
 	return job_address_listing.length;
     }
 

@@ -39,9 +39,9 @@ contract EthlanceUser {
     uint public date_updated;
     string public metahash_ipfs;
     
-    Candidate candidate_data;
-    Employer employer_data;
-    Arbiter arbiter_data;
+    Candidate public candidate_data;
+    Employer public employer_data;
+    Arbiter public arbiter_data;
 
     function construct(uint _user_id, address _address, string _metahash)
 	external {
