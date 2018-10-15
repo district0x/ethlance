@@ -73,9 +73,13 @@
 (defn candidate-data
   "Get the user's Candidate data."
   [& [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :get-candidate-data (merge {:gas 1000000} opts)))
+  (requires-user-key) 
+  (let [[is-registered? hourly-rate currency-type]
+        (contracts/contract-call
+         *user-key* :get-candidate-data (merge {:gas 1000000} opts))]
+    {:is-registered? is-registered?
+     :hourly-rate hourly-rate
+     :currency-type currency-type}))
 
 
 (defn register-arbiter!

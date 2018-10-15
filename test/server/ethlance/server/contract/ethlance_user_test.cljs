@@ -72,14 +72,61 @@
 
 
 (deftest-smart-contract register-candidate {}
-  (let [[user1] (web3-eth/accounts @web3)
+  (let [[user1 user2] (web3-eth/accounts @web3)
         tx-1 (user-factory/register-user!
               {:metahash-ipfs sample-meta-hash-1}
-              {:from user1})]
+              {:from user1})
+
+        tx-2 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-2}
+              {:from user2})]
+
+    (testing "Try and register a candidate for different user"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error
+                     (user/register-candidate!
+                      {:hourly-rate 99
+                       :currency-type 1} ;; USD
+                      {:from user2})))))
 
     (testing "Register as a candidate"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (user/register-candidate!
          {:hourly-rate 100
           :currency-type 1} ;; USD
-         {:from user1})))))
+         {:from user1})))
+
+    (testing "Try and register candidate twice"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error 
+                     (user/register-candidate!
+                      {:hourly-rate 100
+                       :currency-type 1} ;; USD
+                      {:from user1})))))
+
+    (testing "Get the candidate data"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (let [candidate-data (user/candidate-data)]
+          (is (:is-registered? candidate-data))
+          (is (bn/= (:hourly-rate candidate-data) 100))
+          (is (bn/= (:currency-type candidate-data) 1)))))
+
+    (testing "Update registered candidate"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (user/update-candidate!
+         {:hourly-rate 80
+          :currency-type 0}
+         {:from user1})
+        (let [candidate-data (user/candidate-data)]
+          (is (:is-registered? candidate-data))
+          (is (bn/= (:hourly-rate candidate-data) 80))
+          (is (bn/= (:currency-type candidate-data) 0)))))
+
+    (testing "Try and update candidate as other user"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error
+                     (user/update-candidate!
+                      {:hourly-rate 80
+                       :currency-type 0}
+                      {:from user2})))))))
+
