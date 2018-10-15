@@ -130,3 +130,97 @@
                        :currency-type 0}
                       {:from user2})))))))
 
+
+(deftest-smart-contract register-arbiter {}
+  (let [[user1 user2] (web3-eth/accounts @web3)
+        tx-1 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-1}
+              {:from user1})
+
+        tx-2 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-2}
+              {:from user2})]
+
+    (testing "Try and register an arbiter for different user"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error
+                     (user/register-arbiter!
+                      {:payment-value 99
+                       :currency-type 1 ;; USD
+                       :type-of-payment 0}
+                      {:from user2})))))
+
+    (testing "Register as an Arbiter"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (user/register-arbiter!
+         {:payment-value 100
+          :currency-type 1 ;; USD
+          :type-of-payment 0} ;; Fixed
+         {:from user1})))
+
+    (testing "Try and register arbiter twice"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error 
+                     (user/register-arbiter!
+                      {:payment-value 100
+                       :currency-type 1 ;; USD
+                       :type-of-payment 0} ;; USD
+                      {:from user1})))))
+
+    (testing "Get the arbiter data"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (let [arbiter-data (user/arbiter-data)]
+          (is (:is-registered? arbiter-data))
+          (is (bn/= (:payment-value arbiter-data) 100))
+          (is (bn/= (:currency-type arbiter-data) 1))
+          (is (bn/= (:type-of-payment arbiter-data) 0)))))
+
+    (testing "Update registered arbiter"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (user/update-arbiter!
+         {:payment-value 3
+          :currency-type 0 ;; ETH
+          :type-of-payment 1} ;; Percent
+         {:from user1})
+        (let [arbiter-data (user/arbiter-data)]
+          (is (:is-registered? arbiter-data))
+          (is (bn/= (:currency-type arbiter-data) 0))
+          (is (bn/= (:payment-value arbiter-data) 3))
+          (is (bn/= (:type-of-payment arbiter-data) 1)))))
+
+    (testing "Try and update arbiter as other user"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error
+                     (user/update-arbiter!
+                      {:payment-value 100
+                       :currency-type 1 ;; USD
+                       :type-of-payment 0}
+                      {:from user2})))))))
+
+
+(deftest-smart-contract register-employer {}
+  (let [[user1 user2] (web3-eth/accounts @web3)
+        tx-1 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-1}
+              {:from user1})
+
+        tx-2 (user-factory/register-user!
+              {:metahash-ipfs sample-meta-hash-2}
+              {:from user2})]
+
+    (testing "Attempt to register employer for other user"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error (user/register-employer! {:from user2})))))
+
+    (testing "Register an employer"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (user/register-employer! {:from user1})))
+
+    (testing "Attempt to register twice"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (is (thrown? js/Error (user/register-employer! {:from user1})))))
+
+    (testing "Get employer data"
+      (user/with-ethlance-user (user-factory/user-by-address user1)
+        (let [employer-data (user/employer-data)]
+          (is (:is-registered? employer-data)))))))

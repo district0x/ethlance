@@ -110,8 +110,13 @@
   "Get the user's Arbiter data"
   [& [opts]]
   (requires-user-key)
-  (contracts/contract-call
-   *user-key* :get-arbiter-data (merge {:gas 1000000} opts)))
+  (let [[is-registered? payment-value currency-type type-of-payment]
+        (contracts/contract-call
+         *user-key* :get-arbiter-data (merge {:gas 1000000} opts))]
+    {:is-registered? is-registered?
+     :payment-value payment-value
+     :currency-type currency-type
+     :type-of-payment type-of-payment}))
 
 
 (defn register-employer!
@@ -124,4 +129,12 @@
 
 ;; Not Required, since employer data is stored in the metahash
 ;; (defn update-employer! [])
-;; (defn employer-data [])
+
+
+(defn employer-data
+  [& [opts]]
+  (requires-user-key)
+  (let [is-registered?
+        (contracts/contract-call
+         *user-key* :get-employer-data (merge {:gas 1000000} opts))]
+    {:is-registered? is-registered?}))

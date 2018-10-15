@@ -146,6 +146,10 @@ contract EthlanceUser {
 			     uint8 type_of_payment)
 	public
         isUser {
+	require(!arbiter_data.is_registered,
+		"Given user is already registered as an Arbiter.");
+	require(currency_type <= 1, "Currency Type out of range");
+
 	arbiter_data.is_registered = true;
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
@@ -192,11 +196,23 @@ contract EthlanceUser {
     function registerEmployer()
 	public
 	isUser {
+	require(!employer_data.is_registered,
+		"Given user is already registered as an Employer.");
+
 	employer_data.is_registered = true;
 	updateDateUpdated();
     }
     
+
+    /// @dev Gets the user's employer data.
+    /// @return Tuple containing the employer data
+    function getEmployerData()
+	public view
+	returns(bool is_registered) {
+	is_registered = employer_data.is_registered;
+    }
     
+
     //
     // Modifiers
     //
