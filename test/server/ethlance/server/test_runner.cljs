@@ -1,19 +1,19 @@
 (ns ethlance.server.test-runner
   (:require
    [clojure.test :refer [deftest is are testing run-all-tests run-tests]]
-   ;;[doo.runner :refer-macros [doo-tests]]
 
    ;; Test Namespaces
    [ethlance.server.core-test]
    [ethlance.server.contract.ethlance-user-factory-test]
+   [ethlance.server.contract.ethlance-user-test]
    [ethlance.server.contract.ethlance-job-factory-test]
-   [ethlance.server.contract.ethlance-user-test]))
+   [ethlance.server.contract.ethlance-job-test]))
 
 
 (defn run-test
-  "Run a single test in the given namespace `ns`"
-  [ns]
-  (run-tests ns))
+  "Run all tests with the given namespace."
+  [p]
+  (run-tests p))
 
 
 (defn run-tests

@@ -41,6 +41,7 @@ contract EthlanceUserFactory {
 	uint user_id = registry.pushUser(msg.sender, address(user));
 	user.construct(user_id, msg.sender, _metahash);
 
+	// Create and Fire off event data
 	uint[] memory edata = new uint[](1);
 	edata[0] = user_id;
 	fireEvent("UserRegistered", edata);

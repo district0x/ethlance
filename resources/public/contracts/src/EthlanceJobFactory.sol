@@ -19,6 +19,15 @@ contract EthlanceJobFactory {
     //
 
 
+    /// @dev Fire events specific to the JobFactory
+    /// @param event_name Unique to give the fired event
+    /// @param event_data Additional event data to include in the
+    /// fired event.
+    function fireEvent(string event_name, uint[] event_data) private {
+	registry.fireEvent(event_name, version, event_data);
+    }
+
+
     /// @dev Returns true, if the given user address is a registered employer
     /// @param _address Address of the user
     /// @return Returns true, if the it is an employer address.
@@ -53,6 +62,7 @@ contract EthlanceJobFactory {
 	address job_fwd = new Forwarder(); // Proxy Contract with
 					   // target(EthlanceJob)
 	EthlanceJob job = EthlanceJob(address(job_fwd));
+	uint job_index = registry.pushJob(address(job));
 	job.construct(msg.sender,
 		      bid_option,
 		      estimated_length_seconds,
@@ -61,7 +71,11 @@ contract EthlanceJobFactory {
 		      is_invitation_only,
 		      metahash_ipfs,
 		      reward_value);
-	registry.pushJob(address(job));
+	
+	// Create and Fire off event data
+	uint[] memory edata = new uint[](1);
+	edata[0] = job_index;
+	fireEvent("JobCreated", edata);
     }
 
     //

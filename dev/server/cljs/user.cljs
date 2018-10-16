@@ -11,7 +11,6 @@
    [ethlance.shared.smart-contracts]
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]
-
    [ethlance.server.test-utils :as server.test-utils]
    [ethlance.server.test-runner :as server.test-runner]))
 
@@ -23,10 +22,9 @@
   (stop)                          ;; Stops the state components (reloaded workflow)
   (restart)                       ;; Restarts the state components (reloaded workflow)
 
-  (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the snapshot)
-  (run-test <ns>)                 ;; Run a single test from the given namespace
+  (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the testnet snapshot)
+  (reset-testnet!)                ;; Reset the testnet snapshot
   (redeploy)                      ;; Deploy to the testnet asynchronously
-  (redeploy-sync)                 ;; Deploy to the testnet synchronously
 
   (help)                          ;; Display this help message
 
@@ -108,16 +106,21 @@
   
 
 (defn run-test-sync
-  "Run a single test by the given namespace"
-  [ns]
-  (log/info "Running Tests for namespace: " ns)
-  (server.test-runner/run-test ns))
+  "Run tests with the given namespace"
+  [namespace]
+  (server.test-runner/run-test namespace))
 
 
 (defn run-test
   "Run a single test asynchronously"
-  [ns]
-  (.nextTick js/process #(run-test-sync ns)))
+  [namespace]
+  (.nextTick js/process #(run-test-sync namespace)))
+
+
+(defn reset-testnet!
+  "Resets the testnet deployment snapshot for server tests."
+  []
+  (server.test-utils/reset-testnet!))
 
 
 (defn help

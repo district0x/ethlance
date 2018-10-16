@@ -43,6 +43,9 @@ contract EthlanceJob is  EthlanceJobToken,
     // Datetime of job contract creation
     uint public date_created;
 
+    // Datetime of the last time the job contract was updated.
+    uint public date_updated;
+
     // Datetime of job contract obtaining an accepted_candidate and an
     // accepted_arbiter.
     uint public date_started;
@@ -102,6 +105,7 @@ contract EthlanceJob is  EthlanceJobToken,
 	// Main members
 	bid_option = _bid_option;
 	date_created = now;
+	date_updated = now;
 	employer_address = _employer_address;
 	estimated_length_seconds = _estimated_length_seconds;
 	include_ether_token = _include_ether_token;
@@ -115,13 +119,32 @@ contract EthlanceJob is  EthlanceJobToken,
     // Methods
     //
 
+
+    /// @dev Update the last time the job was updated.
+    function updateDateUpdated()
+	private {
+	date_updated = now;
+    }
+
+
+    /// @dev Update the job contract metahash
+    /// @param _metahash The new metahash
+    function updateMetahash(string _metahash)
+	public {
+	// FIXME: authorization
+	metahash_ipfs = _metahash;
+	updateDateUpdated();
+    }
+
+
     /// @dev Fire events specific to the job contract
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
-    function emitEvent(string event_name, uint[] event_data) private {
+    function fireEvent(string event_name, uint[] event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
+
 
     /// @dev Set the accepted arbiter
     /// @param arbiter_address Address of the accepted arbiter.
@@ -132,6 +155,7 @@ contract EthlanceJob is  EthlanceJobToken,
 	accepted_arbiter = arbiter_address;
     }
 
+
     /// @dev Set the accepted candidate
     /// @param candidate_address The accepted candidate
     function setAcceptedCandidate(address candidate_address)
@@ -139,4 +163,22 @@ contract EthlanceJob is  EthlanceJobToken,
     {
 	accepted_candidate = candidate_address;
     }
+
+
+    /// @dev Add a candidate to the candidate request listing.
+    /// @param candidate_address The user address of the candidate.
+    function requestCandidate(address candidate_address)
+	public {
+	
+    }
+
+    
+    /// @dev Add an arbiter to the arbiter request listing.
+    /// @param arbiter_address The user address of the arbiter.
+    function requestArbiter(address arbiter_address)
+	public {
+	
+    }
+
+    
 }
