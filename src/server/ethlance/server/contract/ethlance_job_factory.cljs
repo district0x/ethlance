@@ -29,14 +29,17 @@
            include-ether-token?
            is-bounty?
            is-invitation-only?
-           metahash-ipfs
+           employer-metahash
            reward-value]}
    & [opts]]
   (call :create-job
         bid-option
-        estimated-length-seconds include-ether-token?
-        is-bounty? is-invitation-only?
-        metahash-ipfs reward-value
+        estimated-length-seconds
+        include-ether-token?
+        is-bounty?
+        is-invitation-only?
+        employer-metahash
+        reward-value
         (merge {:gas 2000000} opts)))
 
 

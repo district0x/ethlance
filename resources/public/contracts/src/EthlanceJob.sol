@@ -141,6 +141,21 @@ contract EthlanceJob is  EthlanceJobToken,
 	return 0;
     }
 
+    
+    /// @dev Gets the IPFS hashes for the employer, accepted
+    /// candidate, and accepted arbiter
+    /// @return A 3-element tuple with the employer, candidate, and
+    /// arbiter hashes.
+    function getMetahashStore()
+	public view
+	returns (string employer_hash,
+		 string candidate_hash,
+		 string arbiter_hash) {
+	employer_hash = metahash_store.employer_hash;
+	candidate_hash = metahash_store.candidate_hash;
+	arbiter_hash = metahash_store.arbiter_hash;
+    }
+
 
     /// @dev Update the datetime of the job contract.
     function updateDateUpdated()

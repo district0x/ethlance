@@ -11,7 +11,7 @@
 
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
-   [ethlance.server.contract.ethlance-user :as user]
+   [ethlance.server.contract.ethlance-user :as user :include-macros true]
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]))
@@ -23,9 +23,9 @@
 
 (defn register-user!
   "Helper function for registering a user."
-  [user-address meta-hash]
+  [user-address metahash]
   (user-factory/register-user!
-   {:metahash-ipfs meta-hash}
+   {:metahash-ipfs metahash}
    {:from user-address}))
 
 
@@ -36,7 +36,7 @@
    :include-ether-token? true
    :is-bounty? false
    :is-invitation-only? false
-   :metahash-ipfs sample-meta-hash-1
+   :employer-metahash sample-meta-hash-1
    :reward-value 0})
 
 

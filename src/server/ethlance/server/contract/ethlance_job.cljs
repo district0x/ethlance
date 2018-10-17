@@ -17,19 +17,74 @@
   (assert *job-key* "Given function needs to be wrapped in 'with-ethlance-job"))
 
 
-(defn metahash-ipfs
-  "Retrieve the job's IPFS metahash."
+(defn metahash-store
+  "Get the store of employer, candidate and arbiter IPFS metahashes"
   [& [opts]]
   (requires-job-key)
-  (contracts/contract-call *job-key* :metahash_ipfs (merge {:gas 1000000} opts)))
+  (contracts/contract-call *job-key* :get-metahash-store (merge {:gas 1000000} opts)))
 
 
-(defn update-metahash!
-  "Update the job's IPFS metahash"
+(defn employer-metahash
+  "Retrieve the employer's IPFS metahash."
+  [& [opts]]
+  (requires-job-key)
+  (first (metahash-store)))
+    
+
+(defn update-employer-metahash!
+  "Update the employer's IPFS metahash"
   [new-metahash & [opts]]
   (requires-job-key)
   (contracts/contract-call
-   *job-key* :update-metahash new-metahash
+   *job-key* :update-employer-metahash new-metahash
    (merge {:gas 1000000} opts)))
 
 
+(defn candidate-metahash
+  "Retrieve the candidate's metahash."
+  [& [opts]]
+  (requires-job-key)
+  (second (metahash-store)))
+
+
+(defn update-candidate-metahash!
+  "Update the candidate's IPFS metahash."
+  [new-metahash & [opts]]
+  (requires-job-key)
+  (contracts/contract-call
+   *job-key* :update-candidate-metahash new-metahash
+   (merge {:gas 1000000} opts)))
+
+
+(defn arbiter-metahash
+  "Retrieve the arbiter's metahash"
+  [& [opts]]
+  (requires-job-key)
+  (nth (metahash-store) 2))
+
+
+(defn update-arbiter-metahash!
+  "Update the arbiter's IPFS metahash."
+  [new-metahash & [opts]]
+  (requires-job-key)
+  (contracts/contract-call
+   *job-key* :update-arbiter-metahash new-metahash
+   (merge {:gas 1000000} opts)))
+
+
+(defn request-candidate!
+  "Request a candidate for the job contract"
+  [candidate-address & [opts]]
+  (requires-job-key)
+  (contracts/contract-call
+   *job-key* :request-candidate candidate-address
+   (merge {:gas 2000000} opts)))
+
+
+(defn request-arbiter!
+  "Request an arbiter for the job contract"
+  [arbiter-address & [opts]]
+  (requires-job-key)
+  (contracts/contract-call
+   *job-key* :request-arbiter arbiter-address
+   (merge {:gas 2000000} opts)))

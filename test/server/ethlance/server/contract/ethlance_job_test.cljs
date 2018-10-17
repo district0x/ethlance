@@ -10,10 +10,10 @@
    [district.server.smart-contracts :as contracts]
 
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
-   [ethlance.server.contract.ethlance-user :as user]
+   [ethlance.server.contract.ethlance-user :as user :include-macros true]
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
-   [ethlance.server.contract.ethlance-job :as job]
+   [ethlance.server.contract.ethlance-job :as job :include-macros true]
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]))
 
@@ -37,7 +37,7 @@
    :include-ether-token? true
    :is-bounty? false
    :is-invitation-only? false
-   :metahash-ipfs sample-meta-hash-1
+   :employer-metahash sample-meta-hash-1
    :reward-value 0})
 
 
@@ -61,6 +61,7 @@
         tx-2 (register-user! candidate-address "QmZhash2")
         _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
             (user/register-candidate!
+             ;; $120USD/hr
              {:hourly-rate 120
               :currency-type 1} ;; USD
              {:from candidate-address}))
@@ -69,20 +70,21 @@
         tx-3 (register-user! arbiter-address "QmZhash3")
         _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
             (user/register-arbiter!
+             ;; 3% in Ether
              {:payment-value 3
               :currency-type 0 ;; ETH
               :type-of-payment 1} ;; Percent
              {:from arbiter-address}))]
 
-    (testing "Create Job, and change metahash"
+    (testing "Create Job, and change employer metahash"
       (let [test-hash-1 "QmZ123"
             test-hash-2 "QmZ456"]
         (create-job!
-         {:metahash-ipfs test-hash-1}
+         {:employer-metahash test-hash-1}
          {:from employer-address})
         
         (job/with-ethlance-job (job-factory/job-by-index 0)
-          (is (= test-hash-1 (job/metahash-ipfs)))
+          (is (= test-hash-1 (job/employer-metahash)))
 
-          (job/update-metahash! test-hash-2)
-          (is (= test-hash-2 (job/metahash-ipfs))))))))
+          (job/update-employer-metahash! test-hash-2 {:from employer-address})
+          (is (= test-hash-2 (job/employer-metahash))))))))

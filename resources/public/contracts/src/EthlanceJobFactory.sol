@@ -51,7 +51,7 @@ contract EthlanceJobFactory {
 		       bool include_ether_token,
 		       bool is_bounty,
 		       bool is_invitation_only,
-		       string metahash_ipfs,
+		       string employer_metahash,
 		       uint reward_value)
 	public {
 	require(isRegisteredEmployer(msg.sender),
@@ -69,7 +69,7 @@ contract EthlanceJobFactory {
 		      include_ether_token,
 		      is_bounty,
 		      is_invitation_only,
-		      metahash_ipfs,
+		      employer_metahash,
 		      reward_value);
 	
 	// Create and Fire off event data
