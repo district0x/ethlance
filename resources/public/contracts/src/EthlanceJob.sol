@@ -4,7 +4,10 @@ import "./EthlanceJobInvoice.sol";
 import "./EthlanceJobDispute.sol";
 import "./EthlanceRegistry.sol";
 import "./EthlanceJobToken.sol";
+import "./EthlanceUserFactory.sol";
+import "./EthlanceUser.sol";
 import "proxy/MutableForwarder.sol";
+
 
 /// @title Job Contracts to tie candidates, employers, and arbiters to
 /// an agreement.
@@ -14,6 +17,20 @@ contract EthlanceJob is  EthlanceJobToken,
 {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
+
+
+    //
+    // Events
+    //
+
+    // Updates on metahash values
+    event UpdatedEmployerMetahash(string old_hash, string new_hash);
+    event UpdatedCandidateMetahash(string old_hash, string new_hash);
+    event UpdatedArbiterMetahash(string old_hash, string new_hash);
+
+    //
+    // Structures
+    //
 
     /// Represents a particular arbiter requesting, or being requested
     /// by an employer for a job contract.
@@ -132,7 +149,6 @@ contract EthlanceJob is  EthlanceJobToken,
     // Methods
     //
 
-
     /// @dev Based on filled 
     /// @return Status Code
     function getStatus()
@@ -169,6 +185,7 @@ contract EthlanceJob is  EthlanceJobToken,
     function updateEmployerMetahash(string _metahash)
 	public
         isEmployer(msg.sender) {
+	emit UpdatedEmployerMetahash(metahash_store.employer_hash, _metahash);
 	metahash_store.employer_hash = _metahash;
 	updateDateUpdated();
     }
@@ -179,6 +196,7 @@ contract EthlanceJob is  EthlanceJobToken,
     function updateCandidateMetahash(string _metahash)
 	public
         isAcceptedCandidate(msg.sender) {
+	emit UpdatedCandidateMetahash(metahash_store.candidate_hash, _metahash);
 	metahash_store.candidate_hash = _metahash;
 	updateDateUpdated();
     }
@@ -189,6 +207,7 @@ contract EthlanceJob is  EthlanceJobToken,
     function updateArbiterMetahash(string _metahash)
 	public
         isAcceptedArbiter(msg.sender) {
+	emit UpdatedArbiterMetahash(metahash_store.arbiter_hash, _metahash);
 	metahash_store.arbiter_hash = _metahash;
 	updateDateUpdated();
     }
@@ -214,6 +233,11 @@ contract EthlanceJob is  EthlanceJobToken,
 	if (accepted_candidate != 0) {
 	    date_started = now;
 	}
+
+	// Fire off event
+	uint[] memory event_data = new uint[](1);
+	event_data[0] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
+	fireEvent("JobArbiterAccepted", event_data);
     }
 
 
@@ -228,6 +252,11 @@ contract EthlanceJob is  EthlanceJobToken,
 	if (accepted_arbiter != 0) {
 	    date_started = now;
 	}
+
+	// Fire off event
+	uint[] memory event_data = new uint[](1);
+	event_data[0] = EthlanceUser(registry.getUserByAddress(candidate_address)).user_id();
+	fireEvent("JobCandidateAccepted", event_data);
     }
 
 
@@ -249,7 +278,12 @@ contract EthlanceJob is  EthlanceJobToken,
 
      */
     function requestCandidate(address candidate_address)
-	public {
+	public
+	isRegisteredUser(candidate_address)
+        isRegisteredCandidate(candidate_address) {
+	require(accepted_candidate == 0, "Candidate already accepted.");
+	require(candidate_address != accepted_arbiter,
+		"Accepted Arbiter cannot be an Accepted Candidate.");
 	require(candidate_address != employer_address,
 		"Employer cannot be the candidate of his own job contract.");
 	require(msg.sender == employer_address || msg.sender == candidate_address,
@@ -331,18 +365,23 @@ contract EthlanceJob is  EthlanceJobToken,
 
      */
     function requestArbiter(address arbiter_address)
-	public {
+	public
+	isRegisteredUser(arbiter_address)
+	isRegisteredArbiter(arbiter_address) {
+	require(accepted_arbiter == 0, "Arbiter already accepted.");
+	require(arbiter_address != accepted_candidate,
+		"Accepted Candidate cannot be an Accepted Arbiter");
 	require(arbiter_address != employer_address,
 		"Employer cannot be the arbiter of his own job contract.");
 	require(msg.sender == employer_address || msg.sender == arbiter_address,
-		"Only an employer can request a arbiter, only an arbiter can request themselves.");
+		"Only an employer can request an arbiter, only an arbiter can request themselves.");
 
 	// Locals
 	uint request_index;
 	bool is_employer_request;
 
 	//
-	// Handle case where arbiter is requesting the job contract.
+	// Handle case where an arbiter is requesting the job contract.
 	//
 
 	if (msg.sender == arbiter_address) {
@@ -369,7 +408,7 @@ contract EthlanceJob is  EthlanceJobToken,
 	}
 
 	//
-	// Handle case where employer is requesting a arbiter for the job contract.
+	// Handle case where employer is requesting an arbiter for the job contract.
 	//
 
 	// No previous request, so create a new Arbiter Request
@@ -425,4 +464,40 @@ contract EthlanceJob is  EthlanceJobToken,
 		"Given user is not the accepted arbiter.");
 	_;
     }
+
+
+    /// @dev Checks if the given address is a registered user
+    modifier isRegisteredUser(address _address) {
+	require(registry.getUserByAddress(_address) != 0,
+		"Given address is not a registered user.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered employer
+    modifier isRegisteredEmployer(address _address) {
+	var (is_registered) = EthlanceUser(registry.getUserByAddress(_address)).getEmployerData();
+	require(is_registered,
+		"Given address is not a registered employer.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered candidate
+    modifier isRegisteredCandidate(address _address) {
+	var (is_registered,,) = EthlanceUser(registry.getUserByAddress(_address)).getCandidateData();
+	require(is_registered,
+		"Given address is not a registered candidate.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered arbiter
+    modifier isRegisteredArbiter(address _address) {
+	var (is_registered,,,) = EthlanceUser(registry.getUserByAddress(_address)).getArbiterData();
+	require(is_registered,
+		"Given address is not a registered arbiter.");
+	_;
+    }
+
 }

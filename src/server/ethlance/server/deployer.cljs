@@ -129,7 +129,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-job
    (merge
-    {:gas 2000000
+    {:gas 3000000
      :placeholder-replacements
      {registry-placeholder :ethlance-registry}}
     opts)))
