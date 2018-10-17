@@ -65,250 +65,267 @@
     - A Candidate can invoice a job bounty.
 
 * Specification & Design
+** Class Diagram
+   #+BEGIN_SRC plantuml :file class_diagram.png
+   title Ethlance Smart Contract Class Diagram
 
-  #+BEGIN_SRC plantuml :file class_diagram.png
-  title Ethlance Smart Contract Class Diagram
+   class UserMetahash << (I,blue) IPFS >> {
+     -- 'user' Map --
+     country_code : string,
+     date_last_active : uint{DateTime}
+     email : string
+     github_id : map{...}
+     known_languages : array[string]
+     linkedin_id : map{...}
+     profile_image : map{filename : string, :filetype : string, ...}
 
-  class UserMetahash << (I,blue) IPFS >> {
-    -- 'user' Map --
-    country_code : string,
-    date_last_active : uint{DateTime}
-    email : string
-    github_id : map{...}
-    known_languages : array[string]
-    linkedin_id : map{...}
-    profile_image : map{filename : string, :filetype : string, ...}
+     -- 'candidate' Map --
+     biography : string
+     category_listing : array[integer]
+     profession_title : string
+     skills_listing : array[integer]
 
-    -- 'candidate' Map --
-    biography : string
-    category_listing : array[integer]
-    profession_title : string
-    skills_listing : array[integer]
+     -- 'employer' Map --
+     biography : string
+     job_title : string
 
-    -- 'employer' Map --
-    biography : string
-    job_title : string
+     -- 'arbiter' Map --
+     profession_title : string
+   }
 
-    -- 'arbiter' Map --
-    profession_title : string
-  }
+   EthlanceUser "1" *-- "1" UserMetahash
+   class EthlanceUser << (f,green) Forwarded Contract >> {
+     user_address : address
+     date_joined : uint{DateTime}
+     metahash_ipfs : string
+   }
 
-  EthlanceUser "1" *-- "1" UserMetahash
-  class EthlanceUser << (f,green) Forwarded Contract >> {
-    user_address : address
-    date_joined : uint{DateTime}
-    metahash_ipfs : string
-  }
+   Candidate -- UserMetahash
+   class Candidate << (s,yellow) Struct >> {
+     is_registered : bool
+     hourly_rate : uint //wei, cents
+     currency_type : uint{enum[Ethereum, USD, ...]}
+   }
 
-  Candidate -- UserMetahash
-  class Candidate << (s,yellow) Struct >> {
-    is_registered : bool
-    hourly_rate : uint //wei, cents
-    currency_type : uint{enum[Ethereum, USD, ...]}
-  }
+   Employer -- UserMetahash
+   class Employer << (s,yellow) Struct >> {
+     is_registered :  bool
+   }
 
-  Employer -- UserMetahash
-  class Employer << (s,yellow) Struct >> {
-    is_registered :  bool
-  }
+   Arbiter -- UserMetahash
+   class Arbiter << (s,yellow) Struct >> {
+     is_registered : bool
+     currency_type : uint{enum[Ethereum, USD, ...]}
+     payment_value : uint
+     type_of_payment : uint{enum[Flat Rate, Percentage]}
+   }
 
-  Arbiter -- UserMetahash
-  class Arbiter << (s,yellow) Struct >> {
-    is_registered : bool
-    currency_type : uint{enum[Ethereum, USD, ...]}
-    payment_value : uint
-    type_of_payment : uint{enum[Flat Rate, Percentage]}
-  }
+   EthlanceUserFactory "1" *-- "*" EthlanceUser
+   EthlanceUser "1" *-- "1" Candidate
+   EthlanceUser "1" *-- "1" Employer
+   EthlanceUser "1" *-- "1" Arbiter
 
-  EthlanceUserFactory "1" *-- "*" EthlanceUser
-  EthlanceUser "1" *-- "1" Candidate
-  EthlanceUser "1" *-- "1" Employer
-  EthlanceUser "1" *-- "1" Arbiter
+   class EthlanceUserFactory << Contract >> {
+     registry : EthlanceRegistry
 
-  class EthlanceUserFactory << Contract >> {
-    registry : EthlanceRegistry
+     #createUser(_address : address, _metahash : string) : integer
+     +updateUser_metahash(_metahash : string)
+     
+     +updateCandidate(...)
+     +updateEmployer(...)
+     +updateArbiter(...)
 
-    #createUser(_address : address, _metahash : string) : integer
-    +updateUser_metahash(_metahash : string)
-    
-    +updateCandidate(...)
-    +updateEmployer(...)
-    +updateArbiter(...)
+     -- Views --
+     getUserByAddress(_address : address) : string // metahash
+     getUserAddressById(_id : uint) : address
+     getUserById(_id : uint) : string // metahash
+     getCurrentUser() : string // metahash
+     getUserCount() : uint
 
-    -- Views --
-    getUserByAddress(_address : address) : string // metahash
-    getUserAddressById(_id : uint) : address
-    getUserById(_id : uint) : string // metahash
-    getCurrentUser() : string // metahash
-    getUserCount() : uint
+     getCandidateByAddress(_address : address) : (user_id : uint,
+                                                  hourly_rate : uint64,
+                                                  currency_type : uint16)
 
-    getCandidateByAddress(_address : address) : (user_id : uint,
-                                                 hourly_rate : uint64,
-                                                 currency_type : uint16)
+     -- Modifiers --
+     isRegisteredUser()
+   }
 
-    -- Modifiers --
-    isRegisteredUser()
-  }
+   EthlanceUserFactory "1" *-- "1" EthlanceRegistry
+   EthlanceJobFactory "1" *-- "1" EthlanceRegistry
+   class EthlanceRegistry << (d,violet) Database Contract >> {
+     user_listing : array[address(EthlanceUser)]
+     user_address_mapping : mapping{address => uint}
+     job_listing : array[address(EthlanceJob)]
 
-  EthlanceUserFactory "1" *-- "1" EthlanceRegistry
-  EthlanceJobFactory "1" *-- "1" EthlanceRegistry
-  class EthlanceRegistry << (d,violet) Database Contract >> {
-    user_listing : array[address(EthlanceUser)]
-    user_address_mapping : mapping{address => uint}
-    job_listing : array[address(EthlanceJob)]
+     -- User Database Methods --
+     +addUser(eth_address : address, contract_address : address) : uint
+     +getUserByIndex(index : uint) : address
+     +getUserByAddress(eth_address : address) : address
+     +getUserCount() : uint
 
-    -- User Database Methods --
-    +addUser(eth_address : address, contract_address : address) : uint
-    +getUserByIndex(index : uint) : address
-    +getUserByAddress(eth_address : address) : address
-    +getUserCount() : uint
+     -- Job Database Methods --
+     +addJob(eth_address : address, contract_address : address) : uint
+     +getJobByIndex(index : uint) : address
+     +getJobCount() : uint
+   }
 
-    -- Job Database Methods --
-    +addJob(eth_address : address, contract_address : address) : uint
-    +getJobByIndex(index : uint) : address
-    +getJobCount() : uint
-  }
+   EthlanceRegistry --> EthlanceEventDispatcher
+   class EthlanceEventDispatcher << Contract >> {
+     
+     EthlanceEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
 
-  EthlanceRegistry --> EthlanceEventDispatcher
-  class EthlanceEventDispatcher << Contract >> {
-    
-    EthlanceEvent(_address : indexed address, event_name : string, version : uint, timestamp : uint, data : uint[])
+     +fireEvent(event_name : string, version : uint, data : uint[])
 
-    +fireEvent(event_name : string, version : uint, data : uint[])
+     -- User Event Names --
+     "UserCreated"
+     "UserUpdated"
+     "UserCreatedCandidate"
+     "UserUpdatedCandidate"
+     "UserCreatedEmployer"
+     "UserUpdatedEmployer"
+     "UserCreatedArbiter"
+     "UserUpdatedArbiter"
 
-    -- User Event Names --
-    "UserCreated"
-    "UserUpdated"
-    "UserCreatedCandidate"
-    "UserUpdatedCandidate"
-    "UserCreatedEmployer"
-    "UserUpdatedEmployer"
-    "UserCreatedArbiter"
-    "UserUpdatedArbiter"
+     -- Candidate Event Names --
+     "CandidateRequestedJob" [_job_id]
+     "CandidateFiledDispute" [_job_id]
+     "CandidateSentInvoice" [_job_id]
+     "CandidateRatedEmployeeJob" [_job_id, _rating]
+     "CandidateRatedArbiterJob" [_job_id, _rating]
 
-    -- Candidate Event Names --
-    "CandidateRequestedJob" [_job_id]
-    "CandidateFiledDispute" [_job_id]
-    "CandidateSentInvoice" [_job_id]
-    "CandidateRatedEmployeeJob" [_job_id, _rating]
-    "CandidateRatedArbiterJob" [_job_id, _rating]
+     -- Employer Event Names --
+     "EmployerCreatedJob" [_job_id]
+     "EmployerRequestedArbiter" [_job_id, user_id]
+     "EmployerAssignedJob" [_job_id, user_id]
+     "EmployerFiledDispute" [_job_id]
+     "EmployerTransferredAndAcceptedInvoice" [_job_id]
+     "EmployerRatedCandidateJob" [_job_id, _rating]
+     "EmployerRatedArbiterJob" [_job_id, _rating]
 
-    -- Employer Event Names --
-    "EmployerCreatedJob" [_job_id]
-    "EmployerRequestedArbiter" [_job_id, user_id]
-    "EmployerAssignedJob" [_job_id, user_id]
-    "EmployerFiledDispute" [_job_id]
-    "EmployerTransferredAndAcceptedInvoice" [_job_id]
-    "EmployerRatedCandidateJob" [_job_id, _rating]
-    "EmployerRatedArbiterJob" [_job_id, _rating]
+     -- Arbiter Event Names --
+     "ArbiterResolveDispute" [_job_id]
+     "ArbiterRequestedJob" [_job_id]
 
-    -- Arbiter Event Names --
-    "ArbiterResolveDispute" [_job_id]
-    "ArbiterRequestedJob" [_job_id]
+     -- Job Event Names --
+     "JobCreated"
+     "JobUpdated"
+   }
 
-    -- Job Event Names --
-    "JobCreated"
-    "JobUpdated"
-  }
+   class EthlanceJobMetahash << (I,blue) IPFS >> {
+     category_code : integer
+     dispute_listing : array[Dispute]
+     experience_level : bitmask-8-bit
+     invoice_listing : array[Invoice]
+     job_description : string
+     job_title : string
+     required_availability : uint{enum[Part Time, Full Time]}
+     required_skills_listing : array[string]
 
-  class EthlanceJobMetahash << (I,blue) IPFS >> {
-    category_code : integer
-    dispute_listing : array[Dispute]
-    experience_level : bitmask-8-bit
-    invoice_listing : array[Invoice]
-    job_description : string
-    job_title : string
-    required_availability : uint{enum[Part Time, Full Time]}
-    required_skills_listing : array[string]
+     -- Invoice from 'invoice_listing' Array --
+     invoice_id : uint
+     comments : []
 
-    -- Invoice from 'invoice_listing' Array --
-    invoice_id : uint
-    comments : []
+     -- Dispute from 'dispute_listing' Array --
+     dispute_id : uint
+     comments : []
+   }
 
-    -- Dispute from 'dispute_listing' Array --
-    dispute_id : uint
-    comments : []
-  }
+   EthlanceJob "1" *-- "1" EthlanceJobMetahash
+   EthlanceJob --> EthlanceJobInvoice
+   EthlanceJob --> EthlanceJobDispute
+   class EthlanceJob << (f,green) Forwarded Contract >> {
+     accepted_arbiter : nullable{address}
+     accepted_candidate : nullable{address}
+     accepted_token_address_listing : array[string]
+     arbiter_request_listing : array[address]
+     candidate_request_listing : array[address]
+     bid_mask : bitmask-8-bit [Hourly Rate, Fixed Price, Annual Salary]
+     date_created : uint{datetime}
+     date_started : uint{datetime}
+     date_finished : uint{datetime}
+     employer_user_id : uint
+     estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
+     is_bounty: boolean
+     include_ether_token : boolean
+     is_invitation_only : boolean
+     metahash_ipfs : string
+     reward_value : float
+   }
 
-  EthlanceJob "1" *-- "1" EthlanceJobMetahash
-  EthlanceJob --> EthlanceJobInvoice
-  EthlanceJob --> EthlanceJobDispute
-  class EthlanceJob << (f,green) Forwarded Contract >> {
-    accepted_arbiter : nullable{address}
-    accepted_candidate : nullable{address}
-    accepted_token_address_listing : array[string]
-    arbiter_request_listing : array[address]
-    candidate_request_listing : array[address]
-    bid_mask : bitmask-8-bit [Hourly Rate, Fixed Price, Annual Salary]
-    date_created : uint{datetime}
-    date_started : uint{datetime}
-    date_finished : uint{datetime}
-    employer_user_id : uint
-    estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
-    is_bounty: boolean
-    include_ether_token : boolean
-    is_invitation_only : boolean
-    metahash_ipfs : string
-    reward_value : float
-  }
+   EthlanceJobInvoice -- EthlanceJobMetahash
+   EthlanceJobInvoice "1" *-- "*" JobInvoice
+   class EthlanceJobInvoice << Contract >> {
+     invoice_listing : array[JobInvoice]
 
-  EthlanceJobInvoice -- EthlanceJobMetahash
-  EthlanceJobInvoice "1" *-- "*" JobInvoice
-  class EthlanceJobInvoice << Contract >> {
-    invoice_listing : array[JobInvoice]
+     +createInvoice(...)
+   }
 
-    +createInvoice(...)
-  }
+   class JobInvoice << (s,yellow) Struct >> {
+     job_id : uint
+     date_created: uint{DateTime}
+     date_approved: uint{DateTime}
+     duration_seconds: uint
+   }
 
-  class JobInvoice << (s,yellow) Struct >> {
-    job_id : uint
-    date_created: uint{DateTime}
-    date_approved: uint{DateTime}
-    duration_seconds: uint
-  }
+   EthlanceJobDispute -- EthlanceJobMetahash
+   EthlanceJobDispute "1" *-- "*" JobDispute
+   class EthlanceJobDispute << Contract >> {
+     dispute_listing : array[JobDispute]
 
-  EthlanceJobDispute -- EthlanceJobMetahash
-  EthlanceJobDispute "1" *-- "*" JobDispute
-  class EthlanceJobDispute << Contract >> {
-    dispute_listing : array[JobDispute]
+     +createDispute(...)
+   }
 
-    +createDispute(...)
-  }
+   class JobDispute << (s,yellow) Struct >> {
+     dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
+     job_id : uint
+     date_created: uint{DateTime}
+     date_resolved: uint{DateTime}
+     
+     employer_resolution_amount: nullable{uint}
+     candidate_resolution_amount: nullable{uint}    
+   }
 
-  class JobDispute << (s,yellow) Struct >> {
-    dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
-    job_id : uint
-    date_created: uint{DateTime}
-    date_resolved: uint{DateTime}
-    
-    employer_resolution_amount: nullable{uint}
-    candidate_resolution_amount: nullable{uint}    
-  }
+   EthlanceJobFactory "1" *-- "*" EthlanceJob
+   class EthlanceJobFactory << Contract >> {
+     registry : EthlanceRegistry
 
-  EthlanceJobFactory "1" *-- "*" EthlanceJob
-  class EthlanceJobFactory << Contract >> {
-    registry : EthlanceRegistry
+     +createJobContract(...)
 
-    +createJobContract(...)
+     -- Views --
+     +getJobListing()
+     +getJobStatus(_job_id)
 
-    -- Views --
-    +getJobListing()
-    +getJobStatus(_job_id)
+     -- Modifiers --
+     isJobOwner()
+   }
 
-    -- Modifiers --
-    isJobOwner()
-  }
+   #+END_SRC
 
-  #+END_SRC
+   #+RESULTS:
+   [[file:class_diagram.png]]
+** Job Contract Interaction
+   This section contains additional information on job contract
+   refinement with respect to the design and smart contract
+   specification. The focus is on security and different levels of
+   user interaction.
 
-  #+RESULTS:
-  [[file:class_diagram.png]]
+*** Comments
+    - Comments are stored in a metahash, however by giving control of
+      the metahash to all three users (Employer, Candidate, Arbiter),
+      we dictate full control of a conversation to a malicious
+      party. ex. Any malicious party could change a conversation to
+      encourage another party to carry out a particular action.
+
+      Solution might be to have a separate metahash for each of
+      Employer, Candidate, and Arbiter with solo privileges for
+      metahash manipulation.
 
 * Issues
 ** Specification
 *** EthlanceJobContract
     - Unclear if some of the options are a radio, or a checklist
       (multi-select versus single-select)
+      - Bid Options are single-select
     - Not familiar with the ability to transfer funds into the smart
       contract from a particular address. Could be a discussion
       point. This is also seen in Job Bounties.
