@@ -87,4 +87,50 @@
           (is (= test-hash-1 (job/employer-metahash)))
 
           (job/update-employer-metahash! test-hash-2 {:from employer-address})
-          (is (= test-hash-2 (job/employer-metahash))))))))
+          (is (= test-hash-2 (job/employer-metahash))))))
+
+    (testing "Shouldn't be able to change the employer metahash as other users."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/update-employer-metahash! "new-hash" {:from candidate-address})))
+        (is (thrown? js/Error (job/update-employer-metahash! "new-hash" {:from arbiter-address})))
+        (is (thrown? js/Error (job/update-employer-metahash! "new-hash" {:from random-user-address})))))
+
+    (testing "Shouldn't be able to change the candidate metahash as other users."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/update-candidate-metahash! "new-hash" {:from employer-address})))
+        (is (thrown? js/Error (job/update-candidate-metahash! "new-hash" {:from candidate-address})))
+        (is (thrown? js/Error (job/update-candidate-metahash! "new-hash" {:from arbiter-address})))
+        (is (thrown? js/Error (job/update-candidate-metahash! "new-hash" {:from random-user-address})))))
+
+    (testing "Shouldn't be able to change the arbiter metahash as other users."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/update-arbiter-metahash! "new-hash" {:from employer-address})))
+        (is (thrown? js/Error (job/update-arbiter-metahash! "new-hash" {:from candidate-address})))
+        (is (thrown? js/Error (job/update-arbiter-metahash! "new-hash" {:from arbiter-address})))
+        (is (thrown? js/Error (job/update-arbiter-metahash! "new-hash" {:from random-user-address})))))
+
+    (testing "Request Candidate as the employer, and accept it as the candidate."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (job/request-candidate! candidate-address {:from employer-address})
+        (job/request-candidate! candidate-address {:from candidate-address})
+        (is (= candidate-address (job/accepted-candidate)))))
+
+    (testing "Change the candidate metahashes, as accepted candidate."
+      (let [test-hash-1 "QmZ123"]
+        (job/with-ethlance-job (job-factory/job-by-index 0)
+          (is (= "" (job/candidate-metahash)))
+          (job/update-candidate-metahash! test-hash-1 {:from candidate-address})
+          (is (= test-hash-1 (job/candidate-metahash))))))
+
+    (testing "Request Arbiter as the employer, and accept it as the arbiter."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (job/request-arbiter! arbiter-address {:from employer-address})
+        (job/request-arbiter! arbiter-address {:from arbiter-address})
+        (is (= arbiter-address (job/accepted-arbiter)))))
+
+    (testing "Change the arbiter metahashes, as accepted arbiter."
+      (let [test-hash-1 "QmZ123"]
+        (job/with-ethlance-job (job-factory/job-by-index 0)
+          (is (= "" (job/arbiter-metahash)))
+          (job/update-arbiter-metahash! test-hash-1 {:from arbiter-address})
+          (is (= test-hash-1 (job/arbiter-metahash))))))))

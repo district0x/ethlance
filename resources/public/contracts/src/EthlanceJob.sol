@@ -273,8 +273,8 @@ contract EthlanceJob is  EthlanceJobToken,
 
       accepted_candidate is set if:
 
-      - employer had already requested the candidate, and the candidate requests the job contract
-      - candidate requests himself, and the employer requests the same candidate.
+      - employer had already requested the candidate, and then the candidate requests the job contract
+      - candidate requests himself, and then the employer requests the same candidate.
 
      */
     function requestCandidate(address candidate_address)

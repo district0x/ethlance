@@ -88,3 +88,17 @@
   (contracts/contract-call
    *job-key* :request-arbiter arbiter-address
    (merge {:gas 2000000} opts)))
+
+
+(defn accepted-candidate
+  "The accepted candidate for a given job contract."
+  []
+  (requires-job-key)
+  (contracts/contract-call *job-key* :accepted_candidate))
+
+
+(defn accepted-arbiter
+  "The accepted arbiter for a given job contract."
+  []
+  (requires-job-key)
+  (contracts/contract-call *job-key* :accepted_arbiter))
