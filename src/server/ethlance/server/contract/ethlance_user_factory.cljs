@@ -32,26 +32,22 @@
 
 (defn user-by-id
   "Get a user contract by the given user id."
-  [user-id & [opts]]
-  (call :get-user-by-i-d (bn/number user-id)
-        (merge {:gas 3000000} opts)))
+  [user-id]
+  (call :get-user-by-i-d (bn/number user-id)))
 
 
 (defn user-by-address
   "Get user contract linked to the given address"
-  [user-address & [opts]]
-  (call :get-user-by-address user-address
-        (merge {:gas 3000000} opts)))
+  [user-address]
+  (call :get-user-by-address user-address))
 
 
 (defn user-count
   "Returns the number of user contracts in the registry."
-  [& [opts]]
-  (call :get-user-count
-        (merge {:gas 3000000} opts)))
+  []
+  (call :get-user-count))
 
 
 (defn is-registered-user?
-  [user-address & [opts]]
-  (call :is-registered-user
-        (merge {:gas 1000000} opts)))
+  [user-address]
+  (call :is-registered-user))

@@ -45,13 +45,13 @@
 
 (defn job-count
   "Get the number of job contracts."
-  [& [opts]]
-  (call :get-job-count (merge {:gas 1000000} opts)))
+  []
+  (call :get-job-count))
 
 
 (defn job-by-index
   "Get a job contract address by the given index."
-  [index & [opts]]
-  (call :get-job-by-index index (merge {:gas 1000000} opts)))
+  [index]
+  (call :get-job-by-index index))
 
 

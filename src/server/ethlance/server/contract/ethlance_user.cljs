@@ -37,9 +37,9 @@
 
 (defn metahash-ipfs
   "Retrieve the user's IPFS metahash."
-  [& [opts]]
+  []
   (requires-user-key)
-  (contracts/contract-call *user-key* :metahash_ipfs (merge {:gas 1000000} opts)))
+  (contracts/contract-call *user-key* :metahash_ipfs))
 
 
 (defn update-metahash!
@@ -72,11 +72,10 @@
 
 (defn candidate-data
   "Get the user's Candidate data."
-  [& [opts]]
+  []
   (requires-user-key) 
   (let [[is-registered? hourly-rate currency-type]
-        (contracts/contract-call
-         *user-key* :get-candidate-data (merge {:gas 1000000} opts))]
+        (contracts/contract-call *user-key* :get-candidate-data)]
     {:is-registered? is-registered?
      :hourly-rate hourly-rate
      :currency-type currency-type}))
@@ -108,11 +107,10 @@
 
 (defn arbiter-data
   "Get the user's Arbiter data"
-  [& [opts]]
+  []
   (requires-user-key)
   (let [[is-registered? payment-value currency-type type-of-payment]
-        (contracts/contract-call
-         *user-key* :get-arbiter-data (merge {:gas 1000000} opts))]
+        (contracts/contract-call *user-key* :get-arbiter-data)]
     {:is-registered? is-registered?
      :payment-value payment-value
      :currency-type currency-type
@@ -132,9 +130,7 @@
 
 
 (defn employer-data
-  [& [opts]]
+  []
   (requires-user-key)
-  (let [is-registered?
-        (contracts/contract-call
-         *user-key* :get-employer-data (merge {:gas 1000000} opts))]
+  (let [is-registered? (contracts/contract-call *user-key* :get-employer-data)]
     {:is-registered? is-registered?}))

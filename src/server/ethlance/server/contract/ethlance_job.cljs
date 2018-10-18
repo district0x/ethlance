@@ -19,14 +19,14 @@
 
 (defn metahash-store
   "Get the store of employer, candidate and arbiter IPFS metahashes"
-  [& [opts]]
+  []
   (requires-job-key)
-  (contracts/contract-call *job-key* :get-metahash-store (merge {:gas 1000000} opts)))
+  (contracts/contract-call *job-key* :get-metahash-store))
 
 
 (defn employer-metahash
   "Retrieve the employer's IPFS metahash."
-  [& [opts]]
+  []
   (requires-job-key)
   (first (metahash-store)))
     
@@ -42,7 +42,7 @@
 
 (defn candidate-metahash
   "Retrieve the candidate's metahash."
-  [& [opts]]
+  []
   (requires-job-key)
   (second (metahash-store)))
 
@@ -58,7 +58,7 @@
 
 (defn arbiter-metahash
   "Retrieve the arbiter's metahash"
-  [& [opts]]
+  []
   (requires-job-key)
   (nth (metahash-store) 2))
 
