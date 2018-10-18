@@ -48,7 +48,7 @@
   (job-factory/create-job! (merge default-job-options job-options) opts))
 
 
-(deftest-smart-contract job-contract {}
+(deftest-smart-contract job-contract-main {}
   (let [[employer-address candidate-address arbiter-address random-user-address]
         (web3-eth/accounts @web3)
 
@@ -126,6 +126,100 @@
       (job/with-ethlance-job (job-factory/job-by-index 0)
         (job/request-arbiter! arbiter-address {:from employer-address})
         (job/request-arbiter! arbiter-address {:from arbiter-address})
+        (is (= arbiter-address (job/accepted-arbiter)))))
+
+    (testing "Change the arbiter metahashes, as accepted arbiter."
+      (let [test-hash-1 "QmZ123"]
+        (job/with-ethlance-job (job-factory/job-by-index 0)
+          (is (= "" (job/arbiter-metahash)))
+          (job/update-arbiter-metahash! test-hash-1 {:from arbiter-address})
+          (is (= test-hash-1 (job/arbiter-metahash))))))))
+
+
+(deftest-smart-contract job-contract-request-edge-cases-1 {}
+  (let [[employer-address candidate-address arbiter-address random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             ;; $120USD/hr
+             {:hourly-rate 120
+              :currency-type 1} ;; USD
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             ;; 3% in Ether
+             {:payment-value 3
+              :currency-type 0 ;; ETH
+              :type-of-payment 1} ;; Percent
+             {:from arbiter-address}))]
+
+    (let [test-hash-1 "QmZ123"]
+      (create-job!
+       {:employer-metahash test-hash-1}
+       {:from employer-address}))
+
+    (testing "Attempt to request candidate without being a candidate or employer"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-candidate! candidate-address {:from random-user-address})))
+        (is (thrown? js/Error (job/request-candidate! candidate-address {:from arbiter-address})))))
+
+    (testing "Attempt to request a candidate who isn't a registered user"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-candidate! random-user-address {:from employer-address})))))
+
+    (testing "Attempt to request a candidate who isn't a registered candidate"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-candidate! arbiter-address {:from employer-address})))))
+
+    (testing "Attempt to request the candidate as the employer"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-candidate! employer-address {:from employer-address})))))
+      
+    (testing "Request Candidate as the candidate, and accept it as the employer."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (job/request-candidate! candidate-address {:from candidate-address})
+        (job/request-candidate! candidate-address {:from employer-address})
+        (is (= candidate-address (job/accepted-candidate)))))
+
+    (testing "Change the candidate metahashes, as accepted candidate."
+      (let [test-hash-1 "QmZ123"]
+        (job/with-ethlance-job (job-factory/job-by-index 0)
+          (is (= "" (job/candidate-metahash)))
+          (job/update-candidate-metahash! test-hash-1 {:from candidate-address})
+          (is (= test-hash-1 (job/candidate-metahash))))))
+
+    (testing "Attempt to request arbiter without being a arbiter or employer"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-arbiter! arbiter-address {:from random-user-address})))
+        (is (thrown? js/Error (job/request-arbiter! arbiter-address {:from candidate-address})))))
+
+    (testing "Attempt to request a arbiter who isn't a registered user"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-arbiter! random-user-address {:from employer-address})))))
+
+    (testing "Attempt to request a arbiter who isn't a registered arbiter"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-arbiter! candidate-address {:from employer-address})))))
+
+    (testing "Attempt to request the arbiter as the employer"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (thrown? js/Error (job/request-arbiter! employer-address {:from employer-address})))))
+
+    (testing "Request Arbiter as the arbiter, and accept it as the employer."
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (job/request-arbiter! arbiter-address {:from arbiter-address})
+        (job/request-arbiter! arbiter-address {:from employer-address})
         (is (= arbiter-address (job/accepted-arbiter)))))
 
     (testing "Change the arbiter metahashes, as accepted arbiter."
