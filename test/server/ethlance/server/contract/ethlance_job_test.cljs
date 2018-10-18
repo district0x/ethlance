@@ -228,3 +228,105 @@
           (is (= "" (job/arbiter-metahash)))
           (job/update-arbiter-metahash! test-hash-1 {:from arbiter-address})
           (is (= test-hash-1 (job/arbiter-metahash))))))))
+
+
+(deftest-smart-contract job-contract-request-edge-cases-2 {}
+  (let [[employer-address candidate-address arbiter-address random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             ;; $120USD/hr
+             {:hourly-rate 120
+              :currency-type 1} ;; USD
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             ;; 3% in Ether
+             {:payment-value 3
+              :currency-type 0 ;; ETH
+              :type-of-payment 1} ;; Percent
+             {:from arbiter-address}))]
+
+    (let [test-hash-1 "QmZ123"]
+      (create-job!
+       {:employer-metahash test-hash-1}
+       {:from employer-address}))
+
+    (testing "Accepted Arbiter can't apply as a candidate"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (job/request-arbiter! arbiter-address {:from arbiter-address})
+        (job/request-arbiter! arbiter-address {:from employer-address})
+        (is (= arbiter-address (job/accepted-arbiter)))
+        
+        ;; Register the accepted arbiter as a candidate first
+        (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+          (user/register-candidate!
+           ;; $120USD/hr
+           {:hourly-rate 120
+            :currency-type 1} ;; USD
+           {:from arbiter-address}))
+
+        (is (thrown? js/Error (job/request-candidate! arbiter-address {:from arbiter-address})))
+        (is (thrown? js/Error (job/request-candidate! arbiter-address {:from employer-address})))))))
+
+
+(deftest-smart-contract job-contract-request-edge-cases-3 {}
+  (let [[employer-address candidate-address arbiter-address random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             ;; $120USD/hr
+             {:hourly-rate 120
+              :currency-type 1} ;; USD
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             ;; 3% in Ether
+             {:payment-value 3
+              :currency-type 0 ;; ETH
+              :type-of-payment 1} ;; Percent
+             {:from arbiter-address}))]
+
+    (let [test-hash-1 "QmZ123"]
+      (create-job!
+       {:employer-metahash test-hash-1}
+       {:from employer-address}))
+
+    (testing "Accepted Candidate can't apply as an arbiter"
+      (job/with-ethlance-job (job-factory/job-by-index 0)
+        (job/request-candidate! candidate-address {:from candidate-address})
+        (job/request-candidate! candidate-address {:from employer-address})
+        (is (= candidate-address (job/accepted-candidate)))
+        
+        ;; Register the accepted candidate as an arbiter first
+        (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+          (user/register-arbiter!
+           {:payment-value 3
+            :currency-type 0 ;; ETH
+            :type-of-payment 1}
+           {:from candidate-address}))
+
+        (is (thrown? js/Error (job/request-arbiter! candidate-address {:from candidate-address})))
+        (is (thrown? js/Error (job/request-arbiter! candidate-address {:from employer-address})))))))
