@@ -1,6 +1,6 @@
-(ns ethlance.shared.type
+(ns ethlance.shared.spec-utils
   "Includes functions for using clojure.spec to conform data at
-  runtime as data typechecks."
+  runtime."
   (:require
    [clojure.spec.alpha :as s]))
 

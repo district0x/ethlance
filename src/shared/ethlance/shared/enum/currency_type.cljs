@@ -1,8 +1,8 @@
-(ns ethlance.shared.type.currency
+(ns ethlance.shared.enum.currency-type
   "Represents an enumeration type for currency."
   (:require
    [clojure.spec.alpha :as s]
-   [ethlance.shared.type :refer [strict-conform]]))
+   [ethlance.shared.spec-utils :refer [strict-conform]]))
 
 
 (def enum-currency

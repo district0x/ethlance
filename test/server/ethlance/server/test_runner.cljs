@@ -9,8 +9,8 @@
    [ethlance.server.contract.ethlance-job-factory-test]
    [ethlance.server.contract.ethlance-job-test]
 
-   [ethlance.shared.type-test]
-   [ethlance.shared.type.currency-test]))
+   [ethlance.shared.spec-utils-test]
+   [ethlance.shared.enum.currency-type-test]))
 
 
 (defn run-test

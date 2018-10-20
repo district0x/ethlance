@@ -2,9 +2,9 @@
   "Place to put specific test cases to run"
   (:require
    [clojure.test :refer [run-tests]]
-   [ethlance.shared.type.currency-test]))
+   [ethlance.shared.enum.currency-type-test]))
 
 
-(defn run-type-tests []
+(defn run-enum-tests []
   (run-tests
-   'ethlance.shared.type.currency-test))
+   'ethlance.shared.enum.currency-type-test))

@@ -1,9 +1,9 @@
-(ns ethlance.shared.type-test
+(ns ethlance.shared.spec-utils-test
   (:require
    [clojure.test :refer [deftest is are testing]]
    [clojure.spec.alpha :as s]
    
-   [ethlance.shared.type :refer [strict-conform]]))
+   [ethlance.shared.spec-utils :refer [strict-conform]]))
 
 
 (s/def ::number number?)
