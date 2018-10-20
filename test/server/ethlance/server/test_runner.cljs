@@ -7,7 +7,9 @@
    [ethlance.server.contract.ethlance-user-factory-test]
    [ethlance.server.contract.ethlance-user-test]
    [ethlance.server.contract.ethlance-job-factory-test]
-   [ethlance.server.contract.ethlance-job-test]))
+   [ethlance.server.contract.ethlance-job-test]
+
+   [ethlance.shared.type-test]))
 
 
 (defn run-test
