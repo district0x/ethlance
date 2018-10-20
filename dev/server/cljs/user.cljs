@@ -1,7 +1,8 @@
 (ns cljs.user
   "Development Entrypoint for CLJS-Server."
   (:require
-   [mount.core :as mount]
+   [cljs.tests :as tests]
+   [mount.core :as mount] 
    [cljs-web3.eth :as web3-eth]
    [taoensso.timbre :as log]
    
@@ -103,18 +104,18 @@
   [& {:keys [reset?]}]
   (log/info "Running Server Tests Asynchronously...")
   (.nextTick js/process #(run-tests-sync :reset? reset?)))
-  
-
-(defn run-test-sync
-  "Run tests with the given namespace"
-  [namespace]
-  (server.test-runner/run-test namespace))
 
 
-(defn run-test
-  "Run a single test asynchronously"
-  [namespace]
-  (.nextTick js/process #(run-test-sync namespace)))
+#_(defn run-test-sync
+    "Run tests with the given namespace"
+    [namespace]
+    (server.test-runner/run-test namespace))
+
+
+#_(defn run-test
+    "Run a single test asynchronously"
+    [namespace]
+    (.nextTick js/process #(run-test-sync namespace)))
 
 
 (defn reset-testnet!

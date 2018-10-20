@@ -10,8 +10,8 @@
    ::usd 1})
 
 
-(s/def ::key (set (keys enum-currency-type)))
-(s/def ::value (set (vals enum-currency-type)))
+(s/def ::key (set (keys enum-currency)))
+(s/def ::value (set (vals enum-currency)))
 
 
 (defn kw->val
@@ -19,12 +19,12 @@
   integer representation."
   [kw]
   (let [kw (strict-conform ::key kw)]
-    (get enum-currency-type kw)))
+    (get enum-currency kw)))
 
 
 (defn val->kw
   "Get the enumerated keyword from the provided unsigned integer `x`."
   [x]
   (let [x (strict-conform ::value x)
-        zm (zipmap (vals enum-currency-type) (keys enum-currency-type))]
+        zm (zipmap (vals enum-currency) (keys enum-currency))]
     (get zm x)))
