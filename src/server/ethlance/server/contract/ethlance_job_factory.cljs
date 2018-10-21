@@ -3,7 +3,8 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.shared.enum.bid-option :as enum.bid-option]))
 
 
 (def ^:dynamic *job-factory-key*
@@ -33,7 +34,7 @@
            reward-value]}
    & [opts]]
   (call :create-job
-        bid-option
+        (enum.bid-option/kw->val bid-option)
         estimated-length-seconds
         include-ether-token?
         is-bounty?

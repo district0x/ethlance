@@ -15,7 +15,11 @@
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
    [ethlance.server.contract.ethlance-job :as job :include-macros true]
    [ethlance.server.contract.ds-guard :as ds-guard]
-   [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]))
+   [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]
+
+   [ethlance.shared.enum.bid-option :as enum.bid-option]
+   [ethlance.shared.enum.currency-type :as enum.currency-type]
+   [ethlance.shared.enum.payment-type :as enum.payment-type]))
 
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
@@ -32,7 +36,7 @@
 
 (def default-job-options
   "Bunch of helpful defaults for creating test job contracts."
-  {:bid-option 0
+  {:bid-option ::enum.bid-option/fixed-price
    :estimated-length-seconds (* 8 60 60) ;; 8 Hours
    :include-ether-token? true
    :is-bounty? false

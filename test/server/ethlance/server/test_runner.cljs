@@ -10,7 +10,10 @@
    [ethlance.server.contract.ethlance-job-test]
 
    [ethlance.shared.spec-utils-test]
-   [ethlance.shared.enum.currency-type-test]))
+   [ethlance.shared.enum.currency-type-test]
+   [ethlance.shared.enum.payment-type-test]
+
+   [ethlance.shared.enum.bid-option-test]))
 
 
 (defn run-test
