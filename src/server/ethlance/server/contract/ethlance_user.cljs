@@ -87,14 +87,14 @@
   "Register the user contract's arbiter profile."
   [{:keys [payment-value
            currency-type
-           type-of-payment]}
+           payment-type]}
    & [opts]]
   (requires-user-key)
   (contracts/contract-call
    *user-key* :register-arbiter
    payment-value 
    (enum.currency/kw->val currency-type)
-   (enum.payment/kw->val type-of-payment)
+   (enum.payment/kw->val payment-type)
    (merge {:gas 1000000} opts)))
 
 
@@ -102,14 +102,14 @@
   "Update the arbiter data."
   [{:keys [payment-value
            currency-type
-           type-of-payment]}
+           payment-type]}
    & [opts]]
   (requires-user-key)
   (contracts/contract-call
    *user-key* :update-arbiter-rate
    payment-value
    (enum.currency/kw->val currency-type)
-   (enum.payment/kw->val type-of-payment)
+   (enum.payment/kw->val payment-type)
    (merge {:gas 1000000} opts)))
 
 
@@ -117,12 +117,12 @@
   "Get the user's Arbiter data"
   []
   (requires-user-key)
-  (let [[is-registered? payment-value currency-type type-of-payment]
+  (let [[is-registered? payment-value currency-type payment-type]
         (contracts/contract-call *user-key* :get-arbiter-data)]
     {:is-registered? is-registered?
      :payment-value payment-value
      :currency-type (enum.currency/val->kw currency-type)
-     :type-of-payment (enum.payment/val->kw type-of-payment)}))
+     :payment-type (enum.payment/val->kw payment-type)}))
 
 
 (defn register-employer!

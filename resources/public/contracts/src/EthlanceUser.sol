@@ -25,11 +25,11 @@ contract EthlanceUser {
 
     struct Arbiter {
 	bool is_registered;
-	uint payment_value; // Based on type_of_payment:
+	uint payment_value; // Based on payment_type:
 	                    // [0] In units of currency
                             // [1] 1-100 for percentage
 	uint16 currency_type; // 0: Ethereum, 1: USD, ...
-	uint8 type_of_payment; // 0: Flat Rate, 1: Percentage
+	uint8 payment_type; // 0: Flat Rate, 1: Percentage
 	// Additonal Data in IPFS Metahash
     }
 
@@ -136,14 +136,14 @@ contract EthlanceUser {
 
     /// @dev Registers an Arbiter for the User.
     /// @param payment_value Unit of payment based on currency_type
-    /// and type_of_payment
+    /// and payment_type
     /// @param currency_type Type of currency for the payment value
     ///        0 - ETH, 1 - USD
-    /// @param type_of_payment Type of payment that the arbiter takes.
+    /// @param payment_type Type of payment that the arbiter takes.
     ///        0 - Flat Rate, 1 - Percentage
     function registerArbiter(uint payment_value,
 			     uint16 currency_type,
-			     uint8 type_of_payment)
+			     uint8 payment_type)
 	public
         isUser {
 	require(!arbiter_data.is_registered,
@@ -153,26 +153,26 @@ contract EthlanceUser {
 	arbiter_data.is_registered = true;
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
-	arbiter_data.type_of_payment = type_of_payment;
+	arbiter_data.payment_type = payment_type;
 	updateDateUpdated();
     }
 
 
     /// @dev Updates the given arbiter's rate of payment.
     /// @param payment_value unit of payment based on currency_type
-    /// and type_of_payment
+    /// and payment_type
     /// @param currency_type Type of currency for the payment value
     ///        0 - ETH, 1 - USD
-    /// @param type_of_payment Type of payment that the arbiter takes.
+    /// @param payment_type Type of payment that the arbiter takes.
     ///        0 - Flat Rate, 1 - Percentage
     function updateArbiterRate(uint payment_value,
 			       uint16 currency_type,
-			       uint8 type_of_payment)
+			       uint8 payment_type)
 	public
         isUser {
 	arbiter_data.payment_value = payment_value;
 	arbiter_data.currency_type = currency_type;
-	arbiter_data.type_of_payment = type_of_payment;
+	arbiter_data.payment_type = payment_type;
 	updateDateUpdated();
     }
 
@@ -184,11 +184,11 @@ contract EthlanceUser {
 	returns(bool is_registered,
 		uint payment_value,
 		uint16 currency_type,
-		uint8 type_of_payment) {
+		uint8 payment_type) {
 	is_registered = arbiter_data.is_registered;
 	payment_value = arbiter_data.payment_value;
 	currency_type = arbiter_data.currency_type;
-	type_of_payment = arbiter_data.type_of_payment;
+	payment_type = arbiter_data.payment_type;
     }
 
 

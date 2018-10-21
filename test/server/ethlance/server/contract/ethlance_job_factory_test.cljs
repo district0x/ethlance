@@ -74,7 +74,7 @@
             (user/register-arbiter!
              {:payment-value 3
               :currency-type ::enum.currency/eth
-              :type-of-payment ::enum.payment/percentage}
+              :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
     
     (testing "Creation of a job as an Employer"

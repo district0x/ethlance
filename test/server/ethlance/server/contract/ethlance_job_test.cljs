@@ -77,7 +77,7 @@
              ;; 3% in Ether
              {:payment-value 3
               :currency-type ::enum.currency/eth
-              :type-of-payment ::enum.payment/percentage}
+              :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (testing "Create Job, and change employer metahash"
@@ -165,7 +165,7 @@
              ;; 3% in Ether
              {:payment-value 3
               :currency-type ::enum.currency/eth
-              :type-of-payment ::enum.payment/percentage}
+              :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]
@@ -259,7 +259,7 @@
              ;; 3% in Ether
              {:payment-value 3
               :currency-type ::enum.currency/eth
-              :type-of-payment ::enum.payment/percentage}
+              :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]
@@ -310,7 +310,7 @@
              ;; 3% in Ether
              {:payment-value 3
               :currency-type ::enum.currency/eth
-              :type-of-payment ::enum.payment/percentage}
+              :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]
@@ -329,7 +329,7 @@
           (user/register-arbiter!
            {:payment-value 3
             :currency-type ::enum.currency/eth ;; ETH
-            :type-of-payment ::enum.payment/percentage}
+            :payment-type ::enum.payment/percentage}
            {:from candidate-address}))
 
         (is (thrown? js/Error (job/request-arbiter! candidate-address {:from candidate-address})))
@@ -361,7 +361,7 @@
              ;; 3% in Ether
              {:payment-value 3
               :currency-type ::enum.currency/eth
-              :type-of-payment ::enum.payment/percentage}
+              :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]

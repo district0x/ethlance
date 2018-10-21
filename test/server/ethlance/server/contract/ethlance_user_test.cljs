@@ -151,7 +151,7 @@
                      (user/register-arbiter!
                       {:payment-value 99
                        :currency-type ::enum.currency/usd
-                       :type-of-payment ::enum.payment/fixed-price}
+                       :payment-type ::enum.payment/fixed-price}
                       {:from user2})))))
 
     (testing "Register as an Arbiter"
@@ -159,7 +159,7 @@
         (user/register-arbiter!
          {:payment-value 100
           :currency-type ::enum.currency/usd
-          :type-of-payment ::enum.payment/fixed-price}
+          :payment-type ::enum.payment/fixed-price}
          {:from user1})))
 
     (testing "Try and register arbiter twice"
@@ -168,7 +168,7 @@
                      (user/register-arbiter!
                       {:payment-value 100
                        :currency-type ::enum.currency/usd
-                       :type-of-payment ::enum.payment/fixed-price}
+                       :payment-type ::enum.payment/fixed-price}
                       {:from user1})))))
 
     (testing "Get the arbiter data"
@@ -177,20 +177,20 @@
           (is (:is-registered? arbiter-data))
           (is (bn/= (:payment-value arbiter-data) 100))
           (is (bn/= (:currency-type arbiter-data) ::enum.currency/usd))
-          (is (bn/= (:type-of-payment arbiter-data) ::enum.payment/fixed-price)))))
+          (is (bn/= (:payment-type arbiter-data) ::enum.payment/fixed-price)))))
 
     (testing "Update registered arbiter"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (user/update-arbiter!
          {:payment-value 3
           :currency-type ::enum.currency/eth
-          :type-of-payment ::enum.payment/percentage}
+          :payment-type ::enum.payment/percentage}
          {:from user1})
         (let [arbiter-data (user/arbiter-data)]
           (is (:is-registered? arbiter-data))
           (is (bn/= (:currency-type arbiter-data) ::enum.currency/eth))
           (is (bn/= (:payment-value arbiter-data) 3))
-          (is (bn/= (:type-of-payment arbiter-data) ::enum.payment/percentage)))))
+          (is (bn/= (:payment-type arbiter-data) ::enum.payment/percentage)))))
 
     (testing "Try and update arbiter as other user"
       (user/with-ethlance-user (user-factory/user-by-address user1)
@@ -198,7 +198,7 @@
                      (user/update-arbiter!
                       {:payment-value 100
                        :currency-type ::enum.currency/eth
-                       :type-of-payment ::enum.payment/fixed-price}
+                       :payment-type ::enum.payment/fixed-price}
                       {:from user2})))))))
 
 
