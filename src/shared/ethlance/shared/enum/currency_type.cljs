@@ -1,6 +1,7 @@
 (ns ethlance.shared.enum.currency-type
   "Represents an enumeration type for currency."
   (:require
+   [bignumber.core :as bn]
    [clojure.spec.alpha :as s]
    [ethlance.shared.spec-utils :refer [strict-conform]]))
 
@@ -25,6 +26,6 @@
 (defn val->kw
   "Get the enumerated keyword from the provided unsigned integer `x`."
   [x]
-  (let [x (strict-conform ::value x)
+  (let [x (strict-conform ::value (bn/number x))
         zm (zipmap (vals enum-currency) (keys enum-currency))]
     (get zm x)))

@@ -13,7 +13,11 @@
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ds-guard :as ds-guard]
-   [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]))
+   [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]
+
+   [ethlance.shared.enum.currency-type :as enum.currency]
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.bid-option :as enum.bid-option]))
 
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
@@ -86,14 +90,14 @@
         (is (thrown? js/Error
                      (user/register-candidate!
                       {:hourly-rate 99
-                       :currency-type 1} ;; USD
+                       :currency-type ::enum.currency/usd} ;; USD
                       {:from user2})))))
 
     (testing "Register as a candidate"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (user/register-candidate!
          {:hourly-rate 100
-          :currency-type 1} ;; USD
+          :currency-type ::enum.currency/usd} ;; USD
          {:from user1})))
 
     (testing "Try and register candidate twice"
@@ -101,7 +105,7 @@
         (is (thrown? js/Error 
                      (user/register-candidate!
                       {:hourly-rate 100
-                       :currency-type 1} ;; USD
+                       :currency-type ::enum.currency/usd} ;; USD
                       {:from user1})))))
 
     (testing "Get the candidate data"
@@ -109,25 +113,25 @@
         (let [candidate-data (user/candidate-data)]
           (is (:is-registered? candidate-data))
           (is (bn/= (:hourly-rate candidate-data) 100))
-          (is (bn/= (:currency-type candidate-data) 1)))))
+          (is (bn/= (:currency-type candidate-data) ::enum.currency/usd)))))
 
     (testing "Update registered candidate"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (user/update-candidate!
          {:hourly-rate 80
-          :currency-type 0}
+          :currency-type ::enum.currency/eth}
          {:from user1})
         (let [candidate-data (user/candidate-data)]
           (is (:is-registered? candidate-data))
           (is (bn/= (:hourly-rate candidate-data) 80))
-          (is (bn/= (:currency-type candidate-data) 0)))))
+          (is (bn/= (:currency-type candidate-data) ::enum.currency/eth)))))
 
     (testing "Try and update candidate as other user"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (is (thrown? js/Error
                      (user/update-candidate!
                       {:hourly-rate 80
-                       :currency-type 0}
+                       :currency-type ::enum.currency/eth}
                       {:from user2})))))))
 
 
@@ -146,16 +150,16 @@
         (is (thrown? js/Error
                      (user/register-arbiter!
                       {:payment-value 99
-                       :currency-type 1 ;; USD
-                       :type-of-payment 0}
+                       :currency-type ::enum.currency/usd
+                       :type-of-payment ::enum.payment/fixed-price}
                       {:from user2})))))
 
     (testing "Register as an Arbiter"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (user/register-arbiter!
          {:payment-value 100
-          :currency-type 1 ;; USD
-          :type-of-payment 0} ;; Fixed
+          :currency-type ::enum.currency/usd
+          :type-of-payment ::enum.payment/fixed-price}
          {:from user1})))
 
     (testing "Try and register arbiter twice"
@@ -163,8 +167,8 @@
         (is (thrown? js/Error 
                      (user/register-arbiter!
                       {:payment-value 100
-                       :currency-type 1 ;; USD
-                       :type-of-payment 0} ;; USD
+                       :currency-type ::enum.currency/usd
+                       :type-of-payment ::enum.payment/fixed-price}
                       {:from user1})))))
 
     (testing "Get the arbiter data"
@@ -172,29 +176,29 @@
         (let [arbiter-data (user/arbiter-data)]
           (is (:is-registered? arbiter-data))
           (is (bn/= (:payment-value arbiter-data) 100))
-          (is (bn/= (:currency-type arbiter-data) 1))
-          (is (bn/= (:type-of-payment arbiter-data) 0)))))
+          (is (bn/= (:currency-type arbiter-data) ::enum.currency/usd))
+          (is (bn/= (:type-of-payment arbiter-data) ::enum.payment/fixed-price)))))
 
     (testing "Update registered arbiter"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (user/update-arbiter!
          {:payment-value 3
-          :currency-type 0 ;; ETH
-          :type-of-payment 1} ;; Percent
+          :currency-type ::enum.currency/eth
+          :type-of-payment ::enum.payment/percentage}
          {:from user1})
         (let [arbiter-data (user/arbiter-data)]
           (is (:is-registered? arbiter-data))
-          (is (bn/= (:currency-type arbiter-data) 0))
+          (is (bn/= (:currency-type arbiter-data) ::enum.currency/eth))
           (is (bn/= (:payment-value arbiter-data) 3))
-          (is (bn/= (:type-of-payment arbiter-data) 1)))))
+          (is (bn/= (:type-of-payment arbiter-data) ::enum.payment/percentage)))))
 
     (testing "Try and update arbiter as other user"
       (user/with-ethlance-user (user-factory/user-by-address user1)
         (is (thrown? js/Error
                      (user/update-arbiter!
                       {:payment-value 100
-                       :currency-type 1 ;; USD
-                       :type-of-payment 0}
+                       :currency-type ::enum.currency/eth
+                       :type-of-payment ::enum.payment/fixed-price}
                       {:from user2})))))))
 
 

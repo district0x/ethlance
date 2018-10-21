@@ -21,7 +21,9 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.currency-type :as enum.currency]))
 
 
 (def ^:dynamic *user-key*
@@ -57,7 +59,7 @@
    & [opts]]
   (requires-user-key)
   (contracts/contract-call
-   *user-key* :register-candidate hourly-rate currency-type
+   *user-key* :register-candidate hourly-rate (enum.currency/kw->val currency-type)
    (merge {:gas 2000000} opts)))
 
 
@@ -66,7 +68,7 @@
    & [opts]]
   (requires-user-key)
   (contracts/contract-call
-   *user-key* :update-candidate-rate hourly-rate currency-type
+   *user-key* :update-candidate-rate hourly-rate (enum.currency/kw->val currency-type)
    (merge {:gas 2000000} opts)))
 
 
@@ -78,7 +80,7 @@
         (contracts/contract-call *user-key* :get-candidate-data)]
     {:is-registered? is-registered?
      :hourly-rate hourly-rate
-     :currency-type currency-type}))
+     :currency-type (enum.currency/val->kw currency-type)}))
 
 
 (defn register-arbiter!
@@ -89,7 +91,10 @@
    & [opts]]
   (requires-user-key)
   (contracts/contract-call
-   *user-key* :register-arbiter payment-value currency-type type-of-payment
+   *user-key* :register-arbiter
+   payment-value 
+   (enum.currency/kw->val currency-type)
+   (enum.payment/kw->val type-of-payment)
    (merge {:gas 1000000} opts)))
 
 
@@ -101,7 +106,10 @@
    & [opts]]
   (requires-user-key)
   (contracts/contract-call
-   *user-key* :update-arbiter-rate payment-value currency-type type-of-payment
+   *user-key* :update-arbiter-rate
+   payment-value
+   (enum.currency/kw->val currency-type)
+   (enum.payment/kw->val type-of-payment)
    (merge {:gas 1000000} opts)))
 
 
@@ -113,8 +121,8 @@
         (contracts/contract-call *user-key* :get-arbiter-data)]
     {:is-registered? is-registered?
      :payment-value payment-value
-     :currency-type currency-type
-     :type-of-payment type-of-payment}))
+     :currency-type (enum.currency/val->kw currency-type)
+     :type-of-payment (enum.payment/val->kw type-of-payment)}))
 
 
 (defn register-employer!

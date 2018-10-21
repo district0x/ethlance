@@ -18,8 +18,8 @@
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]
 
    [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.currency-type :as enum.currency-type]
-   [ethlance.shared.enum.payment-type :as enum.payment-type]))
+   [ethlance.shared.enum.currency-type :as enum.currency]
+   [ethlance.shared.enum.payment-type :as enum.payment]))
 
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
@@ -67,7 +67,7 @@
             (user/register-candidate!
              ;; $120USD/hr
              {:hourly-rate 120
-              :currency-type 1} ;; USD
+              :currency-type ::enum.currency/usd}
              {:from candidate-address}))
 
         ;; Arbiter User
@@ -76,8 +76,8 @@
             (user/register-arbiter!
              ;; 3% in Ether
              {:payment-value 3
-              :currency-type 0 ;; ETH
-              :type-of-payment 1} ;; Percent
+              :currency-type ::enum.currency/eth
+              :type-of-payment ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (testing "Create Job, and change employer metahash"
@@ -155,7 +155,7 @@
             (user/register-candidate!
              ;; $120USD/hr
              {:hourly-rate 120
-              :currency-type 1} ;; USD
+              :currency-type ::enum.currency/usd} ;; USD
              {:from candidate-address}))
 
         ;; Arbiter User
@@ -164,8 +164,8 @@
             (user/register-arbiter!
              ;; 3% in Ether
              {:payment-value 3
-              :currency-type 0 ;; ETH
-              :type-of-payment 1} ;; Percent
+              :currency-type ::enum.currency/eth
+              :type-of-payment ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]
@@ -249,7 +249,7 @@
             (user/register-candidate!
              ;; $120USD/hr
              {:hourly-rate 120
-              :currency-type 1} ;; USD
+              :currency-type ::enum.currency/usd}
              {:from candidate-address}))
 
         ;; Arbiter User
@@ -258,8 +258,8 @@
             (user/register-arbiter!
              ;; 3% in Ether
              {:payment-value 3
-              :currency-type 0 ;; ETH
-              :type-of-payment 1} ;; Percent
+              :currency-type ::enum.currency/eth
+              :type-of-payment ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]
@@ -278,7 +278,7 @@
           (user/register-candidate!
            ;; $120USD/hr
            {:hourly-rate 120
-            :currency-type 1} ;; USD
+            :currency-type ::enum.currency/usd}
            {:from arbiter-address}))
 
         (is (thrown? js/Error (job/request-candidate! arbiter-address {:from arbiter-address})))
@@ -300,7 +300,7 @@
             (user/register-candidate!
              ;; $120USD/hr
              {:hourly-rate 120
-              :currency-type 1} ;; USD
+              :currency-type ::enum.currency/usd}
              {:from candidate-address}))
 
         ;; Arbiter User
@@ -309,8 +309,8 @@
             (user/register-arbiter!
              ;; 3% in Ether
              {:payment-value 3
-              :currency-type 0 ;; ETH
-              :type-of-payment 1} ;; Percent
+              :currency-type ::enum.currency/eth
+              :type-of-payment ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]
@@ -328,8 +328,8 @@
         (user/with-ethlance-user (user-factory/user-by-address candidate-address)
           (user/register-arbiter!
            {:payment-value 3
-            :currency-type 0 ;; ETH
-            :type-of-payment 1}
+            :currency-type ::enum.currency/eth ;; ETH
+            :type-of-payment ::enum.payment/percentage}
            {:from candidate-address}))
 
         (is (thrown? js/Error (job/request-arbiter! candidate-address {:from candidate-address})))
@@ -351,7 +351,7 @@
             (user/register-candidate!
              ;; $120USD/hr
              {:hourly-rate 120
-              :currency-type 1} ;; USD
+              :currency-type ::enum.currency/usd}
              {:from candidate-address}))
 
         ;; Arbiter User
@@ -360,8 +360,8 @@
             (user/register-arbiter!
              ;; 3% in Ether
              {:payment-value 3
-              :currency-type 0 ;; ETH
-              :type-of-payment 1} ;; Percent
+              :currency-type ::enum.currency/eth
+              :type-of-payment ::enum.payment/percentage}
              {:from arbiter-address}))]
 
     (let [test-hash-1 "QmZ123"]

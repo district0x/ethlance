@@ -17,8 +17,8 @@
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract]]
 
    [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.currency-type :as enum.currency-type]
-   [ethlance.shared.enum.payment-type :as enum.payment-type]))
+   [ethlance.shared.enum.currency-type :as enum.currency]
+   [ethlance.shared.enum.payment-type :as enum.payment]))
 
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
@@ -65,7 +65,7 @@
         _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
             (user/register-candidate!
              {:hourly-rate 120
-              :currency-type 1} ;; USD
+              :currency-type ::enum.currency/usd}
              {:from candidate-address}))
 
         ;; Arbiter User
@@ -73,8 +73,8 @@
         _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
             (user/register-arbiter!
              {:payment-value 3
-              :currency-type 0 ;; ETH
-              :type-of-payment 1} ;; Percent
+              :currency-type ::enum.currency/eth
+              :type-of-payment ::enum.payment/percentage}
              {:from arbiter-address}))]
     
     (testing "Creation of a job as an Employer"
