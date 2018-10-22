@@ -1,7 +1,5 @@
 pragma solidity ^0.4.24;
 
-import "./EthlanceJobInvoice.sol";
-import "./EthlanceJobDispute.sol";
 import "./EthlanceRegistry.sol";
 import "./EthlanceJobToken.sol";
 import "./EthlanceUserFactory.sol";
@@ -11,10 +9,7 @@ import "proxy/MutableForwarder.sol";
 
 /// @title Job Contracts to tie candidates, employers, and arbiters to
 /// an agreement.
-contract EthlanceJob is  EthlanceJobToken,
-                         EthlanceJobInvoice,
-                         EthlanceJobDispute
-{
+contract EthlanceJob is EthlanceJobToken {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
@@ -127,10 +122,6 @@ contract EthlanceJob is  EthlanceJobToken,
 	external {
 	require(registry.checkFactoryPrivilege(msg.sender),
 		"You are not privileged to carry out construction.");
-
-	// Satisfy our inherited classes
-	setInvoiceEventDispatcher(registry);
-	setDisputeEventDispatcher(registry);
 
 	// Main members
 	bid_option = _bid_option;
@@ -499,5 +490,44 @@ contract EthlanceJob is  EthlanceJobToken,
 		"Given address is not a registered arbiter.");
 	_;
     }
+
+
+    /////////////////////////////////////
+    //
+    // Start of Invoice Functionality
+    //
+    /////////////////////////////////////
+
+
+    /// Represents a job invoice sent by the candidate to the employer.
+    struct JobInvoice {
+	uint date_created;
+	uint date_approved;
+	uint duration_seconds;
+    }
+
+    // Job Invoices
+    JobInvoice[] public invoice_listing;
+
+
+    /////////////////////////////////////
+    //
+    // Start of Dispute Functionality
+    //
+    /////////////////////////////////////
+
+
+    // Represents a job dispute between the candidate and the employee
+    struct JobDispute {
+	uint dispute_type; // enum
+	uint date_created;
+	uint date_resolved;
+	uint employer_resolution_amount;
+        uint candidate_resolution_amount;
+    }
+
+    // Job Disputes
+    JobDispute[] public dispute_listing;
+
 
 }
