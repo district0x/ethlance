@@ -102,3 +102,39 @@
   []
   (requires-job-key)
   (contracts/contract-call *job-key* :accepted_arbiter))
+
+
+(defn requested-candidate-count
+  "The number of requested candidates in the given job contract."
+  []
+  (requires-job-key)
+  (contracts/contract-call *job-key* :get-requested-candidate-count))
+
+
+(defn requested-candidate-by-index
+  "Returns requested candidate data for the candidate at the given
+  `index`."
+  [index]
+  (requires-job-key)
+  (let [[is-employer-request? candidate-address]
+        (contracts/contract-call *job-key* :get-requested-candidate-by-index index)]
+    {:is-employer-request? is-employer-request?
+     :candidate-address candidate-address}))
+
+
+(defn requested-arbiter-count
+  "The number of requested arbiters in the given job contract."
+  []
+  (requires-job-key)
+  (contracts/contract-call *job-key* :get-requested-arbiter-count))
+
+
+(defn requested-arbiter-by-index
+  "Returns requested arbiter data for the arbiter at the given
+  `index`."
+  [index]
+  (requires-job-key)
+  (let [[is-employer-request? arbiter-address]
+        (contracts/contract-call *job-key* :get-requested-arbiter-by-index index)]
+    {:is-employer-request? is-employer-request?
+     :arbiter-address arbiter-address}))

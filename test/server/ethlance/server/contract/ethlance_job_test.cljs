@@ -115,9 +115,13 @@
 
     (testing "Request Candidate as the employer, and accept it as the candidate."
       (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (bn/= (job/requested-candidate-count) 0))
         (job/request-candidate! candidate-address {:from employer-address})
+        (is (-> (job/requested-candidate-by-index 0) :is-employer-request?))
         (job/request-candidate! candidate-address {:from candidate-address})
-        (is (= candidate-address (job/accepted-candidate)))))
+        (is (= candidate-address (job/accepted-candidate)))
+        (is (= (-> (job/requested-candidate-by-index 0) :candidate-address) (job/accepted-candidate)))
+        (is (bn/= (job/requested-candidate-count) 1))))
 
     (testing "Change the candidate metahashes, as accepted candidate."
       (let [test-hash-1 "QmZ123"]
@@ -128,9 +132,13 @@
 
     (testing "Request Arbiter as the employer, and accept it as the arbiter."
       (job/with-ethlance-job (job-factory/job-by-index 0)
+        (is (bn/= (job/requested-arbiter-count) 0))
         (job/request-arbiter! arbiter-address {:from employer-address})
+        (is (-> (job/requested-arbiter-by-index 0) :is-employer-request?))
         (job/request-arbiter! arbiter-address {:from arbiter-address})
-        (is (= arbiter-address (job/accepted-arbiter)))))
+        (is (= arbiter-address (job/accepted-arbiter)))
+        (is (= (-> (job/requested-arbiter-by-index 0) :arbiter-address) (job/accepted-arbiter)))
+        (is (bn/= (job/requested-arbiter-count) 1))))
 
     (testing "Change the arbiter metahashes, as accepted arbiter."
       (let [test-hash-1 "QmZ123"]
@@ -393,3 +401,4 @@
       (job/with-ethlance-job (job-factory/job-by-index 1)
         (job/request-arbiter! arbiter-address {:from employer-address})
         (is (thrown? js/Error (job/request-arbiter! arbiter-address {:from employer-address})))))))
+

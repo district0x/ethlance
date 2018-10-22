@@ -425,6 +425,50 @@ contract EthlanceJob is EthlanceJobToken {
     }
 
  
+    /// @dev Returns the number of requested candidates for this job contract
+    /// @return The number of requested candidates
+    function getRequestedCandidateCount()
+	public view returns(uint) {
+	return candidate_request_listing.length;
+    }
+
+
+    /// @dev Get the candidate request data in the candidate request listing.
+    /// @param index The index of the CandidateRequest within the listing.
+    /// @return 2-element tuple containing the candidate data.
+    function getRequestedCandidateByIndex(uint index)
+	public view returns(bool is_employer_request,
+			    address candidate_address) {
+	require(index < candidate_request_listing.length,
+		"Given index out of bounds.");
+	CandidateRequest memory candidateRequest = candidate_request_listing[index];
+	is_employer_request = candidateRequest.is_employer_request;
+	candidate_address = candidateRequest.candidate_address;
+    }
+
+
+    /// @dev Returns the number of requested arbiters for this job contract
+    /// @return The number of requested arbiters.
+    function getRequestedArbiterCount()
+	public view returns(uint) {
+	return arbiter_request_listing.length;
+    }
+
+    
+    /// @dev Get the arbiter request data in the arbiter request listing.
+    /// @param index The index of the ArbiterRequest within the listing.
+    /// @return 2-element tuple containing the arbiter data.
+    function getRequestedArbiterByIndex(uint index)
+	public view returns (bool is_employer_request,
+			     address arbiter_address) {
+	require(index < arbiter_request_listing.length,
+		"Given index out of bounds.");
+	ArbiterRequest memory arbiterRequest = arbiter_request_listing[index];
+	is_employer_request = arbiterRequest.is_employer_request;
+	arbiter_address = arbiterRequest.arbiter_address;
+    }
+
+
     //
     // Modifiers
     //
@@ -526,8 +570,9 @@ contract EthlanceJob is EthlanceJobToken {
         uint candidate_resolution_amount;
     }
 
-    // Job Disputes
+    // Job Dispute Listing
     JobDispute[] public dispute_listing;
 
+    
 
 }
