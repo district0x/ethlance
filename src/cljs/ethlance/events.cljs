@@ -1,33 +1,34 @@
 (ns ethlance.events
   (:require
-    [ajax.core :as ajax]
-    [ajax.edn :as ajax-edn]
-    [akiroz.re-frame.storage :as re-frame-storage]
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [cljs-web3.personal :as web3-personal]
-    [cljs-web3.utils :as web3-utils]
-    [cljs.spec.alpha :as s]
-    [clojure.data :as data]
-    [clojure.set :as set]
-    [day8.re-frame.async-flow-fx]
-    [day8.re-frame.http-fx]
-    [ethlance.components.confirm-dialog :as confirm-dialog]
-    [ethlance.constants :as constants]
-    [ethlance.db :refer [default-db generate-mode?]]
-    [ethlance.debounce-fx]
-    [ethlance.ethlance-db :as ethlance-db :refer [get-entities get-entities-field-items]]
-    [ethlance.generate-db]
-    [ethlance.interval-fx]
-    [ethlance.utils :as u]
-    [ethlance.window-fx]
-    [goog.string :as gstring]
-    [goog.string.format]
-    [madvas.re-frame.google-analytics-fx]
-    [madvas.re-frame.web3-fx]
-    [medley.core :as medley]
-    [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console dispatch dispatch-sync]]
-    [clojure.string :as string]))
+   [ajax.core :as ajax]
+   [ajax.edn :as ajax-edn]
+   [akiroz.re-frame.storage :as re-frame-storage]
+   [cljs-web3.core :as web3]
+   [cljs-web3.eth :as web3-eth]
+   [cljs-web3.personal :as web3-personal]
+   [cljs-web3.utils :as web3-utils]
+   [cljs.spec.alpha :as s]
+   [clojure.data :as data]
+   [clojure.set :as set]
+   [day8.re-frame.async-flow-fx]
+   [day8.re-frame.http-fx]
+   [ethlance.components.confirm-dialog :as confirm-dialog]
+   [ethlance.constants :as constants]
+   [ethlance.db :refer [default-db generate-mode?]]
+   [ethlance.debounce-fx]
+   [ethlance.ethlance-db :as ethlance-db :refer [get-entities get-entities-field-items]]
+   [ethlance.generate-db]
+   [ethlance.interval-fx]
+   [ethlance.web3-fx :as web3-fx]
+   [ethlance.utils :as u]
+   [ethlance.window-fx]
+   [goog.string :as gstring]
+   [goog.string.format]
+   [madvas.re-frame.google-analytics-fx]
+   [madvas.re-frame.web3-fx]
+   [medley.core :as medley]
+   [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx inject-cofx path trim-v after debug reg-fx console dispatch dispatch-sync]]
+   [clojure.string :as string]))
 
 (re-frame-storage/reg-co-fx! :ethlance {:fx :localstorage :cofx :localstorage})
 
@@ -229,49 +230,59 @@
   (assoc db open-key (boolean (seq (get-in db [form-key :search/skills-or])))))
 
 (reg-event-fx
-  :initialize
-  (inject-cofx :localstorage)
-  (fn [{:keys [localstorage]} [deploy-contracts?]]
-    (let [provides-web3? (boolean (aget js/window "web3"))
-          current-provider (and provides-web3? (web3/current-provider (aget js/window "web3")))
-          web3 (if provides-web3?
-                 (new (aget js/window "Web3") current-provider)
-                 (web3/create-web3 (:node-url default-db)))
-          {:keys [:active-page]} default-db
-          localstorage (migrate-localstorage localstorage)
-          db (as-> default-db db
-                   (merge-data-from-query db active-page (u/current-url-query))
-                   (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
-                   (assoc db :provides-web3? provides-web3?)
-                   (assoc db :web3 web3)
-                   (assoc db :web3-read-only (if (aget current-provider "isMetaMask")
-                                               (web3/create-web3 (:node-url default-db))
-                                               web3))
-                   (assoc db :on-load-seed (rand-int 99999))
-                   (assoc db :drawer-open? (> (:window/width-size db) 2))
-                   (assoc-search-skills-form-open db :form/search-freelancers :search-freelancers-skills-open?)
-                   (assoc-search-skills-form-open db :form/search-jobs :search-jobs-skills-open?))]
-      (merge
-        {:db db
-         :dispatch-n [[:load-conversion-rates]
-                      [:load-initial-skills]]
-         :async-flow {:first-dispatch [:load-eth-contracts]
-                      :rules [{:when :seen?
-                               :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
-                               :dispatch-n [[:contract.config/get-configs {:config/keys (keys (:eth/config default-db))}]
-                                            [:contract.views/load-my-users]]
-                               :halt? true}]}
-         :window/on-resize {:dispatch [:window/on-resize]
-                            :resize-interval 166}
-         :ga/page-view [(u/current-location-hash)]
-         :dispatch-interval {:dispatch [:load-conversion-rates]
-                             :ms 60000
-                             :db-path [:load-all-conversion-rates-interval]}}
-        (if (or provides-web3? (:load-node-addresses? default-db))
-          {:web3-fx.blockchain/fns
-           {:web3 web3
-            :fns [[web3-eth/accounts :blockchain/my-addresses-loaded [:blockchain/on-error :initialize]]]}}
-          {:dispatch [:blockchain/my-addresses-loaded []]})))))
+ :initialize
+ []
+ (fn [_ [deploy-contracts?]]
+   {::web3-fx/authorize-ethereum-provider
+    {:on-accept [:initialize-rest deploy-contracts?]
+     :on-reject [:initialize-rest deploy-contracts?]
+     :on-error [:initialize-rest deploy-contracts?]
+     :on-legacy [:initialize-rest deploy-contracts?]}}))
+
+(reg-event-fx
+ :initialize-rest
+ (inject-cofx :localstorage)
+ (fn [{:keys [localstorage]} [deploy-contracts?]]
+   (let [provides-web3? (boolean (aget js/window "web3"))
+         current-provider (and provides-web3? (web3/current-provider (aget js/window "web3")))
+         web3 (if provides-web3?
+                (new (aget js/window "Web3") current-provider)
+                (web3/create-web3 (:node-url default-db)))
+         {:keys [:active-page]} default-db
+         localstorage (migrate-localstorage localstorage)
+         db (as-> default-db db
+              (merge-data-from-query db active-page (u/current-url-query))
+              (merge-with #(if (map? %1) (merge-with merge %1 %2) %2) db localstorage)
+              (assoc db :provides-web3? provides-web3?)
+              (assoc db :web3 web3)
+              (assoc db :web3-read-only (if (aget current-provider "isMetaMask")
+                                          (web3/create-web3 (:node-url default-db))
+                                          web3))
+              (assoc db :on-load-seed (rand-int 99999))
+              (assoc db :drawer-open? (> (:window/width-size db) 2))
+              (assoc-search-skills-form-open db :form/search-freelancers :search-freelancers-skills-open?)
+              (assoc-search-skills-form-open db :form/search-jobs :search-jobs-skills-open?))]
+     (merge
+      {:db db
+       :dispatch-n [[:load-conversion-rates]
+                    [:load-initial-skills]]
+       :async-flow {:first-dispatch [:load-eth-contracts]
+                    :rules [{:when :seen?
+                             :events [:eth-contracts-loaded :blockchain/my-addresses-loaded]
+                             :dispatch-n [[:contract.config/get-configs {:config/keys (keys (:eth/config default-db))}]
+                                          [:contract.views/load-my-users]]
+                             :halt? true}]}
+       :window/on-resize {:dispatch [:window/on-resize]
+                          :resize-interval 166}
+       :ga/page-view [(u/current-location-hash)]
+       :dispatch-interval {:dispatch [:load-conversion-rates]
+                           :ms 60000
+                           :db-path [:load-all-conversion-rates-interval]}}
+      (if (or provides-web3? (:load-node-addresses? default-db))
+        {:web3-fx.blockchain/fns
+         {:web3 web3
+          :fns [[web3-eth/accounts :blockchain/my-addresses-loaded [:blockchain/on-error :initialize]]]}}
+        {:dispatch [:blockchain/my-addresses-loaded []]})))))
 
 (reg-event-db
   :drawer/set
