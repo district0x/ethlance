@@ -6,67 +6,92 @@
 #+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
 
 * Requirements
-  - Users are defined by their unique ethereum account address.
-    - A User defines a profile as an Employer.
-    - A User defines a profile as an Arbiter.
-    - A User defines a profile as a Candidate.
-  - An Employer is a User who creates jobs.
-    - An Employee is only an Employee if he has defined a profile as a User.
-    - An Employer creates a job contract.
-    - An Employer updates a job contract.
-    - An Employer creates a job bounty.
-    - An Employer updates a job bounty.
-    - An Employer requests Arbiters to a job contract.
-      - Only one Arbiter can accept and be assigned to a job contract.
-    - An employer requests Arbiters to a job bounty.
-      - Only one Arbiter can accept and be assigned to a job bounty.
-    - An Employer Accepts a Candidate to be assigned to a job contract.
-    - An Employer can accept an invoice for a job contract supplied to
-      them by the accepted Candidate, transferring the invoice's
-      currency value from the job contract to the Candidate.
-    - An Employer can 'raise a dispute' on an invoice supplied to him
-      from the Candidate.
-    - An Employer can provide comments on a 'raised dispute' for job
-      contracts that he owns.
-    - An Employer can accept an invoice on a job bounty reward
-      supplied by a Candidate, transferring the invoices's currency
-      value from the job contract to the Candidate.
-    - An Employer can 'raise a dispute' on an invoice for a job bounty
-      supplied to him from a Candidate
-  - An Arbiter accepts requests for jobs, and resolves disputes between
-    a Candidate and an Employer's job contract.
-    - An Arbiter is only an Arbiter if he has defined a profile as a User.
-    - Only the first Arbiter that accepts will be assigned to a job.
-    - An Arbiter can request to be assigned to a job contract.
-    - Employees can request an Arbiter to be assigned to a job
-      contract.
-    - An Arbiter can request to be assigned to a job bounty.
-    - Employees can request an Arbiter to be assigned to a job bounty.
-    - An Arbiter can resolve disputes for assigned jobs.
-      - Arbiters can resolve a dispute in favour of the Employer. The
-        Arbiter will receive an agreed upon payment for resolving the
-        dispute.
-      - Arbiters can resolve a dispute in favour of the Candidate. The
-        Arbiter will receive an agreed upon payment for resolving the
-        dispute.
-      - Arbiter can resolve a dispute with fractions of payment in
-        favour of either the Employee, or the Candidate. The Arbiter
-        will receive an agreed upon payment for resolving the dispute.
-  - A Candidate is a User who requests jobs, and invoices jobs.
-    - A Customer is only a Customer if he has defined a profile as a User.
-    - A Candidate requests job contracts.
-    - A Candidate can be requested for job contracts by an Employer.
-    - A Candidate can be accepted by an Employer for a previously
-      requested job contract.
-    - A Candidate can accept a job contract after previously being
-      requested by an Employer.
-    - A Candidate can invoice an accepted job contract.
-    - A Candidate can 'raise a dispute' on a job contract.
-    - A Candidate can invoice a job bounty.
+** Job
+   - A Job (EthlanceJobProducer) is a smart contract created and updated by an Employer.
+     - A Job has many Job Contracts (EthlanceJob)
+       - A Job sets the max number of Job Contracts
+     - A Job can have only one arbiter
+     - A Job requires only one arbiter to 'start' the Job.
+   - A Job Contract is a smart contract created by an Employer, or a
+     Candidate that has been 'requested'.
+     - A Job Contract can be created when a Requested Candidate is
+       'accepted' by the Employer.
+       - A Job Contract can be optionally defined as 'invite-only',
+         which prevents a Candidate from requesting a Job Contract.
+     - A Job Contract can be created when an Employer Requests a
+       Candidate, and the Job Contract is 'accepted' by the Candidate.
+     
+** User
+   - Users are defined by their unique ethereum account address.
+     - A User registers a profile as an Employer.
+     - A User registers a profile as an Arbiter.
+     - A User registers a profile as a Candidate.
+   - An Employer is a User who creates Job(s).
+     - An Employee is only an Employee if he has registered an
+       Employee profile as a User.
+     - An Employer creates a Job.
+     - An Employer updates a Job.
+     - An Employer creates a job contract.
+     - An Employer updates a job contract.
+     - An Employer requests Arbiters to a Job.
+       - Only one Arbiter can accept and be assigned to a Job.
+     - An Employer Accepts a Candidate to be assigned to a job contract.
+     - An Employer can accept an invoice for a job contract supplied to
+       them by the accepted Candidate, transferring the invoice's
+       currency value from the job contract to the Candidate.
+     - An Employer can 'raise a dispute' on an invoice supplied to him
+       from the Candidate.
+     - An Employer can provide comments on a 'raised dispute' for job
+       contracts that he owns.
+     - An Employer can accept an invoice on a job bounty reward
+       supplied by a Candidate, transferring the invoices's currency
+       value from the job contract to the Candidate.
+     - An Employer can 'raise a dispute' on an invoice for a job bounty
+       supplied to him from a Candidate
+   - An Arbiter accepts requests for jobs, and resolves disputes between
+     a Candidate and an Employer's job contract.
+     - An Arbiter is only an Arbiter if he has defined a profile as a User.
+     - Only the first Arbiter that accepts will be assigned to a job.
+     - An Arbiter can request to be assigned to a job contract.
+     - Employees can request an Arbiter to be assigned to a job
+       contract.
+     - An Arbiter can request to be assigned to a job bounty.
+     - Employees can request an Arbiter to be assigned to a job bounty.
+     - An Arbiter can resolve disputes for assigned jobs.
+       - Arbiters can resolve a dispute in favour of the Employer. The
+         Arbiter will receive an agreed upon payment for resolving the
+         dispute.
+       - Arbiters can resolve a dispute in favour of the Candidate. The
+         Arbiter will receive an agreed upon payment for resolving the
+         dispute.
+       - Arbiter can resolve a dispute with fractions of payment in
+         favour of either the Employee, or the Candidate. The Arbiter
+         will receive an agreed upon payment for resolving the dispute.
+   - A Candidate is a User who requests jobs, and invoices jobs.
+     - A Customer is only a Customer if he has defined a profile as a User.
+     - A Candidate requests job contracts.
+     - A Candidate can be requested for job contracts by an Employer.
+     - A Candidate can be accepted by an Employer for a previously
+       requested job contract.
+     - A Candidate can accept a job contract after previously being
+       requested by an Employer.
+     - A Candidate can invoice an accepted job contract.
+     - A Candidate can 'raise a dispute' on a job contract.
+     - A Candidate can invoice a job bounty.
 
 * Specification & Design
 ** Class Diagram
    #+BEGIN_SRC plantuml :file class_diagram.png
+
+   skinparam BackgroundColor #F3F4F9
+   skinparam RoundCorner 5
+   skinparam class {
+     BackgroundColor White
+     ArrowColor #F1B440
+     ArrowThickness 2
+     BorderColor #292D83
+   }
+
    title Ethlance Smart Contract Class Diagram
 
    class UserMetahash << (I,blue) IPFS >> {
@@ -97,7 +122,7 @@
    class EthlanceUser << (f,green) Forwarded Contract >> {
      user_address : address
      date_joined : uint{DateTime}
-     metahash_ipfs : string
+     metahash : string{UserMetahash}
    }
 
    Candidate -- UserMetahash
@@ -125,7 +150,7 @@
    EthlanceUser "1" *-- "1" Employer
    EthlanceUser "1" *-- "1" Arbiter
 
-   class EthlanceUserFactory << Contract >> {
+   class EthlanceUserFactory << (m,brown) Mutable Contract >> {
      registry : EthlanceRegistry
 
      #createUser(_address : address, _metahash : string) : integer
@@ -147,7 +172,7 @@
                                                   currency_type : uint16)
 
      -- Modifiers --
-     isRegisteredUser()
+     isRegisteredUser(_address)
    }
 
    EthlanceUserFactory "1" *-- "1" EthlanceRegistry
@@ -155,7 +180,7 @@
    class EthlanceRegistry << (d,violet) Database Contract >> {
      user_listing : array[address(EthlanceUser)]
      user_address_mapping : mapping{address => uint}
-     job_listing : array[address(EthlanceJob)]
+     job_wagon_listing : array[address(EthlanceJobWagon)]
 
      -- User Database Methods --
      +addUser(eth_address : address, contract_address : address) : uint
@@ -163,10 +188,10 @@
      +getUserByAddress(eth_address : address) : address
      +getUserCount() : uint
 
-     -- Job Database Methods --
-     +addJob(eth_address : address, contract_address : address) : uint
-     +getJobByIndex(index : uint) : address
-     +getJobCount() : uint
+     -- Job Wagon Database Methods --
+     +addJobWagon(eth_address : address, contract_address : address) : uint
+     +getJobWagonByIndex(index : uint) : address
+     +getJobWagonCount() : uint
    }
 
    EthlanceRegistry --> EthlanceEventDispatcher
@@ -211,92 +236,115 @@
      "JobUpdated"
    }
 
-   class EthlanceJobMetahash << (I,blue) IPFS >> {
+   class JobWagonMetahash << (I,blue) IPFS >> {
      category_code : integer
-     dispute_listing : array[Dispute]
      experience_level : bitmask-8-bit
-     invoice_listing : array[Invoice]
      job_description : string
      job_title : string
      required_availability : uint{enum[Part Time, Full Time]}
      required_skills_listing : array[string]
-
-     -- Invoice from 'invoice_listing' Array --
-     invoice_id : uint
-     comments : []
-
-     -- Dispute from 'dispute_listing' Array --
-     dispute_id : uint
-     comments : []
    }
 
-   EthlanceJob "1" *-- "1" EthlanceJobMetahash
-   EthlanceJob --> EthlanceJobInvoice
-   EthlanceJob --> EthlanceJobDispute
-   class EthlanceJob << (f,green) Forwarded Contract >> {
+   EthlanceJobWagon "1" *-- "1" JobWagonMetahash
+   class EthlanceJobWagon << (f,green) Forwarded Contract >> {
      accepted_arbiter : nullable{address}
-     accepted_candidate : nullable{address}
-     accepted_token_address_listing : array[string]
      arbiter_request_listing : array[address]
-     candidate_request_listing : array[address]
-     bid_mask : bitmask-8-bit [Hourly Rate, Fixed Price, Annual Salary]
+     token_address_listing : array[string]
+     bid_mask : bitmask-8-bit [Hourly Rate, Fixed Price, Annual Salary, Bounty]
      date_created : uint{datetime}
      date_started : uint{datetime}
      date_finished : uint{datetime}
      employer_user_id : uint
      estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
-     is_bounty: boolean
      include_ether_token : boolean
      is_invitation_only : boolean
-     metahash_ipfs : string
+     metahash : string{JobWagonMetahash}
      reward_value : float
+
+     -createJobWorker(_jobWagon: EthlanceJobWagon) : _worker_id : uint;
+     -removeJobWorker(...);
+     +getJobWorkerCount();
+     +getJobWorkerByIndex();
    }
 
-   EthlanceJobInvoice -- EthlanceJobMetahash
-   EthlanceJobInvoice "1" *-- "*" JobInvoice
-   class EthlanceJobInvoice << Contract >> {
-     invoice_listing : array[JobInvoice]
+
+   EthlanceJobWorker "*" *--* "1" EthlanceJobWagon
+   EthlanceJobWorker "1" *-- "*" EthlanceJobInvoice
+   EthlanceJobWorker "1" *-- "*" EthlanceJobDispute
+   class EthlanceJobWorker << (f,green) Forwarded Contract >> {
+     wagon_instance : EthlanceJobWagon
+     invoice_listing: array[address of EthlanceJobInvoice]
+     dispute_listing: array[address of EthlanceJobDispute]
 
      +createInvoice(...)
+     +getInvoiceCount() : uint
+     +getInvoiceByIndex(...) : address
+
+     +createDispute(...)
+     +getDisputeCount() : uint
+     +getDisputeByIndex(...) : address
    }
 
-   class JobInvoice << (s,yellow) Struct >> {
-     job_id : uint
+   class JobInvoiceMetahash << (I,blue) IPFS >> {
+     
+   }
+
+   class InvoiceCommentMetahash << (I,blue) IPFS >> {
+     user_address : address<string>
+     user_type : uint{enum[Arbiter, Candidate, Employer]}
+     date_created : uint{DateTime}
+     comment : string
+   }
+
+   EthlanceJobInvoice -- JobInvoiceMetahash
+   EthlanceJobInvoice -- InvoiceCommentMetahash
+   class EthlanceJobInvoice << Contract >> {
+     job_instance: address<EthlanceJobWorker>
      date_created: uint{DateTime}
      date_approved: uint{DateTime}
      duration_seconds: uint
+     metahash : string{JobInvoiceMetahash}
+
+     comment_listing : array[string of InvoiceCommentMetahash Hashes]
    }
 
-   EthlanceJobDispute -- EthlanceJobMetahash
-   EthlanceJobDispute "1" *-- "*" JobDispute
+   class JobDisputeMetahash << (I,blue) IPFS >> {
+     dispute_type : string <Recommend 'Employee Pricing, Candidate Completion', but fill as string>     
+   }
+
+   class DisputeCommentMetahash << (I,blue) IPFS >> {
+     user_address : address<string>
+     user_type : uint{enum[Arbiter, Candidate, Employer]}
+     date_created : uint{DateTime}
+     comment : string
+   }
+
+   EthlanceJobDispute -- JobDisputeMetahash
+   EthlanceJobDispute -- DisputeCommentMetahash
    class EthlanceJobDispute << Contract >> {
-     dispute_listing : array[JobDispute]
-
-     +createDispute(...)
-   }
-
-   class JobDispute << (s,yellow) Struct >> {
-     dispute_type : uint{enum[Employee Pricing, Candidate Completion]}
-     job_id : uint
+     job_instance: address<EthlanceJobWorker>
      date_created: uint{DateTime}
      date_resolved: uint{DateTime}
-     
+     metahash : string{JobDisputeMetahash}
+
      employer_resolution_amount: nullable{uint}
-     candidate_resolution_amount: nullable{uint}    
+     candidate_resolution_amount: nullable{uint}
+
+     comment_listing: array[string of DisputeCommentMetahash Hashes]
    }
 
-   EthlanceJobFactory "1" *-- "*" EthlanceJob
-   class EthlanceJobFactory << Contract >> {
+   EthlanceJobFactory "1" *-- "*" EthlanceJobWagon
+   class EthlanceJobFactory << (m,brown) Mutable Contract >> {
      registry : EthlanceRegistry
 
-     +createJobContract(...)
+     +createJobWagon(...)
 
      -- Views --
-     +getJobListing()
-     +getJobStatus(_job_id)
+     +getJobWagonCount()
+     +getJobWagonByIndex()
 
      -- Modifiers --
-     isJobOwner()
+     isJobWagonOwner()
    }
 
    #+END_SRC

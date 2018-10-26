@@ -12,8 +12,6 @@ contract EthlanceJobFactory {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
-    EthlanceJob[] public job_listing;
-
     //
     // Methods
     //
