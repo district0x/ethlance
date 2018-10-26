@@ -1,0 +1,180 @@
+pragma solidity ^0.4.24;
+
+import "./EthlanceRegistry.sol";
+import "./EthlanceUserFactory.sol";
+import "./EthlanceUser.sol";
+import "./EthlanceJobWagon.sol";
+import "proxy/MutableForwarder.sol";
+
+
+/// @title Job Contracts to tie candidates, employers, and arbiters to
+/// an agreement.
+contract EthlanceJobWorker {
+    uint public constant version = 1;
+    EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
+
+    //
+    // Structures
+    //
+
+    // Nothing here yet.
+
+    //
+    // Members
+    //
+
+    EthlanceJobWagon public wagon;
+    address public accepted_candidate;
+
+    // IPFS MetaHashes for additional job contract data.
+    MetaHashStore public metahash_store;
+
+    //
+    // Collections
+    //
+
+    // Stores a listing of appended data by the employer, candidate,
+    // and arbiter. Each listing allows us to isolate malicious intent
+    // between parties.
+    string[] public employer_metahash_listing;
+    string[] public candidate_metahash_listing;
+    string[] public arbiter_metahash_listing;
+
+    /// @dev Forwarder Constructor
+    function construct(EthlanceJobWagon _wagon)
+	external {
+	require(registry.checkFactoryPrivilege(msg.sender),
+		"You are not privileged to carry out construction.");
+
+	// Main members
+	wagon = _wagon;
+	date_created = now;
+	date_updated = now;
+    }
+
+    //
+    // Methods
+    //
+
+    /// @dev Based on filled 
+    /// @return Status Code
+    function getStatus()
+	public 
+        returns(uint) {
+	return 0;
+    }
+
+    /// @dev Update the datetime of the job contract.
+    function updateDateUpdated()
+	private {
+	date_updated = now;
+    }
+
+
+    /// @dev Update the employer's metahash
+    /// @param _metahash The new metahash
+    function appendEmployerMetahash(string _metahash)
+	public
+        isEmployer(msg.sender) {
+	//emit UpdatedEmployerMetahash(metahash_store.employer_hash, _metahash);
+	employer_metahash_listing.push(_metahash);
+	updateDateUpdated();
+    }
+
+
+    /// @dev Update the candidate's metahash
+    /// @param _metahash The new metahash
+    function appendCandidateMetahash(string _metahash)
+	public
+        isAcceptedCandidate(msg.sender) {
+	//emit UpdatedCandidateMetahash(metahash_store.candidate_hash, _metahash);
+	candidate_metahash_listing.push(_metahash);
+	updateDateUpdated();
+    }
+
+
+    /// @dev Update the arbiter's metahash
+    /// @param _metahash The new metahash
+    function appendArbiterMetahash(string _metahash)
+	public
+        isAcceptedArbiter(msg.sender) {
+	//emit UpdatedArbiterMetahash(metahash_store.arbiter_hash, _metahash);
+	arbiter_metahash_listing.push(_metahash);
+	updateDateUpdated();
+    }
+
+
+    /// @dev Fire events specific to the job contract
+    /// @param event_name Unique to give the fired event
+    /// @param event_data Additional event data to include in the
+    /// fired event.
+    function fireEvent(string event_name, uint[] event_data) private {
+	registry.fireEvent(event_name, version, event_data);
+    }
+
+    //
+    // Modifiers
+    //
+
+    
+    /// @dev Checks if it is the employer of the job contract.
+    /// @param _address The user address of the employer.
+    modifier isEmployer(address _address) {
+	require(employer_address == _address,
+		"Given user is not the employer.");
+	_;
+    }
+
+   
+    /// @dev Checks if it is the accepted candidate of the job contract.
+    /// @param _address The user address of the accepted candidate.
+    modifier isAcceptedCandidate(address _address) {
+	require(accepted_candidate == _address,
+		"Given user is not the accepted candidate.");
+	_;
+    }
+
+
+    /// @dev Checks if it is the accepted arbiter of the job contract
+    /// @param _address The user address of the accepted arbiter.
+    modifier isAcceptedArbiter(address _address) {
+	require(accepted_arbiter == _address,
+		"Given user is not the accepted arbiter.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered user
+    modifier isRegisteredUser(address _address) {
+	require(registry.getUserByAddress(_address) != 0,
+		"Given address is not a registered user.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered employer
+    modifier isRegisteredEmployer(address _address) {
+	var (is_registered) = EthlanceUser(registry.getUserByAddress(_address)).getEmployerData();
+	require(is_registered,
+		"Given address is not a registered employer.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered candidate
+    modifier isRegisteredCandidate(address _address) {
+	var (is_registered,,) = EthlanceUser(registry.getUserByAddress(_address)).getCandidateData();
+	require(is_registered,
+		"Given address is not a registered candidate.");
+	_;
+    }
+
+
+    /// @dev Checks if the given address is a registered arbiter
+    modifier isRegisteredArbiter(address _address) {
+	var (is_registered,,,) = EthlanceUser(registry.getUserByAddress(_address)).getArbiterData();
+	require(is_registered,
+		"Given address is not a registered arbiter.");
+	_;
+    }
+}
