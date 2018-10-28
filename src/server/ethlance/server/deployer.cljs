@@ -9,8 +9,8 @@
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.contract.ds-auth :as ds-auth]
    [ethlance.server.contract.ethlance-registry :as registry]
-   [ethlance.server.contract.ethlance-user-factory :as user-factory]))
-   ;;[ethlance.server.contract.ethlance-job-factory :as job-factory]))
+   [ethlance.server.contract.ethlance-user-factory :as user-factory]
+   [ethlance.server.contract.ethlance-job-factory :as job-factory]))
 
 
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
@@ -120,18 +120,34 @@
    (contracts/contract-address :ethlance-user-factory-fwd)))
 
 
-(defn deploy-ethlance-job!
+(defn deploy-ethlance-work-contract!
+  "Deploy EthlanceWorkContract."
+  [opts]
+  
+  ;; Deploy ethlance work contract
+  (log/debug "Deploying EthlanceWorkContract...")
+  (contracts/deploy-smart-contract!
+   :ethlance-work-contract
+   (merge
+    {:gas 3000000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}}
+    opts)))
+
+
+(defn deploy-ethlance-job-store!
   "Deploy EthlanceJob."
   [opts]
 
   ;; Deploy ethlance job contract
-  (log/debug "Deploying EthlanceJob...")
+  (log/debug "Deploying EthlanceJobStore...")
   (contracts/deploy-smart-contract!
-   :ethlance-job
+   :ethlance-job-store
    (merge
     {:gas 4000000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {forwarder-target-placeholder :ethlance-work-contract
+      registry-placeholder :ethlance-registry}}
     opts)))
 
 
@@ -146,7 +162,7 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-job
+     {forwarder-target-placeholder :ethlance-job-store
       registry-placeholder :ethlance-registry}}
     opts))
 
@@ -205,8 +221,9 @@
   (deploy-ethlance-registry! general-contract-options)
   (deploy-ethlance-user! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
-  ;;(deploy-ethlance-job! general-contract-options)
-  ;;(deploy-ethlance-job-factory! general-contract-options)
+  (deploy-ethlance-work-contract! general-contract-options)
+  (deploy-ethlance-job-store! general-contract-options)
+  (deploy-ethlance-job-factory! general-contract-options)
 
   (when write?
     (log/debug "Writing out Smart Contracts...")
