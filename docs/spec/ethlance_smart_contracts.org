@@ -7,14 +7,14 @@
 
 * Requirements
 ** Job
-   - A Job (EthlanceJobProducer) is a smart contract created and updated by an Employer.
-     - A Job has many Job Contracts (EthlanceJob)
-       - A Job sets the max number of Job Contracts
+   - A Job (EthlanceJobStore) is a smart contract created and updated by an Employer.
+     - A Job has many Work Contracts (EthlanceWorkContract)
+       - A Job sets the max number of Work Contracts
      - A Job can have only one arbiter
-     - A Job requires only one arbiter to 'start' the Job.
-   - A Job Contract is a smart contract created by an Employer, or a
+     - A Job requires only one arbiter to 'start' the Work.
+   - A Work Contract is a smart contract created by an Employer, or a
      Candidate that has been 'requested'.
-     - A Job Contract can be created when a Requested Candidate is
+     - A Work Contract can be created when a Requested Candidate is
        'accepted' by the Employer.
        - A Job Contract can be optionally defined as 'invite-only',
          which prevents a Candidate from requesting a Job Contract.
@@ -180,7 +180,7 @@
    class EthlanceRegistry << (d,violet) Database Contract >> {
      user_listing : array[address(EthlanceUser)]
      user_address_mapping : mapping{address => uint}
-     job_wagon_listing : array[address(EthlanceJobWagon)]
+     job_store_listing : array[address(EthlanceJobStore)]
 
      -- User Database Methods --
      +addUser(eth_address : address, contract_address : address) : uint
@@ -188,10 +188,10 @@
      +getUserByAddress(eth_address : address) : address
      +getUserCount() : uint
 
-     -- Job Wagon Database Methods --
-     +addJobWagon(eth_address : address, contract_address : address) : uint
-     +getJobWagonByIndex(index : uint) : address
-     +getJobWagonCount() : uint
+     -- Job Store Database Methods --
+     +addJobStore(eth_address : address, contract_address : address) : uint
+     +getJobStoreByIndex(index : uint) : address
+     +getJobStoreCount() : uint
    }
 
    EthlanceRegistry --> EthlanceEventDispatcher
@@ -236,7 +236,7 @@
      "JobUpdated"
    }
 
-   class JobWagonMetahash << (I,blue) IPFS >> {
+   class JobStoreMetahash << (I,blue) IPFS >> {
      category_code : integer
      experience_level : bitmask-8-bit
      job_description : string
@@ -245,8 +245,8 @@
      required_skills_listing : array[string]
    }
 
-   EthlanceJobWagon "1" *-- "1" JobWagonMetahash
-   class EthlanceJobWagon << (f,green) Forwarded Contract >> {
+   EthlanceJobStore "1" *-- "1" JobStoreMetahash
+   class EthlanceJobStore << (f,green) Forwarded Contract >> {
      accepted_arbiter : nullable{address}
      arbiter_request_listing : array[address]
      token_address_listing : array[string]
@@ -258,21 +258,21 @@
      estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
      include_ether_token : boolean
      is_invitation_only : boolean
-     metahash : string{JobWagonMetahash}
+     metahash : string{JobStoreMetahash}
      reward_value : float
 
-     -createJobWorker(_jobWagon: EthlanceJobWagon) : _worker_id : uint;
-     -removeJobWorker(...);
-     +getJobWorkerCount();
-     +getJobWorkerByIndex();
+     -createWorkContract(_jobStore: EthlanceJobStore) : _worker_id : uint;
+     -removeWorkContract(...);
+     +getWorkContractCount();
+     +getWorkContractByIndex();
    }
 
 
-   EthlanceJobWorker "*" *--* "1" EthlanceJobWagon
-   EthlanceJobWorker "1" *-- "*" EthlanceJobInvoice
-   EthlanceJobWorker "1" *-- "*" EthlanceJobDispute
-   class EthlanceJobWorker << (f,green) Forwarded Contract >> {
-     wagon_instance : EthlanceJobWagon
+   EthlanceWorkContract "*" *--* "1" EthlanceJobStore
+   EthlanceWorkContract "1" *-- "*" EthlanceJobInvoice
+   EthlanceWorkContract "1" *-- "*" EthlanceJobDispute
+   class EthlanceWorkContract << (f,green) Forwarded Contract >> {
+     store_instance : EthlanceJobStore
      invoice_listing: array[address of EthlanceJobInvoice]
      dispute_listing: array[address of EthlanceJobDispute]
 
@@ -299,7 +299,7 @@
    EthlanceJobInvoice -- JobInvoiceMetahash
    EthlanceJobInvoice -- InvoiceCommentMetahash
    class EthlanceJobInvoice << Contract >> {
-     job_instance: address<EthlanceJobWorker>
+     job_instance: address<EthlanceWorkContract>
      date_created: uint{DateTime}
      date_approved: uint{DateTime}
      duration_seconds: uint
@@ -322,7 +322,7 @@
    EthlanceJobDispute -- JobDisputeMetahash
    EthlanceJobDispute -- DisputeCommentMetahash
    class EthlanceJobDispute << Contract >> {
-     job_instance: address<EthlanceJobWorker>
+     job_instance: address<EthlanceWorkContract>
      date_created: uint{DateTime}
      date_resolved: uint{DateTime}
      metahash : string{JobDisputeMetahash}
@@ -333,18 +333,18 @@
      comment_listing: array[string of DisputeCommentMetahash Hashes]
    }
 
-   EthlanceJobFactory "1" *-- "*" EthlanceJobWagon
+   EthlanceJobFactory "1" *-- "*" EthlanceJobStore
    class EthlanceJobFactory << (m,brown) Mutable Contract >> {
      registry : EthlanceRegistry
 
-     +createJobWagon(...)
+     +createJobStore(...)
 
      -- Views --
-     +getJobWagonCount()
-     +getJobWagonByIndex()
+     +getJobStoreCount()
+     +getJobStoreByIndex()
 
      -- Modifiers --
-     isJobWagonOwner()
+     isJobStoreOwner()
    }
 
    #+END_SRC
