@@ -9,8 +9,8 @@
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.contract.ds-auth :as ds-auth]
    [ethlance.server.contract.ethlance-registry :as registry]
-   [ethlance.server.contract.ethlance-user-factory :as user-factory]
-   [ethlance.server.contract.ethlance-job-factory :as job-factory]))
+   [ethlance.server.contract.ethlance-user-factory :as user-factory]))
+   ;;[ethlance.server.contract.ethlance-job-factory :as job-factory]))
 
 
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
@@ -205,8 +205,8 @@
   (deploy-ethlance-registry! general-contract-options)
   (deploy-ethlance-user! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
-  (deploy-ethlance-job! general-contract-options)
-  (deploy-ethlance-job-factory! general-contract-options)
+  ;;(deploy-ethlance-job! general-contract-options)
+  ;;(deploy-ethlance-job-factory! general-contract-options)
 
   (when write?
     (log/debug "Writing out Smart Contracts...")

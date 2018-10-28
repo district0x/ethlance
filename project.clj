@@ -125,7 +125,7 @@
                    "dev/clj" "dev/ui" "dev/shared" "dev/server"
                    "test/clj" "test/ui" "test/shared" "test/server"]
     :resource-paths ["dev/resources"]
-    :dependencies [[cider/piggieback "0.3.9"]
+    :dependencies [[cider/piggieback "0.3.10"]
                    [org.clojure/tools.nrepl "0.2.13"]
                    [figwheel "0.5.16"]
                    [figwheel-sidecar "0.5.16"]

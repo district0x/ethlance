@@ -8,8 +8,8 @@
    {:name "DSGuard"}
    :ethlance-user
    {:name "EthlanceUser"}
-   :ethlance-job
-   {:name "EthlanceJob"}
+   :ethlance-work-contract
+   {:name "EthlanceWorkContract"}
    :ethlance-user-factory
    {:name "EthlanceUserFactory"}
    :ethlance-user-factory-fwd
@@ -18,5 +18,7 @@
    {:name "EthlanceJobFactory"}
    :ethlance-job-factory-fwd
    {:name "MutableForwarder"}
+   :ethlance-job-store
+   {:name "EthlanceJobStore"}
    :ethlance-registry
    {:name "EthlanceRegistry"}})

@@ -51,7 +51,7 @@ contract EthlanceWorkContract {
 
     // The EthlanceJobStore contains additional data about our
     // contract.
-    EthlanceJobStore public store;
+    EthlanceJobStore public store_instance;
 
     // The candidate linked to this contract
     address public accepted_candidate;
@@ -78,12 +78,12 @@ contract EthlanceWorkContract {
 
 
     /// @dev Forwarder Constructor
-    function construct(EthlanceJobStore _store, bool is_employer_request)
+    function construct(EthlanceJobStore _store_instance, bool is_employer_request)
 	external {
 	// require(registry.checkFactoryPrivilege(msg.sender), "You are not privileged to carry out construction.");
 
 	// Main members
-	store = _store;
+	store_instance = _store_instance;
 	date_created = now;
 	date_updated = now;
     }
@@ -151,7 +151,7 @@ contract EthlanceWorkContract {
     /// @dev Checks if it is the employer of the job contract.
     /// @param _address The user address of the employer.
     modifier isEmployer(address _address) {
-	require(store.employer_address() == _address,
+	require(store_instance.employer_address() == _address,
 		"Given user is not the employer.");
 	_;
     }
@@ -169,7 +169,7 @@ contract EthlanceWorkContract {
     /// @dev Checks if it is the accepted arbiter of the job contract
     /// @param _address The user address of the accepted arbiter.
     modifier isAcceptedArbiter(address _address) {
-	require(store.accepted_arbiter() == _address,
+	require(store_instance.accepted_arbiter() == _address,
 		"Given user is not the accepted arbiter.");
 	_;
     }
