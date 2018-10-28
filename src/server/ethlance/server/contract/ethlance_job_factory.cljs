@@ -23,36 +23,34 @@
   (apply contracts/contract-call *job-factory-key* method-name args))
 
 
-(defn create-job!
-  "Create a job contract"
+(defn create-job-store!
+  "Create a job store for the given employer"
   [{:keys [bid-option
            estimated-length-seconds
            include-ether-token?
-           is-bounty?
            is-invitation-only?
-           employer-metahash
+           metahash
            reward-value]}
    & [opts]]
-  (call :create-job
+  (call :create-job-store
         (enum.bid-option/kw->val bid-option)
         estimated-length-seconds
         include-ether-token?
-        is-bounty?
         is-invitation-only?
-        employer-metahash
+        metahash
         reward-value
         (merge {:gas 2000000} opts)))
 
 
-(defn job-count
+(defn job-store-count
   "Get the number of job contracts."
   []
-  (call :get-job-count))
+  (call :get-job-store-count))
 
 
-(defn job-by-index
+(defn job-store-by-index
   "Get a job contract address by the given index."
   [index]
-  (call :get-job-by-index index))
+  (call :get-job-store-by-index index))
 
 

@@ -59,6 +59,9 @@ contract EthlanceJobStore {
     // Additional Job Information stored in IPFS Metahash
     string public metahash;
 
+    // The reward value for a completed bounty
+    uint public reward_value;
+
     //
     // Collections
     //
@@ -72,9 +75,21 @@ contract EthlanceJobStore {
     mapping(address => uint) public job_worker_mapping;
     
 
-    function construct(address _employer_address)
+    function construct(address _employer_address,
+		       uint8 _bid_option,
+		       uint _estimated_length_seconds,
+		       bool _include_ether_token,
+		       bool _is_invitation_only,
+		       string _metahash,
+		       uint _reward_value)
       public {
 	employer_address = _employer_address;
+	bid_option = _bid_option;
+	estimated_length_seconds = _estimated_length_seconds;
+	include_ether_token = _include_ether_token;
+	is_invitation_only = _is_invitation_only;
+	metahash = _metahash;
+	reward_value = _reward_value;
     }
 
 

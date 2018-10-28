@@ -44,7 +44,12 @@ contract EthlanceJobFactory {
     /// @dev Create Job Contract for given user defined by
     /// 'employer_user_id'. Note that parameters are described in
     /// EthlanceJob contract.
-    function createJob(address employer_address)
+    function createJobStore(uint8 bid_option,
+			    uint estimated_length_seconds,
+			    bool include_ether_token,
+			    bool is_invitation_only,
+			    string metahash,
+			    uint reward_value)
 	public {
 	require(isRegisteredEmployer(msg.sender),
 		"You are not a registered employer.");
@@ -55,12 +60,18 @@ contract EthlanceJobFactory {
 	                               // target(EthlanceJobStore)
 	EthlanceJobStore jobStore = EthlanceJobStore(address(fwd));
 	uint job_index = registry.pushJobStore(address(jobStore));
-	jobStore.construct(msg.sender);
+	jobStore.construct(msg.sender,
+			   bid_option,
+			   estimated_length_seconds,
+			   include_ether_token,
+			   is_invitation_only,
+			   metahash,
+			   reward_value);
 	
 	// Create and Fire off event data
 	uint[] memory edata = new uint[](1);
 	edata[0] = job_index;
-	fireEvent("JobCreated", edata);
+	fireEvent("JobStoreCreated", edata);
     }
 
     //
