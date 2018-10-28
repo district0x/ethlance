@@ -1,5 +1,4 @@
-(ns ethlance.server.contract.ethlance-job-factory-test
-  "Unit Tests for EthlanceJobFactory wrapper."
+(ns ethlance.server.contract.ethlance-job-store-test
   (:require
    [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
@@ -10,6 +9,7 @@
    [district.server.smart-contracts :as contracts]
 
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
+   [ethlance.server.contract.ethlance-job-store :as job-store :include-macros true]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-user :as user :include-macros true]
    [ethlance.server.contract.ethlance-registry :as registry]
@@ -22,7 +22,10 @@
    [ethlance.shared.enum.payment-type :as enum.payment]))
 
 
-(deftest-smart-contract creating-job-store {}
+(def null-address "0x0000000000000000000000000000000000000000")
+
+
+(deftest-smart-contract main-job-store {}
   (let [[employer-address candidate-address arbiter-address random-user-address]
         (web3-eth/accounts @web3)
 
@@ -47,26 +50,10 @@
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
-    
-    (testing "Creation of a job store as an Employer"
+
+    (testing "Creation of a job store, with all of the additional options"
       (is (bn/= (job-factory/job-store-count) 0))
       (test-gen/create-job-store! {} {:from employer-address})
-      (is (bn/= (job-factory/job-store-count) 1)))
-
-    (testing "Should fail to create a job store as a candidate"
-      (is (thrown? js/Error (test-gen/create-job-store! {} {:from candidate-address}))))
-
-    (testing "Should fail to create a job store as an arbiter"
-      (is (thrown? js/Error (test-gen/create-job-store! {} {:from arbiter-address}))))
-
-    (testing "Should fail to create a job store as a random user"
-      (is (thrown? js/Error (test-gen/create-job-store! {} {:from random-user-address}))))
-
-    (testing "JobStore's should be different at each index"
-      (test-gen/create-job-store! {} {:from employer-address})
-      (is (bn/= (job-factory/job-store-count) 2))
-      (is (not= (job-factory/job-store-by-index 0)
-                (job-factory/job-store-by-index 1))))
-
-    (testing "Should be out of bounds index error"
-      (is (thrown? js/Error (job-factory/job-store-by-index 2))))))
+      (is (bn/= (job-factory/job-store-count) 1))
+      (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+        (is (= (job-store/accepted-arbiter) null-address))))))

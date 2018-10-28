@@ -7,6 +7,7 @@
    [ethlance.server.contract.ethlance-user-factory-test]
    [ethlance.server.contract.ethlance-user-test]
    [ethlance.server.contract.ethlance-job-factory-test]
+   [ethlance.server.contract.ethlance-job-store-test]
 
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]

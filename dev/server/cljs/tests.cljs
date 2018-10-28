@@ -3,6 +3,7 @@
   (:require
    [clojure.test :refer [run-tests]]
    [ethlance.server.contract.ethlance-job-factory-test]
+   [ethlance.server.contract.ethlance-job-store-test]
    [ethlance.shared.enum.currency-type-test]))
 
 
@@ -15,3 +16,8 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.ethlance-job-factory-test)))
+
+(defn run-job-store-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.ethlance-job-store-test)))
