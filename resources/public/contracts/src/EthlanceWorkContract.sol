@@ -3,13 +3,13 @@ pragma solidity ^0.4.24;
 import "./EthlanceRegistry.sol";
 import "./EthlanceUserFactory.sol";
 import "./EthlanceUser.sol";
-import "./EthlanceJobWagon.sol";
+import "./EthlanceJobStore.sol";
 import "proxy/MutableForwarder.sol";
 
 
 /// @title Job Contracts to tie candidates, employers, and arbiters to
 /// an agreement.
-contract EthlanceJobWorker {
+contract EthlanceWorkContract {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
@@ -23,11 +23,41 @@ contract EthlanceJobWorker {
     // Members
     //
 
-    EthlanceJobWagon public wagon;
+    // The status of contract with respect to the employer and the
+    // candidate's interactions.
+    //
+    // Notes:
+    //
+    // - The overall status of the contract will also be reflected
+    //   with respect to any open disputes.
+    //
+    // Status Codes:
+    // -----------
+    // 0 -> Initial
+    // --
+    // 1 -> Open Candidate Request
+    // 2 -> Open Employer Request
+    // 3 -> Open Bounty
+    // --
+    // 4 -> Accepted
+    // 5 -> Rejected
+    // --
+    // 6 -> In Progress
+    // 7 -> On Hold
+    // --
+    // 8 -> Finished
+    // 9 -> Cancelled
+    uint public contract_status;
+
+    // The EthlanceJobStore contains additional data about our
+    // contract.
+    EthlanceJobStore public store;
+
+    // The candidate linked to this contract
     address public accepted_candidate;
 
-    // IPFS MetaHashes for additional job contract data.
-    MetaHashStore public metahash_store;
+    uint public date_created;
+    uint public date_updated;
 
     //
     // Collections
@@ -39,15 +69,21 @@ contract EthlanceJobWorker {
     string[] public employer_metahash_listing;
     string[] public candidate_metahash_listing;
     string[] public arbiter_metahash_listing;
+    
+    // Invoice Listing
+    address[] public invoice_listing;
+    
+    // Dispute Listing
+    address[] public dispute_listing;
+
 
     /// @dev Forwarder Constructor
-    function construct(EthlanceJobWagon _wagon)
+    function construct(EthlanceJobStore _store, bool is_employer_request)
 	external {
-	require(registry.checkFactoryPrivilege(msg.sender),
-		"You are not privileged to carry out construction.");
+	// require(registry.checkFactoryPrivilege(msg.sender), "You are not privileged to carry out construction.");
 
 	// Main members
-	wagon = _wagon;
+	store = _store;
 	date_created = now;
 	date_updated = now;
     }
@@ -55,14 +91,6 @@ contract EthlanceJobWorker {
     //
     // Methods
     //
-
-    /// @dev Based on filled 
-    /// @return Status Code
-    function getStatus()
-	public 
-        returns(uint) {
-	return 0;
-    }
 
     /// @dev Update the datetime of the job contract.
     function updateDateUpdated()
@@ -75,7 +103,8 @@ contract EthlanceJobWorker {
     /// @param _metahash The new metahash
     function appendEmployerMetahash(string _metahash)
 	public
-        isEmployer(msg.sender) {
+        //isEmployer(msg.sender)
+    {
 	//emit UpdatedEmployerMetahash(metahash_store.employer_hash, _metahash);
 	employer_metahash_listing.push(_metahash);
 	updateDateUpdated();
@@ -86,7 +115,8 @@ contract EthlanceJobWorker {
     /// @param _metahash The new metahash
     function appendCandidateMetahash(string _metahash)
 	public
-        isAcceptedCandidate(msg.sender) {
+        //isAcceptedCandidate(msg.sender)
+    {
 	//emit UpdatedCandidateMetahash(metahash_store.candidate_hash, _metahash);
 	candidate_metahash_listing.push(_metahash);
 	updateDateUpdated();
@@ -97,7 +127,8 @@ contract EthlanceJobWorker {
     /// @param _metahash The new metahash
     function appendArbiterMetahash(string _metahash)
 	public
-        isAcceptedArbiter(msg.sender) {
+        //isAcceptedArbiter(msg.sender)
+    {
 	//emit UpdatedArbiterMetahash(metahash_store.arbiter_hash, _metahash);
 	arbiter_metahash_listing.push(_metahash);
 	updateDateUpdated();
@@ -120,7 +151,7 @@ contract EthlanceJobWorker {
     /// @dev Checks if it is the employer of the job contract.
     /// @param _address The user address of the employer.
     modifier isEmployer(address _address) {
-	require(employer_address == _address,
+	require(store.employer_address() == _address,
 		"Given user is not the employer.");
 	_;
     }
@@ -138,7 +169,7 @@ contract EthlanceJobWorker {
     /// @dev Checks if it is the accepted arbiter of the job contract
     /// @param _address The user address of the accepted arbiter.
     modifier isAcceptedArbiter(address _address) {
-	require(accepted_arbiter == _address,
+	require(store.accepted_arbiter() == _address,
 		"Given user is not the accepted arbiter.");
 	_;
     }

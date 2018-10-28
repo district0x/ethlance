@@ -1,10 +1,11 @@
 pragma solidity ^0.4.24;
 
 import "./EthlanceRegistry.sol";
+import "./EthlanceWorkContract.sol";
 
 /// @title Create Job Contracts as an assigned Employer as a group of
 /// identical contracts.
-contract EthlanceJobWagon {
+contract EthlanceJobStore {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
@@ -19,17 +20,11 @@ contract EthlanceJobWagon {
 	address arbiter_address;
     }
 
-    /// Represents a particular candidate requesting, or being
-    /// requested by an employer for a job contract.
-    struct CandidateRequest {
-	bool is_employer_request;
-	address candidate_address;
-    }
-
     //
     // Members
     //
 
+    // The Accepted Arbiter assigned to the Jobs within the Job Store.
     address public accepted_arbiter;
 
     /// Bid Option Enumeration
@@ -48,7 +43,7 @@ contract EthlanceJobWagon {
     // Datetime of job contract finishing
     uint public date_finished;
     
-    // Employer who created the job contract
+    // Employer assigned to the given JobStore.
     address public employer_address;
 
     // Estimated amount of time to finish the contract (in seconds)
@@ -56,12 +51,13 @@ contract EthlanceJobWagon {
 
     // If true, additionally include ether as a token to pay out.
     bool public include_ether_token;
+    // TODO: token_address_listing
 
     // If true, only employers can request candidates and arbiters
     bool public is_invitation_only;
 
-    // Job wagon has a certain number of worker contracts in circulation
-    uint worker_max_contracts;
+    // Additional Job Information stored in IPFS Metahash
+    string public metahash;
 
     //
     // Collections
@@ -71,20 +67,27 @@ contract EthlanceJobWagon {
     ArbiterRequest[] public arbiter_request_listing;
     mapping(address => uint) public arbiter_request_mapping;
 
-    // Candidate Requests
-    CandidateRequest[] public candidate_request_listing;
-    mapping(address => uint) public candidate_request_mapping;
-
     // Job Worker Listing
     address[] public job_worker_listing;
-
+    mapping(address => uint) public job_worker_mapping;
     
-    function construct(string _metahash)
+
+    function construct(address _employer_address)
       public {
-	
+	employer_address = _employer_address;
     }
 
-    /// @dev Set the accepted arbiter
+
+    /// @dev Fire events specific to the work contract
+    /// @param event_name Unique to give the fired event
+    /// @param event_data Additional event data to include in the
+    /// fired event.
+    function fireEvent(string event_name, uint[] event_data) private {
+	registry.fireEvent(event_name, version, event_data);
+    }
+
+
+    /// @dev Set the accepted arbiter for the current Job Wagon.
     /// @param arbiter_address User address of the accepted arbiter.
     function setAcceptedArbiter(address arbiter_address)
 	private {
@@ -92,9 +95,9 @@ contract EthlanceJobWagon {
 
 	// The contract starts when both the accepted arbiter and the
 	// accepted candidate roles are filled.
-	if (accepted_candidate != 0) {
-	    date_started = now;
-	}
+	//if (accepted_candidate != 0) {
+	//    date_started = now;
+	//}
 
 	// Fire off event
 	uint[] memory event_data = new uint[](1);
@@ -103,109 +106,12 @@ contract EthlanceJobWagon {
     }
 
 
-    /// @dev Set the accepted candidate
-    /// @param candidate_address User address of the accepted candidate.
-    function setAcceptedCandidate(address candidate_address, uint _worker_index)
-	private {
-	accepted_candidate = candidate_address;
-
-	// The contract starts when both the accepted arbiter and the
-	// accepted candidate roles are filled.
-	if (accepted_arbiter != 0) {
-	    date_started = now;
-	}
-
-	// Fire off event
-	uint[] memory event_data = new uint[](1);
-	event_data[0] = EthlanceUser(registry.getUserByAddress(candidate_address)).user_id();
-	fireEvent("JobCandidateAccepted", event_data);
-    }
-
-
-    /// @dev Add a candidate to the candidate request listing.
-    /// @param candidate_address The user address of the candidate.
-    /*
-
-      Functionality changes based on who is requesting the candidate,
-      and the status of the requested candidate.
-
-      Case 1: Employer requests a Candidate. (msg.sender == employer_address)
-
-      Case 2: Candidate requests himself. (msg.sender == candidate_address)
-
-      accepted_candidate is set if:
-
-      - employer had already requested the candidate, and then the candidate requests the job contract
-      - candidate requests himself, and then the employer requests the same candidate.
-
-     */
-    function requestCandidate(address candidate_address)
-	public
-	isRegisteredUser(candidate_address)
-        isRegisteredCandidate(candidate_address) {
-	require(accepted_candidate == 0, "Candidate already accepted.");
-	require(candidate_address != accepted_arbiter,
-		"Accepted Arbiter cannot be an Accepted Candidate.");
-	require(candidate_address != employer_address,
-		"Employer cannot be the candidate of his own job contract.");
-	require(msg.sender == employer_address || msg.sender == candidate_address,
-		"Only an employer can request a candidate, only a candidate can request themselves.");
-
-	// Locals
-	uint request_index;
-	bool is_employer_request;
-
-	//
-	// Handle case where candidate is requesting the job contract.
-	//
-
-	if (msg.sender == candidate_address) {
-	    // No previous request, so create a new Candidate Request
-	    if (candidate_request_mapping[candidate_address] == 0) {
-		candidate_request_listing.push(CandidateRequest(false, candidate_address));
-		candidate_request_mapping[candidate_address] = candidate_request_listing.length;
-		return;
-	    }
-
-	    // Was a previous request, check if an employer requested this candidate
-	    request_index = candidate_request_mapping[candidate_address] - 1;
-	    is_employer_request = candidate_request_listing[request_index].is_employer_request;
-	    
-	    // If this candidate was already requested by the employer, we have our accepted candidate
-	    if (is_employer_request) {
-		setAcceptedCandidate(candidate_address);
-		return;
-	    }
-
-	    // Otherwise, we revert, since this candidate already made a request
-	    revert("Candidate has already made a request");
-	    return;
-	}
-
-	//
-	// Handle case where employer is requesting a candidate for the job contract.
-	//
-
-	// No previous request, so create a new Candidate Request
-	if (candidate_request_mapping[candidate_address] == 0) {
-	    candidate_request_listing.push(CandidateRequest(true, candidate_address));
-	    candidate_request_mapping[candidate_address] = candidate_request_listing.length;
-	    return;
-	}
-
-	// Was a previous request, check if a candidate already requested this job.
-	request_index = candidate_request_mapping[candidate_address] - 1;
-	is_employer_request = candidate_request_listing[request_index].is_employer_request;
-
-	// If this candidate already requested this job, we have our accepted candidate
-	if (!is_employer_request) {
-	    setAcceptedCandidate(candidate_address);
-	    return;
-	}
-
-	// Otherwise, we revert, since the employer already requested this candidate
-	revert("Employer has already requested this candidate.");
-	return;
+    /// @dev Request and create a pending contract between the Candidate and the Employer
+    /// @param candidate_address The user address of the Candidate.
+    function requestWorkContract(address candidate_address)
+	public {
+	
+	
     }
 
     
@@ -228,11 +134,11 @@ contract EthlanceJobWagon {
      */
     function requestArbiter(address arbiter_address)
 	public
-	isRegisteredUser(arbiter_address)
-	isRegisteredArbiter(arbiter_address) {
+	//isRegisteredUser(arbiter_address)
+    {
 	require(accepted_arbiter == 0, "Arbiter already accepted.");
-	require(arbiter_address != accepted_candidate,
-		"Accepted Candidate cannot be an Accepted Arbiter");
+	//require(arbiter_address != accepted_candidate,
+	//	"Accepted Candidate cannot be an Accepted Arbiter");
 	require(arbiter_address != employer_address,
 		"Employer cannot be the arbiter of his own job contract.");
 	require(msg.sender == employer_address || msg.sender == arbiter_address,
@@ -293,28 +199,6 @@ contract EthlanceJobWagon {
 	// Otherwise, we revert, since the employer already requested this arbiter
 	revert("Employer has already requested this arbiter.");
 	return;
-    }
-
- 
-    /// @dev Returns the number of requested candidates for this job contract
-    /// @return The number of requested candidates
-    function getRequestedCandidateCount()
-	public view returns(uint) {
-	return candidate_request_listing.length;
-    }
-
-
-    /// @dev Get the candidate request data in the candidate request listing.
-    /// @param index The index of the CandidateRequest within the listing.
-    /// @return 2-element tuple containing the candidate data.
-    function getRequestedCandidateByIndex(uint index)
-	public view returns(bool is_employer_request,
-			    address candidate_address) {
-	require(index < candidate_request_listing.length,
-		"Given index out of bounds.");
-	CandidateRequest memory candidateRequest = candidate_request_listing[index];
-	is_employer_request = candidateRequest.is_employer_request;
-	candidate_address = candidateRequest.candidate_address;
     }
 
 

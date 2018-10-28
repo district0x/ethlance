@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./EthlanceRegistry.sol";
-import "./EthlanceJob.sol";
+import "./EthlanceJobStore.sol";
 import "./EthlanceUserFactory.sol";
 import "./EthlanceUser.sol";
 import "./proxy/MutableForwarder.sol";
@@ -44,31 +44,18 @@ contract EthlanceJobFactory {
     /// @dev Create Job Contract for given user defined by
     /// 'employer_user_id'. Note that parameters are described in
     /// EthlanceJob contract.
-    function createJob(uint8 bid_option,
-		       uint estimated_length_seconds,
-		       bool include_ether_token,
-		       bool is_bounty,
-		       bool is_invitation_only,
-		       string employer_metahash,
-		       uint reward_value)
+    function createJob(address employer_address)
 	public {
 	require(isRegisteredEmployer(msg.sender),
 		"You are not a registered employer.");
 
 	// TODO: bounds on parameters
 
-	address job_fwd = new Forwarder(); // Proxy Contract with
-					   // target(EthlanceJob)
-	EthlanceJob job = EthlanceJob(address(job_fwd));
-	uint job_index = registry.pushJob(address(job));
-	job.construct(msg.sender,
-		      bid_option,
-		      estimated_length_seconds,
-		      include_ether_token,
-		      is_bounty,
-		      is_invitation_only,
-		      employer_metahash,
-		      reward_value);
+	address fwd = new Forwarder(); // Proxy Contract with
+	                               // target(EthlanceJobStore)
+	EthlanceJobStore jobStore = EthlanceJobStore(address(fwd));
+	uint job_index = registry.pushJobStore(address(jobStore));
+	jobStore.construct(msg.sender);
 	
 	// Create and Fire off event data
 	uint[] memory edata = new uint[](1);
@@ -80,17 +67,17 @@ contract EthlanceJobFactory {
     // Views
     //
     
-    function getJobCount()
+    function getJobStoreCount()
 	public view returns(uint) {
-	return registry.getJobCount();
+	return registry.getJobStoreCount();
     }
 
     /// @dev Get the job address at `index` within the job listing
     /// @param index The index of the job address within the job listing.
     /// @return The address of the given index
-    function getJobByIndex(uint index)
+    function getJobStoreByIndex(uint index)
 	public view returns (address)
     {
-	return registry.getJobByIndex(index);
+	return registry.getJobStoreByIndex(index);
     }
 }

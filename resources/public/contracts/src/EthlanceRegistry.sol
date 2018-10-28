@@ -25,7 +25,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     mapping(address => uint) user_address_mapping;
 
     // Ethereum users can have multiple jobs.
-    address[] job_address_listing;
+    address[] job_store_address_listing;
 
     // Mapping of privileged factories to carry out contract construction
     mapping(address => bool) public privileged_factory_contracts;
@@ -87,33 +87,33 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @dev Push job address into the job listing
     /// @param _job_address The address to place in the job listing.
     /// @return The job index of the pushed contract address.
-    function pushJob(address _job_address)
+    function pushJobStore(address _job_address)
 	auth
 	public returns(uint) {
-	job_address_listing.push(_job_address);
+	job_store_address_listing.push(_job_address);
 	permitEventDispatch(_job_address);
-	return job_address_listing.length - 1;
+	return job_store_address_listing.length - 1;
     }
 
 
     /// @dev Get the total number of jobs
     /// @return The number of job contract addresses.
-    function getJobCount()
+    function getJobStoreCount()
 	public view
 	returns(uint) {
-	return job_address_listing.length;
+	return job_store_address_listing.length;
     }
 
     
     /// @dev Gets the job contract address at the given index.
     /// @param index The index of the job contract.
     /// @return The address at the given job contract.
-    function getJobByIndex(uint index)
+    function getJobStoreByIndex(uint index)
 	public view
 	returns(address) {
-	require(index < job_address_listing.length,
+	require(index < job_store_address_listing.length,
 		"Given index is out of bounds.");
-	return job_address_listing[index];
+	return job_store_address_listing[index];
     }
 
 
