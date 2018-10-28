@@ -135,7 +135,7 @@ contract EthlanceWorkContract {
     }
 
 
-    /// @dev Fire events specific to the job contract
+    /// @dev Fire events specific to the work contract
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
