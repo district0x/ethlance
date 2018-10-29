@@ -13,9 +13,21 @@
    [ethlance.server.contract.ethlance-job-factory :as job-factory]))
 
 
-(def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
-(def district-config-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
-(def registry-placeholder "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
+(def forwarder-target-placeholder
+  "Forwarder Contract target replacement"
+  "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
+
+(def second-forwarder-target-placeholder
+  "SecondForwarder Contract target replacement"
+  "dabadabadabadabadabadabadabadabadabadaba")
+
+(def district-config-placeholder
+  "DistrictConfig Contract target replacement"
+  "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
+
+(def registry-placeholder
+  "EthlanceRegistry Contract target replacement"
+  "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
 
 
 (defn deploy-district-config!
@@ -120,6 +132,30 @@
    (contracts/contract-address :ethlance-user-factory-fwd)))
 
 
+(defn deploy-ethlance-invoice!
+  "Deploy EthlanceInvoice."
+  [opts]
+
+  (log/debug "Deploying EthlanceInvoice...")
+  (contracts/deploy-smart-contract!
+   :ethlance-invoice
+   (merge
+    {:gas 1000000}
+    opts)))
+
+
+(defn deploy-ethlance-dispute!
+  "Deploy EthlanceDispute."
+  [opts]
+
+  (log/debug "Deploying EthlanceDispute...")
+  (contracts/deploy-smart-contract!
+   :ethlance-dispute
+   (merge
+    {:gas 1000000}
+    opts)))
+
+
 (defn deploy-ethlance-work-contract!
   "Deploy EthlanceWorkContract."
   [opts]
@@ -131,7 +167,9 @@
    (merge
     {:gas 3000000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {forwarder-target-placeholder :ethlance-invoice
+      second-forwarder-target-placeholder :ethlance-dispute
+      registry-placeholder :ethlance-registry}}
     opts)))
 
 
@@ -221,6 +259,8 @@
   (deploy-ethlance-registry! general-contract-options)
   (deploy-ethlance-user! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
+  (deploy-ethlance-invoice! general-contract-options)
+  (deploy-ethlance-dispute! general-contract-options)
   (deploy-ethlance-work-contract! general-contract-options)
   (deploy-ethlance-job-store! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)

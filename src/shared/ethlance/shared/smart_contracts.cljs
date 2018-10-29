@@ -2,12 +2,15 @@
 
 (def smart-contracts 
   {:district-config
-   {:name "DistrictConfig",
-    :address "0x984af105970d82837d99c27631cf1ce9adaf0df5"}
+   {:name "DistrictConfig"}
    :ds-guard
    {:name "DSGuard"}
    :ethlance-user
    {:name "EthlanceUser"}
+   :ethlance-invoice
+   {:name "EthlanceInvoice"}
+   :ethlance-dispute
+   {:name "EthlanceDispute"}
    :ethlance-work-contract
    {:name "EthlanceWorkContract"}
    :ethlance-user-factory

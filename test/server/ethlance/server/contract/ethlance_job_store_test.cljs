@@ -118,7 +118,7 @@
 
 
 (deftest-smart-contract request-work-contract-main {}
-  (let [[employer-address candidate-address arbiter-address random-user-address]
+  (let [[employer-address candidate-address candidate-address-2 arbiter-address random-user-address]
         (web3-eth/accounts @web3)
 
         ;; Employer User
@@ -134,18 +134,33 @@
               :currency-type ::enum.currency/usd}
              {:from candidate-address}))
 
+        ;; Second Candidate User
+        tx-3 (test-gen/register-user! candidate-address-2 "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address-2)
+            (user/register-candidate!
+             {:hourly-rate 120
+              :currency-type ::enum.currency/usd}
+             {:from candidate-address-2}))
+
         ;; Arbiter User
-        tx-3 (test-gen/register-user! arbiter-address "QmZhash3")
+        tx-4 (test-gen/register-user! arbiter-address "QmZhash3")
         _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
             (user/register-arbiter!
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
-     (test-gen/create-job-store! {} {:from employer-address})
 
-     (testing "Requesting a work contract as a candidate"
+     (test-gen/create-job-store! {} {:from employer-address})
+     (testing "Requesting a work contract as a Candidate"
        (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
          (is (bn/= (job-store/work-contract-count) 0))
          (job-store/request-work-contract! candidate-address {:from candidate-address})
+         (is (bn/= (job-store/work-contract-count) 1))))
+
+     (test-gen/create-job-store! {} {:from employer-address})
+     (testing "Requesting a work contract as an Employer"
+       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 1)
+         (is (bn/= (job-store/work-contract-count) 0))
+         (job-store/request-work-contract! candidate-address {:from employer-address})
          (is (bn/= (job-store/work-contract-count) 1))))))

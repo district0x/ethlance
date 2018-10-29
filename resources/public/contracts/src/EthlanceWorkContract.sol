@@ -7,6 +7,8 @@ import "./EthlanceJobStore.sol";
 import "./EthlanceDispute.sol";
 import "./EthlanceInvoice.sol";
 import "proxy/MutableForwarder.sol";
+import "proxy/Forwarder.sol";
+import "proxy/SecondForwarder.sol";
 
 
 /// @title Job Contracts to tie candidates, employers, and arbiters to
