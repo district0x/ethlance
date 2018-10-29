@@ -89,7 +89,7 @@
 
 
 (deftest-smart-contract request-arbiter-edge-case-1 {}
-  (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
+  (let [[employer-address candidate-address arbiter-address random-user-address]
         (web3-eth/accounts @web3)
 
         ;; Employer User
@@ -115,3 +115,30 @@
     (testing "Try and have the employer become the arbiter of the contract"
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
         (is (thrown? js/Error (job-store/request-arbiter! employer-address {:from employer-address})))))))
+
+
+(deftest-smart-contract request-work-contract-main {}
+  (let [[employer-address candidate-address arbiter-address random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (test-gen/register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (test-gen/register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             {:hourly-rate 120
+              :currency-type ::enum.currency/usd}
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (test-gen/register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             {:payment-value 3
+              :currency-type ::enum.currency/eth
+              :payment-type ::enum.payment/percentage}
+             {:from arbiter-address}))]))

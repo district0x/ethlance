@@ -71,9 +71,9 @@ contract EthlanceJobStore {
     ArbiterRequest[] public arbiter_request_listing;
     mapping(address => uint) public arbiter_request_mapping;
 
-    // Job Worker Listing
-    address[] public job_worker_listing;
-    mapping(address => uint) public job_worker_mapping;
+    // Work Contract Listing
+    address[] public work_contract_listing;
+    mapping(address => bool) public work_contract_mapping;
     
 
     function construct(address _employer_address,
@@ -126,7 +126,28 @@ contract EthlanceJobStore {
     /// @param candidate_address The user address of the Candidate.
     function requestWorkContract(address candidate_address)
 	public {
+	require(registry.isRegisteredUser(candidate_address),
+		"Given address is not a registered user.");
+	require(msg.sender == employer_address || msg.sender == candidate_address,
+		"ERROR: The employer can request a work contract for a candidate. The candidate can request a work contract for himself.");
+	require(employer_address != candidate_address,
+		"Employer cannot work on his own Job.");
 	
+	// Create the forwarded contract, and place in the work listing.
+	address fwd = new Forwarder(); // Proxy Contract with
+	                               // target(EthlanceWorkContract)
+	EthlanceWorkContract workContract = EthlanceWorkContract(address(fwd));
+	work_contract_listing.push(address(workContract));
+	work_contract_mapping[candidate_address] = true;
+
+	// Determine if it's an employer or a candidate request
+	bool is_employer_request = false;
+	if (msg.sender == employer_address) {
+	    is_employer_request = true;
+	}
+
+	// Construct the work contract.
+	workContract.construct(this, is_employer_request);
 	
     }
 
@@ -149,9 +170,9 @@ contract EthlanceJobStore {
 
      */
     function requestArbiter(address arbiter_address)
-	public
-	//isRegisteredUser(arbiter_address)
-    {
+	public {
+	require(registry.isRegisteredUser(arbiter_address),
+		"Given address is not a registered user.");
 	require(accepted_arbiter == 0, "Arbiter already accepted.");
 	//require(arbiter_address != accepted_candidate,
 	//	"Accepted Candidate cannot be an Accepted Arbiter");
@@ -239,4 +260,20 @@ contract EthlanceJobStore {
 	arbiter_address = arbiterRequest.arbiter_address;
     }
 
+
+    /// @dev Get the current number of work contracts
+    /// @return The number of work contracts in the job store.
+    function getWorkContractCount()
+	public view returns(uint) {
+	return work_contract_listing.length;
+    }
+
+    /// @dev Returns the WorkContract address at the given index.
+    /// @param index The index of the Work Contract to be retrieved.
+    /// @return The address of the EthlanceWorkContract.
+    function getWorkContractByIndex(uint index)
+	public view returns(address) {
+	require(index < work_contract_listing.length, "Given index is out of bounds.");
+	return work_contract_listing[index];
+    }
 }

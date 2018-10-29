@@ -4,6 +4,8 @@ import "./EthlanceRegistry.sol";
 import "./EthlanceUserFactory.sol";
 import "./EthlanceUser.sol";
 import "./EthlanceJobStore.sol";
+import "./EthlanceDispute.sol";
+import "./EthlanceInvoice.sol";
 import "proxy/MutableForwarder.sol";
 
 
@@ -103,8 +105,7 @@ contract EthlanceWorkContract {
     /// @param _metahash The new metahash
     function appendEmployerMetahash(string _metahash)
 	public
-        //isEmployer(msg.sender)
-    {
+        isEmployer(msg.sender) {
 	//emit UpdatedEmployerMetahash(metahash_store.employer_hash, _metahash);
 	employer_metahash_listing.push(_metahash);
 	updateDateUpdated();
@@ -146,7 +147,6 @@ contract EthlanceWorkContract {
     //
     // Modifiers
     //
-
     
     /// @dev Checks if it is the employer of the job contract.
     /// @param _address The user address of the employer.
@@ -157,55 +157,8 @@ contract EthlanceWorkContract {
     }
 
    
-    /// @dev Checks if it is the accepted candidate of the job contract.
-    /// @param _address The user address of the accepted candidate.
-    modifier isAcceptedCandidate(address _address) {
-	require(accepted_candidate == _address,
-		"Given user is not the accepted candidate.");
-	_;
-    }
 
 
-    /// @dev Checks if it is the accepted arbiter of the job contract
-    /// @param _address The user address of the accepted arbiter.
-    modifier isAcceptedArbiter(address _address) {
-	require(store_instance.accepted_arbiter() == _address,
-		"Given user is not the accepted arbiter.");
-	_;
-    }
 
 
-    /// @dev Checks if the given address is a registered user
-    modifier isRegisteredUser(address _address) {
-	require(registry.getUserByAddress(_address) != 0,
-		"Given address is not a registered user.");
-	_;
-    }
-
-
-    /// @dev Checks if the given address is a registered employer
-    modifier isRegisteredEmployer(address _address) {
-	var (is_registered) = EthlanceUser(registry.getUserByAddress(_address)).getEmployerData();
-	require(is_registered,
-		"Given address is not a registered employer.");
-	_;
-    }
-
-
-    /// @dev Checks if the given address is a registered candidate
-    modifier isRegisteredCandidate(address _address) {
-	var (is_registered,,) = EthlanceUser(registry.getUserByAddress(_address)).getCandidateData();
-	require(is_registered,
-		"Given address is not a registered candidate.");
-	_;
-    }
-
-
-    /// @dev Checks if the given address is a registered arbiter
-    modifier isRegisteredArbiter(address _address) {
-	var (is_registered,,,) = EthlanceUser(registry.getUserByAddress(_address)).getArbiterData();
-	require(is_registered,
-		"Given address is not a registered arbiter.");
-	_;
-    }
 }

@@ -17,35 +17,38 @@
   (assert *job-store-key* "Given function needs to be wrapped in 'with-ethlance-job-store"))
 
 
+(defn call
+  "Call the bound EthlanceJobStore with the given `method-name` and `args`."
+  [method-name & args]
+  (requires-job-store-key)
+  (apply contracts/contract-call *job-store-key* method-name args))
+
+
 (defn request-arbiter!
   "Request an arbiter for the job contract"
   [arbiter-address & [opts]]
-  (requires-job-store-key)
-  (contracts/contract-call
-   *job-store-key* :request-arbiter arbiter-address
+  (call
+   :request-arbiter arbiter-address
    (merge {:gas 2000000} opts)))
 
 
 (defn accepted-arbiter
-  "The accepted arbiter for a given job contract."
+  "The accepted arbiter for all of the work contracts."
   []
-  (requires-job-store-key)
-  (contracts/contract-call *job-store-key* :accepted_arbiter))
+  (call :accepted_arbiter))
 
 
 (defn requested-arbiter-count
   "The number of requested arbiters in the given job contract."
   []
-  (requires-job-store-key)
-  (contracts/contract-call *job-store-key* :get-requested-arbiter-count))
+  (call :get-requested-arbiter-count))
 
 
 (defn requested-arbiter-by-index
   "Returns requested arbiter data for the arbiter at the given
   `index`."
   [index]
-  (requires-job-store-key)
   (let [[is-employer-request? arbiter-address]
-        (contracts/contract-call *job-store-key* :get-requested-arbiter-by-index index)]
+        (call :get-requested-arbiter-by-index index)]
     {:is-employer-request? is-employer-request?
      :arbiter-address arbiter-address}))

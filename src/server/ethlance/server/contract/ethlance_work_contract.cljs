@@ -11,7 +11,23 @@
   nil) ;; [:ethlance-work-contract "0x0"]
 
 
+(defn call
+  "Call the bound EthlanceWorkContract contract with the given
+  `method-name` and `args`."
+  [method-name & args]
+  (apply contracts/contract-call *work-contract-key* method-name args))
+
+
 (defn- requires-work-contract-key
   "Asserts the correct use of the work contract functions."
   []
   (assert *work-contract-key* "Given function needs to be wrapped in 'with-ethlance-work-contract"))
+
+
+(defn accepted-candidate
+  "The accepted candidate for the currently bound work contract."
+  []
+  (requires-work-contract-key)
+  (call :accepted_candidate))
+  
+

@@ -165,9 +165,22 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	event_dispatch_whitelist[_address] = true;
     }
 
+    /// @dev Returns true, if the given address is a registered user
+    /// within the registry.
+    /// @param _address Address of the user.
+    /// @return Returns true if it is a registered user.
+    function isRegisteredUser(address _address)
+	public view returns(bool) {
+	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
+	if (address(user) == 0x0) {
+	    return false;
+	}
+	return true;
+    }
+
     /// @dev Returns true, if the given user address is a registered employer
     /// @param _address Address of the user
-    /// @return Returns true, if the it is an employer address.
+    /// @return Returns true if it is an employer address.
     function isRegisteredEmployer(address _address)
 	public view returns(bool) {
 	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
@@ -193,9 +206,9 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	return is_registered;
     }
     
-    /// @dev Returns true, if the given user address is a registered candidate
+    /// @dev Returns true, if the given user address is a registered arbiter
     /// @param _address Address of the user
-    /// @return Returns true if it is a registered candidate.
+    /// @return Returns true if it is a registered arbiter.
     function isRegisteredArbiter(address _address)
 	public view returns(bool) {
 	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
