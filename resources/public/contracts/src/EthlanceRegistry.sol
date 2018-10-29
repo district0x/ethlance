@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "DSAuth.sol";
 import "proxy/MutableForwarder.sol";
-
+import "./EthlanceUser.sol";
 
 /*
   EthlanceRegistry deployment should make use of the mutable forwarder.
@@ -163,6 +163,48 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	auth
 	public {
 	event_dispatch_whitelist[_address] = true;
+    }
+
+    /// @dev Returns true, if the given user address is a registered employer
+    /// @param _address Address of the user
+    /// @return Returns true, if the it is an employer address.
+    function isRegisteredEmployer(address _address)
+	public view returns(bool) {
+	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
+	if (address(user) == 0x0) {
+	    return false;
+	}
+
+	bool is_registered = user.getEmployerData();
+	return is_registered;
+    }
+
+    /// @dev Returns true, if the given user address is a registered candidate
+    /// @param _address Address of the user
+    /// @return Returns true if it is a registered candidate.
+    function isRegisteredCandidate(address _address)
+	public view returns(bool) {
+	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
+	if (address(user) == 0x0) {
+	    return false;
+	}
+
+	var (is_registered,,) = user.getCandidateData();
+	return is_registered;
+    }
+    
+    /// @dev Returns true, if the given user address is a registered candidate
+    /// @param _address Address of the user
+    /// @return Returns true if it is a registered candidate.
+    function isRegisteredArbiter(address _address)
+	public view returns(bool) {
+	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
+	if (address(user) == 0x0) {
+	    return false;
+	}
+
+	var (is_registered,,,) = user.getArbiterData();
+	return is_registered;
     }
 
 }

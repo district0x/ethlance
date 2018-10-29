@@ -26,21 +26,6 @@ contract EthlanceJobFactory {
     }
 
 
-    /// @dev Returns true, if the given user address is a registered employer
-    /// @param _address Address of the user
-    /// @return Returns true, if the it is an employer address.
-    function isRegisteredEmployer(address _address)
-	public view returns(bool) {
-	EthlanceUser user = EthlanceUser(registry.getUserByAddress(_address));
-	if (address(user) == 0x0) {
-	    return false;
-	}
-
-	bool is_registered = user.getEmployerData();
-	return is_registered;
-    }
-
-
     /// @dev Create Job Contract for given user defined by
     /// 'employer_user_id'. Note that parameters are described in
     /// EthlanceJob contract.
@@ -51,7 +36,7 @@ contract EthlanceJobFactory {
 			    string metahash,
 			    uint reward_value)
 	public {
-	require(isRegisteredEmployer(msg.sender),
+	require(registry.isRegisteredEmployer(msg.sender),
 		"You are not a registered employer.");
 
 	// TODO: bounds on parameters

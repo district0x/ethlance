@@ -49,7 +49,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-registry
    (merge
-    {:gas 1000000}
+    {:gas 2000000}
     opts))
 
   ;; Assign the DSGuard authority

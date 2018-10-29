@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
+import "./proxy/Forwarder.sol";
 
 /// @title Create Job Contracts as an assigned Employer as a group of
 /// identical contracts.
