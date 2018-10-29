@@ -8,7 +8,8 @@
 (def enum-bid
   {::hourly-rate 0
    ::fixed-price 1
-   ::annual-salary 2})
+   ::annual-salary 2
+   ::bounty 3})
 
 
 (s/def ::key (set (keys enum-bid)))

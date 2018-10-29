@@ -24,10 +24,8 @@
   (assert *work-contract-key* "Given function needs to be wrapped in 'with-ethlance-work-contract"))
 
 
-(defn accepted-candidate
+(defn candidate_address
   "The accepted candidate for the currently bound work contract."
   []
-  (requires-work-contract-key)
-  (call :accepted_candidate))
-  
+  (call :candidate_address))
 

@@ -52,3 +52,22 @@
         (call :get-requested-arbiter-by-index index)]
     {:is-employer-request? is-employer-request?
      :arbiter-address arbiter-address}))
+
+
+(defn request-work-contract!
+  "Request a work contract for the given `candidate-address`"
+  [candidate-address & [opts]]
+  (call :request-work-contract candidate-address
+        (merge {:gas 2000000} opts)))
+
+
+(defn work-contract-count
+  "Get the number of work contracts within the bound Job Store."
+  []
+  (call :get-work-contract-count))
+
+
+(defn work-contract-by-index
+  "Get the work contract address by the given `index`."
+  [index]
+  (call :get-work-contract-by-index index))

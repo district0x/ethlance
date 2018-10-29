@@ -50,13 +50,23 @@ contract EthlanceWorkContract {
     // 8 -> Finished
     // 9 -> Cancelled
     uint public contract_status;
+    uint public constant CONTRACT_STATUS_OPEN_CANDIDATE_REQUEST = 1;
+    uint public constant CONTRACT_STATUS_OPEN_EMPLOYER_REQUEST = 2;
+    uint public constant CONTRACT_STATUS_OPEN_BOUNTY = 3;
+    uint public constant CONTRACT_STATUS_ACCEPTED = 4;
+    uint public constant CONTRACT_STATUS_REJECTED = 5;
+    uint public constant CONTRACT_STATUS_IN_PROGRESS = 6;
+    uint public constant CONTRACT_STATUS_ON_HOLD = 7;
+    uint public constant CONTRACT_STATUS_FINISHED = 8;
+    uint public constant CONTRACT_STATUS_CANCELLED = 9;
+    
 
     // The EthlanceJobStore contains additional data about our
     // contract.
     EthlanceJobStore public store_instance;
 
     // The candidate linked to this contract
-    address public accepted_candidate;
+    address public candidate_address;
 
     uint public date_created;
     uint public date_updated;
@@ -80,14 +90,28 @@ contract EthlanceWorkContract {
 
 
     /// @dev Forwarder Constructor
-    function construct(EthlanceJobStore _store_instance, bool is_employer_request)
+    function construct(EthlanceJobStore _store_instance,
+		       address _candidate_address,
+		       bool is_employer_request)
 	external {
 	// require(registry.checkFactoryPrivilege(msg.sender), "You are not privileged to carry out construction.");
 
 	// Main members
 	store_instance = _store_instance;
+	candidate_address = _candidate_address;
 	date_created = now;
 	date_updated = now;
+
+	// Update the contract status based on bounty, or employer request
+	if (store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
+	    contract_status = CONTRACT_STATUS_OPEN_BOUNTY;
+	}
+	else if (is_employer_request) {
+	    contract_status = CONTRACT_STATUS_OPEN_EMPLOYER_REQUEST;
+	}
+	else {
+	    contract_status = CONTRACT_STATUS_OPEN_CANDIDATE_REQUEST;
+	}
     }
 
     //

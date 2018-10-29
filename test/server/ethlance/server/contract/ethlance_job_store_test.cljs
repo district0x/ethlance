@@ -141,4 +141,11 @@
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from arbiter-address}))]))
+             {:from arbiter-address}))]
+     (test-gen/create-job-store! {} {:from employer-address})
+
+     (testing "Requesting a work contract as a candidate"
+       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+         (is (bn/= (job-store/work-contract-count) 0))
+         (job-store/request-work-contract! candidate-address {:from candidate-address})
+         (is (bn/= (job-store/work-contract-count) 1))))))

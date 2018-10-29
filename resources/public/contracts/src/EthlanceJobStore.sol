@@ -34,6 +34,7 @@ contract EthlanceJobStore {
     // 2 - Annual Salary
     // 3 - Bounty
     uint8 public bid_option;
+    uint8 public constant BID_OPTION_BOUNTY = 3;
 
     // Datetime of job contract creation
     uint public date_created;
@@ -124,12 +125,21 @@ contract EthlanceJobStore {
 
     /// @dev Request and create a pending contract between the Candidate and the Employer
     /// @param candidate_address The user address of the Candidate.
+    /*
+      
+      Only the employer or the candidate can request a work
+      contract. Contract status upon construction depends on who
+      requests a work contract, or whether the Job is bounty-based.
+
+     */
     function requestWorkContract(address candidate_address)
 	public {
 	require(registry.isRegisteredUser(candidate_address),
 		"Given address is not a registered user.");
 	require(msg.sender == employer_address || msg.sender == candidate_address,
 		"ERROR: The employer can request a work contract for a candidate. The candidate can request a work contract for himself.");
+	require(work_contract_mapping[candidate_address] == false,
+		"Candidate already has a work contract created.");
 	require(employer_address != candidate_address,
 		"Employer cannot work on his own Job.");
 	
@@ -147,7 +157,7 @@ contract EthlanceJobStore {
 	}
 
 	// Construct the work contract.
-	workContract.construct(this, is_employer_request);
+	workContract.construct(this, candidate_address, is_employer_request);
 	
     }
 
