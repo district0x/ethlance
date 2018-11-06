@@ -9,11 +9,12 @@
    [ethlance.server.contract.ethlance-job-factory-test]
    [ethlance.server.contract.ethlance-job-store-test]
    [ethlance.server.contract.ethlance-work-contract-test]
+   [ethlance.server.contract.ethlance-invoice-test]
+   [ethlance.server.contract.ethlance-dispute-test]
 
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]
    [ethlance.shared.enum.payment-type-test]
-
    [ethlance.shared.enum.bid-option-test]))
 
 

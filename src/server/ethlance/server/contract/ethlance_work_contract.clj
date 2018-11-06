@@ -1,5 +1,5 @@
 (ns ethlance.server.contract.ethlance-work-contract
-  "Macros for EthlanceJobStore")
+  "Macros for EthlanceWorkContract")
 
 
 (defmacro with-ethlance-work-contract
