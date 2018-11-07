@@ -39,6 +39,7 @@ contract EthlanceInvoice {
     
     /// @dev Forwarder Constructor
     function construct(EthlanceWorkContract _work_instance, string _metahash) {
+	// TODO: authenticate
 	work_instance = _work_instance;
 	metahash = _metahash;
 	date_created = now;

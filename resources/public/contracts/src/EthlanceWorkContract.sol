@@ -11,7 +11,7 @@ import "proxy/Forwarder.sol";
 import "proxy/SecondForwarder.sol";
 
 
-/// @title Job Contracts to tie candidates, employers, and arbiters to
+/// @title Work Contract to tie candidates, employers, and arbiters to
 /// an agreement.
 contract EthlanceWorkContract {
     uint public constant version = 1;
@@ -37,20 +37,25 @@ contract EthlanceWorkContract {
     //
     // Status Codes:
     // -----------
-    // 0 -> Initial
+    // 0  -> Initial
     // --
-    // 1 -> Open Candidate Request
-    // 2 -> Open Employer Request
-    // 3 -> Open Bounty
+    // 1  -> Request Invite Candidate
+    // 2  -> Request Invite Employer
+    // 3  -> Open Bounty
     // --
-    // 4 -> Accepted
-    // 5 -> Rejected
+    // 4  -> Accepted
+    // 5  -> Rejected
     // --
-    // 6 -> In Progress
-    // 7 -> On Hold
+    // 6  -> In Progress
+    // 7  -> On Hold
     // --
-    // 8 -> Finished
-    // 9 -> Cancelled
+    // 8  -> Request Finished Candidate
+    // 9  -> Request Finished Employer
+    // 10 -> Finished
+    // --
+    // 11 -> Request Cancelled Candidate
+    // 12 -> Request Cancelled Employer
+    // 13 -> Cancelled
     uint public contract_status;
     uint public constant CONTRACT_STATUS_OPEN_CANDIDATE_REQUEST = 1;
     uint public constant CONTRACT_STATUS_OPEN_EMPLOYER_REQUEST = 2;
