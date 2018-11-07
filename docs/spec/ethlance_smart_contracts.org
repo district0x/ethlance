@@ -472,12 +472,10 @@
    Request_Finished_Candidate --> Finished : WorkContract.requestFinished() FROM employer
    Request_Finished_Employer --> Finished : WorkContract.requestFinished() FROM candidate
 
-   In_Progress --> Request_Cancelled_Candidate : WorkContract.requestCancelled() FROM candidate
-   In_Progress --> Request_Cancelled_Employer : WorkContract.request.Cancelled() FROM employer
-   
-   Request_Cancelled_Candidate --> Cancelled : WorkContract.requestCancelled() FROM employer
-   Request_Cancelled_Employer --> Cancelled : WorkContract.requestCancelled() FROM candidate   
    On_Hold --> Cancelled : Dispute.resolveDispute(...) FROM arbiter
+
+   Finished --> [*]
+   Cancelled --> [*]
 
    #+END_SRC
 
