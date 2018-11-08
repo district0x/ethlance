@@ -44,28 +44,27 @@ contract EthlanceWorkContract {
     // 3  -> Open Bounty
     // --
     // 4  -> Accepted
-    // 5  -> Rejected
     // --
-    // 6  -> In Progress
-    // 7  -> On Hold
+    // 5  -> In Progress
+    // 6  -> On Hold
     // --
-    // 8  -> Request Finished Candidate
-    // 9  -> Request Finished Employer
-    // 10 -> Finished
+    // 7  -> Request Finished Candidate
+    // 8  -> Request Finished Employer
+    // 9  -> Finished
     // --
-    // 11 -> Request Cancelled Candidate
-    // 12 -> Request Cancelled Employer
-    // 13 -> Cancelled
+    // 10 -> Cancelled
     uint public contract_status;
-    uint public constant CONTRACT_STATUS_OPEN_CANDIDATE_REQUEST = 1;
-    uint public constant CONTRACT_STATUS_OPEN_EMPLOYER_REQUEST = 2;
+    uint public constant CONTRACT_STATUS_INITIAL = 0;
+    uint public constant CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE = 1;
+    uint public constant CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE = 2;
     uint public constant CONTRACT_STATUS_OPEN_BOUNTY = 3;
     uint public constant CONTRACT_STATUS_ACCEPTED = 4;
-    uint public constant CONTRACT_STATUS_REJECTED = 5;
-    uint public constant CONTRACT_STATUS_IN_PROGRESS = 6;
-    uint public constant CONTRACT_STATUS_ON_HOLD = 7;
-    uint public constant CONTRACT_STATUS_FINISHED = 8;
-    uint public constant CONTRACT_STATUS_CANCELLED = 9;
+    uint public constant CONTRACT_STATUS_IN_PROGRESS = 5;
+    uint public constant CONTRACT_STATUS_ON_HOLD = 6;
+    uint public constant CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED = 7;
+    uint public constant CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED = 8;
+    uint public constant CONTRACT_STATUS_FINISHED = 9;
+    uint public constant CONTRACT_STATUS_CANCELLED = 10;
     
 
     // The EthlanceJobStore contains additional data about our
@@ -109,16 +108,7 @@ contract EthlanceWorkContract {
 	date_created = now;
 	date_updated = now;
 
-	// Update the contract status based on bounty, or employer request
-	if (store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
-	    contract_status = CONTRACT_STATUS_OPEN_BOUNTY;
-	}
-	else if (is_employer_request) {
-	    contract_status = CONTRACT_STATUS_OPEN_EMPLOYER_REQUEST;
-	}
-	else {
-	    contract_status = CONTRACT_STATUS_OPEN_CANDIDATE_REQUEST;
-	}
+	requestInvite();
     }
 
     //
@@ -166,6 +156,175 @@ contract EthlanceWorkContract {
 	updateDateUpdated();
     }
 
+    
+    /// @dev Change the contract status
+    /// @param new_status The new contract status
+    function setContractStatus(uint new_status) private {
+	contract_status = new_status;
+	updateDateUpdated();
+    }
+
+
+    /// @dev Requests an invite from either the candidate or the employer.
+    /*
+      Case 1:
+      
+      requestInvite() is initially called while the contract is in a
+      CONTRACT_STATUS_INITIAL state and the store_instance.is_bounty
+      is true. The Contract is placed in a CONTRACT_STATUS_OPEN_BOUNTY
+      state.
+
+      Case 2:
+      
+      requestInvite() is initially called while the contract is in a
+      CONTRACT_STATUS_INITIAL state and the contract is placed in a
+      CONTRACT_STATUS_EMPLOYER_INVITE state.
+
+      Case 3:
+
+      requestInvite() is initially called while the contract is in a
+      CONTRACT_STATUS_INITIAL state and the contract is placed in a
+      CONTRACT_STATUS_CANDIDATE_INVITE state.
+
+      Case 4:
+
+      requestInvite() is called while the contract is in a
+      CONTRACT_STATUS_CANDIDATE_INVITE state and the contract is
+      placed in a CONTRACT_STATUS_ACCEPTED state.
+
+      Case 5:
+
+      requestInvite() is called while the contract is in a
+      CONTRACT_STATUS_EMPLOYER_INVITE state and the contract is placed
+      in a CONTRACT_STATUS_ACCEPTED state.
+      
+      Default:
+
+      ERROR
+     */
+    function requestInvite()
+	public {
+	require(address(store_instance) == msg.sender ||
+		store_instance.employer_address() == msg.sender || 
+		candidate_address == msg.sender,
+		"Only the job store, candidate and employer can request an invite.");
+	
+	bool is_employer_request = false;
+	if (store_instance.employer_address() == msg.sender) {
+	    is_employer_request = true;
+	}
+
+	// Case 1
+	if (!is_employer_request && store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
+	    setContractStatus(CONTRACT_STATUS_OPEN_BOUNTY);
+	    return;
+	}
+
+	// Case 2 & 3
+	if (contract_status == CONTRACT_STATUS_INITIAL) {
+	    if (is_employer_request) {
+		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE);
+		return;
+	    }
+	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE);
+	    return;
+	}
+	
+	// Case 4
+	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE) {
+	    setContractStatus(CONTRACT_STATUS_ACCEPTED);
+	    return;
+	}
+
+	// Case 5
+	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE) {
+	    setContractStatus(CONTRACT_STATUS_ACCEPTED);
+	    return;
+	}
+
+	revert("Failed to meet required requestInvite criteria");
+    }
+
+
+    /// @dev Start the work contract
+    /*
+      Notes:
+
+      - This requires that the contract be within the CONTRACT_STATUS_ACCEPTED state.
+     */
+    function proceed() external {
+	require(store_instance.employer_address() == msg.sender,
+		"Must be an employer to start a contract");
+
+	if (contract_status == CONTRACT_STATUS_ACCEPTED) {
+	    setContractStatus(CONTRACT_STATUS_IN_PROGRESS);
+	}
+	else {
+	    revert("Cannot start a contract if it is not in the 'accepted' state.");
+	}
+    }
+
+
+    /// @dev Request to finish the contract as the employer or the candidate
+    /*
+      Case 1:
+
+      While in the CONTRACT_STATUS_IN_PROGRESS state, and if the
+      candidate invokes requestFinished(), the contract will be placed
+      in the CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED state.
+
+      Case 2:
+
+      While in the CONTRACT_STATUS_IN_PROGRESS state, and if the
+      employer invokes requestFinished(), the contract will be placed
+      in the CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED state.
+      
+      Case 3:
+
+      While in the CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED state,
+      and if the candidate invokes requestFinished(), the contract
+      will be placed in the CONTRACT_STATUS_FINISHED state.
+
+      Case 4:
+
+      While in the CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED state,
+      and if the employer invokes requestFinished(), the contract will
+      be placed in the CONTRACT_STATUS_FINISHED state.
+
+     */
+    function requestFinished() external {
+	require(store_instance.employer_address() == msg.sender || candidate_address == msg.sender,
+		"Only the candidate and the employer can request finishing the contract.");
+	
+	bool is_employer_request = false;
+	if (store_instance.employer_address() == msg.sender) {
+	    is_employer_request = true;
+	}
+
+	// Case 1 & 2
+	if (contract_status == CONTRACT_STATUS_IN_PROGRESS) {
+	    if (is_employer_request) {
+		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED);
+		return;
+	    }
+	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED);
+	}
+	
+	// Case 3
+	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED) {
+	    setContractStatus(CONTRACT_STATUS_FINISHED);
+	    return;
+	}
+
+	// Case 4
+	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED) {
+	    setContractStatus(CONTRACT_STATUS_FINISHED);
+	    return;
+	}
+
+	revert("Failed to meet requestFinished criteria.");
+    }
+    
 
     /// @dev Fire events specific to the work contract
     /// @param event_name Unique to give the fired event
@@ -174,6 +333,7 @@ contract EthlanceWorkContract {
     function fireEvent(string event_name, uint[] event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
+
 
     //
     // Modifiers
@@ -186,10 +346,4 @@ contract EthlanceWorkContract {
 		"Given user is not the employer.");
 	_;
     }
-
-   
-
-
-
-
 }
