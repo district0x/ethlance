@@ -36,7 +36,7 @@ contract EthlanceInvoice {
     string[] public candidate_metahash_listing;
     
     /// @dev Forwarder Constructor
-    function construct(EthlanceWorkContract _work_instance, string metahash, uint _amount) {
+    function construct(EthlanceWorkContract _work_instance, uint _amount, string metahash) {
 	// TODO: authenticate
 	work_instance = _work_instance;
 	candidate_metahash_listing.push(metahash);

@@ -99,7 +99,7 @@ contract EthlanceWorkContract {
     function construct(EthlanceJobStore _store_instance,
 		       address _candidate_address,
 		       bool is_employer_request)
-	external {
+	public {
 	// require(registry.checkFactoryPrivilege(msg.sender), "You are not privileged to carry out construction.");
 
 	// Main members
@@ -342,6 +342,10 @@ contract EthlanceWorkContract {
     /// candidate.
     function createDispute(string reason, string metahash) public {
 	// TODO: authentication
+	bool is_employer_request = false;
+	if (store_instance.employer_address() == msg.sender) {
+	    is_employer_request = true;
+	}
 
 	// Create the forwarded contract
 	address fwd = new SecondForwarder(); // Proxy Contract
@@ -350,15 +354,26 @@ contract EthlanceWorkContract {
 	dispute_listing.push(dispute);
 	
 	// Construct the dispute contract
-	dispute.construct(this, reason, metahash);
+	dispute.construct(this, reason, metahash, is_employer_request);
     }
 
     
+    /// @dev Returns the number of disputes within the work contract
+    function getDisputeCount() public view returns(uint) {
+	return dispute_listing.length;
+    }
+
+    
+    /// @dev Returns the address of the EthlanceDispute at the given
+    /// index within the dispute listing.
+    function getDisputeByIndex(uint index) public view returns (address) {
+	return dispute_listing[index];
+    }
+
+
     /// @dev Create an invoice between the employer and the candidate.
     /// @param metahash Contains additional information about the invoice
-    function createInvoice(string metahash, uint amount) public {
-	// TODO: authentication
-
+    function createInvoice(uint amount, string metahash) public {
 	// Create the forwarded contract
 	address fwd = new Forwarder(); // Proxy Contract
 	                               // target(EthlanceInvoice)
@@ -366,9 +381,22 @@ contract EthlanceWorkContract {
 	invoice_listing.push(invoice);
 	
 	// Construct the invoice contract
-	invoice.construct(this, metahash, amount);
+	invoice.construct(this, amount, metahash);
     }
 
+    
+    /// @dev Returns the number of invoices within the work contract
+    function getInvoiceCount() public view returns(uint) {
+	return invoice_listing.length;
+    }
+
+    
+    /// @dev Returns the address of the EthlanceInvoice at the given
+    /// index within the invoice listing.
+    function getInvoiceByIndex(uint index) public view returns (address) {
+	return invoice_listing[index];
+    }
+    
 
     //
     // Modifiers

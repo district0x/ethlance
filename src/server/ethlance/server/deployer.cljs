@@ -152,7 +152,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-dispute
    (merge
-    {:gas 1000000}
+    {:gas 6721975}
     opts)))
 
 
