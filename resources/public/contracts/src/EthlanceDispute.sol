@@ -19,10 +19,8 @@ contract EthlanceDispute {
     // When date_resolved is set >0, this reflects completion
     uint public date_resolved;
 
-    string public metahash;
-
     // Title of dispute, describing the reason for the dispute
-    string public title;
+    string public reason;
 
     //FIXME: needs to be more flexible for other currency types.
 
@@ -41,14 +39,19 @@ contract EthlanceDispute {
     // Collections
     //
     
-    string[] public comment_listing;
+    // Listing consists of IPFS hashes with a pre-defined EDN structure.
+    string[] public employer_metahash_listing;
+    string[] public candidate_metahash_listing;
+    string[] public arbiter_metahash_listing;
 
     
     /// @dev Forwarder Constructor
-    function construct(EthlanceWorkContract _work_instance, string _metahash) {
+    function construct(EthlanceWorkContract _work_instance, string _reason, string comment_metahash) {
 	// TODO: authenticate
 	work_instance = _work_instance;
-	metahash = _metahash;
+	reason = _reason;
+	// TODO: distinguish for pushing comments
+	//comment_listing.push(comment_metahash);
 	date_created = now;
 	date_updated = now;
     }

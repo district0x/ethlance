@@ -18,8 +18,6 @@ contract EthlanceInvoice {
 
     // When date_paid is set >0, this reflects completion
     uint public date_paid;
-
-    string public metahash;
     
     //FIXME: needs to be more flexible for other currency types
     //defined in the contract.
@@ -34,14 +32,15 @@ contract EthlanceInvoice {
     // Collections
     //
     
-    string[] public comment_listing;
-
+    string[] public employer_metahash_listing;
+    string[] public candidate_metahash_listing;
     
     /// @dev Forwarder Constructor
-    function construct(EthlanceWorkContract _work_instance, string _metahash) {
+    function construct(EthlanceWorkContract _work_instance, string metahash, uint _amount) {
 	// TODO: authenticate
 	work_instance = _work_instance;
-	metahash = _metahash;
+	candidate_metahash_listing.push(metahash);
+	amount = _amount;
 	date_created = now;
 	date_updated = now;
     }

@@ -39,8 +39,8 @@ contract EthlanceWorkContract {
     // -----------
     // 0  -> Initial
     // --
-    // 1  -> Request Invite Candidate
-    // 2  -> Request Invite Employer
+    // 1  -> Request Candidate Invite
+    // 2  -> Request Employer Invite
     // 3  -> Open Bounty
     // --
     // 4  -> Accepted
@@ -48,8 +48,8 @@ contract EthlanceWorkContract {
     // 5  -> In Progress
     // 6  -> On Hold
     // --
-    // 7  -> Request Finished Candidate
-    // 8  -> Request Finished Employer
+    // 7  -> Request Candidate Finished
+    // 8  -> Request Employer Finished
     // 9  -> Finished
     // --
     // 10 -> Cancelled
@@ -88,11 +88,11 @@ contract EthlanceWorkContract {
     string[] public candidate_metahash_listing;
     string[] public arbiter_metahash_listing;
     
-    // Invoice Listing
-    address[] public invoice_listing;
-    
     // Dispute Listing
     address[] public dispute_listing;
+
+    // Invoice Listing
+    address[] public invoice_listing;
 
 
     /// @dev Forwarder Constructor
@@ -332,6 +332,41 @@ contract EthlanceWorkContract {
     /// fired event.
     function fireEvent(string event_name, uint[] event_data) private {
 	registry.fireEvent(event_name, version, event_data);
+    }
+
+
+    /// @dev Create a dispute between the employer and the candidate.
+    /// @param reason Short string with the reason for the dispute.
+    /// @param metahash Represents a IPFS hash with a longer
+    /// explanation for the dispute by either the employer or the
+    /// candidate.
+    function createDispute(string reason, string metahash) public {
+	// TODO: authentication
+
+	// Create the forwarded contract
+	address fwd = new SecondForwarder(); // Proxy Contract
+                                             // target(EthlanceDispute)
+	EthlanceDispute dispute = EthlanceDispute(fwd);
+	dispute_listing.push(dispute);
+	
+	// Construct the dispute contract
+	dispute.construct(this, reason, metahash);
+    }
+
+    
+    /// @dev Create an invoice between the employer and the candidate.
+    /// @param metahash Contains additional information about the invoice
+    function createInvoice(string metahash, uint amount) public {
+	// TODO: authentication
+
+	// Create the forwarded contract
+	address fwd = new Forwarder(); // Proxy Contract
+	                               // target(EthlanceInvoice)
+	EthlanceInvoice invoice = EthlanceInvoice(fwd);
+	invoice_listing.push(invoice);
+	
+	// Construct the invoice contract
+	invoice.construct(this, metahash, amount);
     }
 
 
