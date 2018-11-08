@@ -453,26 +453,30 @@
 
    [*] --> Initial
 
-   Initial --> Open_Candidate_Request : !is_employer_request AND !is_bounty
-   Initial --> Open_Employer_Request : is_employer_request AND !is_bounty
+   Initial --> Request_Candidate_Invite : !is_employer_request AND !is_bounty
+   Initial --> Request_Candidate_Invite : is_employer_request AND !is_bounty
    Initial --> Open_Bounty : is_bounty
 
-   Open_Candidate_Request --> Accepted : JobStore.requestWorkContract() FROM employer
-   Open_Employer_Request --> Accepted : JobStore.requestWorkContract() FROM candidate
-   
+   Request_Candidate_Invite --> Accepted : JobStore.requestWorkContract() FROM employer
+   Request_Employer_Invite --> Accepted : JobStore.requestWorkContract() FROM candidate
    
    Accepted --> In_Progress : WorkContract.proceed() FROM employer
 
    In_Progress --> On_Hold : WorkContract.createDispute() FROM (employer OR candidate)   
-   On_Hold --> In_Progress : Dispute.resolveDispute() FROM arbiter AND WorkContract.openDisputeCount() == 0
+   On_Hold --> In_Progress : Dispute.resolve() FROM arbiter AND WorkContract.openDisputeCount() == 0
    
    In_Progress --> Request_Finished_Candidate : WorkContract.requestFinished() FROM candidate
    In_Progress --> Request_Finished_Employer : WorkContract.requestFinished() FROM employer
 
+   Request_Finished_Candidate --> On_Hold : WorkContract.createDispute() FROM (employer or candidate)
+   Request_Finished_Employer --> On_Hold : WorkContract.createDispute() FROM (employer or candidate)
+
    Request_Finished_Candidate --> Finished : WorkContract.requestFinished() FROM employer
    Request_Finished_Employer --> Finished : WorkContract.requestFinished() FROM candidate
 
-   On_Hold --> Cancelled : Dispute.resolveDispute(...) FROM arbiter
+   On_Hold --> Cancelled : Dispute.resolve(...) FROM arbiter
+
+   Open_Bounty --> Finished : JobStore.finish()
 
    Finished --> [*]
    Cancelled --> [*]
