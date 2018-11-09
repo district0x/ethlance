@@ -41,7 +41,7 @@ contract EthlanceDispute {
     //
     // Collections
     //
-    MetahashStore.HashListing metahashStore;
+    MetahashStore.HashListing internal metahashStore;
     
     /// @dev Forwarder Constructor
     /// @param _work_instance The EthlanceWorkContract parent instance for this Dispute.

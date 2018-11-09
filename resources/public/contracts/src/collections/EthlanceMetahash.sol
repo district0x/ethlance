@@ -14,20 +14,9 @@ library MetahashStore {
 	HashEntry[] listing;
     }
 
-
-    function EMPLOYER_TYPE(HashListing storage self) public pure returns (uint) {
-	return 1;
-    }
-
-
-    function CANDIDATE_TYPE(HashListing storage self) public pure returns (uint) {
-	return 2;
-    }
-
-
-    function ARBITER_TYPE(HashListing storage self) public pure returns (uint) {
-	return 3;
-    }
+    uint constant EMPLOYER_TYPE = 1;
+    uint constant CANDIDATE_TYPE = 2;
+    uint constant ARBITER_TYPE = 3;
 
 
     function append(HashListing storage self, uint user_type, string hash_value) private {
@@ -36,27 +25,27 @@ library MetahashStore {
 
     
     function appendEmployer(HashListing storage self, string hash_value) internal {
-	append(self, EMPLOYER_TYPE(self), hash_value);
+	append(self, EMPLOYER_TYPE, hash_value);
     }
 
     
     function appendCandidate(HashListing storage self, string hash_value) internal {
-	append(self, CANDIDATE_TYPE(self), hash_value);
+	append(self, CANDIDATE_TYPE, hash_value);
     }
 
     
     function appendArbiter(HashListing storage self, string hash_value) internal {
-	append(self, ARBITER_TYPE(self), hash_value);
+	append(self, ARBITER_TYPE, hash_value);
     }
     
     
-    function getCount(HashListing storage self) public view returns(uint) {
+    function getCount(HashListing storage self) external view returns(uint) {
 	return self.listing.length;
     }
 
     
     function getByIndex(HashListing storage self, uint index)
-	public view returns(uint user_type, string hash_value) {
+	external view returns(uint user_type, string hash_value) {
 	HashEntry memory entry = self.listing[index];
 	user_type = entry.user_type;
 	hash_value = entry.hash_value;
