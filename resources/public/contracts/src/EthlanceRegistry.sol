@@ -202,7 +202,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	    return false;
 	}
 
-	var (is_registered,,) = user.getCandidateData();
+	(bool is_registered,,) = user.getCandidateData();
 	return is_registered;
     }
     
@@ -216,7 +216,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	    return false;
 	}
 
-	var (is_registered,,,) = user.getArbiterData();
+	(bool is_registered,,,) = user.getArbiterData();
 	return is_registered;
     }
 

@@ -33,16 +33,15 @@ library MetahashStore {
 	self.listing.push(HashEntry(ARBITER_TYPE, hash_value));
     }
     
-    
     function getCount(HashListing storage self) external view returns(uint) {
 	return self.listing.length;
     }
 
-    
     function getByIndex(HashListing storage self, uint index)
 	external view returns(uint user_type, string hash_value) {
 	HashEntry memory entry = self.listing[index];
 	user_type = entry.user_type;
 	hash_value = entry.hash_value;
     }
+
 }

@@ -83,16 +83,17 @@ contract EthlanceDispute {
 	}
     }
 
-
+    
     function getMetahashCount() public view returns(uint) {
 	return metahashStore.getCount();
+	//return 0;
     }
-
+    
 
     function getMetahashByIndex(uint index)
 	public view
 	returns(uint user_type, string hash_value) {
-	return metahashStore.getByIndex(index);
+	//return metahashStore.getByIndex(index);
+	return (0, "");
     }
-
 }
