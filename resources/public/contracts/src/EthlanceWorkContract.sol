@@ -81,13 +81,6 @@ contract EthlanceWorkContract is MetahashStore {
     //
     // Collections
     //
-
-    // Stores a listing of appended data by the employer, candidate,
-    // and arbiter. Each listing allows us to isolate malicious intent
-    // between parties.
-    string[] public employer_metahash_listing;
-    string[] public candidate_metahash_listing;
-    string[] public arbiter_metahash_listing;
     
     // Dispute Listing
     address[] public dispute_listing;
@@ -256,7 +249,14 @@ contract EthlanceWorkContract is MetahashStore {
     }
 
     
-    // @dev Overloaded requestInvite for direct employer and candidate requests.
+    /// @dev Overloaded requestInvite for direct employer and candidate requests.
+    /*
+      Notes:
+
+      - The address is set to 0x0 to reflect that it's a direct
+        request from a candidate, or an employer.
+
+     */
     function requestInvite() public {
 	requestInvite(0x0);
     }
@@ -324,6 +324,7 @@ contract EthlanceWorkContract is MetahashStore {
 		return;
 	    }
 	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED);
+	    return;
 	}
 	
 	// Case 3

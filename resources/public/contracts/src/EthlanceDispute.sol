@@ -45,7 +45,7 @@ contract EthlanceDispute is MetahashStore {
     function construct(EthlanceWorkContract _work_instance,
 		       string _reason,
 		       string metahash,
-		       bool is_employer_request) {
+		       bool is_employer_request) external {
 
 	// TODO: authenticate
 	work_instance = _work_instance;

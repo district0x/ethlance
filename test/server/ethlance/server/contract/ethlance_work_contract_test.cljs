@@ -90,10 +90,18 @@
           (is (= candidate-address (work-contract/candidate-address)))
           (is (= ::enum.status/request-employer-invite (work-contract/contract-status)))
 
-          ;; Accept the invite as the candidate.
-          (work-contract/request-invite! {:from candidate-address})
-          (is (= ::enum.status/accepted) (work-contract/contract-status))
+          (testing "Accept the invite as the candidate."
+            (work-contract/request-invite! {:from candidate-address})
+            (is (= ::enum.status/accepted) (work-contract/contract-status)))
 
-          ;; Proceed with the work contract
-          (work-contract/proceed! {:from employer-address})
-          (is (= ::enum.status/in-progress (work-contract/contract-status))))))))
+          (testing "Proceed with the work contract."
+            (work-contract/proceed! {:from employer-address})
+            (is (= ::enum.status/in-progress (work-contract/contract-status))))
+
+          (testing "Request Finished by candidate,"
+            (is (work-contract/request-finished! {:from candidate-address}))
+            (is (= ::enum.status/request-candidate-finished (work-contract/contract-status))))
+
+          (testing "Accept Finished by employer"
+            (is (work-contract/request-finished! {:from employer-address}))
+            (is (= ::enum.status/finished (work-contract/contract-status)))))))))
