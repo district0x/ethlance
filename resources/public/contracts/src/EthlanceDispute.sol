@@ -51,12 +51,17 @@ contract EthlanceDispute is MetahashStore {
 	work_instance = _work_instance;
 	reason = _reason;
 	if (is_employer_request) {
-	    //appendEmployer(metahash);
+	    appendEmployer(metahash);
 	}
 	else {
-	    ///appendCandidate(metahash);
+	    appendCandidate(metahash);
 	}
 	date_created = now;
+	date_updated = now;
+    }
+
+
+    function updateDateUpdated() private {
 	date_updated = now;
     }
 
@@ -79,12 +84,15 @@ contract EthlanceDispute is MetahashStore {
     function appendMetahash(string metahash) external {
 	if (work_instance.store_instance().employer_address() == msg.sender) {
 	    appendEmployer(metahash);
+	    updateDateUpdated();
 	}
 	else if (work_instance.candidate_address() == msg.sender) {
 	    appendCandidate(metahash);
+	    updateDateUpdated();
 	}
 	else if (work_instance.store_instance().accepted_arbiter() == msg.sender) {
 	    appendArbiter(metahash);
+	    updateDateUpdated();
 	}
 	else {
 	    revert("You are not privileged to append a comment.");

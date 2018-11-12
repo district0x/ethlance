@@ -6,6 +6,7 @@ import "./EthlanceUser.sol";
 import "./EthlanceJobStore.sol";
 import "./EthlanceDispute.sol";
 import "./EthlanceInvoice.sol";
+import "./collections/EthlanceMetahash.sol";
 import "proxy/MutableForwarder.sol";
 import "proxy/Forwarder.sol";
 import "proxy/SecondForwarder.sol";
@@ -13,7 +14,7 @@ import "proxy/SecondForwarder.sol";
 
 /// @title Work Contract to tie candidates, employers, and arbiters to
 /// an agreement.
-contract EthlanceWorkContract {
+contract EthlanceWorkContract is MetahashStore {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
@@ -127,38 +128,37 @@ contract EthlanceWorkContract {
     }
 
 
-    /// @dev Update the employer's metahash
-    /// @param _metahash The new metahash
-    function appendEmployerMetahash(string _metahash)
-	public
-        isEmployer(msg.sender) {
-	//emit UpdatedEmployerMetahash(metahash_store.employer_hash, _metahash);
-	employer_metahash_listing.push(_metahash);
-	updateDateUpdated();
-    }
+    /// @dev Append a metahash, which will identify the type of user
+    /// and append to a MetahashStore
+    /// @param metahash The metahash string you wish to append to hash listing.
+    /*
+      Notes:
 
+      - Only the Candidate, Arbiter, and Employer can append a
+        metahash string. The metahash structure is predefined.
 
-    /// @dev Update the candidate's metahash
-    /// @param _metahash The new metahash
-    function appendCandidateMetahash(string _metahash)
-	public
-        //isAcceptedCandidate(msg.sender)
-    {
-	//emit UpdatedCandidateMetahash(metahash_store.candidate_hash, _metahash);
-	candidate_metahash_listing.push(_metahash);
-	updateDateUpdated();
-    }
+      - Retrieving data from the metahash store (getHashByIndex)
+        should contain a comparison between the user_type and the data
+        present to guarantee valid data from each constituent within
+        the listing.
 
-
-    /// @dev Update the arbiter's metahash
-    /// @param _metahash The new metahash
-    function appendArbiterMetahash(string _metahash)
-	public
-        //isAcceptedArbiter(msg.sender)
-    {
-	//emit UpdatedArbiterMetahash(metahash_store.arbiter_hash, _metahash);
-	arbiter_metahash_listing.push(_metahash);
-	updateDateUpdated();
+     */
+    function appendMetahash(string metahash) external {
+	if (store_instance.employer_address() == msg.sender) {
+	    appendEmployer(metahash);
+	    updateDateUpdated();
+	}
+	else if (candidate_address == msg.sender) {
+	    appendCandidate(metahash);
+	    updateDateUpdated();
+	}
+	else if (store_instance.accepted_arbiter() == msg.sender) {
+	    appendArbiter(metahash);
+	    updateDateUpdated();
+	}
+	else {
+	    revert("You are not privileged to append a comment.");
+	}
     }
 
     
@@ -413,16 +413,4 @@ contract EthlanceWorkContract {
 	return invoice_listing[index];
     }
     
-
-    //
-    // Modifiers
-    //
-    
-    /// @dev Checks if it is the employer of the job contract.
-    /// @param _address The user address of the employer.
-    modifier isEmployer(address _address) {
-	require(store_instance.employer_address() == _address,
-		"Given user is not the employer.");
-	_;
-    }
 }
