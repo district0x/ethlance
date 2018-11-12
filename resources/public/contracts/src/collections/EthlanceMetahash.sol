@@ -2,44 +2,51 @@ pragma solidity ^0.4.24;
 
 /// @title Used to separate candidate, arbiter and employer IPFS
 /// metahash values
-library MetahashStore {
-    // A metahash
+contract MetahashStore {
+    // A metahash with user identifier
     struct HashEntry {
 	uint user_type;
 	string hash_value;
     }
 
 
-    struct HashListing {
-	HashEntry[] listing;
-    }
-
     uint public constant EMPLOYER_TYPE = 1;
     uint public constant CANDIDATE_TYPE = 2;
     uint public constant ARBITER_TYPE = 3;
 
     
-    function appendEmployer(HashListing storage self, string hash_value) internal {
-	self.listing.push(HashEntry(EMPLOYER_TYPE, hash_value));
+    // Holds the listing of metahash entries
+    HashEntry[] internal hash_listing;
+
+    
+    /// @dev Append an employer hash to the hash listing.
+    function appendEmployer(string hash_value) internal {
+	hash_listing.push(HashEntry(EMPLOYER_TYPE, hash_value));
     }
 
     
-    function appendCandidate(HashListing storage self, string hash_value) internal {
-	self.listing.push(HashEntry(CANDIDATE_TYPE, hash_value));
+    /// @dev Append a candidate hash to the hash listing.
+    function appendCandidate(string hash_value) internal {
+	hash_listing.push(HashEntry(CANDIDATE_TYPE, hash_value));
     }
 
     
-    function appendArbiter(HashListing storage self, string hash_value) internal {
-	self.listing.push(HashEntry(ARBITER_TYPE, hash_value));
+    /// @dev Append an arbiter hash to the hash listing.
+    function appendArbiter(string hash_value) internal {
+	hash_listing.push(HashEntry(ARBITER_TYPE, hash_value));
     }
     
-    function getCount(HashListing storage self) external view returns(uint) {
-	return self.listing.length;
+
+    /// @dev Return the number of hashes within the hash listing.
+    function getHashCount() external view returns(uint) {
+	return hash_listing.length;
     }
 
-    function getByIndex(HashListing storage self, uint index)
+    
+    /// @dev Get the (user type, hash value) for the hash at the given index.
+    function getHashByIndex(uint index)
 	external view returns(uint user_type, string hash_value) {
-	HashEntry memory entry = self.listing[index];
+	HashEntry memory entry = hash_listing[index];
 	user_type = entry.user_type;
 	hash_value = entry.hash_value;
     }

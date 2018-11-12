@@ -5,9 +5,7 @@ import "./EthlanceWorkContract.sol";
 import "./collections/EthlanceMetahash.sol";
 
 /// @title Represents a Employer / Candidate work dispute
-contract EthlanceDispute {
-    using MetahashStore for MetahashStore.HashListing;
-
+contract EthlanceDispute is MetahashStore {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
@@ -37,11 +35,6 @@ contract EthlanceDispute {
 
     // The EthlanceWorkContract reference.
     EthlanceWorkContract public work_instance;
-
-    //
-    // Collections
-    //
-    MetahashStore.HashListing internal metahashStore;
     
     /// @dev Forwarder Constructor
     /// @param _work_instance The EthlanceWorkContract parent instance for this Dispute.
@@ -58,42 +51,44 @@ contract EthlanceDispute {
 	work_instance = _work_instance;
 	reason = _reason;
 	if (is_employer_request) {
-	    metahashStore.appendEmployer(metahash);
+	    //appendEmployer(metahash);
 	}
 	else {
-	    metahashStore.appendCandidate(metahash);
+	    ///appendCandidate(metahash);
 	}
 	date_created = now;
 	date_updated = now;
     }
 
 
-    function appendMetahash(string metahash) {
+    /// @dev Append a metahash, which will identify the type of user
+    /// and append to a MetahashStore
+    /// @param metahash The metahash string you wish to append to hash listing.
+    /*
+      Notes:
+
+      - Only the Candidate, Arbiter, and Employer can append a
+        metahash string. The metahash structure is predefined.
+
+      - Retrieving data from the metahash store (getHashByIndex)
+        should contain a comparison between the user_type and the data
+        present to guarantee valid data from each constituent within
+        the listing.
+
+     */
+    function appendMetahash(string metahash) external {
 	if (work_instance.store_instance().employer_address() == msg.sender) {
-	    metahashStore.appendEmployer(metahash);
+	    appendEmployer(metahash);
 	}
 	else if (work_instance.candidate_address() == msg.sender) {
-	    metahashStore.appendCandidate(metahash);
+	    appendCandidate(metahash);
 	}
 	else if (work_instance.store_instance().accepted_arbiter() == msg.sender) {
-	    metahashStore.appendArbiter(metahash);
+	    appendArbiter(metahash);
 	}
 	else {
 	    revert("You are not privileged to append a comment.");
 	}
     }
 
-    
-    function getMetahashCount() public view returns(uint) {
-	return metahashStore.getCount();
-	//return 0;
-    }
-    
-
-    function getMetahashByIndex(uint index)
-	public view
-	returns(uint user_type, string hash_value) {
-	//return metahashStore.getByIndex(index);
-	return (0, "");
-    }
 }
