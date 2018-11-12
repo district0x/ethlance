@@ -3,7 +3,8 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.shared.enum.contract-status :as enum.status]))
 
 
 (def ^:dynamic *work-contract-key*
@@ -29,6 +30,12 @@
   "The accepted candidate for the currently bound work contract."
   []
   (call :candidate_address))
+
+
+(defn contract-status
+  "The work contract status"
+  []
+  (enum.status/val->kw (call :contract_status)))
 
 
 (defn append-employer-metahash!

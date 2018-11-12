@@ -37,47 +37,46 @@
   (assert *user-key* "Given function needs to be wrapped in 'with-ethlance-user"))
 
 
+(defn call
+  "Call the bound EthlanceUser contract with the given `method-name` and
+  `args`."
+  [method-name & args]
+  (requires-user-key)
+  (apply contracts/contract-call *user-key* method-name args))
+
+
 (defn metahash-ipfs
   "Retrieve the user's IPFS metahash."
   []
-  (requires-user-key)
-  (contracts/contract-call *user-key* :metahash_ipfs))
+  (call :metahash_ipfs))
 
 
 (defn update-metahash!
   "Update the user's IPFS metahash to `new-metahash`"
   [new-metahash & [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :update-metahash new-metahash
-   (merge {:gas 2000000} opts)))
+  (call :update-metahash new-metahash (merge {:gas 2000000} opts)))
 
 
 (defn register-candidate!
   "Register the user contract's candidate profile."
   [{:keys [hourly-rate currency-type]}
    & [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :register-candidate hourly-rate (enum.currency/kw->val currency-type)
+  (call
+   :register-candidate hourly-rate (enum.currency/kw->val currency-type)
    (merge {:gas 2000000} opts)))
 
 
 (defn update-candidate!
-  [{:keys [hourly-rate currency-type]}
-   & [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :update-candidate-rate hourly-rate (enum.currency/kw->val currency-type)
+  [{:keys [hourly-rate currency-type]} & [opts]]
+  (call
+   :update-candidate-rate hourly-rate (enum.currency/kw->val currency-type)
    (merge {:gas 2000000} opts)))
 
 
 (defn candidate-data
   "Get the user's Candidate data."
   []
-  (requires-user-key) 
-  (let [[is-registered? hourly-rate currency-type]
-        (contracts/contract-call *user-key* :get-candidate-data)]
+  (let [[is-registered? hourly-rate currency-type] (call :get-candidate-data)]
     {:is-registered? is-registered?
      :hourly-rate hourly-rate
      :currency-type (enum.currency/val->kw currency-type)}))
@@ -89,9 +88,8 @@
            currency-type
            payment-type]}
    & [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :register-arbiter
+  (call
+   :register-arbiter
    payment-value 
    (enum.currency/kw->val currency-type)
    (enum.payment/kw->val payment-type)
@@ -104,9 +102,8 @@
            currency-type
            payment-type]}
    & [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :update-arbiter-rate
+  (call
+   :update-arbiter-rate
    payment-value
    (enum.currency/kw->val currency-type)
    (enum.payment/kw->val payment-type)
@@ -116,9 +113,7 @@
 (defn arbiter-data
   "Get the user's Arbiter data"
   []
-  (requires-user-key)
-  (let [[is-registered? payment-value currency-type payment-type]
-        (contracts/contract-call *user-key* :get-arbiter-data)]
+  (let [[is-registered? payment-value currency-type payment-type] (call :get-arbiter-data)]
     {:is-registered? is-registered?
      :payment-value payment-value
      :currency-type (enum.currency/val->kw currency-type)
@@ -128,17 +123,11 @@
 (defn register-employer!
   "User the user as an employer."
   [& [opts]]
-  (requires-user-key)
-  (contracts/contract-call
-   *user-key* :register-employer (merge {:gas 1000000} opts)))
-
-
-;; Not Required, since employer data is stored in the metahash
-;; (defn update-employer! [])
+  (call
+   :register-employer (merge {:gas 1000000} opts)))
 
 
 (defn employer-data
   []
-  (requires-user-key)
-  (let [is-registered? (contracts/contract-call *user-key* :get-employer-data)]
+  (let [is-registered? (call :get-employer-data)]
     {:is-registered? is-registered?}))

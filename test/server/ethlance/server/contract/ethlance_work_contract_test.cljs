@@ -20,7 +20,9 @@
 
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]))
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.contract-status :as enum.status]))
+
 
 (def null-address "0x0000000000000000000000000000000000000000")
 
@@ -66,4 +68,10 @@
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
         ;; Create the initial work contract
         (job-store/request-work-contract! candidate-address {:from candidate-address})
-        (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0))))))
+        (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+          (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
+          (work-contract/request-invite! {:from employer-address})
+          (is (= ::enum.status/accepted) (work-contract/contract-status))
+          ;; Proceed with the work contract
+          (work-contract/proceed! {:from employer-address})
+          (is (= ::enum.status/in-progress (work-contract/contract-status))))))))
