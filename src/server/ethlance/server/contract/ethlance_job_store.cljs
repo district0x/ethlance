@@ -24,6 +24,12 @@
   (apply contracts/contract-call *job-store-key* method-name args))
 
 
+(defn employer-address
+  "The employer address assigned to this job store."
+  []
+  (call :employer_address))
+
+
 (defn request-arbiter!
   "Request an arbiter for the job contract"
   [arbiter-address & [opts]]

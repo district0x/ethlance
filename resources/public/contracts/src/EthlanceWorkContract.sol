@@ -107,8 +107,13 @@ contract EthlanceWorkContract {
 	candidate_address = _candidate_address;
 	date_created = now;
 	date_updated = now;
-
-	requestInvite();
+	
+	if (is_employer_request) {
+	    requestInvite(store_instance.employer_address());
+	    return;
+	}
+	requestInvite(candidate_address);
+	return;
     }
 
     //
@@ -166,6 +171,7 @@ contract EthlanceWorkContract {
 
 
     /// @dev Requests an invite from either the candidate or the employer.
+    /// @param _sender Delegation for initial work contract construction.
     /*
       Case 1:
       
@@ -202,20 +208,24 @@ contract EthlanceWorkContract {
 
       ERROR
      */
-    function requestInvite()
+    function requestInvite(address _sender)
 	public {
-	require(address(store_instance) == msg.sender ||
-		store_instance.employer_address() == msg.sender || 
-		candidate_address == msg.sender,
-		"Only the job store, candidate and employer can request an invite.");
 	
+	if (address(store_instance) == msg.sender) {/* _sender has been loaded by the constructor */}
+	else if (store_instance.employer_address() == msg.sender || candidate_address == msg.sender) {
+	    _sender = msg.sender;
+	}
+	else {
+	    revert("Only the job store, candidate and employer can request an invite.");
+	}
+
 	bool is_employer_request = false;
-	if (store_instance.employer_address() == msg.sender) {
+	if (store_instance.employer_address() == _sender) {
 	    is_employer_request = true;
 	}
 
 	// Case 1
-	if (!is_employer_request && store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
+	if (store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
 	    setContractStatus(CONTRACT_STATUS_OPEN_BOUNTY);
 	    return;
 	}
@@ -245,6 +255,12 @@ contract EthlanceWorkContract {
 	revert("Failed to meet required requestInvite criteria");
     }
 
+    
+    // @dev Overloaded requestInvite for direct employer and candidate requests.
+    function requestInvite() public {
+	requestInvite(0x0);
+    }
+    
 
     /// @dev Start the work contract
     /*

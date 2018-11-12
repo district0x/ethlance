@@ -62,16 +62,38 @@
               :payment-type ::enum.payment/percentage}
              {:from arbiter-address-2}))]
 
-    (test-gen/create-job-store! {} {:from employer-address})
-
     (testing "Create a invite request as a candidate, and accept the invite as an employer"
+      (test-gen/create-job-store! {} {:from employer-address})
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
-        ;; Create the initial work contract
+        (is (= employer-address (job-store/employer-address)))
+
+        ;; Create the initial work contract as the candidate
         (job-store/request-work-contract! candidate-address {:from candidate-address})
         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+          (is (= candidate-address (work-contract/candidate-address)))
           (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
+          
+          ;; Invite the candidate as the employer
           (work-contract/request-invite! {:from employer-address})
           (is (= ::enum.status/accepted) (work-contract/contract-status))
+
+          ;; Proceed with the work contract
+          (work-contract/proceed! {:from employer-address})
+          (is (= ::enum.status/in-progress (work-contract/contract-status))))))
+
+    (testing "Create a invite request as a employer, and accept the invite as a candidate"
+      (test-gen/create-job-store! {} {:from employer-address})
+      (job-store/with-ethlance-job-store (job-factory/job-store-by-index 1)
+        ;; Create the initial work contract as the employer.
+        (job-store/request-work-contract! candidate-address {:from employer-address})
+        (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+          (is (= candidate-address (work-contract/candidate-address)))
+          (is (= ::enum.status/request-employer-invite (work-contract/contract-status)))
+
+          ;; Accept the invite as the candidate.
+          (work-contract/request-invite! {:from candidate-address})
+          (is (= ::enum.status/accepted) (work-contract/contract-status))
+
           ;; Proceed with the work contract
           (work-contract/proceed! {:from employer-address})
           (is (= ::enum.status/in-progress (work-contract/contract-status))))))))

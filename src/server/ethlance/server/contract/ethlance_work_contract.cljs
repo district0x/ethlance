@@ -26,7 +26,7 @@
   (apply contracts/contract-call *work-contract-key* method-name args))
 
 
-(defn candidate_address
+(defn candidate-address
   "The accepted candidate for the currently bound work contract."
   []
   (call :candidate_address))
@@ -84,7 +84,7 @@
 
 
 (defn create-invoice!
-  [{:keys [amount metahash] & [opts]}]
+  [{:keys [amount metahash]} & [opts]]
   (call :create-invoice amount metahash (merge {:gas 1000000} opts)))
 
 
