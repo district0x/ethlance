@@ -359,6 +359,14 @@ contract EthlanceWorkContract is MetahashStore {
     /// candidate.
     function createDispute(string reason, string metahash) public {
 	// TODO: authentication
+	require(candidate_address == msg.sender || store_instance.employer_address() == msg.sender,
+		"Only the employer and the candidate can create new disputes.");
+	require(contract_status == CONTRACT_STATUS_IN_PROGRESS ||
+		contract_status == CONTRACT_STATUS_ON_HOLD ||
+		contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED ||
+		contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED,
+		"The current contract status does not allow you to create a dispute.");
+
 	bool is_employer_request = false;
 	if (store_instance.employer_address() == msg.sender) {
 	    is_employer_request = true;
@@ -372,6 +380,9 @@ contract EthlanceWorkContract is MetahashStore {
 	
 	// Construct the dispute contract
 	dispute.construct(this, reason, metahash, is_employer_request);
+
+	// Change our status to 'on hold', since we have a new open dispute.
+	setContractStatus(CONTRACT_STATUS_ON_HOLD);
     }
 
     
@@ -399,6 +410,37 @@ contract EthlanceWorkContract is MetahashStore {
 	
 	// Construct the invoice contract
 	invoice.construct(this, amount, metahash);
+    }
+
+    
+    /// @dev Pays an invoice
+    /*
+      Notes:
+
+      - The original EthlanceInvoice.pay(...) propagates to this method.
+
+      - This function only ensures that it is receiving a payment
+        request from the desired invoice. The result is propagated to
+        the job store for payment.
+     */
+    function payInvoice(uint amount_paid) external {
+	require(isInvoice(msg.sender), "Only an invoice contract can 'pay' an invoice.");
+	store_instance.payInvoice(candidate_address, amount_paid);
+    }
+
+
+    /// @dev Determines whether the given address is an
+    /// EthlanceInvoice contract that is part of the current
+    /// EthlanceWorkContract.
+    /// @return True, if it is an EthlanceInvoice contract that is
+    /// part of the EthlanceWorkContract.
+    function isInvoice(address _invoice) private returns(bool) {
+	for (uint i = 0; i < invoice_listing.length; i++) {
+	    if (address(invoice_listing[i]) == _invoice) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     

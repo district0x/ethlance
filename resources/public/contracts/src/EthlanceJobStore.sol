@@ -278,6 +278,7 @@ contract EthlanceJobStore {
 	return work_contract_listing.length;
     }
 
+
     /// @dev Returns the WorkContract address at the given index.
     /// @param index The index of the Work Contract to be retrieved.
     /// @return The address of the EthlanceWorkContract.
@@ -286,4 +287,33 @@ contract EthlanceJobStore {
 	require(index < work_contract_listing.length, "Given index is out of bounds.");
 	return work_contract_listing[index];
     }
+
+    
+    /// @dev Returns true if the given _work_contract instance resides
+    /// in the current job_store.
+    function isWorkContract(address _work_contract) private returns(bool) {
+	for (uint i = 0; i < work_contract_listing.length; i++) {
+	    if (address(work_contract_listing[i]) == _work_contract) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
+
+    /// @dev Main function for paying an invoice, propagated up from EthlanceInvoice.
+    /// @param candidate_address The address of the person requiring the payout.
+    /// @param amount_paid The amount paid to the given candidate_address.
+    function payInvoice(address candidate_address, uint amount_paid) external {
+	require(isWorkContract(msg.sender), "Only a work contract has permission to pay a store invoice.");
+	candidate_address.transfer(amount_paid);
+    }
+
+
+    /// @dev Main method for funding ethereum to the given JobStore
+    function () public payable {
+	address(this).transfer(msg.value);
+    }
+
+    
 }
