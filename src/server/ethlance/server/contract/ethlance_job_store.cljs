@@ -79,7 +79,7 @@
   (call :get-work-contract-by-index index))
 
 
-(defn fund
+(defn fund!
   "Fund the job store. This will be used as payment for accepted work contracts."
   [& [opts]]
   (call :fund (merge {:gas 1000000} opts)))

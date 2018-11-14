@@ -94,8 +94,7 @@ contract EthlanceInvoice is MetahashStore {
 
     
     /// @dev Returns true if the invoice has been paid.
-    function isInvoicePaid() external returns(bool) {
+    function isInvoicePaid() external view returns(bool) {
 	return date_paid > 0;
     }
 }
-

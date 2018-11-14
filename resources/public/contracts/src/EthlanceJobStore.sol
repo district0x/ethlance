@@ -351,7 +351,7 @@ contract EthlanceJobStore {
         from the person funding the contract. This will require a
         strictly client-side interaction for this pre-approval.
      */
-    function fund(address token_address, uint amount) external {
+    function fundToken(address token_address, uint amount) external {
 	revert("Not Implemented");
     }
 }
