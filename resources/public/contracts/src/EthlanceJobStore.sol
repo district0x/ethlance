@@ -316,13 +316,42 @@ contract EthlanceJobStore {
 	candidate_address.transfer(amount_paid);
     }
 
+    
+    /// @dev Main function for paying an invoice with an ERC20 token, propagated from EthlanceInvoice.
+    /// @param candidate_address The address of the person acquiring the payout.
+    /// @param amount_paid The amount paid to the given candidate_address based on the ERC20 token contract amount.
+    /// @param token_address Address of the ERC20 token contract.
+    function payInvoice(address candidate_address, uint amount_paid, address token_address) external {
+	revert("Not Implemented");
+    }
+
 
     /// @dev Main method for funding ethereum to the given JobStore.
     /*
       Notes:
 
-      - Anyone can fund a JobStore.
+      - Anyone can fund a JobStore with ether as long as the employer
+        has included the ether token (include_ether_token)
 
      */
-    function fund() public payable {}
+    function fund() external payable {
+	if (!include_ether_token) {
+	    revert("Given JobStore is not ethereum fundable.");
+	}
+    }
+
+
+    /// @dev Overload for funding the JobStore with an ERC20 token
+    /// @param token_address Address of the ERC20 token contract.
+    /// @param amount The amount of tokens to transfer to the current JobStore contract.
+    /*
+      Notes:
+
+      - The token_address ERC20 token contract requires pre-approval
+        from the person funding the contract. This will require a
+        strictly client-side interaction for this pre-approval.
+     */
+    function fund(address token_address, uint amount) external {
+	revert("Not Implemented");
+    }
 }
