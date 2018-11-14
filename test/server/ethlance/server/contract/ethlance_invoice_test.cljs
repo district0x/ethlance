@@ -68,3 +68,58 @@
         ;; First, fund the work contract
         (testing "Creating an invoice, and paying out"
           (let [tx-1 '()]))))))
+
+
+(deftest-smart-contract invoice-payment {}
+  (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (test-gen/register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (test-gen/register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             {:hourly-rate 120
+              :currency-type ::enum.currency/usd}
+             {:from candidate-address}))]
+
+    (test-gen/create-job-store! {} {:from employer-address})
+    (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+      (is (= employer-address (job-store/employer-address))))
+    
+    (let [job-employer-funding (web3/to-wei 20.0 :ether)
+          job-address (job-factory/job-store-by-index 0)]
+      (is (bn/= (web3-eth/get-balance @web3 job-address) 0))
+
+      ;; Employer funding the job store.
+      (job-store/with-ethlance-job-store job-address
+        (job-store/fund {:from employer-address :value job-employer-funding}))
+      (is (bn/= (web3-eth/get-balance @web3 job-address) job-employer-funding)))
+
+    (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+      ;; Create the initial work contract as the candidate
+      (job-store/request-work-contract! candidate-address {:from candidate-address})
+      (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+        (is (= candidate-address (work-contract/candidate-address)))
+        (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
+        
+        ;; Invite the candidate as the employer
+        (work-contract/request-invite! {:from employer-address})
+        (is (= ::enum.status/accepted) (work-contract/contract-status))
+
+        ;; Proceed with the work contract
+        (work-contract/proceed! {:from employer-address})
+        (is (= ::enum.status/in-progress (work-contract/contract-status)))))
+      
+    (testing "Creating an invoice, and get the invoice paid"
+       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+           (is (bn/= (work-contract/invoice-count) 0))
+           (work-contract/create-invoice!
+            {:amount (web3/to-wei 10.0 :ether) :metahash ""}
+            {:from candidate-address})
+           (is (bn/= (work-contract/invoice-count) 1)))))))
