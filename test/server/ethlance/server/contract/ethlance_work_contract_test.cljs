@@ -2,6 +2,7 @@
   (:require
    [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
+   [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
    [taoensso.timbre :as log]
 
@@ -51,16 +52,7 @@
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from arbiter-address}))
-
-        ;; Second Arbiter User
-        tx-4 (test-gen/register-user! arbiter-address-2 "QmZhash5")
-        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address-2)
-            (user/register-arbiter!
-             {:payment-value 3
-              :currency-type ::enum.currency/eth
-              :payment-type ::enum.payment/percentage}
-             {:from arbiter-address-2}))]
+             {:from arbiter-address}))]
 
     (testing "Create a invite request as a candidate, and accept the invite as an employer"
       (test-gen/create-job-store! {} {:from employer-address})
@@ -105,3 +97,45 @@
           (testing "Accept Finished by employer"
             (is (work-contract/request-finished! {:from employer-address}))
             (is (= ::enum.status/finished (work-contract/contract-status)))))))))
+
+
+(deftest-smart-contract work-contract-funding {}
+  (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (test-gen/register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (test-gen/register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             {:hourly-rate 120
+              :currency-type ::enum.currency/usd}
+             {:from candidate-address}))]
+
+    (test-gen/create-job-store! {} {:from employer-address})
+    (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+      (is (= employer-address (job-store/employer-address)))
+
+      ;; Create the initial work contract as the candidate
+      (job-store/request-work-contract! candidate-address {:from candidate-address})
+      (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+        (is (= candidate-address (work-contract/candidate-address)))
+        (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
+        
+        ;; Invite the candidate as the employer
+        (work-contract/request-invite! {:from employer-address})
+        (is (= ::enum.status/accepted) (work-contract/contract-status))
+
+        ;; Proceed with the work contract
+        (work-contract/proceed! {:from employer-address})
+        (is (= ::enum.status/in-progress (work-contract/contract-status)))))
+    
+    (testing "Adding funds to the work contract"
+      (let [work-employer-funding (web3/to-wei 100.0 :ether)
+            work-address (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+                           (job-store/work-contract-by-index 0))]
+        (is (bn/= (web3-eth/get-balance @web3 work-address) 0))))))

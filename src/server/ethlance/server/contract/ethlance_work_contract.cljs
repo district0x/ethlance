@@ -38,19 +38,9 @@
   (enum.status/val->kw (call :contract_status)))
 
 
-(defn append-employer-metahash!
+(defn append-metahash!
   [metahash & [opts]]
-  (call :append-employer-metahash metahash (merge {:gas 1000000} opts)))
-
-
-(defn append-candidate-metahash!
-  [metahash & [opts]]
-  (call :append-candidate-metahash metahash (merge {:gas 1000000} opts)))
-
-
-(defn append-arbiter-metahash!
-  [metahash & [opts]]
-  (call :append-arbiter-metahash metahash (merge {:gas 1000000} opts)))
+  (call :append-metahash metahash (merge {:gas 1000000} opts)))
 
 
 (defn request-invite!
