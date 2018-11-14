@@ -302,21 +302,27 @@ contract EthlanceJobStore {
 
 
     /// @dev Main function for paying an invoice, propagated up from EthlanceInvoice.
-    /// @param candidate_address The address of the person requiring the payout.
-    /// @param amount_paid The amount paid to the given candidate_address.
+    /// @param candidate_address The address of the person acquiring the payout.
+    /// @param amount_paid The amount paid to the given candidate_address in Wei.
+    /*
+      Notes:
+
+      - This function is a propagation from EthlanceWorkContract -->
+        EthlanceInvoice. Access rights should be reflected in each
+        step.
+     */
     function payInvoice(address candidate_address, uint amount_paid) external {
-	require(isWorkContract(msg.sender), "Only a work contract has permission to pay a store invoice.");
+	require(isWorkContract(msg.sender), "Only a work contract has permission to transfer from the job store.");
 	candidate_address.transfer(amount_paid);
     }
 
 
-    /// @dev Main method for funding ethereum to the given JobStore    
+    /// @dev Main method for funding ethereum to the given JobStore.
+    /*
+      Notes:
+
+      - Anyone can fund a JobStore.
+
+     */
     function fund() public payable {}
-
-
-    /// @dev JobStore fallback is payable to allow general funding.
-    function () public payable {
-	require(msg.value != 0, "Received fundable fallback with zero value.");
-	fund();
-    }    
 }
