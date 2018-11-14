@@ -310,10 +310,13 @@ contract EthlanceJobStore {
     }
 
 
-    /// @dev Main method for funding ethereum to the given JobStore
-    function () public payable {
-	address(this).transfer(msg.value);
-    }
+    /// @dev Main method for funding ethereum to the given JobStore    
+    function fund() public payable {}
 
-    
+
+    /// @dev JobStore fallback is payable to allow general funding.
+    function () public payable {
+	require(msg.value != 0, "Received fundable fallback with zero value.");
+	fund();
+    }    
 }

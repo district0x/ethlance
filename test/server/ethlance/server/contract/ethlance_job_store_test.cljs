@@ -2,6 +2,7 @@
   (:require
    [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
+   [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
    [taoensso.timbre :as log]
 
@@ -164,3 +165,35 @@
          (is (bn/= (job-store/work-contract-count) 0))
          (job-store/request-work-contract! candidate-address {:from employer-address})
          (is (bn/= (job-store/work-contract-count) 1))))))
+
+
+(deftest-smart-contract job-store-funding {}
+  (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
+        (web3-eth/accounts @web3)
+
+        ;; Employer User
+        tx-1 (test-gen/register-user! employer-address "QmZhash1")
+        _ (user/with-ethlance-user (user-factory/user-by-address employer-address)
+            (user/register-employer! {:from employer-address}))
+
+        ;; Candidate User
+        tx-2 (test-gen/register-user! candidate-address "QmZhash2")
+        _ (user/with-ethlance-user (user-factory/user-by-address candidate-address)
+            (user/register-candidate!
+             {:hourly-rate 120
+              :currency-type ::enum.currency/usd}
+             {:from candidate-address}))]
+
+    (test-gen/create-job-store! {} {:from employer-address})
+    (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+      (is (= employer-address (job-store/employer-address))))
+    
+    (testing "Adding funds to the work contract"
+      (let [job-employer-funding (web3/to-wei 20.0 :ether)
+            job-address (job-factory/job-store-by-index 0)]
+        (is (bn/= (web3-eth/get-balance @web3 job-address) 0))
+
+        ;; Employer funding the job store.
+        (job-store/with-ethlance-job-store job-address
+          (job-store/fund {:from employer-address :value job-employer-funding}))
+        (is (bn/= (web3-eth/get-balance @web3 job-address) job-employer-funding))))))
