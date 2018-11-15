@@ -54,3 +54,9 @@
         candidate-amount candidate-token
         arbiter-amount arbiter-token
         (merge {:gas 1000000} opts)))
+
+
+(defn resolved?
+  "Returns true if the dispute has already been resolved."
+  []
+  (call :is-resolved))

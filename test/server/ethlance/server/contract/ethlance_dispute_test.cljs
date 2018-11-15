@@ -2,6 +2,7 @@
   (:require
    [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
+   [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
    [taoensso.timbre :as log]
 
@@ -52,13 +53,16 @@
               :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))]
 
-    ;; Create a Job Store, and assign an accepted arbiter
+    ;; Create a Job Store, assign an accepted arbiter, and fund it.
     (test-gen/create-job-store! {} {:from employer-address})
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
       (is (= (job-store/employer-address) employer-address))
       (job-store/request-arbiter! arbiter-address {:from arbiter-address})
       (job-store/request-arbiter! arbiter-address {:from employer-address})
       (is (= (job-store/accepted-arbiter) arbiter-address))
+
+      ;; Fund the Job Contract
+      (job-store/fund! {:from employer-address :value (web3/to-wei 50.0 :ether)})
 
       ;; Create a work contract, and assign a candidate
       (job-store/request-work-contract! candidate-address {:from candidate-address})
@@ -72,6 +76,39 @@
         (work-contract/create-dispute!
          {:reason "For being 'testy'" :metahash ""}
          {:from employer-address})
-        (is (bn/= (work-contract/dispute-count) 1))))))
+        (is (bn/= (work-contract/dispute-count) 1))
 
-        ;; 
+        ;; Resolve the dispute
+        (dispute/with-ethlance-dispute (work-contract/dispute-by-index 0)
+          (let [job-balance (web3-eth/get-balance @web3 (job-factory/job-store-by-index 0))
+                employer-balance (web3-eth/get-balance @web3 employer-address)
+                candidate-balance (web3-eth/get-balance @web3 candidate-address)
+                arbiter-balance (web3-eth/get-balance @web3 arbiter-address)
+
+                ;; Tested resolution amounts.
+                resolved-employer-amount (web3/to-wei 5.0 :ether)
+                resolved-candidate-amount (web3/to-wei 3.0 :ether)
+                resolved-arbiter-amount (web3/to-wei 2.0 :ether)]
+            
+            (is (not (dispute/resolved?)))
+            (dispute/resolve!
+             {:employer-amount resolved-employer-amount
+              :candidate-amount resolved-candidate-amount
+              :arbiter-amount resolved-arbiter-amount}
+             {:from arbiter-address})
+            (is (dispute/resolved?))
+
+            ;; Check balances
+            (is (bn/= (web3-eth/get-balance @web3 (job-factory/job-store-by-index 0))
+                      (reduce bn/- job-balance
+                              [resolved-employer-amount
+                               resolved-candidate-amount
+                               resolved-arbiter-amount])))
+            
+            (is (bn/= (web3-eth/get-balance @web3 employer-address)
+                      (bn/+ employer-balance resolved-employer-amount)))
+
+            (is (bn/= (web3-eth/get-balance @web3 candidate-address)
+                      (bn/+ candidate-balance resolved-candidate-amount)))))))))
+
+            ;; TODO: arbiter balance minus transaction cost
