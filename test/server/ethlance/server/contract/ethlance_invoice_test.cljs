@@ -100,40 +100,40 @@
         (job-store/fund! {:from employer-address :value job-employer-funding}))
       (is (bn/= (web3-eth/get-balance @web3 job-address) job-employer-funding)))
 
-    #_(job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
-        ;; Create the initial work contract as the candidate
-        (job-store/request-work-contract! candidate-address {:from candidate-address})
-        (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
-          (is (= candidate-address (work-contract/candidate-address)))
-          (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
-          
-          ;; Invite the candidate as the employer
-          (work-contract/request-invite! {:from employer-address})
-          (is (= ::enum.status/accepted) (work-contract/contract-status))
+    (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+      ;; Create the initial work contract as the candidate
+      (job-store/request-work-contract! candidate-address {:from candidate-address})
+      (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+        (is (= candidate-address (work-contract/candidate-address)))
+        (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
+        
+        ;; Invite the candidate as the employer
+        (work-contract/request-invite! {:from employer-address})
+        (is (= ::enum.status/accepted) (work-contract/contract-status))
 
-          ;; Proceed with the work contract
-          (work-contract/proceed! {:from employer-address})
-          (is (= ::enum.status/in-progress (work-contract/contract-status)))))
+        ;; Proceed with the work contract
+        (work-contract/proceed! {:from employer-address})
+        (is (= ::enum.status/in-progress (work-contract/contract-status)))))
     
-    #_(testing "Create invoice, pay invoice"
-        (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
-          (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
-            (is (bn/= (work-contract/invoice-count) 0))
-            (work-contract/create-invoice!
-             {:amount (web3/to-wei 10.0 :ether) :metahash ""}
-             {:from candidate-address})
-            (is (bn/= (work-contract/invoice-count) 1))
+    (testing "Create invoice, pay invoice"
+      (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+        (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+          (is (bn/= (work-contract/invoice-count) 0))
+          (work-contract/create-invoice!
+           {:amount (web3/to-wei 10.0 :ether) :metahash ""}
+           {:from candidate-address})
+          (is (bn/= (work-contract/invoice-count) 1))
 
-            ;; Get the employer to pay the invoice
-            #_(invoice/with-ethlance-invoice (work-contract/invoice-by-index 0)
-                (let [paid-amount (web3/to-wei 10.0 :ether)
-                      candidate-balance (web3-eth/get-balance @web3 candidate-address)]
-                  ;;(is (not (invoice/paid?)))
-                  (invoice/pay! paid-amount {:from employer-address})
-                  ;;(is (invoice/paid?))
+          ;; Get the employer to pay the invoice
+          (invoice/with-ethlance-invoice (work-contract/invoice-by-index 0)
+            (let [paid-amount (web3/to-wei 10.0 :ether)
+                  candidate-balance (web3-eth/get-balance @web3 candidate-address)]
+              (is (not (invoice/paid?)))
+              (invoice/pay! paid-amount {:from employer-address})
+              (is (invoice/paid?))
 
-                  ;; Candidate should have received the balance
-                  (is (bn/= (bn/+ candidate-balance paid-amount)
-                            (web3-eth/get-balance @web3 candidate-address))))))))))
+              ;; Candidate should have received the balance
+              (is (bn/= (bn/+ candidate-balance paid-amount)
+                        (web3-eth/get-balance @web3 candidate-address))))))))))
        
              
