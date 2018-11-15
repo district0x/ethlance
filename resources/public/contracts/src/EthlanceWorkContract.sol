@@ -399,6 +399,45 @@ contract EthlanceWorkContract is MetahashStore {
     }
 
 
+    /// @dev Resolves a dispute.
+    /*
+      Notes:
+
+      - The original EthlanceDispute.resolve(...) propagates to this method.
+
+      - This function only ensures that it is a call from an
+        EthlanceDispute. The result is propagated to the job store for
+        resolution.
+     */
+    function resolveDispute(uint _employer_amount,
+			    address _employer_token,
+			    uint _candidate_amount,
+			    address _candidate_token,
+			    uint _arbiter_amount,
+			    address _arbiter_token) external {
+	require(isDispute(msg.sender), "Only a dispute contract can 'resolve' a dispute.");
+	store_instance.resolveDispute(_employer_amount, _employer_token,
+				      _candidate_amount, _candidate_token,
+				      _arbiter_amount, _arbiter_token,
+				      candidate_address);
+    }
+
+    
+    /// @dev Determines whether the given address is an
+    /// EthlanceDispute contract that is part of the current
+    /// EthlanceWorkContract.
+    /// @return True, if it is an EthlanceDispute contract that is
+    /// part of the EthlanceWorkContract.
+    function isDispute(address _dispute) private returns(bool) {
+	for (uint i = 0; i < dispute_listing.length; i++) {
+	    if (address(dispute_listing[i]) == _dispute) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
+
     /// @dev Create an invoice between the employer and the candidate.
     /// @param metahash Contains additional information about the invoice
     function createInvoice(uint amount, string metahash) public {

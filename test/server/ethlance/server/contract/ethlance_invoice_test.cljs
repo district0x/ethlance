@@ -135,5 +135,3 @@
               ;; Candidate should have received the balance
               (is (bn/= (bn/+ candidate-balance paid-amount)
                         (web3-eth/get-balance @web3 candidate-address))))))))))
-       
-             

@@ -195,5 +195,5 @@
 
         ;; Employer funding the job store.
         (job-store/with-ethlance-job-store job-address
-          (job-store/fund {:from employer-address :value job-employer-funding}))
+          (job-store/fund! {:from employer-address :value job-employer-funding}))
         (is (bn/= (web3-eth/get-balance @web3 job-address) job-employer-funding))))))

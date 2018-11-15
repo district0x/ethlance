@@ -23,15 +23,20 @@ contract EthlanceDispute is MetahashStore {
     // Title of dispute, describing the reason for the dispute
     string public reason;
 
-    //FIXME: needs to be more flexible for other currency types.
-
-    // In Wei, the amount that the employer should receive as a result
-    // of resolution.
+    // The amount that the employer did receive as a result of
+    // resolution, with a token address for the type of ERC20 token.
     uint public employer_resolution_amount;
+    address public employer_resolution_token;
 
-    // In Wei, the amount that the candidate should receive as a
-    // result of resolution.
+    // The amount that the candidate did receive as a result of
+    // resolution, with a token address for the type of ERC20 token.
     uint public candidate_resolution_amount;
+    address public candidate_resolution_token;
+
+    // The amount that the arbiter did receive as a result of the
+    // resolution, with a token address for the type of ERC20 token.
+    uint public arbiter_resolution_amount;
+    address public arbiter_resolution_token;
 
     // The EthlanceWorkContract reference.
     EthlanceWorkContract public work_instance;
@@ -84,19 +89,55 @@ contract EthlanceDispute is MetahashStore {
     function appendMetahash(string metahash) external {
 	if (work_instance.store_instance().employer_address() == msg.sender) {
 	    appendEmployer(metahash);
-	    updateDateUpdated();
 	}
 	else if (work_instance.candidate_address() == msg.sender) {
 	    appendCandidate(metahash);
-	    updateDateUpdated();
 	}
 	else if (work_instance.store_instance().accepted_arbiter() == msg.sender) {
 	    appendArbiter(metahash);
-	    updateDateUpdated();
 	}
 	else {
 	    revert("You are not privileged to append a comment.");
 	}
+	updateDateUpdated();
+    }
+
+    
+    /// @dev Resolves the dispute between the employer and the
+    /// candidate, and pays the employer and the candidate's the given
+    /// amounts.
+    /// @param _employer_amount The amount of tokens to pay the employer for resolution.
+    /// @param _employer_token The token address of the type of token, set to 0x0 for ETH.
+    /// @param _candidate_amount The amount of tokens to pay the candidate for resolution.
+    /// @param _candidate_token The token address of the type of token, set to 0x0 for ETH.
+    /// @param _arbiter_amount The amount of tokens to pay the arbiter for resolution.
+    /// @param _arbiter_token The token address of the type of token, set to 0x0 for ETH.
+    function resolve(uint _employer_amount,
+		     address _employer_token,
+		     uint _candidate_amount,
+		     address _candidate_token,
+		     uint _arbiter_amount,
+		     address _arbiter_token) external {
+	require(work_instance.store_instance().accepted_arbiter() == msg.sender,
+		"Only the accepted arbiter can resolve a dispute.");
+	require(date_resolved == 0, "This dispute has already been resolved.");
+	work_instance.resolveDispute(_employer_amount, _employer_token,
+				     _candidate_amount, _candidate_token,
+				     _arbiter_amount, _arbiter_token);
+	employer_resolution_amount = _employer_amount;
+	employer_resolution_token = _employer_token;
+	candidate_resolution_amount = _candidate_amount;
+	candidate_resolution_token = _candidate_token;
+	arbiter_resolution_amount = _arbiter_amount;
+	arbiter_resolution_token = _arbiter_token;
+	date_resolved = now;
+	updateDateUpdated();
+    }
+
+    
+    /// @dev Returns true if the current dispute is resolved.
+    function isResolved() external view returns(bool) {
+	return date_resolved != 0;
     }
 
 }

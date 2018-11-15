@@ -300,6 +300,32 @@ contract EthlanceJobStore {
 	return false;
     }
 
+    
+    /// @dev Main function for resolving a dispute between an employer and a candidate.
+    /// @param employer_amount Amount to give the employer for dispute resolution.
+    function resolveDispute(uint employer_amount,
+			    address employer_token,
+			    uint candidate_amount,
+			    address candidate_token,
+			    uint arbiter_amount,
+			    address arbiter_token,
+			    address candidate_address) external {
+	require(employer_token == 0x0 &&
+		candidate_token == 0x0 &&
+		arbiter_token == 0x0,
+		"ERC20 Tokens are not implemented.");
+	
+	//FIXME: safemath, ERC20 compatible
+	uint total_payout = employer_amount + candidate_amount + arbiter_amount;
+	if (address(this).balance < total_payout) {
+	    revert("Work Contract balance does not satify resolution payout.");
+	}
+	
+	employer_address.transfer(employer_amount);
+	candidate_address.transfer(candidate_amount);
+	accepted_arbiter.transfer(arbiter_amount);
+    }
+
 
     /// @dev Main function for paying an invoice, propagated up from EthlanceInvoice.
     /// @param candidate_address The address of the person acquiring the payout.
