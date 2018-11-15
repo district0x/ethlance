@@ -32,7 +32,25 @@
 
 
 (defn resolve!
-  [{:keys [employer-amount candidate-amount]} & [opts]]
-  (call :resolve employer-amount candidate-amount (merge {:gas 1000000} opts)))
+  "Resolve a dispute between an employer and a candidate(employee).
 
+  Notes:
 
+  - *-token parameters represent the type of ERC20 token that will be
+  transferred in resolution. By default, it will use the ETH currency
+  defined by '0x0'."
+  [{:keys [employer-amount
+           employer-token
+           candidate-amount
+           candidate-token
+           arbiter-amount
+           arbiter-token]
+    :or {employer-token "0x0"
+         candidate-token "0x0"
+         arbiter-token "0x0"}}
+   & [opts]]
+  (call :resolve
+        employer-amount employer-token
+        candidate-amount candidate-token
+        arbiter-amount arbiter-token
+        (merge {:gas 1000000} opts)))

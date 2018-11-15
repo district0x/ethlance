@@ -63,11 +63,7 @@
 
         ;; Proceed with the work contract
         (work-contract/proceed! {:from employer-address})
-        (is (= ::enum.status/in-progress (work-contract/contract-status)))
-
-        ;; First, fund the work contract
-        (testing "Creating an invoice, and paying out"
-          (let [tx-1 '()]))))))
+        (is (= ::enum.status/in-progress (work-contract/contract-status)))))))
 
 
 (deftest-smart-contract invoice-payment {}
