@@ -4,7 +4,7 @@
 .PHONY: dev-server
 .PHONY: fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build
-.PHONY: watch-contracts watch-tests
+.PHONY: watch-contracts watch-tests docs
 .PHONY: run
 .PHONY: test
 .PHONY: clean
@@ -21,6 +21,8 @@ help:
 	@echo "  --"
 	@echo "  watch-contracts         :: Start and watch Solidity Contracts."
 	@echo "  watch-tests             :: Start and watch Server tests."
+	@echo "  --"
+	@echo "  docs                    :: Generate Documentation"
 	@echo ""
 	@echo "Production Commands:"
 	@echo "  build                   :: Perform Production Build of Ethlance."
@@ -56,6 +58,7 @@ fig-dev-ui:
 clean:
 	lein clean
 	rm -rf dist
+	rm -f docs/uberdoc.html
 
 
 clean-all: clean
@@ -101,3 +104,7 @@ test:
 
 run:
 	cd ./dist && node ./ethlance_server.js
+
+
+docs:
+	lein marg

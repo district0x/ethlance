@@ -77,7 +77,8 @@
             [lein-solc "1.0.1-1"]
             [lein-cljsbuild "1.1.7"]
             [lein-npm "0.6.2"]
-            [lein-shell "0.5.0"]]
+            [lein-shell "0.5.0"]
+            [lein-marginalia "0.9.1"]]
 
   :min-lein-version "2.5.3"
 
