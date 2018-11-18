@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 /// @title Used to separate candidate, arbiter and employer IPFS
 /// metahash values
@@ -20,19 +20,19 @@ contract MetahashStore {
 
     
     /// @dev Append an employer hash to the hash listing.
-    function appendEmployer(string hash_value) internal {
+    function appendEmployer(string memory hash_value) internal {
 	hash_listing.push(HashEntry(EMPLOYER_TYPE, hash_value));
     }
 
     
     /// @dev Append a candidate hash to the hash listing.
-    function appendCandidate(string hash_value) internal {
+    function appendCandidate(string memory hash_value) internal {
 	hash_listing.push(HashEntry(CANDIDATE_TYPE, hash_value));
     }
 
     
     /// @dev Append an arbiter hash to the hash listing.
-    function appendArbiter(string hash_value) internal {
+    function appendArbiter(string memory hash_value) internal {
 	hash_listing.push(HashEntry(ARBITER_TYPE, hash_value));
     }
     
@@ -45,7 +45,7 @@ contract MetahashStore {
     
     /// @dev Get the (user type, hash value) for the hash at the given index.
     function getHashByIndex(uint index)
-	external view returns(uint user_type, string hash_value) {
+	external view returns(uint user_type, string memory hash_value) {
 	HashEntry memory entry = hash_listing[index];
 	user_type = entry.user_type;
 	hash_value = entry.hash_value;

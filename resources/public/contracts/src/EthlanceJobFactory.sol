@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceJobStore.sol";
@@ -21,7 +21,7 @@ contract EthlanceJobFactory {
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
-    function fireEvent(string event_name, uint[] event_data) private {
+    function fireEvent(string memory event_name, uint[] memory event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
 
@@ -33,7 +33,7 @@ contract EthlanceJobFactory {
 			    uint estimated_length_seconds,
 			    bool include_ether_token,
 			    bool is_invitation_only,
-			    string metahash,
+			    string memory metahash,
 			    uint reward_value)
 	public {
 	require(registry.isRegisteredEmployer(msg.sender),
@@ -41,7 +41,7 @@ contract EthlanceJobFactory {
 
 	// TODO: bounds on parameters
 
-	address fwd = new Forwarder(); // Proxy Contract with
+	Forwarder fwd = new Forwarder(); // Proxy Contract with
 	                               // target(EthlanceJobStore)
 	EthlanceJobStore jobStore = EthlanceJobStore(address(fwd));
 	uint job_index = registry.pushJobStore(address(jobStore));

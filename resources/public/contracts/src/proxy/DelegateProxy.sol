@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.0;
 
 contract DelegateProxy {
   /**
@@ -6,7 +6,7 @@ contract DelegateProxy {
   * @param _dst Destination address to perform the delegatecall
   * @param _calldata Calldata for the delegatecall
   */
-  function delegatedFwd(address _dst, bytes _calldata) internal {
+  function delegatedFwd(address _dst, bytes memory _calldata) internal {
     require(isContract(_dst));
     assembly {
       let result := delegatecall(sub(gas, 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "DSAuth.sol";
 import "proxy/MutableForwarder.sol";
@@ -66,7 +66,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	returns(address) {
 	uint user_id = user_address_mapping[_eth_address];
 	if (user_id == 0) {
-	    return 0x0;
+	    return address(0);
 	}
 	return user_address_listing[user_id - 1];
     }
@@ -141,9 +141,9 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     /// @param event_name - Name of the event.
     /// @param event_version - Version of the event.
     /// @param event_data - Array of data within the event.
-    function fireEvent(string event_name,
+    function fireEvent(string memory event_name,
                        uint event_version,
-                       uint[] event_data)
+                       uint[] memory event_data)
         public {
 	require(event_dispatch_whitelist[msg.sender] ||
 		isAuthorized(msg.sender, msg.sig),
@@ -172,7 +172,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     function isRegisteredUser(address _address)
 	public view returns(bool) {
 	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
-	if (address(user) == 0x0) {
+	if (address(user) == address(0)) {
 	    return false;
 	}
 	return true;
@@ -184,7 +184,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     function isRegisteredEmployer(address _address)
 	public view returns(bool) {
 	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
-	if (address(user) == 0x0) {
+	if (address(user) == address(0)) {
 	    return false;
 	}
 
@@ -198,7 +198,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     function isRegisteredCandidate(address _address)
 	public view returns(bool) {
 	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
-	if (address(user) == 0x0) {
+	if (address(user) == address(0)) {
 	    return false;
 	}
 
@@ -212,7 +212,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     function isRegisteredArbiter(address _address)
 	public view returns(bool) {
 	EthlanceUser user = EthlanceUser(getUserByAddress(_address));
-	if (address(user) == 0x0) {
+	if (address(user) == address(0)) {
 	    return false;
 	}
 

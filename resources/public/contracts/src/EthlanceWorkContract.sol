@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceUserFactory.sol";
@@ -73,7 +73,7 @@ contract EthlanceWorkContract is MetahashStore {
     EthlanceJobStore public store_instance;
 
     // The candidate linked to this contract
-    address public candidate_address;
+    address payable public candidate_address;
 
     uint public date_created;
     uint public date_updated;
@@ -83,15 +83,15 @@ contract EthlanceWorkContract is MetahashStore {
     //
     
     // Dispute Listing
-    address[] public dispute_listing;
+    EthlanceDispute[] public dispute_listing;
 
     // Invoice Listing
-    address[] public invoice_listing;
+    EthlanceInvoice[] public invoice_listing;
 
 
     /// @dev Forwarder Constructor
     function construct(EthlanceJobStore _store_instance,
-		       address _candidate_address,
+		       address payable _candidate_address,
 		       bool is_employer_request)
 	public {
 	// require(registry.checkFactoryPrivilege(msg.sender), "You are not privileged to carry out construction.");
@@ -136,7 +136,7 @@ contract EthlanceWorkContract is MetahashStore {
         the listing.
 
      */
-    function appendMetahash(string metahash) external {
+    function appendMetahash(string calldata metahash) external {
 	if (store_instance.employer_address() == msg.sender) {
 	    appendEmployer(metahash);
 	    updateDateUpdated();
@@ -258,7 +258,7 @@ contract EthlanceWorkContract is MetahashStore {
 
      */
     function requestInvite() public {
-	requestInvite(0x0);
+	requestInvite(address(0));
     }
     
 
@@ -347,7 +347,7 @@ contract EthlanceWorkContract is MetahashStore {
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
-    function fireEvent(string event_name, uint[] event_data) private {
+    function fireEvent(string memory event_name, uint[] memory event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
 
@@ -357,7 +357,7 @@ contract EthlanceWorkContract is MetahashStore {
     /// @param metahash Represents a IPFS hash with a longer
     /// explanation for the dispute by either the employer or the
     /// candidate.
-    function createDispute(string reason, string metahash) public {
+    function createDispute(string memory reason, string memory metahash) public {
 	// TODO: authentication
 	require(candidate_address == msg.sender || store_instance.employer_address() == msg.sender,
 		"Only the employer and the candidate can create new disputes.");
@@ -373,9 +373,9 @@ contract EthlanceWorkContract is MetahashStore {
 	}
 
 	// Create the forwarded contract
-	address fwd = new SecondForwarder(); // Proxy Contract
+	SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
                                              // target(EthlanceDispute)
-	EthlanceDispute dispute = EthlanceDispute(fwd);
+	EthlanceDispute dispute = EthlanceDispute(address(fwd));
 	dispute_listing.push(dispute);
 	
 	// Construct the dispute contract
@@ -394,7 +394,7 @@ contract EthlanceWorkContract is MetahashStore {
     
     /// @dev Returns the address of the EthlanceDispute at the given
     /// index within the dispute listing.
-    function getDisputeByIndex(uint index) public view returns (address) {
+    function getDisputeByIndex(uint index) public view returns (EthlanceDispute) {
 	return dispute_listing[index];
     }
 
@@ -440,11 +440,11 @@ contract EthlanceWorkContract is MetahashStore {
 
     /// @dev Create an invoice between the employer and the candidate.
     /// @param metahash Contains additional information about the invoice
-    function createInvoice(uint amount, string metahash) public {
+    function createInvoice(uint amount, string memory metahash) public {
 	// Create the forwarded contract
-	address fwd = new Forwarder(); // Proxy Contract
+	Forwarder fwd = new Forwarder(); // Proxy Contract
 	                               // target(EthlanceInvoice)
-	EthlanceInvoice invoice = EthlanceInvoice(fwd);
+	EthlanceInvoice invoice = EthlanceInvoice(address(fwd));
 	invoice_listing.push(invoice);
 	
 	// Construct the invoice contract
@@ -491,8 +491,7 @@ contract EthlanceWorkContract is MetahashStore {
     
     /// @dev Returns the address of the EthlanceInvoice at the given
     /// index within the invoice listing.
-    function getInvoiceByIndex(uint index) public view returns (address) {
+    function getInvoiceByIndex(uint index) public view returns (EthlanceInvoice) {
 	return invoice_listing[index];
     }
-    
 }

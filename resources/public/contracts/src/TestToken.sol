@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "math/SafeMath.sol";
 import "token/IERC20.sol";
@@ -33,7 +33,7 @@ contract TestToken is IERC20 {
     //
     // Constructor
     //
-    constructor(address _contract_owner) {
+    constructor(address _contract_owner) public {
 	contract_owner = _contract_owner;
     }
 

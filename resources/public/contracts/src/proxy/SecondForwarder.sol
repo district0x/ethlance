@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.0;
 
 import "../proxy/DelegateProxy.sol";
 
@@ -9,7 +9,7 @@ contract SecondForwarder is DelegateProxy {
   /*
   * @dev Forwards all calls to target
   */
-  function() payable {
+  function() external payable {
     delegatedFwd(target, msg.data);
   }
 }

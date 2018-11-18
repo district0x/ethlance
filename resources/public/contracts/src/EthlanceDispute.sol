@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
@@ -48,8 +48,8 @@ contract EthlanceDispute is MetahashStore {
     /// hash string. The hash is stored as the employer or the
     /// candidate depending on is_employer_request.
     function construct(EthlanceWorkContract _work_instance,
-		       string _reason,
-		       string metahash,
+		       string calldata _reason,
+		       string calldata metahash,
 		       bool is_employer_request) external {
 
 	// TODO: authenticate
@@ -86,7 +86,7 @@ contract EthlanceDispute is MetahashStore {
         the listing.
 
      */
-    function appendMetahash(string metahash) external {
+    function appendMetahash(string calldata metahash) external {
 	if (work_instance.store_instance().employer_address() == msg.sender) {
 	    appendEmployer(metahash);
 	}

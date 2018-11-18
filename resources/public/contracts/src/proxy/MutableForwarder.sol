@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.0;
 
 import "../proxy/DelegateProxy.sol";
 import "../DSAuth.sol";
@@ -27,7 +27,7 @@ contract MutableForwarder is DelegateProxy, DSAuth {
     target = _target;
   }
 
-  function() payable {
+  function() external payable {
     delegatedFwd(target, msg.data);
   }
 

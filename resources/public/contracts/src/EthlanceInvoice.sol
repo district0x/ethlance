@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
@@ -34,7 +34,7 @@ contract EthlanceInvoice is MetahashStore {
     EthlanceWorkContract public work_instance;  
     
     /// @dev Forwarder Constructor
-    function construct(EthlanceWorkContract _work_instance, uint _amount_requested, string metahash) {
+    function construct(EthlanceWorkContract _work_instance, uint _amount_requested, string calldata metahash) external {
 	// TODO: authenticate
 	work_instance = _work_instance;
 	appendCandidate(metahash);
@@ -64,7 +64,7 @@ contract EthlanceInvoice is MetahashStore {
         the listing.
 
      */
-    function appendMetahash(string metahash) external {
+    function appendMetahash(string calldata metahash) external {
 	if (work_instance.store_instance().employer_address() == msg.sender) {
 	    appendEmployer(metahash);
 	    updateDateUpdated();

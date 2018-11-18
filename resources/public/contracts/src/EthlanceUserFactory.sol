@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceUser.sol";
@@ -20,19 +20,19 @@ contract EthlanceUserFactory {
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
-    function fireEvent(string event_name, uint[] event_data) private {
+    function fireEvent(string memory event_name, uint[] memory event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
 
 
     /// @dev Register user for the current address.
     /// @param _metahash IPFS metahash.
-    function registerUser(string _metahash)
+    function registerUser(string memory _metahash)
 	public {
-	require(registry.getUserByAddress(msg.sender) == 0x0,
+	require(registry.getUserByAddress(msg.sender) == address(0),
 		"Given user is already registered.");
 
-	address user_fwd = new Forwarder(); // Proxy Contract with
+	Forwarder user_fwd = new Forwarder(); // Proxy Contract with
 					    // target(EthlanceUser)
 	EthlanceUser user = EthlanceUser(address(user_fwd));
 
@@ -112,7 +112,7 @@ contract EthlanceUserFactory {
 	if (getUserCount() == 0) {
 	    return false;
 	}
-	return registry.getUserByAddress(_address) != 0x0;
+	return registry.getUserByAddress(_address) != address(0);
     }
 
 

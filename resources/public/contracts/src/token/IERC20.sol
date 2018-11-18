@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 /**
  * @title ERC20 interface
@@ -20,15 +20,11 @@ interface IERC20 {
     function transferFrom(address from, address to, uint256 value)
 	external returns (bool);
 
-    event Transfer(
-		   address indexed from,
+    event Transfer(address indexed from,
 		   address indexed to,
-		   uint256 value
-		   );
+		   uint256 value);
 
-    event Approval(
-		   address indexed owner,
+    event Approval(address indexed owner,
 		   address indexed spender,
-		   uint256 value
-		   );
+		   uint256 value);
 }

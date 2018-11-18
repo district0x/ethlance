@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
@@ -26,7 +26,7 @@ contract EthlanceJobStore {
     //
 
     // The Accepted Arbiter assigned to the Jobs within the Job Store.
-    address public accepted_arbiter;
+    address payable public accepted_arbiter;
 
     /// Bid Option Enumeration
     // 0 - Hourly Rate
@@ -46,7 +46,7 @@ contract EthlanceJobStore {
     uint public date_finished;
     
     // Employer assigned to the given JobStore.
-    address public employer_address;
+    address payable public employer_address;
 
     // Estimated amount of time to finish the contract (in seconds)
     uint public estimated_length_seconds;
@@ -77,12 +77,12 @@ contract EthlanceJobStore {
     mapping(address => bool) public work_contract_mapping;
     
 
-    function construct(address _employer_address,
+    function construct(address payable _employer_address,
 		       uint8 _bid_option,
 		       uint _estimated_length_seconds,
 		       bool _include_ether_token,
 		       bool _is_invitation_only,
-		       string _metahash,
+		       string memory _metahash,
 		       uint _reward_value)
       public {
 	employer_address = _employer_address;
@@ -99,14 +99,14 @@ contract EthlanceJobStore {
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
-    function fireEvent(string event_name, uint[] event_data) private {
+    function fireEvent(string memory event_name, uint[] memory event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
 
 
     /// @dev Set the accepted arbiter for the current Job Wagon.
     /// @param arbiter_address User address of the accepted arbiter.
-    function setAcceptedArbiter(address arbiter_address)
+    function setAcceptedArbiter(address payable arbiter_address)
 	private {
 	accepted_arbiter = arbiter_address;
 
@@ -132,7 +132,7 @@ contract EthlanceJobStore {
       requests a work contract, or whether the Job is bounty-based.
 
      */
-    function requestWorkContract(address candidate_address)
+    function requestWorkContract(address payable candidate_address)
 	public {
 	require(registry.isRegisteredUser(candidate_address),
 		"Given address is not a registered user.");
@@ -142,9 +142,9 @@ contract EthlanceJobStore {
 		"Candidate already has a work contract created.");
 	require(employer_address != candidate_address,
 		"Employer cannot work on his own Job.");
-	
+
 	// Create the forwarded contract, and place in the work listing.
-	address fwd = new Forwarder(); // Proxy Contract with
+	Forwarder fwd = new Forwarder(); // Proxy Contract with
 	                               // target(EthlanceWorkContract)
 	EthlanceWorkContract workContract = EthlanceWorkContract(address(fwd));
 	work_contract_listing.push(address(workContract));
@@ -179,11 +179,11 @@ contract EthlanceJobStore {
       - arbiter requests himself, and the employer requests the same arbiter.
 
      */
-    function requestArbiter(address arbiter_address)
+    function requestArbiter(address payable arbiter_address)
 	public {
 	require(registry.isRegisteredUser(arbiter_address),
 		"Given address is not a registered user.");
-	require(accepted_arbiter == 0, "Arbiter already accepted.");
+	require(accepted_arbiter == address(0), "Arbiter already accepted.");
 	//require(arbiter_address != accepted_candidate,
 	//	"Accepted Candidate cannot be an Accepted Arbiter");
 	require(arbiter_address != employer_address,
@@ -309,10 +309,10 @@ contract EthlanceJobStore {
 			    address candidate_token,
 			    uint arbiter_amount,
 			    address arbiter_token,
-			    address candidate_address) external {
-	require(employer_token == 0x0 &&
-		candidate_token == 0x0 &&
-		arbiter_token == 0x0,
+			    address payable candidate_address) external {
+	require(employer_token == address(0) &&
+		candidate_token == address(0) &&
+		arbiter_token == address(0),
 		"ERC20 Tokens are not implemented.");
 	
 	//FIXME: safemath, ERC20 compatible
@@ -337,7 +337,7 @@ contract EthlanceJobStore {
         EthlanceInvoice. Access rights should be reflected in each
         step.
      */
-    function payInvoice(address candidate_address, uint amount_paid) external {
+    function payInvoice(address payable candidate_address, uint amount_paid) external {
 	require(isWorkContract(msg.sender), "Only a work contract has permission to transfer from the job store.");
 	candidate_address.transfer(amount_paid);
     }

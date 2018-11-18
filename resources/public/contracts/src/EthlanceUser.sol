@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "proxy/MutableForwarder.sol";
 import "./EthlanceRegistry.sol";
@@ -43,7 +43,7 @@ contract EthlanceUser {
     Employer public employer_data;
     Arbiter public arbiter_data;
 
-    function construct(uint _user_id, address _address, string _metahash)
+    function construct(uint _user_id, address _address, string calldata _metahash)
 	external {
 	require(registry.checkFactoryPrivilege(msg.sender),
 		"You are not privileged to carry out construction.");
@@ -60,12 +60,12 @@ contract EthlanceUser {
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
     /// fired event.
-    function fireEvent(string event_name, uint[] event_data) private {
+    function fireEvent(string memory event_name, uint[] memory event_data) private {
 	registry.fireEvent(event_name, version, event_data);
     }
 
 
-    function updateMetahash(string _metahash)
+    function updateMetahash(string memory _metahash)
 	public
         isUser {
 	metahash_ipfs = _metahash;
