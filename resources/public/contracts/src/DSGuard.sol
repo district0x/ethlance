@@ -39,7 +39,7 @@ contract DSGuard is DSAuth, DSAuthority, DSGuardEvents {
     //
 
     // Represents any address
-    address constant public ANY = address(0);
+    address constant public ANY = address(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
     bytes32 constant public ANYSIG = bytes32(uint(- 1));
 
     //
