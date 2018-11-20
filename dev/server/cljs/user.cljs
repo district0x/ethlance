@@ -36,6 +36,8 @@
   "Default district development configuration for mount components."
   (-> ethlance.server.core/main-config
       (merge {:logging {:level "debug" :console? true}})
+      (merge {:db {:path "./resources/ethlance.db"
+                   :opts {:memory false}}})
       (update :smart-contracts merge {:print-gas-usage? true
                                       :auto-mining? true})))
 

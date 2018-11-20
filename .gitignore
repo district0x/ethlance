@@ -3,6 +3,7 @@
 /ethlance.iml
 /resources/public/contracts/build/*.bin
 /resources/public/js/compiled
+/resources/ethlance.db
 /.idea
 /.lein-repl-history
 /.lein-failures

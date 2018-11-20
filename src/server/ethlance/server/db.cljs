@@ -122,8 +122,8 @@
      [:job/date-finished :unsigned :intreger default-nil]
      [:job/employer-uid address not-nil]
      [:job/estimated-length-seconds :unsigned :integer default-zero]
-     [:job/include-ether-token :boolean not-nil]
-     [:job/is-invitation-only :boolean not-nil]
+     [:job/include-ether-token? :unsigned :integer not-nil]
+     [:job/is-invitation-only? :unsigned :integer not-nil]
      [:job/reward-value :BIG :INT default-zero]]}
 
    ;; TODO jid foreign key
@@ -131,7 +131,7 @@
     :table-columns
     [[:job/id :unsigned :integer]
      [:arbiter-request/arbiter-uid address not-nil]
-     [:arbiter-request/is-employer-request :boolean not-nil]]}
+     [:arbiter-request/is-employer-request? :unsigned :integer not-nil]]}
 
    ;; TODO jid foreign key
    {:table-name :JobSkills
