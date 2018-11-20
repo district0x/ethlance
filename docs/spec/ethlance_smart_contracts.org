@@ -112,7 +112,7 @@
 
      -- 'employer' Map --
      biography : string
-     job_title : string
+     profession_title : string
 
      -- 'arbiter' Map --
      profession_title : string
@@ -237,8 +237,8 @@
    }
 
    class JobStoreMetahash << (I,blue) IPFS >> {
-     category_code : integer
-     experience_level : bitmask-8-bit
+     category_code : uint
+     experience_level : uint8{enum[Beginner, Novice, Professional, Expert]}
      job_description : string
      job_title : string
      required_availability : uint{enum[Part Time, Full Time]}
@@ -254,8 +254,8 @@
      date_created : uint{datetime}
      date_started : uint{datetime}
      date_finished : uint{datetime}
-     employer_user_id : uint
-     estimated_project_length : uint{enum[Hour, Day, Week, Month, Year]}
+     employer_address : address
+     estimated_length_seconds : uint
      include_ether_token : boolean
      is_invitation_only : boolean
      metahash : string{JobStoreMetahash}
@@ -273,6 +273,10 @@
    EthlanceWorkContract "1" *-- "*" EthlanceJobDispute
    class EthlanceWorkContract << (f,green) Forwarded Contract >> {
      store_instance : EthlanceJobStore
+     contract_status : uint{Enum[...]}
+     date_updated : uint{datetime}
+     date_created : uint{datetime}
+     date_finished : uint{datetime}
      invoice_listing: array[address of EthlanceJobInvoice]
      dispute_listing: array[address of EthlanceJobDispute]
 
@@ -300,9 +304,10 @@
    EthlanceJobInvoice -- InvoiceCommentMetahash
    class EthlanceJobInvoice << Contract >> {
      job_instance: address<EthlanceWorkContract>
+     amount_requested : uint
+     amount_paid : uint
      date_created: uint{DateTime}
      date_approved: uint{DateTime}
-     duration_seconds: uint
      metahash : string{JobInvoiceMetahash}
 
      comment_listing : array[string of InvoiceCommentMetahash Hashes]
@@ -323,12 +328,14 @@
    EthlanceJobDispute -- DisputeCommentMetahash
    class EthlanceJobDispute << Contract >> {
      job_instance: address<EthlanceWorkContract>
+     
      date_created: uint{DateTime}
      date_resolved: uint{DateTime}
      metahash : string{JobDisputeMetahash}
 
      employer_resolution_amount: nullable{uint}
      candidate_resolution_amount: nullable{uint}
+     arbiter_resolution_amount : nullable{uint}
 
      comment_listing: array[string of DisputeCommentMetahash Hashes]
    }
@@ -485,3 +492,156 @@
 
    #+RESULTS:
    [[file:work_contract_status_diagram.png]]
+* Ethlance Database
+   #+BEGIN_SRC plantuml :file ethlance_database_schema.png
+
+   skinparam BackgroundColor #F3F4F9
+   skinparam RoundCorner 5
+   skinparam class {
+     BackgroundColor White
+     ArrowColor #F1B440
+     ArrowThickness 2
+     BorderColor #292D83
+   }
+
+   title Ethlance Database Schema
+
+   class User << (T,brown) Table >> {
+     uid : primary key
+     address : unique text
+     country_code : text
+     date_last_active : timestamp
+     date_joined : timestamp
+     email : text
+     profile_image : text
+   }
+
+   User "1" *-- "1" UserCandidate
+   class UserCandidate << (T,brown) Table >> {
+     uid : foreign key
+     biography : text
+     profession_title : text
+   }
+
+   User "1" *-- "*" UserCandidateCategory
+   class UserCandidateCategory << (T,brown) Table >> {
+     uid : foreign key
+     category : text
+   }
+
+   User "1" *-- "*" UserCandidateSkill
+   class UserCandidateSkill << (T,brown) Table >> {
+     uid : foreign key
+     skill : text
+   }
+
+   User "1" *-- "1" UserEmployer
+   class UserEmployer << (T,brown) Table >> {
+     uid : foreign key
+     biography : text
+     profession_title : text
+   }
+
+   User "1" *-- "1" UserArbiter
+   class UserArbiter << (T,brown) Table >> {
+     uid : foreign key
+     biography : text
+   }
+
+   User "1" *-- "1" UserGithub
+   class UserGithub << (T,brown) Table >> {
+     uid : foreign key
+     api_key : text
+   }
+
+   User "1" *-- "1" UserLinkedin
+   class UserLinkedin << (T,brown) Table >> {
+     uid : foreign key
+     api_key : text
+   }
+
+   User "1" *-- "*" UserLanguages
+   class UserLanguages << (T,brown) Table >> {
+     uid : foreign key
+     language : text
+   }
+
+   class Job << (T,brown) Table >> {
+     jid : primary key
+     accepted_arbiter : nullable address
+     title : text
+     availability : uint{enum[Part Time, Full Time]}
+     category_code : uint
+     description : text
+     date_created : timestamp
+     date_started : timestamp
+     date_finished : timestamp
+     employer_uid : foreign key
+     estimated_length_seconds : uint
+     include_ether_token : bool
+     is_invitation_only : bool
+     reward_value : string
+   }
+
+   Job "1" *-- "*" JobArbiterRequest
+   class JobArbiterRequest << (T,brown) Table >> {
+     jid : foreign key
+     arbiter_uid : foreign key
+     is_employer_request : bool
+   }
+
+   Job "1" *-- "*" JobSkills
+   class JobSkills << (T,brown) Table >> {
+     jid : foreign key
+     skill : text
+   }
+
+   Job "1" *-- "*" WorkContract
+   class WorkContract << (T,brown) Table >> {
+     wid : primary key
+     jid : foreign key
+     contract_status : uint{Enum[...]}
+     date_updated : timestamp
+     date_created : timestamp
+     date_finished : timestamp
+   }
+
+   WorkContract "1" *-- "*" WorkContractInvoice
+   class WorkContractInvoice << (T,brown) Table >> {
+     wid : foreign key
+     date_created : timestamp
+     date_updated : timestamp
+     date_paid : nullable timestamp
+     amount_requested : uint
+     amount_paid : nullable uint
+   }
+
+   WorkContractInvoice "1" *-- "*" WorkContractInvoiceComment
+   class WorkContractInvoiceComment << (T,brown) Table >> {
+     uid : foreign key
+     user_type : uint{enum[Arbiter, Candidate, Employer]}
+     date_created : timestamp
+     comment : text
+   }
+
+   WorkContract "1" *-- "*" WorkContractDispute
+   class WorkContractDispute << (T,brown) Table >> {
+     wid : foreign key
+     reason : string
+     date_created : timestamp
+     date_updated : timestamp
+     date_resolved : nullable timestamp
+   }
+
+   WorkContractDispute "1" *-- "*" WorkContractDisputeComment
+   class WorkContractDisputeComment << (T,brown) Table >> {
+     uid : foreign key
+     user_type : uint{enum[Arbiter, Candidate, Employer]}
+     date_created : timestamp
+     comment : text
+   }
+
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:ethlance_database_schema.png]]
