@@ -250,7 +250,7 @@
      accepted_arbiter : nullable{address}
      arbiter_request_listing : array[address]
      token_address_listing : array[string]
-     bid_mask : bitmask-8-bit [Hourly Rate, Fixed Price, Annual Salary, Bounty]
+     bid_option : uint{enum[Hourly Rate, Fixed Price, Annual Salary, Bounty]}
      date_created : uint{datetime}
      date_started : uint{datetime}
      date_finished : uint{datetime}
@@ -507,7 +507,7 @@
    title Ethlance Database Schema
 
    class User << (T,brown) Table >> {
-     uid : primary key
+     user_id : primary key
      address : unique text
      country_code : text
      date_last_active : timestamp
@@ -518,60 +518,65 @@
 
    User "1" *-- "1" UserCandidate
    class UserCandidate << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      biography : text
+     date_registered : nullable timestamp
      profession_title : text
    }
 
    User "1" *-- "*" UserCandidateCategory
    class UserCandidateCategory << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      category : text
    }
 
    User "1" *-- "*" UserCandidateSkill
    class UserCandidateSkill << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      skill : text
    }
 
    User "1" *-- "1" UserEmployer
    class UserEmployer << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      biography : text
      profession_title : text
    }
 
    User "1" *-- "1" UserArbiter
    class UserArbiter << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      biography : text
+     currency_type : uint{enum[Ethereum, USD, ...]}
+     payment_value : uint
+     payment_type : uint{enum[Flat Rate, Percentage]}
    }
 
    User "1" *-- "1" UserGithub
    class UserGithub << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      api_key : text
    }
 
    User "1" *-- "1" UserLinkedin
    class UserLinkedin << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      api_key : text
    }
 
-   User "1" *-- "*" UserLanguages
+   User "1" *-- "*" UserLanguage
    class UserLanguages << (T,brown) Table >> {
-     uid : foreign key
+     user_id : foreign key
      language : text
    }
 
    class Job << (T,brown) Table >> {
-     jid : primary key
-     accepted_arbiter : nullable address
+     job_id : primary key
      title : text
-     availability : uint{enum[Part Time, Full Time]}
-     category_code : uint
+     accepted_arbiter : nullable address
+     availability : uint{enum[]}
+     bid_option : uint{enum[]}
+     category : text
      description : text
      date_created : timestamp
      date_started : timestamp
@@ -585,21 +590,21 @@
 
    Job "1" *-- "*" JobArbiterRequest
    class JobArbiterRequest << (T,brown) Table >> {
-     jid : foreign key
+     job_id : foreign key
      arbiter_uid : foreign key
      is_employer_request : bool
    }
 
    Job "1" *-- "*" JobSkills
    class JobSkills << (T,brown) Table >> {
-     jid : foreign key
+     job_id : foreign key
      skill : text
    }
 
    Job "1" *-- "*" WorkContract
    class WorkContract << (T,brown) Table >> {
-     wid : primary key
-     jid : foreign key
+     work_id : primary key
+     job_id : foreign key
      contract_status : uint{Enum[...]}
      date_updated : timestamp
      date_created : timestamp
@@ -608,7 +613,8 @@
 
    WorkContract "1" *-- "*" WorkContractInvoice
    class WorkContractInvoice << (T,brown) Table >> {
-     wid : foreign key
+     invoice_id : primary key
+     work_id : foreign key
      date_created : timestamp
      date_updated : timestamp
      date_paid : nullable timestamp
@@ -618,15 +624,18 @@
 
    WorkContractInvoice "1" *-- "*" WorkContractInvoiceComment
    class WorkContractInvoiceComment << (T,brown) Table >> {
-     uid : foreign key
+     comment_id : primary key
+     invoice_id : foreign key
+     user_id : foreign key
      user_type : uint{enum[Arbiter, Candidate, Employer]}
      date_created : timestamp
-     comment : text
+     data : text
    }
 
    WorkContract "1" *-- "*" WorkContractDispute
    class WorkContractDispute << (T,brown) Table >> {
-     wid : foreign key
+     dispute_id : primary key
+     work_id : foreign key
      reason : string
      date_created : timestamp
      date_updated : timestamp
@@ -635,6 +644,8 @@
 
    WorkContractDispute "1" *-- "*" WorkContractDisputeComment
    class WorkContractDisputeComment << (T,brown) Table >> {
+     comment_id : primary key
+     dispute_id : foreign key
      uid : foreign key
      user_type : uint{enum[Arbiter, Candidate, Employer]}
      date_created : timestamp
