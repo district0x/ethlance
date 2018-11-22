@@ -3,6 +3,7 @@
   component for creating the in-memory database upon initial load."
   (:require
    [cuerdas.core :as str]
+   [com.rpl.specter :as $ :include-macros true]
    [district.server.config :refer [config]]
    [district.server.db :as db]
    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
@@ -203,6 +204,14 @@
            :where [:= :type "table"]}))
 
 
+(defn- get-table-schema
+  "Retrieve the given table schema defined by `table-name` from the
+  database schema, or nil."
+  [table-name]
+  (-> ($/select [$/ALL #(= (:table-name %) table-name)] database-schema)
+      first))
+
+
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
   []
@@ -222,11 +231,68 @@
     (db/run! {:drop-table [table-name]})))
 
 
+(defn insert-row!
+  "Inserts into the given `table-name` with the given `item`. The
+  table-name and item structure are defined in the `database-schema`."
+  [table-name item]
+  (if-let [table-schema (get-table-schema table-name)]
+    (let [item (select-keys item (:table-columns table-schema))]
+      (db/run! {:insert-into table-name
+                :columns (keys item)
+                :values [(vals item)]}))
+    (log/error (str/format "Unable to find table schema for '%s'" table-name))))
+
+
+(defn update-row!
+  "Updates the given `table-name` with the given `item`. The table-name
+  and item structure are defined in the `database-schema`.
+
+  Notes:
+
+  - The :id-keys within the table-schema needs to be defined with at
+  least one id-key in order to correctly update a row.
+  "
+  [table-name item]
+  (if-let [table-schema (get-table-schema table-name)]
+    (do
+     (assert (not (empty? (:id-keys table-schema)))
+             (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
+     (let [item (select-keys item (:table-columns table-schema))]
+       (db/run! {:update table-name
+                 :set item
+                 :where (concat
+                         [:and]
+                         (for [id-key (:id-keys table-schema)]
+                           [:= id-key (get item id-key)]))})))))
+
+
+(defn get-row
+  "Get the given `fields` for the data row described by the `table-name`
+  and `item` containing appropriate `item-keys` to identify the item.
+
+  Notes:
+
+  - The :id-keys within the table-schema need to be defined.
+  "
+  [table-name item & fields]
+  (if-let [table-schema (get-table-schema table-name)]
+    (do
+     (assert (not (empty? (:id-keys table-schema)))
+             (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
+     (let [item (select-keys item (:table-columns table-schema))]
+       (db/run! {:select fields
+                 :from [table-name]
+                 :where (concat
+                         [:and]
+                         (for [id-key (:id-keys table-schema)]
+                           [:= id-key (get item id-key)]))})))))
+
+
 (defn start
   "Start the ethlance-db mount component."
   [config]
   (create-db!))
- 
+
 
 (defn stop
   "Stop the ethlance-db mount component."
