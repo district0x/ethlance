@@ -212,10 +212,19 @@
       first))
 
 
+(defn- get-table-column-names
+  "Retrieves the table column names for a given table schema defined by their `table-name`."
+  [table-name]
+  (let [table-schema (get-table-schema table-name)]
+    (->> (:table-columns table-schema)
+        (map first)
+        (filter keyword?))))
+
+
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
   []
-  (log/info "Creating in-memory database...")
+  (log/info "Creating Sqlite Database...")
   (doseq [{:keys [table-name table-columns]} database-schema]
     (log/debug (str/format "  - Creating Database Table '%s' ..." table-name))
     (db/run! {:create-table [table-name] :with-columns [table-columns]}))
@@ -225,7 +234,7 @@
 (defn drop-db!
   "Drops all of the database tables defined in the `database-schema`."
   []
-  (log/info "Dropping in-memory database...")
+  (log/info "Dropping Sqlite Database...")
   (doseq [{:keys [table-name]} (reverse database-schema)]
     (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
     (db/run! {:drop-table [table-name]})))
@@ -236,7 +245,10 @@
   table-name and item structure are defined in the `database-schema`."
   [table-name item]
   (if-let [table-schema (get-table-schema table-name)]
-    (let [item (select-keys item (:table-columns table-schema))]
+    (let [table-column-names (get-table-column-names table-name)
+          item (select-keys item table-column-names)]
+      (log/debug "Item: " item)
+      (log/debug "Table Schema: " table-schema)
       (db/run! {:insert-into table-name
                 :columns (keys item)
                 :values [(vals item)]}))
@@ -255,15 +267,16 @@
   [table-name item]
   (if-let [table-schema (get-table-schema table-name)]
     (do
-     (assert (not (empty? (:id-keys table-schema)))
-             (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
-     (let [item (select-keys item (:table-columns table-schema))]
-       (db/run! {:update table-name
-                 :set item
-                 :where (concat
-                         [:and]
-                         (for [id-key (:id-keys table-schema)]
-                           [:= id-key (get item id-key)]))})))))
+      (assert (not (empty? (:id-keys table-schema)))
+              (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
+      (let [table-column-names (get-table-column-names table-name)
+            item (select-keys item table-column-names)]
+        (db/run! {:update table-name
+                  :set item
+                  :where (concat
+                          [:and]
+                          (for [id-key (:id-keys table-schema)]
+                            [:= id-key (get item id-key)]))})))))
 
 
 (defn get-row

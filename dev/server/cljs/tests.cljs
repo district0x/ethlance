@@ -7,6 +7,7 @@
    [ethlance.server.contract.ethlance-work-contract-test]
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
+   [ethlance.server.db-test]
    [ethlance.shared.enum.currency-type-test]))
 
 
@@ -42,3 +43,9 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.ethlance-dispute-test)))
+
+
+(defn run-db-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.db-test)))
