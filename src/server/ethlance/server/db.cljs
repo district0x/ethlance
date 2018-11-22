@@ -45,66 +45,83 @@
   [{:table-name :User
     :table-columns
     [[:user/id :unsigned :integer primary-key]
-     [:user/address address not-nil (sql/raw "UNIQUE")]
+     [:user/address address not-nil]
      [:user/country-code :varchar not-nil]
      [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
      [:user/date-last-active :unsigned :integer]
-     [:user/date-joined :unsigned :integer]]}
+     [:user/date-joined :unsigned :integer]]
+    :id-keys [:user/id]}
 
    ;; TODO: user_id foreign key
    {:table-name :UserCandidate
     :table-columns
     [[:user/id :unsigned :integer]
+     [:candidate/id :unsigned :integer primary-key]
      [:candidate/biography :varchar]
      [:candidate/date-registered :unsigned :integer not-nil]
-     [:candidate/profession-title :varchar not-nil]]}
+     [:candidate/profession-title :varchar not-nil]]
+    :id-keys [:user/id :candidate/id]}
 
    {:table-name :UserCandidateCategory
     :table-columns
     [[:user/id :unsigned :integer]
-     [:candidate/category :varchar]]}
+     [:category/id :unsigned :integer primary-key]
+     [:candidate/category :varchar]]
+    :id-keys [:user/id :category/id]}
 
    {:table-name :UserCandidateSkill
     :table-columns
     [[:user/id :unsigned :integer]
-     [:candidate/skill :varchar]]}
+     [:skill/id :unsigned :integer primary-key]
+     [:candidate/skill :varchar]]
+    :id-keys [:user/id :skill/id]}
 
    ;; TODO: uid foreign key
    {:table-name :UserEmployer
     :table-columns
     [[:user/id :unsigned :integer]
+     [:employer/id :unsigned :integer primary-key]
      [:employer/biography :varchar]
      [:employer/date-registered :unsigned :integer not-nil]
-     [:employer/profession-title :varchar not-nil]]}
+     [:employer/profession-title :varchar not-nil]]
+    :id-keys [:user/id :employer/id]}
 
    ;; TODO: uid foreign key
    {:table-name :UserArbiter
     :table-columns
     [[:user/id :unsigned :integer]
+     [:arbiter/id :unsigned :integer primary-key]
      [:arbiter/biography :varchar]
      [:arbiter/date-registered :unsigned :integer not-nil]
      [:arbiter/currency-type :unsigned :integer not-nil]
      [:arbiter/payment-value :BIG :INT not-nil]
-     [:arbiter/payment-type :unsigned :integer not-nil]]}
+     [:arbiter/payment-type :unsigned :integer not-nil]]
+    :id-keys [:user/id :arbiter/id]}
 
    ;; TODO: uid foreign key
    {:table-name :UserGithub
     :table-columns
     [[:user/id :unsigned :integer]
-     [:user-github/api-key :varchar not-nil]]}
+     [:github/id :unsigned :integer primary-key]
+     [:github/api-key :varchar not-nil]]
+    :id-keys [:user/id :github/id]}
 
    ;; TODO uid foreign key
    {:table-name :UserLinkedin
     :table-columns
     [[:user/id :unsigned :integer]
-     [:user-linkedin/api-key :varchar not-nil]]}
+     [:linkedin/id :unsigned :integer]
+     [:linkedin/api-key :varchar not-nil]]
+    :id-keys [:user/id :linkedin/id]}
 
    ;; TODO uid foreign key
    {:table-name :UserLanguage
     :table-columns
     [[:user/id :unsigned :integer]
-     [:user/language :varchar not-nil]]}
+     [:language/id :unsigned :integer primary-key]
+     [:user/language :varchar not-nil]]
+    :id-keys [:user/id :language/id]}
 
    ;;
    ;; Job Tables
@@ -125,20 +142,25 @@
      [:job/estimated-length-seconds :unsigned :integer default-zero]
      [:job/include-ether-token? :unsigned :integer not-nil]
      [:job/is-invitation-only? :unsigned :integer not-nil]
-     [:job/reward-value :BIG :INT default-zero]]}
+     [:job/reward-value :BIG :INT default-zero]]
+    :id-keys [:job/id]}
 
    ;; TODO jid foreign key
    {:table-name :JobArbiterRequest
     :table-columns
     [[:job/id :unsigned :integer]
+     [:arbiter-request/id :unsigned :integer primary-key]
      [:arbiter-request/arbiter-uid address not-nil]
-     [:arbiter-request/is-employer-request? :unsigned :integer not-nil]]}
+     [:arbiter-request/is-employer-request? :unsigned :integer not-nil]]
+    :id-keys [:job/id :arbiter-request/id]}
 
    ;; TODO jid foreign key
    {:table-name :JobSkills
     :table-columns
     [[:job/id :unsigned :integer]
-     [:job/skill :varchar not-nil]]}
+     [:skill/id :unsigned :integer primary-key]
+     [:job/skill :varchar not-nil]]
+    :id-keys [:job/id :skill/id]}
 
    ;;
    ;; Work Contract
@@ -152,7 +174,8 @@
      [:work-contract/contract-status :unsigned :integer not-nil]
      [:work-contract/date-updated :unsigned :integer not-nil]
      [:work-contract/date-created :unsigned :integer not-nil]
-     [:work-contract/date-finished :unsigned :integer default-zero]]}
+     [:work-contract/date-finished :unsigned :integer default-zero]]
+    :id-keys [:job/id :work-contract/id]}
 
    ;; TODO wid foreign key
    {:table-name :WorkContractInvoice
@@ -163,7 +186,8 @@
      [:invoice/date-updated :unsigned :integer not-nil]
      [:invoice/date-paid :unsigned :integer default-zero]
      [:invoice/amount-requested :BIG :INT default-zero]
-     [:invoice/amount-paid :BIT :INT default-nil]]}
+     [:invoice/amount-paid :BIT :INT default-nil]]
+    :id-keys [:work-contract/id :invoice/id]}
 
    ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractInvoiceComment
@@ -173,7 +197,8 @@
      [:user/id :unsigned :integer]
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
-     [:comment/data :varchar not-nil]]}
+     [:comment/data :varchar not-nil]]
+    :id-keys [:invoice/id :comment/id]}
 
    ;; TODO wid foreign key
    {:table-name :WorkContractDispute
@@ -183,7 +208,8 @@
      [:dispute/reason :varchar not-nil]
      [:dispute/date-created :unsigned :integer not-nil]
      [:dispute/date-updated :unsigned :integer not-nil]
-     [:dispute/date-resolved :unsigned :integer default-nil]]}
+     [:dispute/date-resolved :unsigned :integer default-nil]]
+    :id-keys [:work-contract/id :dispute/id]}
 
    ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractDisputeComment
@@ -193,7 +219,8 @@
      [:user/id :unsigned :integer]
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
-     [:comment/data :varchar not-nil]]}])
+     [:comment/data :varchar not-nil]]
+    :id-keys [:dispute/id :comment/id]}])
 
 
 (defn list-tables
@@ -276,7 +303,8 @@
                   :where (concat
                           [:and]
                           (for [id-key (:id-keys table-schema)]
-                            [:= id-key (get item id-key)]))})))))
+                            [:= id-key (get item id-key)]))})))
+    (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
 
 (defn get-row
@@ -290,15 +318,18 @@
   [table-name item & fields]
   (if-let [table-schema (get-table-schema table-name)]
     (do
-     (assert (not (empty? (:id-keys table-schema)))
-             (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
-     (let [item (select-keys item (:table-columns table-schema))]
-       (db/run! {:select fields
+      (assert (not (empty? (:id-keys table-schema)))
+              (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
+      (let [table-column-names (get-table-column-names table-name)
+            item (select-keys item (:table-columns table-schema))
+            fields (or fields table-column-names)]
+        (db/get {:select fields
                  :from [table-name]
                  :where (concat
                          [:and]
                          (for [id-key (:id-keys table-schema)]
-                           [:= id-key (get item id-key)]))})))))
+                           [:= id-key (get item id-key)]))})))
+    (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
 
 (defn start

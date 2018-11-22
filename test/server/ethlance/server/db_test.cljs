@@ -48,5 +48,9 @@
                            :user/date-last-active 0
                            :user/date-joined 0}))
 
+  (testing "Getting a row.."
+    (let [user (db/get-row :User {:user/id 0})]
+      (log/debug user)))
+
   ;;
   (fixture-stop))
