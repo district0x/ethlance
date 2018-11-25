@@ -18,6 +18,7 @@ contract EthlanceJobStore {
     /// by an employer for a job contract.
     struct ArbiterRequest {
 	bool is_employer_request;
+	uint date_requested;
 	address arbiter_address;
     }
 
@@ -202,7 +203,7 @@ contract EthlanceJobStore {
 	if (msg.sender == arbiter_address) {
 	    // No previous request, so create a new Arbiter Request
 	    if (arbiter_request_mapping[arbiter_address] == 0) {
-		arbiter_request_listing.push(ArbiterRequest(false, arbiter_address));
+		arbiter_request_listing.push(ArbiterRequest(false, now, arbiter_address));
 		arbiter_request_mapping[arbiter_address] = arbiter_request_listing.length;
 		return;
 	    }
@@ -228,7 +229,7 @@ contract EthlanceJobStore {
 
 	// No previous request, so create a new Arbiter Request
 	if (arbiter_request_mapping[arbiter_address] == 0) {
-	    arbiter_request_listing.push(ArbiterRequest(true, arbiter_address));
+	    arbiter_request_listing.push(ArbiterRequest(true, now, arbiter_address));
 	    arbiter_request_mapping[arbiter_address] = arbiter_request_listing.length;
 	    return;
 	}
@@ -262,11 +263,13 @@ contract EthlanceJobStore {
     /// @return 2-element tuple containing the arbiter data.
     function getRequestedArbiterByIndex(uint index)
 	public view returns (bool is_employer_request,
+			     uint date_requested,
 			     address arbiter_address) {
 	require(index < arbiter_request_listing.length,
 		"Given index out of bounds.");
 	ArbiterRequest memory arbiterRequest = arbiter_request_listing[index];
 	is_employer_request = arbiterRequest.is_employer_request;
+	date_requested = arbiterRequest.date_requested;
 	arbiter_address = arbiterRequest.arbiter_address;
     }
 

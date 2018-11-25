@@ -38,7 +38,9 @@
 
   - Table Entry order matters for creation and deletion.
   
-  - :id-keys is a listing which makes up a table's composite key
+  - :id-keys is a listing which makes up a table's compound key
+
+  - primary key auto-increments start from index 1.
   "
 
   ;;
@@ -58,72 +60,65 @@
    ;; TODO: user_id foreign key
    {:table-name :UserCandidate
     :table-columns
-    [[:user/id :integer]
-     [:candidate/id :integer primary-key]
+    [[:user/id :integer primary-key]
      [:candidate/biography :varchar]
      [:candidate/date-registered :unsigned :integer not-nil]
      [:candidate/professional-title :varchar not-nil]]
-    :id-keys [:user/id :candidate/id]}
+    :id-keys [:user/id]}
 
    {:table-name :UserCandidateCategory
     :table-columns
     [[:user/id :integer]
-     [:category/id :integer primary-key]
-     [:candidate/category :varchar]]
-    :id-keys [:user/id :category/id]}
+     [:candidate/category :varchar]
+     [(sql/call :primary-key :user/id)]]
+    :id-keys [:user/id]}
 
    {:table-name :UserCandidateSkill
     :table-columns
     [[:user/id :integer]
-     [:skill/id :integer primary-key]
      [:candidate/skill :varchar]]
-    :id-keys [:user/id :skill/id]}
+    :id-keys [:user/id]}
 
    ;; TODO: uid foreign key
    {:table-name :UserEmployer
     :table-columns
-    [[:user/id :integer]
-     [:employer/id :integer primary-key]
+    [[:user/id :integer primary-key]
      [:employer/biography :varchar]
      [:employer/date-registered :unsigned :integer not-nil]
      [:employer/professional-title :varchar not-nil]]
-    :id-keys [:user/id :employer/id]}
+    :id-keys [:user/id]}
 
    ;; TODO: uid foreign key
    {:table-name :UserArbiter
     :table-columns
-    [[:user/id :integer]
-     [:arbiter/id :integer primary-key]
+    [[:user/id :integer primary-key]
      [:arbiter/biography :varchar]
      [:arbiter/date-registered :unsigned :integer not-nil]
      [:arbiter/currency-type :unsigned :integer not-nil]
      [:arbiter/payment-value :BIG :INT not-nil]
      [:arbiter/payment-type :unsigned :integer not-nil]]
-    :id-keys [:user/id :arbiter/id]}
+    :id-keys [:user/id]}
 
-   ;; TODO: uid foreign key
+   ;; TODO: Consider normalizing, foreign key
    {:table-name :UserGithub
     :table-columns
-    [[:user/id :unsigned :integer]
-     [:github/id :integer primary-key]
+    [[:user/id :integer primary-key]
      [:github/api-key :varchar not-nil]]
-    :id-keys [:user/id :github/id]}
+    :id-keys [:user/id]}
 
-   ;; TODO uid foreign key
+   ;; TODO Consider normalizing, foreign key
    {:table-name :UserLinkedin
     :table-columns
-    [[:user/id :integer]
-     [:linkedin/id :integer primary-key]
+    [[:user/id :integer primary-key]
      [:linkedin/api-key :varchar not-nil]]
-    :id-keys [:user/id :linkedin/id]}
+    :id-keys [:user/id]}
 
-   ;; TODO uid foreign key
+   ;; TODO Foreign key
    {:table-name :UserLanguage
     :table-columns
     [[:user/id :integer]
-     [:language/id :integer primary-key]
      [:user/language :varchar not-nil]]
-    :id-keys [:user/id :language/id]}
+    :id-keys [:user/id]}
 
    ;;
    ;; Job Tables
@@ -147,82 +142,99 @@
      [:job/reward-value :BIG :INT default-zero]]
     :id-keys [:job/id]}
 
-   ;; TODO jid foreign key
+   ;; TODO(?) user TRIGGER for UserArbiter existence.
    {:table-name :JobArbiterRequest
     :table-columns
     [[:job/id :integer]
-     [:arbiter-request/id :integer primary-key]
-     [:arbiter-request/arbiter-uid address not-nil]
-     [:arbiter-request/is-employer-request? :unsigned :integer not-nil]]
-    :id-keys [:job/id :arbiter-request/id]}
+     [:user/id address not-nil] ;; requesting arbiter
+     [:arbiter-request/date-requested :unsigned :integer]
+     [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
+     [(sql/call :primary-key :job/id :user/id)]]
+    :id-keys [:job/id :user/id]}
 
-   ;; TODO jid foreign key
+   ;; TODO job/id foreign key
    {:table-name :JobSkills
     :table-columns
     [[:job/id :integer]
-     [:skill/id :integer primary-key]
      [:job/skill :varchar not-nil]]
-    :id-keys [:job/id :skill/id]}
+    :id-keys [:job/id]}
 
    ;;
    ;; Work Contract
    ;;
+   ;; Notes:
+   ;;
+   ;; - JobStore holds a listing of WorkContract, hence the compound key
+   ;;
+   ;; - WorkContract holds listings of invoices and disputes. Given
+   ;;   that WorkContract is compounded with JobStore, it requires a
+   ;;   triple compound key.
 
-   ;; TODO jid foreign key
+   ;; TODO foreign key
    {:table-name :WorkContract
     :table-columns
-    [[:work-contract/id :integer primary-key]
-     [:job/id :integer]
+    [[:job/id :integer]
+     [:work-contract/index :integer]
      [:work-contract/contract-status :unsigned :integer not-nil]
      [:work-contract/date-updated :unsigned :integer not-nil]
      [:work-contract/date-created :unsigned :integer not-nil]
-     [:work-contract/date-finished :unsigned :integer default-zero]]
-    :id-keys [:job/id :work-contract/id]}
+     [:work-contract/date-finished :unsigned :integer default-zero]
+     [(sql/call :primary-key :job/id :work-contract/index)]]
+    :id-keys [:job/id :work-contract/index]}
 
-   ;; TODO wid foreign key
    {:table-name :WorkContractInvoice
     :table-columns
-    [[:invoice/id :integer primary-key]
-     [:work-contract/id :integer]
+    [[:job/id :integer]
+     [:work-contract/index :integer]
+     [:invoice/index :integer]
      [:invoice/date-created :unsigned :integer not-nil]
      [:invoice/date-updated :unsigned :integer not-nil]
      [:invoice/date-paid :unsigned :integer default-zero]
      [:invoice/amount-requested :BIG :INT default-zero]
-     [:invoice/amount-paid :BIT :INT default-nil]]
-    :id-keys [:work-contract/id :invoice/id]}
+     [:invoice/amount-paid :BIT :INT default-nil]
+     [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]]
+    :id-keys [:job/id :work-contract/id :invoice/index]}
 
    ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractInvoiceComment
     :table-columns
-    [[:comment/id :integer primary-key]
-     [:invoice/id :integer]
-     [:user/id :unsigned :integer]
+    [[:job/id :integer]
+     [:work-contract/index :integer]
+     [:invoice/index :integer]
+     [:comment/id :integer]
+     [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
-     [:comment/data :varchar not-nil]]
-    :id-keys [:invoice/id :comment/id]}
+     [:comment/data :varchar not-nil]
+     [(sql/call :primary-key :job/id :work-contract/index :invoice/index :comment/id)]] 
+    :id-keys [:job/id :work-contract/index :invoice/index :comment/id]}
 
    ;; TODO wid foreign key
    {:table-name :WorkContractDispute
     :table-columns
-    [[:dispute/id :integer primary-key]
-     [:work-contract/id :integer]
+    [[:job/id :integer]
+     [:work-contract/index :integer]
+     [:dispute/index :integer]
      [:dispute/reason :varchar not-nil]
      [:dispute/date-created :unsigned :integer not-nil]
      [:dispute/date-updated :unsigned :integer not-nil]
-     [:dispute/date-resolved :unsigned :integer default-nil]]
-    :id-keys [:work-contract/id :dispute/id]}
+     [:dispute/date-resolved :unsigned :integer default-nil]
+     [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]]
+    :id-keys [:job/id :work-contract/index :dispute/index]}
 
    ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractDisputeComment
     :table-columns
-    [[:comment/id :integer primary-key]
-     [:dispute/id :integer]
+    [[:job/id :integer]
+     [:work-contract/index :integer]
+     [:dispute/index :integer]
+     [:comment/id :integer]
      [:user/id :unsigned :integer]
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
-     [:comment/data :varchar not-nil]]
-    :id-keys [:dispute/id :comment/id]}])
+     [:comment/data :varchar not-nil]
+     [(sql/call :primary-key :job/id :work-contract/index :dispute/index :comment/id)]]
+    :id-keys [:job/id :work-contract/index :dispute/index :comment/id]}])
 
 
 (defn list-tables

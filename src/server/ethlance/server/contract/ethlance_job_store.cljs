@@ -54,9 +54,10 @@
   "Returns requested arbiter data for the arbiter at the given
   `index`."
   [index]
-  (let [[is-employer-request? arbiter-address]
+  (let [[is-employer-request? date-requested arbiter-address]
         (call :get-requested-arbiter-by-index index)]
     {:is-employer-request? is-employer-request?
+     :date-requested date-requested
      :arbiter-address arbiter-address}))
 
 

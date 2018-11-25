@@ -17,8 +17,9 @@
   "Test configuration for the database."
   (-> ethlance.server.core/main-config
       (merge {:logging {:level "debug" :console? true}})
-      (update :db merge {:opts {:memory false}
-                         :path "target/test_ethlance.db"})))
+      (update :db merge {:opts {:memory true}})
+      #_(update :db merge {:opts {:memory false}
+                           :path "target/test_ethlance.db"})))
 
 
 (defn fixture-start
@@ -34,7 +35,7 @@
 (defn fixture-stop
   "Test Fixture Teardown."
   []
-  #_(mount/stop))
+  (mount/stop))
 
 
 (deftest test-database-user
@@ -64,6 +65,8 @@
     (let [user-candidate (db/get-row :UserCandidate {:user/id 1 :candidate/id 1})]
       (is (= (:candidate/professional-title user-candidate) "Professional Worker"))
       (log/debug user-candidate)))
+
+  
 
   ;;
   (fixture-stop))
