@@ -55,7 +55,8 @@
      [:user/profile-image :varchar]
      [:user/date-last-active :unsigned :integer]
      [:user/date-joined :unsigned :integer]]
-    :id-keys [:user/id]}
+    :id-keys [:user/id]
+    :list-keys []}
 
    ;; TODO: user_id foreign key
    {:table-name :UserCandidate
@@ -64,20 +65,26 @@
      [:candidate/biography :varchar]
      [:candidate/date-registered :unsigned :integer not-nil]
      [:candidate/professional-title :varchar not-nil]]
-    :id-keys [:user/id]}
+    :id-keys [:user/id]
+    :list-keys []}
 
    {:table-name :UserCandidateCategory
     :table-columns
     [[:user/id :integer]
-     [:candidate/category :varchar]
-     [(sql/call :primary-key :user/id)]]
-    :id-keys [:user/id]}
+     [:category/id :integer primary-key]
+     [:category/name :varchar]
+     [(sql/call :unique :user/id :category/id)]]
+    :id-keys [:category/id]
+    :list-keys [:user/id]}
 
    {:table-name :UserCandidateSkill
     :table-columns
     [[:user/id :integer]
-     [:candidate/skill :varchar]]
-    :id-keys [:user/id]}
+     [:skill/id :integer primary-key]
+     [:skill/name :varchar]
+     [(sql/call :unique :user/id :skill/id)]]
+    :id-keys [:skill/id]
+    :list-keys [:user/id]}
 
    ;; TODO: uid foreign key
    {:table-name :UserEmployer
@@ -86,7 +93,8 @@
      [:employer/biography :varchar]
      [:employer/date-registered :unsigned :integer not-nil]
      [:employer/professional-title :varchar not-nil]]
-    :id-keys [:user/id]}
+    :id-keys [:user/id]
+    :list-keys []}
 
    ;; TODO: uid foreign key
    {:table-name :UserArbiter
@@ -97,7 +105,8 @@
      [:arbiter/currency-type :unsigned :integer not-nil]
      [:arbiter/payment-value :BIG :INT not-nil]
      [:arbiter/payment-type :unsigned :integer not-nil]]
-    :id-keys [:user/id]}
+    :id-keys [:user/id]
+    :list-keys []}
 
    ;; TODO: Consider normalizing, foreign key
    {:table-name :UserGithub
@@ -117,8 +126,11 @@
    {:table-name :UserLanguage
     :table-columns
     [[:user/id :integer]
-     [:user/language :varchar not-nil]]
-    :id-keys [:user/id]}
+     [:language/id :integer primary-key]
+     [:language/name :varchar not-nil]
+     [(sql/call :unique :user/id :language/id)]]
+    :id-keys [:user/id :language/id]
+    :list-keys [:user/id]}
 
    ;;
    ;; Job Tables
@@ -140,7 +152,8 @@
      [:job/include-ether-token? :unsigned :integer not-nil]
      [:job/is-invitation-only? :unsigned :integer not-nil]
      [:job/reward-value :BIG :INT default-zero]]
-    :id-keys [:job/id]}
+    :id-keys [:job/id]
+    :list-keys []}
 
    ;; TODO(?) user TRIGGER for UserArbiter existence.
    {:table-name :JobArbiterRequest
@@ -150,14 +163,18 @@
      [:arbiter-request/date-requested :unsigned :integer]
      [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
      [(sql/call :primary-key :job/id :user/id)]]
-    :id-keys [:job/id :user/id]}
+    :id-keys [:job/id :user/id]
+    :list-keys [:job/id]}
 
    ;; TODO job/id foreign key
    {:table-name :JobSkills
     :table-columns
     [[:job/id :integer]
-     [:job/skill :varchar not-nil]]
-    :id-keys [:job/id]}
+     [:skill/id :integer primary-key]
+     [:skill/name :varchar not-nil]
+     [(sql/call :unique :job/id :skill/id)]]
+    :id-keys [:job/id :skill/id]
+    :list-keys [:job/id]}
 
    ;;
    ;; Work Contract
@@ -180,7 +197,8 @@
      [:work-contract/date-created :unsigned :integer not-nil]
      [:work-contract/date-finished :unsigned :integer default-zero]
      [(sql/call :primary-key :job/id :work-contract/index)]]
-    :id-keys [:job/id :work-contract/index]}
+    :id-keys [:job/id :work-contract/index]
+    :list-keys [:job/id]}
 
    {:table-name :WorkContractInvoice
     :table-columns
@@ -193,7 +211,8 @@
      [:invoice/amount-requested :BIG :INT default-zero]
      [:invoice/amount-paid :BIT :INT default-nil]
      [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]]
-    :id-keys [:job/id :work-contract/id :invoice/index]}
+    :id-keys [:job/id :work-contract/id :invoice/index]
+    :list-keys [:job/id :work-contract/id]}
 
    ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractInvoiceComment
@@ -207,7 +226,8 @@
      [:comment/date-created :unsigned :integer not-nil]
      [:comment/data :varchar not-nil]
      [(sql/call :primary-key :job/id :work-contract/index :invoice/index :comment/id)]] 
-    :id-keys [:job/id :work-contract/index :invoice/index :comment/id]}
+    :id-keys [:job/id :work-contract/index :invoice/index :comment/id]
+    :list-keys [:job/id :work-contract/index :invoice/index]}
 
    ;; TODO wid foreign key
    {:table-name :WorkContractDispute
@@ -220,7 +240,8 @@
      [:dispute/date-updated :unsigned :integer not-nil]
      [:dispute/date-resolved :unsigned :integer default-nil]
      [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]]
-    :id-keys [:job/id :work-contract/index :dispute/index]}
+    :id-keys [:job/id :work-contract/index :dispute/index]
+    :list-keys [:job/id :work-contract/index]}
 
    ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractDisputeComment
@@ -234,7 +255,8 @@
      [:comment/date-created :unsigned :integer not-nil]
      [:comment/data :varchar not-nil]
      [(sql/call :primary-key :job/id :work-contract/index :dispute/index :comment/id)]]
-    :id-keys [:job/id :work-contract/index :dispute/index :comment/id]}])
+    :id-keys [:job/id :work-contract/index :dispute/index :comment/id]
+    :list-keys [:job/id :work-contract/index :dispute/index]}])
 
 
 (defn list-tables
@@ -258,8 +280,8 @@
   [table-name]
   (let [table-schema (get-table-schema table-name)]
     (->> (:table-columns table-schema)
-        (map first)
-        (filter keyword?))))
+         (map first)
+         (filter keyword?))))
 
 
 (defn create-db!
@@ -288,11 +310,9 @@
   (if-let [table-schema (get-table-schema table-name)]
     (let [table-column-names (get-table-column-names table-name)
           item (select-keys item table-column-names)]
-      (log/debug "Item: " item)
-      (log/debug "Table Schema: " table-schema)
-      (db/run! {:insert-into table-name
-                :columns (keys item)
-                :values [(vals item)]}))
+      (not-empty (db/run! {:insert-into table-name
+                           :columns (keys item)
+                           :values [(vals item)]})))
     (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
 
@@ -312,12 +332,12 @@
               (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
       (let [table-column-names (get-table-column-names table-name)
             item (select-keys item table-column-names)]
-        (db/run! {:update table-name
-                  :set item
-                  :where (concat
-                          [:and]
-                          (for [id-key (:id-keys table-schema)]
-                            [:= id-key (get item id-key)]))})))
+        (not-empty (db/run! {:update table-name
+                             :set item
+                             :where (concat
+                                     [:and]
+                                     (for [id-key (:id-keys table-schema)]
+                                       [:= id-key (get item id-key)]))}))))
     (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
 
@@ -328,6 +348,8 @@
   Notes:
 
   - The :id-keys within the table-schema need to be defined.
+
+  - If `fields` are not supplied, all of the table columns are returned.
   "
   [table-name item & fields]
   (if-let [table-schema (get-table-schema table-name)]
@@ -336,14 +358,46 @@
               (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
       (let [table-column-names (get-table-column-names table-name)
             item (select-keys item table-column-names)
-            _ (log/debug "Item" item)
             fields (or fields table-column-names)]
-        (db/get {:select fields
-                 :from [table-name]
-                 :where (concat
-                         [:and]
-                         (for [id-key (:id-keys table-schema)]
-                           [:= id-key (get item id-key)]))})))
+        (not-empty (db/get {:select fields
+                            :from [table-name]
+                            :where (concat
+                                    [:and]
+                                    (for [id-key (:id-keys table-schema)]
+                                      [:= id-key (get item id-key)]))}))))
+    (log/error (str/format "Unable to find table schema for '%s'" table-name))))
+
+
+(defn get-list
+  "Get a list of rows with the given `fields` for the given `table-name`.
+  The `item` should contain appropriate `list-keys` to identify the
+  row listing.
+
+  Notes:
+
+  - The :list-keys within the table-schema need to be defined.
+
+  - If the :list-keys sequence is empty, assumed that every row is
+  returned.
+  "
+  [table-name item & fields]
+  (if-let [table-schema (get-table-schema table-name)]
+    (do
+      (assert (sequential? (:list-keys table-schema))
+              (str/format ":list-keys for table schema '%s' is required for getting rows." table-name))
+      (let [table-column-names (get-table-column-names table-name)
+            item (select-keys item table-column-names)
+            fields (or fields table-column-names)
+            list-keys (:list-keys table-schema)
+            where-clause (if (> (count list-keys) 0)
+                           (concat
+                            [:and]
+                            (for [list-key list-keys]
+                              [:= list-key (get item list-key)]))
+                           [:= 1 1])]
+        (not-empty (db/all {:select fields
+                            :from [table-name]
+                            :where where-clause}))))
     (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
 
