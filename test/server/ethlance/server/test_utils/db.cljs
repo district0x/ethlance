@@ -1,5 +1,5 @@
 (ns ethlance.server.test-utils.db
-  "Includes test utilities for working with district databases"
+  "Includes test utilities for working with the district databases."
   (:require
    [mount.core :as mount]
 

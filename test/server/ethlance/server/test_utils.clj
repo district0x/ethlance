@@ -1,4 +1,5 @@
-(ns ethlance.server.test-utils)
+(ns ethlance.server.test-utils
+  "Macros for test-utils")
 
 
 (defmacro deftest-smart-contract

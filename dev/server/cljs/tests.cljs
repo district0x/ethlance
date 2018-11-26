@@ -8,6 +8,8 @@
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
    [ethlance.server.db-test]
+   [ethlance.server.model.user-test]
+   [ethlance.server.model.candidate-test]
    [ethlance.shared.enum.currency-type-test]))
 
 
@@ -49,3 +51,10 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.db-test)))
+
+
+(defn run-model-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.model.user-test
+               'ethlance.server.model.candidate-test)))

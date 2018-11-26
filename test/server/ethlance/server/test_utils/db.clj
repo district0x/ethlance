@@ -14,6 +14,8 @@
   
   ;; Use try-finally (?)
   `(clojure.test/deftest ~name
-    (ethlance.server.test-utils.db/fixture-start ~opts)
-    ~@body
-    (ethlance.server.test-utils.db/fixture-stop)))
+     (try
+       (ethlance.server.test-utils.db/fixture-start ~opts)
+       ~@body
+       (finally
+         (ethlance.server.test-utils.db/fixture-stop)))))

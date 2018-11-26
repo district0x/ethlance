@@ -11,11 +11,17 @@
 ;; TODO: clojure.spec
 
 
+(defn register!
+  "Registering a user as a candidate"
+  [candidate-data]
+  (ethlance.db/insert-row! :UserCandidate candidate-data))
+
+
 (defn is-registered?
   "Returns true if the given user with the given `user-id` is a
   registered candidate."
   [user-id]
-  (-> (district.db/get {:select [1] :from :UserCandidate :where [:= :user/id user-id]})
+  (-> (district.db/get {:select [1] :from [:UserCandidate] :where [:= :user/id user-id]})
       seq boolean))
 
 
@@ -37,8 +43,7 @@
   [user-id listing]
 
   ;; clear the old data
-  (district.db/run! {:delete :UserCandidateCategory
-                     :from :UserCandidateCategory
+  (district.db/run! {:delete-from :UserCandidateCategory
                      :where [:= :user/id user-id]})
   
   ;; populate with new data
@@ -64,8 +69,7 @@
   [user-id listing]
 
   ;; clear the old data
-  (district.db/run! {:delete :UserCandidateSkill
-                     :from :UserCandidateSkill
+  (district.db/run! {:delete-from :UserCandidateSkill
                      :where [:= :user/id user-id]})
   
   ;; populate with new data
