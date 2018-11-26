@@ -67,9 +67,17 @@
                                     :candidate/date-registered 0
                                     :candidate/professional-title "Professional Worker"})
     ;; Attempt to insert the same row twice
-    (is (thrown? 
-         js/Error 
+    (is (thrown?
+         js/Error
          (db/insert-row! :UserCandidate {:user/id 1
+                                         :candidate/biography "Work work work..."
+                                         :candidate/date-registered 0
+                                         :candidate/professional-title "Professional Worker"}))))
+
+  (testing "Inserting candidate for unknown foreign user key"
+    (is (thrown?
+         js/Error
+         (db/insert-row! :UserCandidate {:user/id 2
                                          :candidate/biography "Work work work..."
                                          :candidate/date-registered 0
                                          :candidate/professional-title "Professional Worker"}))))

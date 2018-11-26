@@ -58,13 +58,13 @@
     :id-keys [:user/id]
     :list-keys []}
 
-   ;; TODO: user_id foreign key
    {:table-name :UserCandidate
     :table-columns
     [[:user/id :integer primary-key]
      [:candidate/biography :varchar]
      [:candidate/date-registered :unsigned :integer not-nil]
-     [:candidate/professional-title :varchar not-nil]]
+     [:candidate/professional-title :varchar not-nil]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:user/id]
     :list-keys []}
 
@@ -73,7 +73,8 @@
     [[:user/id :integer]
      [:category/id :integer primary-key]
      [:category/name :varchar]
-     [(sql/call :unique :user/id :category/id)]]
+     [(sql/call :unique :user/id :category/id)]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:category/id]
     :list-keys [:user/id]}
 
@@ -82,21 +83,21 @@
     [[:user/id :integer]
      [:skill/id :integer primary-key]
      [:skill/name :varchar]
-     [(sql/call :unique :user/id :skill/id)]]
+     [(sql/call :unique :user/id :skill/id)]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:skill/id]
     :list-keys [:user/id]}
 
-   ;; TODO: uid foreign key
    {:table-name :UserEmployer
     :table-columns
     [[:user/id :integer primary-key]
      [:employer/biography :varchar]
      [:employer/date-registered :unsigned :integer not-nil]
-     [:employer/professional-title :varchar not-nil]]
+     [:employer/professional-title :varchar not-nil]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:user/id]
     :list-keys []}
 
-   ;; TODO: uid foreign key
    {:table-name :UserArbiter
     :table-columns
     [[:user/id :integer primary-key]
@@ -104,31 +105,32 @@
      [:arbiter/date-registered :unsigned :integer not-nil]
      [:arbiter/currency-type :unsigned :integer not-nil]
      [:arbiter/payment-value :BIG :INT not-nil]
-     [:arbiter/payment-type :unsigned :integer not-nil]]
+     [:arbiter/payment-type :unsigned :integer not-nil]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:user/id]
     :list-keys []}
 
-   ;; TODO: Consider normalizing, foreign key
    {:table-name :UserGithub
     :table-columns
     [[:user/id :integer primary-key]
-     [:github/api-key :varchar not-nil]]
+     [:github/api-key :varchar not-nil]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:user/id]}
 
-   ;; TODO Consider normalizing, foreign key
    {:table-name :UserLinkedin
     :table-columns
     [[:user/id :integer primary-key]
-     [:linkedin/api-key :varchar not-nil]]
+     [:linkedin/api-key :varchar not-nil]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:user/id]}
 
-   ;; TODO Foreign key
    {:table-name :UserLanguage
     :table-columns
     [[:user/id :integer]
      [:language/id :integer primary-key]
      [:language/name :varchar not-nil]
-     [(sql/call :unique :user/id :language/id)]]
+     [(sql/call :unique :user/id :language/id)]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:user/id :language/id]
     :list-keys [:user/id]}
 
@@ -155,24 +157,25 @@
     :id-keys [:job/id]
     :list-keys []}
 
-   ;; TODO(?) user TRIGGER for UserArbiter existence.
    {:table-name :JobArbiterRequest
     :table-columns
     [[:job/id :integer]
      [:user/id address not-nil] ;; requesting arbiter
      [:arbiter-request/date-requested :unsigned :integer]
      [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
-     [(sql/call :primary-key :job/id :user/id)]]
+     [(sql/call :primary-key :job/id :user/id)]
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
     :id-keys [:job/id :user/id]
     :list-keys [:job/id]}
 
-   ;; TODO job/id foreign key
    {:table-name :JobSkills
     :table-columns
     [[:job/id :integer]
      [:skill/id :integer primary-key]
      [:skill/name :varchar not-nil]
-     [(sql/call :unique :job/id :skill/id)]]
+     [(sql/call :unique :job/id :skill/id)]
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
     :id-keys [:job/id :skill/id]
     :list-keys [:job/id]}
 
@@ -187,7 +190,6 @@
    ;;   that WorkContract is compounded with JobStore, it requires a
    ;;   triple compound key.
 
-   ;; TODO foreign key
    {:table-name :WorkContract
     :table-columns
     [[:job/id :integer]
@@ -196,7 +198,8 @@
      [:work-contract/date-updated :unsigned :integer not-nil]
      [:work-contract/date-created :unsigned :integer not-nil]
      [:work-contract/date-finished :unsigned :integer default-zero]
-     [(sql/call :primary-key :job/id :work-contract/index)]]
+     [(sql/call :primary-key :job/id :work-contract/index)]
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
     :id-keys [:job/id :work-contract/index]
     :list-keys [:job/id]}
 
@@ -210,11 +213,12 @@
      [:invoice/date-paid :unsigned :integer default-zero]
      [:invoice/amount-requested :BIG :INT default-zero]
      [:invoice/amount-paid :BIT :INT default-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]]
+     [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]
+     [[(sql/call :foreign-key :job/id)
+       (sql/call :references :Job :job/id :work-contract/index)]]]
     :id-keys [:job/id :work-contract/id :invoice/index]
     :list-keys [:job/id :work-contract/id]}
 
-   ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractInvoiceComment
     :table-columns
     [[:job/id :integer]
@@ -225,11 +229,12 @@
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
      [:comment/data :varchar not-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :invoice/index :comment/id)]] 
+     [(sql/call :primary-key :job/id :work-contract/index :invoice/index :comment/id)]
+     [[(sql/call :foreign-key :job/id)
+       (sql/call :references :Job :job/id :work-contract/index :invoice/index)]]]
     :id-keys [:job/id :work-contract/index :invoice/index :comment/id]
     :list-keys [:job/id :work-contract/index :invoice/index]}
 
-   ;; TODO wid foreign key
    {:table-name :WorkContractDispute
     :table-columns
     [[:job/id :integer]
@@ -239,11 +244,12 @@
      [:dispute/date-created :unsigned :integer not-nil]
      [:dispute/date-updated :unsigned :integer not-nil]
      [:dispute/date-resolved :unsigned :integer default-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]]
+     [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]
+     [[(sql/call :foreign-key :job/id)
+       (sql/call :references :Job :job/id :work-contract/index)]]]
     :id-keys [:job/id :work-contract/index :dispute/index]
     :list-keys [:job/id :work-contract/index]}
 
-   ;; TODO wid foreign key, uid foreign key
    {:table-name :WorkContractDisputeComment
     :table-columns
     [[:job/id :integer]
@@ -254,7 +260,9 @@
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
      [:comment/data :varchar not-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :dispute/index :comment/id)]]
+     [(sql/call :primary-key :job/id :work-contract/index :dispute/index :comment/id)]
+     [[(sql/call :foreign-key :job/id)
+       (sql/call :references :Job :job/id :work-contract/index :dispute/index)]]]
     :id-keys [:job/id :work-contract/index :dispute/index :comment/id]
     :list-keys [:job/id :work-contract/index :dispute/index]}])
 
