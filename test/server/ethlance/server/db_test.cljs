@@ -9,39 +9,12 @@
    [district.server.config :refer [config]]
    [district.server.db]
 
+   [ethlance.server.test-utils.db :refer [deftest-database] :include-macros true]
    [ethlance.server.db :as db]
    [ethlance.server.core]))
 
 
-(def test-config
-  "Test configuration for the database."
-  (-> ethlance.server.core/main-config
-      (merge {:logging {:level "debug" :console? true}})
-      (update :db merge {:opts {:memory true}})
-      #_(update :db merge {:opts {:memory false}
-                           :path "target/test_ethlance.db"})))
-
-
-(defn fixture-start
-  "Test Fixture Setup."
-  []
-  (-> (mount/with-args test-config)
-      (mount/only
-       [#'district.server.db/db
-        #'ethlance.server.db/ethlance-db])
-      mount/start))
-
-
-(defn fixture-stop
-  "Test Fixture Teardown."
-  []
-  (mount/stop))
-
-
-(deftest test-database-user
-  (fixture-start)
-  ;;
-
+(deftest-database test-user {}
   (testing "Inserting a user row.."
     (db/insert-row! :User {:user/id 1
                            :user/address "0x1"
@@ -117,17 +90,7 @@
 
   (testing "Get skill listing"
     (let [skill-listing (db/get-list :UserCandidateSkill {:user/id 1})]
-      (is (= (count skill-listing) 1))))
-
-  ;;
-  (fixture-stop))
+      (is (= (count skill-listing) 1)))))
 
 
-(deftest test-database-job
-  (fixture-start)
-  ;;
-  
-  
-
-  ;;
-  (fixture-stop))
+(deftest-database test-job {})
