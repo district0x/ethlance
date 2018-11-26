@@ -10,6 +10,7 @@
    [ethlance.server.db-test]
    [ethlance.server.model.user-test]
    [ethlance.server.model.candidate-test]
+   [ethlance.server.model.arbiter-test]
    [ethlance.shared.enum.currency-type-test]))
 
 
@@ -57,4 +58,5 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.model.user-test
-               'ethlance.server.model.candidate-test)))
+               'ethlance.server.model.candidate-test
+               'ethlance.server.model.arbiter-test)))

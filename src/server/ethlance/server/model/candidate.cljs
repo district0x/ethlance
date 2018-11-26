@@ -1,4 +1,5 @@
 (ns ethlance.server.model.candidate
+  "Functions to get and set the candidate data for user's described by their user-id."
   (:require
    [bignumber.core :as bn]
    [cuerdas.core :as str]
