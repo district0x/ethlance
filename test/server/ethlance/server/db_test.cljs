@@ -41,8 +41,6 @@
 (deftest test-database-user
   (fixture-start)
   ;;
-  
-  (testing "Check if users are missing")
 
   (testing "Inserting a user row.."
     (db/insert-row! :User {:user/id 1
@@ -121,6 +119,15 @@
     (let [skill-listing (db/get-list :UserCandidateSkill {:user/id 1})]
       (is (= (count skill-listing) 1))))
 
-  (testing "Add")
+  ;;
+  (fixture-stop))
+
+
+(deftest test-database-job
+  (fixture-start)
+  ;;
+  
+  
+
   ;;
   (fixture-stop))

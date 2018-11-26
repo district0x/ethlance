@@ -11,7 +11,10 @@
    [ethlance.server.contract.ethlance-work-contract-test]
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
+
    [ethlance.server.db-test]
+   [ethlance.server.model.user-test]
+   [ethlance.server.model.candidate-test]
 
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]
