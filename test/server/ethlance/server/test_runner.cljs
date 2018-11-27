@@ -2,7 +2,10 @@
   (:require
    [clojure.test :refer [deftest is are testing run-all-tests run-tests]]
 
+   ;;
    ;; Test Namespaces
+   ;;
+
    [ethlance.server.core-test]
    [ethlance.server.contract.ethlance-user-factory-test]
    [ethlance.server.contract.ethlance-user-test]
@@ -20,7 +23,8 @@
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]
    [ethlance.shared.enum.payment-type-test]
-   [ethlance.shared.enum.bid-option-test]))
+   [ethlance.shared.enum.bid-option-test]
+   [ethlance.shared.enum.contract-status-test]))
 
 
 (defn run-test

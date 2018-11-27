@@ -11,9 +11,20 @@
    [ethlance.shared.enum.payment-type :as enum.payment]))
 
 
+(defn- enum-kw->val
+  "Replace arbiter data's keyword enumerations into their respective values."
+  [m]
+  (-> m
+      (enum.currency/assoc-kw->val :arbiter/currency-type)))
+    
+    
+
+
 (defn register!
   "Registering a user as a arbiter"
   [arbiter-data]
+  (let [arbiter-data (cond-> arbiter-data)])
+                       
   (ethlance.db/insert-row! :UserArbiter arbiter-data))
 
 

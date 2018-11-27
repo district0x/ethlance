@@ -2,8 +2,8 @@
   (:require
    [bignumber.core :as bn]
    [clojure.spec.alpha :as s]
-   [ethlance.shared.spec-utils :refer [strict-conform]]))
-
+   [ethlance.shared.spec-utils :refer [strict-conform]]
+   [ethlance.shared.enumeration :as enum]))
 
 (def enum-status
   {::initial 0
@@ -24,21 +24,6 @@
    ::cancelled 10})
 
 
-(s/def ::key (set (keys enum-status)))
-(s/def ::value (set (vals enum-status)))
-
-
-(defn kw->val
-  "Convert an enumerated keyword status `kw` into the unsigned integer
-  representation."
-  [kw]
-  (let [kw (strict-conform ::key kw)]
-    (get enum-status kw)))
-
-
-(defn val->kw
-  "Get the enumerated keyword from the provided unsigned integer `x`."
-  [x]
-  (let [x (strict-conform ::value (bn/number x))
-        zm (zipmap (vals enum-status) (keys enum-status))]
-    (get zm x)))
+(def kw->val #(enum/kw->val enum-status %))
+(def val->kw #(enum/val->kw enum-status %))
+(def assoc-kw->val #(enum/assoc-kw->val enum-status %))

@@ -33,7 +33,7 @@ contract EthlanceUserFactory {
 		"Given user is already registered.");
 
 	Forwarder user_fwd = new Forwarder(); // Proxy Contract with
-					    // target(EthlanceUser)
+					      // target(EthlanceUser)
 	EthlanceUser user = EthlanceUser(address(user_fwd));
 
 	// Note: contract address needs to be registered before it can

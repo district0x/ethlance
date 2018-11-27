@@ -2,6 +2,7 @@
   "Place to put specific test cases to run"
   (:require
    [clojure.test :refer [run-tests]]
+   [ethlance.server.contract.ethlance-user-test]
    [ethlance.server.contract.ethlance-job-factory-test]
    [ethlance.server.contract.ethlance-job-store-test]
    [ethlance.server.contract.ethlance-work-contract-test]
@@ -11,18 +12,31 @@
    [ethlance.server.model.user-test]
    [ethlance.server.model.candidate-test]
    [ethlance.server.model.arbiter-test]
-   [ethlance.shared.enum.currency-type-test]))
+   [ethlance.shared.enum.currency-type-test]
+   [ethlance.shared.enum.payment-type-test]
+   [ethlance.shared.enum.bid-option-test]
+   [ethlance.shared.enum.contract-status-test]))
 
 
 (defn run-enum-tests []
   (run-tests
-   'ethlance.shared.enum.currency-type-test))
+   'ethlance.shared.enum.currency-type-test
+   'ethlance.shared.enum.payment-type-test
+   'ethlance.shared.enum.bid-option-test
+   'ethlance.shared.enum.contract-status-test))
+
+
+(defn run-user-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.ethlance-user-test)))
 
 
 (defn run-job-factory-tests []
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.ethlance-job-factory-test)))
+
 
 (defn run-job-store-tests []
   (.nextTick js/process

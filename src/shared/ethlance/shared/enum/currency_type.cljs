@@ -14,3 +14,4 @@
 
 (def kw->val #(enum/kw->val enum-currency %))
 (def val->kw #(enum/val->kw enum-currency %))
+(def assoc-kw->val #(enum/assoc-kw->val enum-currency %))

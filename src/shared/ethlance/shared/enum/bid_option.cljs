@@ -2,7 +2,8 @@
   (:require
    [bignumber.core :as bn]
    [clojure.spec.alpha :as s]
-   [ethlance.shared.spec-utils :refer [strict-conform]]))
+   [ethlance.shared.spec-utils :refer [strict-conform]]
+   [ethlance.shared.enumeration :as enum]))
 
 
 (def enum-bid
@@ -12,21 +13,6 @@
    ::bounty 3})
 
 
-(s/def ::key (set (keys enum-bid)))
-(s/def ::value (set (vals enum-bid)))
-
-
-(defn kw->val
-  "Convert an enumerated keyword currency type `kw` into the unsigned
-  integer representation."
-  [kw]
-  (let [kw (strict-conform ::key kw)]
-    (get enum-bid kw)))
-
-
-(defn val->kw
-  "Get the enumerated keyword from the provided unsigned integer `x`."
-  [x]
-  (let [x (strict-conform ::value (bn/number x))
-        zm (zipmap (vals enum-bid) (keys enum-bid))]
-    (get zm x)))
+(def kw->val #(enum/kw->val enum-bid %))
+(def val->kw #(enum/val->kw enum-bid %))
+(def assoc-kw->val #(enum/assoc-kw->val enum-bid %))
