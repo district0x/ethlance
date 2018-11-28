@@ -216,8 +216,8 @@
      [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]
      [[(sql/call :foreign-key :job/id)
        (sql/call :references :Job :job/id :work-contract/index)]]]
-    :id-keys [:job/id :work-contract/id :invoice/index]
-    :list-keys [:job/id :work-contract/id]}
+    :id-keys [:job/id :work-contract/index :invoice/index]
+    :list-keys [:job/id :work-contract/index]}
 
    {:table-name :WorkContractInvoiceComment
     :table-columns
@@ -244,6 +244,9 @@
      [:dispute/date-created :unsigned :integer not-nil]
      [:dispute/date-updated :unsigned :integer not-nil]
      [:dispute/date-resolved :unsigned :integer default-nil]
+     [:dispute/employer-resolution-amount :integer default-nil]
+     [:dispute/candidate-resolution-amount :integer default-nil]
+     [:dispute/arbiter-resolution-amount :integer default-nil]
      [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]
      [[(sql/call :foreign-key :job/id)
        (sql/call :references :Job :job/id :work-contract/index)]]]

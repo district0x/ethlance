@@ -1,4 +1,5 @@
 (ns ethlance.server.model.user
+  (:refer-clojure :exclude [exists?])
   (:require
    [bignumber.core :as bn]
    [cuerdas.core :as str]

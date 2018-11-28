@@ -3098,10 +3098,10 @@ net.brehaut.ClojureTools = (function (SH) {
   (let [listing (ethlance.db/get-list :WorkContract {:job/id job-id})]
     (mapv #(enum.status/assoc-val-&gt;kw % :work-contract/contract-status) listing)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn work-contract-count [job-id]
-  (let [result (district.db/get {:select [(sql/call :COUNT &quot;*&quot;)]
-                                 :from :Job
+  (let [result (district.db/get {:select [(sql/call :COUNT)]
+                                 :from [:Job]
                                  :where [:= :job/id job-id]})]
-    result))</pre></td></tr><tr><td class="docs">
+    (-&gt; result vals first)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn create-work-contract!
   [work-contract-data]
   (let [data (-&gt; work-contract-data
@@ -3255,6 +3255,7 @@ net.brehaut.ClojureTools = (function (SH) {
   (let [employer (ethlance.db/get-row :UserEmployer {:user/id user-id})]
     (enum-val-&gt;kw employer)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ethlance.server.model.user" name="ethlance.server.model.user"><h1 class="project-name">ethlance.server.model.user</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ethlance.server.model.user
+  (:refer-clojure :exclude [exists?])
   (:require
    [bignumber.core :as bn]
    [cuerdas.core :as str]
@@ -3464,8 +3465,8 @@ net.brehaut.ClojureTools = (function (SH) {
      [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]
      [[(sql/call :foreign-key :job/id)
        (sql/call :references :Job :job/id :work-contract/index)]]]
-    :id-keys [:job/id :work-contract/id :invoice/index]
-    :list-keys [:job/id :work-contract/id]}
+    :id-keys [:job/id :work-contract/index :invoice/index]
+    :list-keys [:job/id :work-contract/index]}
    {:table-name :WorkContractInvoiceComment
     :table-columns
     [[:job/id :integer]
@@ -3490,6 +3491,9 @@ net.brehaut.ClojureTools = (function (SH) {
      [:dispute/date-created :unsigned :integer not-nil]
      [:dispute/date-updated :unsigned :integer not-nil]
      [:dispute/date-resolved :unsigned :integer default-nil]
+     [:dispute/employer-resolution-amount :integer default-nil]
+     [:dispute/candidate-resolution-amount :integer default-nil]
+     [:dispute/arbiter-resolution-amount :integer default-nil]
      [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]
      [[(sql/call :foreign-key :job/id)
        (sql/call :references :Job :job/id :work-contract/index)]]]

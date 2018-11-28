@@ -80,10 +80,10 @@
 
 
 (defn work-contract-count [job-id]
-  (let [result (district.db/get {:select [(sql/call :COUNT "*")]
-                                 :from :Job
+  (let [result (district.db/get {:select [(sql/call :COUNT)]
+                                 :from [:Job]
                                  :where [:= :job/id job-id]})]
-    result))
+    (-> result vals first)))
 
 
 (defn create-work-contract!
