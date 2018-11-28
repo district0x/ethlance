@@ -1,8 +1,5 @@
 (ns ethlance.shared.enum.bid-option
   (:require
-   [bignumber.core :as bn]
-   [clojure.spec.alpha :as s]
-   [ethlance.shared.spec-utils :refer [strict-conform]]
    [ethlance.shared.enumeration :as enum]))
 
 
@@ -15,4 +12,5 @@
 
 (def kw->val #(enum/kw->val enum-bid %))
 (def val->kw #(enum/val->kw enum-bid %))
-(def assoc-kw->val #(enum/assoc-kw->val enum-bid %))
+(def assoc-kw->val #(enum/assoc-kw->val enum-bid %1 %2))
+(def assoc-val->kw #(enum/assoc-val->kw enum-bid %1 %2))

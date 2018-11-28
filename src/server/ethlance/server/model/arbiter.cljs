@@ -1,5 +1,6 @@
 (ns ethlance.server.model.arbiter
-  "Functions to get and set the arbiter data for user's described by their user-id."
+  "Functions to get and set the arbiter data for user's described by
+  their user-id."
   (:require
    [bignumber.core :as bn]
    [cuerdas.core :as str]
@@ -12,20 +13,26 @@
 
 
 (defn- enum-kw->val
-  "Replace arbiter data's keyword enumerations into their respective values."
+  "Replace arbiter data's keyword enumerations into their respective
+  values."
   [m]
   (-> m
-      (enum.currency/assoc-kw->val :arbiter/currency-type)))
-    
-    
+      (enum.currency/assoc-kw->val :arbiter/currency-type)
+      (enum.payment/assoc-kw->val :arbiter/payment-type)))
+
+
+(defn- enum-val->kw
+  [m]
+  (-> m
+      (enum.currency/assoc-val->kw :arbiter/currency-type)
+      (enum.payment/assoc-val->kw :arbiter/payment-type)))
 
 
 (defn register!
   "Registering a user as a arbiter"
   [arbiter-data]
-  (let [arbiter-data (cond-> arbiter-data)])
-                       
-  (ethlance.db/insert-row! :UserArbiter arbiter-data))
+  (let [arbiter-data (enum-kw->val arbiter-data)]
+    (ethlance.db/insert-row! :UserArbiter arbiter-data)))
 
 
 (defn is-registered?
@@ -34,3 +41,8 @@
   [user-id]
   (-> (district.db/get {:select [1] :from [:UserArbiter] :where [:= :user/id user-id]})
       seq boolean))
+
+
+(defn get-data [user-id]
+  (let [arbiter (ethlance.db/get-row :UserArbiter {:user/id user-id})]
+    (enum-val->kw arbiter)))

@@ -379,7 +379,8 @@
 (defn get-list
   "Get a list of rows with the given `fields` for the given `table-name`.
   The `item` should contain appropriate `list-keys` to identify the
-  row listing.
+  row listing. If no fields are supplied, it is assumed that you want
+  *all* row columns for each row.
 
   Notes:
 

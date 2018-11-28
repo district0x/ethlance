@@ -43,3 +43,25 @@
   (if (get m k)
     (assoc m k (kw->val e (get m k)))
     m))
+
+
+(defn assoc-val->kw
+  "Soft conversion of a map value representing an enumerated type from
+  their enumerated value to their keyword.
+  
+  Keyword Paramaters:
+
+  e - The map representing the enumeration between the key and value.
+
+  m - Map containing the key which contains the enumeration
+
+  k - The keyword containing the value to convert into a keyword
+
+  Notes:
+
+  - nil fields will be ignored.
+  "
+  [e m k]
+  (if (get m k)
+    (assoc m k (val->kw e (get m k)))
+    m))

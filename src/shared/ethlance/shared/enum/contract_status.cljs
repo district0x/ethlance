@@ -1,8 +1,5 @@
 (ns ethlance.shared.enum.contract-status
   (:require
-   [bignumber.core :as bn]
-   [clojure.spec.alpha :as s]
-   [ethlance.shared.spec-utils :refer [strict-conform]]
    [ethlance.shared.enumeration :as enum]))
 
 (def enum-status
@@ -26,4 +23,5 @@
 
 (def kw->val #(enum/kw->val enum-status %))
 (def val->kw #(enum/val->kw enum-status %))
-(def assoc-kw->val #(enum/assoc-kw->val enum-status %))
+(def assoc-kw->val #(enum/assoc-kw->val enum-status %1 %2))
+(def assoc-val->kw #(enum/assoc-val->kw enum-status %1 %2))

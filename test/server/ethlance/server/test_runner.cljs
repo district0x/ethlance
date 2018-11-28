@@ -19,6 +19,8 @@
    [ethlance.server.model.user-test]
    [ethlance.server.model.candidate-test]
    [ethlance.server.model.arbiter-test]
+   [ethlance.server.model.employer-test]
+   [ethlance.server.model.job-test]
 
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]

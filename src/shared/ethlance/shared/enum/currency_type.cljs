@@ -1,9 +1,6 @@
 (ns ethlance.shared.enum.currency-type
   "Represents an enumeration type for currency."
   (:require
-   [bignumber.core :as bn]
-   [clojure.spec.alpha :as s]
-   [ethlance.shared.spec-utils :refer [strict-conform]]
    [ethlance.shared.enumeration :as enum]))
    
 
@@ -14,4 +11,5 @@
 
 (def kw->val #(enum/kw->val enum-currency %))
 (def val->kw #(enum/val->kw enum-currency %))
-(def assoc-kw->val #(enum/assoc-kw->val enum-currency %))
+(def assoc-kw->val #(enum/assoc-kw->val enum-currency %1 %2))
+(def assoc-val->kw #(enum/assoc-val->kw enum-currency %1 %2))
