@@ -70,7 +70,6 @@
                       :arbiter/payment-value 5
                       :arbiter/payment-type ::enum.payment/percentage})
 
-
   (testing "Creating a job"
     (job/create-job! {:job/id 1
                       :job/title "Full-Stack Java Developer"
@@ -84,5 +83,45 @@
                       :job/include-ether-token? true
                       :job/is-invitation-only? false}))
 
+  (testing "Adding arbiter requests"
+    (is (= (count (job/arbiter-request-listing 1)) 0))
 
-  (testing "Adding arbiter requests"))
+    (job/add-arbiter-request! {:job/id 1
+                               :user/id 3
+                               :arbiter-request/date-requested 6
+                               :arbiter-request/is-employer-request? true})
+
+    (is (thrown? js/Error (job/add-arbiter-request! {:job/id 1
+                                                     :user/id 3
+                                                     :arbiter-request/date-requested 6
+                                                     :arbiter-request/is-employer-request? true})))
+
+    (is (= (count (job/arbiter-request-listing 1)) 1))
+
+    (let [[arbiter-request] (job/arbiter-request-listing 1)]
+      (is (true? (:arbiter-request/is-employer-request? arbiter-request)))))
+
+  (testing "Adding and updating work contract."
+    (is (= (count (job/work-contract-listing 1)) 0))
+
+
+    (job/create-work-contract! {:job/id 1
+                                :work-contract/index 0
+                                :work-contract/contract-status ::enum.status/initial
+                                :work-contract/date-created 7
+                                :work-contract/date-updated 7})
+
+    (is (= (count (job/work-contract-listing 1)) 1))
+
+    (let [[work-contract] (job/work-contract-listing 1)]
+      (is (= (:work-contract/contract-status work-contract) ::enum.status/initial)))
+
+    ;; Update the work contract
+    (job/update-work-contract! {:job/id 1
+                                :work-contract/index 0
+                                :work-contract/contract-status ::enum.status/request-candidate-invite
+                                :work-contract/date-created 7
+                                :work-contract/date-updated 7})
+    
+    (let [[work-contract] (job/work-contract-listing 1)]
+      (is (= (:work-contract/contract-status work-contract) ::enum.status/request-candidate-invite)))))

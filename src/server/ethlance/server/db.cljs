@@ -160,12 +160,12 @@
    {:table-name :JobArbiterRequest
     :table-columns
     [[:job/id :integer]
-     [:user/id address not-nil] ;; requesting arbiter
+     [:user/id :integer] ;; requesting arbiter
      [:arbiter-request/date-requested :unsigned :integer]
      [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
      [(sql/call :primary-key :job/id :user/id)]
      [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
-     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :UserArbiter :user/id)]]]
     :id-keys [:job/id :user/id]
     :list-keys [:job/id]}
 

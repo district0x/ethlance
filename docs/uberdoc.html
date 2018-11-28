@@ -3051,7 +3051,8 @@ net.brehaut.ClojureTools = (function (SH) {
    [honeysql.core :as sql]
    [ethlance.server.db :as ethlance.db]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.boolean :as enum.boolean]))</pre></td></tr><tr><td class="docs"><p>Replace arbiter data's keyword enumerations into their respective
+   [ethlance.shared.enum.boolean :as enum.boolean]
+   [ethlance.shared.enum.contract-status :as enum.status]))</pre></td></tr><tr><td class="docs"><p>Replace arbiter data's keyword enumerations into their respective
   values.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- enum-kw-&gt;val
   [m]
@@ -3068,33 +3069,65 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn create-job! [job-data]
   (let [job-data (enum-kw-&gt;val job-data)]
     (ethlance.db/insert-row! :Job job-data)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update-job! [job-data]
+  (let [job-data (enum-kw-&gt;val job-data)]
+    (ethlance.db/update-row! :Job job-data)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn arbiter-request-listing
-  [job-id])</pre></td></tr><tr><td class="docs">
+  [job-id]
+  (let [listing (ethlance.db/get-list :JobArbiterRequest {:job/id job-id})]
+    (map #(enum.boolean/assoc-val-&gt;kw % :arbiter-request/is-employer-request?) listing)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-arbiter-request!
-  [job-id arbiter-request-data])</pre></td></tr><tr><td class="docs">
+  [arbiter-request-data]
+  (let [data (-&gt; arbiter-request-data
+                 (enum.boolean/assoc-kw-&gt;val :arbiter-request/is-employer-request?))]
+    (ethlance.db/insert-row! :JobArbiterRequest data)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn skill-listing
-  [job-id])</pre></td></tr><tr><td class="docs">
+  [job-id]
+  (let [listing (ethlance.db/get-list :JobSkills {:job/id job-id})]
+    (mapv :skill/name listing)))</pre></td></tr><tr><td class="docs"><p>Clear and replace the skill listing at <code>job-id</code> with the provided
+  <code>listing</code>, which is a sequence of skills.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn update-skill-listing!
-  [job-id listing])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn work-contract-listing [job-id])</pre></td></tr><tr><td class="docs">
+  [job-id listing]
+  ;; clear the old data
+  (district.db/run! {:delete-from :JobSkills
+                     :where [:= :job/id job-id]})
+  ;; populate the new data
+  (doseq [name listing]
+    (ethlance.db/insert-row! :JobSkills {:job/id job-id :skill/name name})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn work-contract-listing [job-id]
+  (let [listing (ethlance.db/get-list :WorkContract {:job/id job-id})]
+    (mapv #(enum.status/assoc-val-&gt;kw % :work-contract/contract-status) listing)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn work-contract-count [job-id]
   (let [result (district.db/get {:select [(sql/call :COUNT &quot;*&quot;)]
                                  :from :Job
                                  :where [:= :job/id job-id]})]
     result))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn create-work-contract! [work-contract-data]
-  (ethlance.db/insert-row! :WorkContract work-contract-data))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn update-work-contract! [work-contract-data])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-work-contract [job-id index])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-work-contract!
+  [work-contract-data]
+  (let [data (-&gt; work-contract-data
+                 (enum.status/assoc-kw-&gt;val :work-contract/contract-status))]
+    (ethlance.db/insert-row! :WorkContract data)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update-work-contract!
+  [work-contract-data]
+  (let [data (-&gt; work-contract-data
+                 (enum.status/assoc-kw-&gt;val :work-contract/contract-status))]
+    (ethlance.db/update-row! :WorkContract data)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-work-contract [job-id index]
+  (let [data (ethlance.db/get-row :WorkContract {:job/id job-id :work-contract/index index})]
+    (enum.status/assoc-val-&gt;kw data :work-contract/contract-status)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn create-invoice! [invoice-data]
    (ethlance.db/insert-row! :WorkContractInvoice invoice-data))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn update-invoice! [])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn invoice-listing [job-id work-index])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update-invoice! [invoice-data]
+   (ethlance.db/update-row! :WorkContractInvoice invoice-data))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn invoice-listing [job-id work-index]
+   (ethlance.db/get-list :WorkContractInvoice {:job/id job-id :work-contract/index work-index}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn create-dispute! [dispute-data]
-   (ethalnce.db/insert-row! :WorkContractDispute dispute-data))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn update-dispute! [dispute-data])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn dispute-listing [job-id work-index])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-job-data [job-id]
+   (ethlance.db/insert-row! :WorkContractDispute dispute-data))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update-dispute! [dispute-data]
+   (ethlance.db/update-row! :WorkContractDispute dispute-data))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn dispute-listing [job-id work-index]
+   (ethlance.db/get-list :WorkContractDispute {:job/id job-id :work-contract/index work-index}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-job [job-id]
   (let [job (ethlance.db/get-row :Job {:job/id job-id})]
     (enum-val-&gt;kw job)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ethlance.server.model.arbiter" name="ethlance.server.model.arbiter"><h1 class="project-name">ethlance.server.model.arbiter</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Functions to get and set the arbiter data for user's described by
   their user-id.</p>
@@ -3379,12 +3412,12 @@ net.brehaut.ClojureTools = (function (SH) {
    {:table-name :JobArbiterRequest
     :table-columns
     [[:job/id :integer]
-     [:user/id address not-nil] ;; requesting arbiter
+     [:user/id :integer] ;; requesting arbiter
      [:arbiter-request/date-requested :unsigned :integer]
      [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
      [(sql/call :primary-key :job/id :user/id)]
      [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
-     [[(sql/call :foreign-key :user/id) (sql/call :references :User :user/id)]]]
+     [[(sql/call :foreign-key :user/id) (sql/call :references :UserArbiter :user/id)]]]
     :id-keys [:job/id :user/id]
     :list-keys [:job/id]}
    {:table-name :JobSkills
