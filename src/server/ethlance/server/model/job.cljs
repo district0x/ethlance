@@ -8,7 +8,8 @@
    [honeysql.core :as sql]
    [ethlance.server.db :as ethlance.db]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.boolean :as enum.boolean]))
+   [ethlance.shared.enum.boolean :as enum.boolean]
+   [ethlance.shared.enum.contract-status :as enum.status]))
 
 
 (defn- enum-kw->val
@@ -35,23 +36,44 @@
     (ethlance.db/insert-row! :Job job-data)))
 
 
+(defn update-job! [job-data]
+  (let [job-data (enum-kw->val job-data)]
+    (ethlance.db/update-row! :Job job-data)))
+
+
 (defn arbiter-request-listing
-  [job-id])
+  [job-id]
+  (ethlance.db/get-list :JobArbiterRequest {:job/id job-id}))
 
 
 (defn add-arbiter-request!
-  [job-id arbiter-request-data])
+  [job-id arbiter-request-data]
+  (ethlance.db/insert-row! :JobArbiterRequest arbiter-request-data))
 
 
 (defn skill-listing
-  [job-id])
+  [job-id]
+  (let [listing (ethlance.db/get-list :JobSkills {:job/id job-id})]
+    (mapv :skill/name listing)))
 
 
 (defn update-skill-listing!
-  [job-id listing])
+  "Clear and replace the skill listing at `job-id` with the provided
+  `listing`, which is a sequence of skills."
+  [job-id listing]
+  
+  ;; clear the old data
+  (district.db/run! {:delete-from :JobSkills
+                     :where [:= :job/id job-id]})
+
+  ;; populate the new data
+  (doseq [name listing]
+    (ethlance.db/insert-row! :JobSkills {:job/id job-id :skill/name name})))
 
 
-(defn work-contract-listing [job-id])
+(defn work-contract-listing [job-id]
+  (let [listing (ethlance.db/get-list :WorkContract {:job/id job-id})]
+    (mapv #(enum.status/assoc-val->kw %1 :work-contract/contract-status) listing)))
 
 
 (defn work-contract-count [job-id]
@@ -61,37 +83,50 @@
     result))
 
 
-(defn create-work-contract! [work-contract-data]
-  (ethlance.db/insert-row! :WorkContract work-contract-data))
+(defn create-work-contract!
+  [work-contract-data]
+  (let [data (-> work-contract-data
+                 (enum.status/assoc-kw->val :work-contract/contract-status))]
+    (ethlance.db/insert-row! :WorkContract data)))
 
 
-(defn update-work-contract! [work-contract-data])
+(defn update-work-contract!
+  [work-contract-data]
+  (let [data (-> work-contract-data
+                 (enum.status/assoc-kw->val :work-contract/contract-status))]
+    (ethlance.db/update-row! :WorkContract data)))
 
 
-(defn get-work-contract [job-id index])
+(defn get-work-contract [job-id index]
+  (let [data (ethlance.db/get-row :WorkContract {:job/id job-id :work-contract/index index})]
+    (enum.status/assoc-val->kw data :work-contract/contract-status)))
 
 
 (defn create-invoice! [invoice-data]
    (ethlance.db/insert-row! :WorkContractInvoice invoice-data))
 
 
-(defn update-invoice! [])
+(defn update-invoice! [invoice-data]
+   (ethlance.db/update-row! :WorkContractInvoice invoice-data))
 
 
-(defn invoice-listing [job-id work-index])
+(defn invoice-listing [job-id work-index]
+   (ethlance.db/get-list :WorkContractInvoice {:job/id job-id :work-contract/index work-index}))
 
 
 (defn create-dispute! [dispute-data]
-   (ethalnce.db/insert-row! :WorkContractDispute dispute-data))
+   (ethlance.db/insert-row! :WorkContractDispute dispute-data))
 
 
-(defn update-dispute! [dispute-data])
+(defn update-dispute! [dispute-data]
+   (ethlance.db/update-row! :WorkContractDispute dispute-data))
 
 
-(defn dispute-listing [job-id work-index])
+(defn dispute-listing [job-id work-index]
+   (ethlance.db/get-list :WorkContractDispute {:job/id job-id :work-contract/index work-index}))
 
 
-(defn get-job-data [job-id]
+(defn get-job [job-id]
   (let [job (ethlance.db/get-row :Job {:job/id job-id})]
     (enum-val->kw job)))
   

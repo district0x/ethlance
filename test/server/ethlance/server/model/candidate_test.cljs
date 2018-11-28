@@ -34,7 +34,6 @@
 
   (testing "Getting main data"
     (let [candidate-data (candidate/get-data 1)]
-      (log/debug candidate-data)
       (is (= (:candidate/biography candidate-data) "A testy fellow"))
       (is (= (:candidate/professional-title candidate-data) "Software Developer"))))
 
