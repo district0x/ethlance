@@ -6,7 +6,8 @@
    [district.server.config]
    [district.server.db :as district.db]
    [taoensso.timbre :as log]
-   [ethlance.server.db :as ethlance.db]))
+   [ethlance.server.db :as ethlance.db]
+   [ethlance.shared.spec :as espec]))
 
 
 ;; TODO: clojure.spec

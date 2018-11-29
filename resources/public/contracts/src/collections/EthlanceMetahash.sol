@@ -9,7 +9,7 @@ contract MetahashStore {
 	string hash_value;
     }
 
-
+    uint public constant GUEST_TYPE = 0;
     uint public constant EMPLOYER_TYPE = 1;
     uint public constant CANDIDATE_TYPE = 2;
     uint public constant ARBITER_TYPE = 3;
@@ -17,6 +17,12 @@ contract MetahashStore {
     
     // Holds the listing of metahash entries
     HashEntry[] internal hash_listing;
+
+
+    /// @dev Append an guest hash to the hash listing.
+    function appendGuest(string memory hash_value) internal {
+	hash_listing.push(HashEntry(GUEST_TYPE, hash_value));
+    }
 
     
     /// @dev Append an employer hash to the hash listing.

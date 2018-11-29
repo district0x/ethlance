@@ -1,6 +1,6 @@
 (ns ethlance.server.syncer
   "Service that syncs the ethlance in-memory database with the ethereum
-  blockchain by reading events emits by the ethlance smart contracts."
+  blockchain by reading events emitted by the ethlance smart contracts."
   (:require
    [bignumber.core :as bn]
    [camel-snake-kebab.core :as cs :include-macros true]
