@@ -2,9 +2,10 @@
   "Development Entrypoint for CLJS-Server."
   (:require
    [cljs-web3.eth :as web3-eth]
+   [clojure.pprint :refer [pprint]]
    [cljs.tests :as tests]
    [clojure.spec.alpha :as s]
-   [expound.alpha :as expound]
+   ;;[expound.alpha :as expound]
    [mount.core :as mount] 
    [orchestra-cljs.spec.test :as st]
    [taoensso.timbre :as log]
@@ -145,7 +146,7 @@
 (set! *main-cli-fn* -dev-main)
 
 ;; Better Spec Error Messages by default
-(set! s/*explain-out* expound/printer)
+;;(set! s/*explain-out* expound/printer)
 
 ;; Turning on system-wide Spec Instrumentation
 ;; FIXME: turned off until there is a fix for non-public function warnings.
