@@ -21,9 +21,28 @@
    (let [test-data "Here is a piece of test data"
          [result-chan err-chan] (ipfs/add! (ipfs/to-buffer test-data))]
      (go
-      (when-let [err (<! err-chan)]
-        (log/error "IPFS Test: Failed to add IPFS data" err))
-  
-      (let [result (<! result-chan)]
-        (is (not (nil? result)))
-        (log/debug result))))))
+       (when-let [err (<! err-chan)]
+         (log/error (str "IPFS Test: Failed to add IPFS data " err)))
+       
+       (let [result (<! result-chan)]
+         (is (not (nil? (:Hash result))))
+         (log/debug (str "add result: " (:Hash result)))
+
+         (let [[result-chan err-chan] (ipfs/get (:Hash result))]
+           (when-let [err (<! err-chan)]
+             (log/error (str "IPFS Test: Failed to get IPFS data " err)))
+           
+           (let [result (<! result-chan)]
+             (is (not (nil? result)))
+             (log/debug (str "Get Result" result)))))))
+   (done)))
+         
+
+       
+
+
+
+
+      
+
+

@@ -76,10 +76,12 @@
        (str "/ipfs/" ipfs-hash) {:req-opts {:compress false}}
        (fn [error result]
          (when error
-           (>! error-chan error)
+           (put! error-chan error)
            (close! success-chan))
          (when result
-           (>! success-chan result)))))))
+           (put! success-chan result)
+           (close! error-chan)))))
+    [success-chan error-chan]))
 
 
 (defn add-edn!
@@ -110,4 +112,5 @@
         (log/debug "EDN Result" result)
         ;; TODO: parse
         (>! success-chan result)
-        (close! error-chan)))))
+        (close! error-chan)))
+    [success-chan error-chan]))
