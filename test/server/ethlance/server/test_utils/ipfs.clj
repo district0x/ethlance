@@ -1,12 +1,11 @@
-(ns ethlance.server.test-utils.db)
+(ns ethlance.server.test-utils.ipfs)
 
-
-(defmacro deftest-database
-  "deftest for database testcases.
+(defmacro deftest-ipfs
+  "deftest for ipfs testcases
 
   Note:
 
-  - cannot be used in tandem with smart contracts, since they both
+  - cannot be used in tandem with smart contracts or db, since they both
   maintain a seperate mount cycle. Please look at other developments."
   [name opts & body]
   (assert (symbol? name) "Name must be a symbol.")
@@ -15,7 +14,7 @@
   ;; Use try-finally (?)
   `(clojure.test/deftest ~name
      (try
-       (ethlance.server.test-utils.db/fixture-start ~opts)
+       (ethlance.server.test-utils.ipfs/fixture-start ~opts)
        ~@body
        (finally
-         (ethlance.server.test-utils.db/fixture-stop)))))
+         (ethlance.server.test-utils.ipfs/fixture-stop)))))

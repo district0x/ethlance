@@ -26,6 +26,7 @@
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
                  [org.clojure/core.async "0.4.490"]
                  [org.clojure/core.match "0.3.0-alpha4"]
+                 [org.clojure/tools.reader "1.3.2"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.10.6"]
 

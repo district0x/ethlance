@@ -22,6 +22,7 @@
    [ethlance.server.generator]
    [ethlance.server.syncer]
    [ethlance.server.db]
+   [ethlance.server.ipfs]
    [ethlance.shared.smart-contracts]))
 
 
@@ -29,7 +30,10 @@
   {:web3 {:port 8545}
    :smart-contracts {:contracts-var #'ethlance.shared.smart-contracts/smart-contracts
                      :print-gas-usage? false
-                     :auto-mining? false}})
+                     :auto-mining? false}
+   :ipfs {:host "http://127.0.0.1:5001"
+          :endpoint "/api/v0"
+          :gateway "http://127.0.0.1:8080/ipfs"}})
 
 
 (defn -main [& args]

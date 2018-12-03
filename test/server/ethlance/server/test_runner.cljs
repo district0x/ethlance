@@ -21,6 +21,8 @@
    [ethlance.server.model.arbiter-test]
    [ethlance.server.model.employer-test]
    [ethlance.server.model.job-test]
+   
+   [ethlance.server.ipfs-test]
 
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]

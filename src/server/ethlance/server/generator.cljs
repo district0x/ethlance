@@ -9,6 +9,7 @@
    [cljs-web3.eth :as web3-eth]
    [cljs-web3.evm :as web3-evm]
    [cljs-web3.utils :refer [js->cljkk camel-case]]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
    [district.cljs-utils :refer [rand-str]]
    [district.format :as format]
    [district.server.config :refer [config]]
@@ -19,6 +20,8 @@
    [taoensso.timbre :as log]
 
    ;; Ethlance NS
+   [ethlance.server.ipfs :as ipfs]
+   [ethlance.server.filesystem :as filesystem]
    [ethlance.shared.random :as random]
    [ethlance.server.contract.ethlance-user :as user :include-macros true]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
@@ -37,21 +40,22 @@
   :stop (stop generator))
 
 
-(defn get-testnet-max [] 10) ;; TODO: check config value
+(defn testnet-max-accounts [] 10) ;; TODO: check config value
 
 
-(defn generate-registered!
+(defn generate-registered-users!
   "Generate registered users along with registering for candidate,
   employer, and arbiter."
   [{:keys [num-employers num-candidates num-arbiters]
     :or {num-employers 3 num-candidates 4 num-arbiters 3}}]
   (let [total-accounts (+ num-employers num-candidates num-arbiters)
-        max-accounts (get-testnet-max)]
+        max-accounts (testnet-max-accounts)]
     (assert (<= total-accounts max-accounts)
-            "The number of total registrations exceeds the number of testnet accounts.")
+            "The number of total registrations exceeds the max number of testnet accounts.")
 
     ;; Register several user accounts
     (doseq [index (range total-accounts)])))
+       
 
 
 (defn start

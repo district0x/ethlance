@@ -58,7 +58,7 @@ fig-dev-ui:
 clean:
 	lein clean
 	rm -rf dist
-	rm -f docs/uberdoc.html
+	rm -f ./resources/ethlance.db
 
 
 clean-all: clean

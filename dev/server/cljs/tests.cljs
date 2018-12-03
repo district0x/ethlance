@@ -14,6 +14,7 @@
    [ethlance.server.model.arbiter-test]
    [ethlance.server.model.employer-test]
    [ethlance.server.model.job-test]
+   [ethlance.server.ipfs-test]
    [ethlance.shared.enum.currency-type-test]
    [ethlance.shared.enum.payment-type-test]
    [ethlance.shared.enum.bid-option-test]
@@ -78,3 +79,10 @@
                'ethlance.server.model.arbiter-test
                'ethlance.server.model.job-test
                'ethlance.server.model.employer-test)))
+
+
+(defn run-ipfs-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.ipfs-test)))
+
