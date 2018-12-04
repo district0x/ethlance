@@ -34,8 +34,8 @@
            
            (let [result (<! result-chan)]
              (is (not (nil? result)))
-             (log/debug (str "Get Result" result)))))))
-   (done)))
+             (log/debug (str "Get Result" result)))))
+       (done)))))
          
 
        

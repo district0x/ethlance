@@ -50,7 +50,8 @@
                  [district0x/district-server-web3-watcher "1.0.2"]
 
                  ;; District UI Components
-                 [district0x/cljs-ipfs-native "1.0.0"]
+                 ;;[district0x/cljs-ipfs-native "1.0.0"]
+                 [district0x/cljs-ipfs-native "0.0.5-SNAPSHOT"]
                  [district0x/district-ui-component-active-account "1.0.0"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
                  [district0x/district-ui-component-form "0.1.11-SNAPSHOT"]
