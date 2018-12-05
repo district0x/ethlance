@@ -7,6 +7,8 @@
   (:require
    [clojure.core.async :as async :refer [go go-loop <! >! chan close! put!] :include-macros true]
    [clojure.tools.reader.edn :as edn]
+   [cuerdas.core :as str]
+   [clojure.string :refer [ends-with?]]
    [cljs-ipfs-api.core :as ipfs-core]
    [cljs-ipfs-api.files :as ipfs-files]
    [taoensso.timbre :as log]
@@ -73,7 +75,8 @@
   (let [success-chan (chan 1) error-chan (chan 1)]
     (go
       (ipfs-files/fget
-       (str "/ipfs/" ipfs-hash) {:req-opts {:compress false}}
+       (str "/ipfs/" ipfs-hash)
+       {:req-opts {:compress false :json true}}
        (fn [error result]
          (when error
            (put! error-chan error)
@@ -97,6 +100,24 @@
   (add! (to-buffer (pr-str data))))
 
 
+(defn parse-edn-result
+  "Parses the metadata from the IPFS result string
+
+  Notes:
+
+  - Can only parse edn maps.
+  "
+  [s]
+  (try
+    (-> (re-matches #".*?(\{.*\})")
+        (str s "{}") ;; This hack doesn't make any sense, but it works?
+        second
+        edn/read-string)
+    (catch js/Error e
+      (log/error (str "Parse Error: " e))
+      nil)))
+
+
 (defn get-edn
   "Get the clojure data structure stored as an EDN value for the
   resulting `hash`."
@@ -109,8 +130,9 @@
         (close! success-chan))
       
       (when-let [result (<! result-channel)]
-        (log/debug "EDN Result" result)
-        ;; TODO: parse
-        (>! success-chan result)
-        (close! error-chan)))
+        (if-let [parsed-result (parse-edn-result result)]
+          (do (>! success-chan parsed-result)
+              (close! error-chan))
+          (do (>! error-chan (ex-info "Failed to parse edn value" {:unparsed-result result}))
+              (close! success-chan)))))
     [success-chan error-chan]))
