@@ -49,9 +49,19 @@
    "Go"
    "C#"])
 
+
 (def categories
   ["Software Development"
    "Game Development"
    "Audio Sampling"
    "Illustration & Design"
    "Marketing"])
+
+
+(def languages
+  ["English"
+   "Japanese"
+   "German"
+   "Portuguese"
+   "Russian"
+   "Polish"])

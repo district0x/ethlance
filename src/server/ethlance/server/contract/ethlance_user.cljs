@@ -123,8 +123,7 @@
 (defn register-employer!
   "User the user as an employer."
   [& [opts]]
-  (call
-   :register-employer (merge {:gas 1000000} opts)))
+  (call :register-employer (merge {:gas 1000000} opts)))
 
 
 (defn employer-data

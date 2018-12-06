@@ -15,6 +15,7 @@
    [ethlance.server.model.employer-test]
    [ethlance.server.model.job-test]
    [ethlance.server.ipfs-test]
+   [ethlance.shared.random-test]
    [ethlance.shared.enum.currency-type-test]
    [ethlance.shared.enum.payment-type-test]
    [ethlance.shared.enum.bid-option-test]
@@ -86,3 +87,8 @@
              #(run-tests
                'ethlance.server.ipfs-test)))
 
+
+(defn run-random-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.shared.random-test)))

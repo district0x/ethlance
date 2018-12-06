@@ -24,6 +24,7 @@
    
    [ethlance.server.ipfs-test]
 
+   [ethlance.shared.random-test]
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enum.currency-type-test]
    [ethlance.shared.enum.payment-type-test]

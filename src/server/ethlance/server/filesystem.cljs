@@ -15,7 +15,7 @@
        fs file-path
        (fn [error result]
          (when error
-           (>! error-chan)
+           (>! error-chan error)
            (close! success-chan))
          (when result
            (>! success-chan result)

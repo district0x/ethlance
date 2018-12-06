@@ -51,6 +51,8 @@
     [[:user/id :integer primary-key]
      [:user/address address not-nil]
      [:user/country-code :varchar not-nil]
+     [:user/full-name]
+     [:user/user-name]
      [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
      [:user/date-last-active :unsigned :integer]

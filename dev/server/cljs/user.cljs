@@ -16,6 +16,7 @@
    [ethlance.shared.smart-contracts]
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]
+   [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
    [ethlance.server.test-runner :as server.test-runner]))
 
@@ -68,13 +69,20 @@
 (defn redeploy-sync
   "Redeploy the smart contracts for development.
 
-   Notes:
+  Optional Arguments:
 
-   - please read the docs for `ethlance.server.deployer/deploy-all!`"
-  [& opts]
-  (log/info "Starting Deployment!")
+  :generate? - If generate is true, the testnet will generate several
+  employers, candidates and arbiters undergoing particular work scenarios.
+
+  Notes:
+
+  - please read the docs for `ethlance.server.deployer/deploy-all!`
+  "
+  [& {:keys [generate?] :as opts}]
+  (log/info "Starting Contract Deployment!")
   (apply deployer/deploy-all! opts)
-  (log/info "Finished Deployment!"))
+  (log/info "Finished Contract Deployment!")
+  (when generate? (generator/generate!)))
 
 
 (defn redeploy

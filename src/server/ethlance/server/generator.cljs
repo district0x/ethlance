@@ -24,6 +24,10 @@
    [ethlance.server.ipfs :as ipfs]
    [ethlance.server.filesystem :as filesystem]
    [ethlance.shared.random :as random]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw] :include-macros true]
+   [ethlance.shared.enum.currency-type :as enum.currency]
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.server.contract.ethlance-user :as user :include-macros true]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-job-store :as job :include-macros true]
@@ -44,20 +48,113 @@
 (defn testnet-max-accounts [] 10) ;; TODO: check config value
 
 
+(defn get-registered-user-ipfs
+  "Gets the EthlanceUser metahash data for the testnet account at `account-index`."
+  [account-index]
+   
+  (let [eth-account (nth (web3-eth/accounts @web3) account-index)
+        metahash-ipfs (user/with-ethlance-user (user-factory/user-by-address eth-account)
+                        (user/metahash-ipfs))]
+    (ipfs/get-edn metahash-ipfs)))
+
+
 (defn generate-registered-users!
   "Generate registered users along with registering for candidate,
-  employer, and arbiter."
+  employer, and arbiter.
+  
+  Note:
+
+  - function is asynchronous, and returns a channel with ::done when
+    it has finished processing.
+  "
   [{:keys [num-employers num-candidates num-arbiters]
     :or {num-employers 3 num-candidates 4 num-arbiters 3}}]
   (let [total-accounts (+ num-employers num-candidates num-arbiters)
-        max-accounts (testnet-max-accounts)]
+        max-accounts (testnet-max-accounts)
+        *user-emails (atom choice-collections/user-emails)
+        *user-names (atom choice-collections/user-names)
+        finished-chan (chan 1)]
     (assert (<= total-accounts max-accounts)
             (str "The number of total registrations exceeds the max number of testnet accounts: %d > %d"
                  total-accounts max-accounts))
 
-    ;; Register several user accounts
-    (doseq [index (range total-accounts)])))
-       
+    (go
+
+      ;; Registering User Accounts
+      (doseq [index (range total-accounts)]
+        (let [eth-account (nth (web3-eth/accounts @web3) index)
+              email (random/pluck! *user-emails)
+              [full-name user-name] (random/pluck! *user-names)
+              languages (vec (rand-nth choice-collections/languages))
+              
+              ipfs-data {:user/email email
+                         :user/full-name full-name
+                         :user/user-name user-name
+                         :user/languages languages}
+              metahash-ipfs (<!-<throw (ipfs/add-edn! ipfs-data))]
+          (log/debug (str/format "Registering User #%s - Metahash<%s>" (inc index) metahash-ipfs))
+          (user-factory/register-user! {:metahash-ipfs metahash-ipfs} {:from eth-account})))
+
+      ;; Registering Employers
+      (doseq [employer-index (range num-employers)]
+        (let [eth-account (nth (web3-eth/accounts @web3) employer-index)
+              biography "I employ people" ;;TODO: generate random bios
+              professional-title "Project Manager & Tech Lead" ;;TODO: generate title
+              user-ipfs-data (<!-<throw (get-registered-user-ipfs employer-index))
+              employer-ipfs-data {:employer/biography biography
+                                  :employer/professional-title professional-title}
+              new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data employer-ipfs-data)))]
+          (log/debug (str/format "Registering User #%s as Employer..." (inc employer-index)))
+          (user/with-ethlance-user (user-factory/user-by-address eth-account)
+            (user/register-employer! {:from eth-account})
+            (user/update-metahash! new-metahash {:from eth-account}))))
+
+      ;; Registering Candidates
+      (doseq [candidate-index (range num-employers (+ num-employers num-candidates))]
+        (let [eth-account (nth (web3-eth/accounts @web3) candidate-index)
+              biography "I like to work" ;;TODO: generate random bios
+              professional-title "Software Consultant"
+              categories (vec (rand-nth choice-collections/categories))
+              skills (vec (rand-nth choice-collections/skills))
+              user-ipfs-data (<!-<throw (get-registered-user-ipfs candidate-index))
+              candidate-ipfs-data {:candidate/biography biography
+                                   :candidate/professional-title professional-title
+                                   :candidate/categories categories
+                                   :candidate/skills skills}
+              new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data candidate-ipfs-data)))]
+          (log/debug (str/format "Registering User #%s as Candidate..." (inc candidate-index)))
+          (user/with-ethlance-user (user-factory/user-by-address eth-account)
+             (user/register-candidate!
+              {:hourly-rate 10 :currency-type ::enum.currency/eth} ;;TODO: randomize
+              {:from eth-account})
+             (user/update-metahash! new-metahash {:from eth-account}))))
+
+      (doseq [arbiter-index (range (+ num-employers num-candidates) total-accounts)]
+        (let [eth-account (nth (web3-eth/accounts @web3) arbiter-index)
+              biography "I am fair."
+              user-ipfs-data (<!-<throw (get-registered-user-ipfs arbiter-index))
+              arbiter-ipfs-data {:arbiter/biography biography}
+              new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data arbiter-ipfs-data)))]
+          (log/debug (str/format "Registering User #%s as Arbiter..." (inc arbiter-index)))
+          (user/with-ethlance-user (user-factory/user-by-address eth-account)
+            (user/register-arbiter!
+             {:payment-value 5
+              :currency-type ::enum.currency/eth
+              :payment-type ::enum.payment/percentage}
+             {:from eth-account})
+            (user/update-metahash! new-metahash {:from eth-account}))))
+
+      (>! finished-chan ::done))
+    finished-chan))
+
+
+;; TODO: pull in additional information from district.server.config
+(defn generate! []
+  (go
+    (log/info "Started Generating Users and Scenarios...")
+    (<! (generate-registered-users! {}))
+    (log/info "Finished Generating Users and Scenarios!")))
+
 
 (defn start
   [& config])
