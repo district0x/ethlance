@@ -5,7 +5,7 @@
   Also contains the mount component to initialize the IPFS instance."
   (:refer-clojure :exclude [get])
   (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put!] :include-macros true]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! take!] :include-macros true]
    [clojure.tools.reader.edn :as edn]
    [cuerdas.core :as str]
    [clojure.string :refer [ends-with?]]
@@ -65,7 +65,7 @@
            (put! error-chan error)
            (close! success-chan))
          (when result
-           (put! success-chan result)
+           (put! success-chan (:Hash result))
            (close! error-chan)))))
     [success-chan error-chan]))
 
@@ -101,20 +101,20 @@
 
 
 (defn parse-edn-result
-  "Parses the metadata from the IPFS result string
+  "Parses EDN from the metadata in the IPFS result string.
 
   Notes:
 
+  - The result from the IPFS-API contains additional CORS metadata
+  that needs to be parsed out before it can be parsed into an EDN
+  value.
   - Can only parse edn maps.
   "
   [s]
   (try
-    (-> (re-matches #".*?(\{.*\})")
-        (str s "{}") ;; This hack doesn't make any sense, but it works?
-        second
-        edn/read-string)
+    (-> (re-find #".*?(\{.*\})" s) second edn/read-string)
     (catch js/Error e
-      (log/error (str "Parse Error: " e))
+      (log/error (str "EDN Parse Error: " e))
       nil)))
 
 
@@ -133,6 +133,6 @@
         (if-let [parsed-result (parse-edn-result result)]
           (do (>! success-chan parsed-result)
               (close! error-chan))
-          (do (>! error-chan (ex-info "Failed to parse edn value" {:unparsed-result result}))
+          (do (>! error-chan (ex-info "Failed to parse edn value" {:unparsed-result (pr-str result)}))
               (close! success-chan)))))
     [success-chan error-chan]))
