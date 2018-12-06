@@ -7,7 +7,7 @@
    [taoensso.timbre :as log]
    [cljs-web3.eth :as web3-eth]
    [cljs-web3.evm :as web3-evm]
-   [mount.core :as mount]
+   [mount.core :as mount :refer [defstate]]
    
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]
@@ -15,6 +15,14 @@
    ;; Mount Components
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]))
+
+
+;; Fixture State Module. This serves as a global set up and tear down
+;; when alternative fixtures come into play.
+(declare reset-testnet!)
+(defstate testnet-fixture
+  :start (reset-testnet!))
+
 
 ;;
 ;; Node Modules
@@ -125,7 +133,8 @@
   [{:keys [deployer-options force-deployment?]}]
   (-> (mount/with-args test-config)
       (mount/only
-       [#'district.server.web3/web3
+       [#'ethlance.server.test-utils/testnet-fixture
+        #'district.server.web3/web3
         #'district.server.smart-contracts/smart-contracts])
       mount/start)
   (prepare-testnet! deployer-options force-deployment?))
@@ -134,8 +143,6 @@
 (defn fixture-stop
   "Test Fixture Teardown."
   []
-  ;; FIXME: only remount between deployments
-  ;; (mount/stop)
   (async done (js/setTimeout #(done) 1000)))
 
 

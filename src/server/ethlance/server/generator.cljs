@@ -10,6 +10,7 @@
    [cljs-web3.evm :as web3-evm]
    [cljs-web3.utils :refer [js->cljkk camel-case]]
    [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
+   [cuerdas.core :as str]
    [district.cljs-utils :refer [rand-str]]
    [district.format :as format]
    [district.server.config :refer [config]]
@@ -51,12 +52,12 @@
   (let [total-accounts (+ num-employers num-candidates num-arbiters)
         max-accounts (testnet-max-accounts)]
     (assert (<= total-accounts max-accounts)
-            "The number of total registrations exceeds the max number of testnet accounts.")
+            (str "The number of total registrations exceeds the max number of testnet accounts: %d > %d"
+                 total-accounts max-accounts))
 
     ;; Register several user accounts
     (doseq [index (range total-accounts)])))
        
-
 
 (defn start
   [& config])
