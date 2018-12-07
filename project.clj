@@ -111,7 +111,7 @@
          [graphql-fields "1.0.2"]
          [graphql-tools "3.0.1"]
          [solc "0.4.20"]
-         [source-map-support "0.5.3"]
+         [source-map-support "0.5.9"]
          [ws "4.0.0"]
 
          ;; Note: district0x/district-server-web3 uses ganache-core@2.0.2, which depends on 0.6.0
