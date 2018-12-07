@@ -51,6 +51,4 @@
 (defn job-store-by-index
   "Get a job contract address by the given index."
   [index]
-  (call :get-job-store-by-index index))
-
-
+  (call :get-job-store-by-index (bn/number index)))

@@ -68,3 +68,22 @@
     (let [val (rand-nth @*coll)]
       (swap! *coll (fn [v] (->> v (remove #(= val %)) (into (empty @*coll)))))
       val)))
+
+
+(defn rand-nth-n
+  "Retrieve `n` random distinct values from the collection `coll` and return it as a sequence.
+
+  Notes:
+  
+  - If `n` exceeds the count of `coll`, the function returns early
+  if (count coll) elements.
+  "
+  [coll n]
+  (assert (sequential? coll) "Provided collection must be sequential")
+  (let [*coll (atom coll)]
+    (loop [i 0 result (list)]
+      (if (< i n)
+        (if-let [val (pluck! *coll)]
+          (recur (inc i) (cons val result))
+          result)
+        result))))

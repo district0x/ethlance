@@ -70,7 +70,7 @@
 
 (defn dispute-by-index
   [index]
-  (call :get-dispute-by-index index))
+  (call :get-dispute-by-index (bn/number index)))
 
 
 (defn create-invoice!
@@ -85,4 +85,4 @@
 
 (defn invoice-by-index
   [index]
-  (call :get-invoice-by-index index))
+  (call :get-invoice-by-index (bn/number index)))

@@ -37,28 +37,55 @@
 
 
 (declare generate-scenario!)
+
+
 (def scenario-distribution
   "A random distribution of different types of scenarios to choose from"
-  [[0.7 :job-no-requests]
-   [0.2 :job-one-arbiter-request]
-   [0.4 :job-one-arbiter-accepted]
-   [0.2 :job-one-candidate-request]
-   [0.4 :job-one-candidate-accepted]
-   [0.5 :job-1a-req-1c-req]
-   [0.2 :job-1a-req-1c-req]
-   [1.2 :job-1a-acc-1c-acc]
-   [1.4 :job-2a-acc-2c-acc]
-   [2.0 :job-prog-w-invoice]
-   [2.0 :job-prog-w-invoice-paid]
-   [2.0 :job-prog-w-dispute]
-   [3.0 :job-prog-w-inv-disp]
-   [3.0 :job-prog-w-inv-paid-disp-resolved]])
+  [;;[0.7 :job-no-requests]
+   [0.2 :job-one-arbiter-request]])
+   ;;[0.4 :job-one-arbiter-accepted]])
+   ;;[0.2 :job-one-candidate-request]])
+   ;;[0.4 :job-one-candidate-accepted]
+   ;;[0.5 :job-1a-req-1c-req]
+   ;;[0.2 :job-1a-req-1c-req]
+   ;;[1.2 :job-1a-acc-1c-acc]
+   ;;[1.4 :job-2a-acc-2c-acc]
+   ;;[2.0 :job-prog-w-invoice]
+   ;;[2.0 :job-prog-w-invoice-paid]
+   ;;[2.0 :job-prog-w-dispute]
+   ;;[3.0 :job-prog-w-inv-disp]
+   ;;[3.0 :job-prog-w-inv-paid-disp-resolved]])
 
 
 (defn pick-scenario
   "Pick a random scenario from the probability distribution"
   []
   (random/pick-rand-by-dist scenario-distribution))
+
+
+(defn- generate-job!
+  [{:keys [employer-address bounty?]
+    :or {bounty? false}}]
+
+  (let [result-chan (chan 1)
+        ipfs-data {:job/title "Full-Stack Software Developer" ;; TODO: randomize
+                   :job/description "This is a job description."
+                   :job/availability 0
+                   :job/category "Software Development"
+                   :job/skills (vec (random/rand-nth-n choice-collections/skills 2))}]
+    (go
+      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))
+            job-index (job-factory/job-store-count)]
+        (job-factory/create-job-store!
+         {:bid-option (if-not bounty? ::enum.bid-option/hourly-rate ::enum.bid-option/bounty)
+          :estimated-length-seconds (* 60 60 24 7 4) ;; 4 weeks
+          :include-ether-token? true
+          :is-invitation-only? false
+          :metahash hash
+          :reward-value (if-not bounty? 0 200000000)} ;; FIXME: to-eth fcn
+         {:from employer-address})
+        (>! result-chan {:job-index job-index})))
+    result-chan))
 
 
 (defn generate-scenarios!
@@ -69,12 +96,17 @@
   (let [done-chan (chan 1)]
     (go-loop [i 1 scenario-name (pick-scenario)]
       (when (<= i num-scenarios)
-        (generate-scenario! (assoc scene-data
-                                   :scenario-name scenario-name
-                                   :scenario-number i))
+        (<! (generate-scenario! (assoc scene-data
+                                       :scenario-name scenario-name
+                                       :scenario-number i)))
         (recur (inc i) (pick-scenario)))
       (>! done-chan ::done))
     done-chan))
+
+
+;;
+;; Scenarios
+;;
 
 
 (defmulti generate-scenario! (fn [scene-data] (get scene-data :scenario-name)))
@@ -83,13 +115,29 @@
 (defmethod generate-scenario! :job-no-requests
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name)))
+  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+  (let [done-chan (chan 1)
+        employee-address (rand-nth employers)]
+    (go
+      (<! (generate-job! {:employee-address employee-address :bounty? false}))
+      (>! done-chan ::done))
+    done-chan))
 
 
 (defmethod generate-scenario! :job-one-arbiter-request
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name)))
+  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+  (let [done-chan (chan 1)
+        employee-address (rand-nth employers)
+        arbiter-address (rand-nth arbiters)]
+    (go
+      (let [{:keys [job-index]} (<! (generate-job! {:employee-address employee-address :bounty? false}))]
+        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+          (log/debug job/*job-store-key*)
+          (job/request-arbiter! arbiter-address {:from arbiter-address})))
+      (>! done-chan ::done))
+    done-chan))
 
 
 (defmethod generate-scenario! :job-one-arbiter-accepted

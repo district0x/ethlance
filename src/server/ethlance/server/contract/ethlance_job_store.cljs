@@ -77,7 +77,7 @@
 (defn work-contract-by-index
   "Get the work contract address by the given `index`."
   [index]
-  (call :get-work-contract-by-index index))
+  (call :get-work-contract-by-index (bn/number index)))
 
 
 (defn fund!

@@ -159,7 +159,7 @@
 (defn generate! []
   (go
     (log/info "Started Generating Users and Scenarios...")
-    (let [{:keys [candidates employers arbiters] :as user-listing} (<! (generate-registered-users! {}))]
+    (let [user-listing (<! (generate-registered-users! {}))]
       (<! (scenario/generate-scenarios! user-listing))
       (log/info "Finished Generating Users and Scenarios!"))))
 

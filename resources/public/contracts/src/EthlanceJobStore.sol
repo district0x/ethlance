@@ -146,7 +146,7 @@ contract EthlanceJobStore {
 
 	// Create the forwarded contract, and place in the work listing.
 	Forwarder fwd = new Forwarder(); // Proxy Contract with
-	                               // target(EthlanceWorkContract)
+	                                 // target(EthlanceWorkContract)
 	EthlanceWorkContract workContract = EthlanceWorkContract(address(fwd));
 	work_contract_listing.push(address(workContract));
 	work_contract_mapping[candidate_address] = true;

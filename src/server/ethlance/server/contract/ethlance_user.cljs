@@ -45,6 +45,12 @@
   (apply contracts/contract-call *user-key* method-name args))
 
 
+(defn user-id
+  "Retrieve's user's ID"
+  []
+  (call :user_id))
+
+
 (defn metahash-ipfs
   "Retrieve the user's IPFS metahash."
   []
