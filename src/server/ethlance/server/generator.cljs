@@ -36,7 +36,8 @@
    [ethlance.server.contract.ethlance-invoice :as invoice :include-macros true]
    [ethlance.server.contract.ethlance-dispute :as dispute :include-macros true]
    [ethlance.server.deployer :as deployer]
-   [ethlance.server.generator.choice-collections :as choice-collections]))
+   [ethlance.server.generator.choice-collections :as choice-collections]
+   [ethlance.server.generator.scenario :as scenario]))
 
 
 (declare start stop)
@@ -64,8 +65,8 @@
   
   Note:
 
-  - function is asynchronous, and returns a channel with ::done when
-    it has finished processing.
+  - function is asynchronous, and returns a channel with the
+    configuration values it has finished processing.
   "
   [{:keys [num-employers num-candidates num-arbiters]
     :or {num-employers 3 num-candidates 4 num-arbiters 3}}]
@@ -92,7 +93,7 @@
                          :user/user-name user-name
                          :user/languages languages}
               metahash-ipfs (<!-<throw (ipfs/add-edn! ipfs-data))]
-          (log/debug (str/format "Registering User #%s - Metahash<%s>" (inc index) metahash-ipfs))
+          (log/debug (str/format "Registering User #%s" (inc index)))
           (user-factory/register-user! {:metahash-ipfs metahash-ipfs} {:from eth-account})))
 
       ;; Registering Employers
@@ -124,10 +125,10 @@
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data candidate-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Candidate..." (inc candidate-index)))
           (user/with-ethlance-user (user-factory/user-by-address eth-account)
-             (user/register-candidate!
-              {:hourly-rate 10 :currency-type ::enum.currency/eth} ;;TODO: randomize
-              {:from eth-account})
-             (user/update-metahash! new-metahash {:from eth-account}))))
+            (user/register-candidate!
+             {:hourly-rate 10 :currency-type ::enum.currency/eth} ;;TODO: randomize
+             {:from eth-account})
+            (user/update-metahash! new-metahash {:from eth-account}))))
 
       (doseq [arbiter-index (range (+ num-employers num-candidates) total-accounts)]
         (let [eth-account (nth (web3-eth/accounts @web3) arbiter-index)
@@ -144,7 +145,13 @@
              {:from eth-account})
             (user/update-metahash! new-metahash {:from eth-account}))))
 
-      (>! finished-chan ::done))
+      (let [accounts (web3-eth/accounts @web3)
+            employers (take num-employers accounts)
+            candidates (->> accounts (drop num-employers) (take num-candidates))
+            arbiters (->> accounts (drop (+ num-employers num-candidates)) (take num-arbiters))]
+        (>! finished-chan {:employers employers
+                           :candidates candidates
+                           :arbiters arbiters})))
     finished-chan))
 
 
@@ -152,8 +159,9 @@
 (defn generate! []
   (go
     (log/info "Started Generating Users and Scenarios...")
-    (<! (generate-registered-users! {}))
-    (log/info "Finished Generating Users and Scenarios!")))
+    (let [{:keys [candidates employers arbiters] :as user-listing} (<! (generate-registered-users! {}))]
+      (<! (scenario/generate-scenarios! user-listing))
+      (log/info "Finished Generating Users and Scenarios!"))))
 
 
 (defn start
