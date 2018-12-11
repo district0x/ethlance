@@ -4,14 +4,13 @@
    [cljs-web3.eth :as web3-eth]
    [clojure.pprint :refer [pprint]]
    [cljs.tests :as tests]
-   [clojure.spec.alpha :as s]
-   ;;[expound.alpha :as expound]
+   [cljs.instrumentation :as instrumentation]
    [mount.core :as mount] 
-   [orchestra-cljs.spec.test :as st]
    [taoensso.timbre :as log]
    
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]
+   [district.shared.error-handling :refer [try-catch try-catch-throw]]
 
    [ethlance.shared.smart-contracts]
    [ethlance.server.core]
@@ -30,7 +29,11 @@
 
   (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the testnet snapshot)
   (reset-testnet!)                ;; Reset the testnet snapshot
-  (redeploy)                      ;; Deploy to the testnet asynchronously
+  (redeploy :generate? [false])   ;; Deploy to the testnet asynchronousl
+                                  ;; (:generate? generate users and scenarios)
+
+  (enable-instrumentation!)       ;; Enable fspec instrumentation
+  (disable-instrumentation!)      ;; Disable fspec instrumentation
 
   (help)                          ;; Display this help message
 
@@ -79,10 +82,11 @@
   - please read the docs for `ethlance.server.deployer/deploy-all!`
   "
   [& {:keys [generate?] :as opts}]
-  (log/info "Starting Contract Deployment!")
-  (apply deployer/deploy-all! opts)
-  (log/info "Finished Contract Deployment!")
-  (when generate? (generator/generate!)))
+  (try-catch-throw
+   (log/info "Starting Contract Deployment!")
+   (apply deployer/deploy-all! opts)
+   (log/info "Finished Contract Deployment!")
+   (when generate? (generator/generate!))))
 
 
 (defn redeploy
@@ -120,16 +124,16 @@
   (.nextTick js/process #(run-tests-sync :reset? reset?)))
 
 
-#_(defn run-test-sync
-    "Run tests with the given namespace"
-    [namespace]
-    (server.test-runner/run-test namespace))
+(defn enable-instrumentation!
+  "Strict conforms function fspecs for all specs."
+  []
+  (instrumentation/enable!))
 
 
-#_(defn run-test
-    "Run a single test asynchronously"
-    [namespace]
-    (.nextTick js/process #(run-test-sync namespace)))
+(defn disable-instrumentation!
+  "Disables strict conformity of fspecs."
+  []
+  (instrumentation/disable!))
 
 
 (defn reset-testnet!
@@ -152,11 +156,3 @@
 
 
 (set! *main-cli-fn* -dev-main)
-
-;; Better Spec Error Messages by default
-;;(set! s/*explain-out* expound/printer)
-
-;; Turning on system-wide Spec Instrumentation
-;; FIXME: turned off until there is a fix for non-public function warnings.
-;; (st/instrument)
-

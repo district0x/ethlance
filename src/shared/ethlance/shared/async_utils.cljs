@@ -25,5 +25,6 @@
   (go
    (when-let [err (<! error-channel)]
      (close! success-channel)
+     (log/error err)
      (throw (ex-info "Error on async error channel" {:error-object err}))))
   success-channel)

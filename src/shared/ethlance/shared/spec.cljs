@@ -46,7 +46,7 @@
 (s/def :user/date-joined ::datetime)
 (s/def :github/api-key string?)
 (s/def :linkedin/api-key string?)
-(s/def :user/languages (s/coll-of string? :distrinct true :into []))
+(s/def :user/languages (s/coll-of string? :distinct true :into []))
 
 ;;
 ;; User Candidate Data
@@ -65,7 +65,7 @@
 
 (s/def :employer/biography string?)
 (s/def :employer/date-registered ::datetime)
-(s/def :employer/professional-title ::datetime)
+(s/def :employer/professional-title string?)
 
 
 ;;

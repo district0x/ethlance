@@ -22,7 +22,7 @@
                  [garden "1.3.6"]
                  [medley "1.0.0"]
                  [mount "0.1.14"]
-                 [orchestra "2018.11.07-1"]
+                 [orchestra "2018.12.06-2"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
                  [org.clojure/core.async "0.4.490"]
                  [org.clojure/core.match "0.3.0-alpha4"]

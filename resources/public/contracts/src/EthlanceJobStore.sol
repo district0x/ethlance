@@ -321,7 +321,7 @@ contract EthlanceJobStore {
 	//FIXME: safemath, ERC20 compatible
 	uint total_payout = employer_amount + candidate_amount + arbiter_amount;
 	if (address(this).balance < total_payout) {
-	    revert("Work Contract balance does not satify resolution payout.");
+	    revert("Job Store balance does not satisfy resolution payout.");
 	}
 	
 	employer_address.transfer(employer_amount);
@@ -342,6 +342,7 @@ contract EthlanceJobStore {
      */
     function payInvoice(address payable candidate_address, uint amount_paid) external {
 	require(isWorkContract(msg.sender), "Only a work contract has permission to transfer from the job store.");
+	require(address(this).balance >= amount_paid, "Job Store balance does not satisfy amount to pay");
 	candidate_address.transfer(amount_paid);
     }
 

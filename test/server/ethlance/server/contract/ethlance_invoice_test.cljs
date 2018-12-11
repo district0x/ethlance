@@ -116,13 +116,31 @@
         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
           (is (bn/= (work-contract/invoice-count) 0))
           (work-contract/create-invoice!
-           {:amount (web3/to-wei 10.0 :ether) :metahash ""}
+           {:amount (web3/to-wei 1.0 :ether) :metahash ""}
            {:from candidate-address})
           (is (bn/= (work-contract/invoice-count) 1))
 
-          ;; Get the employer to pay the invoice
+          ;; Second invoice
+          (work-contract/create-invoice!
+           {:amount (web3/to-wei 1.0 :ether) :metahash ""}
+           {:from candidate-address})
+          (is (bn/= (work-contract/invoice-count) 2))
+
+          ;; Get the employer to pay the first invoice
           (invoice/with-ethlance-invoice (work-contract/invoice-by-index 0)
-            (let [paid-amount (web3/to-wei 10.0 :ether)
+            (let [paid-amount (web3/to-wei 1.0 :ether)
+                  candidate-balance (web3-eth/get-balance @web3 candidate-address)]
+              (is (not (invoice/paid?)))
+              (invoice/pay! paid-amount {:from employer-address})
+              (is (invoice/paid?))
+
+              ;; Candidate should have received the balance
+              (is (bn/= (bn/+ candidate-balance paid-amount)
+                        (web3-eth/get-balance @web3 candidate-address)))))
+          
+          ;; Get the employer to pay the second invoice
+          (invoice/with-ethlance-invoice (work-contract/invoice-by-index 1)
+            (let [paid-amount (web3/to-wei 1.0 :ether)
                   candidate-balance (web3-eth/get-balance @web3 candidate-address)]
               (is (not (invoice/paid?)))
               (invoice/pay! paid-amount {:from employer-address})
