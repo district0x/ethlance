@@ -28,3 +28,11 @@
      (log/error err)
      (throw (ex-info "Error on async error channel" {:error-object err}))))
   success-channel)
+
+
+(defn flush!
+  "Takes a channel, and flushes the remaining values from the channel."
+  [channel]
+  (go-loop [result (<! channel)]
+    (when result (recur (<! channel)))))
+   

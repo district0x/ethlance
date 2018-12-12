@@ -7,7 +7,7 @@
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
    [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
-   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan put! close!] :include-macros true]
    [cuerdas.core :as str]
    [district.server.config :refer [config]]
    [district.server.db :as district.db]
@@ -19,7 +19,9 @@
    [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]
 
+   [ethlance.server.syncer.event-watcher :as event-watcher]
    [ethlance.server.db :as db]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]
    ;; Ethlance Models
    [ethlance.server.model.job :as job]
    [ethlance.server.model.user :as user]
@@ -34,7 +36,17 @@
   :stop (stop))
 
 
-(defn start [])
+(defn start []
+  (let [[result-channel stop-channel] (event-watcher/create)]
+    (go-loop [event (<! result-channel)]
+      (when event
+        (log/debug (pr-str "Received Event!" event))
+        (recur (<! result-channel))))
+    [result-channel stop-channel]))
 
 
-(defn stop [])
+(defn stop []
+  (let [[result-channel stop-channel] @syncer]
+    (put! stop-channel ::finished)
+    (flush! result-channel)
+    (close! result-channel)))

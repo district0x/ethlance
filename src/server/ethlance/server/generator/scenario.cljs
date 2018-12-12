@@ -5,7 +5,6 @@
    [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
    [cljs-web3.evm :as web3-evm]
-   [cljs-web3.utils :refer [js->cljkk camel-case]]
    [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
    [cuerdas.core :as str]
    [district.cljs-utils :refer [rand-str]]
