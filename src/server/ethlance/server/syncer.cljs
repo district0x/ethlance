@@ -37,6 +37,9 @@
   :stop (stop))
 
 
+;;(defmulti process-event (fn [{:keys [name event-name]}]))
+
+
 (defn start []
   (let [[result-channel _] @syncer-muxer]
     (go-loop [event (<! result-channel)]

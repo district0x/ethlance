@@ -35,7 +35,7 @@
    [ethlance.server.contract.ethlance-work-contract :as work-contract]
    [ethlance.server.contract.ethlance-invoice :as invoice :include-macros true]
    [ethlance.server.contract.ethlance-dispute :as dispute :include-macros true]
-   [ethlance.server.deployer :as deployer]
+   [ethlance.server.deployer :refer [deployer]]
    [ethlance.server.generator.choice-collections :as choice-collections]
    [ethlance.server.generator.scenario :as scenario]))
 
@@ -43,7 +43,7 @@
 (declare start stop)
 (defstate generator
   :start (start)
-  :stop (stop generator))
+  :stop (stop))
 
 
 (defn testnet-max-accounts [] 10) ;; TODO: check config value
@@ -166,7 +166,10 @@
 
 (defn start
   [& config]
-  #_(generate!))
+  ;; Wait on our deployer before we generate users
+  @deployer
+  
+  (generate!))
 
 
 (defn stop

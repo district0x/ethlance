@@ -29,7 +29,7 @@
 
   (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the testnet snapshot)
   (reset-testnet!)                ;; Reset the testnet snapshot
-  (redeploy :generate? [false])   ;; Deploy to the testnet asynchronousl
+  (redeploy :generate? [false])   ;; Deploy to the testnet asynchronously
                                   ;; (:generate? generate users and scenarios)
 
   (enable-instrumentation!)       ;; Enable fspec instrumentation
@@ -50,23 +50,48 @@
                                       :auto-mining? true})))
 
 
-(defn start
+(defn start-sync
   "Start the mount components."
   []
   (mount/start (mount/with-args dev-config)))
 
 
-(defn stop
+(defn start
+  "Start the mount components asychronously."
+  [& opts]
+  (.nextTick
+   js/process
+   (fn []
+     (apply start-sync opts))))
+
+
+(defn stop-sync
   "Stop the mount components."
   []
   (mount/stop))
 
 
-(defn restart
+(defn stop
+  [& opts]
+  (.nextTick
+   js/process
+   (fn []
+     (apply stop-sync opts))))
+  
+
+(defn restart-sync
   "Restart the mount components."
   []
-  (stop)
-  (start))
+  (stop-sync)
+  (start-sync))
+
+
+(defn restart
+  [& opts]
+  (.nextTick
+   js/process
+   (fn []
+     (apply restart-sync opts))))
 
 
 (defn redeploy-sync
@@ -151,8 +176,7 @@
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"
   [& args]
-  (help)
-  (start))
+  (help))
 
 
 (set! *main-cli-fn* -dev-main)

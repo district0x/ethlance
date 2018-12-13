@@ -3,6 +3,7 @@
   testnet (ganache-cli), or the ethereum mainnet."
   (:require
    [taoensso.timbre :as log]
+   [mount.core :as mount :refer [defstate]]
 
    [district.server.smart-contracts :as contracts]
 
@@ -11,6 +12,12 @@
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-job-factory :as job-factory]))
+
+
+(declare start stop)
+(defstate deployer
+  :start (start)
+  :stop (stop))
 
 
 (def forwarder-target-placeholder
@@ -268,3 +275,10 @@
   (when write?
     (log/debug "Writing out Smart Contracts...")
     (contracts/write-smart-contracts!)))
+
+
+(defn start []
+  (deploy-all!))
+
+
+(defn stop [])

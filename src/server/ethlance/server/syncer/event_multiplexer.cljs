@@ -2,7 +2,7 @@
   "Used to multiplex event watchers and sort them into their [block
   number / log index] order to be consumed in an in-order fashion."
   (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! chan put! close! poll!] :include-macros true]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan put! close! poll! timeout] :include-macros true]
    [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]
    [cuerdas.core :as str]
    [mount.core :as mount :refer [defstate]]
@@ -49,12 +49,16 @@
                  (remove #(-> % second nil?))
                  (sort-by #(-> % second :blockNumber))
                  first)]
+        
+        ;; Removes the result from the conveyer that we chose to be
+        ;; replaced with the next result from that particular watcher.
         (swap! *conveyer-belt dissoc name)
+
+        ;; Channel is closed if there are no results
         (if value
-          (do
-            (put! result-channel (assoc value :name name))
-            (log/debug (pr-str "Received Event!" value)))
-          (close! result-channel))))
+          (put! result-channel (assoc value :name name))
+          (do (<! (timeout 1000)) ;; Wait a second before continuing
+              (close! result-channel)))))
     result-channel))
 
 
@@ -69,7 +73,7 @@
   (let [result-channel (chan 1)
         *finished? (atom false)]
     (go-loop [result (<! (move-conveyer!))]
-      (if (and (not @*finished?))
+      (if (not @*finished?)
         (do
           (when result (>! result-channel result))
           (recur (<! (move-conveyer!))))
