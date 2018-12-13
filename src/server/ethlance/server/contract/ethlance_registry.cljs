@@ -51,3 +51,11 @@
   (when-let [tx-event (contracts/contract-event-in-tx transaction-hash *registry-key* :EthlanceEvent)]
     {:name (-> tx-event :args :event_name)
      :data (-> tx-event :args :event_data)}))
+
+
+;;
+;; Events
+;;
+
+(defn ethlance-event [& args]
+  (apply contracts/contract-call *registry-key* :EthlanceEvent args))

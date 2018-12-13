@@ -20,6 +20,7 @@
    [taoensso.timbre :as log]
 
    [ethlance.server.syncer.event-watcher :as event-watcher]
+   [ethlance.server.syncer.event-multiplexer :as event-multiplexer :refer [syncer-muxer]]
    [ethlance.server.db :as db]
    [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]
    ;; Ethlance Models
@@ -37,16 +38,12 @@
 
 
 (defn start []
-  (let [[result-channel stop-channel] (event-watcher/create)]
+  (let [[result-channel _] @syncer-muxer]
     (go-loop [event (<! result-channel)]
       (when event
         (log/debug (pr-str "Received Event!" event))
         (recur (<! result-channel))))
-    [result-channel stop-channel]))
+    result-channel))
 
 
-(defn stop []
-  (let [[result-channel stop-channel] @syncer]
-    (put! stop-channel ::finished)
-    (flush! result-channel)
-    (close! result-channel)))
+(defn stop [])

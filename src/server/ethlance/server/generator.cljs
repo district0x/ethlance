@@ -165,10 +165,11 @@
 
 
 (defn start
-  [& config])
+  [& config]
+  #_(generate!))
 
 
 (defn stop
-  [generator])
+  [])
 
 
