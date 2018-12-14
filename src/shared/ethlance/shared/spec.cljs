@@ -38,15 +38,18 @@
 ;;
 
 (s/def :user/id ::id)
-(s/def :user/address ::address) ;; TODO: better address spec
+(s/def :user/address ::address)
 (s/def :user/country-code (s/and string? #(= (count %) 2)))
-(s/def :user/email ::email) ;; TODO: email predicate
-(s/def :user/profile-image ::ipfs-hash) ;; TODO: hash spec (?)
-(s/def :user/date-last-active ::datetime)
-(s/def :user/date-joined ::datetime)
+(s/def :user/email ::email)
+(s/def :user/profile-image ::ipfs-hash)
+(s/def :user/date-created ::datetime)
+(s/def :user/date-updated ::datetime)
 (s/def :github/api-key string?)
 (s/def :linkedin/api-key string?)
 (s/def :user/languages (s/coll-of string? :distinct true :into []))
+
+
+
 
 ;;
 ;; User Candidate Data

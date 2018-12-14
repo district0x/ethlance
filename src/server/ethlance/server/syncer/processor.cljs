@@ -34,7 +34,7 @@
 
    ;; Misc.
    [ethlance.server.ipfs :as ipfs]
-   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]))
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]))
 
 
 (defn pp-str [x]
@@ -86,20 +86,17 @@
 
 (defmethod process-registry-event :user-registered
   [{:keys [args]}]
-  (go
-    (try-catch
-     (let [user-id (-> args :event_data first bn/number)]
-       (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
-         (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
-               user-address (contract.user/user-address)
-               date-created (contract.user/date-created)
-               date-updated (contract.user/date-updated)
-              
-               user-data (assoc ipfs-data
-                                :user/id user-id
-                                :user/address user-address
-                                :user/date-updated date-updated
-                                :user/date-created date-created)]
-           (model.user/register! user-data)
-           ::done))))))
-      
+  (go-try
+   (let [user-id (-> args :event_data first bn/number)]
+     (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
+       (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
+             user-address (contract.user/user-address)
+             date-created (contract.user/date-created)
+             date-updated (contract.user/date-updated)
+             
+             user-data (assoc ipfs-data
+                              :user/id user-id
+                              :user/address user-address
+                              :user/date-updated date-updated
+                              :user/date-created date-created)]
+         (model.user/register! user-data))))))

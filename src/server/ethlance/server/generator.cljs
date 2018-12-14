@@ -41,7 +41,7 @@
 
 
 (declare start stop)
-(defstate generator
+(defstate ^{:on-reload :noop} generator
   :start (start)
   :stop (stop))
 

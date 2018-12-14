@@ -8,6 +8,7 @@
    [mount.core :as mount] 
    [taoensso.timbre :as log]
    
+   [district.server.logging]
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]
    [district.shared.error-handling :refer [try-catch try-catch-throw]]
