@@ -19,9 +19,10 @@
 
 ;; Fixture State Module. This serves as a global set up and tear down
 ;; when alternative fixtures come into play.
-(declare reset-testnet!)
+(declare reset-testnet! revert-testnet!)
 (defstate testnet-fixture
-  :start (reset-testnet!))
+  :start (reset-testnet!)
+  :stop (revert-testnet!))
 
 
 ;;
@@ -64,7 +65,7 @@
 
   Notes:
 
-  - Can only revert to the previous snapshot 'once'. (Possible Bug)"
+  - Can only revert to the previous snapshot 'once'."
   []
   (if @*deployment-testnet-snapshot
     (do
@@ -76,6 +77,7 @@
          (if result
            (log/debug "Successfully Reverted Testnet!")
            (log/error "Failed to Revert Testnet!" error))
+         (reset! *deployment-testnet-snapshot nil)
          (reset! *revert-lock false))))
     (log/warn "Snapshot Not Available, Testnet will not be reverted."))
 
@@ -123,8 +125,7 @@
        (merge default-deployer-config deployer-options))
       (snapshot-testnet!))
     (do (revert-testnet!)
-        ;; Snapshot is 'used up' after reversion, so take another snapshot
-        ;; Possibly a bug.
+        ;; Snapshot is 'used up' after reversion, so take another snapshot.
         (snapshot-testnet!))))
 
 
