@@ -2,7 +2,7 @@
   "Service that syncs the ethlance in-memory database with the ethereum
   blockchain by reading events emitted by the ethlance smart contracts."
   (:require
-   [bignumber.core :as bn]
+
    [cljs-ipfs-api.files :as ifiles]
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
    [cljs-web3.core :as web3]
@@ -21,14 +21,8 @@
 
    [ethlance.server.syncer.event-watcher :as event-watcher]
    [ethlance.server.syncer.event-multiplexer :as event-multiplexer :refer [syncer-muxer]]
-   [ethlance.server.db :as db]
-   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]
-   ;; Ethlance Models
-   [ethlance.server.model.job :as job]
-   [ethlance.server.model.user :as user]
-   [ethlance.server.model.arbiter :as arbiter]
-   [ethlance.server.model.candidate :as candidate]
-   [ethlance.server.model.employer :as employer]))
+   [ethlance.server.syncer.processor :as processor]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]))
 
 
 (declare start stop)
@@ -37,14 +31,11 @@
   :stop (stop))
 
 
-;;(defmulti process-event (fn [{:keys [name event-name]}]))
-
-
 (defn start []
   (let [[result-channel _] @syncer-muxer]
     (go-loop [event (<! result-channel)]
       (when event
-        (log/debug (pr-str "Received Event!" event))
+        (<! (processor/process-event event))
         (recur (<! result-channel))))
     result-channel))
 

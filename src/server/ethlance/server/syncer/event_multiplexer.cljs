@@ -56,7 +56,8 @@
 
         ;; Channel is closed if there are no results
         (if value
-          (put! result-channel (assoc value :name name))
+          (do (<! (timeout 10)) ;; Small time buffer to keep things in sync
+              (put! result-channel (assoc value :name name)))
           (do (<! (timeout 1000)) ;; Wait a second before continuing
               (close! result-channel)))))
     result-channel))
