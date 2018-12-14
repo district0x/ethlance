@@ -45,16 +45,13 @@
   (apply contracts/contract-call *user-key* method-name args))
 
 
-(defn user-id
-  "Retrieve's user's ID"
-  []
-  (call :user_id))
+(defn user-address [] (call :user_address))
+(defn user-id [] (call :user_id))
+(defn date-created [] (call :date_created))
+(defn date-updated [] (call :date_updated))
 
 
-(defn metahash-ipfs
-  "Retrieve the user's IPFS metahash."
-  []
-  (call :metahash_ipfs))
+(defn metahash-ipfs [] (call :metahash_ipfs))
 
 
 (defn update-metahash!

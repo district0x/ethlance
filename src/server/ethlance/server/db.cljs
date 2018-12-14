@@ -55,8 +55,8 @@
      [:user/user-name]
      [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
-     [:user/date-last-active :unsigned :integer]
-     [:user/date-joined :unsigned :integer]]
+     [:user/date-updated :unsigned :integer]
+     [:user/date-created :unsigned :integer]]
     :id-keys [:user/id]
     :list-keys []}
 

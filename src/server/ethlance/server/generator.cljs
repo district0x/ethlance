@@ -91,6 +91,7 @@
               ipfs-data {:user/email email
                          :user/full-name full-name
                          :user/user-name user-name
+                         :user/country-code "US"
                          :user/languages languages}
               metahash-ipfs (<!-<throw (ipfs/add-edn! ipfs-data))]
           (log/debug (str/format "Registering User #%s" (inc index)))

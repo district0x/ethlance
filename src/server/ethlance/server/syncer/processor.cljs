@@ -11,12 +11,30 @@
    [district.server.web3 :refer [web3]]
    [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
 
+   ;; Enums
+   [ethlance.shared.enum.currency-type :as enum.currency]
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.bid-option :as enum.bid-option]
+
    ;; Ethlance Models
-   [ethlance.server.model.job :as job]
-   [ethlance.server.model.user :as user]
-   [ethlance.server.model.arbiter :as arbiter]
-   [ethlance.server.model.candidate :as candidate]
-   [ethlance.server.model.employer :as employer]))
+   [ethlance.server.model.job :as model.job]
+   [ethlance.server.model.user :as model.user]
+   [ethlance.server.model.arbiter :as model.arbiter]
+   [ethlance.server.model.candidate :as model.candidate]
+   [ethlance.server.model.employer :as model.employer]
+   
+   ;; Ethlance Contracts
+   [ethlance.server.contract.ethlance-user :as contract.user :include-macros true]
+   [ethlance.server.contract.ethlance-user-factory :as contract.user-factory]
+   [ethlance.server.contract.ethlance-job-store :as contract.job :include-macros true]
+   [ethlance.server.contract.ethlance-job-factory :as contract.job-factory]
+   [ethlance.server.contract.ethlance-work-contract :as contract.work-contract]
+   [ethlance.server.contract.ethlance-invoice :as contract.invoice :include-macros true]
+   [ethlance.server.contract.ethlance-dispute :as contract.dispute :include-macros true]
+
+   ;; Misc.
+   [ethlance.server.ipfs :as ipfs]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]))
 
 
 (defn pp-str [x]
@@ -68,4 +86,20 @@
 
 (defmethod process-registry-event :user-registered
   [{:keys [args]}]
-  (go (log/debug "Processing User Registered!")))
+  (go
+    (try-catch
+     (let [user-id (-> args :event_data first bn/number)]
+       (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
+         (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
+               user-address (contract.user/user-address)
+               date-created (contract.user/date-created)
+               date-updated (contract.user/date-updated)
+              
+               user-data (assoc ipfs-data
+                                :user/id user-id
+                                :user/address user-address
+                                :user/date-updated date-updated
+                                :user/date-created date-created)]
+           (model.user/register! user-data)
+           ::done))))))
+      
