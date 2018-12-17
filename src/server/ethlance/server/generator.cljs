@@ -108,8 +108,8 @@
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data employer-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Employer..." (inc employer-index)))
           (user/with-ethlance-user (user-factory/user-by-address eth-account)
-            (user/register-employer! {:from eth-account})
-            (user/update-metahash! new-metahash {:from eth-account}))))
+            (user/update-metahash! new-metahash {:from eth-account})
+            (user/register-employer! {:from eth-account}))))
 
       ;; Registering Candidates
       (doseq [candidate-index (range num-employers (+ num-employers num-candidates))]
@@ -126,10 +126,10 @@
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data candidate-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Candidate..." (inc candidate-index)))
           (user/with-ethlance-user (user-factory/user-by-address eth-account)
+            (user/update-metahash! new-metahash {:from eth-account})
             (user/register-candidate!
              {:hourly-rate 10 :currency-type ::enum.currency/eth} ;;TODO: randomize
-             {:from eth-account})
-            (user/update-metahash! new-metahash {:from eth-account}))))
+             {:from eth-account}))))
 
       (doseq [arbiter-index (range (+ num-employers num-candidates) total-accounts)]
         (let [eth-account (nth (web3-eth/accounts @web3) arbiter-index)
@@ -139,12 +139,12 @@
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data arbiter-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Arbiter..." (inc arbiter-index)))
           (user/with-ethlance-user (user-factory/user-by-address eth-account)
+            (user/update-metahash! new-metahash {:from eth-account})
             (user/register-arbiter!
              {:payment-value 5
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from eth-account})
-            (user/update-metahash! new-metahash {:from eth-account}))))
+             {:from eth-account}))))
 
       (let [accounts (web3-eth/accounts @web3)
             employers (take num-employers accounts)

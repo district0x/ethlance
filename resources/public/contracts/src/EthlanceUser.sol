@@ -70,11 +70,6 @@ contract EthlanceUser {
         isUser {
 	metahash_ipfs = _metahash;
 	updateDateUpdated();
-
-	// Fire "UserUpdated" Event
-	uint[] memory edata = new uint[](1);
-	edata[0] = user_id;
-	fireEvent("UserUpdated", edata);
     }
 
 
@@ -119,6 +114,11 @@ contract EthlanceUser {
 	candidate_data.hourly_rate = hourly_rate;
 	candidate_data.currency_type = currency_type;
 	updateDateUpdated();
+
+	// Fire "UserRegisteredCandidate" Event
+	uint[] memory edata = new uint[](1);
+	edata[0] = user_id;
+	fireEvent("UserCandidateUpdate", edata);
     }
 
     
@@ -155,6 +155,11 @@ contract EthlanceUser {
 	arbiter_data.currency_type = currency_type;
 	arbiter_data.payment_type = payment_type;
 	updateDateUpdated();
+
+	// Fire Event
+	uint[] memory edata = new uint[](1);
+	edata[0] = user_id;
+	fireEvent("UserRegisteredArbiter", edata);
     }
 
 
@@ -174,6 +179,11 @@ contract EthlanceUser {
 	arbiter_data.currency_type = currency_type;
 	arbiter_data.payment_type = payment_type;
 	updateDateUpdated();
+
+	// Fire Event
+	uint[] memory edata = new uint[](1);
+	edata[0] = user_id;
+	fireEvent("UserArbiterUpdated", edata);
     }
 
 
@@ -201,6 +211,11 @@ contract EthlanceUser {
 
 	employer_data.is_registered = true;
 	updateDateUpdated();
+
+	// Fire Event
+	uint[] memory edata = new uint[](1);
+	edata[0] = user_id;
+	fireEvent("UserRegisteredEmployer", edata);
     }
     
 

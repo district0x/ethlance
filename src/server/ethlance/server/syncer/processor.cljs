@@ -100,3 +100,14 @@
                               :user/date-updated (bn/number date-updated)
                               :user/date-created (bn/number date-created))]
          (model.user/register! user-data))))))
+
+
+(defmethod process-registry-event :user-registered-employer
+  [{:keys [args]}]
+  (go-try
+   (let [user-id (-> args :event_data first bn/number)
+         timestamp (-> args :timestamp bn/number)]
+     (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
+        (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
+              employer-data (assoc ipfs-data :employer/date-registered timestamp)]
+           (model.employer/register! employer-data))))))

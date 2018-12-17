@@ -36,6 +36,9 @@
   (ethlance.db/insert-row! :User user-data))
 
 
+(defn update! [])
+
+
 (s/fdef exists?
   :args (s/cat :id :user/id)
   :ret boolean?)
