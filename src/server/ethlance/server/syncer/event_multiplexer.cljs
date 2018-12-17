@@ -23,12 +23,6 @@
 (defonce *conveyer-belt (atom {}))
 
 
-(declare start stop)
-(defstate ^{:on-reload :noop} syncer-muxer
-  :start (start)
-  :stop (stop))
-
-
 (defn move-conveyer!
   "Polls event watchers, and returns the next event from the list of
   filters."
@@ -83,21 +77,20 @@
 
 
 (defn stop
-  []
+  [[result-channel *finished?]]
   (log/debug "Stopping Sync Muxer...")
-  (let [[result-channel *finished?] @syncer-muxer]
 
-    ;; Stop all active watchers
-    (doseq [[name [r-channel stop-channel]] @*active-watchers]
-      (put! stop-channel ::finished)
-      (flush! r-channel)
-      (close! r-channel))
+  ;; Stop all active watchers
+  (doseq [[name [r-channel stop-channel]] @*active-watchers]
+    (put! stop-channel ::finished)
+    (flush! r-channel)
+    (close! r-channel))
 
-    ;; Close the result channel
-    (close! result-channel)
-    (flush! result-channel)
-    (reset! *finished? true)
+  ;; Close the result channel
+  (close! result-channel)
+  (flush! result-channel)
+  (reset! *finished? true)
 
-    ;; Flush out atoms
-    (reset! *active-watchers {})
-    (reset! *conveyer-belt {})))
+  ;; Flush out atoms
+  (reset! *active-watchers {})
+  (reset! *conveyer-belt {}))

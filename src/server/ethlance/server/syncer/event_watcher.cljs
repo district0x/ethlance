@@ -60,28 +60,12 @@
   [event-filter]
   (let [event-channel (chan 1)
         stop-channel (chan 1)
-        past-events-channel (get-events event-filter)
         watched-events-channel (watch-events event-filter)
         finished? (atom false)]
     (go
-      ;; (log/debug "Starting Event Watcher...")
-      
-      ;; First, retrieve all of the previous events on the blockchain
-      ;; (log/debug " - Retrieving Past Events...")
-      ;; (loop [event (<! past-events-channel)]
-      ;;   (when (and (not @finished?) event)
-      ;;     (>! event-channel event)
-      ;;     ;; Check to see if the user wants the event watcher stopped.
-      ;;     (when (poll! stop-channel)
-      ;;       (reset! finished? true)
-      ;;       (close! past-events-channel))
-      ;;     (recur (<! past-events-channel))))
-      
-      ;; Clean up past event watcher.
-      ;; (log/debug " - Finished Retrieving Past Events!")
 
-      ;; After processing past events, process current events through a watcher.
-      (log/debug " - Watching Current Events...")
+      ;; process current events through a watcher.
+      (log/debug "Starting Event Watcher...")
       (while (not @finished?)
         (when-let [event (<! watched-events-channel)]
           (>! event-channel event)

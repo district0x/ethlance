@@ -20,7 +20,7 @@
    [taoensso.timbre :as log]
 
    [ethlance.server.syncer.event-watcher :as event-watcher]
-   [ethlance.server.syncer.event-multiplexer :as event-multiplexer :refer [syncer-muxer]]
+   [ethlance.server.syncer.event-multiplexer :as event-multiplexer]
    [ethlance.server.syncer.processor :as processor]
    [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush!] :include-macros true]))
 
@@ -32,14 +32,13 @@
 
 
 (defn start []
-  (mount/start #'ethlance.server.syncer.event-multiplexer/syncer-muxer)
-  (let [[result-channel _] @syncer-muxer]
+  (let [[result-channel *finished?] (event-multiplexer/start)]
     (go-loop [event (<! result-channel)]
       (when event
         (<! (processor/process-event event))
         (recur (<! result-channel)))
       (log/debug "Syncer has Stopped!"))
-    result-channel))
+    [result-channel *finished?]))
 
 
 (defn stop
@@ -51,4 +50,4 @@
   mount and remount within the syncer."
   []
   (log/debug "Stopping Syncer...")
-  (mount/stop #'ethlance.server.syncer.event-multiplexer/syncer-muxer))
+  (event-multiplexer/stop @syncer))

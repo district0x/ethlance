@@ -87,7 +87,7 @@
               email (random/pluck! *user-emails)
               [full-name user-name] (random/pluck! *user-names)
               languages (vector (rand-nth choice-collections/languages))
-              
+
               ipfs-data {:user/email email
                          :user/full-name full-name
                          :user/user-name user-name
@@ -103,10 +103,8 @@
               biography "I employ people" ;;TODO: generate random bios
               professional-title "Project Manager & Tech Lead" ;;TODO: generate title
               user-ipfs-data (<!-<throw (get-registered-user-ipfs employer-index))
-              _ (log/debug (pr-str "User IPFS" user-ipfs-data))
               employer-ipfs-data {:employer/biography biography
                                   :employer/professional-title professional-title}
-              _ (log/debug (pr-str "Joined IPFS" (merge user-ipfs-data employer-ipfs-data)))
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data employer-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Employer..." (inc employer-index)))
           (user/with-ethlance-user (user-factory/user-by-address eth-account)

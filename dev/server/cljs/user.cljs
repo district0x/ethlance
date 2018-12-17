@@ -17,7 +17,6 @@
    [ethlance.server.core]
    [ethlance.server.db]
    [ethlance.server.syncer]
-   [ethlance.server.syncer.event-multiplexer]
    [ethlance.server.deployer :as deployer]
    [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
@@ -178,13 +177,11 @@
   (log/info "Repopulating database...")
   (log/debug "Stopping syncer and database...")
   (mount/stop
-   #'ethlance.server.syncer.event-multiplexer/syncer-muxer
    #'ethlance.server.syncer/syncer
    #'ethlance.server.db/ethlance-db)
   (log/debug "Starting syncer and database...")
   (mount/start
    #'ethlance.server.db/ethlance-db
-   #'ethlance.server.syncer.event-multiplexer/syncer-muxer
    #'ethlance.server.syncer/syncer))
 
 
