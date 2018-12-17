@@ -147,6 +147,15 @@
                                   :user/id user-id
                                   :arbiter/date-registered timestamp
                                   :arbiter/currency-type currency-type
-                                  :arbiter/payment-value payment-value
+                                  :arbiter/payment-value (bn/number payment-value)
                                   :arbiter/payment-type payment-type)]
           (model.arbiter/register! arbiter-data))))))
+
+
+(defmethod process-registry-event :job-store-created
+  [{:keys [args]}]
+  (go-try
+   (let [job-index (-> args :event_data first bn/number)
+         timestamp (-> args :timestamp bn/number)]
+     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
+       (let [])))))

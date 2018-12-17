@@ -25,6 +25,7 @@
                    :user/date-joined 0})
   (is (not (arbiter/is-registered? 1)))
 
+  ;; FIXME: handle BIG INT correctly
   (testing "Registering an arbiter"
     (arbiter/register! {:user/id 1
                         :arbiter/biography "I am testy."

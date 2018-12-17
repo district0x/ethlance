@@ -30,6 +30,18 @@
   (call :employer_address))
 
 
+(defn metahash
+  "Retrieve the JobStore's metahash"
+  []
+  (call :metahash))
+
+
+(defn update-metahash!
+  "Update the JobStore's metahash with the given `metahash`."
+  [metahash]
+  (call :update-metahash metahash))
+
+
 (defn request-arbiter!
   "Request an arbiter for the job contract"
   [arbiter-address & [opts]]

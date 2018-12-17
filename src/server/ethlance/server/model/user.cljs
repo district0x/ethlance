@@ -13,7 +13,6 @@
    [ethlance.shared.spec :as espec]))
 
 
-;; TODO: clojure.spec
 (s/def ::user-data
   (s/keys
    :req [:user/id
@@ -36,7 +35,12 @@
   (ethlance.db/insert-row! :User user-data))
 
 
-(defn update! [])
+(s/fdef update!
+  :args (s/cat :user-data ::user-data))
+
+(defn update!
+  [user-data]
+  (ethlance.db/update-row! :User user-data))
 
 
 (s/fdef exists?

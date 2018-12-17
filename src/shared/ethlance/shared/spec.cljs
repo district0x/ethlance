@@ -85,7 +85,7 @@
 ;; Job Data
 ;;
 
-(s/def :job/id ::id)
+(s/def :job/index ::index)
 (s/def :job/title string?)
 (s/def :job/accepted-arbiter ::address)
 (s/def :job/availability ::availability)
@@ -106,7 +106,7 @@
 (s/def :arbiter-request/is-employer-request? boolean?)
 
 (s/def ::arbiter-request (s/keys :req [:user/id
-                                       :job/id
+                                       :job/index
                                        :arbiter-request/date-requested
                                        :arbiter-request/is-employer-request?]))
 

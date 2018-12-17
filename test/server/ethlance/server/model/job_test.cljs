@@ -71,7 +71,7 @@
                       :arbiter/payment-type ::enum.payment/percentage})
 
   (testing "Creating a job"
-    (job/create-job! {:job/id 1
+    (job/create-job! {:job/index 0
                       :job/title "Full-Stack Java Developer"
                       :job/availability 0
                       :job/bid-option ::enum.bid-option/hourly-rate
@@ -86,12 +86,12 @@
   (testing "Adding arbiter requests"
     (is (= (count (job/arbiter-request-listing 1)) 0))
 
-    (job/add-arbiter-request! {:job/id 1
+    (job/add-arbiter-request! {:job/index 0
                                :user/id 3
                                :arbiter-request/date-requested 6
                                :arbiter-request/is-employer-request? true})
 
-    (is (thrown? js/Error (job/add-arbiter-request! {:job/id 1
+    (is (thrown? js/Error (job/add-arbiter-request! {:job/index 0
                                                      :user/id 3
                                                      :arbiter-request/date-requested 6
                                                      :arbiter-request/is-employer-request? true})))
@@ -105,7 +105,7 @@
     (is (= (count (job/work-contract-listing 1)) 0))
 
 
-    (job/create-work-contract! {:job/id 1
+    (job/create-work-contract! {:job/index 0
                                 :work-contract/index 0
                                 :work-contract/contract-status ::enum.status/initial
                                 :work-contract/date-created 7
@@ -117,7 +117,7 @@
       (is (= (:work-contract/contract-status work-contract) ::enum.status/initial)))
 
     ;; Update the work contract
-    (job/update-work-contract! {:job/id 1
+    (job/update-work-contract! {:job/index 0
                                 :work-contract/index 0
                                 :work-contract/contract-status ::enum.status/request-candidate-invite
                                 :work-contract/date-created 7
@@ -139,14 +139,14 @@
   (testing "Adding, listing and updating work contract invoices"
     (is (= (count (job/invoice-listing 1 0)) 0))
 
-    (job/create-invoice! {:job/id 1 :work-contract/index 0 :invoice/index 0
+    (job/create-invoice! {:job/index 0 :work-contract/index 0 :invoice/index 0
                           :invoice/date-created 8
                           :invoice/date-updated 8
                           :invoice/amount-requested 20})
 
     (is (= (count (job/invoice-listing 1 0)) 1))
 
-    (job/update-invoice! {:job/id 1 :work-contract/index 0 :invoice/index 0
+    (job/update-invoice! {:job/index 0 :work-contract/index 0 :invoice/index 0
                           :invoice/date-created 8
                           :invoice/date-updated 8
                           :invoice/date-paid 12
@@ -159,14 +159,14 @@
   (testing "Adding, listing and updating work contract disputes"
     (is (= (count (job/dispute-listing 1 0)) 0))
 
-    (job/create-dispute! {:job/id 1 :work-contract/index 0 :dispute/index 0
+    (job/create-dispute! {:job/index 0 :work-contract/index 0 :dispute/index 0
                           :dispute/reason "Too many cooks"
                           :dispute/date-created 8
                           :dispute/date-updated 8})
 
     (is (= (count (job/dispute-listing 1 0)) 1))
 
-    (job/update-dispute! {:job/id 1 :work-contract/index 0 :dispute/index 0
+    (job/update-dispute! {:job/index 0 :work-contract/index 0 :dispute/index 0
                           :dispute/date-created 8
                           :dispute/date-updated 8
                           :dispute/date-resolved 12})

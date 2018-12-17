@@ -155,7 +155,7 @@
    ;;
    {:table-name :Job
     :table-columns
-    [[:job/id :integer primary-key]
+    [[:job/index :integer primary-key]
      [:job/title :varchar not-nil]
      [:job/accepted-arbiter address default-nil]
      [:job/availability :integer not-nil]
@@ -170,30 +170,30 @@
      [:job/include-ether-token? :unsigned :integer not-nil]
      [:job/is-invitation-only? :unsigned :integer not-nil]
      [:job/reward-value :BIG :INT default-zero]]
-    :id-keys [:job/id]
+    :id-keys [:job/index]
     :list-keys []}
 
    {:table-name :JobArbiterRequest
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:user/id :integer] ;; requesting arbiter
      [:arbiter-request/date-requested :unsigned :integer]
      [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
-     [(sql/call :primary-key :job/id :user/id)]
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
+     [(sql/call :primary-key :job/index :user/id)]
+     [[(sql/call :foreign-key :job/index) (sql/call :references :Job :job/index)]]
      [[(sql/call :foreign-key :user/id) (sql/call :references :UserArbiter :user/id)]]]
-    :id-keys [:job/id :user/id]
-    :list-keys [:job/id]}
+    :id-keys [:job/index :user/id]
+    :list-keys [:job/index]}
 
    {:table-name :JobSkills
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:skill/id :integer primary-key]
      [:skill/name :varchar not-nil]
-     [(sql/call :unique :job/id :skill/id)]
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
-    :id-keys [:job/id :skill/id]
-    :list-keys [:job/id]}
+     [(sql/call :unique :job/index :skill/id)]
+     [[(sql/call :foreign-key :job/index) (sql/call :references :Job :job/index)]]]
+    :id-keys [:job/index :skill/id]
+    :list-keys [:job/index]}
 
    ;;
    ;; Work Contract
@@ -208,20 +208,20 @@
 
    {:table-name :WorkContract
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:work-contract/index :integer]
      [:work-contract/contract-status :unsigned :integer not-nil]
      [:work-contract/date-updated :unsigned :integer not-nil]
      [:work-contract/date-created :unsigned :integer not-nil]
      [:work-contract/date-finished :unsigned :integer default-zero]
-     [(sql/call :primary-key :job/id :work-contract/index)]
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
-    :id-keys [:job/id :work-contract/index]
-    :list-keys [:job/id]}
+     [(sql/call :primary-key :job/index :work-contract/index)]
+     [[(sql/call :foreign-key :job/index) (sql/call :references :Job :job/index)]]]
+    :id-keys [:job/index :work-contract/index]
+    :list-keys [:job/index]}
 
    {:table-name :WorkContractInvoice
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:work-contract/index :integer]
      [:invoice/index :integer]
      [:invoice/date-created :unsigned :integer not-nil]
@@ -229,15 +229,15 @@
      [:invoice/date-paid :unsigned :integer default-zero]
      [:invoice/amount-requested :BIG :INT default-zero]
      [:invoice/amount-paid :BIT :INT default-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :invoice/index)]
-     [[(sql/call :foreign-key :job/id)
-       (sql/call :references :Job :job/id :work-contract/index)]]]
-    :id-keys [:job/id :work-contract/index :invoice/index]
-    :list-keys [:job/id :work-contract/index]}
+     [(sql/call :primary-key :job/index :work-contract/index :invoice/index)]
+     [[(sql/call :foreign-key :job/index)
+       (sql/call :references :Job :job/index :work-contract/index)]]]
+    :id-keys [:job/index :work-contract/index :invoice/index]
+    :list-keys [:job/index :work-contract/index]}
 
    {:table-name :WorkContractInvoiceComment
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:work-contract/index :integer]
      [:invoice/index :integer]
      [:comment/id :integer]
@@ -245,15 +245,15 @@
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
      [:comment/data :varchar not-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :invoice/index :comment/id)]
-     [[(sql/call :foreign-key :job/id)
-       (sql/call :references :Job :job/id :work-contract/index :invoice/index)]]]
-    :id-keys [:job/id :work-contract/index :invoice/index :comment/id]
-    :list-keys [:job/id :work-contract/index :invoice/index]}
+     [(sql/call :primary-key :job/index :work-contract/index :invoice/index :comment/id)]
+     [[(sql/call :foreign-key :job/index)
+       (sql/call :references :Job :job/index :work-contract/index :invoice/index)]]]
+    :id-keys [:job/index :work-contract/index :invoice/index :comment/id]
+    :list-keys [:job/index :work-contract/index :invoice/index]}
 
    {:table-name :WorkContractDispute
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:work-contract/index :integer]
      [:dispute/index :integer]
      [:dispute/reason :varchar not-nil]
@@ -263,15 +263,15 @@
      [:dispute/employer-resolution-amount :BIG :INT default-nil]
      [:dispute/candidate-resolution-amount :BIG :INT default-nil]
      [:dispute/arbiter-resolution-amount :BIG :INT default-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :dispute/index)]
-     [[(sql/call :foreign-key :job/id)
-       (sql/call :references :Job :job/id :work-contract/index)]]]
-    :id-keys [:job/id :work-contract/index :dispute/index]
-    :list-keys [:job/id :work-contract/index]}
+     [(sql/call :primary-key :job/index :work-contract/index :dispute/index)]
+     [[(sql/call :foreign-key :job/index)
+       (sql/call :references :Job :job/index :work-contract/index)]]]
+    :id-keys [:job/index :work-contract/index :dispute/index]
+    :list-keys [:job/index :work-contract/index]}
 
    {:table-name :WorkContractDisputeComment
     :table-columns
-    [[:job/id :integer]
+    [[:job/index :integer]
      [:work-contract/index :integer]
      [:dispute/index :integer]
      [:comment/id :integer]
@@ -279,11 +279,11 @@
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
      [:comment/data :varchar not-nil]
-     [(sql/call :primary-key :job/id :work-contract/index :dispute/index :comment/id)]
-     [[(sql/call :foreign-key :job/id)
-       (sql/call :references :Job :job/id :work-contract/index :dispute/index)]]]
-    :id-keys [:job/id :work-contract/index :dispute/index :comment/id]
-    :list-keys [:job/id :work-contract/index :dispute/index]}])
+     [(sql/call :primary-key :job/index :work-contract/index :dispute/index :comment/id)]
+     [[(sql/call :foreign-key :job/index)
+       (sql/call :references :Job :job/index :work-contract/index :dispute/index)]]]
+    :id-keys [:job/index :work-contract/index :dispute/index :comment/id]
+    :list-keys [:job/index :work-contract/index :dispute/index]}])
 
 
 (defn list-tables

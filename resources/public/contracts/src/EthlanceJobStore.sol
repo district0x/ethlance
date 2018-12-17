@@ -96,6 +96,13 @@ contract EthlanceJobStore {
     }
 
 
+    /// @dev update job store's IPFS metahash
+    function updateMetahash(string memory _metahash) public {
+	// TODO: authenticate
+	metahash = _metahash;
+    }
+
+
     /// @dev Fire events specific to the work contract
     /// @param event_name Unique to give the fired event
     /// @param event_data Additional event data to include in the
