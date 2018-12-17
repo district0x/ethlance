@@ -40,19 +40,33 @@
   
   - :id-keys is a listing which makes up a table's compound key
 
-  - primary key auto-increments start from index 1.
+  - :list-keys is a listing which makes up a table's key for producing
+  a proper listing.
   "
+  ;;
+  ;; Ethlance Tables
+  ;;
+  [{:table-name :EthlanceSynchronizationLog
+    :table-columns
+    [[:sync/id :integer primary-key]
+     [:sync/date-created :unsigned :integer]
+     [:sync/hash :varchar not-nil]
+     [:sync/block-number :unsigned :integer]
+     [:sync/log-index :unsigned :integer]
+     [:sync/status :varchar not-nil]]
+    :id-keys [:sync/id]
+    :list-keys []}
 
   ;;
   ;; User Tables
   ;;
-  [{:table-name :User
+   {:table-name :User
     :table-columns
     [[:user/id :integer primary-key]
      [:user/address address not-nil]
      [:user/country-code :varchar not-nil]
-     [:user/full-name]
-     [:user/user-name]
+     [:user/full-name :varchar]
+     [:user/user-name :varchar]
      [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
      [:user/date-updated :unsigned :integer]
@@ -275,9 +289,16 @@
 (defn list-tables
   "Lists all of the tables currently in the sqlite3 database."
   []
-  (db/all {:select [:name]
-           :from [:sqlite_master]
-           :where [:= :type "table"]}))
+  (let [results
+        (db/all {:select [:name]
+                 :from [:sqlite_master]
+                 :where [:= :type "table"]})]
+    (mapv :name results)))
+
+
+(defn table-exists?
+  [name]
+  (contains? (set (list-tables)) name))
 
 
 (defn- get-table-schema

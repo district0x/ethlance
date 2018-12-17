@@ -78,10 +78,10 @@
 
 
 (defmethod process-registry-event :default
-  [{:keys [args]}]
+  [{:keys [args] :as event}]
   (go (log/warn (str/format "Unprocessed Registry Event: %s\n%s"
                             (-> args :event_name str/keyword pr-str)
-                            (pp-str args)))))
+                            (pp-str event)))))
 
 
 (defmethod process-registry-event :user-registered
@@ -97,6 +97,6 @@
              user-data (assoc ipfs-data
                               :user/id user-id
                               :user/address user-address
-                              :user/date-updated date-updated
-                              :user/date-created date-created)]
+                              :user/date-updated (bn/number date-updated)
+                              :user/date-created (bn/number date-created))]
          (model.user/register! user-data))))))

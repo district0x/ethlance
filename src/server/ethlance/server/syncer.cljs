@@ -32,12 +32,23 @@
 
 
 (defn start []
+  (mount/start #'ethlance.server.syncer.event-multiplexer/syncer-muxer)
   (let [[result-channel _] @syncer-muxer]
     (go-loop [event (<! result-channel)]
       (when event
         (<! (processor/process-event event))
-        (recur (<! result-channel))))
+        (recur (<! result-channel)))
+      (log/debug "Syncer has Stopped!"))
     result-channel))
 
 
-(defn stop [])
+(defn stop
+  "Stop the syncer mount component.
+  
+  # Notes
+
+  - Has a strong dependance on the syncer-muxer, hence why I handle
+  mount and remount within the syncer."
+  []
+  (log/debug "Stopping Syncer...")
+  (mount/stop #'ethlance.server.syncer.event-multiplexer/syncer-muxer))

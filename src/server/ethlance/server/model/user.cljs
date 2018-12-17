@@ -21,7 +21,10 @@
          :user/country-code
          :user/email]
    :opt [:user/date-created
-         :user/date-updated]))
+         :user/date-updated
+         :user/full-name
+         :user/user-name
+         :user/profile-image]))
 
 
 (s/fdef register!

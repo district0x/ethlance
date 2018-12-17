@@ -86,7 +86,7 @@
         (let [eth-account (nth (web3-eth/accounts @web3) index)
               email (random/pluck! *user-emails)
               [full-name user-name] (random/pluck! *user-names)
-              languages (vec (rand-nth choice-collections/languages))
+              languages (vector (rand-nth choice-collections/languages))
               
               ipfs-data {:user/email email
                          :user/full-name full-name
@@ -103,8 +103,10 @@
               biography "I employ people" ;;TODO: generate random bios
               professional-title "Project Manager & Tech Lead" ;;TODO: generate title
               user-ipfs-data (<!-<throw (get-registered-user-ipfs employer-index))
+              _ (log/debug (pr-str "User IPFS" user-ipfs-data))
               employer-ipfs-data {:employer/biography biography
                                   :employer/professional-title professional-title}
+              _ (log/debug (pr-str "Joined IPFS" (merge user-ipfs-data employer-ipfs-data)))
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data employer-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Employer..." (inc employer-index)))
           (user/with-ethlance-user (user-factory/user-by-address eth-account)
@@ -116,8 +118,8 @@
         (let [eth-account (nth (web3-eth/accounts @web3) candidate-index)
               biography "I like to work" ;;TODO: generate random bios
               professional-title "Software Consultant"
-              categories (vec (rand-nth choice-collections/categories))
-              skills (vec (rand-nth choice-collections/skills))
+              categories (vector (rand-nth choice-collections/categories))
+              skills (vector (rand-nth choice-collections/skills))
               user-ipfs-data (<!-<throw (get-registered-user-ipfs candidate-index))
               candidate-ipfs-data {:candidate/biography biography
                                    :candidate/professional-title professional-title

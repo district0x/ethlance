@@ -15,6 +15,9 @@
 
    [ethlance.shared.smart-contracts]
    [ethlance.server.core]
+   [ethlance.server.db]
+   [ethlance.server.syncer]
+   [ethlance.server.syncer.event-multiplexer]
    [ethlance.server.deployer :as deployer]
    [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
@@ -166,6 +169,29 @@
   "Resets the testnet deployment snapshot for server tests."
   []
   (server.test-utils/reset-testnet!))
+
+
+(defn repopulate-database-sync!
+  "Purges the database, re-synchronizes the blockchain events, and
+  re-populates the database."
+  []
+  (log/info "Repopulating database...")
+  (log/debug "Stopping syncer and database...")
+  (mount/stop
+   #'ethlance.server.syncer.event-multiplexer/syncer-muxer
+   #'ethlance.server.syncer/syncer
+   #'ethlance.server.db/ethlance-db)
+  (log/debug "Starting syncer and database...")
+  (mount/start
+   #'ethlance.server.db/ethlance-db
+   #'ethlance.server.syncer.event-multiplexer/syncer-muxer
+   #'ethlance.server.syncer/syncer))
+
+
+(defn repopulate-database!
+  "Repopulate database asynchronously."
+  []
+  (.nextTick js/process repopulate-database-sync!))
 
 
 (defn help

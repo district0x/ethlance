@@ -19,12 +19,12 @@
   {:registry-event [registry/ethlance-event]})
 
 
-(def *active-watchers (atom {}))
-(def *conveyer-belt (atom {}))
+(defonce *active-watchers (atom {}))
+(defonce *conveyer-belt (atom {}))
 
 
 (declare start stop)
-(defstate syncer-muxer
+(defstate ^{:on-reload :noop} syncer-muxer
   :start (start)
   :stop (stop))
 
@@ -74,16 +74,17 @@
   (let [result-channel (chan 1)
         *finished? (atom false)]
     (go-loop [result (<! (move-conveyer!))]
-      (if (not @*finished?)
-        (do
-          (when result (>! result-channel result))
-          (recur (<! (move-conveyer!))))
-        (close! result-channel)))
+      (when (not @*finished?)
+        (when result (>! result-channel result))
+        (recur (<! (move-conveyer!))))
+      (close! result-channel)
+      (log/debug "Sync Muxer has Stopped!"))
     [result-channel *finished?]))
 
 
 (defn stop
   []
+  (log/debug "Stopping Sync Muxer...")
   (let [[result-channel *finished?] @syncer-muxer]
 
     ;; Stop all active watchers

@@ -15,6 +15,10 @@
    [mount.core :as mount :refer [defstate]]
    [district.server.config :refer [config]]))
 
+;; Hotfix: including a version with IPFS data to guarantee namespaces
+;; are included 'within' the map structure.
+(def version 1)
+
 
 (def buffer (js/require "buffer"))
 (defn to-buffer
@@ -95,9 +99,23 @@
 
   Returns a pair with the first element being a channel with MAYBE a
   success value, and the second element being a channel with MAYBE an
-  error value."
+  error value.
+
+  # Notes
+
+  - Including a `:version` value to guarantee namespaces are included
+  within the edn map value. Current IPFS EDN parser does not support
+  namespaces outside of the EDN map structure.
+
+    ex. {:user/id 1} --> #:user{:id 1} ;; Unsupported
+    
+    versus
+
+    {:user/id 1 :version 1} --> {:user/id 1 :version 1} ;; Supported
+  "
   [data]
-  (add! (to-buffer (pr-str data))))
+  (let [data (assoc data :version version)]
+    (add! (to-buffer (pr-str data)))))
 
 
 (defn parse-edn-result
