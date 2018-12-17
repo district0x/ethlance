@@ -109,5 +109,44 @@
          timestamp (-> args :timestamp bn/number)]
      (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
         (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
-              employer-data (assoc ipfs-data :employer/date-registered timestamp)]
-           (model.employer/register! employer-data))))))
+              employer-data (assoc ipfs-data
+                                   :user/id user-id
+                                   :employer/date-registered timestamp)]
+          (model.employer/register! employer-data))))))
+
+
+(defmethod process-registry-event :user-registered-candidate
+  [{:keys [args]}]
+  (go-try
+   (let [user-id (-> args :event_data first bn/number)
+         timestamp (-> args :timestamp bn/number)]
+     (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
+        (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
+              candidate-data (assoc ipfs-data
+                                    :user/id user-id
+                                    :candidate/date-registered timestamp)]
+          
+          (model.candidate/register! candidate-data)
+          
+          ;; update candidate categories
+          (model.candidate/update-category-listing! user-id (or (:candidate/categories ipfs-data) []))
+          
+          ;; update skills
+          (model.candidate/update-skill-listing! user-id (or (:candidate/skills ipfs-data) [])))))))
+
+
+(defmethod process-registry-event :user-registered-arbiter
+  [{:keys [args]}]
+  (go-try
+   (let [user-id (-> args :event_data first bn/number)
+         timestamp (-> args :timestamp bn/number)]
+     (contract.user/with-ethlance-user (contract.user-factory/user-by-id user-id)
+        (let [{:keys [payment-value currency-type payment-type]} (contract.user/arbiter-data)
+              ipfs-data (<!-<throw (ipfs/get-edn (contract.user/metahash-ipfs)))
+              arbiter-data (assoc ipfs-data
+                                  :user/id user-id
+                                  :arbiter/date-registered timestamp
+                                  :arbiter/currency-type currency-type
+                                  :arbiter/payment-value payment-value
+                                  :arbiter/payment-type payment-type)]
+          (model.arbiter/register! arbiter-data))))))
