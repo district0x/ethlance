@@ -1,6 +1,7 @@
 (ns ethlance.server.test-runner
   (:require
    [clojure.test :refer [deftest is are testing run-all-tests run-tests]]
+   [orchestra-cljs.spec.test :as st]
 
    ;;
    ;; Test Namespaces
@@ -47,6 +48,8 @@
 (defn -test-main
   "Main Entrypoint."
   [& args]
+  ;; Enable Instrumentation
+  (st/instrument)
   (run-all-tests #"^ethlance.*-test$"))
 
 

@@ -99,7 +99,10 @@
                               :user/address user-address
                               :user/date-updated (bn/number date-updated)
                               :user/date-created (bn/number date-created))]
-         (model.user/register! user-data))))))
+         (model.user/register! user-data)
+
+         ;; Update User Language Listing
+         (model.user/update-language-listing! user-id (:user/languages ipfs-data)))))))
 
 
 (defmethod process-registry-event :user-registered-employer
@@ -166,4 +169,25 @@
    (let [job-index (-> args :event_data first bn/number)
          timestamp (-> args :timestamp bn/number)]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (let [])))))
+       (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.job/metahash)))
+             bid-option (contract.job/bid-option)
+             date-created (bn/number (contract.job/date-created))
+             date-updated (bn/number (contract.job/date-updated))
+             date-finished (bn/number (contract.job/date-finished))
+             employer-address (contract.job/employer-address)
+             estimated-length-seconds (bn/number (contract.job/estimated-length-seconds))
+             include-ether-token? (contract.job/include-ether-token?)
+             is-invitation-only? (contract.job/is-invitation-only?)
+
+             job-data (assoc ipfs-data
+                             :job/index job-index
+                             :job/bid-option bid-option
+                             :job/date-created date-created
+                             :job/date-updated date-updated
+                             :job/date-finshed date-finished
+                             :job/employer-uid employer-address
+                             :job/estimated-length-seconds estimated-length-seconds
+                             :job/include-ether-token? include-ether-token?
+                             :job/is-invitation-only? is-invitation-only?)]
+         (model.job/create-job! job-data))))))
+

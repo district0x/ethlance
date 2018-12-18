@@ -49,8 +49,6 @@
 (s/def :user/languages (s/coll-of string? :distinct true :into []))
 
 
-
-
 ;;
 ;; User Candidate Data
 ;;

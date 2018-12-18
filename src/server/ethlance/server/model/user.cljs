@@ -18,10 +18,10 @@
    :req [:user/id
          :user/address
          :user/country-code
-         :user/email]
-   :opt [:user/date-created
-         :user/date-updated
-         :user/full-name
+         :user/email
+         :user/date-created
+         :user/date-updated] 
+   :opt [:user/full-name
          :user/user-name
          :user/profile-image]))
 
@@ -36,7 +36,7 @@
 
 
 (s/fdef update!
-  :args (s/cat :user-data ::user-data))
+  :args (s/cat :user-data (s/keys :req [:user/id])))
 
 (defn update!
   [user-data]
@@ -52,6 +52,31 @@
   [id]
   (let [q {:select [1] :from [:User] :where [:= id :user/id]}]
     (-> (district.db/get q) seq boolean)))
+
+
+(s/fdef language-listing
+  :args (s/cat :id :user/id)
+  :ret :user/languages)
+
+(defn language-listing
+  [id]
+  (let [listing (ethlance.db/get-list :UserLangauge {:user/id id})]
+    (mapv :language/name listing)))
+
+
+(s/fdef update-language-listing!
+  :args (s/cat :id :user/id :listing :user/languages))
+
+(defn update-language-listing!
+  [id listing]
+
+  ;; clear old data
+  (district.db/run! {:delete-from :UserLanguage
+                     :where [:= :user/id id]})
+
+  ;; populate the new data
+  (doseq [name listing]
+    (ethlance.db/insert-row! :UserLanguage {:user/id id :language/name name})))
 
 
 (defn get-data

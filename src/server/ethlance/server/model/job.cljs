@@ -8,6 +8,7 @@
    [taoensso.timbre :as log]
    [honeysql.core :as sql]
    [ethlance.server.db :as ethlance.db]
+   [ethlance.shared.enum.availability :as enum.availability]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.boolean :as enum.boolean]
    [ethlance.shared.enum.contract-status :as enum.status]
@@ -21,6 +22,7 @@
   values."
   [m]
   (-> m
+      (enum.availability/assoc-kw->val :job/availability)
       (enum.bid-option/assoc-kw->val :job/bid-option)
       (enum.boolean/assoc-kw->val :job/include-ether-token?)
       (enum.boolean/assoc-kw->val :job/is-invitation-only?)))
@@ -29,6 +31,7 @@
 (defn- enum-val->kw
   [m]
   (-> m
+      (enum.availability/assoc-val->kw :job/availability)
       (enum.bid-option/assoc-val->kw :job/bid-option)
       (enum.boolean/assoc-val->kw :job/include-ether-token?)
       (enum.boolean/assoc-val->kw :job/is-invitation-only?)))
@@ -62,7 +65,7 @@
 
 
 (s/fdef update-job!
-  :args (s/cat :job-data ::job-data))
+  :args (s/cat :job-data (s/keys :req [:job/index])))
 
 (defn update-job! [job-data]
   (let [job-data (enum-kw->val job-data)]
@@ -70,7 +73,7 @@
 
 
 (s/def ::arbiter-request-data ::espec/arbiter-request)
-         
+
 
 (s/fdef arbiter-request-listing
   :args (s/cat :job-index :job/index)

@@ -3,7 +3,11 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.shared.enum.availability :as enum.availability]
+   [ethlance.shared.enum.bid-option :as enum.bid-option]
+   [ethlance.shared.enum.boolean :as enum.boolean]
+   [ethlance.shared.enum.contract-status :as enum.status]))
 
 
 (def ^:dynamic *job-store-key*
@@ -24,11 +28,19 @@
   (apply contracts/contract-call *job-store-key* method-name args))
 
 
+(defn bid-option [] (enum.bid-option/val->kw (call :bid_option)))
+(defn date-created [] (call :date_created))
+(defn date-updated [] (call :date_updated))
+(defn date-finished [] (call :date_finished))
+
 (defn employer-address
   "The employer address assigned to this job store."
   []
   (call :employer_address))
 
+(defn estimated-length-seconds [] (call :estimated_length_seconds))
+(defn include-ether-token? [] (call :include_ether_token))
+(defn is-invitation-only? [] (call :is_invitation_only))
 
 (defn metahash
   "Retrieve the JobStore's metahash"
@@ -40,6 +52,9 @@
   "Update the JobStore's metahash with the given `metahash`."
   [metahash]
   (call :update-metahash metahash))
+
+
+(defn reward-value [] (call :reward_value))
 
 
 (defn request-arbiter!

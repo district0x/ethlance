@@ -28,4 +28,9 @@
 
   (testing "Getting the registered user."
     (let [user (user/get-data 1)]
-      (is (= (:user/country-code user) "CA")))))
+      (is (= (:user/country-code user) "CA"))))
+
+  (testing "User Languages"
+    (is (= [] (user/language-listing 1)))
+    (user/update-language-listing! 1 ["English"])
+    (is (= ["English"] (user/language-listing 1)))))
