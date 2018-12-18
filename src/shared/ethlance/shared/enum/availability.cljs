@@ -2,6 +2,7 @@
   (:require
    [ethlance.shared.enumeration :as enum]))
 
+
 (def enum-availability
   {::full-time 0
    ::part-time 1
