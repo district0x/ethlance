@@ -84,7 +84,7 @@
                       :job/is-invitation-only? false}))
 
   (testing "Adding arbiter requests"
-    (is (= (count (job/arbiter-request-listing 1)) 0))
+    (is (= (count (job/arbiter-request-listing 0)) 0))
 
     (job/add-arbiter-request! {:job/index 0
                                :user/id 3
@@ -96,13 +96,13 @@
                                                      :arbiter-request/date-requested 6
                                                      :arbiter-request/is-employer-request? true})))
 
-    (is (= (count (job/arbiter-request-listing 1)) 1))
+    (is (= (count (job/arbiter-request-listing 0)) 1))
 
-    (let [[arbiter-request] (job/arbiter-request-listing 1)]
+    (let [[arbiter-request] (job/arbiter-request-listing 0)]
       (is (true? (:arbiter-request/is-employer-request? arbiter-request)))))
 
   (testing "Adding and updating work contract."
-    (is (= (count (job/work-contract-listing 1)) 0))
+    (is (= (count (job/work-contract-listing 0)) 0))
 
 
     (job/create-work-contract! {:job/index 0
@@ -111,9 +111,9 @@
                                 :work-contract/date-created 7
                                 :work-contract/date-updated 7})
 
-    (is (= (job/work-contract-count 1) 1))
+    (is (= (job/work-contract-count 0) 1))
 
-    (let [[work-contract] (job/work-contract-listing 1)]
+    (let [[work-contract] (job/work-contract-listing 0)]
       (is (= (:work-contract/contract-status work-contract) ::enum.status/initial)))
 
     ;; Update the work contract
@@ -123,28 +123,28 @@
                                 :work-contract/date-created 7
                                 :work-contract/date-updated 7})
     
-    (let [[work-contract] (job/work-contract-listing 1)]
+    (let [[work-contract] (job/work-contract-listing 0)]
       (is (= (:work-contract/contract-status work-contract) ::enum.status/request-candidate-invite))))
 
   (testing "Getting and Updating skill listing"
-    (is (= (count (job/skill-listing 1)) 0))
+    (is (= (count (job/skill-listing 0)) 0))
 
-    (job/update-skill-listing! 1 ["Clojure" "Clojurescript"])
+    (job/update-skill-listing! 0 ["Clojure" "Clojurescript"])
 
-    (is (= (count (job/skill-listing 1)) 2))
+    (is (= (count (job/skill-listing 0)) 2))
 
-    (let [skills (job/skill-listing 1)]
+    (let [skills (job/skill-listing 0)]
       (is (= skills ["Clojure" "Clojurescript"]))))
 
   (testing "Adding, listing and updating work contract invoices"
-    (is (= (count (job/invoice-listing 1 0)) 0))
+    (is (= (count (job/invoice-listing 0 0)) 0))
 
     (job/create-invoice! {:job/index 0 :work-contract/index 0 :invoice/index 0
                           :invoice/date-created 8
                           :invoice/date-updated 8
                           :invoice/amount-requested 20})
 
-    (is (= (count (job/invoice-listing 1 0)) 1))
+    (is (= (count (job/invoice-listing 0 0)) 1))
 
     (job/update-invoice! {:job/index 0 :work-contract/index 0 :invoice/index 0
                           :invoice/date-created 8
@@ -153,23 +153,23 @@
                           :invoice/amount-requested 20
                           :invoice/amount-paid 25})
 
-    (let [[invoice] (job/invoice-listing 1 0)]
+    (let [[invoice] (job/invoice-listing 0 0)]
       (is (= (:invoice/date-paid invoice) 12))))
 
   (testing "Adding, listing and updating work contract disputes"
-    (is (= (count (job/dispute-listing 1 0)) 0))
+    (is (= (count (job/dispute-listing 0 0)) 0))
 
     (job/create-dispute! {:job/index 0 :work-contract/index 0 :dispute/index 0
                           :dispute/reason "Too many cooks"
                           :dispute/date-created 8
                           :dispute/date-updated 8})
 
-    (is (= (count (job/dispute-listing 1 0)) 1))
+    (is (= (count (job/dispute-listing 0 0)) 1))
 
     (job/update-dispute! {:job/index 0 :work-contract/index 0 :dispute/index 0
                           :dispute/date-created 8
                           :dispute/date-updated 8
                           :dispute/date-resolved 12})
 
-    (let [[dispute] (job/dispute-listing 1 0)]
+    (let [[dispute] (job/dispute-listing 0 0)]
       (is (= (:dispute/date-resolved dispute) 12)))))

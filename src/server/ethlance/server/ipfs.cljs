@@ -15,10 +15,6 @@
    [mount.core :as mount :refer [defstate]]
    [district.server.config :refer [config]]))
 
-;; Hotfix: including a version with IPFS data to guarantee namespaces
-;; are included 'within' the map structure.
-(def version 1)
-
 
 (def buffer (js/require "buffer"))
 (defn to-buffer
@@ -103,7 +99,7 @@
 
   # Notes
 
-  - Including a `:version` value to guarantee namespaces are included
+  - Including a `::dummy` value to guarantee namespaces are included
   within the edn map value. Current IPFS EDN parser does not support
   namespaces outside of the EDN map structure.
 
@@ -111,10 +107,10 @@
     
     versus
 
-    {:user/id 1 :version 1} --> {:user/id 1 :version 1} ;; Supported
+    {:user/id 1 ::dummy ::dummy} --> {:user/id 1 ::dummy ::dummy} ;; Supported
   "
   [data]
-  (let [data (assoc data :version version)]
+  (let [data (assoc data ::dummy ::dummy)]
     (add! (to-buffer (pr-str data)))))
 
 
@@ -130,7 +126,7 @@
   "
   [s]
   (try
-    (-> (re-find #".*?(\{.*\})" s) second edn/read-string)
+    (-> (re-find #".*?(\{.*\})" s) second edn/read-string (dissoc ::dummy))
     (catch js/Error e
       (log/error (str "EDN Parse Error: " e))
       nil)))

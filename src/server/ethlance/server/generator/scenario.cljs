@@ -176,105 +176,81 @@
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)]
+  (let [employer-address (rand-nth employers)]
     (go-try
-     (<! (generate-job! {:employer-address employer-address :bounty? false}))
-     (>! done-chan ::done))
-    done-chan))
+     (<! (generate-job! {:employer-address employer-address :bounty? false})))))
 
 
 (defmethod generate-scenario! :job-one-arbiter-request
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)]
     (go-try
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address})))
-
-     (>! done-chan ::done))
-    done-chan))
+         (job/request-arbiter! arbiter-address {:from arbiter-address}))))))
 
 
 (defmethod generate-scenario! :job-one-arbiter-accepted
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)]
     (go-try
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
          (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-arbiter! arbiter-address {:from employer-address})))
-
-     (>! done-chan ::done))
-    done-chan))
+         (job/request-arbiter! arbiter-address {:from employer-address}))))))
 
 
 (defmethod generate-scenario! :job-one-candidate-request
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         candidate-address (rand-nth candidates)]
     (go-try
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-work-contract! candidate-address {:from candidate-address})))
-
-     (>! done-chan ::done))
-    done-chan))
+         (job/request-work-contract! candidate-address {:from candidate-address}))))))
 
 
 (defmethod generate-scenario! :job-one-candidate-accepted
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         candidate-address (rand-nth candidates)]
     (go-try
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address}))))
-
-     (>! done-chan ::done))
-    done-chan))
+           (work-contract/request-invite! {:from employer-address})))))))
 
 
 (defmethod generate-scenario! :job-1a-req-1c-req
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
          (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-work-contract! candidate-address {:from candidate-address})))
-
-     (>! done-chan ::done))
-    done-chan))
+         (job/request-work-contract! candidate-address {:from candidate-address}))))))
 
 
 (defmethod generate-scenario! :job-2a-req-2c-req
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
         [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
     (go-try
@@ -283,18 +259,14 @@
          (job/request-arbiter! arbiter-address {:from arbiter-address})
          (job/request-work-contract! candidate-address {:from candidate-address})
          (job/request-arbiter! arbiter-address-2 {:from arbiter-address-2})
-         (job/request-work-contract! candidate-address-2 {:from candidate-address-2})))
-
-     (>! done-chan ::done))
-    done-chan))
+         (job/request-work-contract! candidate-address-2 {:from candidate-address-2}))))))
 
 
 (defmethod generate-scenario! :job-1a-acc-1c-acc
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -304,18 +276,14 @@
          (job/request-arbiter! arbiter-address {:from employer-address})
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address}))))
-
-     (>! done-chan ::done))
-    done-chan))
+           (work-contract/request-invite! {:from employer-address})))))))
 
 
 (defmethod generate-scenario! :job-2a-acc-2c-acc
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
         [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
     (go-try
@@ -327,18 +295,14 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (job/request-work-contract! candidate-address-2 {:from candidate-address-2})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address}))))
-
-     (>! done-chan ::done))
-    done-chan))
+           (work-contract/request-invite! {:from employer-address})))))))
 
 
 (defmethod generate-scenario! :job-prog-w-invoice
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -352,18 +316,14 @@
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address
-                                   :paid? false})))))
-     
-     (>! done-chan ::done))
-    done-chan))
+                                   :paid? false}))))))))
 
 
 (defmethod generate-scenario! :job-prog-w-invoice-paid
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -377,18 +337,14 @@
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address
-                                   :paid? true})))))
-     
-     (>! done-chan ::done))
-    done-chan))
+                                   :paid? true}))))))))
 
 
 (defmethod generate-scenario! :job-prog-w-dispute
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -402,17 +358,14 @@
            (work-contract/proceed! {:from employer-address})
            (<! (generate-dispute! {:employer-address employer-address
                                    :candidate-address candidate-address
-                                   :arbiter-address arbiter-address})))))
-     (>! done-chan ::done))
-    done-chan))
+                                   :arbiter-address arbiter-address}))))))))
 
 
 (defmethod generate-scenario! :job-prog-w-dispute-resolved
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -427,17 +380,14 @@
            (<! (generate-dispute! {:employer-address employer-address
                                    :candidate-address candidate-address
                                    :arbiter-address arbiter-address
-                                   :resolved? true})))))
-     (>! done-chan ::done))
-    done-chan))
+                                   :resolved? true}))))))))
 
 
 (defmethod generate-scenario! :job-prog-w-inv-disp
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -455,18 +405,14 @@
            (<! (generate-dispute! {:employer-address employer-address
                                    :candidate-address candidate-address
                                    :arbiter-address arbiter-address
-                                   :resolved? false})))))
-     
-     (>! done-chan ::done))
-    done-chan))
+                                   :resolved? false}))))))))
 
 
 (defmethod generate-scenario! :job-prog-w-inv-paid-disp-resolved
   [{:keys [employers candidates arbiters
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [done-chan (chan 1)
-        employer-address (rand-nth employers)
+  (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
@@ -484,7 +430,4 @@
            (<! (generate-dispute! {:employer-address employer-address
                                    :candidate-address candidate-address
                                    :arbiter-address arbiter-address
-                                   :resolved? true})))))
-     
-     (>! done-chan ::done))
-    done-chan))
+                                   :resolved? true}))))))))
