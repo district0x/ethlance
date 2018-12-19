@@ -94,7 +94,7 @@
            employer-address
            paid?
            amount]
-    :or {amount (web3/to-wei 1.0 :ether) paid? false}}]
+    :or {amount (web3/to-wei 0.1 :ether) paid? false}}]
   (let [result-chan (chan 1)
         invoice-index (work-contract/invoice-count)
         ipfs-data {}]
@@ -104,7 +104,7 @@
        (work-contract/create-invoice! {:amount amount :metahash hash} {:from candidate-address})
        (when paid?
          ;; Fund the amount to pay out for the invoice.
-         (job/fund! {:from employer-address :value amount})
+         (job/fund! {:from employer-address :value (web3/to-wei 1.0 :ether)})
          (invoice/with-ethlance-invoice (work-contract/invoice-by-index invoice-index)
            (log/debug "- Paying Invoice...")
            (invoice/pay! amount {:from employer-address})))

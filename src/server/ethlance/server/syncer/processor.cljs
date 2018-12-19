@@ -191,3 +191,35 @@
                              :job/is-invitation-only? is-invitation-only?)]
          (model.job/create-job! job-data))))))
 
+
+(defmethod process-registry-event :job-arbiter-requested
+  [{:keys [args]}]
+  (go-try
+   (let [job-index (-> args :event_data first bn/number)
+         user-id (-> args :event_data second bn/number)
+         timestamp (-> args :timestamp bn/number)]
+     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
+       (let [date-updated (contract.job/date-updated)
+             arbiter-request-index (dec (contract.job/requested-arbiter-count))
+             {:keys [is-employer-request? date-requested arbiter-address]}
+             (contract.job/requested-arbiter-by-index arbiter-request-index)
+             arbiter-data {:job/index job-index
+                           :user/id user-id
+                           :arbiter-request/date-requested (bn/number date-requested)
+                           :arbiter-request/is-employer-request? is-employer-request?}]
+         (model.job/update-job! {:job/index job-index :job/date-updated date-updated})
+         (model.job/add-arbiter-request! arbiter-data))))))
+
+
+(defmethod process-registry-event :job-arbiter-accepted
+  [{:keys [args]}]
+  (go-try
+   (let [job-index (-> args :event_data first bn/number)
+         user-id (-> args :event_data second bn/number)
+         timestamp (-> args :timestamp bn/number)]
+     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
+       (let [date-updated (contract.job/date-updated)
+             accepted-arbiter (contract.job/accepted-arbiter)]
+         (model.job/update-job! {:job/index job-index
+                                 :job/accepted-arbiter accepted-arbiter
+                                 :job/date-updated date-updated}))))))

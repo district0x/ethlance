@@ -278,7 +278,7 @@
 
 
 (defn start []
-  (deploy-all!))
+  (deploy-all! {}))
 
 
 (defn stop [])

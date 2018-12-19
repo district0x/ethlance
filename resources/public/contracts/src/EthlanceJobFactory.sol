@@ -45,7 +45,8 @@ contract EthlanceJobFactory {
 	                               // target(EthlanceJobStore)
 	EthlanceJobStore jobStore = EthlanceJobStore(address(fwd));
 	uint job_index = registry.pushJobStore(address(jobStore));
-	jobStore.construct(msg.sender,
+	jobStore.construct(job_index,
+			   msg.sender,
 			   bid_option,
 			   estimated_length_seconds,
 			   include_ether_token,

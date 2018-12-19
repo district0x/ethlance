@@ -26,6 +26,9 @@ contract EthlanceJobStore {
     // Members
     //
 
+    // The job index.
+    uint public job_index;
+
     // The Accepted Arbiter assigned to the Jobs within the Job Store.
     address payable public accepted_arbiter;
 
@@ -78,7 +81,8 @@ contract EthlanceJobStore {
     mapping(address => bool) public work_contract_mapping;
     
 
-    function construct(address payable _employer_address,
+    function construct(uint _job_index,
+		       address payable _employer_address,
 		       uint8 _bid_option,
 		       uint _estimated_length_seconds,
 		       bool _include_ether_token,
@@ -86,6 +90,7 @@ contract EthlanceJobStore {
 		       string memory _metahash,
 		       uint _reward_value)
       public {
+	job_index = _job_index;
 	employer_address = _employer_address;
 	bid_option = _bid_option;
 	estimated_length_seconds = _estimated_length_seconds;
@@ -118,15 +123,10 @@ contract EthlanceJobStore {
 	private {
 	accepted_arbiter = arbiter_address;
 
-	// The contract starts when both the accepted arbiter and the
-	// accepted candidate roles are filled.
-	//if (accepted_candidate != 0) {
-	//    date_started = now;
-	//}
-
 	// Fire off event
-	uint[] memory event_data = new uint[](1);
-	event_data[0] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
+	uint[] memory event_data = new uint[](2);
+	event_data[0] = job_index;
+	event_data[1] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
 	fireEvent("JobArbiterAccepted", event_data);
     }
 
@@ -212,6 +212,13 @@ contract EthlanceJobStore {
 	    if (arbiter_request_mapping[arbiter_address] == 0) {
 		arbiter_request_listing.push(ArbiterRequest(false, now, arbiter_address));
 		arbiter_request_mapping[arbiter_address] = arbiter_request_listing.length;
+
+		// Fire off event
+		uint[] memory event_data = new uint[](2);
+		event_data[0] = job_index;
+		event_data[1] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
+		fireEvent("JobArbiterRequested", event_data);
+
 		return;
 	    }
 
@@ -238,6 +245,13 @@ contract EthlanceJobStore {
 	if (arbiter_request_mapping[arbiter_address] == 0) {
 	    arbiter_request_listing.push(ArbiterRequest(true, now, arbiter_address));
 	    arbiter_request_mapping[arbiter_address] = arbiter_request_listing.length;
+	    
+	    // Fire off event
+	    uint[] memory event_data = new uint[](2);
+	    event_data[0] = job_index;
+	    event_data[1] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
+	    fireEvent("JobArbiterRequested", event_data);
+
 	    return;
 	}
 

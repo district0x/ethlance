@@ -41,18 +41,18 @@
   (s/keys
    :req [:job/index
          :job/title
-         :job/accepted-arbiter
          :job/availability
          :job/bid-option
          :job/category
          :job/description
          :job/date-created
-         :job/date-started
-         :job/date-finished
          :job/employer-uid
          :job/estimated-length-seconds
          :job/include-ether-token?
-         :job/is-invitation-only?
+         :job/is-invitation-only?]
+   :opt [:job/accepted-arbiter
+         :job/date-finished
+         :job/date-started
          :job/reward-value]))
 
 
