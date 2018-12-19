@@ -67,6 +67,10 @@ contract EthlanceWorkContract is MetahashStore {
     uint public constant CONTRACT_STATUS_FINISHED = 9;
     uint public constant CONTRACT_STATUS_CANCELLED = 10;
     
+    uint job_index;
+    uint work_index;
+    uint[] event_data = new uint[](3);
+    
 
     // The EthlanceJobStore contains additional data about our
     // contract.
@@ -91,6 +95,7 @@ contract EthlanceWorkContract is MetahashStore {
 
     /// @dev Forwarder Constructor
     function construct(EthlanceJobStore _store_instance,
+		       uint _work_index,
 		       address payable _candidate_address,
 		       bool is_employer_request)
 	public {
@@ -98,10 +103,16 @@ contract EthlanceWorkContract is MetahashStore {
 
 	// Main members
 	store_instance = _store_instance;
+	work_index = _work_index;
 	candidate_address = _candidate_address;
 	date_created = now;
 	date_updated = now;
 	
+	// Event Data Construction
+	job_index = store_instance.job_index();
+	event_data[0] = job_index;
+	event_data[1] = work_index;
+
 	if (is_employer_request) {
 	    requestInvite(store_instance.employer_address());
 	    return;
@@ -220,6 +231,7 @@ contract EthlanceWorkContract is MetahashStore {
 	// Case 1
 	if (store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
 	    setContractStatus(CONTRACT_STATUS_OPEN_BOUNTY);
+	    fireEvent("JobRequestWorkContract", event_data);
 	    return;
 	}
 
@@ -227,21 +239,25 @@ contract EthlanceWorkContract is MetahashStore {
 	if (contract_status == CONTRACT_STATUS_INITIAL) {
 	    if (is_employer_request) {
 		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE);
+		fireEvent("JobRequestWorkContract", event_data);
 		return;
 	    }
 	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE);
+	    fireEvent("JobRequestWorkContract", event_data);
 	    return;
 	}
 	
 	// Case 4
 	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE) {
 	    setContractStatus(CONTRACT_STATUS_ACCEPTED);
+	    fireEvent("JobAcceptWorkContract", event_data);
 	    return;
 	}
 
 	// Case 5
 	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE) {
 	    setContractStatus(CONTRACT_STATUS_ACCEPTED);
+	    fireEvent("JobAcceptWorkContract", event_data);
 	    return;
 	}
 
@@ -274,6 +290,7 @@ contract EthlanceWorkContract is MetahashStore {
 
 	if (contract_status == CONTRACT_STATUS_ACCEPTED) {
 	    setContractStatus(CONTRACT_STATUS_IN_PROGRESS);
+	    fireEvent("JobProceedWorkContract", event_data);
 	}
 	else {
 	    revert("Cannot start a contract if it is not in the 'accepted' state.");
@@ -311,7 +328,7 @@ contract EthlanceWorkContract is MetahashStore {
     function requestFinished() external {
 	require(store_instance.employer_address() == msg.sender || candidate_address == msg.sender,
 		"Only the candidate and the employer can request finishing the contract.");
-	
+
 	bool is_employer_request = false;
 	if (store_instance.employer_address() == msg.sender) {
 	    is_employer_request = true;
@@ -321,21 +338,25 @@ contract EthlanceWorkContract is MetahashStore {
 	if (contract_status == CONTRACT_STATUS_IN_PROGRESS) {
 	    if (is_employer_request) {
 		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED);
+		fireEvent("JobRequestFinishedWorkContract", event_data);
 		return;
 	    }
 	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED);
+	    fireEvent("JobRequestFinishedWorkContract", event_data);
 	    return;
 	}
 	
 	// Case 3
 	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED) {
 	    setContractStatus(CONTRACT_STATUS_FINISHED);
+	    fireEvent("JobFinishedWorkContract", event_data);
 	    return;
 	}
 
 	// Case 4
 	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED) {
 	    setContractStatus(CONTRACT_STATUS_FINISHED);
+	    fireEvent("JobFinishedWorkContract", event_data);
 	    return;
 	}
 
@@ -383,6 +404,10 @@ contract EthlanceWorkContract is MetahashStore {
 
 	// Change our status to 'on hold', since we have a new open dispute.
 	setContractStatus(CONTRACT_STATUS_ON_HOLD);
+
+	// Dispute Index
+	event_data[2] = dispute_listing.length - 1;
+	fireEvent("JobCreateDispute", event_data);
     }
 
     
@@ -449,6 +474,10 @@ contract EthlanceWorkContract is MetahashStore {
 	
 	// Construct the invoice contract
 	invoice.construct(this, amount, metahash);
+
+	// Invoice Index
+	event_data[2] = invoice_listing.length - 1;
+	fireEvent("JobCreateInvoice", event_data);
     }
 
     

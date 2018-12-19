@@ -155,6 +155,7 @@ contract EthlanceJobStore {
 	Forwarder fwd = new Forwarder(); // Proxy Contract with
 	                                 // target(EthlanceWorkContract)
 	EthlanceWorkContract workContract = EthlanceWorkContract(address(fwd));
+	uint work_index = work_contract_listing.length;
 	work_contract_listing.push(address(workContract));
 	work_contract_mapping[candidate_address] = true;
 
@@ -165,8 +166,7 @@ contract EthlanceJobStore {
 	}
 
 	// Construct the work contract.
-	workContract.construct(this, candidate_address, is_employer_request);
-	
+	workContract.construct(this, work_index, candidate_address, is_employer_request);
     }
 
     
