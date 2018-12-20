@@ -189,7 +189,8 @@
                              :job/estimated-length-seconds estimated-length-seconds
                              :job/include-ether-token? include-ether-token?
                              :job/is-invitation-only? is-invitation-only?)]
-         (model.job/create-job! job-data))))))
+         (model.job/create-job! job-data)
+         (model.job/update-skill-listing! job-index (get ipfs-data :job/skills [])))))))
 
 
 (defmethod process-registry-event :job-arbiter-requested

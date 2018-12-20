@@ -145,7 +145,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
                        uint event_version,
                        uint[] memory event_data)
         public {
-	require(event_dispatch_whitelist[msg.sender] ||
+	require(event_dispatch_whitelist[msg.sender] == true ||
 		isAuthorized(msg.sender, msg.sig),
 		"Not Permitted to fire EthlanceEvent.");
 	

@@ -13,6 +13,7 @@
    [ethlance.server.deployer :as deployer]
 
    ;; Mount Components
+   [district.server.logging]
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]))
 
@@ -134,7 +135,8 @@
   [{:keys [deployer-options force-deployment?]}]
   (-> (mount/with-args test-config)
       (mount/only
-       [#'ethlance.server.test-utils/testnet-fixture
+       [#'district.server.logging/logging
+        #'ethlance.server.test-utils/testnet-fixture
         #'district.server.web3/web3
         #'district.server.smart-contracts/smart-contracts])
       mount/start)

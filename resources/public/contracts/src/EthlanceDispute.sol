@@ -66,6 +66,9 @@ contract EthlanceDispute is MetahashStore {
 	}
 	date_created = now;
 	date_updated = now;
+
+	// Fire off event
+	fireEvent("DisputeCreated");
     }
 
 
@@ -135,6 +138,8 @@ contract EthlanceDispute is MetahashStore {
 	arbiter_resolution_token = _arbiter_token;
 	date_resolved = now;
 	updateDateUpdated();
+
+	fireEvent("DisputeResolved");
     }
 
     
@@ -143,4 +148,15 @@ contract EthlanceDispute is MetahashStore {
 	return date_resolved != 0;
     }
 
+
+    /// @dev Fire events specific to the dispute.
+    /// @param event_name Unique to give the fired event
+    function fireEvent(string memory event_name) private {
+	uint[] memory event_data = new uint[](3);
+	event_data[0] = work_instance.job_index();
+	event_data[1] = work_instance.work_index();
+	event_data[2] = dispute_index;
+
+	registry.fireEvent(event_name, version, event_data);
+    }
 }

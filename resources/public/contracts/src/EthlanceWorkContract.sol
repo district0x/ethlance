@@ -335,25 +335,25 @@ contract EthlanceWorkContract is MetahashStore {
 	if (contract_status == CONTRACT_STATUS_IN_PROGRESS) {
 	    if (is_employer_request) {
 		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED);
-		fireEvent("JobRequestFinishedWorkContract");
+		fireEvent("WorkContractRequestFinished");
 		return;
 	    }
 	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED);
-	    fireEvent("JobRequestFinishedWorkContract");
+	    fireEvent("WorkContractRequestFinished");
 	    return;
 	}
 	
 	// Case 3
 	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED) {
 	    setContractStatus(CONTRACT_STATUS_FINISHED);
-	    fireEvent("JobFinishedWorkContract");
+	    fireEvent("WorkContractFinished");
 	    return;
 	}
 
 	// Case 4
 	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED) {
 	    setContractStatus(CONTRACT_STATUS_FINISHED);
-	    fireEvent("JobFinishedWorkContract");
+	    fireEvent("WorkContractFinished");
 	    return;
 	}
 
@@ -409,9 +409,6 @@ contract EthlanceWorkContract is MetahashStore {
 
 	// Change our status to 'on hold', since we have a new open dispute.
 	setContractStatus(CONTRACT_STATUS_ON_HOLD);
-
-	// TODO: move to dispute constructor
-	fireEvent("JobCreateDispute");
     }
 
     
@@ -483,9 +480,6 @@ contract EthlanceWorkContract is MetahashStore {
 	
 	// Construct the invoice contract
 	invoice.construct(this, invoice_index, amount, metahash);
-
-	//TODO: move to invoice constructor.
-	fireEvent("JobCreateInvoice");
     }
 
     

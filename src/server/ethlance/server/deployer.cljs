@@ -147,7 +147,9 @@
   (contracts/deploy-smart-contract!
    :ethlance-invoice
    (merge
-    {:gas 2500000}
+    {:gas 2500000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}}
     opts)))
 
 
@@ -159,7 +161,9 @@
   (contracts/deploy-smart-contract!
    :ethlance-dispute
    (merge
-    {:gas 2500000}
+    {:gas 2500000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}}
     opts)))
 
 
