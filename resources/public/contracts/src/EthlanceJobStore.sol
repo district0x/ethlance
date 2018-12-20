@@ -155,6 +155,10 @@ contract EthlanceJobStore {
 	Forwarder fwd = new Forwarder(); // Proxy Contract with
 	                                 // target(EthlanceWorkContract)
 	EthlanceWorkContract workContract = EthlanceWorkContract(address(fwd));
+
+	// Permit Work Contract to fire registry events
+	registry.permitEventDispatch(address(fwd));
+
 	uint work_index = work_contract_listing.length;
 	work_contract_listing.push(address(workContract));
 	work_contract_mapping[candidate_address] = true;

@@ -19,8 +19,8 @@
                    :user/country-code "CA"
                    :user/email "john.doe@gmail.com"
                    :user/profile-image ""
-                   :user/date-last-active 0
-                   :user/date-joined 0})
+                   :user/date-updated 0
+                   :user/date-created 0})
 
   (is (not (candidate/is-registered? 1)))
 

@@ -60,7 +60,7 @@
 
 (defn language-listing
   [id]
-  (let [listing (ethlance.db/get-list :UserLangauge {:user/id id})]
+  (let [listing (ethlance.db/get-list :UserLanguage {:user/id id})]
     (mapv :language/name listing)))
 
 

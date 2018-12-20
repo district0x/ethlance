@@ -13,7 +13,8 @@ contract EthlanceInvoice is MetahashStore {
     //
     // Members
     //
-    
+    uint public invoice_index;
+
     uint public date_created;
     
     uint public date_updated;
@@ -34,9 +35,13 @@ contract EthlanceInvoice is MetahashStore {
     EthlanceWorkContract public work_instance;  
     
     /// @dev Forwarder Constructor
-    function construct(EthlanceWorkContract _work_instance, uint _amount_requested, string calldata metahash) external {
+    function construct(EthlanceWorkContract _work_instance,
+		       uint _invoice_index,
+		       uint _amount_requested,
+		       string calldata metahash) external {
 	// TODO: authenticate
 	work_instance = _work_instance;
+	invoice_index = _invoice_index;
 	appendCandidate(metahash);
 	amount_requested = _amount_requested;
 	date_created = now;
@@ -90,11 +95,26 @@ contract EthlanceInvoice is MetahashStore {
 	amount_paid = _amount_paid;
 	date_paid = now;
 	updateDateUpdated();
+
+	// Fire off event
+	//uint[] memory event_data = new uint[](3);
+	//event_data[0] = work_instance.job_index();
+	//event_data[1] = work_instance.work_index();
+	//event_data[2] = invoice_index;
+	//fireEvent("InvoicePaid", event_data);
     }
 
     
     /// @dev Returns true if the invoice has been paid.
     function isInvoicePaid() external view returns(bool) {
 	return date_paid > 0;
+    }
+
+    /// @dev Fire events specific to the invoice.
+    /// @param event_name Unique to give the fired event
+    /// @param event_data Additional event data to include in the
+    /// fired event.
+    function fireEvent(string memory event_name, uint[] memory event_data) private {
+	registry.fireEvent(event_name, version, event_data);
     }
 }

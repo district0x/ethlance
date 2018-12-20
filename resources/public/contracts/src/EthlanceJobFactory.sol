@@ -44,6 +44,10 @@ contract EthlanceJobFactory {
 	Forwarder fwd = new Forwarder(); // Proxy Contract with
 	                               // target(EthlanceJobStore)
 	EthlanceJobStore jobStore = EthlanceJobStore(address(fwd));
+
+	// Permit JobStore to fire registry events
+	registry.permitEventDispatch(address(fwd));
+
 	uint job_index = registry.pushJobStore(address(jobStore));
 	jobStore.construct(job_index,
 			   msg.sender,

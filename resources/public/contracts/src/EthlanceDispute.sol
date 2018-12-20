@@ -12,6 +12,7 @@ contract EthlanceDispute is MetahashStore {
     //
     // Members
     //
+    uint public dispute_index;
     
     uint public date_created;
 
@@ -48,12 +49,14 @@ contract EthlanceDispute is MetahashStore {
     /// hash string. The hash is stored as the employer or the
     /// candidate depending on is_employer_request.
     function construct(EthlanceWorkContract _work_instance,
+		       uint _dispute_index,
 		       string calldata _reason,
 		       string calldata metahash,
 		       bool is_employer_request) external {
 
 	// TODO: authenticate
 	work_instance = _work_instance;
+	dispute_index = _dispute_index;
 	reason = _reason;
 	if (is_employer_request) {
 	    appendEmployer(metahash);

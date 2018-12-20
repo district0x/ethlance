@@ -66,7 +66,6 @@
 
    (testing "Update the user metahash"
      (user/with-ethlance-user (user-factory/user-by-address user1)
-       (log/debug "User Key" user/*user-key*)
        (is (= (user/metahash-ipfs) sample-meta-hash-1))
        (user/update-metahash! sample-meta-hash-2 {:from user1})
        (is (= (user/metahash-ipfs) sample-meta-hash-2))))

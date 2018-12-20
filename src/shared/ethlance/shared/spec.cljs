@@ -132,7 +132,7 @@
 (s/def :invoice/date-updated ::datetime)
 (s/def :invoice/date-paid ::datetime)
 (s/def :invoice/amount-requested ::bigint)
-(s/def :invoice/amount-paid ::bigint)
+(s/def :invoice/amount-paid (s/nilable ::bigint))
 
 
 ;;
@@ -143,10 +143,10 @@
 (s/def :dispute/reason string?)
 (s/def :dispute/date-created ::datetime)
 (s/def :dispute/date-updated ::datetime)
-(s/def :dispute/date-resolved ::datetime)
-(s/def :dispute/employer-resolution-amount ::bigint)
-(s/def :dispute/candidate-resolution-amount ::bigint)
-(s/def :dispute/arbiter-resolution-amount ::bigint)
+(s/def :dispute/date-resolved (s/nilable ::datetime))
+(s/def :dispute/employer-resolution-amount (s/nilable ::bigint))
+(s/def :dispute/candidate-resolution-amount (s/nilable ::bigint))
+(s/def :dispute/arbiter-resolution-amount (s/nilable ::bigint))
 
 
 ;;

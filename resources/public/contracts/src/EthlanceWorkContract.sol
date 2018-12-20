@@ -67,10 +67,8 @@ contract EthlanceWorkContract is MetahashStore {
     uint public constant CONTRACT_STATUS_FINISHED = 9;
     uint public constant CONTRACT_STATUS_CANCELLED = 10;
     
-    uint job_index;
-    uint work_index;
-    uint[] event_data = new uint[](3);
-    
+    uint public job_index;
+    uint public work_index;
 
     // The EthlanceJobStore contains additional data about our
     // contract.
@@ -110,8 +108,7 @@ contract EthlanceWorkContract is MetahashStore {
 	
 	// Event Data Construction
 	job_index = store_instance.job_index();
-	event_data[0] = job_index;
-	event_data[1] = work_index;
+
 
 	if (is_employer_request) {
 	    requestInvite(store_instance.employer_address());
@@ -231,7 +228,7 @@ contract EthlanceWorkContract is MetahashStore {
 	// Case 1
 	if (store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
 	    setContractStatus(CONTRACT_STATUS_OPEN_BOUNTY);
-	    fireEvent("JobRequestWorkContract", event_data);
+	    fireEvent("JobRequestWorkContract");
 	    return;
 	}
 
@@ -239,25 +236,25 @@ contract EthlanceWorkContract is MetahashStore {
 	if (contract_status == CONTRACT_STATUS_INITIAL) {
 	    if (is_employer_request) {
 		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE);
-		fireEvent("JobRequestWorkContract", event_data);
+		fireEvent("JobRequestWorkContract");
 		return;
 	    }
 	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE);
-	    fireEvent("JobRequestWorkContract", event_data);
+	    fireEvent("JobRequestWorkContract");
 	    return;
 	}
 	
 	// Case 4
 	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE) {
 	    setContractStatus(CONTRACT_STATUS_ACCEPTED);
-	    fireEvent("JobAcceptWorkContract", event_data);
+	    fireEvent("JobAcceptWorkContract");
 	    return;
 	}
 
 	// Case 5
 	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE) {
 	    setContractStatus(CONTRACT_STATUS_ACCEPTED);
-	    fireEvent("JobAcceptWorkContract", event_data);
+	    fireEvent("JobAcceptWorkContract");
 	    return;
 	}
 
@@ -290,7 +287,7 @@ contract EthlanceWorkContract is MetahashStore {
 
 	if (contract_status == CONTRACT_STATUS_ACCEPTED) {
 	    setContractStatus(CONTRACT_STATUS_IN_PROGRESS);
-	    fireEvent("JobProceedWorkContract", event_data);
+	    fireEvent("JobProceedWorkContract");
 	}
 	else {
 	    revert("Cannot start a contract if it is not in the 'accepted' state.");
@@ -338,25 +335,25 @@ contract EthlanceWorkContract is MetahashStore {
 	if (contract_status == CONTRACT_STATUS_IN_PROGRESS) {
 	    if (is_employer_request) {
 		setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED);
-		fireEvent("JobRequestFinishedWorkContract", event_data);
+		fireEvent("JobRequestFinishedWorkContract");
 		return;
 	    }
 	    setContractStatus(CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED);
-	    fireEvent("JobRequestFinishedWorkContract", event_data);
+	    fireEvent("JobRequestFinishedWorkContract");
 	    return;
 	}
 	
 	// Case 3
 	if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED) {
 	    setContractStatus(CONTRACT_STATUS_FINISHED);
-	    fireEvent("JobFinishedWorkContract", event_data);
+	    fireEvent("JobFinishedWorkContract");
 	    return;
 	}
 
 	// Case 4
 	if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED) {
 	    setContractStatus(CONTRACT_STATUS_FINISHED);
-	    fireEvent("JobFinishedWorkContract", event_data);
+	    fireEvent("JobFinishedWorkContract");
 	    return;
 	}
 
@@ -366,9 +363,12 @@ contract EthlanceWorkContract is MetahashStore {
 
     /// @dev Fire events specific to the work contract
     /// @param event_name Unique to give the fired event
-    /// @param event_data Additional event data to include in the
-    /// fired event.
-    function fireEvent(string memory event_name, uint[] memory event_data) private {
+    function fireEvent(string memory event_name) private {
+	// Event Data Pre-construction
+	uint[] memory event_data = new uint[](2);
+	event_data[0] = job_index;
+	event_data[1] = work_index;
+
 	registry.fireEvent(event_name, version, event_data);
     }
 
@@ -395,19 +395,23 @@ contract EthlanceWorkContract is MetahashStore {
 
 	// Create the forwarded contract
 	SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
-                                             // target(EthlanceDispute)
+                                                     // target(EthlanceDispute)
+
+	// Permit Dispute to fire registry events
+	registry.permitEventDispatch(address(fwd));
+
 	EthlanceDispute dispute = EthlanceDispute(address(fwd));
+	uint dispute_index = dispute_listing.length;
 	dispute_listing.push(dispute);
 	
 	// Construct the dispute contract
-	dispute.construct(this, reason, metahash, is_employer_request);
+	dispute.construct(this, dispute_index, reason, metahash, is_employer_request);
 
 	// Change our status to 'on hold', since we have a new open dispute.
 	setContractStatus(CONTRACT_STATUS_ON_HOLD);
 
-	// Dispute Index
-	event_data[2] = dispute_listing.length - 1;
-	fireEvent("JobCreateDispute", event_data);
+	// TODO: move to dispute constructor
+	fireEvent("JobCreateDispute");
     }
 
     
@@ -468,16 +472,20 @@ contract EthlanceWorkContract is MetahashStore {
     function createInvoice(uint amount, string memory metahash) public {
 	// Create the forwarded contract
 	Forwarder fwd = new Forwarder(); // Proxy Contract
-	                               // target(EthlanceInvoice)
+	                                 // target(EthlanceInvoice)
 	EthlanceInvoice invoice = EthlanceInvoice(address(fwd));
+
+	// Permit Invoice to fire registry events
+	registry.permitEventDispatch(address(fwd));
+
+	uint invoice_index = invoice_listing.length;
 	invoice_listing.push(invoice);
 	
 	// Construct the invoice contract
-	invoice.construct(this, amount, metahash);
+	invoice.construct(this, invoice_index, amount, metahash);
 
-	// Invoice Index
-	event_data[2] = invoice_listing.length - 1;
-	fireEvent("JobCreateInvoice", event_data);
+	//TODO: move to invoice constructor.
+	fireEvent("JobCreateInvoice");
     }
 
     

@@ -29,9 +29,7 @@
 
 
 (deftest-smart-contract main-invoice {}
-  (let [work-contract-value (web3/to-wei 100.0 :ether)
-        
-        [employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
+  (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
         (web3-eth/accounts @web3)
 
         ;; Employer User
@@ -47,21 +45,25 @@
               :currency-type ::enum.currency/usd}
              {:from candidate-address}))]
 
+    (log/debug "Creating Job Store...")
     (test-gen/create-job-store! {} {:from employer-address})
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
       (is (= employer-address (job-store/employer-address)))
 
       ;; Create the initial work contract as the candidate
+      (log/debug "Requesting Work Contract...")
       (job-store/request-work-contract! candidate-address {:from candidate-address})
       (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
         (is (= candidate-address (work-contract/candidate-address)))
         (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
         
         ;; Invite the candidate as the employer
+        (log/debug "Accepting Work Contract...")
         (work-contract/request-invite! {:from employer-address})
         (is (= ::enum.status/accepted) (work-contract/contract-status))
 
         ;; Proceed with the work contract
+        (log/debug "Proceed with Work Contract...")
         (work-contract/proceed! {:from employer-address})
         (is (= ::enum.status/in-progress (work-contract/contract-status)))))))
 
@@ -83,6 +85,7 @@
               :currency-type ::enum.currency/usd}
              {:from candidate-address}))]
 
+    (log/debug "Creating Job Store...")
     (test-gen/create-job-store! {} {:from employer-address})
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
       (is (= employer-address (job-store/employer-address))))
@@ -92,10 +95,12 @@
       (is (bn/= (web3-eth/get-balance @web3 job-address) 0))
 
       ;; Employer funding the job store.
+      (log/debug "Funding Job Store...")
       (job-store/with-ethlance-job-store job-address
         (job-store/fund! {:from employer-address :value job-employer-funding}))
       (is (bn/= (web3-eth/get-balance @web3 job-address) job-employer-funding)))
 
+    (log/debug "Requesting Work Contract...")
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
       ;; Create the initial work contract as the candidate
       (job-store/request-work-contract! candidate-address {:from candidate-address})
@@ -103,11 +108,11 @@
         (is (= candidate-address (work-contract/candidate-address)))
         (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
         
-        ;; Invite the candidate as the employer
+        (log/debug "Accept the contract as the employer...")
         (work-contract/request-invite! {:from employer-address})
         (is (= ::enum.status/accepted) (work-contract/contract-status))
 
-        ;; Proceed with the work contract
+        (log/debug "Proceed with the work contract...")
         (work-contract/proceed! {:from employer-address})
         (is (= ::enum.status/in-progress (work-contract/contract-status)))))
     
@@ -115,12 +120,13 @@
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
           (is (bn/= (work-contract/invoice-count) 0))
+          (log/debug "Create an Invoice...")
           (work-contract/create-invoice!
            {:amount (web3/to-wei 1.0 :ether) :metahash ""}
            {:from candidate-address})
           (is (bn/= (work-contract/invoice-count) 1))
-
-          ;; Second invoice
+          
+          (log/debug "Create a Second Invoice...")
           (work-contract/create-invoice!
            {:amount (web3/to-wei 1.0 :ether) :metahash ""}
            {:from candidate-address})
@@ -131,6 +137,7 @@
             (let [paid-amount (web3/to-wei 1.0 :ether)
                   candidate-balance (web3-eth/get-balance @web3 candidate-address)]
               (is (not (invoice/paid?)))
+              (log/debug "Pay for the first invoice...")
               (invoice/pay! paid-amount {:from employer-address})
               (is (invoice/paid?))
 
@@ -143,6 +150,7 @@
             (let [paid-amount (web3/to-wei 1.0 :ether)
                   candidate-balance (web3-eth/get-balance @web3 candidate-address)]
               (is (not (invoice/paid?)))
+              (log/debug "Pay for the second invoice...")
               (invoice/pay! paid-amount {:from employer-address})
               (is (invoice/paid?))
 

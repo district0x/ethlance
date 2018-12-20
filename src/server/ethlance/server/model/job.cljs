@@ -163,7 +163,7 @@
 
 
 (s/fdef update-work-contract!
-  :args (s/cat :work-contract-data ::work-contract))
+  :args (s/cat :work-contract-data (s/keys :req [:job/index :work-contract/index])))
 
 (defn update-work-contract!
   [work-contract-data]
@@ -188,9 +188,9 @@
          :invoice/index
          :invoice/date-created
          :invoice/date-updated
-         :invoice/date-paid
-         :invoice/amount-requested
-         :invoice/amount-paid]))
+         :invoice/amount-requested]
+   :opt [:invoice/amount-paid
+         :invoice/date-paid]))
 
 
 (s/fdef create-invoice!
@@ -209,7 +209,7 @@
 
 (s/fdef invoice-listing
   :args (s/cat :job-index :job/index :work-index :work-contract/index)
-  :ret (s/coll-of ::invoice :distinct true :into []))
+  :ret (s/nilable (s/coll-of ::invoice :distinct true :into [])))
 
 (defn invoice-listing [job-index work-index]
    (ethlance.db/get-list :WorkContractInvoice {:job/index job-index :work-contract/index work-index}))
@@ -222,8 +222,8 @@
          :dispute/index
          :dispute/reason
          :dispute/date-created
-         :dispute/date-updated
-         :dispute/date-resolved
+         :dispute/date-updated]
+   :opt [:dispute/date-resolved
          :dispute/employer-resolution-amount
          :dispute/candidate-resolution-amount
          :dispute/arbiter-resolution-amount]))
@@ -237,7 +237,7 @@
 
 
 (s/fdef update-dispute!
-  :args (s/cat :dispute-data ::dispute))
+  :args (s/cat :dispute-data (s/keys :req [:job/index :work-contract/index :dispute/index])))
 
 (defn update-dispute! [dispute-data]
    (ethlance.db/update-row! :WorkContractDispute dispute-data))
@@ -245,7 +245,7 @@
 
 (s/fdef dispute-listing
   :args (s/cat :job-index :job/index :work-index :work-contract/index)
-  :ret (s/coll-of ::dispute :distinct true :into []))
+  :ret (s/nilable (s/coll-of ::dispute :distinct true :into [])))
 
 (defn dispute-listing [job-index work-index]
    (ethlance.db/get-list :WorkContractDispute {:job/index job-index :work-contract/index work-index}))

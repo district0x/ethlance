@@ -159,9 +159,15 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     
     /// @dev Permits the given address to call fireEvent.
     /// @param _address The address to permit the use of fireEvent.
+    /*
+      Note that permitting event dispatch allows the provided address
+      to propagate the same permissions.
+     */
     function permitEventDispatch(address _address)
-	auth
 	public {
+	require(event_dispatch_whitelist[msg.sender] ||
+		isAuthorized(msg.sender, msg.sig),
+		"Not Authorized to permit event dispatch.");
 	event_dispatch_whitelist[_address] = true;
     }
 

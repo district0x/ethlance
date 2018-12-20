@@ -18,7 +18,8 @@
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.boolean :as enum.boolean]
    [ethlance.shared.enum.contract-status :as enum.status]
-   [ethlance.shared.enum.payment-type :as enum.payment]))
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.availability :as enum.availability]))
 
 
 (deftest-database main-job-model {}
@@ -32,8 +33,8 @@
                    :user/country-code "CA"
                    :user/email "john.doe@gmail.com"
                    :user/profile-image ""
-                   :user/date-last-active 0
-                   :user/date-joined 0})
+                   :user/date-updated 0
+                   :user/date-created 0})
 
   (employer/register! {:user/id 1
                        :employer/biography "A testy fellow"
@@ -46,8 +47,8 @@
                    :user/country-code "US"
                    :user/email "jane.doe@gmail.com"
                    :user/profile-image ""
-                   :user/date-last-active 1
-                   :user/date-joined 1})
+                   :user/date-updated 1
+                   :user/date-created 1})
 
   (candidate/register! {:user/id 2
                         :candidate/biography "A testy fellow"
@@ -60,8 +61,8 @@
                    :user/country-code "RU"
                    :user/email "nicholai.pavlov@gmail.com"
                    :user/profile-image ""
-                   :user/date-last-active 3
-                   :user/date-joined 3})
+                   :user/date-updated 3
+                   :user/date-created 3})
 
   (arbiter/register! {:user/id 3
                       :arbiter/biography "I am testy."
@@ -73,7 +74,7 @@
   (testing "Creating a job"
     (job/create-job! {:job/index 0
                       :job/title "Full-Stack Java Developer"
-                      :job/availability 0
+                      :job/availability ::enum.availability/full-time
                       :job/bid-option ::enum.bid-option/hourly-rate
                       :job/category "Software Development"
                       :job/description "The job is great."
@@ -109,7 +110,8 @@
                                 :work-contract/index 0
                                 :work-contract/contract-status ::enum.status/initial
                                 :work-contract/date-created 7
-                                :work-contract/date-updated 7})
+                                :work-contract/date-updated 7
+                                :work-contract/date-finished 0})
 
     (is (= (job/work-contract-count 0) 1))
 
@@ -142,6 +144,7 @@
     (job/create-invoice! {:job/index 0 :work-contract/index 0 :invoice/index 0
                           :invoice/date-created 8
                           :invoice/date-updated 8
+                          :invoice/date-paid 0
                           :invoice/amount-requested 20})
 
     (is (= (count (job/invoice-listing 0 0)) 1))

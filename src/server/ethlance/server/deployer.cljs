@@ -147,7 +147,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-invoice
    (merge
-    {:gas 1000000}
+    {:gas 2500000}
     opts)))
 
 
@@ -159,7 +159,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-dispute
    (merge
-    {:gas 6721975}
+    {:gas 2500000}
     opts)))
 
 
@@ -205,7 +205,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-job-factory
    (merge
-    {:gas 2000000
+    {:gas 2500000
      :placeholder-replacements
      {forwarder-target-placeholder :ethlance-job-store
       registry-placeholder :ethlance-registry}}
