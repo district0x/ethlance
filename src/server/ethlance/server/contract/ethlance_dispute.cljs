@@ -25,6 +25,15 @@
   (apply contracts/contract-call *dispute-key* method-name args))
 
 
+(defn date-created [] (call :date_created))
+(defn date-updated [] (call :date_updated))
+(defn date-resolved [] (call :date_resolved))
+(defn reason [] (call :reason))
+(defn employer-resolution-amount [] (call :employer_resolution_amount))
+(defn candidate-resolution-amount [] (call :candidate_resolution_amount))
+(defn arbiter-resolution-amount [] (call :arbiter_resolution_amount))
+
+
 (defn append-metahash!
   "Append a `metahash` payload to the given dispute."
   [metahash & [opts]]

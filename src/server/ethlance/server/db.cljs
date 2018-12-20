@@ -86,7 +86,7 @@
 
    {:table-name :UserCandidateCategory
     :table-columns
-    [[:user/id :integer]
+    [[:user/id :integer not-nil]
      [:category/id :integer primary-key]
      [:category/name :varchar]
      [(sql/call :unique :user/id :category/id)]
@@ -96,7 +96,7 @@
 
    {:table-name :UserCandidateSkill
     :table-columns
-    [[:user/id :integer]
+    [[:user/id :integer not-nil]
      [:skill/id :integer primary-key]
      [:skill/name :varchar]
      [(sql/call :unique :user/id :skill/id)]
@@ -142,7 +142,7 @@
 
    {:table-name :UserLanguage
     :table-columns
-    [[:user/id :integer]
+    [[:user/id :integer not-nil]
      [:language/id :integer primary-key]
      [:language/name :varchar not-nil]
      [(sql/call :unique :user/id :language/id)]
@@ -175,8 +175,8 @@
 
    {:table-name :JobArbiterRequest
     :table-columns
-    [[:job/index :integer]
-     [:user/id :integer] ;; requesting arbiter
+    [[:job/index :integer not-nil]
+     [:user/id :integer not-nil] ;; requesting arbiter
      [:arbiter-request/date-requested :unsigned :integer]
      [:arbiter-request/is-employer-request? :unsigned :integer not-nil]
      [(sql/call :primary-key :job/index :user/id)]
@@ -187,7 +187,7 @@
 
    {:table-name :JobSkills
     :table-columns
-    [[:job/index :integer]
+    [[:job/index :integer not-nil]
      [:skill/id :integer primary-key]
      [:skill/name :varchar not-nil]
      [(sql/call :unique :job/index :skill/id)]
@@ -208,9 +208,10 @@
 
    {:table-name :WorkContract
     :table-columns
-    [[:job/index :integer]
-     [:work-contract/index :integer]
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
      [:work-contract/contract-status :unsigned :integer not-nil]
+     [:work-contract/candidate-address address not-nil]
      [:work-contract/date-updated :unsigned :integer not-nil]
      [:work-contract/date-created :unsigned :integer not-nil]
      [:work-contract/date-finished :unsigned :integer default-zero]
@@ -221,9 +222,9 @@
 
    {:table-name :WorkContractInvoice
     :table-columns
-    [[:job/index :integer]
-     [:work-contract/index :integer]
-     [:invoice/index :integer]
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
+     [:invoice/index :integer not-nil]
      [:invoice/date-created :unsigned :integer not-nil]
      [:invoice/date-updated :unsigned :integer not-nil]
      [:invoice/date-paid :unsigned :integer default-zero]
@@ -237,10 +238,10 @@
 
    {:table-name :WorkContractInvoiceComment
     :table-columns
-    [[:job/index :integer]
-     [:work-contract/index :integer]
-     [:invoice/index :integer]
-     [:comment/id :integer]
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
+     [:invoice/index :integer not-nil]
+     [:comment/id :integer not-nil]
      [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
@@ -253,9 +254,9 @@
 
    {:table-name :WorkContractDispute
     :table-columns
-    [[:job/index :integer]
-     [:work-contract/index :integer]
-     [:dispute/index :integer]
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
+     [:dispute/index :integer not-nil]
      [:dispute/reason :varchar not-nil]
      [:dispute/date-created :unsigned :integer not-nil]
      [:dispute/date-updated :unsigned :integer not-nil]

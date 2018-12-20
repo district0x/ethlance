@@ -26,6 +26,10 @@
   (apply contracts/contract-call *work-contract-key* method-name args))
 
 
+(defn date-updated [] (call :date_updated))
+(defn date-created [] (call :date_created))
+
+
 (defn candidate-address
   "The accepted candidate for the currently bound work contract."
   []

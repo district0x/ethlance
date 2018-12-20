@@ -25,6 +25,14 @@
   (apply contracts/contract-call *invoice-key* method-name args))
 
 
+(defn date-created [] (call :date_created))
+(defn date-updated [] (call :date_updated))
+(defn date-paid [] (call :date_paid))
+
+(defn amount-requested [] (call :amount_requested))
+(defn amount-paid [] (call :amount_paid))
+
+
 (defn pay!
   "Pay the invoice with the provided `amount`"
   [amount & [opts]]

@@ -117,6 +117,7 @@
 ;;
 
 (s/def :work-contract/index ::index)
+(s/def :work-contract/candidate-address ::address)
 (s/def :work-contract/contract-status ::contract-status)
 (s/def :work-contract/date-updated ::datetime)
 (s/def :work-contract/date-created ::datetime)

@@ -127,6 +127,7 @@
    :req [:job/index
          :work-contract/index
          :work-contract/contract-status
+         :work-contract/candidate-address
          :work-contract/date-updated
          :work-contract/date-created
          :work-contract/date-finished]))
@@ -201,7 +202,7 @@
 
 
 (s/fdef update-invoice!
-  :args (s/cat :invoice-data ::invoice))
+  :args (s/cat :invoice-data (s/keys :req [:job/index :work-contract/index :invoice/index])))
 
 (defn update-invoice! [invoice-data]
    (ethlance.db/update-row! :WorkContractInvoice invoice-data))
