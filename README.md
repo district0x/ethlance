@@ -19,6 +19,10 @@ change before final release*
   * Note: Windows users can use Msys for build essentials
 	(Untested)
 
+
+Run `make check` to determine whether you are missing any prerequisites
+
+
 ## Setup Backend
 
 Backend development requires:
@@ -28,6 +32,8 @@ Backend development requires:
 * an attached node server to the figwheel server
 
 * a solidity contract compiler (lein-solc)
+
+* an local IPFS daemon with properly configured CORS privileges (ipfs)
 
 * a test net (ganache-cli)
 
@@ -133,6 +139,12 @@ ipfs daemon
 
 **Note**: Might require additional configuration for CORS
 
+```bash
+ipfs config --json Gateway.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST", "OPTIONS"]'
+ipfs config --json Gateway.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+ipfs config --json Gateway.HTTPHeaders.Access-Control-Allow-Headers '["X-Requested-With"]'
+ipfs config --json Gateway.Writable true
+```
 
 ### Smart Contract Compilation
 
@@ -210,6 +222,16 @@ restart the reloaded workflow
 ```bash
 (reset)
 ```
+
+
+## Instrumentation
+
+The ethlance backend makes use of `clojure.spec.alpha` to perform
+instrumentation. For development, instrumentation is disabled, but it
+can be enabled by running `(enable-instrumentation!)` in the repl.
+
+**Note that the test runner has instrumentation enabled by default.**
+
 
 ## Individual Testing
 
