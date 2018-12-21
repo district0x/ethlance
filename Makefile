@@ -4,10 +4,11 @@
 .PHONY: dev-server
 .PHONY: fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build
-.PHONY: watch-contracts watch-tests docs
+.PHONY: watch-contracts watch-tests
+.PHONY: testnet ipfs docs
 .PHONY: run
 .PHONY: test
-.PHONY: clean
+.PHONY: check clean clean-all
 
 help:
 	@echo "Ethlance Development and Production Build Makefile"
@@ -21,6 +22,9 @@ help:
 	@echo "  --"
 	@echo "  watch-contracts         :: Start and watch Solidity Contracts."
 	@echo "  watch-tests             :: Start and watch Server tests."
+	@echo "  --"
+	@echo "  testnet                 :: Start the Testnet server."
+	@echo "  ipfs                    :: Start the IPFS daemon."
 	@echo "  --"
 	@echo "  docs                    :: Generate Documentation"
 	@echo ""
@@ -38,6 +42,7 @@ help:
 	@echo "  test                    :: Run Server Tests (once)."
 	@echo ""
 	@echo "Misc Commands:"
+	@echo "  check                   :: Checks the status of required pre-requisites"
 	@echo "  clean                   :: Clean out build artifacts."
 	@echo "  clean-all               :: Clean out more build artifacts."
 	@echo "  help                    :: Display this help message."
@@ -106,5 +111,17 @@ run:
 	cd ./dist && node ./ethlance_server.js
 
 
+ipfs:
+	ipfs daemon
+
+
+testnet:
+	ganache-cli
+
+
 docs:
 	lein marg
+
+
+check:
+	@sh ./scripts/check_prerequisites.sh

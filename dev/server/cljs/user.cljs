@@ -32,8 +32,7 @@
 
   (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the testnet snapshot)
   (reset-testnet!)                ;; Reset the testnet snapshot
-  (redeploy :generate? [false])   ;; Deploy to the testnet asynchronously
-                                  ;; (:generate? generate users and scenarios)
+  (repopulate-database!)          ;; Resynchronize Smart Contract Events into the Database
 
   (enable-instrumentation!)       ;; Enable fspec instrumentation
   (disable-instrumentation!)      ;; Disable fspec instrumentation
@@ -95,35 +94,6 @@
    js/process
    (fn []
      (apply restart-sync opts))))
-
-
-(defn redeploy-sync
-  "Redeploy the smart contracts for development.
-
-  Optional Arguments:
-
-  :generate? - If generate is true, the testnet will generate several
-  employers, candidates and arbiters undergoing particular work scenarios.
-
-  Notes:
-
-  - please read the docs for `ethlance.server.deployer/deploy-all!`
-  "
-  [& {:keys [generate?] :as opts}]
-  (try-catch-throw
-   (log/info "Starting Contract Deployment!")
-   (apply deployer/deploy-all! opts)
-   (log/info "Finished Contract Deployment!")
-   (when generate? (generator/generate!))))
-
-
-(defn redeploy
-  "Performs a redeployment asynchronously"
-  [& opts]
-  (.nextTick
-   js/process
-   (fn []
-     (apply redeploy-sync opts))))
 
 
 (defn run-tests-sync

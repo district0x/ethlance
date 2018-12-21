@@ -13,6 +13,8 @@ change before final release*
 
 * [ganache-cli](https://github.com/trufflesuite/ganache-cli)
 
+* [ipfs](https://docs.ipfs.io/introduction/install/)
+
 * make
   * Note: Windows users can use Msys for build essentials
 	(Untested)
@@ -40,13 +42,13 @@ make fig-dev-server
 Terminal 2 (node server):
 
 ```bash
-# Wait for fig-dev-server prompt...
+# Wait for fig-dev-server prompt: 'Prompt will show when Figwheel connects to your application'
 make dev-server
 ```
 
 Terminal 3 (testnet):
 ```bash
-ganache-cli
+make testnet
 ```
 
 Terminal 4 (solc):
@@ -54,10 +56,19 @@ Terminal 4 (solc):
 make watch-contracts
 ```
 
+Terminal 5 (ipfs):
+```bash
+make ipfs
+```
+
+
 Terminal 1 (server repl):
 ```clojure
-(redeploy) ;; ...
-;; Wait for message informing of completion
+(start) 
+	    ;; By default, this will deploy the smart contracts, generate users
+	    ;; and scenarios, and synchronize the results within the SQLite database.
+
+(help)  ;; To review additional commands
 ```
 
 ### Initial Setup
@@ -110,6 +121,19 @@ configuration.
 $ ganache-cli # Run in a separate terminal
 ```
 
+### IPFS Server
+
+IPFS is an essential technology in ensuring that large blobs of data
+can be stored in a decentralized manner. After installing the `ipfs`
+commandline tool, you need to start up a daemon for development
+
+```bash
+ipfs daemon
+```
+
+**Note**: Might require additional configuration for CORS
+
+
 ### Smart Contract Compilation
 
 *Note: All instructions start in the root of the project directory*
@@ -125,7 +149,7 @@ This will compile all contracts located in
 `./resources/public/contracts/src` and re-compile any contracts that are
 changed during development.
 
-### Smart Contract Deployment
+### Smart Contract Deployment, User / Scenario Generation, Syncing
 
 If all of the previous sections are completed, we can perform a smart
 contract deployment on the testnet through the fig-dev-server
@@ -134,11 +158,10 @@ CLJS-REPL.
 While in the Figwheel Server CLJS REPL, type:
 
 ```clojure
-(redeploy)
+(start) ;; Reloaded Lifecycle
 ```
 
-You should see activity in the `ganache-cli` testnet server, and a
-message should inform you when the deployment has finished.
+You should see activity in the `ganache-cli` testnet server.
 
 # Deployment
 
@@ -154,6 +177,58 @@ After building, the production build can be run:
 
 ```bash
 $ make run
+```
+
+# Testing
+
+To run all of the tests in a standalone test runner, you must first
+build the solidity contracts, run an instance of the testnet server,
+and an instance of the IPFS daemon. The test runner can be run via:
+
+```bash
+make test
+```
+
+## Reloaded Workflow Testing
+
+Tests can also be run from within the development environment
+
+```clojure
+(run-tests)
+```
+
+If you are making changes to the solidity contracts, it will require
+you to reset the testnet to ensure redeployment
+
+```clojure
+(run-tests :reset? true)
+```
+
+To resume a normal development environment, it will require you to
+restart the reloaded workflow
+
+```bash
+(reset)
+```
+
+## Individual Testing
+
+Individual Tests can also be defined, and several have been defined
+within `./dev/server/cljs/tests.cljs`. Tests that use the testnet take
+a significant amount of time to run, so running specific tests within
+the development environment for troubleshooting issues is essential.
+
+ex.
+
+```clojure
+(tests/run-invoice-tests)
+```
+
+In a similar manner, if solidity contracts are modified before running
+the tests, it is required that you reset the testnet
+
+```clojure
+(reset-testnet!)(tests/run-invoice-tests)
 ```
 
 # Contributing
