@@ -1,3 +1,21 @@
 language: clojure
+
 install: make deps
+
 script: make test
+
+before_install:
+- sudo add-apt-repository --yes ppa:ethereum/ethereum
+- sudo apt-get -qq update
+
+before_script:
+- sudo apt-get --yes install solc
+- make build-contracts
+- npm install -g ganache-cli
+- ganache-cli -p 8549 > /dev/null &
+- wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
+  -O ipfs-update.tar.gz
+- tar -xzf ipfs-update.tar.gz
+- ipfs-update/ipfs-update install latest
+- ipfs init
+- ipfs daemon > /dev/null &
