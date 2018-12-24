@@ -24,4 +24,6 @@
    :ethlance-job-store
    {:name "EthlanceJobStore"}
    :ethlance-registry
-   {:name "EthlanceRegistry"}})
+   {:name "EthlanceRegistry"}
+   :test-token
+   {:name "TestToken"}})

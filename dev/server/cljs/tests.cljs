@@ -8,6 +8,7 @@
    [ethlance.server.contract.ethlance-work-contract-test]
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
+   [ethlance.server.contract.test-token-test]
    [ethlance.server.db-test]
    [ethlance.server.model.user-test]
    [ethlance.server.model.candidate-test]
@@ -92,3 +93,9 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.shared.random-test)))
+
+
+(defn run-token-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.test-token-test)))

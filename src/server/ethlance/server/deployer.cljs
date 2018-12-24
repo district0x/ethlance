@@ -247,6 +247,14 @@
    (contracts/contract-address :ethlance-job-factory-fwd)))
 
 
+(defn deploy-test-token!
+  [opts]
+  (log/debug "Deploying TestToken Contract...")
+  (contracts/deploy-smart-contract!
+   :test-token
+   (merge {:gas 2000000} opts)))
+
+
 (defn deploy-all!
   "Deploy all smart contracts.
   
@@ -262,8 +270,8 @@
          write? false}}]
 
   ;; Debug: Logging Parameters
-  (log/debug "General Contract Options" general-contract-options)
-  (log/debug "Write Contracts on Finish?: " write?)
+  (log/debug (str "General Contract Options: " general-contract-options))
+  (log/debug (str "Write Contracts on Finish?: " (boolean write?)))
 
   (deploy-district-config! general-contract-options)
   (deploy-ds-guard! general-contract-options)
@@ -275,6 +283,7 @@
   (deploy-ethlance-work-contract! general-contract-options)
   (deploy-ethlance-job-store! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)
+  (deploy-test-token! general-contract-options)
 
   (when write?
     (log/debug "Writing out Smart Contracts...")

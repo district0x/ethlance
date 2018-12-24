@@ -1,3 +1,10 @@
+/*
+  This ERC20 compliant contract should not be used as an actual
+  cryptocurrency, and should only be used strictly in a development
+  and testing environment. Public use of this contract as a store of
+  value is not recommended."
+ */
+
 pragma solidity ^0.5.0;
 
 import "math/SafeMath.sol";

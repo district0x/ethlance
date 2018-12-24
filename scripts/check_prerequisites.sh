@@ -10,8 +10,10 @@ check_command() {
     command -v $1 >/dev/null 2>&1
     if [ $? -eq 0 ]; then
 	printf "$1 --> ${GREEN}Success!${NC}\n"
+	exit 0
     else
 	printf "$1 --X ${RED}Missing!${NC}\n"
+	exit -1
     fi
 }
 

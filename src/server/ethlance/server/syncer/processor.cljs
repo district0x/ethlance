@@ -28,7 +28,7 @@
    [ethlance.server.contract.ethlance-user-factory :as contract.user-factory]
    [ethlance.server.contract.ethlance-job-store :as contract.job :include-macros true]
    [ethlance.server.contract.ethlance-job-factory :as contract.job-factory]
-   [ethlance.server.contract.ethlance-work-contract :as contract.work-contract]
+   [ethlance.server.contract.ethlance-work-contract :as contract.work-contract :include-macros true]
    [ethlance.server.contract.ethlance-invoice :as contract.invoice :include-macros true]
    [ethlance.server.contract.ethlance-dispute :as contract.dispute :include-macros true]
 

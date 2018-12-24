@@ -92,7 +92,7 @@
 (s/def :job/description string?)
 (s/def :job/date-created ::datetime)
 (s/def :job/date-started ::datetime)
-(s/def :job/date-finished ::datetime)
+(s/def :job/date-finished (s/nilable ::datetime))
 (s/def :job/employer-address ::address)
 (s/def :job/estimated-length-seconds nat-int?)
 (s/def :job/include-ether-token? boolean?)

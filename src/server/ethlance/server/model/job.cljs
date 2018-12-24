@@ -129,8 +129,8 @@
          :work-contract/contract-status
          :work-contract/candidate-address
          :work-contract/date-updated
-         :work-contract/date-created
-         :work-contract/date-finished]))
+         :work-contract/date-created]
+   :opts [:work-contract/date-finished]))
 
 
 (s/fdef work-contract-listing

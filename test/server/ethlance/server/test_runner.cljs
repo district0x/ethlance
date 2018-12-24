@@ -8,6 +8,7 @@
    ;;
 
    [ethlance.server.core-test]
+   [ethlance.server.contract.test-token-test]
    [ethlance.server.contract.ethlance-user-factory-test]
    [ethlance.server.contract.ethlance-user-test]
    [ethlance.server.contract.ethlance-job-factory-test]
