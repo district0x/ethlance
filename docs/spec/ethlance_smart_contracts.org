@@ -97,7 +97,7 @@
    class UserMetahash << (I,blue) IPFS >> {
      -- 'user' Map --
      country_code : string,
-     date_last_active : uint{DateTime}
+     date_updated : uint{DateTime}
      email : string
      github_id : map{...}
      known_languages : array[string]
@@ -121,7 +121,7 @@
    EthlanceUser "1" *-- "1" UserMetahash
    class EthlanceUser << (f,green) Forwarded Contract >> {
      user_address : address
-     date_joined : uint{DateTime}
+     date_created : uint{DateTime}
      metahash : string{UserMetahash}
    }
 
@@ -506,12 +506,23 @@
 
    title Ethlance Database Schema
 
+   class EthlanceSynchronizationLog << (T,brown) Table >> {
+     id : primary key
+     date_created : datetime
+     hash : text
+     block_number : uint
+     log_index : uint
+     status : enum{STARTED, FINISHED}
+   }
+
    class User << (T,brown) Table >> {
      user_id : primary key
      address : unique text
+     full_name : varchar
+     user_name : varchar
      country_code : text
-     date_last_active : timestamp
-     date_joined : timestamp
+     date_updated : timestamp
+     date_created : timestamp
      email : text
      profile_image : text
    }
@@ -521,18 +532,20 @@
      user_id : foreign key
      biography : text
      date_registered : nullable timestamp
-     profession_title : text
+     professional_title : text
    }
 
    User "1" *-- "*" UserCandidateCategory
    class UserCandidateCategory << (T,brown) Table >> {
      user_id : foreign key
+     category_id : primary key
      category : text
    }
 
    User "1" *-- "*" UserCandidateSkill
    class UserCandidateSkill << (T,brown) Table >> {
      user_id : foreign key
+     skill_id : primary key
      skill : text
    }
 
@@ -540,7 +553,7 @@
    class UserEmployer << (T,brown) Table >> {
      user_id : foreign key
      biography : text
-     profession_title : text
+     professional_title : text
    }
 
    User "1" *-- "1" UserArbiter
@@ -598,6 +611,7 @@
    Job "1" *-- "*" JobSkills
    class JobSkills << (T,brown) Table >> {
      job_id : foreign key
+     skill_id : primary key
      skill : text
    }
 
