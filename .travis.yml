@@ -8,7 +8,10 @@ before_install:
 
 # Install Ethereum PPA
 - sudo add-apt-repository --yes ppa:ethereum/ethereum
-- sudo apt-get update && sudo apt-get upgrade --yes
+- sudo apt-get update
+
+# Installed Latest version of dpkg (Fix for solc installation)
+- sudo apt-get install dpkg
 
 # Install solc commandline tool
 - sudo apt-get install solc --yes
