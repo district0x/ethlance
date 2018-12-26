@@ -71,8 +71,8 @@ contract TestToken is IERC20 {
 	    return false;
 	}
 	
-	token_balance_mapping[msg.sender].sub(value);
-	token_balance_mapping[to].add(value);
+	token_balance_mapping[msg.sender] = token_balance_mapping[msg.sender].sub(value);
+	token_balance_mapping[to] = token_balance_mapping[to].add(value);
 	emit Transfer(msg.sender, to, value);
 	return true;
     }
@@ -98,9 +98,9 @@ contract TestToken is IERC20 {
 	    return false;
 	}
 	
-	token_allowance_mapping[from][to].sub(value);
-	token_balance_mapping[from].sub(value);
-	token_balance_mapping[to].add(value);
+	token_allowance_mapping[from][to] = token_allowance_mapping[from][to].sub(value);
+	token_balance_mapping[from] = token_balance_mapping[from].sub(value);
+	token_balance_mapping[to] = token_balance_mapping[to].add(value);
 	
 	return true;
     }
@@ -116,7 +116,9 @@ contract TestToken is IERC20 {
 	    return false;
 	}
 	
-	total_balance.add(value);
-	token_balance_mapping[to].add(value);
+	total_balance = total_balance.add(value);
+	token_balance_mapping[to] = token_balance_mapping[to].add(value);
+
+	return true;
     }
 }

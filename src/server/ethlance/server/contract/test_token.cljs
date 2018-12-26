@@ -8,6 +8,7 @@
   cryptocurrency, and should only be used strictly in a development
   and testing environment. Public use of this contract as a store of
   value is not recommended."
+  (:refer-clojure :exclude [name symbol])
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -48,30 +49,31 @@
   (call :allowance owner spender))
 
 
-(defn transfer
+(defn transfer!
   "Transfer `value` to the given `to` address as the given owner."
-  [to value]
-  (call :transfer to value))
+  [to value & [opts]]
+  (call :transfer to value opts))
 
 
-(defn approve
+(defn approve!
   "Set an allowance for `spender` at the given `value`."
-  [spender value]
-  (call :approve spender value))
+  [spender value & [opts]]
+  (call :approve spender value opts))
 
 
-(defn transfer-from
+(defn transfer-from!
   "Transfer an allowance from the address `from`, to the address `to`
   with the given amount of TEST tokens, `value`."
-  [from to value]
-  (call :transfer-from from to value))
+  [from to value & [opts]]
+  (call :transfer-from from to value opts))
   
 
-(defn mint
+(defn mint!
   "Mint TEST tokens to the given address `to` a given number defined by `value`.
 
   # Note
 
   - This is a publicly available function, since this contract is for
   testing purposes."
-  [to value])
+  [to value & [opts]]
+  (call :mint to value opts))
