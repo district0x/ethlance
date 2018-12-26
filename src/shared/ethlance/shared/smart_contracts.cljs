@@ -1,9 +1,7 @@
 (ns ethlance.shared.smart-contracts) 
 
 (def smart-contracts 
-  {:district-config
-   {:name "DistrictConfig"}
-   :ds-guard
+  {:ds-guard
    {:name "DSGuard"}
    :ethlance-user
    {:name "EthlanceUser"}

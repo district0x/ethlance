@@ -37,17 +37,6 @@
   "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
 
 
-(defn deploy-district-config!
-  "Deploy DistrictConfig contract."
-  [opts]
-  (log/debug "Deploying DistrictConfig Contract...")
-  (contracts/deploy-smart-contract!
-   :district-config
-   (merge
-    {:gas 1000000 :arguments ["test"]}
-    opts)))
-
-
 (defn deploy-ds-guard!
   "Deploy DSGuard contract."
   [opts]
@@ -273,7 +262,6 @@
   (log/debug (str "General Contract Options: " general-contract-options))
   (log/debug (str "Write Contracts on Finish?: " (boolean write?)))
 
-  (deploy-district-config! general-contract-options)
   (deploy-ds-guard! general-contract-options)
   (deploy-ethlance-registry! general-contract-options)
   (deploy-ethlance-user! general-contract-options)
