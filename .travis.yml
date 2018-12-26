@@ -5,17 +5,33 @@ install: make deps
 script: make test
 
 before_install:
-- sudo add-apt-repository --yes ppa:ethereum/ethereum
-- sudo apt-get -qq update
 
-before_script:
-- sudo apt-get --yes install solc
-- make build-contracts
-- npm install -g ganache-cli
-- ganache-cli > /dev/null &
+# Install Ethereum PPA
+- sudo add-apt-repository --yes ppa:ethereum/ethereum
+- sudo apt-get update
+
+# Install solc commandline tool
+- sudo apt-get install solc --yes
+
+# Retrieve IPFS client
 - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
   -O ipfs-update.tar.gz
 - tar -xzf ipfs-update.tar.gz
+
+# Update to the latest IPFS client
 - ipfs-update/ipfs-update install latest
 - ipfs init
+
+# Get ganache-cli commandline tool
+- npm install -g ganache-cli
+
+before_script:
+
+# Build the solidity contracts
+- make build-contracts
+
+# Start ganache-cli as background process
+- ganache-cli > /dev/null &
+
+# Start IPFS Daemon as background process
 - ipfs daemon > /dev/null &
