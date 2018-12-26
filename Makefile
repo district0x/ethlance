@@ -72,6 +72,7 @@ clean-all: clean
 
 deps:
 	lein deps
+	npm install @sentry/node # Hotfix
 
 
 watch-contracts:
