@@ -11,7 +11,7 @@ before_install:
 - sudo apt-get update
 
 # Installed Latest version of dpkg (Fix for solc installation)
-- sudo apt-get install dpkg
+- sudo apt-get install dpkg --yes
 
 # Install solc commandline tool
 - sudo apt-get install solc --yes
