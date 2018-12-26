@@ -109,6 +109,7 @@
     (job/create-work-contract! {:job/index 0
                                 :work-contract/index 0
                                 :work-contract/contract-status ::enum.status/initial
+                                :work-contract/candidate-address "0x0"
                                 :work-contract/date-created 7
                                 :work-contract/date-updated 7
                                 :work-contract/date-finished 0})

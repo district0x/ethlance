@@ -7,7 +7,7 @@
 .PHONY: watch-contracts watch-tests
 .PHONY: testnet ipfs docs
 .PHONY: run
-.PHONY: test
+.PHONY: test travis-test
 .PHONY: check clean clean-all
 
 help:
@@ -106,6 +106,10 @@ build: clean-all deps build-ui build-server build-contracts build-dist
 
 test:
 	lein doo node "test-server" once
+
+
+travis-test:
+	sh ./scripts/run_test_runner.sh # Produces Correct Error Codes
 
 
 run:

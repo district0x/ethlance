@@ -51,11 +51,7 @@
   [& args]
   ;; Enable Instrumentation
   (st/instrument)
-  (let [{:keys [fail error]} (run-all-tests #"^ethlance.*-test$")]
-    ;; If there were any failures or errors, the tests have failed.
-    (if (> (+ fail error) 0)
-      (.exit js/process 1)
-      (.exit js/process 0))))
+  (run-all-tests #"^ethlance.*-test$"))
 
 
 (set! *main-cli-fn* -test-main)

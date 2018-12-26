@@ -2,7 +2,7 @@ language: clojure
 
 install: make deps
 
-script: make test
+script: make travis-test
 
 before_install:
 
