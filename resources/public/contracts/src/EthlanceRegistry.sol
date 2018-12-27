@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "DSAuth.sol";
 import "proxy/MutableForwarder.sol";
+import "collections/MultiLinkedList.sol";
 import "./EthlanceUser.sol";
 
 /*
@@ -18,7 +19,7 @@ contract EthlanceEventDispatcher {
 }
 
 
-contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
+contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
 
     // Only one contract user address per an ethereum user address
     address[] user_address_listing;
@@ -171,6 +172,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	event_dispatch_whitelist[_address] = true;
     }
 
+
     /// @dev Returns true, if the given address is a registered user
     /// within the registry.
     /// @param _address Address of the user.
@@ -183,6 +185,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	}
 	return true;
     }
+
 
     /// @dev Returns true, if the given user address is a registered employer
     /// @param _address Address of the user
@@ -198,6 +201,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	return is_registered;
     }
 
+
     /// @dev Returns true, if the given user address is a registered candidate
     /// @param _address Address of the user
     /// @return Returns true if it is a registered candidate.
@@ -211,6 +215,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	(bool is_registered,,) = user.getCandidateData();
 	return is_registered;
     }
+
     
     /// @dev Returns true, if the given user address is a registered arbiter
     /// @param _address Address of the user
@@ -226,4 +231,15 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	return is_registered;
     }
 
+
+    /// @dev Push values into 
+    /// @param _bkey A bytes32 signature for a given linked list
+    /// @param _contract The address of the contract being stored in
+    /// the multilinkedlist.
+    /// @return Array index where the data is stored
+    function push(bytes32 _bkey, address _contract)
+	public {
+	// TODO: authenticate
+	return this.push(_bkey, _contract);
+    }
 }

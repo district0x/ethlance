@@ -5,8 +5,9 @@ pragma solidity ^0.5.0;
 contract MetahashStore {
     // A metahash with user identifier
     struct HashEntry {
-	uint user_type;
-	string hash_value;
+	uint user_type;    // Enumeration
+	uint timestamp;    // Timestamp on creation
+	string hash_value; // IPFS Hash String
     }
 
     uint public constant GUEST_TYPE = 0;
@@ -21,25 +22,25 @@ contract MetahashStore {
 
     /// @dev Append an guest hash to the hash listing.
     function appendGuest(string memory hash_value) internal {
-	hash_listing.push(HashEntry(GUEST_TYPE, hash_value));
+	hash_listing.push(HashEntry(GUEST_TYPE, now, hash_value));
     }
 
     
     /// @dev Append an employer hash to the hash listing.
     function appendEmployer(string memory hash_value) internal {
-	hash_listing.push(HashEntry(EMPLOYER_TYPE, hash_value));
+	hash_listing.push(HashEntry(EMPLOYER_TYPE, now, hash_value));
     }
 
     
     /// @dev Append a candidate hash to the hash listing.
     function appendCandidate(string memory hash_value) internal {
-	hash_listing.push(HashEntry(CANDIDATE_TYPE, hash_value));
+	hash_listing.push(HashEntry(CANDIDATE_TYPE, now, hash_value));
     }
 
     
     /// @dev Append an arbiter hash to the hash listing.
     function appendArbiter(string memory hash_value) internal {
-	hash_listing.push(HashEntry(ARBITER_TYPE, hash_value));
+	hash_listing.push(HashEntry(ARBITER_TYPE, now, hash_value));
     }
     
 
@@ -51,9 +52,10 @@ contract MetahashStore {
     
     /// @dev Get the (user type, hash value) for the hash at the given index.
     function getHashByIndex(uint index)
-	external view returns(uint user_type, string memory hash_value) {
+	external view returns(uint user_type, uint timestamp, string memory hash_value) {
 	HashEntry memory entry = hash_listing[index];
 	user_type = entry.user_type;
+	timestamp = entry.timestamp;
 	hash_value = entry.hash_value;
     }
 
