@@ -7,7 +7,7 @@
 .PHONY: watch-contracts watch-tests
 .PHONY: testnet ipfs docs
 .PHONY: run
-.PHONY: test travis-test
+.PHONY: deps test travis-test
 .PHONY: check clean clean-all
 
 help:
@@ -42,6 +42,7 @@ help:
 	@echo "  test                    :: Run Server Tests (once)."
 	@echo ""
 	@echo "Misc Commands:"
+	@echo "  deps                    :: Pull and Install third-party dependencies"
 	@echo "  check                   :: Checks the status of required pre-requisites"
 	@echo "  clean                   :: Clean out build artifacts."
 	@echo "  clean-all               :: Clean out more build artifacts."
