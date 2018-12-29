@@ -16,6 +16,7 @@
    [ethlance.server.contract.ethlance-work-contract-test]
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
+   [ethlance.server.contract.multi-linked-list-test]
 
    [ethlance.server.db-test]
    [ethlance.server.model.user-test]

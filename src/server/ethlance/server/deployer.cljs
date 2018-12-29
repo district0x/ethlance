@@ -244,6 +244,14 @@
    (merge {:gas 2000000} opts)))
 
 
+(defn deploy-test-multi-linked-list!
+  [opts]
+  (log/debug "Deploying TestMultiLinkedList Contract...")
+  (contracts/deploy-smart-contract!
+   :test-multi-linked-list
+   (merge {:gas 2000000} opts)))
+
+
 (defn deploy-all!
   "Deploy all smart contracts.
   
@@ -271,7 +279,10 @@
   (deploy-ethlance-work-contract! general-contract-options)
   (deploy-ethlance-job-store! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)
+
+  ;; TODO: include option to not deploy test contracts.
   (deploy-test-token! general-contract-options)
+  (deploy-test-multi-linked-list! general-contract-options)
 
   (when write?
     (log/debug "Writing out Smart Contracts...")

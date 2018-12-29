@@ -232,14 +232,22 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
     }
 
 
-    /// @dev Push values into 
+    /// @dev Push values into MultiLinkedList collection.
     /// @param _bkey A bytes32 signature for a given linked list
     /// @param _contract The address of the contract being stored in
     /// the multilinkedlist.
     /// @return Array index where the data is stored
-    function push(bytes32 _bkey, address _contract)
-	public {
+    function push(bytes32 _bkey, address _contract) external {
 	// TODO: authenticate
-	return this.push(_bkey, _contract);
+	_push(_bkey, _contract);
+    }
+
+
+    function insert(bytes32 _bkey, uint _index, address _contract) external {
+	revert("Not Implemented");
+    }
+
+    function remove(bytes32 _bkey, uint _index) external {
+	revert("Not Implemented");
     }
 }

@@ -2,15 +2,19 @@ pragma solidity ^0.5.0;
 /*
   Title:
   Multiple Linked List Storage
+
   Description:
   Dynamic Storage Contract for storing multiple linked lists each
   uniquely identified by a key. Implementation allows for
   inexpensive insertions and deletions. Implementation can be
   expanded upon for additional guarantees.
+
   Author:
   Benjamin Zaporzan
+
   Email:
   ben@district0x.io
+
   Advantages:
   - inexpensive insertion and deletion
   - dynamic storage, similar to eternalDB
@@ -24,21 +28,22 @@ pragma solidity ^0.5.0;
   - not indexed, but iterable alleviates performance costs.
   - with iterable, it requires you to keep track of the iterable to
   retrieve values in a performant manner.
+
   Example:
-  // Initializing
-  MultiLinkedList mlist = new MultiLinkedList();
+  // Initializing, please see ./TestMultiLinkedList.sol
+  TestMultiLinkedList mlist = new TestMultiLinkedList();
   
   // Create keys for your linked lists
   bytes ukey = keccak256("Users");
   bytes jkey = keccak256("Jobs");
   // Fill our linked list defined by the key
   // Mock Data
-  mlist._push(ukey, 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef);
-  mlist._push(ukey, 0xABABABABABABABABABABABABABABABABABABABBA);
-  mlist._push(ukey, 0xACABACABACABABACABABACABABACABABABABACCA);
-  mlist._push(jkey, 0xDABDABDABDDABDABDABDABDABDABDABDABDABDAD);
-  mlist._push(jkey, 0xABBAABBAABBAABBAABBAABBAABBAABAABABABABA);
-  mlist._push(ukey, 0xCABCABCABCABCABCABCABCABCABCABCABCABCABC);
+  mlist.push(ukey, 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef);
+  mlist.push(ukey, 0xABABABABABABABABABABABABABABABABABABABBA);
+  mlist.push(ukey, 0xACABACABACABABACABABACABABACABABABABACCA);
+  mlist.push(jkey, 0xDABDABDABDDABDABDABDABDABDABDABDABDABDAD);
+  mlist.push(jkey, 0xABBAABBAABBAABBAABBAABBAABBAABAABABABABA);
+  mlist.push(ukey, 0xCABCABCABCABCABCABCABCABCABCABCABCABCABC);
   // Get the length of each list
   mlist.count(ukey) // 4
   mlist.count(jkey) // 2
@@ -64,12 +69,12 @@ pragma solidity ^0.5.0;
   }
   // Remove List Elements
   mlist.count(ukey); // 4
-  mlist._remove(ukey, 1);
+  mlist.remove(ukey, 1);
   mlist.count(ukey); // 3
   mlist.nth(ukey, 1); // 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef
   mlist.nth(jkey, 2); // ERROR: Index out of bounds.
   // Insert List Elements
-  mlist._insert(ukey, 2, 0xFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA);
+  mlist.insert(ukey, 2, 0xFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA);
   mlist.count(ukey); // 4
   mlist.nth(ukey, 2); // 0xFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 */
@@ -337,4 +342,22 @@ contract MultiLinkedList {
         return value(tail_node_mapping[bkey]);
     }
     
+}
+
+
+/// @title MultiLinkedList Interface to implement a public function
+/// with correct authorizations within the given ecosystem.
+/*
+  FIXME: issues when implementing interface. Workaround is to
+  implement manually without inheriting the interface.
+ */
+interface IMultiLinkedList {
+    /// @dev Should call and return MultiLinkedList._push(_bkey, _contract)
+    function push(bytes32 _bkey, address _contract) external returns(uint);
+
+    /// @dev Should call and return MultiLinkedList._insert(_bkey, _index, _contract)
+    function insert(bytes32 _bkey, uint _index, address _contract) external returns(uint);
+
+    /// @dev Should call MultiLinkedList._remove(_bkey, _index)
+    function remove(bytes32 _bkey, uint _index) external;
 }

@@ -1,5 +1,6 @@
 (ns ethlance.shared.smart-contracts) 
 
+
 (def smart-contracts 
   {:ds-guard
    {:name "DSGuard"}
@@ -24,4 +25,6 @@
    :ethlance-registry
    {:name "EthlanceRegistry"}
    :test-token
-   {:name "TestToken"}})
+   {:name "TestToken"}
+   :test-multi-linked-list
+   {:name "TestMultiLinkedList"}})

@@ -9,6 +9,7 @@
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
    [ethlance.server.contract.test-token-test]
+   [ethlance.server.contract.multi-linked-list-test]
    [ethlance.server.db-test]
    [ethlance.server.model.user-test]
    [ethlance.server.model.candidate-test]
@@ -99,3 +100,9 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.test-token-test)))
+
+
+(defn run-mll-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.multi-linked-list-test)))
