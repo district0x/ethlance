@@ -1,7 +1,7 @@
 (ns ethlance.server.contract.multi-linked-list
   "Dynamic multilinked-list (mll) for storing multiple lists within a
   single collection by providing a unique byte32 hash value."
-  (:refer-clojure :exclude [nth next first second last])
+  (:refer-clojure :exclude [nth next first second last count])
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -15,6 +15,10 @@
 (def ^:dynamic *multi-linked-list-key*
   "The contract key for a contract that has inherited MultiLinkedList"
   :ethlance-registry)
+
+
+(defn address []
+  (contracts/contract-address *multi-linked-list-key*))
 
 
 (defn call
@@ -34,12 +38,24 @@
   `push` function calling the underlying MultiLinkedList._push
   function.
   "
-  [bkey value]
-  (call :push bkey value))
+  [bkey value & [opts]]
+  (call :push bkey value
+        (merge {:gas 1500000} opts)))
 
 
-(defn insert! "Not Implemented" [])
-(defn remove! "Not Implemented" [])
+(defn insert!
+  [bkey index value & [opts]]
+  (call :insert bkey index value opts))
+
+
+(defn remove!
+  [bkey index & [opts]]
+  (call :remove bkey index opts))
+
+
+(defn count
+  [bkey]
+  (call :count bkey))
 
 
 (defn nth

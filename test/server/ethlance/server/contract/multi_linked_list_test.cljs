@@ -2,8 +2,10 @@
   (:require
    [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
+   [cljs-web3.core :refer [from-ascii]]
    [cljs-web3.eth :as web3-eth]
    [taoensso.timbre :as log]
+   [cuerdas.core :as str]
 
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]
@@ -30,8 +32,11 @@
 
 (deftest-smart-contract main-mll-tests {}
   (mll/with-multi-linked-list :test-multi-linked-list
-    (let [test-key (sha3 "test")])))
-      ;;(mll/push! test-key test-address-1)
-      ;;(mll/push! test-key test-address-2))))
-
-
+    (let [[user] (web3-eth/accounts @web3)
+          test-key (sha3 "test")
+          test-address (mll/address)]
+      (is (bn/= (mll/count test-key) 0))
+      (mll/push! test-key test-address {:from user})
+      (is (bn/= (mll/count test-key) 1))
+      (mll/push! test-key test-address {:from user})
+      (is (bn/= (mll/count test-key) 2)))))
