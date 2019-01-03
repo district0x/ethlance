@@ -45,12 +45,14 @@
 
 (defn insert!
   [bkey index value & [opts]]
-  (call :insert bkey index value opts))
+  (call :insert bkey index value
+        (merge {:gas 1500000} opts)))
 
 
 (defn remove!
   [bkey index & [opts]]
-  (call :remove bkey index opts))
+  (call :remove bkey index
+        (merge {:gas 1500000} opts)))
 
 
 (defn count
@@ -89,7 +91,7 @@
 (defn value
   "Get the value of the Node at the given index."
   [index]
-  (call :value index))
+  (call :value (bn/number index)))
 
 
 (defn next
@@ -101,7 +103,7 @@
 (defn first
   "Get the first index for a given linked list."
   [bkey]
-  (call :first  bkey))
+  (call :first bkey))
 
 
 (defn second
