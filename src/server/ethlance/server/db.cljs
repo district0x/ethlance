@@ -49,11 +49,15 @@
   [{:table-name :EthlanceSynchronizationLog
     :table-columns
     [[:sync/id :integer primary-key]
-     [:sync/date-created :unsigned :integer]
-     [:sync/hash :varchar not-nil]
+     [:sync/name :varchar not-nil]
+     [:sync/event-name :varchar]
+     [:sync/event-version :unsigned :integer]
+     [:sync/event-data :varchar]
+     [:sync/timestamp :unsigned :integer]
+     [:sync/transaction-hash :varchar not-nil]
+     [:sync/block-hash :varchar not-nil]
      [:sync/block-number :unsigned :integer]
-     [:sync/log-index :unsigned :integer]
-     [:sync/status :varchar not-nil]]
+     [:sync/log-index :unsigned :integer]]
     :id-keys [:sync/id]
     :list-keys []}
 

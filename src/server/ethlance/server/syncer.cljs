@@ -19,6 +19,7 @@
    [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]
 
+   [ethlance.server.model.synchronization :as model.sync]
    [ethlance.server.syncer.event-watcher :as event-watcher]
    [ethlance.server.syncer.event-multiplexer :as event-multiplexer]
    [ethlance.server.syncer.processor :as processor]
@@ -35,6 +36,7 @@
   (let [[result-channel *finished?] (event-multiplexer/start)]
     (go-loop [event (<! result-channel)]
       (when event
+        (model.sync/log-event! event)
         (<! (processor/process-event event))
         (recur (<! result-channel)))
       (log/debug "Syncer has Stopped!"))
@@ -42,12 +44,7 @@
 
 
 (defn stop
-  "Stop the syncer mount component.
-  
-  # Notes
-
-  - Has a strong dependance on the syncer-muxer, hence why I handle
-  mount and remount within the syncer."
+  "Stop the syncer mount component."
   []
   (log/debug "Stopping Syncer...")
   (event-multiplexer/stop @syncer))

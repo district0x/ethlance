@@ -9,7 +9,8 @@
    [district.server.db :as district.db]
    [taoensso.timbre :as log]
    [ethlance.server.db :as ethlance.db]
-   
+   [taoensso.timbre :as log]   
+
    ;; Includes additional spec namespaces
    [ethlance.shared.spec :as espec]))
 
@@ -22,8 +23,18 @@
 
 (defn log-event!
   "Logs an event returned by an Event Watcher with the given `status`."
-  [{:keys [] :as event}]
-  (let []))
+  [event]
+  (let [log-data
+        {:sync/name (-> event :name str)
+         :sync/event-name (-> event :args :event_name)
+         :sync/event-version (-> event :args :event_version bn/number)
+         :sync/event-data (-> event :args :event_data pr-str)
+         :sync/timestamp (-> event :args :timestamp bn/number)
+         :sync/transaction-hash (-> event :transactionHash)
+         :sync/block-hash (-> event :blockHash)
+         :sync/block-number (-> event :blockNumber)
+         :sync/log-index (-> event :logIndex)}]
+    (log! log-data)))
 
 
 (defn get-log-listing
