@@ -1,0 +1,65 @@
+#+TITLE: Ethlance Tasks
+#+AUTHOR: Benjamin Zaporzan
+#+DATE: 2019-01-04
+#+EMAIL: benzaporzan@gmail.com
+#+LANGUAGE: en
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+* Tasks
+** General
+*** TODO Decide on whether to use Sass or Less for stylesheet compilation
+    - Veering towards Sass, but Filip thinks Less is more. Reinvestigate.
+*** TODO Ensure production build works correctly
+    ie. ~make build~
+    - Should work with district.config and include production defaults
+*** TODO Look into creating a Docker image from the production build.
+*** TODO Determine whether deployments will need to be reworked
+    memefactory has veered away from using web3 for deployments, and
+    has moved to using truffle. Look into whether this will affect the
+    ethlance rework.
+** Server
+*** TODO Setup correct district.config values for Generator
+*** TODO Setup correct district.config values for Syncer
+*** TODO Setup correct district.config values for Deployer
+*** TODO Tests for Open Bounty Functionality
+    No tests targetting the Open Bounty state cycle.
+*** TODO Generator needs OPEN_BOUNTY use case
+    Currently no job scenarios that create an open bounty, or resolve
+    it.
+*** TODO job-prog-w-inv-disp is broken
+    - VM Exception while processing transaction: revert The current
+      contract status does not allow you to create a dispute.
+    - Probably requires a ~proceed!~ call to update contract status.
+*** TODO Generator needs more randomized selections, too stale
+    - Several different biographies.
+    - Different arbiter payment options
+    - Different disputes
+    - Different dispute resolutions
+    - Different Invoices
+    - Different Invoice Payments.
+*** TODO Generator needs profile images
+    Create a default profile image at first. This could be expanded on
+    in the future to have something similar to github where the eth
+    account hash could be used to generate a unique image profile.
+*** TODO Get Figwheel Node Server working with Cider REPL
+    This hasn't been working for a while, consider updating everything
+    to latest leiningen and middlewares.
+** UI
+*** TODO Develop baseline UI compilation steps
+    ~make fig-dev-ui~ should generate a website correctly. This should
+    include the proper reloaded lifecycle. Additionally, there should
+    be configurations to correctly target a local development
+    environment. Should preferably also work in Cider.
+*** TODO UI-Only Compilation
+    - ON HOLD until rework is placed on a public testnet.
+*** TODO Implement devcards functionality
+    - Issues with devcards when using re-frame.
+      - Consider splitting out subs/dispatch functionality into a
+        proxy when first creating the components? Would allow us to
+        create a local sub/dispatch system for devcards
+      - study re-frame, and see if it can be monkey-patched to include
+        local subs/dispatch for individual reagent components.
+      - Create a new implementation of devcards that somehow supports
+        re-frame
+      - Use devcards barebones, and just use a global re-frame scope
+        between all devcards. Might require wrapping the devcards with
+        hints at which global variables they are affected by.

@@ -9,7 +9,6 @@
    [district.server.db :as district.db]
    [taoensso.timbre :as log]
    [ethlance.server.db :as ethlance.db]
-   [taoensso.timbre :as log]   
 
    ;; Includes additional spec namespaces
    [ethlance.shared.spec :as espec]))
