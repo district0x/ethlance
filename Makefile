@@ -3,8 +3,8 @@
 .PHONY: help
 .PHONY: dev-server
 .PHONY: fig-dev-server fig-dev-ui
-.PHONY: build-server build-ui build-contracts build-dist build
-.PHONY: watch-contracts watch-tests
+.PHONY: build-server build-ui build-contracts build-dist build-css build
+.PHONY: watch-contracts watch-tests watch-css
 .PHONY: testnet ipfs docs
 .PHONY: run
 .PHONY: deps test travis-test
@@ -22,6 +22,7 @@ help:
 	@echo "  --"
 	@echo "  watch-contracts         :: Start and watch Solidity Contracts."
 	@echo "  watch-tests             :: Start and watch Server tests."
+	@echo "  watch-css               :: Start and watch CSS Stylesheet Generation (LESS)."
 	@echo "  --"
 	@echo "  testnet                 :: Start the Testnet server."
 	@echo "  ipfs                    :: Start the IPFS daemon."
@@ -34,6 +35,7 @@ help:
 	@echo "  build-ui                :: Perform Production Build of Browser UI Only."
 	@echo "  build-server            :: Perform Production Build of Node Server Only."
 	@echo "  build-contracts         :: Build Solidity Contracts Once."
+	@echo "  build-css               :: Build CSS Stylesheets Once."
 	@echo "  build-dist              :: Perform Resource Exports into ./dist folder."
 	@echo "  --"
 	@echo "  run                     :: Run Production Server."
@@ -102,7 +104,7 @@ build-dist: deps
 	sed -i s/ethlance_ui.js/ethlance_ui.min.js/g dist/resources/public/index.html
 
 
-build: clean-all deps build-ui build-server build-contracts build-dist
+build: clean-all deps build-ui build-server build-contracts build-css build-dist
 
 
 test:
@@ -131,3 +133,11 @@ docs:
 
 check:
 	@sh ./scripts/check_prerequisites.sh
+
+
+watch-css:
+	lein less auto
+
+
+build-css:
+	lein less once

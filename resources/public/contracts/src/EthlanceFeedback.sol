@@ -10,6 +10,9 @@ import "./EthlanceRegistry.sol";
 
   - Feedback contract is owned by the contract that constructs it,
     which then decides on who can leave feedback.
+
+  - Feedback can only be left once per a user address, and can be
+    updated from then on.
  */
 contract EthlanceFeedback {
     uint public constant version = 1;
@@ -40,6 +43,12 @@ contract EthlanceFeedback {
 
 
     /// @dev Update the given feedback.
+    /*
+      Notes:
+
+      - Feedback can only be updated by the owner, this method should
+        be superceded by the owner contract.
+     */
     function update(address user_address, string calldata metahash, uint rating) external {
 	require(msg.sender == owner, "Must be contract owner to update feedback.");
 	require(rating <= 5, "Rating must be a value between 0 and 5.");
