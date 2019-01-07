@@ -20,24 +20,6 @@
     has moved to using truffle. Look into whether this will affect the
     ethlance rework.
 ** Server
-*** TODO Implement ERC20 Functionality for Invoice Payment
-    - EthlanceInvoice.pay(...) function requires implementation
-*** TODO Implement ERC20 Functionality for Funding
-    - EthlanceJobStore.fund(...) function requires implementation
-*** TODO Implement ERC20 Functionality for Arbiter Accepted Payments
-    - EthlanceInvoice.resolve(...) function requires implementation
-*** TODO Implement ERC20 Functionality for Job Store
-    - Might be related to 'Funding'
-*** TODO Implement Comments and Feedback
-    - Current implementation is restrictive and requires a great deal
-      of inheritance making contract sizes difficult to manage
-      (collections/EthlanceMetahash.sol)
-    - Planning on moving to a composable model, which consists of a
-      MultiLinkedList, which resembles a 'MultiMap' of address
-      listings. This should reduce contract size, but lead to a
-      'slight' increase in gas use. The resulting MultiLinkedList will
-      be inherited by the EthlanceRegistry, and would setup privileged
-      users to append values to the list.
 *** TODO Setup correct district.config values for Generator
 *** TODO Setup correct district.config values for Syncer
 *** TODO Setup correct district.config values for Deployer
@@ -46,10 +28,6 @@
 *** TODO Generator needs OPEN_BOUNTY use case
     Currently no job scenarios that create an open bounty, or resolve
     it.
-*** TODO Fix for contracts with disputes not updated contract status
-    - Contracts that create disputes go into an ON HOLD state. Need to
-      check and place a contract back into IN PROGRESS when there are
-      no more open disputes.
 *** TODO job-prog-w-inv-disp is broken
     - VM Exception while processing transaction: revert The current
       contract status does not allow you to create a dispute.
@@ -88,3 +66,28 @@
       - Use devcards barebones, and just use a global re-frame scope
         between all devcards. Might require wrapping the devcards with
         hints at which global variables they are affected by.
+** Smart Contracts
+*** TODO Implement ERC20 Functionality for Invoice Payment
+    - EthlanceInvoice.pay(...) function requires implementation
+*** TODO Implement ERC20 Functionality for Funding
+    - EthlanceJobStore.fund(...) function requires implementation
+*** TODO Implement ERC20 Functionality for Arbiter Accepted Payments
+    - EthlanceInvoice.resolve(...) function requires implementation
+*** TODO Implement ERC20 Functionality for Job Store
+    - Might be related to 'Funding'
+*** TODO Implement Comments and Feedback
+    - Current implementation is restrictive and requires a great deal
+      of inheritance making contract sizes difficult to manage
+      (collections/EthlanceMetahash.sol)
+    - Planning on moving to a composable model, which consists of a
+      MultiLinkedList, which resembles a 'MultiMap' of address
+      listings. This should reduce contract size, but lead to a
+      'slight' increase in gas use. The resulting MultiLinkedList will
+      be inherited by the EthlanceRegistry, and would setup privileged
+      users to append values to the list.
+*** TODO Fix for contracts with disputes not updated contract status
+    - Contracts that create disputes go into an ON HOLD state. Need to
+      check and place a contract back into IN PROGRESS when there are
+      no more open disputes.
+*** TODO Authenication for Invoice Construction
+    - Requires check on construction privileges
