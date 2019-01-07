@@ -92,9 +92,9 @@
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
 
-  :figwheel {:css-dirs ["resources/public/css"]
-             :nrepl-port 9000
-             :server-port 6500}
+  :figwheel {:css-dirs ["resources/public/css"]}
+             ;;:nrepl-port 9000}
+             ;;:server-port 6500}
 
   :aliases {}
 
