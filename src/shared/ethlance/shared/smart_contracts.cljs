@@ -24,6 +24,10 @@
    {:name "EthlanceJobStore"}
    :ethlance-registry
    {:name "EthlanceRegistry"}
+   :ethlance-comment
+   {:name "EthlanceComment"}
+   :ethlance-feedback
+   {:name "EthlanceFeedback"}
    :test-token
    {:name "TestToken"}
    :test-multi-linked-list
