@@ -65,8 +65,8 @@
 
 
 (defn- generate-job!
-  [{:keys [employer-address bounty?]
-    :or {bounty? false}}]
+  [{:keys [employer-address bounty? fund-amount]
+    :or {bounty? false fund-amount (web3/to-wei 5.0 :ether)}}]
 
   (let [result-chan (chan 1)
         ipfs-data {:job/title "Full-Stack Software Developer" ;; TODO: randomize
@@ -85,11 +85,20 @@
          :metahash hash
          :reward-value (if-not bounty? 0 (web3/to-wei 5.0 :ether))}
         {:from employer-address})
+       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+         (job/fund! {:from employer-address :value fund-amount}))
        (>! result-chan {:job-index job-index})))
     result-chan))
 
 
 (defn- generate-invoice!
+  "Generates an invoice, and will pay it if `paid?` is true
+ 
+  Notes:
+
+  - Should only be called within a `with-ethlance-job` context.
+ 
+  "
   [{:keys [candidate-address
            employer-address
            paid?
@@ -104,7 +113,9 @@
        (work-contract/create-invoice! {:amount amount :metahash hash} {:from candidate-address})
        (when paid?
          ;; Fund the amount to pay out for the invoice.
-         (job/fund! {:from employer-address :value (web3/to-wei 1.0 :ether)})
+         (job/fund!
+          {:from employer-address
+           :value (web3/to-wei 1.0 :ether)})
          (invoice/with-ethlance-invoice (work-contract/invoice-by-index invoice-index)
            (log/debug "- Paying Invoice...")
            (invoice/pay! amount {:from employer-address})))

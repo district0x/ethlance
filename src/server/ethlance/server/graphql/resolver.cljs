@@ -28,4 +28,11 @@
    [ethlance.server.model.employer :as model.employer]
 
    ;; Misc.
-   [ethlance.server.db :as ethlance.db]))
+   [ethlance.server.db :as ethlance.db]
+
+   ;; Resolvers
+   [ethlance.server.graphql.resolvers.user :as resolvers.user]))
+
+
+(def graphql-resolver-map
+  {:Query {:user resolvers.user/user-query}})

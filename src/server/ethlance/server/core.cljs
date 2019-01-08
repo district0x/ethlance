@@ -17,19 +17,22 @@
    [district.server.config :refer [config]]
    [district.server.smart-contracts]
    [district.server.logging]
+
+   ;; District Libraries
+   [district.graphql-utils :as graphql-utils]
    [district.server.graphql]
+   [district.server.graphql.utils :refer [build-schema]]
 
    ;; Ethlance Mount Components
    [ethlance.server.generator]
    [ethlance.server.syncer]
    [ethlance.server.db]
    [ethlance.server.ipfs]
-   [ethlance.shared.smart-contracts]))
+   [ethlance.shared.smart-contracts]
 
-
-;; Testing GraphQL
-(def schema "type Query { hello: String}")
-(def root {:hello (constantly "Hello world")})
+   ;; Ethlance Libraries
+   [ethlance.shared.graphql.schema :refer [graphql-schema]]
+   [ethlance.server.graphql.resolver :refer [graphql-resolver-map]]))
 
 
 (def main-config
@@ -41,8 +44,9 @@
 
    :graphql {:port 6200
              :path "/graphql"
-             :schema schema
-             :root-value root
+             :schema (build-schema graphql-schema graphql-resolver-map
+                                   {:kw->gql-name graphql-utils/kw->gql-name
+                                    :gql-name->kw graphql-utils/gql-name->kw})
              :graphiql false}
 
    :ipfs {:host "http://127.0.0.1:5001"
