@@ -2,7 +2,7 @@
 
 .PHONY: help
 .PHONY: dev-server
-.PHONY: fig-dev-server fig-dev-ui
+.PHONY: fig-dev-all fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build-css build
 .PHONY: watch-contracts watch-tests watch-css
 .PHONY: testnet ipfs docs
@@ -17,6 +17,7 @@ help:
 	@echo "  dev-server              :: Run Development Node Server for Figwheel Server Build"
 	@echo "  repl                    :: Start CLJ Repl."
 	@echo "  --"
+	@echo "  fig-dev-all             :: Start and Watch Server and UI Builds."
 	@echo "  fig-dev-server          :: Start and watch Figwheel Server Build."
 	@echo "  fig-dev-ui              :: Start and watch Figwheel UI Build."
 	@echo "  --"
@@ -53,6 +54,10 @@ help:
 
 dev-server:
 	node target/node/ethlance_server.js
+
+
+fig-dev-all:
+	lein figwheel dev-server dev-ui
 
 
 fig-dev-server:

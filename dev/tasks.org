@@ -20,6 +20,7 @@
     has moved to using truffle. Look into whether this will affect the
     ethlance rework.
 ** Server
+*** TODO Finish GraphQL Resolvers
 *** TODO Setup correct district.config values for Generator
 *** TODO Setup correct district.config values for Syncer
 *** TODO Setup correct district.config values for Deployer

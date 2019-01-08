@@ -92,9 +92,9 @@
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
 
-  :figwheel {:css-dirs ["resources/public/css"]}
-             ;;:nrepl-port 9000}
-             ;;:server-port 6500}
+  :figwheel {:css-dirs ["resources/public/css"]
+             :nrepl-port 9000
+             :server-port 6500}
 
   :aliases {}
 
@@ -105,8 +105,7 @@
          [cors "2.8.4"]
          [deasync "0.1.11"]
          [express "4.15.3"]
-         ;; needed until v0.6.13 is officially released
-         #_[express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
+         [express-graphql "0.7.1"]
          [graphql "0.13.1"]
          [graphql-fields "1.0.2"]
          [graphql-tools "3.0.1"]

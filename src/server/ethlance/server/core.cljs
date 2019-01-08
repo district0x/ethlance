@@ -17,6 +17,7 @@
    [district.server.config :refer [config]]
    [district.server.smart-contracts]
    [district.server.logging]
+   [district.server.graphql]
 
    ;; Ethlance Mount Components
    [ethlance.server.generator]
@@ -26,11 +27,24 @@
    [ethlance.shared.smart-contracts]))
 
 
+;; Testing GraphQL
+(def schema "type Query { hello: String}")
+(def root {:hello (constantly "Hello world")})
+
+
 (def main-config
   {:web3 {:port 8545}
+
    :smart-contracts {:contracts-var #'ethlance.shared.smart-contracts/smart-contracts
                      :print-gas-usage? false
                      :auto-mining? false}
+
+   :graphql {:port 6200
+             :path "/graphql"
+             :schema schema
+             :root-value root
+             :graphiql false}
+
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"
           :gateway "http://127.0.0.1:8080/ipfs"}})

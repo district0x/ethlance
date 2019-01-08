@@ -20,7 +20,12 @@
    [ethlance.server.deployer :as deployer]
    [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
-   [ethlance.server.test-runner :as server.test-runner]))
+   [ethlance.server.test-runner :as server.test-runner]
+   [district.server.graphql :as graphql]))
+
+
+(def gql "Shorthand for district.server.graphql/run-query"
+  graphql/run-query)
 
 
 (def help-message "
@@ -49,7 +54,8 @@
       (merge {:db {:path "./resources/ethlance.db"
                    :opts {:memory false}}})
       (update :smart-contracts merge {:print-gas-usage? true
-                                      :auto-mining? true})))
+                                      :auto-mining? true})
+      (update :graphql merge {:graphiql true})))
 
 
 (defn start-sync
