@@ -26,6 +26,15 @@
    [ethlance.server.model.arbiter :as model.arbiter]))
 
 
+(defn user-id-query
+  "Returns the User ID of the given ethereum address, or nil"
+  [_ {:keys [:user/address]}]
+  (log/debug (str "Returning User ID of: " address))
+  (try-catch
+   (-> (district.db/get {:select [:user/id] :from [:User] :where [:= :user/address address]})
+       (get :user/id))))
+
+
 (defn user-query
   "Main Resolver of Users"
   [obj {:keys [:user/id]}]

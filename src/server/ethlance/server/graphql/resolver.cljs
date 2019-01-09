@@ -8,6 +8,7 @@
 
 (def graphql-resolver-map
   {:Query
-   {:hello (constantly "Hello World!!")
+   {:user-id resolvers.user/user-id-query
     :user resolvers.user/user-query}
-   :User {}})
+   :User
+   {}})

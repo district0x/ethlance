@@ -7,7 +7,10 @@
   scalar Keyword
 
   type Query {
-    hello: String
+    \"Retrieve the User ID for the given Ethereum Address, or null\"
+    userId(user_address : ID!): Int
+
+    \"Retrieve the User Data for the User defined by the given User ID\"
     user(user_id : Int!): User
   }
 
