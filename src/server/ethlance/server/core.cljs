@@ -35,6 +35,15 @@
    [ethlance.server.graphql.resolver :refer [graphql-resolver-map]]))
 
 
+(def graphql-config
+  {:port 6200
+   :path "/graphql"
+   :schema (build-schema graphql-schema graphql-resolver-map
+                         {:kw->gql-name graphql-utils/kw->gql-name
+                          :gql-name->kw graphql-utils/gql-name->kw})
+   :graphiql false})
+
+
 (def main-config
   {:web3 {:port 8545}
 
@@ -42,12 +51,7 @@
                      :print-gas-usage? false
                      :auto-mining? false}
 
-   :graphql {:port 6200
-             :path "/graphql"
-             :schema (build-schema graphql-schema graphql-resolver-map
-                                   {:kw->gql-name graphql-utils/kw->gql-name
-                                    :gql-name->kw graphql-utils/gql-name->kw})
-             :graphiql false}
+   :graphql graphql-config
 
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"

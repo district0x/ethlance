@@ -8,6 +8,8 @@
    [mount.core :as mount] 
    [taoensso.timbre :as log]
    
+   [district.graphql-utils :as graphql-utils]
+   [district.server.graphql :as graphql]
    [district.server.logging]
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]
@@ -20,31 +22,48 @@
    [ethlance.server.deployer :as deployer]
    [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
-   [ethlance.server.test-runner :as server.test-runner]
-   [district.server.graphql :as graphql]))
-
+   [ethlance.server.test-runner :as server.test-runner]))
+   
 
 (def gql "Shorthand for district.server.graphql/run-query"
   graphql/run-query)
 
 
+;; More GraphQL Shortcuts
+(def gql-name->kw graphql-utils/gql-name->kw)
+(def kw->gql-name graphql-utils/kw->gql-name)
+
+
 (def help-message "
   CLJS-Server Repl Commands:
 
+  -- Development Lifecycle --
   (start)                         ;; Starts the state components (reloaded workflow)
   (stop)                          ;; Stops the state components (reloaded workflow)
   (restart)                       ;; Restarts the state components (reloaded workflow)
 
+  -- Development Helpers --
   (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the testnet snapshot)
   (reset-testnet!)                ;; Reset the testnet snapshot
   (repopulate-database!)          ;; Resynchronize Smart Contract Events into the Database
+  (restart-graphql!)              ;; Restart/Reload GraphQL Schema and Resolvers
 
+  -- Instrumentation --
   (enable-instrumentation!)       ;; Enable fspec instrumentation
   (disable-instrumentation!)      ;; Disable fspec instrumentation
 
+  -- GraphQL Utilities --
+  (gql <query>)                   ;; Run GraphQL Query
+
+  -- Misc --
   (help)                          ;; Display this help message
 
 ")
+
+
+(def dev-graphql-config
+  (-> ethlance.server.core/graphql-config
+      (assoc :graphiql true)))
 
 
 (def dev-config
@@ -55,7 +74,13 @@
                    :opts {:memory false}}})
       (update :smart-contracts merge {:print-gas-usage? true
                                       :auto-mining? true})
-      (update :graphql merge {:graphiql true})))
+      (assoc :graphql dev-graphql-config)))
+
+
+(defn restart-graphql!
+  "Restart the GraphQL State Component with new schema and resolver."
+  []
+  (graphql/restart dev-graphql-config))
 
 
 (defn start-sync

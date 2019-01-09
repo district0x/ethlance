@@ -7,6 +7,7 @@
   scalar Keyword
 
   type Query {
+    hello: String
     user(user_id : Int!): User
   }
 
