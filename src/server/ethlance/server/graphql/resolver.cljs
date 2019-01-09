@@ -3,12 +3,24 @@
   (:require
 
    ;; Resolvers
-   [ethlance.server.graphql.resolvers.user :as resolvers.user]))
+   [ethlance.server.graphql.resolvers.user :as resolvers.user]
+   [ethlance.server.graphql.resolvers.candidate :as resolvers.candidate]))
 
 
 (def graphql-resolver-map
   {:Query
-   {:user-id resolvers.user/user-id-query
-    :user resolvers.user/user-query}
-   :User
-   {}})
+   {;; User Queries
+    :user-id resolvers.user/user-id-query
+    :user resolvers.user/user-query
+    :user-search resolvers.user/user-search-query
+
+    ;; Candidate Queries
+    :candidate resolvers.candidate/candidate-query}
+   :User {}
+   :Candidate {}
+   :Employer {}
+   :Arbiter {}
+   :Job {}
+   :WorkContract {}
+   :Invoice {}
+   :Dispute {}})

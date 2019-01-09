@@ -66,7 +66,7 @@
 
 (s/fdef get-data
   :args (s/cat :user-id :user/id)
-  :ret ::arbiter-data)
+  :ret (s/nilable ::arbiter-data))
 
 (defn get-data [user-id]
   (let [arbiter (ethlance.db/get-row :UserArbiter {:user/id user-id})]

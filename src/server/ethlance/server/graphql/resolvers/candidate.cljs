@@ -1,5 +1,5 @@
-(ns ethlance.server.graphql.resolvers.user
-  "GraphQL Resolvers defined for a User, or User Listings"
+(ns ethlance.server.graphql.resolvers.candidate
+  "GraphQL Resolvers defined for a Candidate, or Candidate Listings."
   (:require
    [bignumber.core :as bn]
    [cljs-time.core :as t]
@@ -26,29 +26,10 @@
    [ethlance.server.model.arbiter :as model.arbiter]))
 
 
-(defn user-id-query
-  "Returns the User ID of the given ethereum address, or nil"
-  [_ {:keys [:user/address]}]
-  (log/debug (str "Returning User ID of: " address))
-  (try-catch
-   (-> (district.db/get {:select [:user/id] :from [:User] :where [:= :user/address address]})
-       (get :user/id))))
-
-
-(defn user-query
-  "Main Resolver of User Data"
+(defn candidate-query
+  "Main Resolver for Candidate Data"
   [_ {:keys [:user/id]}]
-  (log/debug (str "Querying User Id: " id))
+  (log/debug (str "Querying for Candidate: " id))
   (try-catch
    (when (> id 0)
-     (model.user/get-data id))))
-
-
-(defn user-search-query
-  ""
-  [_ {:keys [:user/user-name]}]
-  (let []
-    {:items nil
-     :total-count 0
-     :end-cursor nil
-     :has-next-page false}))
+     (model.candidate/get-data id))))

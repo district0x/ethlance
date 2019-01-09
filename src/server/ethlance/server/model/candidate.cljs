@@ -110,7 +110,7 @@
 
 (s/fdef get-data
   :args (s/cat :user-id :user/id)
-  :ret ::candidate-data)
+  :ret (s/nilable ::candidate-data))
 
 (defn get-data
   "Flat data making up the candidate."

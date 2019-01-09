@@ -60,7 +60,7 @@
 
 (s/fdef get-data
   :args (s/cat :user-id :user/id)
-  :ret ::employer-data)
+  :ret (s/nilable ::employer-data))
 
 (defn get-data [user-id]
   (let [employer (ethlance.db/get-row :UserEmployer {:user/id user-id})]
