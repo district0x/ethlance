@@ -21,7 +21,7 @@
    ;; District Libraries
    [district.graphql-utils :as graphql-utils]
    [district.server.graphql]
-   [district.server.graphql.utils :refer [build-schema]]
+   [district.server.graphql.utils :refer [build-schema build-default-field-resolver]]
 
    ;; Ethlance Mount Components
    [ethlance.server.generator]
@@ -41,6 +41,7 @@
    :schema (build-schema graphql-schema graphql-resolver-map
                          {:kw->gql-name graphql-utils/kw->gql-name
                           :gql-name->kw graphql-utils/gql-name->kw})
+   :field-resolver (build-default-field-resolver graphql-utils/gql-name->kw)
    :graphiql false})
 
 
