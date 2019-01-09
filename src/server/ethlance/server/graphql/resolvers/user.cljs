@@ -9,7 +9,9 @@
    [cljs.core.match :refer-macros [match]]
    [cljs.nodejs :as nodejs]
    [cuerdas.core :as str]
+   [taoensso.timbre :as log]
 
+   [district.shared.error-handling :refer [try-catch]]
    [district.graphql-utils :as graphql-utils]
    [district.server.config :refer [config]]
    [district.server.db :as district.db]
@@ -25,6 +27,9 @@
 
 
 (defn user-query
-  "Main Resolver"
+  "Main Resolver of Users"
   [obj {:keys [:user/id]}]
-  (model.user/get-data id))
+  (log/debug (str "Querying User Id: " id))
+  (try-catch
+   (when (> id 0)
+     (model.user/get-data id))))

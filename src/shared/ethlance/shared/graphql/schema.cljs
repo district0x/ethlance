@@ -12,8 +12,15 @@
   }
 
   type User {
+    \"User Identifier\"
+    user_id: Int
+
     \"Ethereum Address Corresponding to this Registered User.\"
     user_address: ID
+
+    \"Two Letter Country Code\"
+    user_countryCode: String
+
   }
 
   ")
