@@ -10,6 +10,7 @@
   scalar Date
   scalar Keyword
 
+
   #
   # Interfaces
   #
@@ -17,9 +18,20 @@
   \"Information for Pagination implemented by Listings.\"
   interface PageInfo {
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
+
+  #
+  # Base Types
+  #
+
+  enum OrderDirection {
+    asc
+    desc
+  }
+
 
   # 
   # Begin
@@ -33,11 +45,64 @@
     user(user_id : Int!): User
 
     \"Search for and create User Listings\"
-    userSearch(user_address: ID): UserList
+    userSearch(
+      user_address: ID,
+      user_fullname: String,
+      user_username: String,
+      orderBy: UserListOrderBy,
+      orderDirection: OrderDirection,
+      first: Int,
+      after: String,
+    ): UserList
 
     \"Retrieve the Candidate Data defined by the User ID\"
     candidate(user_id : Int!): Candidate
+
+    # TODO: Rating
+    \"Search for and create Candidate Listings\"
+    candidateSearch(
+      user_id: Int,
+      categoriesAnd: [String!],
+      categoriesOr: [String!],
+      skillsAnd: [String!],
+      skillsOr: [String!],
+      professionalTitle: String,
+      orderBy: CandidateListOrderBy,
+      orderDirection: OrderDirection,
+      first: Int,
+      after: String,
+    ): CandidateList
+
+    \"Retrieve the Employer Data defined by the User ID\"
+    employer(user_id : Int!): Employer
+
+    # TODO: Rating
+    \"Search for and create Employer Listings\"
+    employerSearch(
+      user_id: Int,
+      categoriesAnd: [String!],
+      categoriesOr: [String!],
+      professionalTitle: String,
+      orderBy: EmployerListOrderBy,
+      orderDirection: OrderDirection,
+      first: Int,
+      after: String,
+    ): EmployerList
+
+    \"Retrieve the Arbiter Data defined by the User ID\"
+    arbiter(user_id : Int!): Arbiter
+
+    # TODO: Rating
+    \"Search for and create Arbiter Listings\"
+    arbiterSearch(
+      user_id: Int,
+      orderBy: ArbiterListOrderBy,
+      orderDirection: OrderDirection,
+      first: Int,
+      after: String,
+    ): ArbiterList
   }
+
 
   # User Types
 
@@ -73,9 +138,15 @@
   type UserList implements PageInfo {
     items: [User!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
+  enum UserListOrderBy {
+    userList_orderBy_dateUpdated
+    userList_orderBy_dateCreated
+  }
+
 
   # Candidate Types
 
@@ -96,9 +167,15 @@
   type CandidateList implements PageInfo {
     items: [Candidate!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
+  enum CandidateListOrderBy {
+    candidateList_orderBy_dateUpdated
+    candidateList_orderBy_dateCreated
+  }
+
 
   # Employer Types
 
@@ -119,9 +196,15 @@
   type EmployerList implements PageInfo {
     items: [Employer!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
+  enum EmployerListOrderBy {
+    employerList_orderBy_dateUpdated
+    employerList_orderBy_dateCreated
+  }
+
 
   # Arbiter Types
 
@@ -145,9 +228,15 @@
   type ArbiterList implements PageInfo {
     items: [Arbiter!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
+  enum ArbiterListOrderBy {
+    arbiterList_orderBy_dateUpdated
+    arbiterList_orderBy_dateCreated
+  }
+
 
   # Job Types
 
@@ -159,7 +248,7 @@
   type JobList implements PageInfo {
     items: [Job!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
 
@@ -191,9 +280,10 @@
   type WorkContractList implements PageInfo {
     items: [WorkContract!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
 
   # Invoice Types
 
@@ -220,9 +310,10 @@
   type InvoiceList implements PageInfo {
     items: [Invoice!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
+
 
   # Dispute Types
 
@@ -262,7 +353,7 @@
   type DisputeList implements PageInfo {
     items: [Dispute!]
     totalCount: Int
-    endCursor: Int
+    endCursor: String
     hasNextPage: Boolean
   }
 

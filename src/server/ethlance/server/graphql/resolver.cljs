@@ -4,7 +4,9 @@
 
    ;; Resolvers
    [ethlance.server.graphql.resolvers.user :as resolvers.user]
-   [ethlance.server.graphql.resolvers.candidate :as resolvers.candidate]))
+   [ethlance.server.graphql.resolvers.candidate :as resolvers.candidate]
+   [ethlance.server.graphql.resolvers.employer :as resolvers.employer]
+   [ethlance.server.graphql.resolvers.arbiter :as resolvers.arbiter]))
 
 
 (def graphql-resolver-map
@@ -15,7 +17,16 @@
     :user-search resolvers.user/user-search-query
 
     ;; Candidate Queries
-    :candidate resolvers.candidate/candidate-query}
+    :candidate resolvers.candidate/candidate-query
+    :candidate-search resolvers.candidate/candidate-search-query
+
+    ;; Employer Queries
+    :employer resolvers.employer/employer-query
+    :employer-search resolvers.employer/employer-search-query
+
+    ;; Arbiter Queries
+    :arbiter resolvers.arbiter/arbiter-query
+    :arbiter-search resolvers.arbiter/arbiter-search-query}
    :User {}
    :Candidate {}
    :Employer {}

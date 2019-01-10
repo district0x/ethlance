@@ -1,5 +1,5 @@
-(ns ethlance.server.graphql.resolvers.candidate
-  "GraphQL Resolvers defined for a Candidate, or Candidate Listings."
+(ns ethlance.server.graphql.resolvers.employer
+  "GraphQL Resolvers defined for a Employer, or Employer Listings."
   (:require
    [bignumber.core :as bn]
    [cljs-time.core :as t]
@@ -21,20 +21,19 @@
 
    [ethlance.server.db :as ethlance.db]
    [ethlance.server.model.user :as model.user]
-   [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
    [ethlance.server.model.arbiter :as model.arbiter]))
 
 
-(defn candidate-query
-  "Main Resolver for Candidate Data"
+(defn employer-query
+  "Main Resolver for Employer Data"
   [_ {:keys [:user/id]}]
-  (log/debug (str "Querying for Candidate: " id))
+  (log/debug (str "Querying for Employer: " id))
   (try-catch
    (when (> id 0)
-     (model.candidate/get-data id))))
+     (model.employer/get-data id))))
 
 
-(defn candidate-search-query
+(defn employer-search-query
   ""
   [_ {:keys []}])
