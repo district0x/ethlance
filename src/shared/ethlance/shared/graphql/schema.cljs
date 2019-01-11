@@ -12,18 +12,6 @@
 
 
   #
-  # Interfaces
-  #
-
-  \"Information for Pagination implemented by Listings.\"
-  interface PageInfo {
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
-
-
-  #
   # Base Types
   #
 
@@ -133,9 +121,12 @@
 
     \"Date when the user was Last Updated\"
     user_dateUpdated: Date
+
+    \"List of languages the user speaks\"
+    user_languages: [String!]
   }
 
-  type UserList implements PageInfo {
+  type UserList {
     items: [User!]
     totalCount: Int
     endCursor: String
@@ -164,7 +155,7 @@
     candidate_professionalTitle: String
   }
 
-  type CandidateList implements PageInfo {
+  type CandidateList {
     items: [Candidate!]
     totalCount: Int
     endCursor: String
@@ -193,7 +184,7 @@
     employer_professionalTitle: String
   }
 
-  type EmployerList implements PageInfo {
+  type EmployerList {
     items: [Employer!]
     totalCount: Int
     endCursor: String
@@ -225,7 +216,7 @@
     arbiter_paymentType: Keyword
   }
 
-  type ArbiterList implements PageInfo {
+  type ArbiterList  {
     items: [Arbiter!]
     totalCount: Int
     endCursor: String
@@ -245,7 +236,7 @@
     job_index: Int
   }
 
-  type JobList implements PageInfo {
+  type JobList {
     items: [Job!]
     totalCount: Int
     endCursor: String
@@ -277,7 +268,7 @@
     workContract_dateFinished: Date
   }
 
-  type WorkContractList implements PageInfo {
+  type WorkContractList {
     items: [WorkContract!]
     totalCount: Int
     endCursor: String
@@ -307,7 +298,7 @@
     invoice_amountPaid: Int
   }
 
-  type InvoiceList implements PageInfo {
+  type InvoiceList  {
     items: [Invoice!]
     totalCount: Int
     endCursor: String
@@ -350,7 +341,7 @@
     dispute_arbiterResolutionAmount: Int
   }
 
-  type DisputeList implements PageInfo {
+  type DisputeList {
     items: [Dispute!]
     totalCount: Int
     endCursor: String

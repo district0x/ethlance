@@ -27,7 +27,8 @@
     ;; Arbiter Queries
     :arbiter resolvers.arbiter/arbiter-query
     :arbiter-search resolvers.arbiter/arbiter-search-query}
-   :User {}
+   :User
+   {:user/languages resolvers.user/user-languages-query}
    :Candidate {}
    :Employer {}
    :Arbiter {}

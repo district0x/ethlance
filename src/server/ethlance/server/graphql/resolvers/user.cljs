@@ -26,6 +26,9 @@
    [ethlance.server.model.arbiter :as model.arbiter]))
 
 
+(def enum graphql-utils/kw->gql-name)
+
+
 (defn user-id-query
   "Returns the User ID of the given ethereum address, or nil"
   [_ {:keys [:user/address]}]
@@ -46,9 +49,21 @@
 
 (defn user-search-query
   ""
-  [_ {:keys [:user/user-name]}]
+  [_ {:keys [:user/user-address
+             :user/fullname
+             :user/username
+             order-by
+             order-direction
+             first
+             after]}]
   (let []
     {:items nil
      :total-count 0
      :end-cursor nil
      :has-next-page false}))
+
+
+(defn user-languages-query
+  "List of languages the current user speaks."
+  [{:keys []}]
+  ["test"])
