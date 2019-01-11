@@ -124,6 +124,11 @@
 
     \"List of languages the user speaks\"
     user_languages: [String!]
+
+    \"Registration Checks\"
+    user_isRegisteredCandidate: Boolean!
+    user_isRegisteredArbiter: Boolean!
+    user_isRegisteredEmployer: Boolean!
   }
 
   type UserList {
@@ -153,6 +158,12 @@
 
     \"Professional Title Defined by the User\"
     candidate_professionalTitle: String
+
+    \"Categories of Focused Work\"
+    candidate_categories: [String!]
+
+    \"Skills of the Candidate\"
+    candidate_skills: [String!]
   }
 
   type CandidateList {

@@ -38,3 +38,15 @@
 (defn candidate-search-query
   ""
   [_ {:keys []}])
+
+
+(defn candidate-categories-query
+  [{:keys [:user/id]}]
+  (log/debug (str "Candidate Category Listing: " id))
+  (model.candidate/category-listing id))
+
+
+(defn candidate-skills-query
+  [{:keys [:user/id]}]
+  (log/debug (str "Candidate Skills Listing: " id))
+  (model.candidate/skill-listing id))

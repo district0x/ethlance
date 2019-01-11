@@ -65,5 +65,36 @@
 
 (defn user-languages-query
   "List of languages the current user speaks."
-  [{:keys []}]
-  ["test"])
+  [{:keys [:user/id]}]
+  (log/debug (str "User Language Listing: " id))
+  (model.user/language-listing id))
+
+
+(defn is-registered-candidate-query
+  [{:keys [:user/id]}]
+  (log/debug (str "User Is Registered Candidate: " id))
+  (-> (district.db/get
+       {:select [1]
+        :from [[:UserCandidate :uc]]
+        :where [:= :user/id id]})
+      seq boolean))
+
+
+(defn is-registered-arbiter-query
+  [{:keys [:user/id]}]
+  (log/debug (str "User Is Registered Arbiter: " id))
+  (-> (district.db/get
+       {:select [1]
+        :from [[:UserArbiter :uc]]
+        :where [:= :user/id id]})
+      seq boolean))
+
+
+(defn is-registered-employer-query
+  [{:keys [:user/id]}]
+  (log/debug (str "User Is Registered Employer: " id))
+  (-> (district.db/get
+       {:select [1]
+        :from [[:UserEmployer :uc]]
+        :where [:= :user/id id]})
+      seq boolean))

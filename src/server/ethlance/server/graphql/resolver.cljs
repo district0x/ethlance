@@ -27,9 +27,21 @@
     ;; Arbiter Queries
     :arbiter resolvers.arbiter/arbiter-query
     :arbiter-search resolvers.arbiter/arbiter-search-query}
+
+   ;;
+   ;; Defined Models
+   ;;
+
    :User
-   {:user/languages resolvers.user/user-languages-query}
-   :Candidate {}
+   {:user/languages resolvers.user/user-languages-query
+    :user/is-registered-candidate resolvers.user/is-registered-candidate-query
+    :user/is-registered-arbiter resolvers.user/is-registered-arbiter-query
+    :user/is-registered-employer resolvers.user/is-registered-employer-query}
+
+   :Candidate
+   {:candidate/categories resolvers.candidate/candidate-categories-query
+    :candidate/skills resolvers.candidate/candidate-skills-query}
+
    :Employer {}
    :Arbiter {}
    :Job {}
