@@ -245,6 +245,20 @@
   type Job {
     \"Identifier for the given Job\"
     job_index: Int
+    job_title: String
+    job_acceptedArbiter: ID
+    job_availability: Keyword
+    job_bidOption: Keyword
+    job_category: String
+    job_description: String
+    job_dateCreated: Date
+    job_dateFinished: Date
+    job_employerUid: ID
+    job_estimatedLengthSeconds: Int
+    job_includeEtherToken_: Boolean
+    job_isInvitationOnly_: Boolean
+    job_rewardValue: Int
+    job_workContracts(first: Int, after: String): WorkContractList
   }
 
   type JobList {
@@ -277,6 +291,9 @@
    
     \"Date when the contract was finished\"
     workContract_dateFinished: Date
+
+    workContract_invoices(first: Int, after: String): InvoiceList
+    workContract_disputes(first: Int, after: String): DisputeList
   }
 
   type WorkContractList {
