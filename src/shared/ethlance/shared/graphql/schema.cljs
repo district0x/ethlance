@@ -89,6 +89,31 @@
       first: Int,
       after: String,
     ): ArbiterList
+
+    \"Retrieve the Job Data defined by the Job Index\"
+    job(job_index : Int!): Job
+
+    \"Search for and create Job Listings\"
+    jobSearch(
+      job_index: Int,
+      orderBy: JobListOrderBy,
+      orderDirection: OrderDirection,
+      first: Int,
+      after: String,
+    ): JobList
+
+    \"Retrieve the Work Contract Data defined by the Work Contract Index\"
+    workContract(job_index: Int!, workContract_index: Int!): WorkContract
+
+    \"Retrieve the Dispute Data defined by the dispute index\"
+    dispute(job_index: Int!,
+            workContract_index: Int!,
+            dispute_index: Int!): Dispute
+
+    \"Retrieve the Invoice Data defined by the invoice index\"
+    invoice(job_index: Int!,
+            workContract_index: Int!,
+            invoice_index: Int!): Invoice
   }
 
 
@@ -268,6 +293,11 @@
     hasNextPage: Boolean
   }
 
+  enum JobListOrderBy {
+    joblist_orderBy_dateUpdated
+    joblist_orderBy_dateCreated
+  }
+
   # WorkContract Types
 
   type WorkContract {
@@ -292,8 +322,17 @@
     \"Date when the contract was finished\"
     workContract_dateFinished: Date
 
-    workContract_invoices(first: Int, after: String): InvoiceList
-    workContract_disputes(first: Int, after: String): DisputeList
+    \"Invoice Listing for Work Contract\"
+    workContract_invoices(
+      first: Int,
+      after: String
+    ): InvoiceList
+
+    \"Dispute Listing for Work Contract\"
+    workContract_disputes(
+      first: Int,
+      after: String
+    ): DisputeList
   }
 
   type WorkContractList {
@@ -301,6 +340,11 @@
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
+  }
+
+  enum WorkContractOrderBy {
+    workContract_orderBy_dateUpdated
+    workContract_orderBy_dateCreated
   }
 
 

@@ -254,7 +254,7 @@
 
 (s/fdef get-job
   :args (s/cat :job-index :job/index)
-  :ret ::job-data)
+  :ret (s/nilable ::job-data))
 
 (defn get-job [job-index]
   (let [job (ethlance.db/get-row :Job {:job/index job-index})]
