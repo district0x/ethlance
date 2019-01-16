@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 
+
 /// @title Represents a comment created by a given party
 /*
   Notes:

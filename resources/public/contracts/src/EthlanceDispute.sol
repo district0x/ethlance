@@ -3,11 +3,24 @@ pragma solidity ^0.5.0;
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
 import "./collections/EthlanceMetahash.sol";
+import "./EthlanceComment.sol";
+import "proxy/Forwarder.sol";
+
 
 /// @title Represents a Employer / Candidate work dispute
 contract EthlanceDispute is MetahashStore {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
+
+
+    //
+    // Constants
+    //
+    uint public constant GUEST_TYPE = 0;
+    uint public constant EMPLOYER_TYPE = 1;
+    uint public constant CANDIDATE_TYPE = 2;
+    uint public constant ARBITER_TYPE = 3;
+
 
     //
     // Members
@@ -158,5 +171,38 @@ contract EthlanceDispute is MetahashStore {
 	event_data[2] = dispute_index;
 
 	registry.fireEvent(event_name, version, event_data);
+    }
+
+
+    /// @dev Place a comment on the dispute
+    function addComment(string calldata metahash) external {
+	uint user_type = GUEST_TYPE;
+
+	if (msg.sender == work_instance.candidate_address()) {
+	    user_type = CANDIDATE_TYPE;
+	}
+	else if (msg.sender == work_instance.store_instance().employer_address()) {
+	    user_type = EMPLOYER_TYPE;
+	}
+	else if (msg.sender == work_instance.store_instance().accepted_arbiter()) {
+	    user_type = ARBITER_TYPE;
+	}
+	else {
+	    revert("Only the candidate, employer, or the arbiter can comment.");
+	}
+	
+	// Create the forwarded contract
+        Forwarder fwd = new Forwarder(); // Proxy Contract
+                                         // target(EthlanceComment)
+        EthlanceComment comment = EthlanceComment(address(fwd));
+
+	// Permit Comment to fire registry events
+	registry.permitDispatch(address(fwd));
+
+	// Add comment to the registry comment listing
+	registry.pushComment(address(this), address(comment));
+
+	// Construct the comment contract
+	comment.construct(msg.sender, user_type, metahash);
     }
 }

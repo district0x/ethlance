@@ -1,5 +1,6 @@
 (ns ethlance.server.contract.ethlance-comment
   "EthlanceComment contract methods"
+  (:refer-clojure :exclude [count last])
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -23,3 +24,28 @@
   [method-name & args]
   (requires-comment-key)
   (apply contracts/contract-call *comment-key* method-name args))
+
+
+(defn update!
+  "Update the comment with a revised comment contained in the provided `metahash`"
+  [metahash]
+  (call :update metahash))
+
+
+(defn count
+  "Get the number of comment revisions."
+  []
+  (call :get-count))
+
+
+(defn revision-by-index
+  "Get the comment revision at the given index"
+  [index]
+  (call :get-revision-by-index index))
+
+
+(defn last
+  "Get the current comment metahash"
+  []
+  (call :get-last))
+  

@@ -8,6 +8,7 @@
   - EthlanceRegistry is not accessed directly, it has authorized
   access via the EthlanceUserFactory and EthlanceJobFactory."
   (:require
+   [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]))
 
@@ -15,6 +16,13 @@
 (def ^:dynamic *registry-key*
   "The contract key for the EthlanceRegistry"
   :ethlance-registry)
+
+
+(defn call
+  "Call the EthlanceRegistry contract method with the given
+  `method-name` and `args`."
+  [method-name & args]
+  (apply contracts/contract-call *registry-key* method-name args))
 
 
 (defn address []
@@ -25,8 +33,8 @@
   "Allows the given factory contract to carry out it's own contract
   construction"
   [factory-address & [opts]]
-  (contracts/contract-call
-   *registry-key* :permit-factory-privilege factory-address
+  (call
+   :permit-factory-privilege factory-address
    (merge {:gas 2000000} opts)))
 
 
@@ -38,8 +46,8 @@
   - the constructor of the constructed contract would check with this
   method to ensure the calling contract is a privileged factory."
   [factory-address & [opts]]
-  (contracts/contract-call
-   *registry-key* :check-factory-privilege factory-address
+  (call
+   :check-factory-privilege factory-address
    (merge {:gas 2000000} opts)))
 
 
@@ -51,6 +59,38 @@
   (when-let [tx-event (contracts/contract-event-in-tx transaction-hash *registry-key* :EthlanceEvent)]
     {:name (-> tx-event :args :event_name)
      :data (-> tx-event :args :event_data)}))
+
+
+(defn comment-count
+  "Get the number of comments attached to the given `address`.
+
+  Notes:
+  
+  - Currently implemented by EthlanceInvoice, and EthlanceDispute."
+  [address]
+  (call :get-comment-count address))
+
+
+(defn comment-by-index
+  "Get the address of the EthlanceComment attached to `address` at `index`"
+  [address index]
+  (call :get-comment-by-index address index))
+
+
+(defn feedback-count
+  "Get the number of feedbacks attached to the given `address`
+ 
+  Notes:
+
+  - Currently implemented by EthlanceUser."
+  [address]
+  (call :get-feedback-count address))
+
+
+(defn feedback-by-index
+  "Get the address of the EthlanceFeedback attached to `address` at `index`."
+  [address index]
+  (call :get-feedback-by-index address index))
 
 
 ;;
