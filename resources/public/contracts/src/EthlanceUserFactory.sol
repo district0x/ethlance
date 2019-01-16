@@ -37,7 +37,7 @@ contract EthlanceUserFactory {
 	EthlanceUser user = EthlanceUser(address(user_fwd));
 	
 	// Permit User to fire registry events
-	registry.permitEventDispatch(address(user_fwd));
+	registry.permitDispatch(address(user_fwd));
 
 	// Note: contract address needs to be registered before it can
 	// be constructed due to permission checks.

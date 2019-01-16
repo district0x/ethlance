@@ -2,7 +2,6 @@ pragma solidity ^0.5.0;
 
 import "DSAuth.sol";
 import "proxy/MutableForwarder.sol";
-import "collections/MultiLinkedList.sol";
 import "./EthlanceUser.sol";
 
 /*
@@ -19,11 +18,17 @@ contract EthlanceEventDispatcher {
 }
 
 
-contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
+contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 
     // Only one contract user address per an ethereum user address
     address[] user_address_listing;
     mapping(address => uint) user_address_mapping;
+
+    // Comment Listings
+    mapping(address => address[]) comment_listing;
+
+    // Feedback Listings
+    mapping(address => address[]) feedback_listing;
 
     // Ethereum users can have multiple jobs.
     address[] job_store_address_listing;
@@ -32,7 +37,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
     mapping(address => bool) public privileged_factory_contracts;
 
     // Mapping of contracts that can send an EthlanceEvent
-    mapping(address => bool) public event_dispatch_whitelist;
+    mapping(address => bool) public dispatch_whitelist;
 
     /// @dev Push user address into the user listing.
     /// @param _eth_address The address of the ethereum user.
@@ -44,7 +49,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
 	public returns(uint) {
 	user_address_listing.push(_user_address);
 	user_address_mapping[_eth_address] = user_address_listing.length;
-	permitEventDispatch(_user_address);
+	permitDispatch(_user_address);
 	return user_address_listing.length;
     }
 
@@ -92,7 +97,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
 	auth
 	public returns(uint) {
 	job_store_address_listing.push(_job_address);
-	permitEventDispatch(_job_address);
+	permitDispatch(_job_address);
 	return job_store_address_listing.length - 1;
     }
 
@@ -146,7 +151,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
                        uint event_version,
                        uint[] memory event_data)
         public {
-	require(event_dispatch_whitelist[msg.sender] == true ||
+	require(dispatch_whitelist[msg.sender] == true ||
 		isAuthorized(msg.sender, msg.sig),
 		"Not Permitted to fire EthlanceEvent.");
 	
@@ -158,18 +163,20 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
     }
 
     
-    /// @dev Permits the given address to call fireEvent.
+    /// @dev Permits the given address to call fireEvent and push
+    /// values to the Registry listings. (comment listing, feedback
+    /// listing)
     /// @param _address The address to permit the use of fireEvent.
     /*
-      Note that permitting event dispatch allows the provided address
-      to propagate the same permissions.
+      Note that permitting dispatch allows the provided address to
+      propagate the same permissions.
      */
-    function permitEventDispatch(address _address)
+    function permitDispatch(address _address)
 	public {
-	require(event_dispatch_whitelist[msg.sender] ||
+	require(dispatch_whitelist[msg.sender] ||
 		isAuthorized(msg.sender, msg.sig),
-		"Not Authorized to permit event dispatch.");
-	event_dispatch_whitelist[_address] = true;
+		"Not Authorized to permit dispatch.");
+	dispatch_whitelist[_address] = true;
     }
 
 
@@ -232,22 +239,58 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher, MultiLinkedList {
     }
 
 
-    /// @dev Push values into MultiLinkedList collection.
-    /// @param _bkey A bytes32 signature for a given linked list
-    /// @param _contract The address of the contract being stored in
-    /// the multilinkedlist.
-    /// @return Array index where the data is stored
-    function push(bytes32 _bkey, address _contract) external {
-	// TODO: authenticate
-	_push(_bkey, _contract);
+    /// @dev Push Comment into comment listing
+    /// @param contract_address Address of the contract which contains comments
+    /// @param comment Comment Contract being appended
+    function pushComment(address contract_address, address comment)
+	public {
+	require(dispatch_whitelist[msg.sender] == true ||
+		isAuthorized(msg.sender, msg.sig),
+		"Not Permitted to fire EthlanceEvent.");
+
+	comment_listing[contract_address].push(comment);
+    }
+
+    
+    /// @dev Get the number of comments linked to the given contract
+    function getCommentCount(address contract_address)
+	public view returns(uint) {
+	return comment_listing[contract_address].length;
+    }
+    
+    
+    /// @dev Get the comment contract at the given address, with the given index
+    function getCommentByIndex(address contract_address, uint index)
+	public view returns(address) {
+	require(index < getCommentCount(contract_address), "Index out of bounds");
+	return comment_listing[contract_address][index];
     }
 
 
-    function insert(bytes32 _bkey, uint _index, address _contract) external {
-	revert("Not Implemented");
+    /// @dev Push Feedback into feedback listing
+    /// @param contract_address Address of the contract which contains feedbacks
+    /// @param feedback Feedback Contract being appended
+    function pushFeedback(address contract_address, address feedback)
+	public {
+	require(dispatch_whitelist[msg.sender] == true ||
+		isAuthorized(msg.sender, msg.sig),
+		"Not Permitted to fire EthlanceEvent.");
+
+	feedback_listing[contract_address].push(feedback);
     }
 
-    function remove(bytes32 _bkey, uint _index) external {
-	revert("Not Implemented");
+    
+    /// @dev Get the number of feedbacks linked to the given contract
+    function getFeedbackCount(address contract_address)
+	public view returns(uint) {
+	return feedback_listing[contract_address].length;
+    }
+    
+    
+    /// @dev Get the feedback contract at the given address, with the given index
+    function getFeedbackByIndex(address contract_address, uint index)
+	public view returns(address) {
+	require(index < getFeedbackCount(contract_address), "Index out of bounds");
+	return feedback_listing[contract_address][index];
     }
 }

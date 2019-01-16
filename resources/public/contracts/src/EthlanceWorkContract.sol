@@ -398,7 +398,7 @@ contract EthlanceWorkContract is MetahashStore {
                                                      // target(EthlanceDispute)
 
 	// Permit Dispute to fire registry events
-	registry.permitEventDispatch(address(fwd));
+	registry.permitDispatch(address(fwd));
 
 	EthlanceDispute dispute = EthlanceDispute(address(fwd));
 	uint dispute_index = dispute_listing.length;
@@ -473,7 +473,7 @@ contract EthlanceWorkContract is MetahashStore {
 	EthlanceInvoice invoice = EthlanceInvoice(address(fwd));
 
 	// Permit Invoice to fire registry events
-	registry.permitEventDispatch(address(fwd));
+	registry.permitDispatch(address(fwd));
 
 	uint invoice_index = invoice_listing.length;
 	invoice_listing.push(invoice);

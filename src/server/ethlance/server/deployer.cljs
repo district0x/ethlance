@@ -76,7 +76,8 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {registry-placeholder :ethlance-registry
+      forwarder-target-placeholder :ethlance-feedback}}
     opts)))
 
 
@@ -128,6 +129,32 @@
    (contracts/contract-address :ethlance-user-factory-fwd)))
 
 
+(defn deploy-ethlance-comment!
+  "Deploy EthlanceComment."
+  [opts]
+  
+  (log/debug "Deploying EthlanceComment...")
+  (contracts/deploy-smart-contract!
+   :ethlance-comment
+   (merge
+    {:gas 2500000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}})))
+
+
+(defn deploy-ethlance-feedback!
+  "Deploy EthlanceFeedback."
+  [opts]
+  
+  (log/debug "Deploying EthlanceFeedback...")
+  (contracts/deploy-smart-contract!
+   :ethlance-feedback
+   (merge
+    {:gas 2500000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}})))
+
+
 (defn deploy-ethlance-invoice!
   "Deploy EthlanceInvoice."
   [opts]
@@ -138,7 +165,8 @@
    (merge
     {:gas 2500000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {registry-placeholder :ethlance-registry
+      forwarder-target-placeholder :ethlance-comment}}
     opts)))
 
 
@@ -152,7 +180,8 @@
    (merge
     {:gas 2500000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
+     {registry-placeholder :ethlance-registry
+      forwarder-target-placeholder :ethlance-comment}}
     opts)))
 
 
@@ -272,6 +301,8 @@
 
   (deploy-ds-guard! general-contract-options)
   (deploy-ethlance-registry! general-contract-options)
+  (deploy-ethlance-comment! general-contract-options)
+  (deploy-ethlance-feedback! general-contract-options)
   (deploy-ethlance-user! general-contract-options)
   (deploy-ethlance-user-factory! general-contract-options)
   (deploy-ethlance-invoice! general-contract-options)

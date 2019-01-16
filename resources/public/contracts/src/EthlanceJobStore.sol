@@ -157,7 +157,7 @@ contract EthlanceJobStore {
 	EthlanceWorkContract workContract = EthlanceWorkContract(address(fwd));
 
 	// Permit Work Contract to fire registry events
-	registry.permitEventDispatch(address(fwd));
+	registry.permitDispatch(address(fwd));
 
 	uint work_index = work_contract_listing.length;
 	work_contract_listing.push(address(workContract));

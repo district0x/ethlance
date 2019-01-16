@@ -46,7 +46,7 @@ contract EthlanceJobFactory {
 	EthlanceJobStore jobStore = EthlanceJobStore(address(fwd));
 
 	// Permit JobStore to fire registry events
-	registry.permitEventDispatch(address(fwd));
+	registry.permitDispatch(address(fwd));
 
 	uint job_index = registry.pushJobStore(address(jobStore));
 	jobStore.construct(job_index,
