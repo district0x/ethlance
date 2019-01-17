@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 
-/// @title Represents a feedback created by a given party
+/// @title Represents feedback for a given contract.
 /*
   Notes:
 
@@ -37,7 +37,8 @@ contract EthlanceFeedback {
     Feedback[] feedback_listing;
 
     
-    constructor(address _owner) public {
+    /// @dev Forwarder Constructor
+    function construct(address _owner) public {
 	owner = _owner;
     }
 

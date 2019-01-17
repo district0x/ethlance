@@ -28,6 +28,14 @@
   "SecondForwarder Contract target replacement"
   "dabadabadabadabadabadabadabadabadabadaba")
 
+(def third-forwarder-target-placeholder
+  "ThirdForwarder Contract target replacment"
+  "dbdadbadbabdabdbadabdbafffd1234fdfadbccc")
+
+(def fourth-forwarder-target-placeholder
+  "FourthForwarder Contract target replacment"
+  "dbdad432babbabdbadabdbafffd4321fdfadbccc")
+
 (def district-config-placeholder
   "DistrictConfig Contract target replacement"
   "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
@@ -76,8 +84,7 @@
    (merge
     {:gas 2000000
      :placeholder-replacements
-     {registry-placeholder :ethlance-registry
-      forwarder-target-placeholder :ethlance-feedback}}
+     {registry-placeholder :ethlance-registry}}
     opts)))
 
 
@@ -198,6 +205,8 @@
      :placeholder-replacements
      {forwarder-target-placeholder :ethlance-invoice
       second-forwarder-target-placeholder :ethlance-dispute
+      third-forwarder-target-placeholder :ethlance-comment
+      fourth-forwarder-target-placeholder :ethlance-feedback
       registry-placeholder :ethlance-registry}}
     opts)))
 

@@ -77,22 +77,6 @@
   (call :get-comment-by-index address index))
 
 
-(defn feedback-count
-  "Get the number of feedbacks attached to the given `address`
- 
-  Notes:
-
-  - Currently implemented by EthlanceUser."
-  [address]
-  (call :get-feedback-count address))
-
-
-(defn feedback-by-index
-  "Get the address of the EthlanceFeedback attached to `address` at `index`."
-  [address index]
-  (call :get-feedback-by-index address index))
-
-
 ;;
 ;; Events
 ;;

@@ -27,16 +27,14 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     // Comment Listings
     mapping(address => address[]) comment_listing;
 
-    // Feedback Listings
-    mapping(address => address[]) feedback_listing;
-
     // Ethereum users can have multiple jobs.
     address[] job_store_address_listing;
 
     // Mapping of privileged factories to carry out contract construction
     mapping(address => bool) public privileged_factory_contracts;
 
-    // Mapping of contracts that can send an EthlanceEvent
+    // Mapping of contracts that can send an EthlanceEvent,
+    // append Comments, and append Feedback.
     mapping(address => bool) public dispatch_whitelist;
 
     /// @dev Push user address into the user listing.
@@ -264,33 +262,5 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	public view returns(address) {
 	require(index < getCommentCount(contract_address), "Index out of bounds");
 	return comment_listing[contract_address][index];
-    }
-
-
-    /// @dev Push Feedback into feedback listing
-    /// @param contract_address Address of the contract which contains feedbacks
-    /// @param feedback Feedback Contract being appended
-    function pushFeedback(address contract_address, address feedback)
-	public {
-	require(dispatch_whitelist[msg.sender] == true ||
-		isAuthorized(msg.sender, msg.sig),
-		"Not Permitted to fire EthlanceEvent.");
-
-	feedback_listing[contract_address].push(feedback);
-    }
-
-    
-    /// @dev Get the number of feedbacks linked to the given contract
-    function getFeedbackCount(address contract_address)
-	public view returns(uint) {
-	return feedback_listing[contract_address].length;
-    }
-    
-    
-    /// @dev Get the feedback contract at the given address, with the given index
-    function getFeedbackByIndex(address contract_address, uint index)
-	public view returns(address) {
-	require(index < getFeedbackCount(contract_address), "Index out of bounds");
-	return feedback_listing[contract_address][index];
     }
 }

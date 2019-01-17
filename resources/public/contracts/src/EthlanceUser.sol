@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "proxy/MutableForwarder.sol";
 import "./EthlanceRegistry.sol";
+import "./EthlanceFeedback.sol";
 
 
 /// @title User Contract which represents a User's information
@@ -42,6 +43,7 @@ contract EthlanceUser {
     Candidate public candidate_data;
     Employer public employer_data;
     Arbiter public arbiter_data;
+	
 
     function construct(uint _user_id, address _address, string calldata _metahash)
 	external {
@@ -53,6 +55,7 @@ contract EthlanceUser {
 	date_created = now;
 	date_updated = now;
 	metahash_ipfs = _metahash;
+	
     }
 
 

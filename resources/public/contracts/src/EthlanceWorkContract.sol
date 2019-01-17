@@ -6,17 +6,28 @@ import "./EthlanceUser.sol";
 import "./EthlanceJobStore.sol";
 import "./EthlanceDispute.sol";
 import "./EthlanceInvoice.sol";
-import "./collections/EthlanceMetahash.sol";
+import "./EthlanceFeedback.sol";
+import "./EthlanceComment.sol";
 import "proxy/MutableForwarder.sol";
-import "proxy/Forwarder.sol";
-import "proxy/SecondForwarder.sol";
+import "proxy/Forwarder.sol";       // target(EthlanceInvoice)
+import "proxy/SecondForwarder.sol"; // target(EthlanceDispute)
+import "proxy/ThirdForwarder.sol";  // target(EthlanceComment)
+import "proxy/FourthForwarder.sol"; // target(EthlanceFeedback)
 
 
 /// @title Work Contract to tie candidates, employers, and arbiters to
 /// an agreement.
-contract EthlanceWorkContract is MetahashStore {
+contract EthlanceWorkContract {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
+
+    //
+    // Constants
+    //
+    uint public constant GUEST_TYPE = 0;
+    uint public constant EMPLOYER_TYPE = 1;
+    uint public constant CANDIDATE_TYPE = 2;
+    uint public constant ARBITER_TYPE = 3;
 
     //
     // Structures
@@ -126,40 +137,6 @@ contract EthlanceWorkContract is MetahashStore {
     function updateDateUpdated()
 	private {
 	date_updated = now;
-    }
-
-
-    /// @dev Append a metahash, which will identify the type of user
-    /// and append to a MetahashStore
-    /// @param metahash The metahash string you wish to append to hash listing.
-    /*
-      Notes:
-
-      - Only the Candidate, Arbiter, and Employer can append a
-        metahash string. The metahash structure is predefined.
-
-      - Retrieving data from the metahash store (getHashByIndex)
-        should contain a comparison between the user_type and the data
-        present to guarantee valid data from each constituent within
-        the listing.
-
-     */
-    function appendMetahash(string calldata metahash) external {
-	if (store_instance.employer_address() == msg.sender) {
-	    appendEmployer(metahash);
-	    updateDateUpdated();
-	}
-	else if (candidate_address == msg.sender) {
-	    appendCandidate(metahash);
-	    updateDateUpdated();
-	}
-	else if (store_instance.accepted_arbiter() == msg.sender) {
-	    appendArbiter(metahash);
-	    updateDateUpdated();
-	}
-	else {
-	    revert("You are not privileged to append a comment.");
-	}
     }
 
     
@@ -397,7 +374,7 @@ contract EthlanceWorkContract is MetahashStore {
 	SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
                                                      // target(EthlanceDispute)
 
-	// Permit Dispute to fire registry events
+	// Permit Dispute to fire registry events and create comments
 	registry.permitDispatch(address(fwd));
 
 	EthlanceDispute dispute = EthlanceDispute(address(fwd));
@@ -524,5 +501,38 @@ contract EthlanceWorkContract is MetahashStore {
     /// index within the invoice listing.
     function getInvoiceByIndex(uint index) public view returns (EthlanceInvoice) {
 	return invoice_listing[index];
+    }
+
+
+    /// @dev Place a comment on the dispute
+    function addComment(string calldata metahash) external {
+	uint user_type = GUEST_TYPE;
+
+	if (msg.sender == candidate_address) {
+	    user_type = CANDIDATE_TYPE;
+	}
+	else if (msg.sender == store_instance.employer_address()) {
+	    user_type = EMPLOYER_TYPE;
+	}
+	else if (msg.sender == store_instance.accepted_arbiter()) {
+	    user_type = ARBITER_TYPE;
+	}
+	else {
+	    revert("Only the candidate, employer, or the arbiter can comment.");
+	}
+	
+	// Create the forwarded contract
+        ThirdForwarder fwd = new ThirdForwarder(); // Proxy Contract
+                                                   // target(EthlanceComment)
+        EthlanceComment comment = EthlanceComment(address(fwd));
+
+	// Permit Comment to fire registry events
+	registry.permitDispatch(address(fwd));
+
+	// Add comment to the registry comment listing
+	registry.pushComment(address(this), address(comment));
+
+	// Construct the comment contract
+	comment.construct(msg.sender, user_type, metahash);
     }
 }
