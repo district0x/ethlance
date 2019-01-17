@@ -27,6 +27,9 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
     // Comment Listings
     mapping(address => address[]) comment_listing;
 
+    // Feedback Mapping
+    mapping(address => address) feedback_mapping;
+
     // Ethereum users can have multiple jobs.
     address[] job_store_address_listing;
 
@@ -262,5 +265,32 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	public view returns(address) {
 	require(index < getCommentCount(contract_address), "Index out of bounds");
 	return comment_listing[contract_address][index];
+    }
+
+
+    /// @dev Push Feedback into feedback listing
+    /// @param contract_address Address of the contract which contains feedbacks
+    /// @param feedback Feedback Contract being appended
+    function pushFeedback(address contract_address, address feedback)
+	public {
+	require(dispatch_whitelist[msg.sender] == true ||
+		isAuthorized(msg.sender, msg.sig),
+		"Not Permitted to fire EthlanceEvent.");
+	require(!hasFeedback(contract_address), "Given contract address already has a feedback instance.");
+
+	feedback_mapping[contract_address] = feedback;
+    }
+    
+
+    /// @dev Returns true if a feedback instance is already linked to the given contract address.
+    function hasFeedback(address contract_address) public view returns(bool) {
+	return feedback_mapping[contract_address] != address(0);
+    }
+    
+
+    /// @dev Get the feedback contract at the given address, with the given index
+    function getFeedbackByAddress(address contract_address)
+	public view returns(address) {
+	return feedback_mapping[contract_address];
     }
 }

@@ -91,6 +91,9 @@ contract EthlanceWorkContract {
     uint public date_created;
     uint public date_updated;
 
+    // Feedback Store
+    
+
     //
     // Collections
     //
@@ -504,22 +507,30 @@ contract EthlanceWorkContract {
     }
 
 
-    /// @dev Place a comment on the dispute
-    function addComment(string calldata metahash) external {
-	uint user_type = GUEST_TYPE;
-
+    /// @dev Returns the user type, either CANDIDATE_TYPE,
+    /// EMPLOYER_TYPE, ARBITER_TYPE, or GUEST_TYPE for the given
+    /// address.
+    function getUserType(address _address) private returns (uint) {
 	if (msg.sender == candidate_address) {
-	    user_type = CANDIDATE_TYPE;
+	    return CANDIDATE_TYPE;
 	}
 	else if (msg.sender == store_instance.employer_address()) {
-	    user_type = EMPLOYER_TYPE;
+	    return EMPLOYER_TYPE;
 	}
 	else if (msg.sender == store_instance.accepted_arbiter()) {
-	    user_type = ARBITER_TYPE;
+	    return ARBITER_TYPE;
 	}
 	else {
-	    revert("Only the candidate, employer, or the arbiter can comment.");
+	    return GUEST_TYPE;
 	}
+    }
+
+
+    /// @dev Place a comment on the dispute
+    function addComment(string calldata metahash) external {
+	uint user_type = getUserType(msg.sender);
+	require(user_type != GUEST_TYPE,
+		"Only the candidate, employer, and arbiter can comment.");
 	
 	// Create the forwarded contract
         ThirdForwarder fwd = new ThirdForwarder(); // Proxy Contract
@@ -534,5 +545,60 @@ contract EthlanceWorkContract {
 
 	// Construct the comment contract
 	comment.construct(msg.sender, user_type, metahash);
+    }
+
+    
+    /// @dev Leave feedback on the given work contract
+    /*
+      Notes:
+
+      - Only the candidate and the employer can leave feedback on a work contract.
+        - A candidate leaving feedback is meant for the employer.
+	- An employer leaving feedback is meant for the candidate.
+     */
+    function leaveFeedback(uint rating, string calldata metahash) external {
+	uint user_type = getUserType(msg.sender);
+	require(user_type == CANDIDATE_TYPE || user_type == EMPLOYER_TYPE,
+		"Only the candidate or the employer, can leave feedback.");
+	
+	uint to_user_type;
+	address to_user_address;
+	
+	if (user_type == CANDIDATE_TYPE) {
+	    to_user_type = EMPLOYER_TYPE;
+	    to_user_address = store_instance.employer_address();
+	}
+	else {
+	    to_user_type = CANDIDATE_TYPE;
+	    to_user_address = candidate_address;
+	}
+	
+	// Check and create forwarded feedback contract instance
+	EthlanceFeedback feedback;
+	if (!registry.hasFeedback(address(this))) {
+	    FourthForwarder fwd = new FourthForwarder(); // Proxy Contract
+	                                                 // target(EthlanceFeedback)
+
+	    feedback = EthlanceFeedback(address(fwd));
+
+	    // Permit Feedback to fire registry events
+	    registry.permitDispatch(address(fwd));
+	    
+	    // Add feedback to the registry feedback listing
+	    registry.pushFeedback(address(this), address(feedback));
+	    
+	    // Construct the feedback contract
+	    feedback.construct(address(this));
+	}
+	else {
+	    feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(this)));
+	}
+
+	feedback.update(msg.sender,
+			to_user_address,
+			user_type,
+			to_user_type,
+			metahash,
+			rating);
     }
 }

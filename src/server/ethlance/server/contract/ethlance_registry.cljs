@@ -77,6 +77,22 @@
   (call :get-comment-by-index address index))
 
 
+(defn feedback-count
+  "Get the number of feedbacks
+ 
+  Notes:
+
+  - Currently implemented by EthlanceWorkContract."
+  []
+  (call :get-feedback-count address))
+
+
+(defn feedback-by-address
+  "Get the address of the EthlanceFeedback attached to `address`."
+  [address]
+  (call :get-feedback-by-address address))
+
+
 ;;
 ;; Events
 ;;

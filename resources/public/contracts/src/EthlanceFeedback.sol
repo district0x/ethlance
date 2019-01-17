@@ -18,13 +18,41 @@ contract EthlanceFeedback {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
+
+    //
+    // Constants
+    //
+
+    // User Type Constants
+    uint public constant GUEST_TYPE = 0;
+    uint public constant EMPLOYER_TYPE = 1;
+    uint public constant CANDIDATE_TYPE = 2;
+    uint public constant ARBITER_TYPE = 3;
+
+
     //
     // Structs
     //
     struct Feedback {
-	address user_address;
+	// Address of the user leaving feedback
+	address from_user_address;
+	
+	// Address of the user receiving feedback
+	address to_user_address;
+
+	// User Role of the user leaving feedback
+	uint from_user_type;
+
+	// User Role of the user receiving feedback
+	uint to_user_type;
+
+	// Additional Metadata attached to the contract via IPFS
 	string metahash;
-	uint rating; // 0-5 Star Rating
+	
+	// Feedback, 0-5 Star Rating
+	uint rating;
+
+	// Latest feedback update
 	uint date_updated;
     }
 
@@ -50,20 +78,33 @@ contract EthlanceFeedback {
       - Feedback can only be updated by the owner, this method should
         be superceded by the owner contract.
      */
-    function update(address user_address, string calldata metahash, uint rating) external {
+    function update(address from_user_address,
+		    address to_user_address,
+		    uint from_user_type,
+		    uint to_user_type,
+		    string calldata metahash,
+		    uint rating) external {
 	require(msg.sender == owner, "Must be contract owner to update feedback.");
 	require(rating <= 5, "Rating must be a value between 0 and 5.");
 
-	Feedback memory feedback = Feedback(user_address, metahash, rating, now);
+	Feedback memory feedback = Feedback({
+	    from_user_address: from_user_address,
+	    to_user_address: to_user_address,
+	    from_user_type: from_user_type,
+            to_user_type: to_user_type,
+	    metahash: metahash,
+            rating: rating,
+	    date_updated: now
+	});
 
 	// It's a user that has chosen to leave new feedback.
-	if (feedback_mapping[user_address] > 0) {
-	    feedback_listing[feedback_mapping[user_address]-1] = feedback;
+	if (feedback_mapping[from_user_address] > 0) {
+	    feedback_listing[feedback_mapping[from_user_address]-1] = feedback;
 	}
 	// New user leaving feedback.
 	else {
 	    feedback_listing.push(feedback);
-	    feedback_mapping[user_address] = feedback_listing.length;
+	    feedback_mapping[from_user_address] = feedback_listing.length;
 	}
     }
 
@@ -77,14 +118,20 @@ contract EthlanceFeedback {
     /// @dev Get the feedback at the given index.
     function getFeedbackByIndex(uint _index)
 	external
-	returns(address user_address,
+	returns(address from_user_address,
+		address to_user_address,
+		uint from_user_type,
+		uint to_user_type,
 		string memory metahash,
 		uint rating,
 		uint date_updated) {
 	require(_index < feedback_listing.length, "Given index is out of bounds.");
 	Feedback memory feedback = feedback_listing[_index];
 	
-	user_address = feedback.user_address;
+	from_user_address = feedback.from_user_address;
+	to_user_address = feedback.to_user_address;
+	from_user_type = feedback.from_user_type;
+	to_user_type = feedback.to_user_type;
 	metahash = feedback.metahash;
 	rating = feedback.rating;
 	date_updated = feedback.date_updated;

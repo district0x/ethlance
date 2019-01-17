@@ -1,6 +1,6 @@
 (ns ethlance.server.contract.ethlance-feedback
   "EthlanceFeedback contract methods"
-  (:refer-clojure :exclude [count last])
+  (:refer-clojure :exclude [count])
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -28,8 +28,8 @@
 
 (defn update!
   "Update the feedback with a revised feedback contained in the provided `metahash`"
-  [metahash]
-  (call :update metahash))
+  [rating metahash]
+  (call :update rating metahash))
 
 
 (defn count
@@ -39,7 +39,20 @@
 
 
 (defn feedback-by-index
-  "Get the feedback revision at the given index"
+  "Get the feedback at the given index"
   [index]
-  (call :get-feedback-by-index index))
-  
+  (let [[from-user-address
+         to-user-address
+         from-user-type
+         to-user-type
+         metahash
+         rating
+         date-updated]
+        (call :get-feedback-by-index index)]
+    {:from-user-address from-user-address
+     :to-user-address to-user-address
+     :from-user-type from-user-type ;; FIXME: enum
+     :to-user-type to-user-type ;; FIXME: enum}))
+     :metahash metahash
+     :rating rating ;; FIXME: big number conversion
+     :date-updated date-updated})) ;; FIXME: big number conversion
