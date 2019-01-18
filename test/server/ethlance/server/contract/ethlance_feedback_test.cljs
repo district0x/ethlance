@@ -97,6 +97,45 @@
             (is (= to-user-type ::enum.user-type/employer))
             (is (= metahash comment-hash-1))
             (is (= rating 4))
+            (is (> date-updated 0))))
+
+        (work-contract/leave-feedback! 1 comment-hash-2 {:from employer-address})
+        (feedback/with-ethlance-feedback (registry/feedback-by-address (job-store/work-contract-by-index 0))
+          (is (= (feedback/count) 2))
+          (let [{:keys [from-user-address
+                        from-user-type
+                        to-user-address
+                        to-user-type
+                        metahash
+                        rating
+                        date-updated]}
+                (feedback/feedback-by-index 1)]
+            (is (= from-user-address employer-address))
+            (is (= from-user-type ::enum.user-type/employer))
+            (is (= to-user-address candidate-address))
+            (is (= to-user-type ::enum.user-type/candidate))
+            (is (= metahash comment-hash-2))
+            (is (= rating 1))
+            (is (> date-updated 0))))
+
+        ;; Change the rating the employer gave to the candidate
+        (work-contract/leave-feedback! 2 comment-hash-1 {:from employer-address})
+        (feedback/with-ethlance-feedback (registry/feedback-by-address (job-store/work-contract-by-index 0))
+          (is (= (feedback/count) 2))
+          (let [{:keys [from-user-address
+                        from-user-type
+                        to-user-address
+                        to-user-type
+                        metahash
+                        rating
+                        date-updated]}
+                (feedback/feedback-by-index 1)]
+            (is (= from-user-address employer-address))
+            (is (= from-user-type ::enum.user-type/employer))
+            (is (= to-user-address candidate-address))
+            (is (= to-user-type ::enum.user-type/candidate))
+            (is (= metahash comment-hash-1))
+            (is (= rating 2))
             (is (> date-updated 0))))))))
 
 
@@ -178,4 +217,23 @@
               (is (= to-user-type ::enum.user-type/arbiter))
               (is (= metahash comment-hash-1))
               (is (= rating 4))
+              (is (> date-updated 0))))
+
+          (dispute/leave-feedback! 3 comment-hash-2 {:from employer-address})
+          (feedback/with-ethlance-feedback (registry/feedback-by-address (work-contract/dispute-by-index 0))
+            (is (= (feedback/count) 2))
+            (let [{:keys [from-user-address
+                          from-user-type
+                          to-user-address
+                          to-user-type
+                          metahash
+                          rating
+                          date-updated]}
+                  (feedback/feedback-by-index 1)]
+              (is (= from-user-address employer-address))
+              (is (= from-user-type ::enum.user-type/employer))
+              (is (= to-user-address arbiter-address))
+              (is (= to-user-type ::enum.user-type/arbiter))
+              (is (= metahash comment-hash-2))
+              (is (= rating 3))
               (is (> date-updated 0)))))))))

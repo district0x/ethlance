@@ -25,8 +25,6 @@
    [ethlance.shared.enum.payment-type :as enum.payment]
    [ethlance.shared.enum.contract-status :as enum.status]))
 
-(def null-address "0x0000000000000000000000000000000000000000")
-
 
 (deftest-smart-contract main-invoice {}
   (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]

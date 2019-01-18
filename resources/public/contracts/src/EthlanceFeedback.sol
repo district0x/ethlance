@@ -110,14 +110,14 @@ contract EthlanceFeedback {
 
 
     /// @dev Get the number of feedback entries
-    function getFeedbackCount() external returns(uint) {
+    function getFeedbackCount() public view returns(uint) {
 	return feedback_listing.length;
     }
 
 
     /// @dev Get the feedback at the given index.
     function getFeedbackByIndex(uint _index)
-	external
+	public view
 	returns(address from_user_address,
 		address to_user_address,
 		uint from_user_type,
