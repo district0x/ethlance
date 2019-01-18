@@ -201,7 +201,7 @@
   (contracts/deploy-smart-contract!
    :ethlance-work-contract
    (merge
-    {:gas 3000000
+    {:gas 4000000
      :placeholder-replacements
      {forwarder-target-placeholder :ethlance-invoice
       second-forwarder-target-placeholder :ethlance-dispute

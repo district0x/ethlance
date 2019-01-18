@@ -8,6 +8,8 @@
    [ethlance.server.contract.ethlance-work-contract-test]
    [ethlance.server.contract.ethlance-invoice-test]
    [ethlance.server.contract.ethlance-dispute-test]
+   [ethlance.server.contract.ethlance-comment-test]
+   [ethlance.server.contract.ethlance-feedback-test]
    [ethlance.server.contract.test-token-test]
    [ethlance.server.contract.multi-linked-list-test]
    [ethlance.server.db-test]
@@ -106,3 +108,16 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.multi-linked-list-test)))
+
+
+(defn run-comment-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.ethlance-comment-test)))
+
+
+(defn run-feedback-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.ethlance-feedback-test)))
+
