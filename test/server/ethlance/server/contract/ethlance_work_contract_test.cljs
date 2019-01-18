@@ -59,9 +59,14 @@
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
         (is (= employer-address (job-store/employer-address)))
 
+        ;; Request the accepted arbiter
+        (job-store/request-arbiter! arbiter-address {:from arbiter-address})
+        (job-store/request-arbiter! arbiter-address {:from employer-address})
+
         ;; Create the initial work contract as the candidate
         (job-store/request-work-contract! candidate-address {:from candidate-address})
         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
+
           (is (= candidate-address (work-contract/candidate-address)))
           (is (= ::enum.status/request-candidate-invite (work-contract/contract-status)))
           
@@ -76,6 +81,11 @@
     (testing "Create a invite request as a employer, and accept the invite as a candidate"
       (test-gen/create-job-store! {} {:from employer-address})
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 1)
+
+        ;; Request the accepted arbiter
+        (job-store/request-arbiter! arbiter-address {:from arbiter-address})
+        (job-store/request-arbiter! arbiter-address {:from employer-address})
+
         ;; Create the initial work contract as the employer.
         (job-store/request-work-contract! candidate-address {:from employer-address})
         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)

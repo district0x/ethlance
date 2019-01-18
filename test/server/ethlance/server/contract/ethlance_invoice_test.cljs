@@ -43,12 +43,24 @@
             (user/register-candidate!
              {:hourly-rate 120
               :currency-type ::enum.currency/usd}
-             {:from candidate-address}))]
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (test-gen/register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             {:payment-value 3
+              :currency-type ::enum.currency/eth
+              :payment-type ::enum.payment/percentage}
+             {:from arbiter-address}))]
 
     (log/debug "Creating Job Store...")
     (test-gen/create-job-store! {} {:from employer-address})
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
-      (is (= employer-address (job-store/employer-address)))
+      (is (= (job-store/employer-address) employer-address))
+      (job-store/request-arbiter! arbiter-address {:from arbiter-address})
+      (job-store/request-arbiter! arbiter-address {:from employer-address})
+      (is (= (job-store/accepted-arbiter) arbiter-address))
 
       ;; Create the initial work contract as the candidate
       (log/debug "Requesting Work Contract...")
@@ -83,12 +95,24 @@
             (user/register-candidate!
              {:hourly-rate 120
               :currency-type ::enum.currency/usd}
-             {:from candidate-address}))]
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (test-gen/register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             {:payment-value 3
+              :currency-type ::enum.currency/eth
+              :payment-type ::enum.payment/percentage}
+             {:from arbiter-address}))]
 
     (log/debug "Creating Job Store...")
     (test-gen/create-job-store! {} {:from employer-address})
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
-      (is (= employer-address (job-store/employer-address))))
+      (is (= (job-store/employer-address) employer-address))
+      (job-store/request-arbiter! arbiter-address {:from arbiter-address})
+      (job-store/request-arbiter! arbiter-address {:from employer-address})
+      (is (= (job-store/accepted-arbiter) arbiter-address)))
     
     (let [job-employer-funding (web3/to-wei 20.0 :ether)
           job-address (job-factory/job-store-by-index 0)]
