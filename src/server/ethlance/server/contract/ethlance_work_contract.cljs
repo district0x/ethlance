@@ -42,11 +42,6 @@
   (enum.status/val->kw (call :contract_status)))
 
 
-(defn append-metahash!
-  [metahash & [opts]]
-  (call :append-metahash metahash (merge {:gas 1000000} opts)))
-
-
 (defn request-invite!
   [& [opts]]
   (call :request-invite (merge {:gas 2000000} opts)))
@@ -90,3 +85,13 @@
 (defn invoice-by-index
   [index]
   (call :get-invoice-by-index (bn/number index)))
+
+
+(defn add-comment!
+  [metahash & [opts]]
+  (call :add-comment metahash (merge {:gas 1500000} opts)))
+
+
+(defn leave-feedback!
+  [rating metahash & [opts]]
+  (call :leave-feedback rating metahash (merge {:gas 1500000} opts)))

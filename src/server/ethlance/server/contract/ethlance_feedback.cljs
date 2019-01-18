@@ -4,7 +4,8 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.shared.enum.user-type :as enum.user-type]))
 
 
 (def ^:dynamic *feedback-key*
@@ -26,12 +27,6 @@
   (apply contracts/contract-call *feedback-key* method-name args))
 
 
-(defn update!
-  "Update the feedback with a revised feedback contained in the provided `metahash`"
-  [rating metahash]
-  (call :update rating metahash))
-
-
 (defn count
   "Get the number of feedback revisions."
   []
@@ -51,8 +46,8 @@
         (call :get-feedback-by-index index)]
     {:from-user-address from-user-address
      :to-user-address to-user-address
-     :from-user-type from-user-type ;; FIXME: enum
-     :to-user-type to-user-type ;; FIXME: enum}))
+     :from-user-type (enum.user-type/val->kw from-user-type)
+     :to-user-type (enum.user-type/val->kw to-user-type)
      :metahash metahash
-     :rating rating ;; FIXME: big number conversion
-     :date-updated date-updated})) ;; FIXME: big number conversion
+     :rating (bn/number rating)
+     :date-updated (bn/number date-updated)}))

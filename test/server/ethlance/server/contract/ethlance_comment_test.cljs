@@ -55,7 +55,9 @@
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from arbiter-address}))]
+             {:from arbiter-address}))
+
+        comment-hash-1 "test1"]
 
     ;; Create a Job Store, assign an accepted arbiter, and fund it.
     (test-gen/create-job-store! {} {:from employer-address})
@@ -73,7 +75,9 @@
       (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
         (work-contract/request-invite! {:from employer-address})
         (is (= (work-contract/candidate-address) candidate-address))
-        (work-contract/proceed! {:from employer-address})))))
+        (work-contract/proceed! {:from employer-address})
+        (work-contract/add-comment! comment-hash-1 {:from employer-address})))))
+        
 
 
 (deftest-smart-contract main-dispute-comment {}

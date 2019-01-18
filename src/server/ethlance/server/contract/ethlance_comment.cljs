@@ -4,7 +4,8 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.shared.enum.user-type :as enum.user-type]))
 
 
 (def ^:dynamic *comment-key*
@@ -24,6 +25,12 @@
   [method-name & args]
   (requires-comment-key)
   (apply contracts/contract-call *comment-key* method-name args))
+
+
+(defn user-type [] (enum.user-type/val->kw (call :user_type)))
+(defn user-address [] (call :user_address))
+(defn date-created [] (call :date_created))
+(defn date-updated [] (call :date_updated))
 
 
 (defn update!
@@ -48,4 +55,3 @@
   "Get the current comment metahash"
   []
   (call :get-last))
-  

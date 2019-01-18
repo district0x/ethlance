@@ -3,12 +3,11 @@ pragma solidity ^0.5.0;
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
 import "./EthlanceComment.sol";
-import "./collections/EthlanceMetahash.sol";
 import "proxy/Forwarder.sol";
 
 
 /// @title Represents a Candidate Invoice for work
-contract EthlanceInvoice is MetahashStore {
+contract EthlanceInvoice {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
 
@@ -54,10 +53,12 @@ contract EthlanceInvoice is MetahashStore {
 	// TODO: authenticate
 	work_instance = _work_instance;
 	invoice_index = _invoice_index;
-	appendCandidate(metahash);
 	amount_requested = _amount_requested;
 	date_created = now;
 	date_updated = now;
+
+	// Fire off comment with provided metahash
+	createComment(work_instance.candidate_address(), metahash);
 
 	// Fire off event
 	fireEvent("InvoiceCreated");
@@ -66,36 +67,6 @@ contract EthlanceInvoice is MetahashStore {
     
     function updateDateUpdated() private {
 	date_updated = now;
-    }
-
-
-    /// @dev Append a metahash, which will identify the type of user
-    /// and append to a MetahashStore
-    /// @param metahash The metahash string you wish to append to hash listing.
-    /*
-      Notes:
-
-      - Only the Candidate and Employer can append a metahash
-        string. The metahash structure is predefined.
-
-      - Retrieving data from the metahash store (getHashByIndex)
-        should contain a comparison between the user_type and the data
-        present to guarantee valid data from each constituent within
-        the listing.
-
-     */
-    function appendMetahash(string calldata metahash) external {
-	if (work_instance.store_instance().employer_address() == msg.sender) {
-	    appendEmployer(metahash);
-	    updateDateUpdated();
-	}
-	else if (work_instance.candidate_address() == msg.sender) {
-	    appendCandidate(metahash);
-	    updateDateUpdated();
-	}
-	else {
-	    revert("You are not privileged to append a comment.");
-	}
     }
 
 
@@ -134,22 +105,38 @@ contract EthlanceInvoice is MetahashStore {
     }
 
 
-    /// @dev Place a comment on the invoice
-    function addComment(string calldata metahash) external {
-	uint user_type = GUEST_TYPE;
-
-	if (msg.sender == work_instance.candidate_address()) {
-	    user_type = CANDIDATE_TYPE;
+    /// @dev Returns the user type, either CANDIDATE_TYPE,
+    /// EMPLOYER_TYPE, ARBITER_TYPE, or GUEST_TYPE for the given
+    /// address.
+    function getUserType(address _address) private returns (uint) {
+	if (_address == work_instance.candidate_address()) {
+	    return CANDIDATE_TYPE;
 	}
-	else if (msg.sender == work_instance.store_instance().employer_address()) {
-	    user_type = EMPLOYER_TYPE;
+	else if (_address == work_instance.store_instance().employer_address()) {
+	    return EMPLOYER_TYPE;
 	}
-	else if (msg.sender == work_instance.store_instance().accepted_arbiter()) {
-	    user_type = ARBITER_TYPE;
+	else if (_address == work_instance.store_instance().accepted_arbiter()) {
+	    return ARBITER_TYPE;
 	}
 	else {
-	    revert("Only the candidate, employer, or the arbiter can comment.");
+	    return GUEST_TYPE;
 	}
+    }
+
+
+    /// @dev Public function for authorized users to create comments
+    /// on the given invoice.
+    function addComment(string calldata metahash) external {
+	createComment(msg.sender, metahash);
+    }
+
+
+    /// @dev Place a comment on the invoice linked to the given user
+    /// address
+    function createComment(address user_address, string memory metahash) private {
+	uint user_type = getUserType(user_address);
+	require(user_type != GUEST_TYPE,
+		"Only the candidate, employer, and arbiter can comment.");
 	
 	// Create the forwarded contract
         Forwarder fwd = new Forwarder(); // Proxy Contract
@@ -163,6 +150,6 @@ contract EthlanceInvoice is MetahashStore {
 	registry.pushComment(address(this), address(comment));
 
 	// Construct the comment contract
-	comment.construct(msg.sender, user_type, metahash);
+	comment.construct(user_address, user_type, metahash);
     }
 }

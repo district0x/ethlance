@@ -28,7 +28,7 @@
 (def null-address "0x0000000000000000000000000000000000000000")
 
 
-(deftest-smart-contract main-dispute {}
+(deftest-smart-contract main-feedback-work-contract {}
   (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
         (web3-eth/accounts @web3)
 

@@ -69,3 +69,13 @@
   "Returns true if the dispute has already been resolved."
   []
   (call :is-resolved))
+
+
+(defn add-comment!
+  [metahash & [opts]]
+  (call :add-comment metahash (merge {:gas 1500000} opts)))
+
+
+(defn leave-feedback!
+  [rating metahash & [opts]]
+  (call :leave-feedback rating metahash (merge {:gas 1500000} opts)))

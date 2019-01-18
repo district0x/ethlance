@@ -188,7 +188,8 @@
     {:gas 2500000
      :placeholder-replacements
      {registry-placeholder :ethlance-registry
-      forwarder-target-placeholder :ethlance-comment}}
+      forwarder-target-placeholder :ethlance-comment
+      second-forwarder-target-placeholder :ethlance-feedback}}
     opts)))
 
 

@@ -511,13 +511,13 @@ contract EthlanceWorkContract {
     /// EMPLOYER_TYPE, ARBITER_TYPE, or GUEST_TYPE for the given
     /// address.
     function getUserType(address _address) private returns (uint) {
-	if (msg.sender == candidate_address) {
+	if (_address == candidate_address) {
 	    return CANDIDATE_TYPE;
 	}
-	else if (msg.sender == store_instance.employer_address()) {
+	else if (_address == store_instance.employer_address()) {
 	    return EMPLOYER_TYPE;
 	}
-	else if (msg.sender == store_instance.accepted_arbiter()) {
+	else if (_address == store_instance.accepted_arbiter()) {
 	    return ARBITER_TYPE;
 	}
 	else {
