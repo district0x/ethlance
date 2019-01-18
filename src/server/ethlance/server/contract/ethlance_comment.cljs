@@ -42,7 +42,8 @@
 (defn count
   "Get the number of comment revisions."
   []
-  (call :get-count))
+  (when-let [n (call :get-count)]
+    (bn/number n)))
 
 
 (defn revision-by-index

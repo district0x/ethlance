@@ -52,20 +52,20 @@ contract EthlanceComment {
 
 
     /// @dev Get the number of comment revisions.
-    function getCount() external returns(uint) {
+    function getCount() public view returns(uint) {
 	return metahash_listing.length;
     }
 
 
     /// @dev Get the comment or comment revision at the given index
-    function getRevisionByIndex(uint _index) external returns(string memory) {
+    function getRevisionByIndex(uint _index) public view returns(string memory) {
 	require(_index < metahash_listing.length, "Given index is out of bounds.");
 	return metahash_listing[_index];
     }
 
 
     /// @dev Get the comment or latest comment revision.
-    function getLast() external returns(string memory) {
+    function getLast() public view returns(string memory) {
 	return metahash_listing[metahash_listing.length - 1];
     }
 }

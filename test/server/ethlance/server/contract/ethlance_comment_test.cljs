@@ -25,7 +25,8 @@
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.currency-type :as enum.currency]
    [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.contract-status :as enum.status]))
+   [ethlance.shared.enum.contract-status :as enum.status]
+   [ethlance.shared.enum.user-type :as enum.user-type]))
 
 
 (def null-address "0x0000000000000000000000000000000000000000")
@@ -76,8 +77,13 @@
         (work-contract/request-invite! {:from employer-address})
         (is (= (work-contract/candidate-address) candidate-address))
         (work-contract/proceed! {:from employer-address})
-        (work-contract/add-comment! comment-hash-1 {:from employer-address})))))
-        
+        (work-contract/add-comment! comment-hash-1 {:from employer-address})
+        (comment/with-ethlance-comment (registry/comment-by-index (job-store/work-contract-by-index 0) 0)
+          (is (= (comment/user-type) ::enum.user-type/employer))
+          (is (= (comment/user-address) employer-address))
+          (is (= (comment/count) 1))
+          (is (= (comment/last) comment-hash-1))
+          (is (= (comment/revision-by-index 0) comment-hash-1)))))))
 
 
 (deftest-smart-contract main-dispute-comment {}
