@@ -58,7 +58,8 @@
               :payment-type ::enum.payment/percentage}
              {:from arbiter-address}))
 
-        comment-hash-1 "test1"]
+        comment-hash-1 "test1"
+        comment-hash-2 "test2"]
 
     ;; Create a Job Store, assign an accepted arbiter, and fund it.
     (test-gen/create-job-store! {} {:from employer-address})
@@ -83,7 +84,11 @@
           (is (= (comment/user-address) employer-address))
           (is (= (comment/count) 1))
           (is (= (comment/last) comment-hash-1))
-          (is (= (comment/revision-by-index 0) comment-hash-1)))))))
+          (is (= (comment/revision-by-index 0) comment-hash-1))
+          (comment/update! comment-hash-2 {:from employer-address})
+          (is (= (comment/count) 2))
+          (is (= (comment/last) comment-hash-2))
+          (is (= (comment/revision-by-index 1) comment-hash-2)))))))
 
 
 (deftest-smart-contract main-dispute-comment {}
@@ -110,7 +115,10 @@
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from arbiter-address}))]
+             {:from arbiter-address}))
+
+        comment-hash-1 "test1"
+        comment-hash-2 "test2"]
 
     ;; Create a Job Store, assign an accepted arbiter, and fund it.
     (test-gen/create-job-store! {} {:from employer-address})
@@ -142,7 +150,27 @@
           (let [job-balance (web3-eth/get-balance @web3 (job-factory/job-store-by-index 0))
                 employer-balance (web3-eth/get-balance @web3 employer-address)
                 candidate-balance (web3-eth/get-balance @web3 candidate-address)
-                arbiter-balance (web3-eth/get-balance @web3 arbiter-address)]))))))
+                arbiter-balance (web3-eth/get-balance @web3 arbiter-address)]
+            
+            ;; Initial Dispute creation appends a comment
+            (is (= (registry/comment-count (work-contract/dispute-by-index 0)) 1))
+            (dispute/add-comment! comment-hash-1 {:from candidate-address})
+            (is (= (registry/comment-count (work-contract/dispute-by-index 0)) 2))
+            
+            ;; Tests on second comment
+            (comment/with-ethlance-comment (registry/comment-by-index (work-contract/dispute-by-index 0) 1)
+              (is (= (comment/user-type) ::enum.user-type/candidate))
+              (is (= (comment/user-address) candidate-address))
+              (is (= (comment/count) 1))
+              (is (= (comment/last) comment-hash-1))
+              (is (= (comment/revision-by-index 0) comment-hash-1))
+
+              ;; Update Dispute Comment
+              (comment/update! comment-hash-2 {:from candidate-address})
+              (is (= (comment/count) 2))
+              (is (= (comment/last) comment-hash-2))
+              (is (= (comment/revision-by-index 1) comment-hash-2)))))))))
+
 
 (deftest-smart-contract main-invoice-comment {}
   (let [[employer-address candidate-address arbiter-address arbiter-address-2 random-user-address]
@@ -159,7 +187,19 @@
             (user/register-candidate!
              {:hourly-rate 120
               :currency-type ::enum.currency/usd}
-             {:from candidate-address}))]
+             {:from candidate-address}))
+
+        ;; Arbiter User
+        tx-3 (test-gen/register-user! arbiter-address "QmZhash3")
+        _ (user/with-ethlance-user (user-factory/user-by-address arbiter-address)
+            (user/register-arbiter!
+             {:payment-value 3
+              :currency-type ::enum.currency/eth
+              :payment-type ::enum.payment/percentage}
+             {:from arbiter-address}))
+
+        comment-hash-1 "test1"
+        comment-hash-2 "test2"]
 
     (log/debug "Creating Job Store...")
     (test-gen/create-job-store! {} {:from employer-address})
@@ -178,6 +218,9 @@
 
     (log/debug "Requesting Work Contract...")
     (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
+      (job-store/request-arbiter! arbiter-address {:from arbiter-address})
+      (job-store/request-arbiter! arbiter-address {:from employer-address})
+
       ;; Create the initial work contract as the candidate
       (job-store/request-work-contract! candidate-address {:from candidate-address})
       (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
@@ -192,21 +235,35 @@
         (work-contract/proceed! {:from employer-address})
         (is (= ::enum.status/in-progress (work-contract/contract-status)))))
     
-    (testing "Create invoice, pay invoice"
+    (testing "Create invoice, add comments"
       (job-store/with-ethlance-job-store (job-factory/job-store-by-index 0)
         (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
-          (is (bn/= (work-contract/invoice-count) 0))
           (log/debug "Create an Invoice...")
           (work-contract/create-invoice!
            {:amount (web3/to-wei 1.0 :ether) :metahash ""}
            {:from candidate-address})
-          (is (bn/= (work-contract/invoice-count) 1))
-          
-          (log/debug "Create a Second Invoice...")
-          (work-contract/create-invoice!
-           {:amount (web3/to-wei 1.0 :ether) :metahash ""}
-           {:from candidate-address})
-          (is (bn/= (work-contract/invoice-count) 2))
 
-          ;; Get the employer to pay the first invoice
-          (invoice/with-ethlance-invoice (work-contract/invoice-by-index 0)))))))
+          (invoice/with-ethlance-invoice (work-contract/invoice-by-index 0)
+
+            ;; Initial Invoice creation appends a comment
+            (is (= (registry/comment-count (work-contract/invoice-by-index 0)) 1))
+            (log/debug "Adding a Comment...")
+            (invoice/add-comment! comment-hash-1 {:from arbiter-address})
+            (log/debug "a")
+            (is (= (registry/comment-count (work-contract/invoice-by-index 0)) 2))
+            (log/debug "b")
+
+            ;; Tests on second comment
+            (comment/with-ethlance-comment (registry/comment-by-index (work-contract/invoice-by-index 0) 1)
+              (log/debug "Testing Comment...")
+              (is (= (comment/user-type) ::enum.user-type/arbiter))
+              (is (= (comment/user-address) arbiter-address))
+              (is (= (comment/count) 1))
+              (is (= (comment/last) comment-hash-1))
+              (is (= (comment/revision-by-index 0) comment-hash-1))
+
+              ;; Update Invoice Comment
+              (comment/update! comment-hash-2 {:from arbiter-address})
+              (is (= (comment/count) 2))
+              (is (= (comment/last) comment-hash-2))
+              (is (= (comment/revision-by-index 1) comment-hash-2)))))))))

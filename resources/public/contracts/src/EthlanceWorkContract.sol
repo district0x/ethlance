@@ -264,6 +264,8 @@ contract EthlanceWorkContract {
     function proceed() external {
 	require(store_instance.employer_address() == msg.sender,
 		"Must be an employer to start a contract");
+	require(store_instance.accepted_arbiter() != address(0),
+		"Must be an accepted arbiter before work contracts can proceed");
 
 	if (contract_status == CONTRACT_STATUS_ACCEPTED) {
 	    setContractStatus(CONTRACT_STATUS_IN_PROGRESS);

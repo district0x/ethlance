@@ -43,3 +43,8 @@
   "Returns true if the given invoice has been paid, otherwise false."
   []
   (call :is-invoice-paid))
+
+
+(defn add-comment!
+  [metahash & [opts]]
+  (call :add-comment metahash (merge {:gas 1500000} opts)))

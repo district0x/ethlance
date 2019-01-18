@@ -35,8 +35,8 @@
 
 (defn update!
   "Update the comment with a revised comment contained in the provided `metahash`"
-  [metahash]
-  (call :update metahash))
+  [metahash & [opts]]
+  (call :update metahash (merge {:gas 1000000} opts)))
 
 
 (defn count

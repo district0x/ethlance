@@ -68,7 +68,8 @@
   
   - Currently implemented by EthlanceInvoice, and EthlanceDispute."
   [address]
-  (call :get-comment-count address))
+  (when-let [n (call :get-comment-count address)]
+    (bn/number n)))
 
 
 (defn comment-by-index
@@ -77,14 +78,9 @@
   (call :get-comment-by-index address index))
 
 
-(defn feedback-count
-  "Get the number of feedbacks
- 
-  Notes:
-
-  - Currently implemented by EthlanceWorkContract."
-  []
-  (call :get-feedback-count address))
+(defn has-feedback?
+  [address]
+  (call :has-feedback address))
 
 
 (defn feedback-by-address
