@@ -34,7 +34,7 @@
 
 (def fourth-forwarder-target-placeholder
   "FourthForwarder Contract target replacment"
-  "dbdad432babbabdbadabdbafffd4321fdfadbccc")
+  "beefabeefabeefabeefabeefabeefabeefabeefa")
 
 (def district-config-placeholder
   "DistrictConfig Contract target replacement"

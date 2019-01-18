@@ -30,7 +30,8 @@
 (defn count
   "Get the number of feedback revisions."
   []
-  (call :get-feedback-count))
+  (when-let [n (call :get-feedback-count)]
+    (bn/number n)))
 
 
 (defn feedback-by-index

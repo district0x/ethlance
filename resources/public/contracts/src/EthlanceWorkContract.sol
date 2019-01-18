@@ -586,8 +586,8 @@ contract EthlanceWorkContract {
 	    // Permit Feedback to fire registry events
 	    registry.permitDispatch(address(fwd));
 	    
-	    // Add feedback to the registry feedback listing
-	    registry.pushFeedback(address(this), address(feedback));
+	    // Add feedback to the registry feedback mapping
+	    registry.pushFeedback(address(this), address(fwd));
 	    
 	    // Construct the feedback contract
 	    feedback.construct(address(this));

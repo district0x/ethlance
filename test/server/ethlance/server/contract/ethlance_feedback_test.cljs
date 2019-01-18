@@ -23,7 +23,8 @@
 
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]))
+   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enum.user-type :as enum.user-type]))
 
 (def null-address "0x0000000000000000000000000000000000000000")
 
@@ -52,7 +53,10 @@
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from arbiter-address}))]
+             {:from arbiter-address}))
+
+        comment-hash-1 "test1"
+        comment-hash-2 "test2"]
 
     ;; Create a Job Store, assign an accepted arbiter, and fund it.
     (test-gen/create-job-store! {} {:from employer-address})
@@ -70,7 +74,30 @@
       (work-contract/with-ethlance-work-contract (job-store/work-contract-by-index 0)
         (work-contract/request-invite! {:from employer-address})
         (is (= (work-contract/candidate-address) candidate-address))
-        (work-contract/proceed! {:from employer-address})))))
+        (work-contract/proceed! {:from employer-address})
+
+        ;; Leave feedback for the employer as the candidate
+        (is (not (registry/has-feedback? (job-store/work-contract-by-index 0))))
+        (work-contract/leave-feedback! 4 comment-hash-1 {:from candidate-address}) 
+        (is (registry/has-feedback? (job-store/work-contract-by-index 0)))
+
+        (feedback/with-ethlance-feedback (registry/feedback-by-address (job-store/work-contract-by-index 0))
+          (is (= (feedback/count) 1))
+          (let [{:keys [from-user-address
+                        from-user-type
+                        to-user-address
+                        to-user-type
+                        metahash
+                        rating
+                        date-updated]}
+                (feedback/feedback-by-index 0)]
+            (is (= from-user-address candidate-address))
+            (is (= from-user-type ::enum.user-type/candidate))
+            (is (= to-user-address employer-address))
+            (is (= to-user-type ::enum.user-type/employer))
+            (is (= metahash comment-hash-1))
+            (is (= rating 4))
+            (is (> date-updated 0))))))))
 
 
 (deftest-smart-contract main-feedback-dispute {}
@@ -97,7 +124,10 @@
              {:payment-value 3
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}
-             {:from arbiter-address}))]
+             {:from arbiter-address}))
+
+        comment-hash-1 "test1"
+        comment-hash-2 "test2"]
 
     ;; Create a Job Store, assign an accepted arbiter, and fund it.
     (test-gen/create-job-store! {} {:from employer-address})
@@ -125,4 +155,27 @@
         (is (bn/= (work-contract/dispute-count) 1))
 
         ;; Resolve the dispute
-        (dispute/with-ethlance-dispute (work-contract/dispute-by-index 0))))))
+        (dispute/with-ethlance-dispute (work-contract/dispute-by-index 0)
+
+          ;; Leave feedback for the employer as the candidate
+          (is (not (registry/has-feedback? (work-contract/dispute-by-index 0))))
+          (dispute/leave-feedback! 4 comment-hash-1 {:from candidate-address}) 
+          (is (registry/has-feedback? (work-contract/dispute-by-index 0)))
+
+          (feedback/with-ethlance-feedback (registry/feedback-by-address (work-contract/dispute-by-index 0))
+            (is (= (feedback/count) 1))
+            (let [{:keys [from-user-address
+                          from-user-type
+                          to-user-address
+                          to-user-type
+                          metahash
+                          rating
+                          date-updated]}
+                  (feedback/feedback-by-index 0)]
+              (is (= from-user-address candidate-address))
+              (is (= from-user-type ::enum.user-type/candidate))
+              (is (= to-user-address arbiter-address))
+              (is (= to-user-type ::enum.user-type/arbiter))
+              (is (= metahash comment-hash-1))
+              (is (= rating 4))
+              (is (> date-updated 0)))))))))
