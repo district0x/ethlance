@@ -224,6 +224,39 @@
     :id-keys [:job/index :work-contract/index]
     :list-keys [:job/index]}
 
+   {:table-name :WorkContractComment
+    :table-columns
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
+     [:comment/index :integer not-nil]
+     [:comment/revision :integer not-nil]
+     [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
+     [:comment/user-type :unsigned :integer]
+     [:comment/date-created :unsigned :integer not-nil]
+     [:comment/text :varchar not-nil]
+     [(sql/call :primary-key :job/index :work-contract/index :comment/index :comment/revision)]
+     [[(sql/call :foreign-key :job/index)
+       (sql/call :references :Job :job/index :work-contract/index)]]]
+    :id-keys [:job/index :work-contract/index :comment/index :comment/revision]
+    :list-keys [:job/index :work-contract/index]}
+
+   {:table-name :WorkContractFeedback
+    :table-columns
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
+     [:feedback/index :integer not-nil]
+     [:feedback/to-user-type :unsigned :integer not-nil]
+     [:feedback/to-user-id :unsigned :integer not-nil]
+     [:feedback/from-user-type :unsigned :integer not-nil]
+     [:feedback/from-user-id :unsigned :integer not-nil]
+     [:feedback/date-created :unsigned :integer not-nil]
+     [:feedback/text :varchar not-nil]
+     [(sql/call :primary-key :job/index :work-contract/index :feedback/index)]
+     [[(sql/call :foreign-key :job/index)
+       (sql/call :references :Job :job/index :work-contract/index)]]]
+    :id-keys [:job/index :work-contract/index :feedback/index]
+    :list-keys [:job/index :work-contract/index]}
+
    {:table-name :WorkContractInvoice
     :table-columns
     [[:job/index :integer not-nil]
@@ -245,15 +278,16 @@
     [[:job/index :integer not-nil]
      [:work-contract/index :integer not-nil]
      [:invoice/index :integer not-nil]
-     [:comment/id :integer not-nil]
+     [:comment/index :integer not-nil]
+     [:comment/revision :integer not-nil]
      [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
-     [:comment/data :varchar not-nil]
-     [(sql/call :primary-key :job/index :work-contract/index :invoice/index :comment/id)]
+     [:comment/text :varchar not-nil]
+     [(sql/call :primary-key :job/index :work-contract/index :invoice/index :comment/index :comment/revision)]
      [[(sql/call :foreign-key :job/index)
        (sql/call :references :Job :job/index :work-contract/index :invoice/index)]]]
-    :id-keys [:job/index :work-contract/index :invoice/index :comment/id]
+    :id-keys [:job/index :work-contract/index :invoice/index :comment/index :comment/revision]
     :list-keys [:job/index :work-contract/index :invoice/index]}
 
    {:table-name :WorkContractDispute
@@ -276,18 +310,19 @@
 
    {:table-name :WorkContractDisputeComment
     :table-columns
-    [[:job/index :integer]
-     [:work-contract/index :integer]
-     [:dispute/index :integer]
-     [:comment/id :integer]
-     [:user/id :unsigned :integer]
+    [[:job/index :integer not-nil]
+     [:work-contract/index :integer not-nil]
+     [:dispute/index :integer not-nil]
+     [:comment/index :integer not-nil]
+     [:comment/revision :integer not-nil]
+     [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
-     [:comment/data :varchar not-nil]
-     [(sql/call :primary-key :job/index :work-contract/index :dispute/index :comment/id)]
+     [:comment/text :varchar not-nil]
+     [(sql/call :primary-key :job/index :work-contract/index :dispute/index :comment/index :comment/revision)]
      [[(sql/call :foreign-key :job/index)
        (sql/call :references :Job :job/index :work-contract/index :dispute/index)]]]
-    :id-keys [:job/index :work-contract/index :dispute/index :comment/id]
+    :id-keys [:job/index :work-contract/index :dispute/index :comment/index :comment/revision]
     :list-keys [:job/index :work-contract/index :dispute/index]}])
 
 
