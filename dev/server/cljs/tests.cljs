@@ -18,6 +18,7 @@
    [ethlance.server.model.arbiter-test]
    [ethlance.server.model.employer-test]
    [ethlance.server.model.job-test]
+   [ethlance.server.model.comment-test]
    [ethlance.server.ipfs-test]
    [ethlance.shared.random-test]
    [ethlance.shared.enum.currency-type-test]
@@ -83,7 +84,8 @@
                'ethlance.server.model.candidate-test
                'ethlance.server.model.arbiter-test
                'ethlance.server.model.job-test
-               'ethlance.server.model.employer-test)))
+               'ethlance.server.model.employer-test
+               'ethlance.server.model.comment-test)))
 
 
 (defn run-ipfs-tests []

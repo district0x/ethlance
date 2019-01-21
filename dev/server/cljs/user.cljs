@@ -6,6 +6,7 @@
    [cljs.tests :as tests]
    [cljs.instrumentation :as instrumentation]
    [mount.core :as mount] 
+   [honeysql.core :as sql]
    [taoensso.timbre :as log]
    
    [district.graphql-utils :as graphql-utils]
@@ -27,6 +28,11 @@
 
 (def gql "Shorthand for district.server.graphql/run-query"
   graphql/run-query)
+
+
+(def sql-format
+  "Shorthand for honeysql.core/format"
+  sql/format)
 
 
 ;; More GraphQL Shortcuts

@@ -154,7 +154,8 @@
 ;; Comment
 ;;
 
-(s/def :comment/id ::id)
+(s/def :comment/index ::index)
+(s/def :comment/revision ::index)
 (s/def :comment/user-type ::user-type)
 (s/def :comment/date-created ::datetime)
-(s/def :comment/data string?)
+(s/def :comment/text string?)

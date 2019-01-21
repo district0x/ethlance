@@ -26,6 +26,7 @@
    [ethlance.server.model.arbiter-test]
    [ethlance.server.model.employer-test]
    [ethlance.server.model.job-test]
+   [ethlance.server.model.comment-test]
    
    [ethlance.server.ipfs-test]
 

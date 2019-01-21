@@ -18,8 +18,7 @@
 
 
 (defn- enum-kw->val
-  "Replace arbiter data's keyword enumerations into their respective
-  values."
+  "Replace data's keyword enumerations into their respective values."
   [m]
   (-> m
       (enum.availability/assoc-kw->val :job/availability)
