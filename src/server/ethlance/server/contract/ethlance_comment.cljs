@@ -31,6 +31,34 @@
 (defn user-address [] (call :user_address))
 (defn date-created [] (call :date_created))
 (defn date-updated [] (call :date_updated))
+(defn comment-type [] (call :comment_type))
+
+
+(defn sub-index
+  "Get the sub index of the comment
+
+  # Notes:
+
+  Depending on the `comment-type`
+
+      For \"WorkContract\":
+      [0] --> Job Index
+      [1] --> Work Contract Index
+      [2] --> Comment Index
+
+      For \"Invoice\":
+      [0] --> Job Index
+      [1] --> Work Contract Index
+      [2] --> Invoice Index
+      [3] --> Comment Index
+
+      For \"Dispute\":
+      [0] --> Job Index
+      [1] --> Work Contract Index
+      [2] --> Dispute Index
+      [3] --> Comment Index
+  "
+  [x] (call :get-index x))
 
 
 (defn update!

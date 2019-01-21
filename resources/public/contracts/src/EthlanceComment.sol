@@ -104,4 +104,29 @@ contract EthlanceComment {
 
 	registry.fireEvent(event_name, version, event_data);
     }
+
+
+    /// @dev Returns the comment sub-index
+    /*
+      For Work Contract:
+      [0] --> Job Index
+      [1] --> Work Contract Index
+      [2] --> Comment Index
+
+      For Invoice:
+      [0] --> Job Index
+      [1] --> Work Contract Index
+      [2] --> Invoice Index
+      [3] --> Comment Index
+
+      For Dispute:
+      [0] --> Job Index
+      [1] --> Work Contract Index
+      [2] --> Dispute Index
+      [3] --> Comment Index
+     */
+    function getIndex(uint index) public view returns(uint) {
+	require(index <= 4, "Index out of bounds");
+	return comment_index[index];
+    }
 }

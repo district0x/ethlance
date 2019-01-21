@@ -22,6 +22,7 @@
    [ethlance.server.model.arbiter :as model.arbiter]
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
+   [ethlance.server.model.comment :as model.comment]
    
    ;; Ethlance Contracts
    [ethlance.server.contract.ethlance-user :as contract.user :include-macros true]
@@ -31,6 +32,8 @@
    [ethlance.server.contract.ethlance-work-contract :as contract.work-contract :include-macros true]
    [ethlance.server.contract.ethlance-invoice :as contract.invoice :include-macros true]
    [ethlance.server.contract.ethlance-dispute :as contract.dispute :include-macros true]
+   [ethlance.server.contract.ethlance-comment :as contract.comment :include-macros true]
+   [ethlance.server.contract.ethlance-registry :as contract.registry]
 
    ;; Misc.
    [ethlance.server.ipfs :as ipfs]
@@ -367,3 +370,47 @@
                                :dispute/candidate-resolution-amount candidate-resolution-amount
                                :dispute/arbiter-resolution-amount arbiter-resolution-amount}]
              (model.job/update-dispute! dispute-data))))))))
+
+
+(defmethod process-registry-event :comment-created
+  [{:keys [args] :as event}]
+  (go-try
+   (let [comment-address (:event_sender args)
+         job-index (-> args :event_data first bn/number)
+         work-index (-> args :event_data second bn/number)]
+     (contract.comment/with-ethlance-comment comment-address
+       (let [date-created (-> (contract.comment/date-created) bn/number)
+             date-updated (-> (contract.comment/date-updated) bn/number)
+             user-type (contract.comment/user-type)
+             user-id (-> (contract.comment/user-address) model.user/user-id)
+             ipfs-data (<!-<throw (ipfs/get-edn (contract.comment/last)))
+
+             comment-data
+             (assoc ipfs-data
+                    :job/index job-index
+                    :work-contract/index work-index
+                    :comment/revision 0
+                    :comment/date-created date-created
+                    :comment/date-updated date-updated
+                    :comment/user-type user-type
+                    :user/id user-id)]
+         
+         (log/debug (str "User Address: " (contract.comment/user-address)))
+
+         (condp = (bn/number (contract.comment/comment-type))
+           0 ;; "WorkContract"
+           (model.comment/create-work-contract-comment!
+            (assoc comment-data
+                   :comment/index (-> args :event_data (nth 2) bn/number)))
+ 
+           1 ;; "Invoice"
+           (model.comment/create-invoice-comment!
+            (assoc comment-data
+                   :invoice/index (-> args :event_data (nth 2) bn/number)
+                   :comment/index (-> args :event_data (nth 3) bn/number)))
+
+           2 ;; "Dispute"
+           (model.comment/create-dispute-comment!
+            (assoc comment-data
+                   :dispute/index (-> args :event_data (nth 2) bn/number)
+                   :comment/index (-> args :event_data (nth 3) bn/number)))))))))

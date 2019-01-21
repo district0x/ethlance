@@ -106,7 +106,7 @@
     :or {amount (web3/to-wei 0.1 :ether) paid? false}}]
   (let [result-chan (chan 1)
         invoice-index (work-contract/invoice-count)
-        ipfs-data {}]
+        ipfs-data {:comment/text "Here's my invoice!"}]
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))]
        (log/debug "- Creating Invoice...")
@@ -137,7 +137,7 @@
          arbiter-resolution-amount (web3/to-wei 0.1 :ether)}}]
   (let [result-chan (chan 1)
         dispute-index (work-contract/dispute-count)
-        ipfs-data {}]
+        ipfs-data {:comment/text "Please read my dispute"}]
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))]
        (log/debug "- Creating Dispute...")

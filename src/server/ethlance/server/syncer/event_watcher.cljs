@@ -4,7 +4,7 @@
    [bignumber.core :as bn]
    [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! poll!] :include-macros true]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! poll! timeout] :include-macros true]
    [district.server.web3 :refer [web3]]
    [district.shared.error-handling :refer [try-catch try-catch-throw]]
    [district.server.smart-contracts :as contracts]
@@ -67,13 +67,14 @@
       ;; process current events through a watcher.
       (log/debug "Starting Event Watcher...")
       (while (not @finished?)
-        (when-let [event (<! watched-events-channel)]
+        (if-let [event (poll! watched-events-channel)]
           (>! event-channel event)
-          
-          ;; Check to see if the user wants the event watcher stopped.
-          (when (poll! stop-channel)
-            (reset! finished? true)
-            (close! watched-events-channel))))
+          (<! (timeout 1000)))
+
+        ;; Check to see if the user wants the event watcher stopped.
+        (when (poll! stop-channel)
+          (reset! finished? true)
+          (close! watched-events-channel)))
 
       ;; Clean up.
       (log/debug "Stopping Event Watcher!")

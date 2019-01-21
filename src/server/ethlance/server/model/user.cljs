@@ -54,6 +54,17 @@
     (-> (district.db/get q) seq boolean)))
 
 
+(defn user-id
+  "Get the User ID for the user with the given address"
+  [address]
+  (let [q
+        (district.db/get
+         {:select [:user/id]
+          :from [:User]
+          :where [:= :user/address address]})]
+    (-> q :user/id)))
+
+
 (s/fdef language-listing
   :args (s/cat :id :user/id)
   :ret :user/languages)

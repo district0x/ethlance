@@ -78,6 +78,13 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 	return user_address_listing[user_id - 1];
     }
 
+    
+    /// @dev Get the User ID linked to the given Ethereum
+    /// Address. Returns 0 if there is no linked ethereum address.
+    function getUserId(address _eth_address) public view returns(uint) {
+	return user_address_mapping[_eth_address];
+    }
+
 
     /// @dev Get the user contract address by the provided index.
     /// @param index The user contract index.

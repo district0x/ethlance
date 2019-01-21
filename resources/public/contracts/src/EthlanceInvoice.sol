@@ -156,7 +156,7 @@ contract EthlanceInvoice {
 	index[3] = registry.getCommentCount(address(this)) - 1;
 
 	// Construct the comment contract
-	comment.construct(msg.sender,
+	comment.construct(user_address,
 			  user_type,
 			  metahash,
 			  EthlanceComment.CommentType.Invoice,

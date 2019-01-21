@@ -29,6 +29,12 @@
   (contracts/contract-address *registry-key*))
 
 
+(defn user-id
+  "Get the user id linked to the given ethereum address."
+  [address]
+  (call :get-user-id address))
+
+
 (defn permit-factory-privilege!
   "Allows the given factory contract to carry out it's own contract
   construction"
