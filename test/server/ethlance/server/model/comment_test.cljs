@@ -139,6 +139,7 @@
       :work-contract/index 0
       :comment/index 0
       :comment/revision 0
+      :user/id 2
       :comment/user-type ::enum.user-type/candidate
       :comment/date-created 6
       :comment/text "Looking forward to starting!"})
@@ -155,6 +156,7 @@
       :work-contract/index 0
       :comment/index 0
       :comment/revision 1
+      :user/id 2
       :comment/user-type ::enum.user-type/candidate
       :comment/date-created 6
       :comment/text "Looking forward to starting! You can reach me at blah blah."})
@@ -206,6 +208,7 @@
       :invoice/index 0
       :comment/index 0
       :comment/revision 0
+      :user/id 2
       :comment/user-type ::enum.user-type/candidate
       :comment/date-created 6
       :comment/text "Here's my first invoice"})
@@ -223,6 +226,7 @@
       :invoice/index 0
       :comment/index 0
       :comment/revision 1
+      :user/id 2
       :comment/user-type ::enum.user-type/candidate
       :comment/date-created 6
       :comment/text "Edited Comment."})
@@ -263,6 +267,7 @@
       :dispute/index 0
       :comment/index 0
       :comment/revision 0
+      :user/id 2
       :comment/user-type ::enum.user-type/candidate
       :comment/date-created 6
       :comment/text "Here's my first dispute"})
@@ -280,6 +285,7 @@
       :dispute/index 0
       :comment/index 0
       :comment/revision 1
+      :user/id 2
       :comment/user-type ::enum.user-type/candidate
       :comment/date-created 6
       :comment/text "Edited Comment."})
