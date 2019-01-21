@@ -149,7 +149,17 @@ contract EthlanceInvoice {
 	// Add comment to the registry comment listing
 	registry.pushComment(address(this), address(comment));
 
+	uint[4] memory index;
+	index[0] = work_instance.store_instance().job_index();
+	index[1] = work_instance.work_index();
+	index[2] = invoice_index;
+	index[3] = registry.getCommentCount(address(this)) - 1;
+
 	// Construct the comment contract
-	comment.construct(user_address, user_type, metahash);
+	comment.construct(msg.sender,
+			  user_type,
+			  metahash,
+			  EthlanceComment.CommentType.Invoice,
+			  index);
     }
 }

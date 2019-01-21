@@ -10,7 +10,7 @@ import "./EthlanceUser.sol";
 
 /// @title Dynamic Event Dispatch
 contract EthlanceEventDispatcher {
-    event EthlanceEvent(address indexed _address,
+    event EthlanceEvent(address indexed event_sender,
 			string event_name,
 			uint event_version,
 			uint timestamp,

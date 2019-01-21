@@ -545,8 +545,17 @@ contract EthlanceWorkContract {
 	// Add comment to the registry comment listing
 	registry.pushComment(address(this), address(comment));
 
+	uint[4] memory index;
+	index[0] = store_instance.job_index();
+	index[1] = work_index;
+	index[2] = registry.getCommentCount(address(this)) - 1;
+
 	// Construct the comment contract
-	comment.construct(msg.sender, user_type, metahash);
+	comment.construct(msg.sender,
+			  user_type,
+			  metahash,
+			  EthlanceComment.CommentType.WorkContract,
+			  index);
     }
 
     
