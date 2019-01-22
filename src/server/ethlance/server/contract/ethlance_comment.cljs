@@ -59,7 +59,7 @@
       [2] --> Dispute Index
       [3] --> Comment Index
   "
-  [x] (call :get-index x))
+  [x] (bn/number (call :get-index x)))
 
 
 (defn update!

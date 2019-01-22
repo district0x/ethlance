@@ -250,6 +250,7 @@
      [:feedback/from-user-type :unsigned :integer not-nil]
      [:feedback/from-user-id :unsigned :integer not-nil]
      [:feedback/date-created :unsigned :integer not-nil]
+     [:feedback/rating :integer not-nil]
      [:feedback/text :varchar not-nil]
      [(sql/call :primary-key :job/index :work-contract/index :feedback/index)]
      [[(sql/call :foreign-key :job/index)

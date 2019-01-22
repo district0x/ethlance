@@ -413,3 +413,46 @@
             (assoc comment-data
                    :dispute/index (-> args :event_data (nth 2) bn/number)
                    :comment/index (-> args :event_data (nth 3) bn/number)))))))))
+
+
+(defmethod process-registry-event :comment-updated
+  [{:keys [args] :as event}]
+  (go-try
+   (let [comment-address (:event_sender args)
+         job-index (-> args :event_data first bn/number)
+         work-index (-> args :event_data second bn/number)]
+     (contract.comment/with-ethlance-comment comment-address
+       (let [date-created (-> (contract.comment/date-created) bn/number)
+             date-updated (-> (contract.comment/date-updated) bn/number)
+             user-type (contract.comment/user-type)
+             user-id (-> (contract.comment/user-address) model.user/user-id)
+             ipfs-data (<!-<throw (ipfs/get-edn (contract.comment/last)))
+             revision (-> (contract.comment/count) bn/number)
+
+             comment-data
+             (assoc ipfs-data
+                    :job/index job-index
+                    :work-contract/index work-index
+                    :comment/revision revision
+                    :comment/date-created date-created
+                    :comment/date-updated date-updated
+                    :comment/user-type user-type
+                    :user/id user-id)]
+
+         (condp = (contract.comment/comment-type)
+           ::enum.comment-type/work-contract
+           (model.comment/create-work-contract-comment!
+            (assoc comment-data
+                   :comment/index (-> args :event_data (nth 2) bn/number)))
+           
+           ::enum.comment-type/invoice
+           (model.comment/create-invoice-comment!
+            (assoc comment-data
+                   :invoice/index (-> args :event_data (nth 2) bn/number)
+                   :comment/index (-> args :event_data (nth 3) bn/number)))
+
+           ::enum.comment-type/dispute
+           (model.comment/create-dispute-comment!
+            (assoc comment-data
+                   :dispute/index (-> args :event_data (nth 2) bn/number)
+                   :comment/index (-> args :event_data (nth 3) bn/number)))))))))

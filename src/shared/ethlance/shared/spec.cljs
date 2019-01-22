@@ -159,3 +159,17 @@
 (s/def :comment/user-type ::user-type)
 (s/def :comment/date-created ::datetime)
 (s/def :comment/text string?)
+
+
+;;
+;; Feedback
+;;
+
+(s/def :feedback/index ::index)
+(s/def :feedback/to-user-type ::user-type)
+(s/def :feedback/to-user-id ::id)
+(s/def :feedback/from-user-type ::user-type)
+(s/def :feedback/from-user-id ::id)
+(s/def :feedback/date-created ::datetime)
+(s/def :feedback/text string?)
+(s/def :feedback/rating (s/and nat-int? #(>= % 1) #(<= % 5)))
