@@ -5,7 +5,8 @@
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
-   [ethlance.shared.enum.user-type :as enum.user-type]))
+   [ethlance.shared.enum.user-type :as enum.user-type]
+   [ethlance.shared.enum.comment-type :as enum.comment-type]))
 
 
 (def ^:dynamic *comment-key*
@@ -31,7 +32,7 @@
 (defn user-address [] (call :user_address))
 (defn date-created [] (call :date_created))
 (defn date-updated [] (call :date_updated))
-(defn comment-type [] (call :comment_type))
+(defn comment-type [] (enum.comment-type/val->kw (bn/number (call :comment_type))))
 
 
 (defn sub-index

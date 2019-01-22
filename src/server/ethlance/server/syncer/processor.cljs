@@ -15,6 +15,7 @@
    [ethlance.shared.enum.currency-type :as enum.currency]
    [ethlance.shared.enum.payment-type :as enum.payment]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
+   [ethlance.shared.enum.comment-type :as enum.comment-type]
 
    ;; Ethlance Models
    [ethlance.server.model.job :as model.job]
@@ -394,22 +395,20 @@
                     :comment/date-updated date-updated
                     :comment/user-type user-type
                     :user/id user-id)]
-         
-         (log/debug (str "User Address: " (contract.comment/user-address)))
 
-         (condp = (bn/number (contract.comment/comment-type))
-           0 ;; "WorkContract"
+         (condp = (contract.comment/comment-type)
+           ::enum.comment-type/work-contract
            (model.comment/create-work-contract-comment!
             (assoc comment-data
                    :comment/index (-> args :event_data (nth 2) bn/number)))
  
-           1 ;; "Invoice"
+           ::enum.comment-type/invoice
            (model.comment/create-invoice-comment!
             (assoc comment-data
                    :invoice/index (-> args :event_data (nth 2) bn/number)
                    :comment/index (-> args :event_data (nth 3) bn/number)))
 
-           2 ;; "Dispute"
+           ::enum.comment-type/dispute
            (model.comment/create-dispute-comment!
             (assoc comment-data
                    :dispute/index (-> args :event_data (nth 2) bn/number)
