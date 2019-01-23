@@ -61,8 +61,8 @@
 
 
 (s/fdef feedback-listing
-  :args (s/cat :feedback-data
-               (s/keys :req [:job/index :work-contract/index]))
+  :args (s/cat :job-index :job/index
+               :work-index :work-contract/index)
   :ret (s/coll-of ::feedback :distinct true :into []))
 
 (defn feedback-listing
