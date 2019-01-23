@@ -599,7 +599,7 @@ contract EthlanceWorkContract {
 	    registry.pushFeedback(address(this), address(fwd));
 	    
 	    // Construct the feedback contract
-	    feedback.construct(address(this));
+	    feedback.construct(address(this), job_index, work_index);
 	}
 	else {
 	    feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(this)));

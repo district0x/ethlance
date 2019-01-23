@@ -171,5 +171,6 @@
 (s/def :feedback/from-user-type ::user-type)
 (s/def :feedback/from-user-id ::id)
 (s/def :feedback/date-created ::datetime)
+(s/def :feedback/date-updated ::datetime)
 (s/def :feedback/text string?)
 (s/def :feedback/rating (s/and nat-int? #(>= % 1) #(<= % 5)))

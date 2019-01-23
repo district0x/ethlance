@@ -51,6 +51,15 @@
     (ethlance.db/insert-row! :WorkContractFeedback feedback-data)))
 
 
+(s/fdef update-feedback!
+  :args (s/cat :feedback-data ::feedback))
+
+(defn update-feedback!
+  [feedback-data]
+  (let [feedback-data (enum-kw->val feedback-data)]
+    (ethlance.db/update-row! :WorkContractFeedback feedback-data)))
+
+
 (s/fdef feedback-listing
   :args (s/cat :feedback-data
                (s/keys :req [:job/index :work-contract/index]))

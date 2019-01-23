@@ -150,4 +150,22 @@
 
     (let [feedback-data (-> (feedback/feedback-listing 0 0) first)]
       (is (= (:feedback/text feedback-data) "Did an outstanding job!"))
-      (is (= (:feedback/rating feedback-data) 4)))))
+      (is (= (:feedback/rating feedback-data) 4)))
+
+    (feedback/update-feedback!
+     {:job/index 0
+      :work-contract/index 0
+      :feedback/index 0
+      :feedback/to-user-type ::enum.user-type/candidate
+      :feedback/to-user-id 1
+      :feedback/from-user-type ::enum.user-type/employer
+      :feedback/from-user-id 2
+      :feedback/date-created 1
+      :feedback/rating 5
+      :feedback/text "Did an outstanding job!!"})
+
+    (is (= (count (feedback/feedback-listing 0 0)) 1))
+
+    (let [feedback-data (-> (feedback/feedback-listing 0 0) first)]
+      (is (= (:feedback/text feedback-data) "Did an outstanding job!!"))
+      (is (= (:feedback/rating feedback-data) 5)))))

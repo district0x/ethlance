@@ -233,7 +233,9 @@ contract EthlanceDispute {
 	    registry.pushFeedback(address(this), address(feedback));
 	    
 	    // Construct the feedback contract
-	    feedback.construct(address(this));
+	    feedback.construct(address(this),
+			       work_instance.store_instance().job_index(),
+			       work_instance.work_index());
 	}
 	else {
 	    feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(this)));

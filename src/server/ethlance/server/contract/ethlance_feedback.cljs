@@ -43,6 +43,7 @@
          to-user-type
          metahash
          rating
+         date-created
          date-updated]
         (call :get-feedback-by-index index)]
     {:from-user-address from-user-address
@@ -51,4 +52,5 @@
      :to-user-type (enum.user-type/val->kw to-user-type)
      :metahash metahash
      :rating (bn/number rating)
+     :date-created (bn/number date-created)
      :date-updated (bn/number date-updated)}))

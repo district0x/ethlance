@@ -13,6 +13,11 @@ import "./EthlanceRegistry.sol";
 
   - Feedback can only be left once per a user address, and can be
     updated from then on.
+
+  - EthlanceFeedback objects exist in the WorkContract, and the
+    Dispute. Although they are stored separately, they are usually
+    unionized when stored outside of the smart contracts. This is why
+    there is no dispute_index key present during construction.
  */
 contract EthlanceFeedback {
     uint public constant version = 1;
@@ -52,6 +57,9 @@ contract EthlanceFeedback {
 	// Feedback, 0-5 Star Rating
 	uint rating;
 
+	// When the feedback was created
+	uint date_created;
+
 	// Latest feedback update
 	uint date_updated;
     }
@@ -60,14 +68,22 @@ contract EthlanceFeedback {
     //
     // Members
     //
-    address owner;
+    address public owner;
     mapping(address => uint) feedback_mapping;
     Feedback[] feedback_listing;
 
+    uint public job_index;
+    uint public work_index;
+
     
     /// @dev Forwarder Constructor
-    function construct(address _owner) public {
+    /// @param _owner The owning address for this feedback {EthlanceWorkContract, EthlanceDispute}
+    /// @param _job_index The EthlanceJobStore Index for the feedback
+    /// @param _work_index The EthlanceWorkContract Index for the feedback
+    function construct(address _owner, uint _job_index, uint _work_index) public {
 	owner = _owner;
+	job_index = _job_index;
+	work_index = _work_index;
     }
 
 
@@ -94,17 +110,29 @@ contract EthlanceFeedback {
             to_user_type: to_user_type,
 	    metahash: metahash,
             rating: rating,
+	    date_created: now,
 	    date_updated: now
 	});
 
-	// It's a user that has chosen to leave new feedback.
-	if (feedback_mapping[from_user_address] > 0) {
-	    feedback_listing[feedback_mapping[from_user_address]-1] = feedback;
+
+	uint feedback_id = feedback_mapping[from_user_address];
+	uint feedback_index; // minus one of feedback ID
+
+	// It's an existing user that has chosen to leave updated feedback.
+	if (feedback_id > 0) {
+	    feedback_index = feedback_id - 1;
+	    feedback_listing[feedback_index] = feedback;
+	    fireEvent("FeedbackUpdated", feedback_index);
 	}
 	// New user leaving feedback.
 	else {
 	    feedback_listing.push(feedback);
-	    feedback_mapping[from_user_address] = feedback_listing.length;
+
+	    feedback_id = feedback_listing.length;
+	    feedback_index = feedback_id - 1;
+	    
+	    feedback_mapping[from_user_address] = feedback_id;
+	    fireEvent("FeedbackCreated", feedback_index);
 	}
     }
 
@@ -124,6 +152,7 @@ contract EthlanceFeedback {
 		uint to_user_type,
 		string memory metahash,
 		uint rating,
+                uint date_created,
 		uint date_updated) {
 	require(_index < feedback_listing.length, "Given index is out of bounds.");
 	Feedback memory feedback = feedback_listing[_index];
@@ -134,6 +163,25 @@ contract EthlanceFeedback {
 	to_user_type = feedback.to_user_type;
 	metahash = feedback.metahash;
 	rating = feedback.rating;
+	date_created = feedback.date_created;
 	date_updated = feedback.date_updated;
+    }
+
+
+    /// @dev Fire events specific to the feedback.
+    /// @param event_name Unique name to give the fired event
+    /// @param _index The feedback index of the feedback object throwing the event.
+    /*
+      Notes:
+
+      - EthlanceFeedback is a store of feedback objects
+     */
+    function fireEvent(string memory event_name, uint _index) private {
+	uint[] memory event_data = new uint[](3);
+	event_data[0] = job_index;
+	event_data[1] = work_index;
+	event_data[2] = _index;
+
+	registry.fireEvent(event_name, version, event_data);
     }
 }
