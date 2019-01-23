@@ -420,4 +420,48 @@
     hasNextPage: Boolean
   }
 
+  # Comment Types
+
+  type Comment {
+    job_index: Int!
+    workContract_index: Int!
+    dispute_index: Int
+    invoice_index: Int
+    comment_index: Int!
+    comment_revision: Int!
+    user_id: Int
+    comment_userType: Keyword
+    comment_dateCreated: Date
+    comment_text: String
+  }
+
+  type CommentList {
+    items: [Comment!]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
+  # Feedback Types
+  
+  type Feedback {
+    job_index: Int!
+    workContract_index: Int!
+    feedback_index: Int!
+    feedback_toUserType: Keyword
+    feedback_toUserId: Int!
+    feedback_fromUserType: Keyword
+    feedback_fromUserId: Int!
+    feedback_dateCreated: Date
+    feedback_rating: Int!
+    feedback_text: String
+  }
+
+  type FeedbackList {
+    items: [Feedback!]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
   ")

@@ -23,7 +23,8 @@
    [ethlance.server.model.user :as model.user]
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
-   [ethlance.server.model.arbiter :as model.arbiter]))
+   [ethlance.server.model.arbiter :as model.arbiter]
+   [ethlance.server.model.comment :as model.comment]))
 
 
 (def enum graphql-utils/kw->gql-name)

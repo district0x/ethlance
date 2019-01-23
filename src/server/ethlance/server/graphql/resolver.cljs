@@ -10,7 +10,9 @@
    [ethlance.server.graphql.resolvers.job :as resolvers.job]
    [ethlance.server.graphql.resolvers.work-contract :as resolvers.work-contract]
    [ethlance.server.graphql.resolvers.invoice :as resolvers.invoice]
-   [ethlance.server.graphql.resolvers.dispute :as resolvers.dispute]))
+   [ethlance.server.graphql.resolvers.dispute :as resolvers.dispute]
+   [ethlance.server.graphql.resolvers.comment :as resolvers.comment]
+   [ethlance.server.graphql.resolvers.feedback :as resolvers.feedback]))
 
 
 (def graphql-resolver-map
