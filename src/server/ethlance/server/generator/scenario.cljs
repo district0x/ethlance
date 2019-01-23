@@ -139,7 +139,8 @@
         dispute-index (work-contract/dispute-count)
         ipfs-data {:comment/text "Please read my dispute"}]
     (go-try
-     (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))]
+     (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))
+           feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing Job!"}))]
        (log/debug "- Creating Dispute...")
        (work-contract/create-dispute!
         {:reason "For being testy" :metahash hash}
@@ -154,7 +155,8 @@
             {:employer-amount employer-resolution-amount
              :candidate-amount candidate-resolution-amount
              :arbiter-amount arbiter-resolution-amount}
-            {:from arbiter-address}))))
+            {:from arbiter-address})
+           (dispute/leave-feedback! 4 feedback-hash {:from candidate-address}))))
      (>! result-chan {:dispute-index dispute-index}))
     result-chan))
 
@@ -287,7 +289,9 @@
          (job/request-arbiter! arbiter-address {:from employer-address})
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address})))))))
+           (work-contract/request-invite! {:from employer-address})
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))))))))
 
 
 (defmethod generate-scenario! :job-2a-acc-2c-acc
@@ -306,7 +310,9 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (job/request-work-contract! candidate-address-2 {:from candidate-address-2})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address})))))))
+           (work-contract/request-invite! {:from employer-address})
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))))))))
 
 
 (defmethod generate-scenario! :job-prog-w-invoice
@@ -324,6 +330,9 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
            (work-contract/request-invite! {:from employer-address})
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
+
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address
@@ -345,6 +354,8 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index (dec (job/work-contract-count)))
            (work-contract/request-invite! {:from employer-address})
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address
@@ -366,6 +377,8 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
            (work-contract/request-invite! {:from employer-address})
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
            (work-contract/proceed! {:from employer-address})
            (<! (generate-dispute! {:employer-address employer-address
                                    :candidate-address candidate-address
@@ -387,6 +400,8 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
            (work-contract/request-invite! {:from employer-address})
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
            (work-contract/proceed! {:from employer-address})
            (<! (generate-dispute! {:employer-address employer-address
                                    :candidate-address candidate-address
@@ -409,6 +424,10 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
            (work-contract/request-invite! {:from employer-address})
+
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
+
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address
@@ -434,6 +453,10 @@
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
            (work-contract/request-invite! {:from employer-address})
+
+           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
+
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address

@@ -16,6 +16,7 @@
    [ethlance.shared.enum.payment-type :as enum.payment]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.comment-type :as enum.comment-type]
+   [ethlance.shared.enum.user-type :as enum.user-type]
 
    ;; Ethlance Models
    [ethlance.server.model.job :as model.job]
@@ -24,6 +25,7 @@
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
    [ethlance.server.model.comment :as model.comment]
+   [ethlance.server.model.feedback :as model.feedback]
    
    ;; Ethlance Contracts
    [ethlance.server.contract.ethlance-user :as contract.user :include-macros true]
@@ -34,6 +36,7 @@
    [ethlance.server.contract.ethlance-invoice :as contract.invoice :include-macros true]
    [ethlance.server.contract.ethlance-dispute :as contract.dispute :include-macros true]
    [ethlance.server.contract.ethlance-comment :as contract.comment :include-macros true]
+   [ethlance.server.contract.ethlance-feedback :as contract.feedback :include-macros true]
    [ethlance.server.contract.ethlance-registry :as contract.registry]
 
    ;; Misc.
@@ -456,3 +459,38 @@
             (assoc comment-data
                    :dispute/index (-> args :event_data (nth 2) bn/number)
                    :comment/index (-> args :event_data (nth 3) bn/number)))))))))
+
+
+(defmethod process-registry-event :feedback-created
+  [{:keys [args] :as event}]
+  (go-try
+   (let [feedback-address (:event_sender args)
+         job-index (-> args :event_data first bn/number)
+         work-index (-> args :event_data second bn/number)
+         feedback-index (-> args :event_data (nth 2) bn/number)]
+     (contract.feedback/with-ethlance-feedback feedback-address
+       (let [{:keys [from-user-address
+                     to-user-address
+                     from-user-type
+                     to-user-type
+                     metahash
+                     rating
+                     date-created
+                     date-updated]}
+             (contract.feedback/feedback-by-index feedback-index)
+             from-user-id (model.user/user-id from-user-address)
+             to-user-id (model.user/user-id to-user-address)
+             ipfs-data (<!-<throw (ipfs/get-edn metahash))]
+         (model.feedback/create-feedback!
+          (merge
+           ipfs-data
+           {:job/index job-index
+            :work-contract/index work-index
+            :feedback/index feedback-index
+            :feedback/to-user-type to-user-type
+            :feedback/to-user-id to-user-id
+            :feedback/from-user-type from-user-type
+            :feedback/from-user-id from-user-id
+            :feedback/date-created date-created
+            :feedback/date-updated date-updated
+            :feedback/rating rating})))))))
