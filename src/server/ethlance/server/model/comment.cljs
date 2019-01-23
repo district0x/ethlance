@@ -62,11 +62,17 @@
           :where [:= :wc1.comment/index :wc2.comment/index]}]]}))
 
 
+(s/fdef work-contract-comment-listing
+  :args (s/cat :job-index :job/index
+               :work-contract-index :work-contract/index)
+  :ret (s/coll-of :work-contract/comment :distinct true :into []))
+
 (defn work-contract-comment-listing
   "Retrieves the latest revision of each work contract comment."
   [job-index work-contract-index]
-  (when-let [results (work-contract-query job-index work-contract-index)]
-    (mapv enum-val->kw results)))
+  (if-let [results (work-contract-query job-index work-contract-index)]
+    (mapv enum-val->kw results)
+    []))
 
 
 (s/def :invoice/comment
@@ -107,11 +113,18 @@
           :where [:= :wc1.comment/index :wc2.comment/index]}]]}))
 
 
+(s/fdef invoice-comment-listing
+  :args (s/cat :job-index :job/index
+               :work-contract-index :work-contract/index
+               :invoice-index :invoice/index)
+  :ret (s/coll-of :invoice/comment :distinct true :into []))
+
 (defn invoice-comment-listing
   "Retrieves the latest revision of each invoice comment."
   [job-index work-contract-index invoice-index]
-  (when-let [results (invoice-query job-index work-contract-index invoice-index)]
-    (mapv enum-val->kw results)))
+  (if-let [results (invoice-query job-index work-contract-index invoice-index)]
+    (mapv enum-val->kw results)
+    []))
 
 
 (s/def :dispute/comment
@@ -152,8 +165,15 @@
           :where [:= :wc1.comment/index :wc2.comment/index]}]]}))
 
 
+(s/fdef dispute-comment-listing
+  :args (s/cat :job-index :job/index
+               :work-contract-index :work-contract/index
+               :dispute-index :dispute/index)
+  :ret (s/coll-of :dispute/comment :distinct true :into []))
+
 (defn dispute-comment-listing
   "Retrieves the latest revision of each dispute comment."
   [job-index work-contract-index dispute-index]
-  (when-let [results (dispute-query job-index work-contract-index dispute-index)]
-    (mapv enum-val->kw results)))
+  (if-let [results (dispute-query job-index work-contract-index dispute-index)]
+    (mapv enum-val->kw results)
+    []))

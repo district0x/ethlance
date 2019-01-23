@@ -80,8 +80,9 @@
 
 (defn arbiter-request-listing
   [job-index]
-  (let [listing (ethlance.db/get-list :JobArbiterRequest {:job/index job-index})]
-    (mapv #(enum.boolean/assoc-val->kw % :arbiter-request/is-employer-request?) listing)))
+  (if-let [listing (ethlance.db/get-list :JobArbiterRequest {:job/index job-index})]
+    (mapv #(enum.boolean/assoc-val->kw % :arbiter-request/is-employer-request?) listing)
+    []))
 
 
 (s/fdef add-arbiter-request!
@@ -100,8 +101,9 @@
 
 (defn skill-listing
   [job-index]
-  (let [listing (ethlance.db/get-list :JobSkills {:job/index job-index})]
-    (mapv :skill/name listing)))
+  (if-let [listing (ethlance.db/get-list :JobSkills {:job/index job-index})]
+    (mapv :skill/name listing)
+    []))
 
 
 (s/fdef update-skill-listing!
@@ -137,8 +139,9 @@
   :ret (s/coll-of ::work-contract :distinct true :into []))
 
 (defn work-contract-listing [job-index]
-  (let [listing (ethlance.db/get-list :WorkContract {:job/index job-index})]
-    (mapv #(enum.status/assoc-val->kw % :work-contract/contract-status) listing)))
+  (if-let [listing (ethlance.db/get-list :WorkContract {:job/index job-index})]
+    (mapv #(enum.status/assoc-val->kw % :work-contract/contract-status) listing)
+    []))
 
 
 (s/fdef work-contract-count

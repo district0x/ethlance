@@ -129,4 +129,25 @@
                                 :work-contract/date-updated 7})
     
     (let [[work-contract] (job/work-contract-listing 0)]
-      (is (= (:work-contract/contract-status work-contract) ::enum.status/request-candidate-invite)))))
+      (is (= (:work-contract/contract-status work-contract) ::enum.status/request-candidate-invite))))
+
+  (testing "Testing User Feedback on specific work contracts"
+    (is (= (count (feedback/feedback-listing 0 0)) 0))
+
+    (feedback/create-feedback!
+     {:job/index 0
+      :work-contract/index 0
+      :feedback/index 0
+      :feedback/to-user-type ::enum.user-type/candidate
+      :feedback/to-user-id 1
+      :feedback/from-user-type ::enum.user-type/employer
+      :feedback/from-user-id 2
+      :feedback/date-created 1
+      :feedback/rating 4
+      :feedback/text "Did an outstanding job!"})
+
+    (is (= (count (feedback/feedback-listing 0 0)) 1))
+
+    (let [feedback-data (-> (feedback/feedback-listing 0 0) first)]
+      (is (= (:feedback/text feedback-data) "Did an outstanding job!"))
+      (is (= (:feedback/rating feedback-data) 4)))))

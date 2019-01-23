@@ -54,6 +54,10 @@
     (-> (district.db/get q) seq boolean)))
 
 
+(s/fdef user-id
+  :args (s/cat :address :user/address)
+  :ret :user/id)
+
 (defn user-id
   "Get the User ID for the user with the given address"
   [address]

@@ -47,13 +47,19 @@
 
 (defn create-feedback!
   [feedback-data]
-  (ethlance.db/insert-row! :WorkContractFeedback feedback-data))
+  (let [feedback-data (enum-kw->val feedback-data)]
+    (ethlance.db/insert-row! :WorkContractFeedback feedback-data)))
 
 
 (s/fdef feedback-listing
   :args (s/cat :feedback-data
-               (s/keys :req [:job/index :work-contract/index])))
+               (s/keys :req [:job/index :work-contract/index]))
+  :ret (s/coll-of ::feedback :distinct true :into []))
 
 (defn feedback-listing
-  [feedback-data]
-  (ethlance.db/get-list :WorkContractFeedback feedback-data))
+  [job-index work-index]
+  (if-let [listing (ethlance.db/get-list :WorkContractFeedback
+                                         {:job/index job-index
+                                          :work-contract/index work-index})]
+    (mapv enum-val->kw listing)
+    []))
