@@ -25,17 +25,31 @@
    [ethlance.server.model.employer :as model.employer]
    [ethlance.server.model.arbiter :as model.arbiter]
    [ethlance.server.model.comment :as model.comment]
-   [ethlance.server.model.feedback :as model.feedback]))
+   [ethlance.server.model.feedback :as model.feedback]
+
+   [ethlance.shared.enum.user-type :as enum.user-type]))
 
 
 (defn candidate-feedback-query
   "Accumulation of Feedback objects for the given candidate defined by
   their user id."
-  [{:keys [:user/id]}]
-  {:items []
-   :total-count 0
-   :end-cursor ""
-   :has-next-page false})
+  [{:keys [first after :user/id]}]
+  (log/debug (str/format "Candidate Feedback id=%s, first=%s, after=%s" id first after))
+  (let [to-user-type (model.feedback/enum-kw->val ::enum.user-type/candidate)
+        q {:select [:*]
+           :from [:WorkContractFeedback]
+           :where [:and
+                   [:= :feedback/to-user-id id]
+                   [:= :feedback/to-user-type to-user-type]]}
+
+        feedback-listing (->> (district.db/all q)
+                              (mapv model.feedback/enum-val->kw))
+
+        result {:items feedback-listing
+                :total-count (count feedback-listing)
+                :end-cursor (-> feedback-listing last :feedback/index str)
+                :has-next-page false}]
+    result))
 
 
 (defn employer-feedback-query
@@ -59,9 +73,11 @@
 
 
 (defn work-employer-query
-  [{job-index :job/index work-index :work-contract/index}])
+  [{job-index :job/index
+    work-index :work-contract/index}])
 
 
 (defn work-candidate-query
-  [{job-index :job/index work-index :work-contract/index}])
+  [{job-index :job/index
+    work-index :work-contract/index}])
 

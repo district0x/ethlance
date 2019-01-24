@@ -10,6 +10,7 @@
    [taoensso.timbre :as log]
    
    [district.graphql-utils :as graphql-utils]
+   [district.server.db]
    [district.server.graphql :as graphql]
    [district.server.logging]
    [district.server.web3 :refer [web3]]

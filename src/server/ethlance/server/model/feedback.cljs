@@ -14,14 +14,14 @@
    [ethlance.shared.spec :as espec]))
 
 
-(defn- enum-kw->val
+(defn enum-kw->val
   [m]
   (-> m
       (enum.user-type/assoc-kw->val :feedback/to-user-type)
       (enum.user-type/assoc-kw->val :feedback/from-user-type)))
 
 
-(defn- enum-val->kw
+(defn enum-val->kw
   [m]
   (-> m
       (enum.user-type/assoc-val->kw :feedback/to-user-type)
