@@ -23,4 +23,33 @@
    [ethlance.server.model.user :as model.user]
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
-   [ethlance.server.model.arbiter :as model.arbiter]))
+   [ethlance.server.model.arbiter :as model.arbiter])) 
+
+
+(defn work-comments-query
+  [{job-index :job/index
+    work-index :work-contract/index}]
+  {:items []
+   :total-count 0
+   :end-cursor ""
+   :has-next-page false})
+
+
+(defn invoice-comments-query
+  [{job-index :job/index
+    work-index :work-contract/index
+    invoice-index :invoice/index}]
+  {:items []
+   :total-count 0
+   :end-cursor ""
+   :has-next-page false})
+
+
+(defn dispute-comments-query
+  [{job-index :job/index
+    work-index :work-contract/index
+    dispute-index :dispute/index}]
+  {:items []
+   :total-count 0
+   :end-cursor ""
+   :has-next-page false})

@@ -53,14 +53,27 @@
 
    :Candidate
    {:candidate/categories resolvers.candidate/candidate-categories-query
-    :candidate/skills resolvers.candidate/candidate-skills-query}
+    :candidate/skills resolvers.candidate/candidate-skills-query
+    :candidate/feedback resolvers.feedback/candidate-feedback-query}
 
-   :Employer {}
-   :Arbiter {}
+   :Employer
+   {:employer/feedback resolvers.feedback/employer-feedback-query}
+
+   :Arbiter
+   {:arbiter/feedback resolvers.feedback/arbiter-feedback-query}
+
    :Job
    {:job/work-contracts resolvers.work-contract/work-contracts-query}
+
    :WorkContract
    {:work-contract/invoices resolvers.invoice/invoices-query
-    :work-contract/disputes resolvers.dispute/disputes-query}
-   :Invoice {}
-   :Dispute {}})
+    :work-contract/disputes resolvers.dispute/disputes-query
+    :work-contract/employer-feedback resolvers.feedback/work-employer-query
+    :work-contract/candidate-feedback resolvers.feedback/work-candidate-query
+    :work-contract/comments resolvers.comment/work-comments-query}
+
+   :Invoice
+   {:invoice/comments resolvers.comment/invoice-comments-query}
+
+   :Dispute
+   {:dispute/comments resolvers.comment/dispute-comments-query}})

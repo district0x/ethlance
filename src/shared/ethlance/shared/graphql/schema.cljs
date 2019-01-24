@@ -189,6 +189,12 @@
 
     \"Skills of the Candidate\"
     candidate_skills: [String!]
+
+    \"Feedback for the candidate\"
+    candidate_feedback(
+      first: Int,
+      after: String
+    ): FeedbackList!
   }
 
   type CandidateList {
@@ -218,6 +224,12 @@
 
     \"Professional Title Defined by the User\"
     employer_professionalTitle: String
+
+    \"Feedback for the employer\"
+    employer_feedback(
+      first: Int,
+      after: String
+    ): FeedbackList!
   }
 
   type EmployerList {
@@ -250,6 +262,12 @@
 
     \"The payment type\"
     arbiter_paymentType: Keyword
+
+    \"Feedback for the arbiter\"
+    arbiter_feedback(
+      first: Int,
+      after: String
+    ): FeedbackList!
   }
 
   type ArbiterList  {
@@ -333,6 +351,14 @@
       first: Int,
       after: String
     ): DisputeList
+
+    workContract_employerFeedback: Feedback
+    workContract_candidateFeedback: Feedback
+
+    workContract_comments(
+      first: Int,
+      after: String
+    ): CommentList
   }
 
   type WorkContractList {
@@ -368,6 +394,11 @@
 
     \"Date of invoice payment\"
     invoice_amountPaid: Int
+
+    invoice_comments(
+      first: Int,
+      after: String
+    ): CommentList
   }
 
   type InvoiceList  {
@@ -411,6 +442,11 @@
 
     \"Amount paid out to arbiter\"
     dispute_arbiterResolutionAmount: Int
+
+    dispute_comments(
+      first: Int,
+      after: String
+    ): CommentList
   }
 
   type DisputeList {

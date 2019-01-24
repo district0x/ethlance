@@ -26,3 +26,42 @@
    [ethlance.server.model.arbiter :as model.arbiter]
    [ethlance.server.model.comment :as model.comment]
    [ethlance.server.model.feedback :as model.feedback]))
+
+
+(defn candidate-feedback-query
+  "Accumulation of Feedback objects for the given candidate defined by
+  their user id."
+  [{:keys [:user/id]}]
+  {:items []
+   :total-count 0
+   :end-cursor ""
+   :has-next-page false})
+
+
+(defn employer-feedback-query
+  "Accumulation of Feedback objects for the given employer defined by
+  their user id."
+  [{:keys [:user/id]}]
+  {:items []
+   :total-count 0
+   :end-cursor ""
+   :has-next-page false})
+
+
+(defn arbiter-feedback-query
+  "Accumulation of Feedback objects for the given arbiter defined by
+  their user id."
+  [{:keys [:user/id]}]
+  {:items []
+   :total-count 0
+   :end-cursor ""
+   :has-next-page false})
+
+
+(defn work-employer-query
+  [{job-index :job/index work-index :work-contract/index}])
+
+
+(defn work-candidate-query
+  [{job-index :job/index work-index :work-contract/index}])
+
