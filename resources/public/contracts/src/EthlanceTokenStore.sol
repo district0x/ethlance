@@ -39,7 +39,7 @@ contract EthlanceTokenStore {
 
     /// @dev Add a job token for a job contract
     /// @param token_address The address of the ERC20 Token
-    function addJobToken(address token_address)
+    function addToken(address token_address)
 	public {
 	require(owner == msg.sender, "Only the owner can add a job token.");
 
@@ -54,23 +54,23 @@ contract EthlanceTokenStore {
     // Views
     //
 
-    /// @dev Returns true if the JobStore supports the given token.
-    function hasJobToken(address token_address) public view returns (bool) {
+    /// @dev Returns true if the store contains the given token.
+    function hasToken(address token_address) public view returns (bool) {
 	return job_token_mapping[token_address];
     }
 
 
-    /// @dev Gets all active job tokens for a particular job contract
+    /// @dev Gets all active tokens for a particular job contract
     /// @return the address of the token at the given index.
-    function getJobTokenById(uint index)
+    function getTokenByIndex(uint index)
 	public view returns (address) {
 	require(index < job_token_listing.length, "Index out of bounds");
 	return job_token_listing[index];
     }
 
 
-    /// @dev Returns the total number of job tokens
-    function getJobTokenCount()
+    /// @dev Returns the total number of tokens
+    function getTokenCount()
 	public view returns(uint) {
 	return job_token_listing.length;
     }

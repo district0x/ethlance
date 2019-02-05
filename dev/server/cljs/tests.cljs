@@ -10,6 +10,7 @@
    [ethlance.server.contract.ethlance-dispute-test]
    [ethlance.server.contract.ethlance-comment-test]
    [ethlance.server.contract.ethlance-feedback-test]
+   [ethlance.server.contract.ethlance-token-store-test]
    [ethlance.server.contract.test-token-test]
    [ethlance.server.db-test]
    [ethlance.server.model.user-test]
@@ -117,4 +118,10 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.ethlance-feedback-test)))
+
+
+(defn run-token-store-tests []
+  (.nextTick js/process
+             #(run-tests
+               'ethlance.server.contract.ethlance-token-store-test)))
 

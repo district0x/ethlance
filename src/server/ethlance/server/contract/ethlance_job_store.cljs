@@ -57,6 +57,12 @@
 (defn reward-value [] (call :reward_value))
 
 
+(defn token-store
+  "Retrieve the address of the JobStore's token storage contract."
+  []
+  (call :token-store))
+
+
 (defn request-arbiter!
   "Request an arbiter for the job contract"
   [arbiter-address & [opts]]
