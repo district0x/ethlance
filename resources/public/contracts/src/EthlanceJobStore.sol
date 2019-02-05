@@ -112,7 +112,7 @@ contract EthlanceJobStore {
 
 	registry.permitDispatch(address(fwd));
 	
-	tokenStore.construct(address(this));
+	tokenStore.construct();
     }
 
 

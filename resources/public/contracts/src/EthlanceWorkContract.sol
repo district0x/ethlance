@@ -114,7 +114,7 @@ contract EthlanceWorkContract {
 		       address payable _candidate_address,
 		       bool is_employer_request)
 	external {
-	require(owner != address(0), "EthlanceWorkContract contract already constructed.");
+	require(owner == address(0), "EthlanceWorkContract contract already constructed.");
 	owner = msg.sender;
 
 	// Main members

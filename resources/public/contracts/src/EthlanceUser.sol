@@ -50,7 +50,7 @@ contract EthlanceUser {
 
     function construct(uint _user_id, address _address, string calldata _metahash)
 	external {
-	require(owner != address(0), "EthlanceInvoice contract already constructed.");
+	require(owner == address(0), "EthlanceUser contract already constructed.");
 	owner = msg.sender;
 
 	user_id = _user_id;

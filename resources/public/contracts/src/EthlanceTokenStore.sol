@@ -27,11 +27,9 @@ contract EthlanceTokenStore {
     
 
     // Forwarded Constructor
-    function construct(address _owner) public {
-	//TODO: auth
-	require(owner != address(0), "EthlanceTokenStore contract was already constructed.");
-	owner = _owner;
-	
+    function construct() external {
+	require(owner == address(0), "EthlanceTokenStore contract was already constructed.");
+	owner = msg.sender;
     }
 
 
@@ -43,7 +41,9 @@ contract EthlanceTokenStore {
     /// @param token_address The address of the ERC20 Token
     function addJobToken(address token_address)
 	public {
-	//TODO: checks
+	require(owner == msg.sender, "Only the owner can add a job token.");
+
+	//TODO: check to see if it's an ERC20 token
 
 	job_token_listing.push(token_address);
 	job_token_mapping[token_address] = true;

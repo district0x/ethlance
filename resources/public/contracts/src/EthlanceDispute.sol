@@ -70,7 +70,7 @@ contract EthlanceDispute {
 		       string calldata _reason,
 		       string calldata metahash,
 		       bool is_employer_request) external {
-	require(owner != address(0), "EthlanceInvoice contract already constructed.");
+	require(owner == address(0), "EthlanceDispute contract already constructed.");
 	owner = msg.sender;
 
 	work_instance = _work_instance;

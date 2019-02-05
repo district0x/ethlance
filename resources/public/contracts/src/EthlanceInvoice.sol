@@ -42,18 +42,18 @@ contract EthlanceInvoice {
     // In Wei, the amount actually paid by the employer to the candidate(employee)
     uint public amount_paid;
 
-    // The entity that constructed contract
+    // The entity that constructed the contract
     address public owner;
 
     // The EthlanceWorkContract reference.
-    EthlanceWorkContract public work_instance;  
+    EthlanceWorkContract public work_instance;
     
     /// @dev Forwarder Constructor
     function construct(EthlanceWorkContract _work_instance,
 		       uint _invoice_index,
 		       uint _amount_requested,
 		       string calldata metahash) external {
-	require(owner != address(0), "EthlanceInvoice contract already constructed.");
+	require(owner == address(0), "EthlanceInvoice contract already constructed.");
 	owner = msg.sender;
 
 	work_instance = _work_instance;

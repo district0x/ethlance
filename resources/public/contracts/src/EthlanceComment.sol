@@ -34,6 +34,7 @@ contract EthlanceComment {
     //
     // Members
     //
+    address public owner;
     uint public user_type;
     address public user_address;
     uint public date_created;
@@ -51,8 +52,10 @@ contract EthlanceComment {
 		       uint[4] calldata _comment_index)
 	
 	external {
-	// TODO: authenticate
+	require(owner == address(0), "EthlanceComment contract was already constructed");
 	require(_user_type <= ARBITER_TYPE, "Unknown User Type");
+
+	owner = msg.sender;
 	user_address = _user_address;
 	user_type = _user_type;
 	metahash_listing.push(_metahash);
