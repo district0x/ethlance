@@ -18,7 +18,6 @@
    [ethlance.server.contract.ethlance-dispute-test]
    [ethlance.server.contract.ethlance-comment-test]
    [ethlance.server.contract.ethlance-feedback-test]
-   [ethlance.server.contract.multi-linked-list-test]
 
    [ethlance.server.db-test]
    [ethlance.server.model.user-test]
