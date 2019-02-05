@@ -193,6 +193,20 @@
     opts)))
 
 
+(defn deploy-ethlance-token-store!
+  "Deploy EthlanceTokenStore."
+  [opts]
+
+  (log/debug "Deploying EthlanceTokenStore...")
+  (contracts/deploy-smart-contract!
+   :ethlance-token-store
+   (merge
+    {:gas 2500000
+     :placeholder-replacements
+     {registry-placeholder :ethlance-registry}}
+    opts)))
+
+
 (defn deploy-ethlance-work-contract!
   "Deploy EthlanceWorkContract."
   [opts]
@@ -224,6 +238,7 @@
     {:gas 4000000
      :placeholder-replacements
      {forwarder-target-placeholder :ethlance-work-contract
+      second-forwarder-target-placeholder :ethlance-token-store
       registry-placeholder :ethlance-registry}}
     opts)))
 
@@ -318,6 +333,7 @@
   (deploy-ethlance-invoice! general-contract-options)
   (deploy-ethlance-dispute! general-contract-options)
   (deploy-ethlance-work-contract! general-contract-options)
+  (deploy-ethlance-token-store! general-contract-options)
   (deploy-ethlance-job-store! general-contract-options)
   (deploy-ethlance-job-factory! general-contract-options)
 

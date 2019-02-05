@@ -76,7 +76,8 @@
     - EthlanceInvoice.resolve(...) function requires implementation
 *** TODO Implement ERC20 Functionality for Job Store
     - Might be related to 'Funding'
-*** TODO Implement Comments and Feedback
+*** DONE Implement Comments and Feedback
+    CLOSED: [2019-02-04 Mon 09:32]
     - Current implementation is restrictive and requires a great deal
       of inheritance making contract sizes difficult to manage
       (collections/EthlanceMetahash.sol)
@@ -92,3 +93,8 @@
       no more open disputes.
 *** TODO Authenication for Invoice Construction
     - Requires check on construction privileges
+    - Same needs to be applied to other contracts
+    - Possible implementation could consist of a 'construction lock'
+      - require(is_contructed != true, "Contract already
+        constructed");
+        is_constructed = true;

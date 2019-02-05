@@ -2,7 +2,9 @@ pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
-import "./proxy/Forwarder.sol";
+import "./EthlanceTokenStore.sol";
+import "./proxy/Forwarder.sol";        // target(EthlanceWorkContract)
+import "./proxy/SecondForwarder.sol";  // target(EthlanceTokenStore)
 
 /// @title Create Job Contracts as an assigned Employer as a group of
 /// identical contracts.
@@ -68,6 +70,9 @@ contract EthlanceJobStore {
     // The reward value for a completed bounty
     uint public reward_value;
 
+    // Token Storage for ERC20 tokens
+    EthlanceTokenStore public tokenStore;
+
     //
     // Collections
     //
@@ -98,6 +103,16 @@ contract EthlanceJobStore {
 	is_invitation_only = _is_invitation_only;
 	metahash = _metahash;
 	reward_value = _reward_value;
+
+	// Construct TokenStore forwarder
+	SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
+                                                     // target(EthlanceTokenStore)
+
+        tokenStore = EthlanceTokenStore(address(fwd));
+
+	registry.permitDispatch(address(fwd));
+	
+	tokenStore.construct(address(this));
     }
 
 

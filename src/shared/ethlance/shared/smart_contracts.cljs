@@ -22,6 +22,8 @@
    {:name "MutableForwarder"}
    :ethlance-job-store
    {:name "EthlanceJobStore"}
+   :ethlance-token-store
+   {:name "EthlanceTokenStore"}
    :ethlance-registry
    {:name "EthlanceRegistry"}
    :ethlance-comment
