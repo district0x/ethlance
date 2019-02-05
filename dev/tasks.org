@@ -19,6 +19,9 @@
     memefactory has veered away from using web3 for deployments, and
     has moved to using truffle. Look into whether this will affect the
     ethlance rework.
+    - from last discussion, the same functionality should be available
+      in the district.server.smart-contracts. Has to do with 'secure'
+      contract deployments, tested with ~ganache-cli --secure~
 ** Server
 *** TODO Finish GraphQL Resolvers
 *** TODO Setup correct district.config values for Generator
@@ -91,7 +94,7 @@
     - Contracts that create disputes go into an ON HOLD state. Need to
       check and place a contract back into IN PROGRESS when there are
       no more open disputes.
-*** TODO Authenication for Invoice Construction
+*** TODO Authenication for General Construction of forwarded contracts.
     - Requires check on construction privileges
     - Same needs to be applied to other contracts
     - Possible implementation could consist of a 'construction lock'

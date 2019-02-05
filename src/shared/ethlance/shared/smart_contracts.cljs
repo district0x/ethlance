@@ -31,6 +31,4 @@
    :ethlance-feedback
    {:name "EthlanceFeedback"}
    :test-token
-   {:name "TestToken"}
-   :test-multi-linked-list
-   {:name "TestMultiLinkedList"}})
+   {:name "TestToken"}})
