@@ -88,6 +88,9 @@ contract EthlanceWorkContract {
     // The candidate linked to this contract
     address payable public candidate_address;
 
+    // The entity that constructed contract
+    address public owner;
+
     uint public date_created;
     uint public date_updated;
 
@@ -110,8 +113,9 @@ contract EthlanceWorkContract {
 		       uint _work_index,
 		       address payable _candidate_address,
 		       bool is_employer_request)
-	public {
-	// require(registry.checkFactoryPrivilege(msg.sender), "You are not privileged to carry out construction.");
+	external {
+	require(owner != address(0), "EthlanceWorkContract contract already constructed.");
+	owner = msg.sender;
 
 	// Main members
 	store_instance = _store_instance;

@@ -42,6 +42,9 @@ contract EthlanceInvoice {
     // In Wei, the amount actually paid by the employer to the candidate(employee)
     uint public amount_paid;
 
+    // The entity that constructed contract
+    address public owner;
+
     // The EthlanceWorkContract reference.
     EthlanceWorkContract public work_instance;  
     
@@ -50,7 +53,9 @@ contract EthlanceInvoice {
 		       uint _invoice_index,
 		       uint _amount_requested,
 		       string calldata metahash) external {
-	// TODO: authenticate
+	require(owner != address(0), "EthlanceInvoice contract already constructed.");
+	owner = msg.sender;
+
 	work_instance = _work_instance;
 	invoice_index = _invoice_index;
 	amount_requested = _amount_requested;

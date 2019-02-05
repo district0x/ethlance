@@ -40,6 +40,9 @@ contract EthlanceUser {
     uint public date_updated;
     string public metahash_ipfs;
     
+    // The entity that constructed contract
+    address public owner;
+
     Candidate public candidate_data;
     Employer public employer_data;
     Arbiter public arbiter_data;
@@ -47,8 +50,8 @@ contract EthlanceUser {
 
     function construct(uint _user_id, address _address, string calldata _metahash)
 	external {
-	require(registry.checkFactoryPrivilege(msg.sender),
-		"You are not privileged to carry out construction.");
+	require(owner != address(0), "EthlanceInvoice contract already constructed.");
+	owner = msg.sender;
 
 	user_id = _user_id;
 	user_address = _address;

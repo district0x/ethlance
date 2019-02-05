@@ -81,6 +81,7 @@ contract EthlanceFeedback {
     /// @param _job_index The EthlanceJobStore Index for the feedback
     /// @param _work_index The EthlanceWorkContract Index for the feedback
     function construct(address _owner, uint _job_index, uint _work_index) public {
+	require(owner != address(0), "EthlanceFeedback contract was already constructed");
 	owner = _owner;
 	job_index = _job_index;
 	work_index = _work_index;

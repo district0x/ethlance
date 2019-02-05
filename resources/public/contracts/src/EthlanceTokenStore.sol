@@ -1,11 +1,10 @@
 pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
-import "./EthlanceJobStore.sol";
 import "token/IERC20.sol";
 
 
-/// @title Used to store ERC20 token contracts for the Job.
+/// @title Used to store general ERC20 token contracts.
 contract EthlanceTokenStore {
     uint public constant version = 1;
     EthlanceRegistry public constant registry = EthlanceRegistry(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
@@ -24,14 +23,14 @@ contract EthlanceTokenStore {
     // Members
     //
 
-    EthlanceJobStore job_instance;
+    address public owner;
     
 
     // Forwarded Constructor
     function construct(address _owner) public {
 	//TODO: auth
-
-	job_instance = EthlanceJobStore(_owner);
+	require(owner != address(0), "EthlanceTokenStore contract was already constructed.");
+	owner = _owner;
 	
     }
 

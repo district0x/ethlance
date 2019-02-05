@@ -92,9 +92,9 @@ contract EthlanceJobStore {
 		       uint _estimated_length_seconds,
 		       bool _include_ether_token,
 		       bool _is_invitation_only,
-		       string memory _metahash,
+		       string calldata _metahash,
 		       uint _reward_value)
-      public {
+      external {
 	job_index = _job_index;
 	employer_address = _employer_address;
 	bid_option = _bid_option;
@@ -117,8 +117,8 @@ contract EthlanceJobStore {
 
 
     /// @dev update job store's IPFS metahash
-    function updateMetahash(string memory _metahash) public {
-	// TODO: authenticate
+    function updateMetahash(string calldata _metahash) external {
+	require(msg.sender == employer_address, "Only the employer can update the metahash.");
 	metahash = _metahash;
     }
 

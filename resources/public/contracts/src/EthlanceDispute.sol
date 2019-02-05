@@ -53,6 +53,9 @@ contract EthlanceDispute {
     uint public arbiter_resolution_amount;
     address public arbiter_resolution_token;
 
+    // The entity that constructed contract
+    address public owner;
+
     // The EthlanceWorkContract reference.
     EthlanceWorkContract public work_instance;
     
@@ -67,8 +70,9 @@ contract EthlanceDispute {
 		       string calldata _reason,
 		       string calldata metahash,
 		       bool is_employer_request) external {
+	require(owner != address(0), "EthlanceInvoice contract already constructed.");
+	owner = msg.sender;
 
-	// TODO: authenticate
 	work_instance = _work_instance;
 	dispute_index = _dispute_index;
 	reason = _reason;
