@@ -1,4 +1,4 @@
-(ns ethlance.server.contract.test-token
+(ns ethlance.server.contract.token
   "An ERC20 compliant token contract for testing out ERC20 facilities
   within Ethlance.
 
@@ -15,19 +15,19 @@
    [district.server.smart-contracts :as contracts]))
 
 
-(def ^:dynamic *test-token-key*
+(def ^:dynamic *token-key*
   "The main contract key"
-  :test-token)
+  :token)
 
 
 (defn address []
-  (contracts/contract-address *test-token-key*))
+  (contracts/contract-address *token-key*))
 
 
 (defn call
   "Call the TestToken contract method with the given `method-name` and `args`."
   [method-name & args]
-  (apply contracts/contract-call *test-token-key* method-name args))
+  (apply contracts/contract-call *token-key* method-name args))
 
 
 

@@ -290,11 +290,11 @@
    (contracts/contract-address :ethlance-job-factory-fwd)))
 
 
-(defn deploy-test-token!
+(defn deploy-token!
   [opts]
-  (log/debug "Deploying TestToken Contract...")
+  (log/debug "Deploying Token Contract...")
   (contracts/deploy-smart-contract!
-   :test-token
+   :token
    (merge {:gas 2000000} opts)))
 
 
@@ -330,7 +330,7 @@
   (deploy-ethlance-job-factory! general-contract-options)
 
   ;; TODO: include option to not deploy test contracts.
-  (deploy-test-token! general-contract-options)
+  (deploy-token! general-contract-options)
 
   (when write?
     (log/debug "Writing out Smart Contracts...")

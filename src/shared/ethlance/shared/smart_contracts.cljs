@@ -30,5 +30,5 @@
    {:name "EthlanceComment"}
    :ethlance-feedback
    {:name "EthlanceFeedback"}
-   :test-token
+   :token
    {:name "TestToken"}})
