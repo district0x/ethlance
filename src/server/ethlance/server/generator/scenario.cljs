@@ -41,20 +41,20 @@
 
 (def scenario-distribution
   "A random distribution of different types of scenarios to choose from"
-  [[0.7 :job-no-requests]
-   [0.2 :job-one-arbiter-request]
-   [0.4 :job-one-arbiter-accepted]
-   [0.2 :job-one-candidate-request]
-   [0.4 :job-one-candidate-accepted]
-   [0.5 :job-1a-req-1c-req]
-   [0.5 :job-2a-req-2c-req]
-   [1.2 :job-1a-acc-1c-acc]
-   [1.4 :job-2a-acc-2c-acc]
-   [2.0 :job-prog-w-invoice]
-   [2.0 :job-prog-w-invoice-paid]
-   [2.0 :job-prog-w-dispute]
-   [2.0 :job-prog-w-dispute-resolved]
-   [3.0 :job-prog-w-inv-disp]
+  [;;[0.7 :job-no-requests]
+   ;;[0.2 :job-one-arbiter-request]
+   ;;[0.4 :job-one-arbiter-accepted]
+   ;;[0.2 :job-one-candidate-request]
+   ;;[0.4 :job-one-candidate-accepted]
+   ;;[0.5 :job-1a-req-1c-req]
+   ;;[0.5 :job-2a-req-2c-req]
+   ;;[1.2 :job-1a-acc-1c-acc]
+   ;;[1.4 :job-2a-acc-2c-acc]
+   ;;[2.0 :job-prog-w-invoice]
+   ;;[2.0 :job-prog-w-invoice-paid]
+   ;;[2.0 :job-prog-w-dispute]
+   ;;[2.0 :job-prog-w-dispute-resolved]
+   ;;[3.0 :job-prog-w-inv-disp]
    [3.0 :job-prog-w-inv-paid-disp-resolved]])
 
 
@@ -77,6 +77,7 @@
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))
            job-index (job-factory/job-store-count)]
+       (log/debug (str/format "-- Creating Job Store..."))
        (job-factory/create-job-store!
         {:bid-option (if-not bounty? ::enum.bid-option/hourly-rate ::enum.bid-option/bounty)
          :estimated-length-seconds (* 60 60 24 7) ;; 1 week
@@ -86,6 +87,7 @@
          :reward-value (if-not bounty? 0 (web3/to-wei 5.0 :ether))}
         {:from employer-address})
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+         (log/debug (str/format "-- Funding Job Store [%s] Amount: %s" job-index fund-amount))
          (job/fund! {:from employer-address :value fund-amount}))
        (>! result-chan {:job-index job-index})))
     result-chan))
@@ -109,7 +111,7 @@
         ipfs-data {:comment/text "Here's my invoice!"}]
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))]
-       (log/debug "- Creating Invoice...")
+       (log/debug "-- Creating Invoice...")
        (work-contract/create-invoice! {:amount amount :metahash hash} {:from candidate-address})
        (when paid?
          ;; Fund the amount to pay out for the invoice.
@@ -117,7 +119,7 @@
           {:from employer-address
            :value (web3/to-wei 1.0 :ether)})
          (invoice/with-ethlance-invoice (work-contract/invoice-by-index invoice-index)
-           (log/debug "- Paying Invoice...")
+           (log/debug "-- Paying Invoice...")
            (invoice/pay! amount {:from employer-address})))
        (>! result-chan {:invoice-index invoice-index})))
     result-chan))
@@ -141,21 +143,24 @@
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))
            feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing Job!"}))]
-       (log/debug "- Creating Dispute...")
+       (log/debug "-- Creating Dispute...")
        (work-contract/create-dispute!
         {:reason "For being testy" :metahash hash}
         {:from employer-address})
        (when resolved?
          ;; Fund the amount to pay out the dispute resolution
+         (log/debug "-- Funding Job for Dispute... ")
          (job/fund!
           {:from employer-address
            :value (web3/to-wei 1.0 :ether)})
          (dispute/with-ethlance-dispute (work-contract/dispute-by-index dispute-index)
+           (log/debug (str/format "-- Resolving Dispute [%s]..." dispute-index))
            (dispute/resolve!
             {:employer-amount employer-resolution-amount
              :candidate-amount candidate-resolution-amount
              :arbiter-amount arbiter-resolution-amount}
             {:from arbiter-address})
+           (log/debug (str/format "-- Candidate [%s] is leaving Invoice Feedback..." candidate-address))
            (dispute/leave-feedback! 4 feedback-hash {:from candidate-address}))))
      (>! result-chan {:dispute-index dispute-index}))
     result-chan))
@@ -446,17 +451,25 @@
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
+     (log/debug "- Generating Job...")
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+       (log/debug (str/format "- Generating Work Contract for Job Index: %s" job-index))
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+         (log/debug (str/format "- Requesting Arbiter Position as Arbiter [%s]" arbiter-address))
          (job/request-arbiter! arbiter-address {:from arbiter-address})
+         (log/debug (str/format "- Requesting Arbiter Position as Employer [%s]" employer-address))
          (job/request-arbiter! arbiter-address {:from employer-address})
+         (log/debug (str/format "- Requesting Work Contract as Candidate [%s]" candidate-address))
          (job/request-work-contract! candidate-address {:from candidate-address})
          (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
+           (log/debug (str/format "- Accepting Work Contract as Employer [%s] for Candidate [%s]" employer-address candidate-address))
            (work-contract/request-invite! {:from employer-address})
 
+           (log/debug (str/format "- Employer [%s] Leaving Feedback to Candidate [%s]..." employer-address candidate-address))
            (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
              (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))
 
+           (log/debug "- Proceeding with Contract...")
            (work-contract/proceed! {:from employer-address})
            (<! (generate-invoice! {:candidate-address candidate-address
                                    :employer-address employer-address
