@@ -484,9 +484,9 @@
     job_index: Int!
     workContract_index: Int!
     feedback_index: Int!
-    feedback_toUserType: Keyword
+    feedback_toUserType: Keyword!
     feedback_toUserId: Int!
-    feedback_fromUserType: Keyword
+    feedback_fromUserType: Keyword!
     feedback_fromUserId: Int!
     feedback_dateCreated: Date
     feedback_rating: Int!

@@ -43,19 +43,19 @@
   "A random distribution of different types of scenarios to choose from"
   [;;[0.7 :job-no-requests]
    ;;[0.2 :job-one-arbiter-request]
-   ;;[0.4 :job-one-arbiter-accepted]
+   ;;[0.4 :job-one-arbiter-accepted]])
    ;;[0.2 :job-one-candidate-request]
    ;;[0.4 :job-one-candidate-accepted]
    ;;[0.5 :job-1a-req-1c-req]
-   ;;[0.5 :job-2a-req-2c-req]
-   ;;[1.2 :job-1a-acc-1c-acc]
-   ;;[1.4 :job-2a-acc-2c-acc]
+   ;;[0.5 :job-2a-req-2c-req]])
+   [1.2 :job-1a-acc-1c-acc]
+   [1.4 :job-2a-acc-2c-acc]])
    ;;[2.0 :job-prog-w-invoice]
    ;;[2.0 :job-prog-w-invoice-paid]
    ;;[2.0 :job-prog-w-dispute]
    ;;[2.0 :job-prog-w-dispute-resolved]
    ;;[3.0 :job-prog-w-inv-disp]
-   [3.0 :job-prog-w-inv-paid-disp-resolved]])
+   ;;[3.0 :job-prog-w-inv-paid-disp-resolved]])
 
 
 (defn pick-scenario
@@ -65,7 +65,13 @@
 
 
 (defn- generate-job!
-  [{:keys [employer-address bounty? fund-amount]
+  [{:keys [employer-address
+
+           ;; Scenario Conditions
+           arbiter-requests ;; collection of arbiters requesting invite
+           arbiter-accepted   ;; the arbiter chosen for invite
+           bounty?
+           fund-amount]
     :or {bounty? false fund-amount (web3/to-wei 5.0 :ether)}}]
 
   (let [result-chan (chan 1)
@@ -77,7 +83,7 @@
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))
            job-index (job-factory/job-store-count)]
-       (log/debug (str/format "-- Creating Job Store..."))
+       (log/debug (str/format "- Creating Job Store [%s]" job-index))
        (job-factory/create-job-store!
         {:bid-option (if-not bounty? ::enum.bid-option/hourly-rate ::enum.bid-option/bounty)
          :estimated-length-seconds (* 60 60 24 7) ;; 1 week
@@ -87,11 +93,46 @@
          :reward-value (if-not bounty? 0 (web3/to-wei 5.0 :ether))}
         {:from employer-address})
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (log/debug (str/format "-- Funding Job Store [%s] Amount: %s" job-index fund-amount))
-         (job/fund! {:from employer-address :value fund-amount}))
+
+         ;; Fund the Job Store if there are funds
+         (when fund-amount
+           (log/debug (str/format "-- Funding Job Store [%s] Amount: %s" job-index fund-amount))
+           (job/fund! {:from employer-address :value fund-amount}))
+
+         ;; Setup Arbiter Requests, if any
+         (when arbiter-requests
+           (log/debug (str/format "-- Requesting Arbiters..."))
+           (doseq [arbiter-address arbiter-requests]
+             (log/debug (str/format "--- Arbiter Request [%s]" arbiter-address))
+             (job/request-arbiter! arbiter-address {:from arbiter-address}))
+           
+           ;; Accept the arbiter, if any
+           (when arbiter-accepted
+             (log/debug (str/format "--- Arbiter Accepted [%s]" arbiter-accepted))
+             (assert (contains? (set arbiter-requests) arbiter-accepted)
+                     "Arbiter Accepted address not in list of arbiter requests")
+             (job/request-arbiter! arbiter-accepted {:from employer-address}))))
+       
        (>! result-chan {:job-index job-index})))
     result-chan))
 
+
+(defn- generate-work-contract!
+  [{:keys [employer-address
+           candidate-address
+
+           ;; Scenario Conditions
+           candidate-accept?]}]
+  (let [result-chan (chan 1)]
+    (go-try
+     (let [work-index (job/work-contract-count)]
+       (log/debug (str/format "-- Creating Work Contract [%s] for Candidate [%s]" work-index candidate-address))
+       (job/request-work-contract! candidate-address {:from candidate-address})
+       (when candidate-accept?
+         (work-contract/with-ethlance-work-contract (job/work-contract-by-index work-index)
+           (log/debug (str/format "--- Accepting Work Contract [%s] for Candidate [%s]" work-index candidate-address))
+           (work-contract/request-invite! {:from employer-address})))
+       (>! result-chan {:work-index work-index})))))
 
 (defn- generate-invoice!
   "Generates an invoice, and will pay it if `paid?` is true
@@ -206,9 +247,11 @@
   (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address}))))))
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :arbiter-requests [arbiter-address]
+            :bounty? false}]
+       (<! (generate-job! job-scenario-options))))))
 
 
 (defmethod generate-scenario! :job-one-arbiter-accepted
@@ -218,10 +261,12 @@
   (let [employer-address (rand-nth employers)
         arbiter-address (rand-nth arbiters)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-arbiter! arbiter-address {:from employer-address}))))))
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :arbiter-requests [arbiter-address]
+            :arbiter-accepted arbiter-address
+            :bounty? false}]
+       (<! (generate-job! job-scenario-options))))))
 
 
 (defmethod generate-scenario! :job-one-candidate-request
@@ -229,11 +274,16 @@
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
   (let [employer-address (rand-nth employers)
+        arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :bounty? false}
+           {:keys [job-index]} (<! (generate-job! job-scenario-options))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-work-contract! candidate-address {:from candidate-address}))))))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address})))))))
 
 
 (defmethod generate-scenario! :job-one-candidate-accepted
@@ -241,13 +291,17 @@
            scenario-name scenario-number]}]
   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
   (let [employer-address (rand-nth employers)
+        arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :bounty? false}
+           {:keys [job-index]} (<! (generate-job! job-scenario-options))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-work-contract! candidate-address {:from candidate-address})
-         (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address})))))))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address
+                                       :candidate-accepted? true})))))))
 
 
 (defmethod generate-scenario! :job-1a-req-1c-req
@@ -258,10 +312,15 @@
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :arbiter-requests [arbiter-address]
+            :bounty? false}
+           {:keys [job-index]} (<! (generate-job! job-scenario-options))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-work-contract! candidate-address {:from candidate-address}))))))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address
+                                       :candidate-accepted? false})))))))
 
 
 (defmethod generate-scenario! :job-2a-req-2c-req
@@ -272,12 +331,18 @@
         [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
         [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :arbiter-requests [arbiter-address arbiter-address-2]
+            :bounty? false}
+           {:keys [job-index]} (<! (generate-job! job-scenario-options))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-work-contract! candidate-address {:from candidate-address})
-         (job/request-arbiter! arbiter-address-2 {:from arbiter-address-2})
-         (job/request-work-contract! candidate-address-2 {:from candidate-address-2}))))))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address
+                                       :candidate-accepted? false}))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address-2
+                                       :candidate-accepted? false})))))))
 
 
 (defmethod generate-scenario! :job-1a-acc-1c-acc
@@ -288,15 +353,16 @@
         arbiter-address (rand-nth arbiters)
         candidate-address (rand-nth candidates)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :arbiter-requests [arbiter-address]
+            :arbiter-accepted arbiter-address
+            :bounty? false}
+           {:keys [job-index]} (<! (generate-job! job-scenario-options))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-arbiter! arbiter-address {:from employer-address})
-         (job/request-work-contract! candidate-address {:from candidate-address})
-         (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address})
-           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))))))))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address
+                                       :candidate-accepted? true})))))))
 
 
 (defmethod generate-scenario! :job-2a-acc-2c-acc
@@ -307,17 +373,19 @@
         [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
         [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
     (go-try
-     (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+     (let [job-scenario-options
+           {:employer-address employer-address
+            :arbiter-requests [arbiter-address arbiter-address-2]
+            :arbiter-accepted arbiter-address
+            :bounty? false}
+           {:keys [job-index]} (<! (generate-job! job-scenario-options))]
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (job/request-arbiter! arbiter-address {:from arbiter-address})
-         (job/request-arbiter! arbiter-address-2 {:from arbiter-address-2})
-         (job/request-arbiter! arbiter-address {:from employer-address})
-         (job/request-work-contract! candidate-address {:from candidate-address})
-         (job/request-work-contract! candidate-address-2 {:from candidate-address-2})
-         (work-contract/with-ethlance-work-contract (job/work-contract-by-index 0)
-           (work-contract/request-invite! {:from employer-address})
-           (let [feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-             (work-contract/leave-feedback! 4 feedback-hash {:from employer-address}))))))))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address
+                                       :candidate-accepted? true}))
+         (<! (generate-work-contract! {:employer-address employer-address
+                                       :candidate-address candidate-address-2
+                                       :candidate-accepted? true})))))))
 
 
 (defmethod generate-scenario! :job-prog-w-invoice
@@ -423,6 +491,7 @@
         candidate-address (rand-nth candidates)]
     (go-try
      (let [{:keys [job-index]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+       (log/debug (str/format "- Generating Work Contract for Job Index: %s" job-index))
        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
          (job/request-arbiter! arbiter-address {:from arbiter-address})
          (job/request-arbiter! arbiter-address {:from employer-address})

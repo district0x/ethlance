@@ -104,7 +104,7 @@
 (defn work-contract-count
   "Get the number of work contracts within the bound Job Store."
   []
-  (call :get-work-contract-count))
+  (bn/number (call :get-work-contract-count)))
 
 
 (defn work-contract-by-index
