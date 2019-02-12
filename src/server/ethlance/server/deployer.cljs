@@ -5,13 +5,16 @@
    [taoensso.timbre :as log]
    [mount.core :as mount :refer [defstate]]
 
+   [clojure.core.async :as async :refer [go go-loop <! >! chan close!] :include-macros true]
    [district.server.smart-contracts :as contracts]
-
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.contract.ds-auth :as ds-auth]
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
-   [ethlance.server.contract.ethlance-job-factory :as job-factory]))
+   [ethlance.server.contract.ethlance-job-factory :as job-factory]
+   [ethlance.server.utils.deasync :refer [deasync] :include-macros true]
+   [ethlance.shared.async-utils :refer [<!-<throw go-try] :include-macros true]
+   [ethlance.server.contract :refer [deploy!]]))
 
 
 (declare start stop)
@@ -48,14 +51,15 @@
 (defn deploy-ds-guard!
   "Deploy DSGuard contract."
   [opts]
-  (log/debug "Deploying DSGuard Contract...")
-  (contracts/deploy-smart-contract!
-   ds-guard/*guard-key*
-   (merge {:gas 1000000} opts))
-  
-  ;; Assign to its own authority
-  (log/debug "Setting up DSGuard Authority...")
-  (ds-auth/set-authority! ds-guard/*guard-key* (ds-guard/address)))
+  (go-try
+   (log/debug "Deploying DSGuard Contract...")
+   (<!-<throw
+    (deploy! ds-guard/*guard-key* []
+             (merge {:gas 1000000} opts)))
+   
+   ;; Assign to its own authority
+   (log/debug "Setting up DSGuard Authority...")
+   (ds-auth/set-authority! ds-guard/*guard-key* (ds-guard/address))))
 
 
 (defn deploy-ethlance-registry!
@@ -317,20 +321,18 @@
   (log/debug (str "Write Contracts on Finish?: " (boolean write?)))
 
   (deploy-ds-guard! general-contract-options)
-  (deploy-ethlance-registry! general-contract-options)
-  (deploy-ethlance-comment! general-contract-options)
-  (deploy-ethlance-feedback! general-contract-options)
-  (deploy-ethlance-user! general-contract-options)
-  (deploy-ethlance-user-factory! general-contract-options)
-  (deploy-ethlance-invoice! general-contract-options)
-  (deploy-ethlance-dispute! general-contract-options)
-  (deploy-ethlance-work-contract! general-contract-options)
-  (deploy-ethlance-token-store! general-contract-options)
-  (deploy-ethlance-job-store! general-contract-options)
-  (deploy-ethlance-job-factory! general-contract-options)
-
-  ;; TODO: include option to not deploy test contracts.
-  (deploy-token! general-contract-options)
+  ;;(deploy-ethlance-registry! general-contract-options)
+  ;;(deploy-ethlance-comment! general-contract-options)
+  ;;(deploy-ethlance-feedback! general-contract-options)
+  ;;(deploy-ethlance-user! general-contract-options)
+  ;;(deploy-ethlance-user-factory! general-contract-options)
+  ;;(deploy-ethlance-invoice! general-contract-options)
+  ;;(deploy-ethlance-dispute! general-contract-options)
+  ;;(deploy-ethlance-work-contract! general-contract-options)
+  ;;(deploy-ethlance-token-store! general-contract-options)
+  ;;(deploy-ethlance-job-store! general-contract-options)
+  ;;(deploy-ethlance-job-factory! general-contract-options)
+  ;;(deploy-token! general-contract-options)
 
   (when write?
     (log/debug "Writing out Smart Contracts...")
@@ -338,7 +340,9 @@
 
 
 (defn start []
-  (deploy-all! {}))
+  (deasync
+   (deploy-all! {}))
+  (log/debug "Deployment Finished!"))
 
 
 (defn stop [])

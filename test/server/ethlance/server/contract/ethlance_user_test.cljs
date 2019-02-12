@@ -46,7 +46,7 @@
            js/Error
            (user/with-ethlance-user (user-factory/user-by-address user1)
              (contracts/contract-call
-              user/*user-key* :construct user2 sample-meta-hash-2
+              user/*user-key* :construct [user2 sample-meta-hash-2]
               {:from user1}))))
 
       ;; Other users shouldn't be able to construct it.
@@ -54,7 +54,7 @@
            js/Error
            (user/with-ethlance-user (user-factory/user-by-address user1)
              (contracts/contract-call
-              user/*user-key* :construct user2 sample-meta-hash-2
+              user/*user-key* :construct [user2 sample-meta-hash-2]
               {:from user2})))))))
 
 

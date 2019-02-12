@@ -45,7 +45,7 @@
                  [district0x/district-server-graphql "1.0.15"]
                  [district0x/district-server-logging "1.0.3"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.0.9"]
+                 [district0x/district-server-smart-contracts "1.0.12"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.2"]
 
