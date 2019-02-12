@@ -341,8 +341,10 @@
 
 (defn start []
   (deasync
+   (log/debug "Deployment Starting!")
    (deploy-all! {}))
-  (log/debug "Deployment Finished!"))
+  (log/debug "Deployment Finished!")
+  :started)
 
 
 (defn stop [])

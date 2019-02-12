@@ -65,5 +65,5 @@
                  (close! success-channel))))
           ;; No promise, pass the result to the success channel.
           (do (>! success-channel result)
-              (close! error-channel))))))
-  [success-channel error-channel])
+              (close! error-channel)))))
+    [success-channel error-channel]))
