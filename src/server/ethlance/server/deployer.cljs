@@ -67,16 +67,17 @@
 (defn deploy-ethlance-registry!
   "Deploy EthlanceRegistry."
   [opts]
-  (log/debug "Deploying EthlanceRegistry...")
-  (contracts/deploy-smart-contract!
-   :ethlance-registry
-   (merge
-    {:gas 2000000}
-    opts))
+  (go-try
+   (log/debug "Deploying EthlanceRegistry...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-registry
+     :opts (merge {:gas 2000000} opts)))
 
-  ;; Assign the DSGuard authority
-  (log/debug "Setting up EthlanceRegistry Authority...")
-  (ds-auth/set-authority! :ethlance-registry (ds-guard/address) opts))
+   ;; Assign the DSGuard authority
+   (log/debug "Setting up EthlanceRegistry Authority...")
+   (<!-<throw
+    (ds-auth/set-authority! :ethlance-registry (ds-guard/address)))))
 
 
 (defn deploy-ethlance-user!
@@ -84,16 +85,16 @@
   [opts]
 
   ;; Deploy ethlance user contract
-  (log/debug "Deploying EthlanceUser...")
   (go-try
-   (deploy!
-    :contract-key :ethlance-user
-    :args []
-    :opts (merge
-           {:gas 2000000
-            :placeholder-replacements
-            {registry-placeholder :ethlance-registry}}
-           opts))))
+   (log/debug "Deploying EthlanceUser...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-user
+     :opts (merge
+            {:gas 2000000
+             :placeholder-replacements
+             {registry-placeholder :ethlance-registry}}
+            opts)))))
 
 
 (defn deploy-ethlance-user-factory!
@@ -147,27 +148,28 @@
 (defn deploy-ethlance-comment!
   "Deploy EthlanceComment."
   [opts]
-  
-  (log/debug "Deploying EthlanceComment...")
-  (contracts/deploy-smart-contract!
-   :ethlance-comment
-   (merge
-    {:gas 2500000
-     :placeholder-replacements
-     {registry-placeholder :ethlance-registry}})))
+  (go-try
+   (log/debug "Deploying EthlanceComment...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-comment
+     :opts {:gas 2500000
+            :placeholder-replacements
+            {registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-feedback!
   "Deploy EthlanceFeedback."
   [opts]
-  
-  (log/debug "Deploying EthlanceFeedback...")
-  (contracts/deploy-smart-contract!
-   :ethlance-feedback
-   (merge
-    {:gas 2500000
-     :placeholder-replacements
-     {registry-placeholder :ethlance-registry}})))
+  (go-try
+   (log/debug "Deploying EthlanceFeedback...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-feedback
+     :opts (merge
+            {:gas 2500000
+             :placeholder-replacements
+             {registry-placeholder :ethlance-registry}})))))
 
 
 (defn deploy-ethlance-invoice!
@@ -325,10 +327,10 @@
    (log/debug (str "Write Contracts on Finish?: " (boolean write?)))
 
    (<! (deploy-ds-guard! general-contract-options))
-   ;;(deploy-ethlance-registry! general-contract-options)
-   ;;(deploy-ethlance-comment! general-contract-options)
-   ;;(deploy-ethlance-feedback! general-contract-options)
-   ;;(deploy-ethlance-user! general-contract-options)
+   (<! (deploy-ethlance-registry! general-contract-options))
+   ;;(<! (deploy-ethlance-comment! general-contract-options))
+   ;;(<! (deploy-ethlance-feedback! general-contract-options))
+   (<! (deploy-ethlance-user! general-contract-options))
    ;;(deploy-ethlance-user-factory! general-contract-options)
    ;;(deploy-ethlance-invoice! general-contract-options)
    ;;(deploy-ethlance-dispute! general-contract-options)
