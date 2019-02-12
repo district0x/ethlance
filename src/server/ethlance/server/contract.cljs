@@ -15,7 +15,8 @@
   `district.server.smart-contracts/deploy-smart-contract!` for use
   with core.async.
   "
-  [contract-key args opts]
+  [& {:keys [contract-key args opts]
+      :or {args [] opts {}}}]
   (let [success-channel (chan 1)
         error-channel (chan 1)]
     (go

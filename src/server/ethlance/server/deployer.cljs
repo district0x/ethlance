@@ -54,8 +54,9 @@
   (go-try
    (log/debug "Deploying DSGuard Contract...")
    (<!-<throw
-    (deploy! ds-guard/*guard-key* []
-             (merge {:gas 1000000} opts)))
+    (deploy!
+     :contract-key ds-guard/*guard-key*
+     :opts (merge {:gas 1000000} opts)))
    
    ;; Assign to its own authority
    (log/debug "Setting up DSGuard Authority...")
@@ -84,13 +85,15 @@
 
   ;; Deploy ethlance user contract
   (log/debug "Deploying EthlanceUser...")
-  (contracts/deploy-smart-contract!
-   :ethlance-user
-   (merge
-    {:gas 2000000
-     :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
-    opts)))
+  (go-try
+   (deploy!
+    :contract-key :ethlance-user
+    :args []
+    :opts (merge
+           {:gas 2000000
+            :placeholder-replacements
+            {registry-placeholder :ethlance-registry}}
+           opts))))
 
 
 (defn deploy-ethlance-user-factory!
@@ -343,8 +346,8 @@
 (defn start []
   (go-deasync
    (log/debug "Deployment Starting!")
-   (<! (deploy-all! {}))
-   (log/debug "Deployment Finished!"))
+   (<! (deploy-all! {})))
+  (log/debug "Deployment Finished!")
   :started)
 
 
