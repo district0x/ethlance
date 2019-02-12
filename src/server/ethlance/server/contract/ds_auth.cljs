@@ -2,14 +2,15 @@
   "Functions for manipulating a DSAuth contract."
   (:require
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.server.contract :refer [call]]))
 
 
 (defn owner
   "Get the owner address from the DSAuth contract defined by
   `contract-key`."
   [contract-key]
-  (contracts/contract-call contract-key :owner))
+  (call contract-key :owner [] {}))
 
 
 (defn set-owner!
@@ -25,14 +26,14 @@
   web3 contract-call arguments
   "
   [contract-key new-owner & [opts]]
-  (contracts/contract-call contract-key :set-owner (merge {:gas 100000} opts)))
+  (call contract-key :set-owner [] (merge {:gas 100000} opts)))
 
 
 (defn authority
   "Get the authority address from the DSAuth contract defined by
   `contract-key`."
   [contract-key]
-  (contracts/contract-call contract-key :authority))
+  (call contract-key :authority [] {}))
 
 
 (defn set-authority!
@@ -40,4 +41,4 @@
   `new-authority` to the DSAuth defined by the smart-contract key
   `contract-key`."
   [contract-key new-authority & [opts]]
-  (contracts/contract-call contract-key :set-authority new-authority (merge {:gas 100000} opts)))
+  (call contract-key :set-authority [new-authority] (merge {:gas 100000} opts)))

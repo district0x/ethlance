@@ -12,7 +12,7 @@
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
-   [ethlance.server.utils.deasync :refer [deasync] :include-macros true]
+   [ethlance.server.utils.deasync :refer [go-deasync] :include-macros true]
    [ethlance.shared.async-utils :refer [<!-<throw go-try] :include-macros true]
    [ethlance.server.contract :refer [deploy!]]))
 
@@ -59,7 +59,8 @@
    
    ;; Assign to its own authority
    (log/debug "Setting up DSGuard Authority...")
-   (ds-auth/set-authority! ds-guard/*guard-key* (ds-guard/address))))
+   (<!-<throw
+    (ds-auth/set-authority! ds-guard/*guard-key* (ds-guard/address)))))
 
 
 (defn deploy-ethlance-registry!
@@ -315,35 +316,35 @@
   [{:keys [general-contract-options write?]
     :or {general-contract-options {}
          write? false}}]
+  (go-try
+   ;; Debug: Logging Parameters
+   (log/debug (str "General Contract Options: " general-contract-options))
+   (log/debug (str "Write Contracts on Finish?: " (boolean write?)))
 
-  ;; Debug: Logging Parameters
-  (log/debug (str "General Contract Options: " general-contract-options))
-  (log/debug (str "Write Contracts on Finish?: " (boolean write?)))
+   (<! (deploy-ds-guard! general-contract-options))
+   ;;(deploy-ethlance-registry! general-contract-options)
+   ;;(deploy-ethlance-comment! general-contract-options)
+   ;;(deploy-ethlance-feedback! general-contract-options)
+   ;;(deploy-ethlance-user! general-contract-options)
+   ;;(deploy-ethlance-user-factory! general-contract-options)
+   ;;(deploy-ethlance-invoice! general-contract-options)
+   ;;(deploy-ethlance-dispute! general-contract-options)
+   ;;(deploy-ethlance-work-contract! general-contract-options)
+   ;;(deploy-ethlance-token-store! general-contract-options)
+   ;;(deploy-ethlance-job-store! general-contract-options)
+   ;;(deploy-ethlance-job-factory! general-contract-options)
+   ;;(deploy-token! general-contract-options)
 
-  (deploy-ds-guard! general-contract-options)
-  ;;(deploy-ethlance-registry! general-contract-options)
-  ;;(deploy-ethlance-comment! general-contract-options)
-  ;;(deploy-ethlance-feedback! general-contract-options)
-  ;;(deploy-ethlance-user! general-contract-options)
-  ;;(deploy-ethlance-user-factory! general-contract-options)
-  ;;(deploy-ethlance-invoice! general-contract-options)
-  ;;(deploy-ethlance-dispute! general-contract-options)
-  ;;(deploy-ethlance-work-contract! general-contract-options)
-  ;;(deploy-ethlance-token-store! general-contract-options)
-  ;;(deploy-ethlance-job-store! general-contract-options)
-  ;;(deploy-ethlance-job-factory! general-contract-options)
-  ;;(deploy-token! general-contract-options)
-
-  (when write?
-    (log/debug "Writing out Smart Contracts...")
-    (contracts/write-smart-contracts!)))
+   (when write?
+     (log/debug "Writing out Smart Contracts...")
+     (contracts/write-smart-contracts!))))
 
 
 (defn start []
-  (deasync
+  (go-deasync
    (log/debug "Deployment Starting!")
-   (deploy-all! {}))
-  (log/debug "Deployment Finished!")
+   (<! (deploy-all! {}))
+   (log/debug "Deployment Finished!"))
   :started)
 
 

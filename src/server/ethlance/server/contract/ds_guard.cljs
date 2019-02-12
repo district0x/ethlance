@@ -2,7 +2,8 @@
   "Functions for manipulating the DSGuard contract."
   (:require
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *guard-key*
@@ -20,7 +21,7 @@
   "Call the DSGuard contract with the given `method-name` and using the
   given `args`."
   [method-name & args]
-  (apply contracts/contract-call *guard-key* method-name args))
+  (apply ethlance.server.contract/call *guard-key* method-name args))
 
 
 (def ANY
