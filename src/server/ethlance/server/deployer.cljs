@@ -72,7 +72,7 @@
    (<!-<throw
     (deploy!
      :contract-key :ethlance-registry
-     :opts (merge {:gas 2000000} opts)))
+     :contract-options {:gas 2000000}))
 
    ;; Assign the DSGuard authority
    (log/debug "Setting up EthlanceRegistry Authority...")
@@ -90,59 +90,62 @@
    (<!-<throw
     (deploy!
      :contract-key :ethlance-user
-     :opts (merge
-            {:gas 2000000
-             :placeholder-replacements
-             {registry-placeholder :ethlance-registry}}
-            opts)))))
+     :contract-options 
+     {:gas 2000000
+      :placeholder-replacements
+      {registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-user-factory!
   "Deploy EthlanceUserFactory."
   [opts]
+  (go-try
+   ;; Deploy main factory contract
+   (log/debug "Deploying EthlanceUserFactory...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-user-factory
+     :contract-options 
+     {:gas 2000000
+      :placeholder-replacements
+      {forwarder-target-placeholder :ethlance-user
+       registry-placeholder :ethlance-registry}}))
 
-  ;; Deploy main factory contract
-  (log/debug "Deploying EthlanceUserFactory...")
-  (contracts/deploy-smart-contract!
-   :ethlance-user-factory
-   (merge
-    {:gas 2000000
-     :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-user
-      registry-placeholder :ethlance-registry}}
-    opts))
+   ;; Attach to forwarder
+   (log/debug "Attaching EthlanceUserFactory Forwarder...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-user-factory-fwd
+     :contract-options
+     {:gas 1000000
+      :placeholder-replacements
+      {forwarder-target-placeholder :ethlance-user-factory}}))
 
-  ;; Attach to forwarder
-  (log/debug "Attaching EthlanceUserFactory Forwarder...")
-  (contracts/deploy-smart-contract!
-   :ethlance-user-factory-fwd
-   (merge
-    {:gas 1000000
-     :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-user-factory}}
-    opts))
+   ;; Assign the DSGuard authority
+   (log/debug "Setting up EthlanceUserFactory Authority...")
+   (<!-<throw
+    (ds-auth/set-authority! :ethlance-user-factory-fwd (ds-guard/address) opts))
 
-  ;; Assign the DSGuard authority
-  (log/debug "Setting up EthlanceUserFactory Authority...")
-  (ds-auth/set-authority! :ethlance-user-factory-fwd (ds-guard/address) opts)
+   ;; Configure DSGuard Authority
+   (log/debug "Configure DSGuard for EthlanceUserFactory Forwarder")
+   (let [user-factory-fwd-address (contracts/contract-address :ethlance-user-factory-fwd)
+         registry-address (contracts/contract-address :ethlance-registry)]
 
-  ;; Configure DSGuard Authority
-  (log/debug "Configure DSGuard for EthlanceUserFactory Forwarder")
-  (let [user-factory-fwd-address (contracts/contract-address :ethlance-user-factory-fwd)
-        registry-address (contracts/contract-address :ethlance-registry)]
+     (log/debug "EthlanceUserFactory Forwarder (permit ANY)")
+     (<!-<throw
+      (ds-guard/permit-any! user-factory-fwd-address))
 
-    (log/debug "EthlanceUserFactory Forwarder (permit ANY)")
-    (ds-guard/permit-any! user-factory-fwd-address opts)
+     (log/debug "EthlanceUserFactory Forwarder (permit -->EthlanceRegistry)")
+     (<!-<throw
+      (ds-guard/permit! {:src user-factory-fwd-address
+                         :dst registry-address
+                         :sig ds-guard/ANY})))
 
-    (log/debug "EthlanceUserFactory Forwarder (permit -->EthlanceRegistry)")
-    (ds-guard/permit! {:src user-factory-fwd-address
-                       :dst registry-address
-                       :sig ds-guard/ANY} opts))
-
-  ;; Configure Factory Privilege
-  (log/debug "Permitting EthlanceUserFactory Factory Privilege")
-  (registry/permit-factory-privilege!
-   (contracts/contract-address :ethlance-user-factory-fwd)))
+   ;; Configure Factory Privilege
+   (log/debug "Permitting EthlanceUserFactory Factory Privilege")
+   (<!-<throw
+    (registry/permit-factory-privilege!
+     (contracts/contract-address :ethlance-user-factory-fwd)))))
 
 
 (defn deploy-ethlance-comment!
@@ -153,9 +156,10 @@
    (<!-<throw
     (deploy!
      :contract-key :ethlance-comment
-     :opts {:gas 2500000
-            :placeholder-replacements
-            {registry-placeholder :ethlance-registry}}))))
+     :contract-options 
+     {:gas 2500000
+      :placeholder-replacements
+      {registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-feedback!
@@ -166,41 +170,42 @@
    (<!-<throw
     (deploy!
      :contract-key :ethlance-feedback
-     :opts (merge
-            {:gas 2500000
-             :placeholder-replacements
-             {registry-placeholder :ethlance-registry}})))))
+     :contract-options 
+     {:gas 2500000
+      :placeholder-replacements
+      {registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-invoice!
   "Deploy EthlanceInvoice."
   [opts]
 
-  (log/debug "Deploying EthlanceInvoice...")
-  (contracts/deploy-smart-contract!
-   :ethlance-invoice
-   (merge
-    {:gas 2500000
-     :placeholder-replacements
-     {registry-placeholder :ethlance-registry
-      forwarder-target-placeholder :ethlance-comment}}
-    opts)))
+  (go-try
+   (log/debug "Deploying EthlanceInvoice...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-invoice
+     :contract-options 
+     {:gas 2500000
+      :placeholder-replacements
+      {registry-placeholder :ethlance-registry
+       forwarder-target-placeholder :ethlance-comment}}))))
 
 
 (defn deploy-ethlance-dispute!
   "Deploy EthlanceDispute."
   [opts]
-
-  (log/debug "Deploying EthlanceDispute...")
-  (contracts/deploy-smart-contract!
-   :ethlance-dispute
-   (merge
-    {:gas 2500000
-     :placeholder-replacements
-     {registry-placeholder :ethlance-registry
-      forwarder-target-placeholder :ethlance-comment
-      second-forwarder-target-placeholder :ethlance-feedback}}
-    opts)))
+  (go-try
+   (log/debug "Deploying EthlanceDispute...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-dispute
+     :contract-options
+     {:gas 2500000
+      :placeholder-replacements
+      {registry-placeholder :ethlance-registry
+       forwarder-target-placeholder :ethlance-comment
+       second-forwarder-target-placeholder :ethlance-feedback}}))))
 
 
 (defn deploy-ethlance-token-store!
@@ -220,37 +225,37 @@
 (defn deploy-ethlance-work-contract!
   "Deploy EthlanceWorkContract."
   [opts]
-  
-  ;; Deploy ethlance work contract
-  (log/debug "Deploying EthlanceWorkContract...")
-  (contracts/deploy-smart-contract!
-   :ethlance-work-contract
-   (merge
-    {:gas 4000000
-     :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-invoice
-      second-forwarder-target-placeholder :ethlance-dispute
-      third-forwarder-target-placeholder :ethlance-comment
-      fourth-forwarder-target-placeholder :ethlance-feedback
-      registry-placeholder :ethlance-registry}}
-    opts)))
+  (go-try
+   ;; Deploy ethlance work contract
+   (log/debug "Deploying EthlanceWorkContract...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-work-contract
+     :contract-options
+     {:gas 4000000
+      :placeholder-replacements
+      {forwarder-target-placeholder :ethlance-invoice
+       second-forwarder-target-placeholder :ethlance-dispute
+       third-forwarder-target-placeholder :ethlance-comment
+       fourth-forwarder-target-placeholder :ethlance-feedback
+       registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-job-store!
   "Deploy EthlanceJob."
   [opts]
-
-  ;; Deploy ethlance job contract
-  (log/debug "Deploying EthlanceJobStore...")
-  (contracts/deploy-smart-contract!
-   :ethlance-job-store
-   (merge
-    {:gas 4000000
-     :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-work-contract
-      second-forwarder-target-placeholder :ethlance-token-store
-      registry-placeholder :ethlance-registry}}
-    opts)))
+  (go-try
+   ;; Deploy ethlance job contract
+   (log/debug "Deploying EthlanceJobStore...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-job-store
+     :contract-options
+     {:gas 4000000
+      :placeholder-replacements
+      {forwarder-target-placeholder :ethlance-work-contract
+       second-forwarder-target-placeholder :ethlance-token-store
+       registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-job-factory!
@@ -328,13 +333,13 @@
 
    (<! (deploy-ds-guard! general-contract-options))
    (<! (deploy-ethlance-registry! general-contract-options))
-   ;;(<! (deploy-ethlance-comment! general-contract-options))
-   ;;(<! (deploy-ethlance-feedback! general-contract-options))
+   (<! (deploy-ethlance-comment! general-contract-options))
+   (<! (deploy-ethlance-feedback! general-contract-options))
    (<! (deploy-ethlance-user! general-contract-options))
-   ;;(deploy-ethlance-user-factory! general-contract-options)
-   ;;(deploy-ethlance-invoice! general-contract-options)
-   ;;(deploy-ethlance-dispute! general-contract-options)
-   ;;(deploy-ethlance-work-contract! general-contract-options)
+   (<! (deploy-ethlance-user-factory! general-contract-options))
+   (<! (deploy-ethlance-invoice! general-contract-options))
+   (<! (deploy-ethlance-dispute! general-contract-options))
+   (<! (deploy-ethlance-work-contract! general-contract-options))
    ;;(deploy-ethlance-token-store! general-contract-options)
    ;;(deploy-ethlance-job-store! general-contract-options)
    ;;(deploy-ethlance-job-factory! general-contract-options)

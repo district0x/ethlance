@@ -20,8 +20,12 @@
 (defn call
   "Call the DSGuard contract with the given `method-name` and using the
   given `args`."
-  [method-name & args]
-  (apply ethlance.server.contract/call *guard-key* method-name args))
+  [method-name args opts]
+  (ethlance.server.contract/call 
+   :contract-key *guard-key*
+   :method-name method-name
+   :contract-arguments args
+   :contract-options opts))
 
 
 (def ANY
@@ -60,14 +64,14 @@
 
   "
   [{:keys [:src :dst :sig]} & [opts]]
-  (call :permit src dst sig (merge opts {:gas 100000})))
+  (call :permit [src dst sig] (merge {:gas 100000} opts)))
 
 
 (defn can-call?
   "Returns true if the given `src` `dst` combination is authorized to
   perform the given contract-call defined by `sig`, otherwise false."
   [{:keys [:src :dst :sig]}]
-  (call :can-call src dst sig))
+  (call :can-call [src dst sig] {}))
 
 
 (defn permit-any!

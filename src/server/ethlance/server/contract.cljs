@@ -15,12 +15,13 @@
   `district.server.smart-contracts/deploy-smart-contract!` for use
   with core.async.
   "
-  [& {:keys [contract-key args opts]
-      :or {args [] opts {}}}]
+  [& {:keys [contract-key contract-arguments contract-options]
+      :or {contract-arguments []
+           contract-options {}}}]
   (let [success-channel (chan 1)
         error-channel (chan 1)]
     (go
-      (-> (contracts/deploy-smart-contract! contract-key args opts)
+      (-> (contracts/deploy-smart-contract! contract-key contract-arguments contract-options)
           (.then
            (fn [result]
              (put! success-channel result)
@@ -46,11 +47,13 @@
   - Correctly passes the result to the success channel in situations
   where a promise is not generated.
   "
-  [contract-address method-name args opts]
+  [& {:keys [contract-key method-name contract-arguments contract-options]
+      :or {contract-arguments []
+           contract-options {}}}]
   (let [success-channel (chan 1)
         error-channel (chan 1)]
     (go
-      (let [result (contracts/contract-call contract-address method-name args opts)]
+      (let [result (contracts/contract-call contract-key method-name contract-arguments contract-options)]
         ;; Some of the calls return the result directly instead of a
         ;; js/Promise object. These are correctly passed to the
         ;; success channel in those situations.

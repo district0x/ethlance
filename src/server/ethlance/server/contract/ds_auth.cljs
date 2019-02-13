@@ -10,7 +10,9 @@
   "Get the owner address from the DSAuth contract defined by
   `contract-key`."
   [contract-key]
-  (call contract-key :owner [] {}))
+  (call
+   :contract-key contract-key
+   :method-name :owner []))
 
 
 (defn set-owner!
@@ -26,14 +28,19 @@
   web3 contract-call arguments
   "
   [contract-key new-owner & [opts]]
-  (call contract-key :set-owner [] (merge {:gas 100000} opts)))
+  (call
+   :contract-key contract-key
+   :method-name :set-owner 
+   :contract-options (merge {:gas 100000} opts)))
 
 
 (defn authority
   "Get the authority address from the DSAuth contract defined by
   `contract-key`."
   [contract-key]
-  (call contract-key :authority [] {}))
+  (call 
+   :contract-key contract-key
+   :method-name :authority))
 
 
 (defn set-authority!
@@ -41,4 +48,8 @@
   `new-authority` to the DSAuth defined by the smart-contract key
   `contract-key`."
   [contract-key new-authority & [opts]]
-  (call contract-key :set-authority [new-authority] (merge {:gas 100000} opts)))
+  (call 
+   :contract-key contract-key 
+   :method-name :set-authority
+   :contract-arguments [new-authority]
+   :contract-options (merge {:gas 100000} opts)))

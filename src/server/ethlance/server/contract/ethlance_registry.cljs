@@ -10,7 +10,8 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *registry-key*
@@ -21,8 +22,12 @@
 (defn call
   "Call the EthlanceRegistry contract method with the given
   `method-name` and `args`."
-  [method-name & args]
-  (apply contracts/contract-call *registry-key* method-name args))
+  [method-name args & [opts]]
+  (ethlance.server.contract/call
+   :contract-key *registry-key*
+   :method-name method-name
+   :contract-arguments args
+   :contract-options (or opts {})))
 
 
 (defn address []
@@ -32,7 +37,7 @@
 (defn user-id
   "Get the user id linked to the given ethereum address."
   [address]
-  (call :get-user-id address))
+  (call :get-user-id [address]))
 
 
 (defn permit-factory-privilege!
@@ -40,7 +45,7 @@
   construction"
   [factory-address & [opts]]
   (call
-   :permit-factory-privilege factory-address
+   :permit-factory-privilege [factory-address]
    (merge {:gas 2000000} opts)))
 
 
@@ -53,7 +58,7 @@
   method to ensure the calling contract is a privileged factory."
   [factory-address & [opts]]
   (call
-   :check-factory-privilege factory-address
+   :check-factory-privilege [factory-address]
    (merge {:gas 2000000} opts)))
 
 
@@ -74,25 +79,25 @@
   
   - Currently implemented by EthlanceInvoice, and EthlanceDispute."
   [address]
-  (when-let [n (call :get-comment-count address)]
-    (bn/number n)))
+  (when-let [result (call :get-comment-count [address])]
+    result))
 
 
 (defn comment-by-index
   "Get the address of the EthlanceComment attached to `address` at `index`"
   [address index]
-  (call :get-comment-by-index address index))
+  (call :get-comment-by-index [address index]))
 
 
 (defn has-feedback?
   [address]
-  (call :has-feedback address))
+  (call :has-feedback [address]))
 
 
 (defn feedback-by-address
   "Get the address of the EthlanceFeedback attached to `address`."
   [address]
-  (call :get-feedback-by-address address))
+  (call :get-feedback-by-address [address]))
 
 
 ;;
@@ -100,4 +105,4 @@
 ;;
 
 (defn ethlance-event [& args]
-  (apply contracts/contract-call *registry-key* :EthlanceEvent args))
+  (contracts/contract-call *registry-key* :EthlanceEvent [args] {}))
