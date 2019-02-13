@@ -23,10 +23,11 @@
     (go
       (-> (contracts/deploy-smart-contract! contract-key contract-arguments contract-options)
           (.then
+           ;; Success
            (fn [result]
              (put! success-channel result)
-             (close! error-channel)))
-          (.catch
+             (close! error-channel))
+           ;; Failure
            (fn [error-object]
              (put! error-channel error-object)
              (close! success-channel)))))
@@ -60,10 +61,11 @@
         (if (instance? js/Promise result)
           (-> result
               (.then
+               ;; Success
                (fn [result]
                  (put! success-channel result)
-                 (close! error-channel)))
-              (.catch
+                 (close! error-channel))
+               ;; Failure
                (fn [error-object]
                  (put! error-channel error-object)
                  (close! success-channel))))

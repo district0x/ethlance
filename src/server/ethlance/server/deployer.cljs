@@ -211,15 +211,15 @@
 (defn deploy-ethlance-token-store!
   "Deploy EthlanceTokenStore."
   [opts]
-
-  (log/debug "Deploying EthlanceTokenStore...")
-  (contracts/deploy-smart-contract!
-   :ethlance-token-store
-   (merge
-    {:gas 2500000
-     :placeholder-replacements
-     {registry-placeholder :ethlance-registry}}
-    opts)))
+  (go-try
+   (log/debug "Deploying EthlanceTokenStore...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-token-store
+     :contract-options
+     {:gas 2500000
+      :placeholder-replacements
+      {registry-placeholder :ethlance-registry}}))))
 
 
 (defn deploy-ethlance-work-contract!
@@ -261,56 +261,64 @@
 (defn deploy-ethlance-job-factory!
   "Deploy EthlanceJobFactory."
   [opts]
+  (go-try
+   ;; Deploy main factory contract
+   (log/debug "Deploying EthlanceJobFactory...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-job-factory
+     :contract-options
+     {:gas 2500000
+      :placeholder-replacements
+      {forwarder-target-placeholder :ethlance-job-store
+       registry-placeholder :ethlance-registry}}))
 
-  ;; Deploy main factory contract
-  (log/debug "Deploying EthlanceJobFactory...")
-  (contracts/deploy-smart-contract!
-   :ethlance-job-factory
-   (merge
-    {:gas 2500000
-     :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-job-store
-      registry-placeholder :ethlance-registry}}
-    opts))
+   ;; Attach to forwarder
+   (log/debug "Attaching EthlanceJobFactory Forwarder...")
+   (<!-<throw
+    (deploy!
+     :contract-key :ethlance-job-factory-fwd
+     :contract-options
+     {:gas 1000000
+      :placeholder-replacements
+      {forwarder-target-placeholder :ethlance-job-factory}}))
 
-  ;; Attach to forwarder
-  (log/debug "Attaching EthlanceJobFactory Forwarder...")
-  (contracts/deploy-smart-contract!
-   :ethlance-job-factory-fwd
-   (merge
-    {:gas 1000000
-     :placeholder-replacements
-     {forwarder-target-placeholder :ethlance-job-factory}}))
+   ;; Assign the DSGuard authority
+   (log/debug "Setting up EthlanceJobFactory Authority...")
+   (<!-<throw
+    (ds-auth/set-authority! :ethlance-job-factory-fwd (ds-guard/address)))
 
-  ;; Assign the DSGuard authority
-  (log/debug "Setting up EthlanceJobFactory Authority...")
-  (ds-auth/set-authority! :ethlance-job-factory-fwd (ds-guard/address) opts)
+   ;; Configure DSGuard Authority
+   (log/debug "Configure DSGuard for EthlanceJobFactory Forwarder")
+   (let [job-factory-fwd-address (contracts/contract-address :ethlance-job-factory-fwd)
+         registry-address (contracts/contract-address :ethlance-registry)]
 
-  ;; Configure DSGuard Authority
-  (log/debug "Configure DSGuard for EthlanceJobFactory Forwarder")
-  (let [job-factory-fwd-address (contracts/contract-address :ethlance-job-factory-fwd)
-        registry-address (contracts/contract-address :ethlance-registry)]
+     (log/debug "EthlanceJobFactory Forwarder (permit ANY)")
+     (<!-<throw
+      (ds-guard/permit-any! job-factory-fwd-address))
 
-    (log/debug "EthlanceJobFactory Forwarder (permit ANY)")
-    (ds-guard/permit-any! job-factory-fwd-address)
+     (log/debug "EthlanceJobFactory Forwarder (permit -->EthlanceRegistry)")
+     (<!-<throw
+      (ds-guard/permit! {:src job-factory-fwd-address
+                         :dst registry-address
+                         :sig ds-guard/ANY} opts)))
 
-    (log/debug "EthlanceJobFactory Forwarder (permit -->EthlanceRegistry)")
-    (ds-guard/permit! {:src job-factory-fwd-address
-                       :dst registry-address
-                       :sig ds-guard/ANY} opts))
-
-  ;; Configure Factory Privilege
-  (log/debug "Permitting EthlanceJobFactory Factory Privilege")
-  (registry/permit-factory-privilege!
-   (contracts/contract-address :ethlance-job-factory-fwd)))
+   ;; Configure Factory Privilege
+   (log/debug "Permitting EthlanceJobFactory Factory Privilege")
+   (<!-<throw
+    (registry/permit-factory-privilege!
+     (contracts/contract-address :ethlance-job-factory-fwd)))))
 
 
 (defn deploy-token!
   [opts]
-  (log/debug "Deploying Token Contract...")
-  (contracts/deploy-smart-contract!
-   :token
-   (merge {:gas 2000000} opts)))
+  (go-try
+   (log/debug "Deploying Token Contract...")
+   (<!-<throw
+    (deploy!
+     :contract-key :token
+     :contract-options
+     {:gas 2000000}))))
 
 
 (defn deploy-all!
@@ -340,10 +348,10 @@
    (<! (deploy-ethlance-invoice! general-contract-options))
    (<! (deploy-ethlance-dispute! general-contract-options))
    (<! (deploy-ethlance-work-contract! general-contract-options))
-   ;;(deploy-ethlance-token-store! general-contract-options)
-   ;;(deploy-ethlance-job-store! general-contract-options)
-   ;;(deploy-ethlance-job-factory! general-contract-options)
-   ;;(deploy-token! general-contract-options)
+   (<! (deploy-ethlance-token-store! general-contract-options))
+   (<! (deploy-ethlance-job-store! general-contract-options))
+   (<! (deploy-ethlance-job-factory! general-contract-options))
+   (<! (deploy-token! general-contract-options))
 
    (when write?
      (log/debug "Writing out Smart Contracts...")
