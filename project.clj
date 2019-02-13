@@ -103,7 +103,7 @@
   :npm {:dependencies
         [[chalk "2.3.0"]
          [cors "2.8.4"]
-         [deasync "0.1.11"]
+         [deasync "0.1.14"]
          [express "4.15.3"]
          [express-graphql "0.7.1"]
          [graphql "0.13.1"]

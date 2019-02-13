@@ -2,7 +2,8 @@
   "Includes fixtures and additional utilities to improve the process of
   testing ethereum contracts."
   (:require
-   [clojure.test :refer [deftest is are testing use-fixtures async]]
+   [clojure.test :refer [deftest is are testing use-fixtures]]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put!] :include-macros true]
 
    [taoensso.timbre :as log]
    [cljs-web3.eth :as web3-eth]
@@ -11,6 +12,7 @@
    
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]
+   [ethlance.server.utils.deasync :refer [go-deasync] :include-macros true]
 
    ;; Mount Components
    [district.server.logging]
@@ -23,7 +25,7 @@
 (declare reset-testnet! revert-testnet!)
 (defstate testnet-fixture
   :start (reset-testnet!)
-  :stop (revert-testnet!))
+  :stop (go-deasync (<! (revert-testnet!))))
 
 
 ;;
@@ -39,27 +41,25 @@
 (defonce *deployment-testnet-snapshot (atom nil))
 
 
-(def *snapshot-lock (atom false)) ; Lock to force deasync
 (defn snapshot-testnet!
   "Retrieves the current blockchain snapshot, and places it in
   `*deployment-testnet-snapshot`."
   []
-  (log/debug "Saving Testnet Blockchain Snapshot...")
-  (reset! *snapshot-lock true)
-  (web3-evm/snapshot! @web3
-   (fn [error result]
-     (if result
-       (do
-         (reset! *deployment-testnet-snapshot (:result result))
-         (log/debug "Snapshot Saved!"))
-       (log/error "Failed to retrieve the blockchain snapshot!" error))
-     (reset! *snapshot-lock false)))
-  (.loopWhile deasync (fn [] @*snapshot-lock)))
+  (go
+    (let [done-channel (chan 1)]
+      (log/debug "Saving Testnet Blockchain Snapshot...")
+      (web3-evm/snapshot!
+       @web3
+       (fn [error result]
+         (if result
+           (do
+             (reset! *deployment-testnet-snapshot (:result result))
+             (log/debug "Snapshot Saved!"))
+           (log/error "Failed to retrieve the blockchain snapshot!" error))
+         (put! done-channel ::done)))
+      (<! done-channel))))
 
-  ;; Make our async callback synchronous.
 
-
-(def *revert-lock (atom false)) ; Lock to force deasync
 (defn revert-testnet!
   "Reverts the testnet blockchain to the most recent
   `*deployment-testnet-snapshot`.
@@ -68,22 +68,23 @@
 
   - Can only revert to the previous snapshot 'once'."
   []
-  (if @*deployment-testnet-snapshot
-    (do
-      (log/debug "Reverting to Testnet Blockchain Snapshot..." @*deployment-testnet-snapshot)
-      (reset! *revert-lock true)
-      (web3-evm/revert!
-       @web3 @*deployment-testnet-snapshot
-       (fn [error result]
-         (if result
-           (log/debug "Successfully Reverted Testnet!")
-           (log/error "Failed to Revert Testnet!" error))
-         (reset! *deployment-testnet-snapshot nil)
-         (reset! *revert-lock false))))
-    (log/warn "Snapshot Not Available, Testnet will not be reverted."))
-
-  ;; Make our async callback synchronous.
-  (.loopWhile deasync (fn [] @*revert-lock)))
+  (go
+    (let [done-channel (chan 1)]
+      (if @*deployment-testnet-snapshot
+        (do
+          (log/debug "Reverting to Testnet Blockchain Snapshot..." @*deployment-testnet-snapshot)
+          (web3-evm/revert!
+           @web3 @*deployment-testnet-snapshot
+           (fn [error result]
+             (if result
+               (log/debug "Successfully Reverted Testnet!")
+               (log/error "Failed to Revert Testnet!" error))
+             (reset! *deployment-testnet-snapshot nil)
+             (put! done-channel ::done))))
+        (do
+          (log/warn "Snapshot Not Available, Testnet will not be reverted.")
+          (put! done-channel ::done)))
+      (<! done-channel))))
 
 
 (defn reset-testnet!
@@ -120,14 +121,15 @@
 
   - Works on Ganache CLI v6.1.8 (ganache-core: 2.2.1)"
   [deployer-options force-deployment?]
-  (if-not (or @*deployment-testnet-snapshot force-deployment?)
-    (do
-      (deployer/deploy-all!
-       (merge default-deployer-config deployer-options))
-      (snapshot-testnet!))
-    (do (revert-testnet!)
-        ;; Snapshot is 'used up' after reversion, so take another snapshot.
-        (snapshot-testnet!))))
+  (go-deasync
+   (if-not (or @*deployment-testnet-snapshot force-deployment?)
+     (do
+       (<! (deployer/deploy-all! (merge default-deployer-config deployer-options)))
+       (<! (snapshot-testnet!)))
+     (do
+       (<! (revert-testnet!))
+       ;; Snapshot is 'used up' after reversion, so take another snapshot.
+       (<! (snapshot-testnet!))))))
 
 
 (defn fixture-start
@@ -145,8 +147,7 @@
 
 (defn fixture-stop
   "Test Fixture Teardown."
-  []
-  (async done (js/setTimeout #(done) 1000)))
+  [])
 
 
 (defn with-smart-contract

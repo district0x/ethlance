@@ -121,7 +121,7 @@
          uaddress (<!-<throw (contract.user-factory/user-by-id user-id))
          metahash-ipfs (<!-<throw (contract.user/metahash-ipfs uaddress))
          ipfs-data (<!-<throw (ipfs/get-edn metahash-ipfs))
-         date-updated (<!-<throw (contract.user/date-updated))
+         date-updated (<!-<throw (contract.user/date-updated uaddress))
          user-data {:user/id user-id :user/date-updated (bn/number date-updated)}
          employer-data (assoc ipfs-data
                               :user/id user-id

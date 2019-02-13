@@ -44,7 +44,6 @@
   "Call the bound EthlanceUser contract with the given `method-name` and
   `args`."
   [contract-address method-name args & [opts]]
-  (requires-user-key)
   (ethlance.server.contract/call
    :contract-key [:ethlance-user contract-address]
    :method-name method-name
@@ -127,21 +126,27 @@
   (let [result-channel (chan 1)
         [success-channel error-channel] (call address :get-arbiter-data [])] 
     (go-try
-     (let [[is-registered? payment-value currency-type payment-type] (<! success-channel)]
+     (if-let [[is-registered? payment-value currency-type payment-type] (<! success-channel)]
        (>! result-channel {:is-registered? is-registered?
                            :payment-value payment-value
                            :currency-type (enum.currency/val->kw currency-type)
-                           :payment-type (enum.payment/val->kw payment-type)})))
+                           :payment-type (enum.payment/val->kw payment-type)})
+       (close! result-channel)))
     [result-channel error-channel]))
 
 
 (defn register-employer!
   "User the user as an employer."
   [address & [opts]]
-  (call address :register-employer (merge {:gas 1000000} opts)))
+  (call address :register-employer [] (merge {:gas 1000000} opts)))
 
 
 (defn employer-data
   [address]
-  (let [is-registered? (call address :get-employer-data)]
-    {:is-registered? is-registered?}))
+  (let [result-channel (chan 1)
+        [success-channel error-channel] (call address :get-employer-data [])]
+    (go-try
+     (if-let [is-registered? (<! success-channel)]
+       {:is-registered? is-registered?}
+       (close! result-channel)))
+    [result-channel error-channel]))

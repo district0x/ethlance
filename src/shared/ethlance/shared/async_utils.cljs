@@ -25,9 +25,20 @@
   (go
    (when-let [err (<! error-channel)]
      (close! success-channel)
-     (log/error err)
-     (throw (ex-info "Error on async error channel" {:error-object err}))))
+     (log/error (str err))
+     (throw (ex-info "Error on Async Error Channel" {:error-object err}))))
   success-channel)
+
+
+(defn pull-error-channel
+  "Pulls the error object from the channel. If there is no error, the
+  channel will return nil (closed channel)."
+  [[success-channel error-channel]]
+  (go
+   (when-let [result (<! success-channel)]
+     (close! error-channel)
+     (log/debug (str result))))
+  error-channel)
 
 
 (defn flush!

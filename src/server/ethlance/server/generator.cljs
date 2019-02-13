@@ -54,8 +54,8 @@
   [account-index]
    
   (let [eth-account (nth (web3-eth/accounts @web3) account-index)
-        metahash-ipfs (user/with-ethlance-user (user-factory/user-by-address eth-account)
-                        (user/metahash-ipfs))]
+        uaddress (<!-<throw (user-factory/user-by-address eth-account))
+        metahash-ipfs (<!-<throw (user/metahash-ipfs uaddress))]
     (ipfs/get-edn metahash-ipfs)))
 
 
