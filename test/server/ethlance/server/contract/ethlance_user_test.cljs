@@ -5,6 +5,7 @@
    [clojure.test :refer [deftest is are testing use-fixtures]]
    [cljs-web3.eth :as web3-eth]
    [taoensso.timbre :as log]
+   [clojure.core.async :refer [go go-loop <! >! chan close!] :include-macros true]
 
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]
@@ -17,7 +18,9 @@
 
    [ethlance.shared.enum.currency-type :as enum.currency]
    [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]))
+   [ethlance.shared.enum.bid-option :as enum.bid-option]
+   [ethlance.shared.async-utils :refer [<!-<throw go-try] :include-macros true]
+   [ethlance.server.utils.deasync :refer [go-deasync] :include-macros true]))
 
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
@@ -25,14 +28,15 @@
 
 
 (deftest-smart-contract register-and-retrieve-user {}
-  (let [[user1] (web3-eth/accounts @web3)
-        tx-1 (user-factory/register-user!
-              {:metahash-ipfs sample-meta-hash-1}
-              {:from user1})]
-    
-    (testing "Check if metahash is correct"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (is (= sample-meta-hash-1 (user/metahash-ipfs)))))))
+  (go-deasync
+    (let [[user1] (web3-eth/accounts @web3)
+          tx-1 (<!-<throw (user-factory/register-user!
+                           {:metahash-ipfs sample-meta-hash-1}
+                           {:from user1}))]
+      
+      (testing "Check if metahash is correct"
+        (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+          (is (= sample-meta-hash-1 (<!-<throw (user/metahash-ipfs uaddress)))))))))
 
 
 (deftest-smart-contract attempt-reconstruction {}
@@ -43,19 +47,15 @@
     (testing "Attempt to reconstruct user from unprivileged account"
       ;; Only the factory is privileged to construct the user contract
       (is (thrown?
-           js/Error
-           (user/with-ethlance-user (user-factory/user-by-address user1)
-             (contracts/contract-call
-              user/*user-key* :construct [user2 sample-meta-hash-2]
-              {:from user1}))))
+           :default
+           (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+             (<!-<throw (user/call uaddress :construct [user2 sample-meta-hash-2] {:from user1})))))
 
       ;; Other users shouldn't be able to construct it.
       (is (thrown?
-           js/Error
-           (user/with-ethlance-user (user-factory/user-by-address user1)
-             (contracts/contract-call
-              user/*user-key* :construct [user2 sample-meta-hash-2]
-              {:from user2})))))))
+           :default
+           (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+             (<!-<throw (user/call uaddress :construct [user2 sample-meta-hash-2] {:from user2}))))))))
 
 
 (deftest-smart-contract update-user-metahash {}
@@ -64,15 +64,16 @@
               {:metahash-ipfs sample-meta-hash-1}
               {:from user1})]
 
-   (testing "Update the user metahash"
-     (user/with-ethlance-user (user-factory/user-by-address user1)
-       (is (= (user/metahash-ipfs) sample-meta-hash-1))
-       (user/update-metahash! sample-meta-hash-2 {:from user1})
-       (is (= (user/metahash-ipfs) sample-meta-hash-2))))
+    (testing "Update the user metahash"
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (<!-<throw (user/update-metahash! uaddress sample-meta-hash-2 {:from user1}))
+        (is (= (<!-<throw (user/metahash-ipfs uaddress)) sample-meta-hash-2))))
 
-   (testing "User can't update another users contract"
-     (user/with-ethlance-user (user-factory/user-by-address user1)
-       (is (thrown? js/Error (user/update-metahash! sample-meta-hash-1 {:from user2})))))))
+    (testing "User can't update another users contract"
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (is (thrown?
+             :default
+             (<!-<throw (user/update-metahash! uaddress sample-meta-hash-1 {:from user2}))))))))
 
 
 (deftest-smart-contract register-candidate {}
@@ -86,50 +87,50 @@
               {:from user2})]
 
     (testing "Try and register a candidate for different user"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (is (thrown? js/Error
-                     (user/register-candidate!
+                     (user/register-candidate! uaddress
                       {:hourly-rate 99
                        :currency-type ::enum.currency/usd} ;; USD
                       {:from user2})))))
 
     (testing "Register as a candidate"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (user/register-candidate!
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (user/register-candidate! uaddress
          {:hourly-rate 100
           :currency-type ::enum.currency/usd} ;; USD
          {:from user1})))
 
     (testing "Try and register candidate twice"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (is (thrown? js/Error 
-                     (user/register-candidate!
+                     (user/register-candidate! uaddress
                       {:hourly-rate 100
                        :currency-type ::enum.currency/usd} ;; USD
                       {:from user1})))))
 
     (testing "Get the candidate data"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (let [candidate-data (user/candidate-data)]
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (let [candidate-data (user/candidate-data uaddress)]
           (is (:is-registered? candidate-data))
           (is (bn/= (:hourly-rate candidate-data) 100))
           (is (bn/= (:currency-type candidate-data) ::enum.currency/usd)))))
 
     (testing "Update registered candidate"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (user/update-candidate!
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (user/update-candidate! uaddress
          {:hourly-rate 80
           :currency-type ::enum.currency/eth}
          {:from user1})
-        (let [candidate-data (user/candidate-data)]
+        (let [candidate-data (user/candidate-data uaddress)]
           (is (:is-registered? candidate-data))
           (is (bn/= (:hourly-rate candidate-data) 80))
           (is (bn/= (:currency-type candidate-data) ::enum.currency/eth)))))
 
     (testing "Try and update candidate as other user"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (is (thrown? js/Error
-                     (user/update-candidate!
+                     (user/update-candidate! uaddress
                       {:hourly-rate 80
                        :currency-type ::enum.currency/eth}
                       {:from user2})))))))
@@ -146,7 +147,7 @@
               {:from user2})]
 
     (testing "Try and register an arbiter for different user"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (is (thrown? js/Error
                      (user/register-arbiter!
                       {:payment-value 99
@@ -155,7 +156,7 @@
                       {:from user2})))))
 
     (testing "Register as an Arbiter"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (user/register-arbiter!
          {:payment-value 100
           :currency-type ::enum.currency/usd
@@ -163,7 +164,7 @@
          {:from user1})))
 
     (testing "Try and register arbiter twice"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (is (thrown? js/Error 
                      (user/register-arbiter!
                       {:payment-value 100
@@ -172,30 +173,30 @@
                       {:from user1})))))
 
     (testing "Get the arbiter data"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (let [arbiter-data (user/arbiter-data)]
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (let [arbiter-data (user/arbiter-data uaddress)]
           (is (:is-registered? arbiter-data))
           (is (bn/= (:payment-value arbiter-data) 100))
           (is (bn/= (:currency-type arbiter-data) ::enum.currency/usd))
           (is (bn/= (:payment-type arbiter-data) ::enum.payment/fixed-price)))))
 
     (testing "Update registered arbiter"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (user/update-arbiter!
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (user/update-arbiter! uaddress
          {:payment-value 3
           :currency-type ::enum.currency/eth
           :payment-type ::enum.payment/percentage}
          {:from user1})
-        (let [arbiter-data (user/arbiter-data)]
+        (let [arbiter-data (user/arbiter-data uaddress)]
           (is (:is-registered? arbiter-data))
           (is (bn/= (:currency-type arbiter-data) ::enum.currency/eth))
           (is (bn/= (:payment-value arbiter-data) 3))
           (is (bn/= (:payment-type arbiter-data) ::enum.payment/percentage)))))
 
     (testing "Try and update arbiter as other user"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
         (is (thrown? js/Error
-                     (user/update-arbiter!
+                     (user/update-arbiter! uaddress
                       {:payment-value 100
                        :currency-type ::enum.currency/eth
                        :payment-type ::enum.payment/fixed-price}
@@ -213,18 +214,18 @@
               {:from user2})]
 
     (testing "Attempt to register employer for other user"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (is (thrown? js/Error (user/register-employer! {:from user2})))))
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (is (thrown? js/Error (user/register-employer! uaddress {:from user2})))))
 
     (testing "Register an employer"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (user/register-employer! {:from user1})))
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (user/register-employer! uaddress {:from user1})))
 
     (testing "Attempt to register twice"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (is (thrown? js/Error (user/register-employer! {:from user1})))))
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (is (thrown? js/Error (user/register-employer! uaddress {:from user1})))))
 
     (testing "Get employer data"
-      (user/with-ethlance-user (user-factory/user-by-address user1)
-        (let [employer-data (user/employer-data)]
+      (let [uaddress (<!-<throw (user-factory/user-by-address user1))]
+        (let [employer-data (user/employer-data uaddress)]
           (is (:is-registered? employer-data)))))))
