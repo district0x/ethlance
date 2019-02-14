@@ -8,7 +8,7 @@
    [ethlance.server.contract.ethlance-job-store-test]
    [ethlance.server.contract.ethlance-work-contract-test]
    [ethlance.server.contract.ethlance-invoice-test]
-   ;;[ethlance.server.contract.ethlance-dispute-test]
+   [ethlance.server.contract.ethlance-dispute-test]
    ;;[ethlance.server.contract.ethlance-comment-test]
    ;;[ethlance.server.contract.ethlance-feedback-test]
    ;;[ethlance.server.contract.ethlance-token-store-test]

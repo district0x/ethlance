@@ -3,7 +3,10 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *dispute-key*
@@ -11,33 +14,30 @@
   nil) ;; [:ethlance-dispute "0x0"]
 
 
-(defn- requires-dispute-key
-  "Asserts the correct use of the dispute functions."
-  []
-  (assert *dispute-key* "Given function needs to be wrapped in 'with-ethlance-dispute"))
-
-
 (defn call
   "Call the bound EthlanceDispute contract with the given
   `method-name` and `args`."
-  [method-name & args]
-  (requires-dispute-key)
-  (apply contracts/contract-call *dispute-key* method-name args))
+  [address method-name args & [opts]]
+  (ethlance.server.contract/call
+   :contract-key [:ethlance-dispute address]
+   :method-name method-name
+   :contract-arguments args
+   :contract-options (or opts {})))
 
 
-(defn date-created [] (call :date_created))
-(defn date-updated [] (call :date_updated))
-(defn date-resolved [] (call :date_resolved))
-(defn reason [] (call :reason))
-(defn employer-resolution-amount [] (call :employer_resolution_amount))
-(defn candidate-resolution-amount [] (call :candidate_resolution_amount))
-(defn arbiter-resolution-amount [] (call :arbiter_resolution_amount))
+(defn date-created [address] (call address :date_created []))
+(defn date-updated [address] (call address :date_updated []))
+(defn date-resolved [address] (call address :date_resolved []))
+(defn reason [address] (call address :reason []))
+(defn employer-resolution-amount [address] (call address :employer_resolution_amount []))
+(defn candidate-resolution-amount [address] (call address :candidate_resolution_amount []))
+(defn arbiter-resolution-amount [address] (call address :arbiter_resolution_amount []))
 
 
 (defn append-metahash!
   "Append a `metahash` payload to the given dispute."
-  [metahash & [opts]]
-  (call :append-metahash metahash (merge {:gas 1000000} opts)))
+  [address metahash & [opts]]
+  (call address :append-metahash [metahash] (merge {:gas 1000000} opts)))
 
 
 (defn resolve!
@@ -48,7 +48,8 @@
   - *-token parameters represent the type of ERC20 token that will be
   transferred in resolution. By default, it will use the ETH currency
   defined by '0x0'."
-  [{:keys [employer-amount
+  [address
+   {:keys [employer-amount
            employer-token
            candidate-amount
            candidate-token
@@ -58,24 +59,26 @@
          candidate-token "0x0"
          arbiter-token "0x0"}}
    & [opts]]
-  (call :resolve
-        employer-amount employer-token
-        candidate-amount candidate-token
-        arbiter-amount arbiter-token
-        (merge {:gas 1000000} opts)))
+  (call
+   address
+   :resolve
+   [employer-amount employer-token
+    candidate-amount candidate-token
+    arbiter-amount arbiter-token]
+   (merge {:gas 1000000} opts)))
 
 
 (defn resolved?
   "Returns true if the dispute has already been resolved."
-  []
-  (call :is-resolved))
+  [address]
+  (call address :is-resolved []))
 
 
 (defn add-comment!
-  [metahash & [opts]]
-  (call :add-comment metahash (merge {:gas 1500000} opts)))
+  [address metahash & [opts]]
+  (call address :add-comment [metahash] (merge {:gas 1500000} opts)))
 
 
 (defn leave-feedback!
-  [rating metahash & [opts]]
-  (call :leave-feedback rating metahash (merge {:gas 1500000} opts)))
+  [address rating metahash & [opts]]
+  (call address :leave-feedback [rating metahash] (merge {:gas 1500000} opts)))
