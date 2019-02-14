@@ -143,14 +143,14 @@
          candidate-data (assoc ipfs-data
                                :user/id user-id
                                :candidate/date-registered timestamp)]
-       (model.user/update! user-data)
-       (model.candidate/register! candidate-data)
-         
-       ;; update candidate categories
-       (model.candidate/update-category-listing! user-id (or (:candidate/categories ipfs-data) []))
-         
-       ;; update skills
-       (model.candidate/update-skill-listing! user-id (or (:candidate/skills ipfs-data) [])))))
+     (model.user/update! user-data)
+     (model.candidate/register! candidate-data)
+     
+     ;; update candidate categories
+     (model.candidate/update-category-listing! user-id (or (:candidate/categories ipfs-data) []))
+     
+     ;; update skills
+     (model.candidate/update-skill-listing! user-id (or (:candidate/skills ipfs-data) [])))))
 
 
 (defmethod process-registry-event :user-registered-arbiter
@@ -245,20 +245,19 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-           (let [contract-status (contract.work-contract/contract-status)
-                 candidate-address (contract.work-contract/candidate-address)
-                 date-updated (contract.work-contract/date-updated)
-                 date-created (contract.work-contract/date-created)
-                 work-contract-data {:job/index job-index
-                                     :work-contract/index work-index
-                                     :work-contract/contract-status contract-status
-                                     :work-contract/candidate-address candidate-address
-                                     :work-contract/date-updated (bn/number date-updated)
-                                     :work-contract/date-created (bn/number date-created)}]
-              (model.job/create-work-contract! work-contract-data)))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))
+         contract-status (<!-<throw (contract.work-contract/contract-status work-address))
+         candidate-address (<!-<throw (contract.work-contract/candidate-address work-address))
+         date-updated (<!-<throw (contract.work-contract/date-updated work-address))
+         date-created (<!-<throw (contract.work-contract/date-created work-address))
+         work-contract-data {:job/index job-index
+                             :work-contract/index work-index
+                             :work-contract/contract-status contract-status
+                             :work-contract/candidate-address candidate-address
+                             :work-contract/date-updated (bn/number date-updated)
+                             :work-contract/date-created (bn/number date-created)}]
+     (model.job/create-work-contract! work-contract-data))))
 
 
 (defmethod process-registry-event :job-accept-work-contract
@@ -267,16 +266,15 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-         (let [contract-status (contract.work-contract/contract-status)
-               date-updated (contract.work-contract/date-updated)]
-           (model.job/update-work-contract!
-            {:job/index job-index
-             :work-contract/index work-index
-             :work-contract/contract-status contract-status
-             :work-contract/date-updated (bn/number date-updated)})))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))
+         contract-status (<!-<throw (contract.work-contract/contract-status work-address))
+         date-updated (<!-<throw (contract.work-contract/date-updated work-address))]
+     (model.job/update-work-contract!
+      {:job/index job-index
+       :work-contract/index work-index
+       :work-contract/contract-status contract-status
+       :work-contract/date-updated (bn/number date-updated)}))))
 
 
 (defmethod process-registry-event :job-proceed-work-contract
@@ -285,16 +283,15 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-         (let [contract-status (contract.work-contract/contract-status)
-               date-updated (contract.work-contract/date-updated)]
-           (model.job/update-work-contract!
-            {:job/index job-index
-             :work-contract/index work-index
-             :work-contract/contract-status contract-status
-             :work-contract/date-updated (bn/number date-updated)})))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))
+         contract-status (<!-<throw (contract.work-contract/contract-status work-address))
+         date-updated (<!-<throw (contract.work-contract/date-updated work-address))]
+     (model.job/update-work-contract!
+      {:job/index job-index
+       :work-contract/index work-index
+       :work-contract/contract-status contract-status
+       :work-contract/date-updated (bn/number date-updated)}))))
 
 
 (defmethod process-registry-event :invoice-created
@@ -303,20 +300,19 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          invoice-index (-> args :event_data (nth 2) bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-         (contract.invoice/with-ethlance-invoice (contract.work-contract/invoice-by-index invoice-index)
-           (let [date-created (-> (contract.invoice/date-created) bn/number)
-                 date-updated (-> (contract.invoice/date-updated) bn/number)
-                 amount-requested (-> (contract.invoice/amount-requested) bn/number)
-                 invoice-data {:job/index job-index
-                               :work-contract/index work-index
-                               :invoice/index invoice-index
-                               :invoice/date-created date-created
-                               :invoice/date-updated date-updated
-                               :invoice/amount-requested amount-requested}]
-             (model.job/create-invoice! invoice-data))))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))]
+     (contract.invoice/with-ethlance-invoice (contract.work-contract/invoice-by-index work-address invoice-index)
+       (let [date-created (-> (contract.invoice/date-created) bn/number)
+             date-updated (-> (contract.invoice/date-updated) bn/number)
+             amount-requested (-> (contract.invoice/amount-requested) bn/number)
+             invoice-data {:job/index job-index
+                           :work-contract/index work-index
+                           :invoice/index invoice-index
+                           :invoice/date-created date-created
+                           :invoice/date-updated date-updated
+                           :invoice/amount-requested amount-requested}]
+         (model.job/create-invoice! invoice-data))))))
 
 
 (defmethod process-registry-event :invoice-paid
@@ -325,20 +321,19 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          invoice-index (-> args :event_data (nth 2) bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-         (contract.invoice/with-ethlance-invoice (contract.work-contract/invoice-by-index invoice-index)
-           (let [date-updated (-> (contract.invoice/date-updated) bn/number)
-                 date-paid (-> (contract.invoice/date-paid) bn/number)
-                 amount-paid (-> (contract.invoice/amount-paid) bn/number)
-                 invoice-data {:job/index job-index
-                               :work-contract/index work-index
-                               :invoice/index invoice-index
-                               :invoice/date-paid date-paid
-                               :invoice/date-updated date-updated
-                               :invoice/amount-paid amount-paid}]
-             (model.job/update-invoice! invoice-data))))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))]
+     (contract.invoice/with-ethlance-invoice (contract.work-contract/invoice-by-index work-address invoice-index)
+       (let [date-updated (-> (contract.invoice/date-updated) bn/number)
+             date-paid (-> (contract.invoice/date-paid) bn/number)
+             amount-paid (-> (contract.invoice/amount-paid) bn/number)
+             invoice-data {:job/index job-index
+                           :work-contract/index work-index
+                           :invoice/index invoice-index
+                           :invoice/date-paid date-paid
+                           :invoice/date-updated date-updated
+                           :invoice/amount-paid amount-paid}]
+         (model.job/update-invoice! invoice-data))))))
 
 
 (defmethod process-registry-event :dispute-created
@@ -347,20 +342,19 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          dispute-index (-> args :event_data (nth 2) bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-         (contract.dispute/with-ethlance-dispute (contract.work-contract/dispute-by-index dispute-index)
-           (let [date-created (-> (contract.dispute/date-created) bn/number)
-                 date-updated (-> (contract.dispute/date-updated) bn/number)
-                 reason (contract.dispute/reason)
-                 dispute-data {:job/index job-index
-                               :work-contract/index work-index
-                               :dispute/index dispute-index
-                               :dispute/reason reason
-                               :dispute/date-created date-created
-                               :dispute/date-updated date-updated}]
-             (model.job/create-dispute! dispute-data))))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))]
+     (contract.dispute/with-ethlance-dispute (contract.work-contract/dispute-by-index work-address dispute-index)
+       (let [date-created (-> (contract.dispute/date-created) bn/number)
+             date-updated (-> (contract.dispute/date-updated) bn/number)
+             reason (contract.dispute/reason)
+             dispute-data {:job/index job-index
+                           :work-contract/index work-index
+                           :dispute/index dispute-index
+                           :dispute/reason reason
+                           :dispute/date-created date-created
+                           :dispute/date-updated date-updated}]
+         (model.job/create-dispute! dispute-data))))))
 
 
 (defmethod process-registry-event :dispute-resolved
@@ -369,24 +363,23 @@
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          dispute-index (-> args :event_data (nth 2) bn/number)
-         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
-         (contract.dispute/with-ethlance-dispute (contract.work-contract/dispute-by-index dispute-index)
-           (let [date-updated (-> (contract.dispute/date-updated) bn/number)
-                 date-resolved (-> (contract.dispute/date-resolved) bn/number)
-                 employer-resolution-amount (-> (contract.dispute/employer-resolution-amount) bn/number)
-                 candidate-resolution-amount (-> (contract.dispute/candidate-resolution-amount) bn/number)
-                 arbiter-resolution-amount (-> (contract.dispute/arbiter-resolution-amount) bn/number)
-                 dispute-data {:job/index job-index
-                               :work-contract/index work-index
-                               :dispute/index dispute-index
-                               :dispute/date-resolved date-resolved
-                               :dispute/date-updated date-updated
-                               :dispute/employer-resolution-amount employer-resolution-amount
-                               :dispute/candidate-resolution-amount candidate-resolution-amount
-                               :dispute/arbiter-resolution-amount arbiter-resolution-amount}]
-             (model.job/update-dispute! dispute-data))))))))
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         work-address (<!-<throw (contract.job/work-contract-by-index job-address work-index))]
+     (contract.dispute/with-ethlance-dispute (contract.work-contract/dispute-by-index work-address dispute-index)
+       (let [date-updated (-> (contract.dispute/date-updated) bn/number)
+             date-resolved (-> (contract.dispute/date-resolved) bn/number)
+             employer-resolution-amount (-> (contract.dispute/employer-resolution-amount) bn/number)
+             candidate-resolution-amount (-> (contract.dispute/candidate-resolution-amount) bn/number)
+             arbiter-resolution-amount (-> (contract.dispute/arbiter-resolution-amount) bn/number)
+             dispute-data {:job/index job-index
+                           :work-contract/index work-index
+                           :dispute/index dispute-index
+                           :dispute/date-resolved date-resolved
+                           :dispute/date-updated date-updated
+                           :dispute/employer-resolution-amount employer-resolution-amount
+                           :dispute/candidate-resolution-amount candidate-resolution-amount
+                           :dispute/arbiter-resolution-amount arbiter-resolution-amount}]
+         (model.job/update-dispute! dispute-data))))))
 
 
 (defmethod process-registry-event :comment-created

@@ -95,7 +95,7 @@
                          :user/languages languages}
               metahash-ipfs (<!-<throw (ipfs/add-edn! ipfs-data))]
           (log/debug (str/format "Registering User #%s" (inc index)))
-          (user-factory/register-user! {:metahash-ipfs metahash-ipfs} {:from eth-account})))
+          (<!-<throw (user-factory/register-user! {:metahash-ipfs metahash-ipfs} {:from eth-account}))))
 
       ;; Registering Employers
       (doseq [employer-index (range num-employers)]
@@ -107,9 +107,9 @@
                                   :employer/professional-title professional-title}
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data employer-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Employer..." (inc employer-index)))
-          (user/with-ethlance-user (user-factory/user-by-address eth-account)
-            (user/update-metahash! new-metahash {:from eth-account})
-            (user/register-employer! {:from eth-account}))))
+          (let [user-contract-address (user-factory/user-by-address eth-account)]
+            (user/update-metahash! user-contract-address new-metahash {:from eth-account})
+            (user/register-employer! user-contract-address {:from eth-account}))))
 
       ;; Registering Candidates
       (doseq [candidate-index (range num-employers (+ num-employers num-candidates))]
@@ -125,9 +125,10 @@
                                    :candidate/skills skills}
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data candidate-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Candidate..." (inc candidate-index)))
-          (user/with-ethlance-user (user-factory/user-by-address eth-account)
-            (user/update-metahash! new-metahash {:from eth-account})
+          (let [user-contract-address (user-factory/user-by-address eth-account)]
+            (user/update-metahash! user-contract-address new-metahash {:from eth-account})
             (user/register-candidate!
+             user-contract-address
              {:hourly-rate 10 :currency-type ::enum.currency/eth} ;;TODO: randomize
              {:from eth-account}))))
 
@@ -138,9 +139,10 @@
               arbiter-ipfs-data {:arbiter/biography biography}
               new-metahash (<!-<throw (ipfs/add-edn! (merge user-ipfs-data arbiter-ipfs-data)))]
           (log/debug (str/format "Registering User #%s as Arbiter..." (inc arbiter-index)))
-          (user/with-ethlance-user (user-factory/user-by-address eth-account)
-            (user/update-metahash! new-metahash {:from eth-account})
+          (let [user-contract-address (user-factory/user-by-address eth-account)]
+            (user/update-metahash! user-contract-address new-metahash {:from eth-account})
             (user/register-arbiter!
+             user-contract-address
              {:payment-value 5
               :currency-type ::enum.currency/eth
               :payment-type ::enum.payment/percentage}

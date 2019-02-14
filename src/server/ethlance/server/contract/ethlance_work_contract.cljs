@@ -4,7 +4,10 @@
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
-   [ethlance.shared.enum.contract-status :as enum.status]))
+   [ethlance.shared.enum.contract-status :as enum.status]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *work-contract-key*
@@ -12,86 +15,89 @@
   nil) ;; [:ethlance-work-contract "0x0"]
 
 
-(defn- requires-work-contract-key
-  "Asserts the correct use of the work contract functions."
-  []
-  (assert *work-contract-key* "Given function needs to be wrapped in 'with-ethlance-work-contract"))
-
-
 (defn call
   "Call the bound EthlanceWorkContract contract with the given
   `method-name` and `args`."
-  [method-name & args]
-  (requires-work-contract-key)
-  (apply contracts/contract-call *work-contract-key* method-name args))
+  [address method-name args & [opts]]
+  (ethlance.server.contract/call
+   :contract-key [:ethlance-work-contract address]
+   :method-name method-name
+   :contract-arguments args
+   :contract-options (or opts {})))
 
 
-(defn date-updated [] (call :date_updated))
-(defn date-created [] (call :date_created))
+(defn date-updated [address] (call address :date_updated []))
+(defn date-created [address] (call address :date_created []))
 
 
 (defn candidate-address
   "The accepted candidate for the currently bound work contract."
-  []
-  (call :candidate_address))
+  [address]
+  (call address :candidate_address []))
 
 
 (defn contract-status
   "The work contract status"
-  []
-  (enum.status/val->kw (call :contract_status)))
+  [address]
+  (let [result-channel (chan 1)
+        [success-channel error-channel] (call address :contract_status [])]
+    (go
+      (let [result (enum.status/val->kw (<! success-channel))]
+        (>! result-channel result)))
+    
+    [result-channel error-channel]))
 
 
 (defn request-invite!
-  [& [opts]]
-  (call :request-invite (merge {:gas 2000000} opts)))
+  [address & [opts]]
+  (call address :request-invite [] (merge {:gas 2000000} opts)))
 
 
 (defn proceed!
-  [& [opts]]
-  (call :proceed (merge {:gas 1000000} opts)))
+  [address & [opts]]
+  (call address :proceed [] (merge {:gas 1000000} opts)))
 
 
 (defn request-finished!
-  [& [opts]]
-  (call :request-finished (merge {:gas 1500000} opts)))
+  [address & [opts]]
+  (call address :request-finished [] (merge {:gas 1500000} opts)))
 
 
 (defn create-dispute!
-  [{:keys [reason metahash]} & [opts]]
-  (call :create-dispute reason metahash (merge {:gas 1000000} opts)))
+  [address {:keys [reason metahash]} & [opts]]
+  (call address :create-dispute [reason metahash] (merge {:gas 1000000} opts)))
 
 
 (defn dispute-count
-  []
-  (call :get-dispute-count))
+  [address]
+  (call address :get-dispute-count []))
 
 
 (defn dispute-by-index
-  [index]
-  (call :get-dispute-by-index (bn/number index)))
+  [address index]
+  (call address :get-dispute-by-index [(bn/number index)]))
 
 
 (defn create-invoice!
-  [{:keys [amount metahash]} & [opts]]
-  (call :create-invoice amount metahash (merge {:gas 1000000} opts)))
+  [address {:keys [amount metahash]} & [opts]]
+  (call address :create-invoice [amount metahash] (merge {:gas 1000000} opts)))
 
 
 (defn invoice-count
-  []
-  (call :get-invoice-count))
+  [address]
+  (call address :get-invoice-count []))
 
 
 (defn invoice-by-index
-  [index]
-  (call :get-invoice-by-index (bn/number index)))
+  [address index]
+  (call address :get-invoice-by-index [(bn/number index)]))
 
 
 (defn add-comment!
-  [metahash & [opts]]
-  (call :add-comment metahash (merge {:gas 1500000} opts)))
+  [address metahash & [opts]]
+  (call address :add-comment [metahash] (merge {:gas 1500000} opts)))
 
 
 (defn leave-feedback!
-  [rating metahash & [opts]]
-  (call :leave-feedback rating metahash (merge {:gas 1500000} opts)))
+  [address rating metahash & [opts]]
+  (call address :leave-feedback [rating metahash] (merge {:gas 1500000} opts)))

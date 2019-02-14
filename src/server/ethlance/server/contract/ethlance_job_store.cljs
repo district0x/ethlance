@@ -1,6 +1,7 @@
 (ns ethlance.server.contract.ethlance-job-store
   "EthlanceJobStore contract methods"
   (:require
+   [clojure.core.async :refer [go go-loop <! >! chan close!] :include-macros true]
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
@@ -107,7 +108,7 @@
 (defn work-contract-count
   "Get the number of work contracts within the bound Job Store."
   [address]
-  (call address :get-work-contract-count))
+  (call address :get-work-contract-count []))
 
 
 (defn work-contract-by-index
