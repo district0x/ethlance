@@ -210,9 +210,9 @@ contract EthlanceJobStore {
 	public {
 	require(registry.isRegisteredUser(arbiter_address),
 		"Given address is not a registered user.");
+	require(registry.isRegisteredArbiter(arbiter_address),
+		"Given address is not a registered arbiter.");
 	require(accepted_arbiter == address(0), "Arbiter already accepted.");
-	//require(arbiter_address != accepted_candidate,
-	//	"Accepted Candidate cannot be an Accepted Arbiter");
 	require(arbiter_address != employer_address,
 		"Employer cannot be the arbiter of his own job contract.");
 	require(msg.sender == employer_address || msg.sender == arbiter_address,

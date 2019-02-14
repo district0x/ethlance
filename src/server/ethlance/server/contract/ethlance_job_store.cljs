@@ -7,7 +7,9 @@
    [ethlance.shared.enum.availability :as enum.availability]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.boolean :as enum.boolean]
-   [ethlance.shared.enum.contract-status :as enum.status]))
+   [ethlance.shared.enum.contract-status :as enum.status]
+   [ethlance.shared.async-utils :refer [<!-<throw <!-<log <ignore-<! go-try] :include-macros true]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *job-store-key*
@@ -15,105 +17,106 @@
   nil) ;; [:ethlance-job-store "0x0"]
 
 
-(defn- requires-job-store-key
-  "Asserts the correct use of the job store functions."
-  []
-  (assert *job-store-key* "Given function needs to be wrapped in 'with-ethlance-job-store"))
-
-
 (defn call
   "Call the bound EthlanceJobStore with the given `method-name` and `args`."
-  [method-name & args]
-  (requires-job-store-key)
-  (apply contracts/contract-call *job-store-key* method-name args))
+  [contract-address method-name args & [opts]]
+  (ethlance.server.contract/call
+   :contract-key [:ethlance-job-store contract-address]
+   :method-name method-name
+   :contract-arguments args
+   :contract-options (or opts {})))
 
 
-(defn bid-option [] (enum.bid-option/val->kw (call :bid_option)))
-(defn date-created [] (call :date_created))
-(defn date-updated [] (call :date_updated))
-(defn date-finished [] (call :date_finished))
+(defn bid-option [address] (enum.bid-option/val->kw (call address :bid_option [])))
+(defn date-created [address] (call address :date_created []))
+(defn date-updated [address] (call address :date_updated []))
+(defn date-finished [address] (call address :date_finished []))
 
 (defn employer-address
   "The employer address assigned to this job store."
-  []
-  (call :employer_address))
+  [address]
+  (call address :employer_address []))
 
-(defn estimated-length-seconds [] (call :estimated_length_seconds))
-(defn include-ether-token? [] (call :include_ether_token))
-(defn is-invitation-only? [] (call :is_invitation_only))
+(defn estimated-length-seconds [address] (call address :estimated_length_seconds []))
+(defn include-ether-token? [address] (call address :include_ether_token []))
+(defn is-invitation-only? [address] (call address :is_invitation_only []))
 
 (defn metahash
   "Retrieve the JobStore's metahash"
-  []
-  (call :metahash))
+  [address]
+  (call address :metahash []))
 
 
 (defn update-metahash!
   "Update the JobStore's metahash with the given `metahash`."
-  [metahash]
-  (call :update-metahash metahash))
+  [address metahash]
+  (call address :update-metahash [metahash]))
 
 
-(defn reward-value [] (call :reward_value))
+(defn reward-value [address] (call address :reward_value []))
 
 
 (defn token-store
   "Retrieve the address of the JobStore's token storage contract."
-  []
-  (call :token-store))
+  [address]
+  (call address :token-store []))
 
 
 (defn request-arbiter!
   "Request an arbiter for the job contract"
-  [arbiter-address & [opts]]
+  [address arbiter-address & [opts]]
   (call
-   :request-arbiter arbiter-address
+   address
+   :request-arbiter [arbiter-address]
    (merge {:gas 2000000} opts)))
 
 
 (defn accepted-arbiter
   "The accepted arbiter for all of the work contracts."
-  []
-  (call :accepted_arbiter))
+  [address]
+  (call address :accepted_arbiter []))
 
 
 (defn requested-arbiter-count
   "The number of requested arbiters in the given job contract."
-  []
-  (call :get-requested-arbiter-count))
+  [address]
+  (call address :get-requested-arbiter-count []))
 
 
 (defn requested-arbiter-by-index
   "Returns requested arbiter data for the arbiter at the given
   `index`."
-  [index]
-  (let [[is-employer-request? date-requested arbiter-address]
-        (call :get-requested-arbiter-by-index index)]
-    {:is-employer-request? is-employer-request?
-     :date-requested date-requested
-     :arbiter-address arbiter-address}))
+  [address index]
+  (let [result-channel (chan 1)
+        [success-channel error-channel] (call address :get-requested-arbiter-by-index [index])]
+    (go
+      (let [[is-employer-request? date-requested arbiter-address] (<! success-channel)]
+        (>! result-channel {:is-employer-request? is-employer-request?
+                            :date-requested date-requested
+                            :arbiter-address arbiter-address})))
+    [result-channel error-channel]))
 
 
 (defn request-work-contract!
   "Request a work contract for the given `candidate-address`"
-  [candidate-address & [opts]]
-  (call :request-work-contract candidate-address
+  [address candidate-address & [opts]]
+  (call address :request-work-contract [candidate-address]
         (merge {:gas 2000000} opts)))
 
 
 (defn work-contract-count
   "Get the number of work contracts within the bound Job Store."
-  []
-  (bn/number (call :get-work-contract-count)))
+  [address]
+  (call address :get-work-contract-count))
 
 
 (defn work-contract-by-index
   "Get the work contract address by the given `index`."
-  [index]
-  (call :get-work-contract-by-index (bn/number index)))
+  [address index]
+  (call address :get-work-contract-by-index [(bn/number index)]))
 
 
 (defn fund!
   "Fund the job store. This will be used as payment for accepted work contracts."
-  [& [opts]]
-  (call :fund (merge {:gas 1000000} opts)))
+  [contract & [opts]]
+  (call contract :fund [] (merge {:gas 1000000} opts)))

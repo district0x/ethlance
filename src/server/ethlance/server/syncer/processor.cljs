@@ -179,31 +179,31 @@
   [{:keys [args]}]
   (go-try
    (let [job-index (-> args :event_data first bn/number)
-         timestamp (-> args :timestamp bn/number)]
+         timestamp (-> args :timestamp bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         metahash-ipfs (<!-<throw (contract.job/metahash job-address))
+         ipfs-data (<!-<throw (ipfs/get-edn metahash-ipfs))
+         bid-option (<!-<throw  (contract.job/bid-option job-address))
+         date-created (bn/number (<!-<throw (contract.job/date-created job-address)))
+         date-updated (bn/number (<!-<throw (contract.job/date-updated job-address)))
+         date-finished (bn/number (<!-<throw (contract.job/date-finished job-address)))
+         employer-address (<!-<throw (contract.job/employer-address job-address))
+         estimated-length-seconds (bn/number (<!-<throw (contract.job/estimated-length-seconds job-address)))
+         include-ether-token? (<!-<throw (contract.job/include-ether-token? job-address))
+         is-invitation-only? (<!-<throw (contract.job/is-invitation-only? job-address))
 
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (let [ipfs-data (<!-<throw (ipfs/get-edn (contract.job/metahash)))
-             bid-option (contract.job/bid-option)
-             date-created (bn/number (contract.job/date-created))
-             date-updated (bn/number (contract.job/date-updated))
-             date-finished (bn/number (contract.job/date-finished))
-             employer-address (contract.job/employer-address)
-             estimated-length-seconds (bn/number (contract.job/estimated-length-seconds))
-             include-ether-token? (contract.job/include-ether-token?)
-             is-invitation-only? (contract.job/is-invitation-only?)
-
-             job-data (assoc ipfs-data
-                             :job/index job-index
-                             :job/bid-option bid-option
-                             :job/date-created date-created
-                             :job/date-updated date-updated
-                             :job/date-finshed date-finished
-                             :job/employer-uid employer-address
-                             :job/estimated-length-seconds estimated-length-seconds
-                             :job/include-ether-token? include-ether-token?
-                             :job/is-invitation-only? is-invitation-only?)]
-         (model.job/create-job! job-data)
-         (model.job/update-skill-listing! job-index (get ipfs-data :job/skills [])))))))
+         job-data (assoc ipfs-data
+                         :job/index job-index
+                         :job/bid-option bid-option
+                         :job/date-created date-created
+                         :job/date-updated date-updated
+                         :job/date-finshed date-finished
+                         :job/employer-uid employer-address
+                         :job/estimated-length-seconds estimated-length-seconds
+                         :job/include-ether-token? include-ether-token?
+                         :job/is-invitation-only? is-invitation-only?)]
+     (model.job/create-job! job-data)
+     (model.job/update-skill-listing! job-index (get ipfs-data :job/skills [])))))
 
 
 (defmethod process-registry-event :job-arbiter-requested
@@ -211,19 +211,18 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          user-id (-> args :event_data second bn/number)
-         timestamp (-> args :timestamp bn/number)]
-         
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (let [date-updated (contract.job/date-updated)
-             arbiter-request-index (dec (contract.job/requested-arbiter-count))
-             {:keys [is-employer-request? date-requested arbiter-address]}
-             (contract.job/requested-arbiter-by-index arbiter-request-index)
-             arbiter-data {:job/index job-index
-                           :user/id user-id
-                           :arbiter-request/date-requested (bn/number date-requested)
-                           :arbiter-request/is-employer-request? is-employer-request?}]
-         (model.job/update-job! {:job/index job-index :job/date-updated date-updated})
-         (model.job/add-arbiter-request! arbiter-data))))))
+         timestamp (-> args :timestamp bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index)) 
+         date-updated (contract.job/date-updated job-address)
+         arbiter-request-index (dec (<!-<throw (contract.job/requested-arbiter-count job-address)))
+         {:keys [is-employer-request? date-requested arbiter-address]}
+         (<!-<throw (contract.job/requested-arbiter-by-index job-address arbiter-request-index))
+         arbiter-data {:job/index job-index
+                       :user/id user-id
+                       :arbiter-request/date-requested (bn/number date-requested)
+                       :arbiter-request/is-employer-request? is-employer-request?}]
+     (model.job/update-job! {:job/index job-index :job/date-updated date-updated})
+     (model.job/add-arbiter-request! arbiter-data))))
 
 
 (defmethod process-registry-event :job-arbiter-accepted
@@ -231,13 +230,13 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          user-id (-> args :event_data second bn/number)
-         timestamp (-> args :timestamp bn/number)]
-     (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
-       (let [date-updated (contract.job/date-updated)
-             accepted-arbiter (contract.job/accepted-arbiter)]
-         (model.job/update-job! {:job/index job-index
-                                 :job/accepted-arbiter accepted-arbiter
-                                 :job/date-updated date-updated}))))))
+         timestamp (-> args :timestamp bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
+         date-updated (<!-<throw (contract.job/date-updated job-address))
+         accepted-arbiter (<!-<throw (contract.job/accepted-arbiter job-address))]
+     (model.job/update-job! {:job/index job-index
+                             :job/accepted-arbiter accepted-arbiter
+                             :job/date-updated date-updated}))))
 
 
 (defmethod process-registry-event :job-request-work-contract
@@ -245,7 +244,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         timestamp (-> args :timestamp bn/number)]
+         timestamp (-> args :timestamp bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
         (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
            (let [contract-status (contract.work-contract/contract-status)
@@ -266,7 +266,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         timestamp (-> args :timestamp bn/number)]
+         timestamp (-> args :timestamp bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
          (let [contract-status (contract.work-contract/contract-status)
@@ -283,7 +284,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         timestamp (-> args :timestamp bn/number)]
+         timestamp (-> args :timestamp bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
          (let [contract-status (contract.work-contract/contract-status)
@@ -300,7 +302,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         invoice-index (-> args :event_data (nth 2) bn/number)]
+         invoice-index (-> args :event_data (nth 2) bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
          (contract.invoice/with-ethlance-invoice (contract.work-contract/invoice-by-index invoice-index)
@@ -321,7 +324,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         invoice-index (-> args :event_data (nth 2) bn/number)]
+         invoice-index (-> args :event_data (nth 2) bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
          (contract.invoice/with-ethlance-invoice (contract.work-contract/invoice-by-index invoice-index)
@@ -342,7 +346,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         dispute-index (-> args :event_data (nth 2) bn/number)]
+         dispute-index (-> args :event_data (nth 2) bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
          (contract.dispute/with-ethlance-dispute (contract.work-contract/dispute-by-index dispute-index)
@@ -363,7 +368,8 @@
   (go-try
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         dispute-index (-> args :event_data (nth 2) bn/number)]
+         dispute-index (-> args :event_data (nth 2) bn/number)
+         job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))]
      (contract.job/with-ethlance-job-store (contract.job-factory/job-store-by-index job-index)
        (contract.work-contract/with-ethlance-work-contract (contract.job/work-contract-by-index work-index)
          (contract.dispute/with-ethlance-dispute (contract.work-contract/dispute-by-index dispute-index)
