@@ -12,7 +12,10 @@
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]))
+   [district.server.smart-contracts :as contracts]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *token-key*
@@ -20,52 +23,55 @@
   :token)
 
 
-(defn address []
+(defn test-token-address []
   (contracts/contract-address *token-key*))
 
 
 (defn call
   "Call the TestToken contract method with the given `method-name` and `args`."
-  [method-name & args]
-  (apply contracts/contract-call *token-key* method-name args))
+  [address method-name args & [opts]]
+  (ethlance.server.contract/call
+   :contract-key [:token address]
+   :method-name method-name
+   :contract-arguments args
+   :contract-options (or opts {})))
 
 
-
-(defn name [] (call :name))
-(defn symbol [] (call :symbol))
-(defn decimals [] (call :decimals))
-(defn total-supply [] (call :total-supply))
+(defn name [address] (call address :name []))
+(defn symbol [address] (call address :symbol []))
+(defn decimals [address] (call address :decimals []))
+(defn total-supply [address] (call address :total-supply []))
 
 
 (defn balance-of
   "Retrieve the balance of TEST tokens for the given address."
-  [owner]
-  (call :balance-of owner))
+  [address owner]
+  (call address :balance-of [owner]))
 
 
 (defn allowance
   "The allowed amount of TEST tokens that `spender` can transfer from `owner`."
-  [owner spender]
-  (call :allowance owner spender))
+  [address owner spender]
+  (call address :allowance [owner spender]))
 
 
 (defn transfer!
   "Transfer `value` to the given `to` address as the given owner."
-  [to value & [opts]]
-  (call :transfer to value opts))
+  [address to value & [opts]]
+  (call address :transfer [to value] opts))
 
 
 (defn approve!
   "Set an allowance for `spender` at the given `value`."
-  [spender value & [opts]]
-  (call :approve spender value opts))
+  [address spender value & [opts]]
+  (call address :approve [spender value] opts))
 
 
 (defn transfer-from!
   "Transfer an allowance from the address `from`, to the address `to`
   with the given amount of TEST tokens, `value`."
-  [from to value & [opts]]
-  (call :transfer-from from to value opts))
+  [address from to value & [opts]]
+  (call address :transfer-from [from to value] opts))
   
 
 (defn mint!
@@ -75,5 +81,5 @@
 
   - This is a publicly available function, since this contract is for
   testing purposes."
-  [to value & [opts]]
-  (call :mint to value opts))
+  [address to value & [opts]]
+  (call address :mint [to value] opts))
