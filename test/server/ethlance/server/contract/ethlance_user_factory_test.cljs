@@ -65,13 +65,13 @@
           
           ;; Register First User
           tx-1 (<!-<throw (register-user! user1 sample-meta-hash-1))
-          ethlance-event (registry/ethlance-event-in-tx tx-1 :ethlance-user-factory-fwd :EthlanceEvent)
+          ethlance-event (registry/ethlance-event-in-tx tx-1)
           uid-1 (-> ethlance-event :data first)
           user-count-2 (<!-<throw (user-factory/user-count))
 
           ;; Register Second User
           tx-2 (<!-<throw (register-user! user2 sample-meta-hash-2))
-          ethlance-event-2 (registry/ethlance-event-in-tx tx-2 :ethlance-user-factory-fwd :EthlanceEvent)
+          ethlance-event-2 (registry/ethlance-event-in-tx tx-2)
           uid-2 (-> ethlance-event-2 :data first)
           user-count-3 (<!-<throw (user-factory/user-count))]
 
