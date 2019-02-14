@@ -6,7 +6,10 @@
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
    [ethlance.shared.enum.user-type :as enum.user-type]
-   [ethlance.shared.enum.comment-type :as enum.comment-type]))
+   [ethlance.shared.enum.comment-type :as enum.comment-type]
+   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
+   [ethlance.server.contract]))
 
 
 (def ^:dynamic *comment-key*
@@ -14,25 +17,38 @@
   nil) ;; [:ethlance-comment "0x0"]
 
 
-(defn- requires-comment-key
-  "Asserts the correct use of the comment functions."
-  []
-  (assert *comment-key* "Given function needs to be wrapped in 'with-ethlance-comment"))
-
-
 (defn call
   "Call the bound EthlanceComment contract with the given
   `method-name` and `args`."
-  [method-name & args]
-  (requires-comment-key)
-  (apply contracts/contract-call *comment-key* method-name args))
+  [address method-name args & [opts]]
+  (ethlance.server.contract/call
+   :contract-key [:ethlance-comment address]
+   :method-name method-name
+   :contract-arguments args
+   :contract-options (or opts {})))
 
 
-(defn user-type [] (enum.user-type/val->kw (call :user_type)))
-(defn user-address [] (call :user_address))
-(defn date-created [] (call :date_created))
-(defn date-updated [] (call :date_updated))
-(defn comment-type [] (enum.comment-type/val->kw (bn/number (call :comment_type))))
+(defn user-type
+  [address]
+  (let [result-channel (chan 1)
+        [success-channel error-channel] (call address :user_type [])]
+    (go (let [result (<! success-channel)]
+          (>! result-channel (enum.user-type/val->kw result))))
+    [result-channel error-channel]))
+
+
+(defn user-address [address] (call address :user_address []))
+(defn date-created [address] (call address :date_created []))
+(defn date-updated [address] (call address :date_updated []))
+
+
+(defn comment-type
+  [address]
+  (let [result-channel (chan 1)
+        [success-channel error-channel] (call address :comment_type [])]
+    (go (let [result (<! success-channel)]
+          (>! result-channel (enum.comment-type/val->kw (bn/number result)))))
+    [result-channel error-channel]))
 
 
 (defn sub-index
@@ -59,29 +75,28 @@
       [2] --> Dispute Index
       [3] --> Comment Index
   "
-  [x] (bn/number (call :get-index x)))
+  [address x] (call address :get-index [x]))
 
 
 (defn update!
   "Update the comment with a revised comment contained in the provided `metahash`"
-  [metahash & [opts]]
-  (call :update metahash (merge {:gas 1000000} opts)))
+  [address metahash & [opts]]
+  (call address :update [metahash] (merge {:gas 1000000} opts)))
 
 
 (defn count
   "Get the number of comment revisions."
-  []
-  (when-let [n (call :get-count)]
-    (bn/number n)))
+  [address]
+  (call address :get-count []))
 
 
 (defn revision-by-index
   "Get the comment revision at the given index"
-  [index]
-  (call :get-revision-by-index index))
+  [address index]
+  (call address :get-revision-by-index [index]))
 
 
 (defn last
   "Get the current comment metahash"
-  []
-  (call :get-last))
+  [address]
+  (call address :get-last []))
