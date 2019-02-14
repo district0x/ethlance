@@ -132,8 +132,8 @@
        (let [work-address (<!-<throw (job/work-contract-by-index job-address work-index))]
          (when candidate-accept?
            (log/debug (str/format "--- Accepting Work Contract [%s] for Candidate [%s]" work-index candidate-address))
-           (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))))
-       (>! result-chan {:work-index work-index :work-address work-address})))))
+           (<!-<throw (work-contract/request-invite! work-address {:from employer-address})))
+         (>! result-chan {:work-index work-index :work-address work-address}))))))
 
 
 (defn- generate-invoice!
@@ -152,10 +152,10 @@
            amount]
     :or {amount (web3/to-wei 0.1 :ether) paid? false}}]
   (let [result-chan (chan 1)
-        invoice-index (work-contract/invoice-count)
         ipfs-data {:comment/text "Here's my invoice!"}]
     (go-try
-     (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))]
+     (let [invoice-index (<!-<throw (work-contract/invoice-count work-address))
+           hash (<!-<throw (ipfs/add-edn! ipfs-data))]
        (log/debug "-- Creating Invoice...")
        (<!-<throw (work-contract/create-invoice! work-address {:amount amount :metahash hash} {:from candidate-address}))
        (when paid?
@@ -165,10 +165,11 @@
            job-address
            {:from employer-address
             :value (web3/to-wei 1.0 :ether)}))
-         (invoice/with-ethlance-invoice (work-contract/invoice-by-index invoice-index)
+
+         (let [invoice-address (<!-<throw (work-contract/invoice-by-index work-address invoice-index))]
            (log/debug "-- Paying Invoice...")
-           (invoice/pay! amount {:from employer-address})))
-       (>! result-chan {:invoice-index invoice-index})))
+           (<!-<throw (invoice/pay! invoice-address amount {:from employer-address}))
+           (>! result-chan {:invoice-index invoice-index :invoice-address invoice-address})))))
     result-chan))
 
 
@@ -187,7 +188,6 @@
          employer-resolution-amount (web3/to-wei 0.1 :ether)
          arbiter-resolution-amount (web3/to-wei 0.1 :ether)}}]
   (let [result-chan (chan 1)
-        dispute-index (work-contract/dispute-count)
         ipfs-data {:comment/text "Please read my dispute"}]
     (go-try
      (let [hash (<!-<throw (ipfs/add-edn! ipfs-data))
@@ -206,16 +206,20 @@
            job-address
            {:from employer-address
             :value (web3/to-wei 1.0 :ether)}))
-         (dispute/with-ethlance-dispute (work-contract/dispute-by-index dispute-index)
+         (let [dispute-index (-> (work-contract/dispute-count work-address) <!-<throw bn/number dec)
+               dispute-address (<!-<throw (work-contract/dispute-by-index work-address dispute-index))]
            (log/debug (str/format "-- Resolving Dispute [%s]..." dispute-index))
-           (dispute/resolve!
-            {:employer-amount employer-resolution-amount
-             :candidate-amount candidate-resolution-amount
-             :arbiter-amount arbiter-resolution-amount}
-            {:from arbiter-address})
+           (<!-<throw
+            (dispute/resolve!
+             dispute-address
+             {:employer-amount employer-resolution-amount
+              :candidate-amount candidate-resolution-amount
+              :arbiter-amount arbiter-resolution-amount}
+             {:from arbiter-address}))
            (log/debug (str/format "-- Candidate [%s] is leaving Invoice Feedback..." candidate-address))
-           (dispute/leave-feedback! 4 feedback-hash {:from candidate-address}))))
-     (>! result-chan {:dispute-index dispute-index}))
+           (<!-<throw
+            (dispute/leave-feedback! dispute-address 4 feedback-hash {:from candidate-address}))
+           (>! result-chan {:dispute-index dispute-index :dispute-address dispute-address})))))
     result-chan))
 
 
@@ -240,326 +244,326 @@
 ;;
 
 
-(defmulti generate-scenario! (fn [scene-data] (get scene-data :scenario-name)))
+;; (defmulti generate-scenario! (fn [scene-data] (get scene-data :scenario-name)))
 
 
-(defmethod generate-scenario! :job-no-requests
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)]
-    (go-try
-     (<! (generate-job! {:employer-address employer-address :bounty? false})))))
+;; (defmethod generate-scenario! :job-no-requests
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)]
+;;     (go-try
+;;      (<! (generate-job! {:employer-address employer-address :bounty? false})))))
 
 
-(defmethod generate-scenario! :job-one-arbiter-request
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :arbiter-requests [arbiter-address]
-            :bounty? false}]
-       (<! (generate-job! job-scenario-options))))))
+;; (defmethod generate-scenario! :job-one-arbiter-request
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :arbiter-requests [arbiter-address]
+;;             :bounty? false}]
+;;        (<! (generate-job! job-scenario-options))))))
 
 
-(defmethod generate-scenario! :job-one-arbiter-accepted
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :arbiter-requests [arbiter-address]
-            :arbiter-accepted arbiter-address
-            :bounty? false}]
-       (<! (generate-job! job-scenario-options))))))
+;; (defmethod generate-scenario! :job-one-arbiter-accepted
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :arbiter-requests [arbiter-address]
+;;             :arbiter-accepted arbiter-address
+;;             :bounty? false}]
+;;        (<! (generate-job! job-scenario-options))))))
 
 
-(defmethod generate-scenario! :job-one-candidate-request
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :bounty? false}
-           {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address
-                                       :job-address job-address})))))))
+;; (defmethod generate-scenario! :job-one-candidate-request
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :bounty? false}
+;;            {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
+;;        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address
+;;                                        :job-address job-address})))))))
 
 
-(defmethod generate-scenario! :job-one-candidate-accepted
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :bounty? false}
-           {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address
-                                       :candidate-accepted? true
-                                       :job-address job-address})))))))
+;; (defmethod generate-scenario! :job-one-candidate-accepted
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :bounty? false}
+;;            {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
+;;        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address
+;;                                        :candidate-accepted? true
+;;                                        :job-address job-address})))))))
 
 
-(defmethod generate-scenario! :job-1a-req-1c-req
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :arbiter-requests [arbiter-address]
-            :bounty? false}
-           {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address
-                                       :candidate-accepted? false
-                                       :job-address job-address})))))))
+;; (defmethod generate-scenario! :job-1a-req-1c-req
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :arbiter-requests [arbiter-address]
+;;             :bounty? false}
+;;            {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
+;;        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address
+;;                                        :candidate-accepted? false
+;;                                        :job-address job-address})))))))
 
 
-(defmethod generate-scenario! :job-2a-req-2c-req
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
-        [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :arbiter-requests [arbiter-address arbiter-address-2]
-            :bounty? false}
-           {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address
-                                       :candidate-accepted? false
-                                       :job-address job-address}))
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address-2
-                                       :candidate-accepted? false
-                                       :job-address job-address})))))))
+;; (defmethod generate-scenario! :job-2a-req-2c-req
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
+;;         [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :arbiter-requests [arbiter-address arbiter-address-2]
+;;             :bounty? false}
+;;            {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
+;;        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address
+;;                                        :candidate-accepted? false
+;;                                        :job-address job-address}))
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address-2
+;;                                        :candidate-accepted? false
+;;                                        :job-address job-address})))))))
 
 
-(defmethod generate-scenario! :job-1a-acc-1c-acc
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :arbiter-requests [arbiter-address]
-            :arbiter-accepted arbiter-address
-            :bounty? false}
-           {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address
-                                       :candidate-accepted? true
-                                       :job-address job-address})))))))
+;; (defmethod generate-scenario! :job-1a-acc-1c-acc
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :arbiter-requests [arbiter-address]
+;;             :arbiter-accepted arbiter-address
+;;             :bounty? false}
+;;            {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
+;;        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address
+;;                                        :candidate-accepted? true
+;;                                        :job-address job-address})))))))
 
 
-(defmethod generate-scenario! :job-2a-acc-2c-acc
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
-        [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
-    (go-try
-     (let [job-scenario-options
-           {:employer-address employer-address
-            :arbiter-requests [arbiter-address arbiter-address-2]
-            :arbiter-accepted arbiter-address
-            :bounty? false}
-           {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
-       (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address
-                                       :candidate-accepted? true
-                                       :job-address job-address}))
-         (<! (generate-work-contract! {:employer-address employer-address
-                                       :candidate-address candidate-address-2
-                                       :candidate-accepted? true
-                                       :job-address job-address})))))))
+;; (defmethod generate-scenario! :job-2a-acc-2c-acc
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         [arbiter-address arbiter-address-2] (random/rand-nth-n arbiters 2)
+;;         [candidate-address candidate-address-2] (random/rand-nth-n candidates 2)]
+;;     (go-try
+;;      (let [job-scenario-options
+;;            {:employer-address employer-address
+;;             :arbiter-requests [arbiter-address arbiter-address-2]
+;;             :arbiter-accepted arbiter-address
+;;             :bounty? false}
+;;            {:keys [job-index job-address]} (<! (generate-job! job-scenario-options))]
+;;        (job/with-ethlance-job-store (job-factory/job-store-by-index job-index)
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address
+;;                                        :candidate-accepted? true
+;;                                        :job-address job-address}))
+;;          (<! (generate-work-contract! {:employer-address employer-address
+;;                                        :candidate-address candidate-address-2
+;;                                        :candidate-accepted? true
+;;                                        :job-address job-address})))))))
 
 
-(defmethod generate-scenario! :job-prog-w-invoice
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
-       (<!-<throw (job/request-work-contract! job-address candidate-address {:from candidate-address}))
-       (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
-             feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-         (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
-         (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
-         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
-         (<! (generate-invoice! {:candidate-address candidate-address
-                                 :employer-address employer-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :paid? false})))))))
+;; (defmethod generate-scenario! :job-prog-w-invoice
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
+;;        (<!-<throw (job/request-work-contract! job-address candidate-address {:from candidate-address}))
+;;        (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
+;;              feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+;;          (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+;;          (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
+;;          (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
+;;          (<! (generate-invoice! {:candidate-address candidate-address
+;;                                  :employer-address employer-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :paid? false})))))))
 
 
-(defmethod generate-scenario! :job-prog-w-invoice-paid
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
-       (<!-<throw (job/request-work-contract! job-address candidate-address {:from candidate-address}))
-       (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
-             feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-         (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
-         (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
-         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
-         (<! (generate-invoice! {:candidate-address candidate-address
-                                 :employer-address employer-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :paid? true})))))))
+;; (defmethod generate-scenario! :job-prog-w-invoice-paid
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
+;;        (<!-<throw (job/request-work-contract! job-address candidate-address {:from candidate-address}))
+;;        (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
+;;              feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+;;          (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+;;          (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
+;;          (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
+;;          (<! (generate-invoice! {:candidate-address candidate-address
+;;                                  :employer-address employer-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :paid? true})))))))
 
 
-(defmethod generate-scenario! :job-prog-w-dispute
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
-       (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
-       (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
-             feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-         (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
-         (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
-         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
-         (<! (generate-dispute! {:employer-address employer-address
-                                 :candidate-address candidate-address
-                                 :arbiter-address arbiter-address
-                                 :job-address job-address
-                                 :work-address work-address})))))))
+;; (defmethod generate-scenario! :job-prog-w-dispute
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
+;;        (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
+;;        (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
+;;              feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+;;          (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+;;          (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
+;;          (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
+;;          (<! (generate-dispute! {:employer-address employer-address
+;;                                  :candidate-address candidate-address
+;;                                  :arbiter-address arbiter-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address})))))))
 
 
-(defmethod generate-scenario! :job-prog-w-dispute-resolved
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
-       (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
-       (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
-             feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-         (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
-         (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
-         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
-         (<! (generate-dispute! {:employer-address employer-address
-                                 :candidate-address candidate-address
-                                 :arbiter-address arbiter-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :resolved? true})))))))
+;; (defmethod generate-scenario! :job-prog-w-dispute-resolved
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
+;;        (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
+;;        (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
+;;              feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+;;          (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+;;          (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
+;;          (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
+;;          (<! (generate-dispute! {:employer-address employer-address
+;;                                  :candidate-address candidate-address
+;;                                  :arbiter-address arbiter-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :resolved? true})))))))
 
 
-(defmethod generate-scenario! :job-prog-w-inv-disp
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
-       (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
-       (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
-             feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-         (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
-         (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
-         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
-         (<! (generate-invoice! {:candidate-address candidate-address
-                                 :employer-address employer-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :paid? false}))
-         (<! (generate-dispute! {:employer-address employer-address
-                                 :candidate-address candidate-address
-                                 :arbiter-address arbiter-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :resolved? false})))))))
+;; (defmethod generate-scenario! :job-prog-w-inv-disp
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
+;;        (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
+;;        (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
+;;              feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+;;          (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+;;          (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
+;;          (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
+;;          (<! (generate-invoice! {:candidate-address candidate-address
+;;                                  :employer-address employer-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :paid? false}))
+;;          (<! (generate-dispute! {:employer-address employer-address
+;;                                  :candidate-address candidate-address
+;;                                  :arbiter-address arbiter-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :resolved? false})))))))
 
 
-(defmethod generate-scenario! :job-prog-w-inv-paid-disp-resolved
-  [{:keys [employers candidates arbiters
-           scenario-name scenario-number]}]
-  (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
-  (let [employer-address (rand-nth employers)
-        arbiter-address (rand-nth arbiters)
-        candidate-address (rand-nth candidates)]
-    (go-try
-     (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
-       (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
-       (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
-       (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
-             feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
-         (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
-         (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
-         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
-         (<! (generate-invoice! {:candidate-address candidate-address
-                                 :employer-address employer-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :paid? true}))
-         (<! (generate-dispute! {:employer-address employer-address
-                                 :candidate-address candidate-address
-                                 :arbiter-address arbiter-address
-                                 :job-address job-address
-                                 :work-address work-address
-                                 :resolved? true})))))))
+;; (defmethod generate-scenario! :job-prog-w-inv-paid-disp-resolved
+;;   [{:keys [employers candidates arbiters
+;;            scenario-name scenario-number]}]
+;;   (log/debug (str/format "Generating Scenario #%s - %s" scenario-number scenario-name))
+;;   (let [employer-address (rand-nth employers)
+;;         arbiter-address (rand-nth arbiters)
+;;         candidate-address (rand-nth candidates)]
+;;     (go-try
+;;      (let [{:keys [job-index job-address]} (<! (generate-job! {:employer-address employer-address :bounty? false}))]
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from arbiter-address}))
+;;        (<!-<throw (job/request-arbiter! job-address arbiter-address {:from employer-address}))
+;;        (<!-<throw (job/request-work-contract! candidate-address {:from candidate-address}))
+;;        (let [work-address (<!-<throw (job/work-contract-by-index job-address 0))
+;;              feedback-hash (<!-<throw (ipfs/add-edn! {:feedback/text "Amazing job!"}))]
+;;          (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+;;          (<!-<throw (work-contract/leave-feedback! work-address 4 feedback-hash {:from employer-address}))
+;;          (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
+;;          (<! (generate-invoice! {:candidate-address candidate-address
+;;                                  :employer-address employer-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :paid? true}))
+;;          (<! (generate-dispute! {:employer-address employer-address
+;;                                  :candidate-address candidate-address
+;;                                  :arbiter-address arbiter-address
+;;                                  :job-address job-address
+;;                                  :work-address work-address
+;;                                  :resolved? true})))))))

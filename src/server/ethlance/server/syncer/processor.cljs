@@ -471,33 +471,33 @@
    (let [feedback-address (:event_sender args)
          job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         feedback-index (-> args :event_data (nth 2) bn/number)]
-     (contract.feedback/with-ethlance-feedback feedback-address
-       (let [{:keys [from-user-address
-                     to-user-address
-                     from-user-type
-                     to-user-type
-                     metahash
-                     rating
-                     date-created
-                     date-updated]}
-             (contract.feedback/feedback-by-index feedback-index)
-             from-user-id (model.user/user-id from-user-address)
-             to-user-id (model.user/user-id to-user-address)
-             ipfs-data (<!-<throw (ipfs/get-edn metahash))]
-         (model.feedback/create-feedback!
-          (merge
-           ipfs-data
-           {:job/index job-index
-            :work-contract/index work-index
-            :feedback/index feedback-index
-            :feedback/to-user-type to-user-type
-            :feedback/to-user-id to-user-id
-            :feedback/from-user-type from-user-type
-            :feedback/from-user-id from-user-id
-            :feedback/date-created date-created
-            :feedback/date-updated date-updated
-            :feedback/rating rating})))))))
+         feedback-index (-> args :event_data (nth 2) bn/number)
+
+         {:keys [from-user-address
+                 to-user-address
+                 from-user-type
+                 to-user-type
+                 metahash
+                 rating
+                 date-created
+                 date-updated]}
+         (<!-<throw (contract.feedback/feedback-by-index feedback-address feedback-index))
+         from-user-id (model.user/user-id from-user-address)
+         to-user-id (model.user/user-id to-user-address)
+         ipfs-data (<!-<throw (ipfs/get-edn metahash))]
+     (model.feedback/create-feedback!
+      (merge
+       ipfs-data
+       {:job/index job-index
+        :work-contract/index work-index
+        :feedback/index feedback-index
+        :feedback/to-user-type to-user-type
+        :feedback/to-user-id to-user-id
+        :feedback/from-user-type from-user-type
+        :feedback/from-user-id from-user-id
+        :feedback/date-created date-created
+        :feedback/date-updated date-updated
+        :feedback/rating rating})))))
 
 
 (defmethod process-registry-event :feedback-updated
@@ -506,30 +506,30 @@
    (let [feedback-address (:event_sender args)
          job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
-         feedback-index (-> args :event_data (nth 2) bn/number)]
-     (contract.feedback/with-ethlance-feedback feedback-address
-       (let [{:keys [from-user-address
-                     to-user-address
-                     from-user-type
-                     to-user-type
-                     metahash
-                     rating
-                     date-created
-                     date-updated]}
-             (contract.feedback/feedback-by-index feedback-index)
-             from-user-id (model.user/user-id from-user-address)
-             to-user-id (model.user/user-id to-user-address)
-             ipfs-data (<!-<throw (ipfs/get-edn metahash))]
-         (model.feedback/update-feedback!
-          (merge
-           ipfs-data
-           {:job/index job-index
-            :work-contract/index work-index
-            :feedback/index feedback-index
-            :feedback/to-user-type to-user-type
-            :feedback/to-user-id to-user-id
-            :feedback/from-user-type from-user-type
-            :feedback/from-user-id from-user-id
-            :feedback/date-created date-created
-            :feedback/date-updated date-updated
-            :feedback/rating rating})))))))
+         feedback-index (-> args :event_data (nth 2) bn/number)
+
+         {:keys [from-user-address
+                 to-user-address
+                 from-user-type
+                 to-user-type
+                 metahash
+                 rating
+                 date-created
+                 date-updated]}
+         (<!-<throw (contract.feedback/feedback-by-index feedback-address feedback-index))
+         from-user-id (model.user/user-id from-user-address)
+         to-user-id (model.user/user-id to-user-address)
+         ipfs-data (<!-<throw (ipfs/get-edn metahash))]
+     (model.feedback/update-feedback!
+      (merge
+       ipfs-data
+       {:job/index job-index
+        :work-contract/index work-index
+        :feedback/index feedback-index
+        :feedback/to-user-type to-user-type
+        :feedback/to-user-id to-user-id
+        :feedback/from-user-type from-user-type
+        :feedback/from-user-id from-user-id
+        :feedback/date-created date-created
+        :feedback/date-updated date-updated
+        :feedback/rating rating})))))
