@@ -41,11 +41,11 @@
 
 (def scenario-distribution
   "A random distribution of different types of scenarios to choose from"
-  [[0.7 :job-no-requests]])
+  [;;[0.7 :job-no-requests]
    ;;[0.2 :job-one-arbiter-request]
-   ;;[0.4 :job-one-arbiter-accepted]])
-   ;;[0.2 :job-one-candidate-request]
-   ;;[0.4 :job-one-candidate-accepted]
+   ;;[0.4 :job-one-arbiter-accepted]
+   ;;[0.2 :job-one-candidate-request]])
+   [0.4 :job-one-candidate-accepted]])
    ;;[0.5 :job-1a-req-1c-req]
    ;;[0.5 :job-2a-req-2c-req]])
    ;;[1.2 :job-1a-acc-1c-acc]
