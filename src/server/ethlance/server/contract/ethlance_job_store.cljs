@@ -28,10 +28,18 @@
    :contract-options (or opts {})))
 
 
-(defn bid-option [address] (enum.bid-option/val->kw (call address :bid_option [])))
+(defn bid-option [address]
+  (let [result-chan (chan 1)
+        [success-channel error-channel] (call address :bid_option [])]
+    (go (let [result (<! success-channel)]
+          (>! result-chan (enum.bid-option/val->kw result))))
+    [result-chan error-channel]))
+
+
 (defn date-created [address] (call address :date_created []))
 (defn date-updated [address] (call address :date_updated []))
 (defn date-finished [address] (call address :date_finished []))
+
 
 (defn employer-address
   "The employer address assigned to this job store."

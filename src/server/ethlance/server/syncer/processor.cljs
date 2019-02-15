@@ -94,6 +94,7 @@
 (defmethod process-registry-event :user-registered
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: User Registered")
    (let [user-id (-> args :event_data first bn/number)
          uaddress (<!-<throw (contract.user-factory/user-by-id user-id))
          metahash-ipfs (<!-<throw (contract.user/metahash-ipfs uaddress))
@@ -116,6 +117,7 @@
 (defmethod process-registry-event :user-registered-employer
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: Employer Registered")
    (let [user-id (-> args :event_data first bn/number)
          timestamp (-> args :timestamp bn/number)
          uaddress (<!-<throw (contract.user-factory/user-by-id user-id))
@@ -133,6 +135,7 @@
 (defmethod process-registry-event :user-registered-candidate
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: Candidate Registered")
    (let [user-id (-> args :event_data first bn/number)
          timestamp (-> args :timestamp bn/number)
          uaddress (<!-<throw (contract.user-factory/user-by-id user-id))
@@ -156,6 +159,7 @@
 (defmethod process-registry-event :user-registered-arbiter
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: Arbiter Registered")
    (let [user-id (-> args :event_data first bn/number)
          timestamp (-> args :timestamp bn/number)
          uaddress (<!-<throw (contract.user-factory/user-by-id user-id))
@@ -178,6 +182,7 @@
 (defmethod process-registry-event :job-store-created
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: Job Store Created")
    (let [job-index (-> args :event_data first bn/number)
          timestamp (-> args :timestamp bn/number)
          job-address (<!-<throw (contract.job-factory/job-store-by-index job-index))
@@ -209,6 +214,7 @@
 (defmethod process-registry-event :job-arbiter-requested
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: Arbiter Requested")
    (let [job-index (-> args :event_data first bn/number)
          user-id (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
@@ -228,6 +234,7 @@
 (defmethod process-registry-event :job-arbiter-accepted
   [{:keys [args]}]
   (go-try
+   (log/debug "Sync: Arbiter Accepted")
    (let [job-index (-> args :event_data first bn/number)
          user-id (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
@@ -242,6 +249,7 @@
 (defmethod process-registry-event :job-request-work-contract
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Request Work Contract")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
@@ -263,6 +271,7 @@
 (defmethod process-registry-event :job-accept-work-contract
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Accept Work Contract")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
@@ -280,6 +289,7 @@
 (defmethod process-registry-event :job-proceed-work-contract
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Proceed Job Contract")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          timestamp (-> args :timestamp bn/number)
@@ -297,6 +307,7 @@
 (defmethod process-registry-event :invoice-created
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Create Invoice")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          invoice-index (-> args :event_data (nth 2) bn/number)
@@ -318,6 +329,7 @@
 (defmethod process-registry-event :invoice-paid
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Invoice Paid")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          invoice-index (-> args :event_data (nth 2) bn/number)
@@ -339,6 +351,7 @@
 (defmethod process-registry-event :dispute-created
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Dispute Created")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          dispute-index (-> args :event_data (nth 2) bn/number)
@@ -360,6 +373,7 @@
 (defmethod process-registry-event :dispute-resolved
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Dispute Resolved")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          dispute-index (-> args :event_data (nth 2) bn/number)
@@ -385,6 +399,7 @@
 (defmethod process-registry-event :comment-created
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Comment Created")
    (let [comment-address (:event_sender args)
          job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
@@ -426,6 +441,7 @@
 (defmethod process-registry-event :comment-updated
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Comment Updated")
    (let [comment-address (:event_sender args)
          job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
@@ -468,6 +484,7 @@
 (defmethod process-registry-event :feedback-created
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Feedback Created")
    (let [feedback-address (:event_sender args)
          job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
@@ -503,6 +520,7 @@
 (defmethod process-registry-event :feedback-updated
   [{:keys [args] :as event}]
   (go-try
+   (log/debug "Sync: Feedback Updated")
    (let [feedback-address (:event_sender args)
          job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
