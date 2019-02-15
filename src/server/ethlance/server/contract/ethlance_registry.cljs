@@ -104,5 +104,5 @@
 ;; Events
 ;;
 
-(defn ethlance-event [& args]
-  (contracts/contract-call *registry-key* :EthlanceEvent [args] {}))
+(defn ethlance-event [args & [opts]]
+  (contracts/contract-call *registry-key* :EthlanceEvent args (or opts {})))

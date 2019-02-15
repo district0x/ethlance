@@ -8,15 +8,17 @@
    [mount.core :as mount :refer [defstate]]
    [ethlance.server.syncer.event-watcher :as event-watcher]
    [ethlance.server.contract.ethlance-registry :as registry]
+   [district.server.smart-contracts :as contracts]
    [taoensso.timbre :as log]))
 
 
-(defn create-watcher [f x]
-  (event-watcher/create-event-watcher (f (or x {}) {:from-block 0 :to-block "latest"})))
+(defn create-watcher [contract-name event-name]
+  (event-watcher/create-event-watcher
+   (contracts/create-event-filter contract-name event-name {} {:from-block 0} #(constantly nil))))
 
 
 (def event-watchers
-  {:registry-event [registry/ethlance-event]})
+  {:registry-event [:ethlance-registry :EthlanceEvent]})
 
 
 (defonce *active-watchers (atom {}))
