@@ -224,7 +224,7 @@ contract EthlanceDispute {
 
 	// Check and create forwarded feedback contract instance
 	EthlanceFeedback feedback;
-	if (!registry.hasFeedback(address(this))) {
+	if (!registry.hasFeedback(address(work_instance))) {
 	    SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
 	                                                 // target(EthlanceFeedback)
 
@@ -234,15 +234,15 @@ contract EthlanceDispute {
 	    registry.permitDispatch(address(fwd));
 	    
 	    // Add feedback to the registry feedback listing
-	    registry.pushFeedback(address(this), address(feedback));
+	    registry.pushFeedback(address(work_instance), address(feedback));
 	    
 	    // Construct the feedback contract
-	    feedback.construct(address(this),
+	    feedback.construct(address(work_instance),
 			       work_instance.store_instance().job_index(),
 			       work_instance.work_index());
 	}
 	else {
-	    feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(this)));
+	    feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(work_instance)));
 	}
 
 	feedback.update(msg.sender,

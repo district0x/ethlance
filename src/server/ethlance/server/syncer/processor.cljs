@@ -351,7 +351,7 @@
 (defmethod process-registry-event :dispute-created
   [{:keys [args] :as event}]
   (go-try
-   (log/debug "Dispute Created")
+   (log/debug "Sync: Dispute Created")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          dispute-index (-> args :event_data (nth 2) bn/number)
@@ -373,7 +373,7 @@
 (defmethod process-registry-event :dispute-resolved
   [{:keys [args] :as event}]
   (go-try
-   (log/debug "Dispute Resolved")
+   (log/debug "Sync: Dispute Resolved")
    (let [job-index (-> args :event_data first bn/number)
          work-index (-> args :event_data second bn/number)
          dispute-index (-> args :event_data (nth 2) bn/number)
@@ -406,7 +406,7 @@
          date-created (-> (contract.comment/date-created comment-address) <!-<throw bn/number)
          date-updated (-> (contract.comment/date-updated comment-address) <!-<throw bn/number)
          user-type (<!-<throw (contract.comment/user-type comment-address))
-         user-id (-> (contract.comment/user-address comment-address) model.user/user-id)
+         user-id (-> (contract.comment/user-address comment-address) <!-<throw model.user/user-id)
          ipfs-data (<!-<throw (ipfs/get-edn (<!-<throw (contract.comment/last comment-address))))
 
          comment-data

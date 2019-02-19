@@ -101,7 +101,7 @@ contract EthlanceFeedback {
 		    uint to_user_type,
 		    string calldata metahash,
 		    uint rating) external {
-	require(msg.sender == owner, "Must be contract owner to update feedback.");
+	//require(msg.sender == owner, "Must be contract owner to update feedback.");
 	require(rating <= 5, "Rating must be a value between 0 and 5.");
 
 	Feedback memory feedback = Feedback({
