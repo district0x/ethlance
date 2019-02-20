@@ -35,8 +35,8 @@
     \"Search for and create User Listings\"
     userSearch(
       user_address: ID,
-      user_fullname: String,
-      user_username: String,
+      user_fullName: String,
+      user_userName: String,
       orderBy: UserListOrderBy,
       orderDirection: OrderDirection,
       first: Int,
@@ -164,8 +164,8 @@
   }
 
   enum UserListOrderBy {
-    userList_orderBy_dateUpdated
-    userList_orderBy_dateCreated
+    dateUpdated
+    dateCreated
   }
 
 
@@ -205,8 +205,8 @@
   }
 
   enum CandidateListOrderBy {
-    candidateList_orderBy_dateUpdated
-    candidateList_orderBy_dateCreated
+    dateUpdated
+    dateCreated
   }
 
 
@@ -240,8 +240,8 @@
   }
 
   enum EmployerListOrderBy {
-    employerList_orderBy_dateUpdated
-    employerList_orderBy_dateCreated
+    dateUpdated
+    dateCreated
   }
 
 
@@ -278,8 +278,8 @@
   }
 
   enum ArbiterListOrderBy {
-    arbiterList_orderBy_dateUpdated
-    arbiterList_orderBy_dateCreated
+    dateUpdated
+    dateCreated
   }
 
 
@@ -312,8 +312,8 @@
   }
 
   enum JobListOrderBy {
-    joblist_orderBy_dateUpdated
-    joblist_orderBy_dateCreated
+    dateUpdated
+    dateCreated
   }
 
   # WorkContract Types
@@ -369,8 +369,8 @@
   }
 
   enum WorkContractOrderBy {
-    workContract_orderBy_dateUpdated
-    workContract_orderBy_dateCreated
+    dateUpdated
+    dateCreated
   }
 
 

@@ -33,6 +33,15 @@
 (def enum graphql-utils/kw->gql-name)
 
 
+(defn gql-order-by->db
+  "Convert gql orderBy representation into the database representation."
+  [gql-name]
+  (let [kw (graphql-utils/gql-name->kw gql-name)
+        relations {:date-updated :u.user/date-updated
+                   :date-created :u.user/date-created}]
+    (get relations kw)))
+
+
 (defn user-id-query
   "Returns the User ID of the given ethereum address, or nil"
   [_ {:keys [:user/address]}]
@@ -61,13 +70,16 @@
              first
              after] :as args}]
   (log/debug (str "user search: " args))
-  (let [page-start-idx (when after (js/parseInt after))
-        page-size first
+  (let [page-size first
+        page-start-idx (when after (js/parseInt after)) 
         query (cond-> {:select [:*]
                        :from [[:User :u]]}
-                address (sqlh/merge-where [:like :u/address (str "%" user-address "%")])
-                full-name (sqlh/merge-where [:like :u/full-name (str "%" full-name "%")]))]
-    
+                address (sqlh/merge-where [:like :u.user/address (str "%" address "%")])
+                full-name (sqlh/merge-where [:like :u.user/full-name (str "%" full-name "%")])
+                user-name (sqlh/merge-where [:like :u.user/user-name (str "%" user-name "%")])
+                order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
+                                               (or (keyword order-direction) :asc)]))]
+    (log/debug query)
     (paged-query query page-size page-start-idx)))
 
 
