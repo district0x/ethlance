@@ -15,6 +15,14 @@
    [ethlance.server.graphql.resolvers.feedback :as resolvers.feedback]))
 
 
+(defn default-item-resolver
+  "The default resolver that is used with GraphQL schemas that return an
+  `:item` key
+  "
+  [item-list]
+  (get item-list :items []))
+
+
 (def graphql-resolver-map
   {:Query
    {;; User Queries
@@ -46,34 +54,36 @@
    ;;
 
    :User
-   {:user/languages resolvers.user/user-languages-query
-    :user/is-registered-candidate resolvers.user/is-registered-candidate-query
-    :user/is-registered-arbiter resolvers.user/is-registered-arbiter-query
-    :user/is-registered-employer resolvers.user/is-registered-employer-query}
+   {:user/languages resolvers.user/user-languages-resolver
+    :user/is-registered-candidate resolvers.user/is-registered-candidate-resolver
+    :user/is-registered-arbiter resolvers.user/is-registered-arbiter-resolver
+    :user/is-registered-employer resolvers.user/is-registered-employer-resolver}
+
+   :UserList {:items default-item-resolver}
 
    :Candidate
-   {:candidate/categories resolvers.candidate/candidate-categories-query
-    :candidate/skills resolvers.candidate/candidate-skills-query
-    :candidate/feedback resolvers.feedback/candidate-feedback-query}
+   {:candidate/categories resolvers.candidate/candidate-categories-resolver
+    :candidate/skills resolvers.candidate/candidate-skills-resolver
+    :candidate/feedback resolvers.feedback/candidate-feedback-resolver}
 
    :Employer
-   {:employer/feedback resolvers.feedback/employer-feedback-query}
+   {:employer/feedback resolvers.feedback/employer-feedback-resolver}
 
    :Arbiter
-   {:arbiter/feedback resolvers.feedback/arbiter-feedback-query}
+   {:arbiter/feedback resolvers.feedback/arbiter-feedback-resolver}
 
    :Job
-   {:job/work-contracts resolvers.work-contract/work-contracts-query}
+   {:job/work-contracts resolvers.work-contract/work-contracts-resolver}
 
    :WorkContract
-   {:work-contract/invoices resolvers.invoice/invoices-query
-    :work-contract/disputes resolvers.dispute/disputes-query
-    :work-contract/employer-feedback resolvers.feedback/work-employer-query
-    :work-contract/candidate-feedback resolvers.feedback/work-candidate-query
-    :work-contract/comments resolvers.comment/work-comments-query}
+   {:work-contract/invoices resolvers.invoice/invoices-resolver
+    :work-contract/disputes resolvers.dispute/disputes-resolver
+    :work-contract/employer-feedback resolvers.feedback/work-employer-resolver
+    :work-contract/candidate-feedback resolvers.feedback/work-candidate-resolver
+    :work-contract/comments resolvers.comment/work-comments-resolver}
 
    :Invoice
-   {:invoice/comments resolvers.comment/invoice-comments-query}
+   {:invoice/comments resolvers.comment/invoice-comments-resolver}
 
    :Dispute
-   {:dispute/comments resolvers.comment/dispute-comments-query}})
+   {:dispute/comments resolvers.comment/dispute-comments-resolver}})

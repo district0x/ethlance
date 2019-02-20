@@ -26,7 +26,7 @@
    [ethlance.server.model.arbiter :as model.arbiter])) 
 
 
-(defn work-comments-query
+(defn work-comments-resolver
   [{job-index :job/index
     work-index :work-contract/index}]
   {:items []
@@ -35,7 +35,7 @@
    :has-next-page false})
 
 
-(defn invoice-comments-query
+(defn invoice-comments-resolver
   [{job-index :job/index
     work-index :work-contract/index
     invoice-index :invoice/index}]
@@ -45,7 +45,7 @@
    :has-next-page false})
 
 
-(defn dispute-comments-query
+(defn dispute-comments-resolver
   [{job-index :job/index
     work-index :work-contract/index
     dispute-index :dispute/index}]

@@ -29,7 +29,7 @@
 (defn candidate-query
   "Main Resolver for Candidate Data"
   [_ {:keys [:user/id]}]
-  (log/debug (str "Querying for Candidate: " id))
+  (log/debug (str "Resolving for Candidate: " id))
   (try-catch
    (when (> id 0)
      (model.candidate/get-data id))))
@@ -40,13 +40,13 @@
   [_ {:keys []}])
 
 
-(defn candidate-categories-query
+(defn candidate-categories-resolver
   [{:keys [:user/id]}]
   (log/debug (str "Candidate Category Listing: " id))
   (model.candidate/category-listing id))
 
 
-(defn candidate-skills-query
+(defn candidate-skills-resolver
   [{:keys [:user/id]}]
   (log/debug (str "Candidate Skills Listing: " id))
   (model.candidate/skill-listing id))

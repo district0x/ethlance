@@ -42,7 +42,7 @@
      (nth (model.job/invoice-listing job-index work-contract-index) invoice-index))))
 
 
-(defn invoices-query
+(defn invoices-resolver
   ""
   [_ {:keys [:work-contract/index
              :work-contract/contract-status

@@ -59,19 +59,19 @@
              after]}]
   (let []
     {:items nil
-     :total-count 0
+     :total-count 99
      :end-cursor nil
      :has-next-page false}))
 
 
-(defn user-languages-query
+(defn user-languages-resolver
   "List of languages the current user speaks."
   [{:keys [:user/id]}]
   (log/debug (str "User Language Listing: " id))
   (model.user/language-listing id))
 
 
-(defn is-registered-candidate-query
+(defn is-registered-candidate-resolver
   [{:keys [:user/id]}]
   (log/debug (str "User Is Registered Candidate: " id))
   (-> (district.db/get
@@ -81,7 +81,7 @@
       seq boolean))
 
 
-(defn is-registered-arbiter-query
+(defn is-registered-arbiter-resolver
   [{:keys [:user/id]}]
   (log/debug (str "User Is Registered Arbiter: " id))
   (-> (district.db/get
@@ -91,7 +91,7 @@
       seq boolean))
 
 
-(defn is-registered-employer-query
+(defn is-registered-employer-resolver
   [{:keys [:user/id]}]
   (log/debug (str "User Is Registered Employer: " id))
   (-> (district.db/get

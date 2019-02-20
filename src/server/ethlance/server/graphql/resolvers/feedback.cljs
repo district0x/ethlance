@@ -30,7 +30,7 @@
    [ethlance.shared.enum.user-type :as enum.user-type]))
 
 
-(defn candidate-feedback-query
+(defn candidate-feedback-resolver
   "Accumulation of Feedback objects for the given candidate defined by
   their user id."
   [{:keys [first after :user/id]}]
@@ -52,7 +52,7 @@
     result))
 
 
-(defn employer-feedback-query
+(defn employer-feedback-resolver
   "Accumulation of Feedback objects for the given employer defined by
   their user id."
   [{:keys [:user/id]}]
@@ -62,7 +62,7 @@
    :has-next-page false})
 
 
-(defn arbiter-feedback-query
+(defn arbiter-feedback-resolver
   "Accumulation of Feedback objects for the given arbiter defined by
   their user id."
   [{:keys [:user/id]}]
@@ -72,12 +72,12 @@
    :has-next-page false})
 
 
-(defn work-employer-query
+(defn work-employer-resolver
   [{job-index :job/index
     work-index :work-contract/index}])
 
 
-(defn work-candidate-query
+(defn work-candidate-resolver
   [{job-index :job/index
     work-index :work-contract/index}])
 

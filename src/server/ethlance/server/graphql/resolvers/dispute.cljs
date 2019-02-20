@@ -30,7 +30,7 @@
 (def enum graphql-utils/kw->gql-name)
 
 
-(defn dispute-query
+(defn dispute-resolver
   "Main Resolver of Dispute Data"
   [_ {job-index :job/index
       work-contract-index :work-contract/index
@@ -42,7 +42,7 @@
      (nth (model.job/dispute-listing job-index work-contract-index) dispute-index))))
 
 
-(defn disputes-query
+(defn disputes-resolver
   ""
   [_ {:keys [:work-contract/index
              :work-contract/contract-status
@@ -56,5 +56,3 @@
      :total-count 0
      :end-cursor nil
      :has-next-page false}))
-
-
