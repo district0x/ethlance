@@ -40,7 +40,7 @@
      (model.job/get-work-contract job-index work-contract-index))))
 
 
-(defn work-contracts-query
+(defn work-contracts-resolver
   ""
   [_ {:keys [:work-contract/index
              :work-contract/contract-status

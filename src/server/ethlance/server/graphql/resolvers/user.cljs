@@ -10,6 +10,7 @@
    [cljs.nodejs :as nodejs]
    [cuerdas.core :as str]
    [taoensso.timbre :as log]
+   [honeysql.helpers :as sqlh]
 
    [district.shared.error-handling :refer [try-catch]]
    [district.graphql-utils :as graphql-utils]
@@ -24,7 +25,9 @@
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
    [ethlance.server.model.arbiter :as model.arbiter]
-   [ethlance.server.model.comment :as model.comment]))
+   [ethlance.server.model.comment :as model.comment]
+   
+   [ethlance.server.graphql.pagination :refer [paged-query]]))
 
 
 (def enum graphql-utils/kw->gql-name)
@@ -50,18 +53,22 @@
 
 (defn user-search-query
   ""
-  [_ {:keys [:user/user-address
-             :user/fullname
-             :user/username
+  [_ {:keys [:user/address
+             :user/full-name
+             :user/user-name
              order-by
              order-direction
              first
-             after]}]
-  (let []
-    {:items nil
-     :total-count 99
-     :end-cursor nil
-     :has-next-page false}))
+             after] :as args}]
+  (log/debug (str "user search: " args))
+  (let [page-start-idx (when after (js/parseInt after))
+        page-size first
+        query (cond-> {:select [:*]
+                       :from [[:User :u]]}
+                address (sqlh/merge-where [:like :u/address (str "%" user-address "%")])
+                full-name (sqlh/merge-where [:like :u/full-name (str "%" full-name "%")]))]
+    
+    (paged-query query page-size page-start-idx)))
 
 
 (defn user-languages-resolver
