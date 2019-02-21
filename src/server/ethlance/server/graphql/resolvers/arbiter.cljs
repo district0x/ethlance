@@ -10,6 +10,7 @@
    [cljs.nodejs :as nodejs]
    [cuerdas.core :as str]
    [taoensso.timbre :as log]
+   [honeysql.helpers :as sqlh]
 
    [district.shared.error-handling :refer [try-catch]]
    [district.graphql-utils :as graphql-utils]
@@ -21,7 +22,22 @@
 
    [ethlance.server.db :as ethlance.db]
    [ethlance.server.model.user :as model.user]
-   [ethlance.server.model.arbiter :as model.arbiter]))
+   [ethlance.server.model.arbiter :as model.arbiter]
+
+   [ethlance.server.graphql.pagination :refer [paged-query]]))
+
+
+(def enum graphql-utils/kw->gql-name)
+
+
+(defn gql-order-by->db
+  "Convert gql orderBy representation into the database representation."
+  [gql-name]
+  (let [kw (graphql-utils/gql-name->kw gql-name)
+        relations {:date-updated :u.user/date-updated
+                   :date-created :u.user/date-created
+                   :date-registered :ua.arbiter/date-registered}]
+    (get relations kw)))
 
 
 (defn arbiter-query
@@ -35,4 +51,24 @@
 
 (defn arbiter-search-query
   ""
-  [_ {:keys []}])
+  [_ {:keys [:user/address
+             :user/full-name
+             :user/user-name
+             order-by
+             order-direction
+             first
+             after] :as args}]
+  (log/debug (str "arbiter search: " args))
+  (let [page-size first
+        page-start-idx (when after (js/parseInt after)) 
+        query (cond-> {:select [:ua.*]
+                       :from [[:User :u]]
+                       :join [[:UserArbiter :ua]
+                              [:= :u.user/id :ua.user/id]]}
+                address (sqlh/merge-where [:like :u.user/address (str "%" address "%")])
+                full-name (sqlh/merge-where [:like :u.user/full-name (str "%" full-name "%")])
+                user-name (sqlh/merge-where [:like :u.user/user-name (str "%" user-name "%")])
+                order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
+                                               (or (keyword order-direction) :asc)]))]
+    (log/debug query)
+    (paged-query query page-size page-start-idx)))

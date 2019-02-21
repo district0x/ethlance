@@ -10,6 +10,7 @@
    [cljs.nodejs :as nodejs]
    [cuerdas.core :as str]
    [taoensso.timbre :as log]
+   [honeysql.helpers :as sqlh]
 
    [district.shared.error-handling :refer [try-catch]]
    [district.graphql-utils :as graphql-utils]
@@ -24,35 +25,50 @@
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
    [ethlance.server.model.arbiter :as model.arbiter]
-   [ethlance.server.model.job :as model.job]))
+   [ethlance.server.model.job :as model.job]
+
+   [ethlance.server.graphql.pagination :refer [paged-query]]))
 
 
 (def enum graphql-utils/kw->gql-name)
+
+
+(defn gql-order-by->db
+  "Convert gql orderBy representation into the database representation."
+  [gql-name]
+  (let [kw (graphql-utils/gql-name->kw gql-name)
+        relations {:date-updated :wc.work-contract/date-updated
+                   :date-created :wc.work-contract/date-created
+                   :date-finished :wc.work-contract/date-finished}]
+    (get relations kw)))
 
 
 (defn work-contract-query
   "Main Resolver of Work-Contract Data"
   [_ {job-index :job/index
       work-contract-index :work-contract/index}]
-  (log/debug (str "Querying Work-Contract Index: " job-index))
+  (log/debug (str "Querying Work-Contract Index: " job-index ", " work-contract-index))
   (try-catch
-   (when (> job-index 0)
+   (when (and (>= job-index 0) (>= work-contract-index 0))
      (model.job/get-work-contract job-index work-contract-index))))
 
 
 (defn work-contracts-resolver
   ""
-  [_ {:keys [:work-contract/index
-             :work-contract/contract-status
-             :work-contract/candidate-address
-             order-by
-             order-direction
-             first
-             after]}]
-  (let []
-    {:items nil
-     :total-count 0
-     :end-cursor nil
-     :has-next-page false}))
+  [job {:keys [order-by
+               order-direction
+               first
+               after] :as args}]
+  (log/debug (str "work contract search: " args))
+  (log/debug (str job))
+  (let [page-size first
+        page-start-idx (when after (js/parseInt after)) 
+        query (cond-> {:select [:wc.*]
+                       :from [[:WorkContract :wc]]
+                       :where [:= :wc.job/index (:job/index job)]}
+                order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
+                                               (or (keyword order-direction) :asc)]))]
+    (log/debug query)
+    (paged-query query page-size page-start-idx)))
 
 

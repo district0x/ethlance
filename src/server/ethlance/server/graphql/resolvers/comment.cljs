@@ -10,6 +10,7 @@
    [cljs.nodejs :as nodejs]
    [cuerdas.core :as str]
    [taoensso.timbre :as log]
+   [honeysql.helpers :as sqlh]
 
    [district.shared.error-handling :refer [try-catch]]
    [district.graphql-utils :as graphql-utils]
@@ -23,33 +24,89 @@
    [ethlance.server.model.user :as model.user]
    [ethlance.server.model.candidate :as model.candidate]
    [ethlance.server.model.employer :as model.employer]
-   [ethlance.server.model.arbiter :as model.arbiter])) 
+   [ethlance.server.model.arbiter :as model.arbiter] 
+
+   [ethlance.server.graphql.pagination :refer [paged-query]]))
 
 
+(def enum graphql-utils/kw->gql-name)
+
+
+(defn gql-order-by->db
+  "Convert gql orderBy representation into the database representation."
+  [gql-name]
+  (let [kw (graphql-utils/gql-name->kw gql-name)
+        relations {:date-updated :c.comment/date-updated
+                   :date-created :c.comment/date-created}]
+    (get relations kw)))
+
+
+;; TODO: manage revisions
 (defn work-comments-resolver
-  [{job-index :job/index
-    work-index :work-contract/index}]
-  {:items []
-   :total-count 0
-   :end-cursor ""
-   :has-next-page false})
+  ""
+  [work-contract
+   {:keys [order-by
+           order-direction
+           first
+           after] :as args}]
+  (log/debug (str "work contract comment search: " args))
+  (log/debug (str work-contract))
+  (let [page-size first
+        page-start-idx (when after (js/parseInt after)) 
+        query (cond-> {:select [:c.*]
+                       :from [[:WorkContractComment :c]]
+                       :where [:and
+                               [:= :c.job/index (:job/index work-contract)]
+                               [:= :c.work-contract/index (:work-contract/index work-contract)]]}
+                order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
+                                               (or (keyword order-direction) :asc)]))]
+    (log/debug query)
+    (paged-query query page-size page-start-idx)))
 
 
+;; TODO: manage revisions
 (defn invoice-comments-resolver
-  [{job-index :job/index
-    work-index :work-contract/index
-    invoice-index :invoice/index}]
-  {:items []
-   :total-count 0
-   :end-cursor ""
-   :has-next-page false})
+  ""
+  [invoice
+   {:keys [order-by
+           order-direction
+           first
+           after] :as args}]
+  (log/debug (str "invoice comment search: " args))
+  (log/debug (str invoice))
+  (let [page-size first
+        page-start-idx (when after (js/parseInt after)) 
+        query (cond-> {:select [:c.*]
+                       :from [[:WorkContractInvoiceComment :c]]
+                       :where [:and
+                               [:= :c.job/index (:job/index invoice)]
+                               [:= :c.work-contract/index (:work-contract/index invoice)]
+                               [:= :c.invoice/index (:invoice/index invoice)]]}
+                order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
+                                               (or (keyword order-direction) :asc)]))]
+    (log/debug query)
+    (paged-query query page-size page-start-idx)))
 
 
+;; TODO: manage revisions
 (defn dispute-comments-resolver
-  [{job-index :job/index
-    work-index :work-contract/index
-    dispute-index :dispute/index}]
-  {:items []
-   :total-count 0
-   :end-cursor ""
-   :has-next-page false})
+  ""
+  [dispute
+   {:keys [order-by
+           order-direction
+           first
+           after] :as args}]
+  (log/debug (str "dispute comment search: " args))
+  (log/debug (str dispute))
+  (let [page-size first
+        page-start-idx (when after (js/parseInt after)) 
+        query (cond-> {:select [:c.*]
+                       :from [[:WorkContractDisputeComment :c]]
+                       :where [:and
+                               [:= :c.job/index (:job/index dispute)]
+                               [:= :c.work-contract/index (:work-contract/index dispute)]
+                               [:= :c.dispute/index (:dispute/index dispute)]]}
+                order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
+                                               (or (keyword order-direction) :asc)]))]
+    (log/debug query)
+    (paged-query query page-size page-start-idx)))

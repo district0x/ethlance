@@ -233,6 +233,7 @@
      [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
+     [:comment/date-updated :unsigned :integer] ;; FIXME
      [:comment/text :varchar not-nil]
      [(sql/call :primary-key :job/index :work-contract/index :comment/index :comment/revision)]
      [[(sql/call :foreign-key :job/index)
@@ -250,6 +251,7 @@
      [:feedback/from-user-type :unsigned :integer not-nil]
      [:feedback/from-user-id :unsigned :integer not-nil]
      [:feedback/date-created :unsigned :integer not-nil]
+     [:feedback/date-updated :unsigned :integer] ;; FIXME
      [:feedback/rating :integer not-nil]
      [:feedback/text :varchar not-nil]
      [(sql/call :primary-key :job/index :work-contract/index :feedback/index)]
@@ -284,6 +286,7 @@
      [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
+     [:comment/date-updated :unsigned :integer] ;; FIXME
      [:comment/text :varchar not-nil]
      [(sql/call :primary-key :job/index :work-contract/index :invoice/index :comment/index :comment/revision)]
      [[(sql/call :foreign-key :job/index)
@@ -319,6 +322,7 @@
      [:user/id :unsigned :integer] ;; User ID of Arbiter, Candidate, or Employer.
      [:comment/user-type :unsigned :integer]
      [:comment/date-created :unsigned :integer not-nil]
+     [:comment/date-updated :unsigned :integer] ;; FIXME
      [:comment/text :varchar not-nil]
      [(sql/call :primary-key :job/index :work-contract/index :dispute/index :comment/index :comment/revision)]
      [[(sql/call :foreign-key :job/index)

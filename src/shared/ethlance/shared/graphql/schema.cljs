@@ -68,8 +68,6 @@
     \"Search for and create Employer Listings\"
     employerSearch(
       user_id: Int,
-      categoriesAnd: [String!],
-      categoriesOr: [String!],
       professionalTitle: String,
       orderBy: EmployerListOrderBy,
       orderDirection: OrderDirection,
@@ -207,6 +205,7 @@
   enum CandidateListOrderBy {
     dateUpdated
     dateCreated
+    dateRegistered
   }
 
 
@@ -242,6 +241,7 @@
   enum EmployerListOrderBy {
     dateUpdated
     dateCreated
+    dateRegistered
   }
 
 
@@ -280,6 +280,7 @@
   enum ArbiterListOrderBy {
     dateUpdated
     dateCreated
+    dateRegistered
   }
 
 
@@ -295,6 +296,7 @@
     job_category: String
     job_description: String
     job_dateCreated: Date
+    job_dateStarted: Date
     job_dateFinished: Date
     job_employerUid: ID
     job_estimatedLengthSeconds: Int
@@ -312,8 +314,9 @@
   }
 
   enum JobListOrderBy {
-    dateUpdated
     dateCreated
+    dateStarted
+    dateFinished
   }
 
   # WorkContract Types
@@ -392,7 +395,13 @@
     \"Date last updated\"
     invoice_dateUpdated: Date
 
-    \"Date of invoice payment\"
+    \"Date the invoice was paid\"
+    invoice_datePaid: Date
+
+    \"Amount of pay requested\"
+    invoice_amountRequested: Int
+
+    \"Amount of invoice actually paid\"
     invoice_amountPaid: Int
 
     invoice_comments(
