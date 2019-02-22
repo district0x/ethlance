@@ -41,7 +41,6 @@
     (get relations kw)))
 
 
-;; TODO: manage revisions
 (defn work-comments-resolver
   ""
   [work-contract
@@ -57,14 +56,17 @@
                        :from [[:WorkContractComment :c]]
                        :where [:and
                                [:= :c.job/index (:job/index work-contract)]
-                               [:= :c.work-contract/index (:work-contract/index work-contract)]]}
+                               [:= :c.work-contract/index (:work-contract/index work-contract)]
+                               [:= :c.comment/revision 
+                                {:select [(sql/call :MAX :c2.comment/revision)]
+                                 :from [[:WorkContractComment :c2]]
+                                 :where [:= :c.comment/index :c2.comment/index]}]]}
                 order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
                                                (or (keyword order-direction) :asc)]))]
     (log/debug query)
     (paged-query query page-size page-start-idx)))
 
 
-;; TODO: manage revisions
 (defn invoice-comments-resolver
   ""
   [invoice
@@ -81,14 +83,17 @@
                        :where [:and
                                [:= :c.job/index (:job/index invoice)]
                                [:= :c.work-contract/index (:work-contract/index invoice)]
-                               [:= :c.invoice/index (:invoice/index invoice)]]}
+                               [:= :c.invoice/index (:invoice/index invoice)]
+                               [:= :c.comment/revision 
+                                {:select [(sql/call :MAX :c2.comment/revision)]
+                                 :from [[:WorkContractInvoiceComment :c2]]
+                                 :where [:= :c.comment/index :c2.comment/index]}]]}
                 order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
                                                (or (keyword order-direction) :asc)]))]
     (log/debug query)
     (paged-query query page-size page-start-idx)))
 
 
-;; TODO: manage revisions
 (defn dispute-comments-resolver
   ""
   [dispute
@@ -105,7 +110,11 @@
                        :where [:and
                                [:= :c.job/index (:job/index dispute)]
                                [:= :c.work-contract/index (:work-contract/index dispute)]
-                               [:= :c.dispute/index (:dispute/index dispute)]]}
+                               [:= :c.dispute/index (:dispute/index dispute)]
+                               [:= :c.comment/revision 
+                                {:select [(sql/call :MAX :c2.comment/revision)]
+                                 :from [[:WorkContractDisputeComment :c2]]
+                                 :where [:= :c.comment/index :c2.comment/index]}]]}
                 order-by (sqlh/merge-order-by [(gql-order-by->db order-by)
                                                (or (keyword order-direction) :asc)]))]
     (log/debug query)

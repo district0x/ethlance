@@ -35,23 +35,35 @@
 (defn candidate-feedback-resolver
   "Accumulation of Feedback objects for the given candidate defined by
   their user id."
-  [{:keys [first after :user/id]}]
-  (log/debug (str/format "Candidate Feedback id=%s, first=%s, after=%s" id first after))
-  (let [to-user-type (model.feedback/enum-kw->val ::enum.user-type/candidate)
-        q {:select [:*]
-           :from [:WorkContractFeedback]
+  [candidate {:keys [first after]}]
+  (log/debug (str/format "Candidate Feedback id=%s, first=%s, after=%s" (:user/id candidate) first after))
+  (let [id (:user/id candidate)
+        page-size first
+        page-start-idx (when after (js/parseInt after))
+        to-user-type (model.feedback/enum-kw->val ::enum.user-type/candidate)
+        q {:select [:wf.*]
+           :from [[:WorkContractFeedback :wf]]
            :where [:and
-                   [:= :feedback/to-user-id id]
-                   [:= :feedback/to-user-type to-user-type]]}
+                   [:= :wf.feedback/to-user-id id]
+                   [:= :wf.feedback/to-user-type to-user-type]]
+           :order-by [:wf.feedback/date-updated]}
 
         feedback-listing (->> (district.db/all q)
                               (mapv model.feedback/enum-val->kw))
 
-        result {:items feedback-listing
-                :total-count (count feedback-listing)
-                :end-cursor (-> feedback-listing last :feedback/index str)
-                :has-next-page false}]
-    result))
+        feedback-total-count (count feedback-listing)
+        
+        feedback-items (->> feedback-listing
+                            (drop page-start-idx)
+                            (take page-size))
+        
+        feedback-end-cursor (->> feedback-listing
+                                 (drop (+ page-start-idx page-size))
+                                 first :user/id)]
+    {:items feedback-items
+     :total-count feedback-total-count
+     :end-cursor (str feedback-end-cursor)
+     :has-next-page (not (nil? feedback-end-cursor))}))
 
 
 (defn employer-feedback-resolver
