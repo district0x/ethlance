@@ -10,6 +10,7 @@
    [cljs.nodejs :as nodejs]
    [cuerdas.core :as str]
    [taoensso.timbre :as log]
+   [honeysql.core :as sql]
    [honeysql.helpers :as sqlh]
 
    [district.shared.error-handling :refer [try-catch]]

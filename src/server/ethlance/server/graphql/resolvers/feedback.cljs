@@ -32,58 +32,36 @@
    [ethlance.server.graphql.pagination :refer [paged-query]]))
 
 
-(defn candidate-feedback-resolver
-  "Accumulation of Feedback objects for the given candidate defined by
-  their user id."
-  [candidate {:keys [first after]}]
-  (log/debug (str/format "Candidate Feedback id=%s, first=%s, after=%s" (:user/id candidate) first after))
-  (let [id (:user/id candidate)
-        page-size first
+(defn general-feedback-resolver
+  "Accumulation of Feedback objects for the given `user-type`, and
+  defined by their user id."
+  [user-type
+   {:keys [:user/id]}
+   {:keys [first after] :as args}]
+  (log/debug (str/format "Feedback id=%s, args=%s" id (str args)))
+  (let [page-size first
         page-start-idx (when after (js/parseInt after))
-        to-user-type (model.feedback/enum-kw->val ::enum.user-type/candidate)
-        q {:select [:wf.*]
-           :from [[:WorkContractFeedback :wf]]
-           :where [:and
-                   [:= :wf.feedback/to-user-id id]
-                   [:= :wf.feedback/to-user-type to-user-type]]
-           :order-by [:wf.feedback/date-updated]}
-
-        feedback-listing (->> (district.db/all q)
-                              (mapv model.feedback/enum-val->kw))
-
-        feedback-total-count (count feedback-listing)
-        
-        feedback-items (->> feedback-listing
-                            (drop page-start-idx)
-                            (take page-size))
-        
-        feedback-end-cursor (->> feedback-listing
-                                 (drop (+ page-start-idx page-size))
-                                 first :user/id)]
-    {:items feedback-items
-     :total-count feedback-total-count
-     :end-cursor (str feedback-end-cursor)
-     :has-next-page (not (nil? feedback-end-cursor))}))
+        to-user-type (enum.user-type/kw->val user-type)
+        query {:select [:wf.*]
+               :from [[:WorkContractFeedback :wf]]
+               :where [:and
+                       [:= :wf.feedback/to-user-id id]
+                       [:= :wf.feedback/to-user-type to-user-type]]
+               :order-by [:wf.feedback/date-created]}] ;;FIXME: date-updated
+    (log/debug query)
+    (paged-query query page-size page-start-idx)))
 
 
-(defn employer-feedback-resolver
-  "Accumulation of Feedback objects for the given employer defined by
-  their user id."
-  [{:keys [:user/id]}]
-  {:items []
-   :total-count 0
-   :end-cursor ""
-   :has-next-page false})
+(def candidate-feedback-resolver
+  #(general-feedback-resolver ::enum.user-type/candidate %1 %2))
 
 
-(defn arbiter-feedback-resolver
-  "Accumulation of Feedback objects for the given arbiter defined by
-  their user id."
-  [{:keys [:user/id]}]
-  {:items []
-   :total-count 0
-   :end-cursor ""
-   :has-next-page false})
+(def employer-feedback-resolver
+  #(general-feedback-resolver ::enum.user-type/employer %1 %2))
+
+
+(def arbiter-feedback-resolver
+  #(general-feedback-resolver ::enum.user-type/arbiter %1 %2))
 
 
 (defn work-employer-resolver
