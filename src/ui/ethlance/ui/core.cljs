@@ -6,10 +6,14 @@
 
    ;; District UI Components
    [district.ui.reagent-render]
+   [district.ui.router]
+   [district.ui.component.router]
+   [district.ui.logging]
 
    ;; Ethlance
    [ethlance.ui.config :as ui.config]
-   [ethlance.ui.pages]))
+   [ethlance.ui.pages]
+   [ethlance.ui.page.home]))
 
 
 (enable-console-print!)
