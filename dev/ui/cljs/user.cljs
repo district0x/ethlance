@@ -1,3 +1,17 @@
-(ns cljs.user)
+(ns cljs.user
+  (:require
+   [mount.core :as mount]
+   [ethlance.ui.core]))
 
-(println "Hello UI!")
+
+(defn start []
+  (ethlance.ui.core/init))
+
+
+(defn stop []
+  (mount/stop))
+
+
+(defn restart []
+  (stop)
+  (start))
