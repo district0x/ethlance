@@ -12,8 +12,7 @@
 
    ;; Ethlance
    [ethlance.ui.config :as ui.config]
-   [ethlance.ui.pages]
-   [ethlance.ui.page.home]))
+   [ethlance.ui.pages]))
 
 
 (enable-console-print!)

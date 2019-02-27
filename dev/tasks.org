@@ -23,7 +23,8 @@
       in the district.server.smart-contracts. Has to do with 'secure'
       contract deployments, tested with ~ganache-cli --secure~
 ** Server
-*** TODO Finish GraphQL Resolvers
+*** DONE Finish GraphQL Resolvers
+    CLOSED: [2019-02-27 Wed 11:41]
 *** TODO Setup correct district.config values for Generator
 *** TODO Setup correct district.config values for Syncer
 *** TODO Setup correct district.config values for Deployer
@@ -32,7 +33,8 @@
 *** TODO Generator needs OPEN_BOUNTY use case
     Currently no job scenarios that create an open bounty, or resolve
     it.
-*** TODO job-prog-w-inv-disp is broken
+*** DONE job-prog-w-inv-disp is broken
+    CLOSED: [2019-02-27 Wed 11:42]
     - VM Exception while processing transaction: revert The current
       contract status does not allow you to create a dispute.
     - Probably requires a ~proceed!~ call to update contract status.
@@ -94,7 +96,8 @@
     - Contracts that create disputes go into an ON HOLD state. Need to
       check and place a contract back into IN PROGRESS when there are
       no more open disputes.
-*** TODO Authenication for General Construction of forwarded contracts.
+*** DONE Authenication for General Construction of forwarded contracts.
+    CLOSED: [2019-02-27 Wed 11:41]
     - Requires check on construction privileges
     - Same needs to be applied to other contracts
     - Possible implementation could consist of a 'construction lock'

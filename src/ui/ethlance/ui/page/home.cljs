@@ -1,4 +1,5 @@
 (ns ethlance.ui.page.home
+  "Main landing page for ethlance website"
   (:require
    [district.ui.component.page :refer [page]]))
 

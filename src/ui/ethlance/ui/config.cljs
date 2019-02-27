@@ -22,6 +22,11 @@
     :scroll-top? true}})
 
 
+(def development-config
+  (-> general-config
+      (assoc-in [:router :routes] ethlance.shared.routes/dev-routes)))
+
+
 ;; TODO: generate based on whether dev, prod, qa
 (defn get-config []
-  general-config)
+  development-config)

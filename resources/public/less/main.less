@@ -1,11 +1,36 @@
 /// main.less - Ethlance Stylesheet Main Entry Point.
 
+//
 // Imports
-@import "color-palette.less";
-@import "fonts.less";
+//
+
+// General Styling
+@import "color.less";
+@import "font.less";
+@import "media.less";
+
+// Base Styling for HTML Components
+@import "base.less";
+
+// Dependants
+@import "components.less";
+@import "pages.less";
+
 
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+}
+
+
+body {
+    font: @font-sans;
+    color: @color-primary;
+    background-color: @color-background-light;
+}
+
+
+#app {
+    
 }
