@@ -5,4 +5,6 @@
 
 (defn c-splash-layout
   [& [props :as children]]
-  [:div.splash-layout])
+  (let []
+    (fn [{:keys []} & children])))
+     
