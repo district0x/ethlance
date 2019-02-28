@@ -123,9 +123,6 @@
          :wc true
          :contracts :all}
 
-  :less {:source-paths ["resources/public/less"]
-         :target-path "resources/public/css"}
-
   :profiles
   {:dev
    {:source-paths ["src/clj" "src/ui" "src/shared" "src/server"
@@ -139,8 +136,7 @@
                    [binaryage/devtools "0.9.10"]
                    [doo "0.1.11"]]
     :plugins [[lein-figwheel "0.5.18"]
-              [lein-doo "0.1.10"]
-              [lein-less "1.7.5"]]
+              [lein-doo "0.1.10"]]
     :repl-options {:init-ns ethlance.dev.user
                    :nrepl-middleware [cider.piggieback/wrap-cljs-repl]
                    :port 6450}}}

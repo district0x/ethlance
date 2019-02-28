@@ -5,16 +5,17 @@
 //
 
 // General Styling
-@import "color.less";
-@import "font.less";
-@import "media.less";
+@import "color";
+@import "font";
+@import "media";
 
 // Base Styling for HTML Components
-@import "base.less";
+@import "base-style";
+@import "base-layout";
 
 // Dependants
-@import "components.less";
-@import "pages.less";
+@import "components";
+@import "pages";
 
 
 * {
@@ -25,9 +26,9 @@
 
 
 body {
-    font: @font-sans;
-    color: @color-primary;
-    background-color: @color-background-light;
+    font: #font[sans];
+    color: #color[primary];
+    background-color: #color[background-light];
 }
 
 

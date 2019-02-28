@@ -12,5 +12,6 @@
     (fn []
      [:div.page-devcard
       [:div.devcard-header
-       [:b "Ethlance Components"]
-       [c-button {} [:span "test"]]]])))
+       [:b "Ethlance Components"]]
+      [c-button {:on-click #(.alert js/console "Hello!")}
+       [:span "test"]]])))

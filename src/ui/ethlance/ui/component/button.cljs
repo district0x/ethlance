@@ -3,7 +3,7 @@
 
 
 (defn c-button []
-  (fn [{:keys [disabled? on-click]} & children]
+  (fn [{:keys [disabled?] :as props} & children]
     [:div.ethlance-button
-     {}
+     (merge props {})
      children]))

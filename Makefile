@@ -72,6 +72,7 @@ clean:
 	lein clean
 	rm -rf dist
 	rm -f ./resources/ethlance.db
+	rm -rf ./resources/public/css
 
 
 clean-all: clean
@@ -81,6 +82,7 @@ clean-all: clean
 deps:
 	lein deps
 	npm install @sentry/node # Hotfix
+	npm install less
 
 
 watch-contracts:
@@ -141,8 +143,8 @@ check:
 
 
 watch-css:
-	lein less auto
+	less-watch-compiler resources/public/less resources/public/css main.less
 
 
 build-css:
-	lein less once
+	lessc resources/public/less/main.less resources/public/css/main.css
