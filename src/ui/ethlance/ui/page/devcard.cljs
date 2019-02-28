@@ -14,6 +14,6 @@
      [:div.page-devcard
       [:div.devcard-header
        [:b "Ethlance Components"]]
-      [c-ethlance-logo {}]
-      [c-button {:on-click #(.alert js/console "Hello!")}
+      [c-ethlance-logo {:color :secondary}]
+      [c-button {:on-click (fn [e] (println "Test"))}
        [:span "test"]]])))

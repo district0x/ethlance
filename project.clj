@@ -147,7 +147,7 @@
      :source-paths ["src/ui" "src/shared"
                     "dev/ui" "dev/shared"
                     "test/ui" "test/shared"]
-     :figwheel true
+     :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main cljs.user ;; ./dev/ui
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
