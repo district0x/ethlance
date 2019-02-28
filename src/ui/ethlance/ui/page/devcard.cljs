@@ -4,6 +4,7 @@
    [district.ui.component.page :refer [page]]
 
    ;; Ethlance Components
+   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
    [ethlance.ui.component.button :refer [c-button]]))
 
 
@@ -13,5 +14,6 @@
      [:div.page-devcard
       [:div.devcard-header
        [:b "Ethlance Components"]]
+      [c-ethlance-logo {}]
       [c-button {:on-click #(.alert js/console "Hello!")}
        [:span "test"]]])))
