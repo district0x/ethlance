@@ -22,7 +22,7 @@
     .noselect(); // remove text selection
     display: inline;
     cursor: pointer;
-    min-width: #ethlance-button[width];
+    width: #ethlance-button[width];
     height: #ethlance-button[height];
     background-color: #ethlance-button[background-primary];
     border-radius: 3px;
@@ -50,6 +50,16 @@
 
 	> .button-label {
 	    color: @hover-color;
+	}
+    }
+
+    &:active {
+	@active-color: darken(#ethlance-button[text-color-primary], 20%);
+
+	color: @active-color;
+
+	> .button-label {
+	    color: @active-color;
 	}
     }
 
@@ -87,5 +97,13 @@
 	    -webkit-box-shadow: 0px 0px 20px -2px @background-color;
 	    box-shadow: 0px 0px 20px -2px @background-color;
 	}
+    }
+
+    &.large {
+	width: #ethlance-button[width] * 1.5;
+    }
+
+    &.small {
+	width: #ethlance-button[width] * 0.7;
     }
 }

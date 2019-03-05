@@ -57,4 +57,16 @@
                   :active? true
                   :on-click (fn [e] (println "Test"))}
         [c-button-label {}
-         [:span "Become an " [:b "Employer"]]]]])))
+         [:span "Become an " [:b "Employer"]]]]
+
+       [c-button {:color :primary
+                  :size :large
+                  :on-click (fn [e] (println "Test"))}
+        [c-button-label {}
+         [:span "Become an " [:b "Employer"]]]]
+
+       [c-button {:color :secondary
+                  :size :small
+                  :on-click (fn [e] (println "Test"))}
+        [c-button-label {}
+         [:span "Become a " [:b "Freelancer"]]]]])))

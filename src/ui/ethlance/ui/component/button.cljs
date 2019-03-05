@@ -3,13 +3,18 @@
 
 
 (defn c-button []
-  (fn [{:keys [disabled? active? color] :as props
-        :or {color :primary disabled? false active? false}}
+  (fn [{:keys [disabled? active? color size on-click] :as props
+        :or {color :primary disabled? false active? false size :normal}}
        & children]
     [:div.ethlance-button
      {:class [(when (= color :secondary) " secondary ")
               (when disabled? " disabled ")
-              (when active? " active ")]}
+              (when active? " active ")
+              (condp = size
+                :small " small "
+                :normal " "
+                :large " large ")]
+      :on-click on-click}
      children]))
 
 
