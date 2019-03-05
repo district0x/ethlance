@@ -68,5 +68,4 @@
        [c-button {:color :secondary
                   :size :small
                   :on-click (fn [e] (println "Test"))}
-        [c-button-label {}
-         [:span "Become a " [:b "Freelancer"]]]]])))
+        [c-button-label {} [:span "Freelancer"]]]])))
