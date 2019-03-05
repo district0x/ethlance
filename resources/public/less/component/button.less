@@ -12,17 +12,21 @@
     text-color-disabled: desaturate(#color[secondary], 50%);
     width: 200px;
     height: 50px;
+    fade-duration: 0.1s;
 }
 
 
 .ethlance-button {
+    @fade-duration: #ethlance-button[fade-duration];
+
     .noselect(); // remove text selection
     display: inline;
     cursor: pointer;
-    width: #ethlance-button[width];
+    min-width: #ethlance-button[width];
     height: #ethlance-button[height];
     background-color: #ethlance-button[background-primary];
     border-radius: 3px;
+    transition: color @fade-duration, background-color @fade-duration;
 
     // Shadows
     -webkit-box-shadow: 0px 0px 20px -2px #ethlance-button[background-primary];
@@ -36,14 +40,26 @@
 	align-items: center;
 	justify-content: center;
 	color: #ethlance-button[text-color-primary];
+	transition: color @fade-duration, background-color @fade-duration;
+    }
+
+    &:hover {
+	@hover-color: darken(#ethlance-button[text-color-primary], 10%);
+
+	color: @hover-color;
+
+	> .button-label {
+	    color: @hover-color;
+	}
     }
 
     &.secondary {
 	background-color: #ethlance-button[background-secondary];
 	
 	// Shadows
-	-webkit-box-shadow: 0px 0px 20px -2px #ethlance-button[background-secondary];
-	box-shadow: 0px 0px 20px -2px #ethlance-button[background-secondary];
+	@shadow-color: #ethlance-button[background-secondary];
+	-webkit-box-shadow: 0px 0px 20px -2px @shadow-color;
+	box-shadow: 0px 0px 20px -2px @shadow-color;
     }
 
     &.disabled {
@@ -52,8 +68,24 @@
 	background-color: rgba(0,0,0,0.0);
 	-webkit-box-shadow: none;
 	box-shadow: none;
+
 	> .button-label {
 	    color: #ethlance-button[text-color-disabled];
+	}
+    }
+
+    &.active {
+	@background-color: lighten(#ethlance-button[background-primary], 20%);
+
+	background-color: @background-color;
+	-webkit-box-shadow: 0px 0px 20px -2px @background-color;
+	box-shadow: 0px 0px 20px -2px @background-color;
+
+	&.secondary {
+	    @background-color: lighten(#ethlance-button[background-secondary], 20%);
+	    background-color: @background-color;
+	    -webkit-box-shadow: 0px 0px 20px -2px @background-color;
+	    box-shadow: 0px 0px 20px -2px @background-color;
 	}
     }
 }

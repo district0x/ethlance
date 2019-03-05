@@ -45,4 +45,16 @@
                   :disabled? true
                   :on-click (fn [e] (println "Test"))}
         [c-button-label {}
+         [:span "Become an " [:b "Employer"]]]]
+
+       [c-button {:color :primary
+                  :active? true
+                  :on-click (fn [e] (println "Test"))}
+        [c-button-label {}
+         [:span "Become an " [:b "Employer"]]]]
+
+       [c-button {:color :secondary
+                  :active? true
+                  :on-click (fn [e] (println "Test"))}
+        [c-button-label {}
          [:span "Become an " [:b "Employer"]]]]])))
