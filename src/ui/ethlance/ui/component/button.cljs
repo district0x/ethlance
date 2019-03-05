@@ -3,7 +3,15 @@
 
 
 (defn c-button []
-  (fn [{:keys [disabled?] :as props} & children]
+  (fn [{:keys [disabled? color] :as props
+        :or {color :primary disabled? false}}
+       & children]
     [:div.ethlance-button
-     (merge props {})
+     {:class [(when (= color :secondary) " secondary ")
+              (when disabled? " disabled ")]}
      children]))
+
+
+(defn c-button-label []
+  (fn [_ & children]
+    [:div.button-label {} children]))
