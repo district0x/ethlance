@@ -1,0 +1,35 @@
+/// icon.less - Component containing particular SVG icons
+
+
+#ethlance-icon() {
+    primary: #color[background-light-accent-2];
+    secondary: #color[secondary];
+}
+
+
+.ethlance-icon-svg {
+    &.primary {
+	path, rect {
+	    fill: #ethlance-icon[primary] !important;
+	}
+    }
+
+    &.secondary {
+	path, rect {
+	    fill: #ethlance-icon[secondary] !important;
+	}
+    }
+
+    &.black {
+	path, rect {
+	    fill: #000000 !important;
+	}
+    }
+
+    &.white {
+	path, rect {
+	    fill: #ffffff !important;
+	}
+    }
+}
+

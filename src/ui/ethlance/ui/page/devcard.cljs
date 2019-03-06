@@ -6,7 +6,9 @@
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
    [ethlance.ui.component.button :refer [c-button c-button-label]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
+   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+   [ethlance.ui.component.icon :refer [c-icon]]
+   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]))
 
 
 (defmethod page :route.devcard/index []
@@ -77,4 +79,13 @@
                       :class "ethlance-logo-svg"
                       :on-ready (fn [dom svg]
                                   (.log js/console "SVG Ready")
-                                  (.log js/console dom svg))}]])))
+                                  (.log js/console dom svg))}]
+
+       [c-button {:color :primary
+                  :size :small
+                  :on-click (fn [e] (println "Test"))}
+        [c-button-label {} [c-icon {:color :none :size :normal}]]]
+
+       [c-circle-icon-button {}]
+
+       [c-circle-icon-button {:color :secondary}]])))
