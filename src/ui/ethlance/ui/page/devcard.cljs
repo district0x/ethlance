@@ -72,4 +72,9 @@
         [c-button-label {} [:span "Freelancer"]]]
 
   
-       [c-inline-svg {:src "images/ethlance_logo_secondary.svg"}]])))
+       [c-inline-svg {:src "images/ethlance_logo_secondary.svg"
+                      :id "specific-logo"
+                      :class "ethlance-logo-svg"
+                      :on-ready (fn [dom svg]
+                                  (.log js/console "SVG Ready")
+                                  (.log js/console dom svg))}]])))

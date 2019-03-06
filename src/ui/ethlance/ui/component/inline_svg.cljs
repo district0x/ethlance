@@ -42,7 +42,7 @@
                    xml->svg)))))
 
 
-(defn c-inline-svg [{:keys [src] :as props}]
+(defn c-inline-svg [{:keys [src class id on-ready] :as props}]
   (let [*inline-svg (r/atom nil)
         *dom-ref (r/atom nil)]
     (r/create-class
@@ -56,12 +56,17 @@
       :component-did-update
       (fn [this _]
         (when (and @*dom-ref @*inline-svg)
-          (doto @*dom-ref
-            (aset "innerHTML" "")
-            (.appendChild @*inline-svg))))
+          (let [inline-svg @*inline-svg]
+            (when id (.setAttribute inline-svg "id" id))
+            (when class (.setAttribute inline-svg "class" class))
+            (doto @*dom-ref
+              (aset "innerHTML" "")
+              (.appendChild inline-svg))
+            (when-let [on-ready (-> this .-props .-argv second :on-ready)]
+              (on-ready @*dom-ref @*inline-svg)))))
 
       :reagent-render
-      (fn [{:keys [src on-ready] :as props}]
+      (fn [{:keys [src class id on-ready] :as props}]
         [:div.ethlance-inline-svg
          {:ref (fn [com] (reset! *dom-ref com))}
          (when-not @*inline-svg [:img.svg {:src src}])])})))
