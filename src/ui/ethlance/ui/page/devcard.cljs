@@ -5,7 +5,8 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-   [ethlance.ui.component.button :refer [c-button c-button-label]]))
+   [ethlance.ui.component.button :refer [c-button c-button-label]]
+   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
 (defmethod page :route.devcard/index []
@@ -68,4 +69,7 @@
        [c-button {:color :secondary
                   :size :small
                   :on-click (fn [e] (println "Test"))}
-        [c-button-label {} [:span "Freelancer"]]]])))
+        [c-button-label {} [:span "Freelancer"]]]
+
+  
+       [c-inline-svg {:src "images/ethlance_logo_secondary.svg"}]])))
