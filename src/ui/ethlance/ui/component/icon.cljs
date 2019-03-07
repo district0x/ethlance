@@ -4,8 +4,17 @@
 
 
 (def icon-listing
-  {:about {:src "images/vector_logo/ethlance-about-icon.svg"
-           :style {}}})
+  {:about {:src "images/icons/ethlance-about-icon.svg"}
+   :arbiters {:src "images/icons/ethlance-arbiters-icon.svg"}
+   :candidates {:src "images/icons/ethlance-candidates-icon.svg"}
+   :jobs {:src "images/icons/ethlance-jobs-icon.svg"}
+   :search {:src "images/icons/ethlance-search-icon.svg"}
+   :sign-up {:src "images/icons/ethlance-sign-up-icon.svg"}
+   :facebook {:src "images/icons/facebook-icon.svg"}
+   :github {:src "images/icons/github-icon.svg"}
+   :linkedin {:src "images/icons/linkedin-icon.svg"}
+   :slack {:src "images/icons/slack-icon.svg"}
+   :twitter {:src "images/icons/twitter-icon.svg"}})
 
 
 (defn c-icon []
@@ -30,7 +39,7 @@
           
           src (-> icon-listing name :src)
           style (-> icon-listing name :style)]
-      [:div.ethlance-icon {:style style}
+      [:div.ethlance-icon {:style (or style {})}
        [c-inline-svg {:src src
                       :width width
                       :height height

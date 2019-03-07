@@ -73,7 +73,7 @@
                   :on-click (fn [e] (println "Test"))}
         [c-button-label {} [:span "Freelancer"]]]
 
-  
+       
        [c-inline-svg {:src "images/ethlance_logo_secondary.svg"
                       :id "specific-logo"
                       :class "ethlance-logo-svg"
@@ -88,4 +88,34 @@
 
        [c-circle-icon-button {}]
 
-       [c-circle-icon-button {:color :secondary}]])))
+       [c-circle-icon-button {:color :secondary}]
+
+       [c-circle-icon-button {:name :about}]
+
+       [c-circle-icon-button {:name :arbiters}]
+       [c-circle-icon-button {:name :candidates}]
+       [c-circle-icon-button {:name :jobs}]
+
+       [c-circle-icon-button {:name :search}]
+       [c-circle-icon-button {:name :sign-up}]
+
+       [c-circle-icon-button {:name :facebook}]
+       [c-circle-icon-button {:name :github}]
+       [c-circle-icon-button {:name :linkedin}]
+       [c-circle-icon-button {:name :slack}]
+       [c-circle-icon-button {:name :twitter}]
+
+       [c-circle-icon-button {:name :about :color :secondary}]
+
+       [c-circle-icon-button {:name :arbiters :color :secondary}]
+       [c-circle-icon-button {:name :candidates :color :secondary}]
+       [c-circle-icon-button {:name :jobs :color :secondary}]
+
+       [c-circle-icon-button {:name :search :color :secondary}]
+       [c-circle-icon-button {:name :sign-up :color :secondary}]
+
+       [c-circle-icon-button {:name :facebook :color :secondary}]
+       [c-circle-icon-button {:name :github :color :secondary}]
+       [c-circle-icon-button {:name :linkedin :color :secondary}]
+       [c-circle-icon-button {:name :slack :color :secondary}]
+       [c-circle-icon-button {:name :twitter :color :secondary}]])))
