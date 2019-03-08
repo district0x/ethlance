@@ -8,7 +8,8 @@
    [ethlance.ui.component.button :refer [c-button c-button-label]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.icon :refer [c-icon]]
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]))
+   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+   [ethlance.ui.component.rating :refer [c-rating]]))
 
 
 (defmethod page :route.devcard/index []
@@ -133,4 +134,12 @@
           [c-circle-icon-button {:name :github :color :secondary}]
           [c-circle-icon-button {:name :linkedin :color :secondary}]
           [c-circle-icon-button {:name :slack :color :secondary}]
-          [c-circle-icon-button {:name :twitter :color :secondary}]]]]])))
+          [c-circle-icon-button {:name :twitter :color :secondary}]]]
+
+        [:div.grouping
+         [:div.title "Ethlance Rating"]
+         [:div.body
+          [c-rating {:rating 3}]
+          [c-rating {:color :white :rating 1}]
+          [c-rating {:color :black :rating 2}]]]]])))
+

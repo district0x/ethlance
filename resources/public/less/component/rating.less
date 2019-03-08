@@ -1,0 +1,62 @@
+/// rating.less - Component for Feedback ratings with 5-stars
+
+#ethlance-component-rating {
+    primary-color: #color[secondary-accent];
+    secondary-color: #color[background-light-accent-1];
+			 
+}
+
+.ethlance-component-rating {
+    display: flex;
+    flex-direction: row;
+
+    .star {
+
+	#star {
+	    cursor: pointer;
+	}
+
+	&.primary {
+	    @fill-color: #ethlance-component-rating[primary-color];
+
+	    path, rect, circle {
+		fill: fadeout(@fill-color, 75%) !important;
+	    }
+
+	    &.active {
+		path, rect, circle {
+		    fill: @fill-color !important;
+		}
+	    }
+	}
+
+	&.white {
+	    @fill-color: #ethlance-component-rating[secondary-color];
+
+	    path, rect, circle {
+		fill: fadeout(@fill-color, 75%) !important;
+	    }
+
+	    &.active {
+		path, rect, circle {
+		    fill: @fill-color !important;
+		}
+	    }
+	}
+
+	&.black {
+	    @fill-color: black;
+
+	    path, rect, circle {
+		fill: fadeout(@fill-color, 75%) !important;
+	    }
+
+	    &.active {
+		path, rect, circle {
+		    fill: @fill-color !important;
+		}
+	    }
+	}
+	
+    }
+}
