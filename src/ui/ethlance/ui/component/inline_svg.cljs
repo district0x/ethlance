@@ -42,7 +42,7 @@
                    xml->svg)))))
 
 
-(defn c-inline-svg [{:keys [src class id on-ready width height] :as props}]
+(defn c-inline-svg [{:keys [key src class id on-ready width height] :as props}]
   (let [*inline-svg (r/atom nil)
         *dom-ref (r/atom nil)]
     (r/create-class
@@ -55,23 +55,26 @@
 
       :component-did-update
       (fn [this _]
-        (when (and @*dom-ref @*inline-svg)
-          (let [inline-svg @*inline-svg]
-            (when id (.setAttribute inline-svg "id" id))
-            (when class (.setAttribute inline-svg "class" class))
-            (when width (.setAttribute inline-svg "width" width))
-            (when height (.setAttribute inline-svg "height" height))
-            (doto @*dom-ref
-              (aset "innerHTML" "")
-              (.appendChild inline-svg))
-            (when-let [on-ready (-> this .-props .-argv second :on-ready)]
-              (on-ready @*dom-ref @*inline-svg)))))
+        (let [{:keys [key id class width height on-ready]}
+              (-> this r/argv second)]
+          (when (and @*dom-ref @*inline-svg)
+            (let [inline-svg @*inline-svg]
+              (when id (.setAttribute inline-svg "id" id))
+              (when class (.setAttribute inline-svg "class" class))
+              (when width (.setAttribute inline-svg "width" width))
+              (when height (.setAttribute inline-svg "height" height))
+              (when-not (= @*inline-svg (-> @*dom-ref .-firstChild))
+                (doto @*dom-ref
+                  (aset "innerHTML" "")
+                  (.appendChild inline-svg)))
+              (when on-ready
+                (on-ready @*dom-ref @*inline-svg))))))
 
       :reagent-render
-      (fn [{:keys [src class id width height on-ready] :as props}]
+      (fn [{:keys [key src class id width height on-ready] :as props}]
         (let [style (cond-> {}
                       width (assoc :width width)
                       height (assoc :height height))]
           [:div.ethlance-inline-svg
-           {:ref (fn [com] (reset! *dom-ref com))}
+           {:ref (fn [com] (reset! *dom-ref com)) :key key}
            (when-not @*inline-svg [:img.svg {:src src :style style}])]))})))

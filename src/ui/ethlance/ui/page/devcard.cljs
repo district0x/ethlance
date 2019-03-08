@@ -90,8 +90,7 @@
                          :id "specific-logo"
                          :class "ethlance-logo-svg"
                          :on-ready (fn [dom svg]
-                                     (.log js/console "SVG Ready")
-                                     (.log js/console dom svg))}]
+                                     (.log js/console "SVG Ready"))}]
 
           [c-button {:color :primary
                      :size :small
@@ -134,12 +133,13 @@
           [c-circle-icon-button {:name :github :color :secondary}]
           [c-circle-icon-button {:name :linkedin :color :secondary}]
           [c-circle-icon-button {:name :slack :color :secondary}]
+          [c-circle-icon-button {:name :slack :color :none}]
           [c-circle-icon-button {:name :twitter :color :secondary}]]]
 
         [:div.grouping
          [:div.title "Ethlance Rating"]
          [:div.body
-          [c-rating {:rating 3}]
+          [c-rating {:rating 3 :on-change (fn [index] (println (str "Rating: " index)))}]
           [c-rating {:color :white :rating 1}]
           [c-rating {:color :black :rating 2}]]]]])))
 

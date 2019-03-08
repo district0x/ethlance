@@ -8,6 +8,10 @@
 (def rating-star-src "images/icons/ethlance-star-icon.svg")
 
 
+(defn handle-svg-ready [index on-change dom-ref inline-svg]
+  (.addEventListener inline-svg "click" #(on-change index)))
+
+
 (defn c-star []
   (fn [{:keys [active? color index on-change]
         :or {color :primary}}]
@@ -17,7 +21,9 @@
                         :black   " black ")
           
           active-class (when active? " active ")]
-      [c-inline-svg {:src rating-star-src
+      [c-inline-svg {:key (str index)
+                     :src rating-star-src
+                     :on-ready (when on-change #(handle-svg-ready index on-change %1 %2))
                      :width 24
                      :height 24
                      :class (str " star " color-class active-class)}])))
@@ -25,11 +31,19 @@
 
 (defn c-rating [{:keys [rating color on-change]
                  :or {color :primary rating 0}}]
-  (let [current-rating (r/atom rating)]
+  (let [*current-rating (r/atom rating)]
     (fn [{:keys [rating color on-change]
           :or {color :primary rating 0}}]
-      (let []
-        [:div.ethlance-component-rating
-         (for [i (range 1 6)]
-           [c-star {:color color :active? (<= i @current-rating) :index i
-                    :on-change on-change}])]))))
+      [:div.ethlance-component-rating
+       (doall
+        (for [i (range 1 6)]
+          ^{:key i}
+          [c-star {:active? (<= i @*current-rating)
+                   :color color
+                   :index i
+                   :on-change
+                   (when on-change
+                     (fn [index]
+                       (reset! *current-rating index)
+                       (on-change index)))}]))])))
+         
