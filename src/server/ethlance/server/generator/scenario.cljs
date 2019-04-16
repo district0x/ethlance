@@ -25,13 +25,13 @@
    [ethlance.shared.enum.payment-type :as enum.payment]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
    [ethlance.shared.enum.availability :as enum.availability]
-   [ethlance.server.contract.ethlance-user :as user :include-macros true]
+   [ethlance.server.contract.ethlance-user :as user]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
-   [ethlance.server.contract.ethlance-job-store :as job :include-macros true]
+   [ethlance.server.contract.ethlance-job-store :as job]
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
-   [ethlance.server.contract.ethlance-work-contract :as work-contract :include-macros true]
-   [ethlance.server.contract.ethlance-invoice :as invoice :include-macros true]
-   [ethlance.server.contract.ethlance-dispute :as dispute :include-macros true]
+   [ethlance.server.contract.ethlance-work-contract :as work-contract]
+   [ethlance.server.contract.ethlance-invoice :as invoice]
+   [ethlance.server.contract.ethlance-dispute :as dispute]
    [ethlance.server.deployer :as deployer]
    [ethlance.server.generator.choice-collections :as choice-collections]))
 

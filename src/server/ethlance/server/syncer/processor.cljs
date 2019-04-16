@@ -28,15 +28,15 @@
    [ethlance.server.model.feedback :as model.feedback]
    
    ;; Ethlance Contracts
-   [ethlance.server.contract.ethlance-user :as contract.user :include-macros true]
+   [ethlance.server.contract.ethlance-user :as contract.user]
    [ethlance.server.contract.ethlance-user-factory :as contract.user-factory]
-   [ethlance.server.contract.ethlance-job-store :as contract.job :include-macros true]
+   [ethlance.server.contract.ethlance-job-store :as contract.job]
    [ethlance.server.contract.ethlance-job-factory :as contract.job-factory]
-   [ethlance.server.contract.ethlance-work-contract :as contract.work-contract :include-macros true]
-   [ethlance.server.contract.ethlance-invoice :as contract.invoice :include-macros true]
-   [ethlance.server.contract.ethlance-dispute :as contract.dispute :include-macros true]
-   [ethlance.server.contract.ethlance-comment :as contract.comment :include-macros true]
-   [ethlance.server.contract.ethlance-feedback :as contract.feedback :include-macros true]
+   [ethlance.server.contract.ethlance-work-contract :as contract.work-contract]
+   [ethlance.server.contract.ethlance-invoice :as contract.invoice]
+   [ethlance.server.contract.ethlance-dispute :as contract.dispute]
+   [ethlance.server.contract.ethlance-comment :as contract.comment]
+   [ethlance.server.contract.ethlance-feedback :as contract.feedback]
    [ethlance.server.contract.ethlance-registry :as contract.registry]
 
    ;; Misc.

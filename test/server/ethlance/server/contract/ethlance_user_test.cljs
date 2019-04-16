@@ -10,7 +10,7 @@
    [district.server.web3 :refer [web3]]
    [district.server.smart-contracts :as contracts]
 
-   [ethlance.server.contract.ethlance-user :as user :include-macros true]
+   [ethlance.server.contract.ethlance-user :as user]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ds-guard :as ds-guard]

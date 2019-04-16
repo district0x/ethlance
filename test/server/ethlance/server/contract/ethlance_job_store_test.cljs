@@ -11,9 +11,9 @@
    [district.server.smart-contracts :as contracts]
 
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
-   [ethlance.server.contract.ethlance-job-store :as job-store :include-macros true]
+   [ethlance.server.contract.ethlance-job-store :as job-store]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
-   [ethlance.server.contract.ethlance-user :as user :include-macros true]
+   [ethlance.server.contract.ethlance-user :as user]
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract-go]]
