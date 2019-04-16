@@ -24,7 +24,7 @@
    [ethlance.server.ipfs :as ipfs]
    [ethlance.server.filesystem :as filesystem]
    [ethlance.shared.random :as random]
-   [ethlance.shared.async-utils :refer [<!-<log <!-<throw] :include-macros true]
+   [ethlance.shared.async-utils :refer [<!-<log <!-<throw go-try] :include-macros true]
    [ethlance.shared.enum.currency-type :as enum.currency]
    [ethlance.shared.enum.payment-type :as enum.payment]
    [ethlance.shared.enum.bid-option :as enum.bid-option]
@@ -166,7 +166,7 @@
 
 ;; TODO: pull in additional information from district.server.config
 (defn generate! []
-  (go
+  (go-try
     (log/info "Started Generating Users and Scenarios...")
     (let [user-listing (<! (generate-registered-users! {}))]
       (<! (scenario/generate-scenarios! user-listing))
@@ -176,8 +176,8 @@
 (defn start
   [& config]
   ;; Wait on our deployer before we generate users
-  (go
+  (go-try
    (log/debug "Deployment Starting!")
    (<! (deployer/deploy-all! {}))
    (log/debug "Deployment Finished!")
-   (generate!)))
+   (<! (generate!))))

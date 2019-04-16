@@ -94,11 +94,6 @@
   "Start the mount components."
   []
   (-> (mount/with-args dev-config)
-      #_(mount/only
-         [#'district.server.logging/logging
-          #'district.server.web3/web3
-          #'district.server.smart-contracts/smart-contracts
-          #'ethlance.server.deployer/deployer])
       mount/start))
 
 
