@@ -12,7 +12,6 @@
    [ethlance.server.contract.ethlance-registry :as registry]
    [ethlance.server.contract.ethlance-user-factory :as user-factory]
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
-   [ethlance.server.utils.deasync :refer [go-deasync] :include-macros true]
    [ethlance.shared.async-utils :refer [<!-<throw go-try] :include-macros true]
    [ethlance.server.contract :refer [deploy!]]))
 

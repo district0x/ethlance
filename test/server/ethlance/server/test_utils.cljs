@@ -12,7 +12,6 @@
    
    [ethlance.server.core]
    [ethlance.server.deployer :as deployer]
-   [ethlance.server.utils.deasync :refer [go-deasync] :include-macros true]
 
    ;; Mount Components
    [district.server.logging]

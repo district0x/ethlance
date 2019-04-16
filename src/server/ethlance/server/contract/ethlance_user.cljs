@@ -1,23 +1,5 @@
 (ns ethlance.server.contract.ethlance-user
-  "EthlanceUser contract methods
-
-  Notes:
-
-  - In order to apply the functions to a particular user's contract
-  the function calls need to be wrapped in `with-ethlance-user`.
-
-  Examples:
-
-  ```clojure
-  (require '[ethlance.server.contract.ethlance-user-factory :as user-factory])
-  (require '[ethlance.server.contract.ethlance-user :as user :include-macros true])
-
-  (def uid) ;; defined user-id
-  ;;...
-
-  (user/with-ethlance-user (user-factory/user-by-address uid)
-    (user/update-metahash! \"<New Metahash>\"))
-  ```"
+  "EthlanceUser contract methods"
   (:require
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
@@ -32,12 +14,6 @@
 (def ^:dynamic *user-key*
   "This is dynamically rebound by the `with-ethlance-user` macro"
   nil) ;; [:ethlance-user "0x0"]
-
-
-(defn- requires-user-key
-  "Asserts the correct use of the user functions."
-  []
-  (assert *user-key* "Given function needs to be wrapped in 'with-ethlance-user"))
 
 
 (defn call
