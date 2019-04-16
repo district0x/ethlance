@@ -17,12 +17,6 @@
    [ethlance.server.contract :refer [deploy!]]))
 
 
-(declare start stop)
-(defstate deployer
-  :start (start)
-  :stop (stop))
-
-
 (def forwarder-target-placeholder
   "Forwarder Contract target replacement"
   "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
@@ -356,14 +350,3 @@
    (when write?
      (log/debug "Writing out Smart Contracts...")
      (contracts/write-smart-contracts!))))
-
-
-(defn start []
-  (go-deasync
-   (log/debug "Deployment Starting!")
-   (<! (deploy-all! {})))
-  (log/debug "Deployment Finished!")
-  :started)
-
-
-(defn stop [])

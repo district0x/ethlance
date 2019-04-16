@@ -14,8 +14,7 @@
   (assert (map? opts) "Options field should be a map, did you forget to prepend it?")
   `(clojure.test/deftest ~name
      (ethlance.server.test-utils/fixture-start ~opts)
-     ~@body
-     (ethlance.server.test-utils/fixture-stop)))
+     ~@body))
 
 
 (defmacro deftest-smart-contract-go
@@ -32,7 +31,6 @@
      (clojure.test/async
       done#
       (clojure.core.async/go
-        (ethlance.server.test-utils/fixture-start ~opts)
+        (clojure.core.async/<! (ethlance.server.test-utils/fixture-start ~opts))
         ~@body
-        (ethlance.server.test-utils/fixture-stop)
         (done#)))))

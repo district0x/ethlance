@@ -24,15 +24,7 @@
 ;; when alternative fixtures come into play.
 (declare reset-testnet! revert-testnet!)
 (defstate testnet-fixture
-  :start (reset-testnet!)
-  :stop (go-deasync (<! (revert-testnet!))))
-
-
-;;
-;; Node Modules
-;;
-
-(def deasync (js/require "deasync"))
+  :start (reset-testnet!))
 
 
 ;; The snapshot of the testnet after the first deployment. This saves
@@ -121,15 +113,15 @@
 
   - Works on Ganache CLI v6.1.8 (ganache-core: 2.2.1)"
   [deployer-options force-deployment?]
-  (go-deasync
-   (if-not (or @*deployment-testnet-snapshot force-deployment?)
-     (do
-       (<! (deployer/deploy-all! (merge default-deployer-config deployer-options)))
-       (<! (snapshot-testnet!)))
-     (do
-       (<! (revert-testnet!))
-       ;; Snapshot is 'used up' after reversion, so take another snapshot.
-       (<! (snapshot-testnet!))))))
+  (go
+    (if-not (or @*deployment-testnet-snapshot force-deployment?)
+      (do
+        (<! (deployer/deploy-all! (merge default-deployer-config deployer-options)))
+        (<! (snapshot-testnet!)))
+      (do
+        (<! (revert-testnet!))
+        ;; Snapshot is 'used up' after reversion, so take another snapshot.
+        (<! (snapshot-testnet!))))))
 
 
 (defn fixture-start
@@ -142,24 +134,4 @@
         #'district.server.web3/web3
         #'district.server.smart-contracts/smart-contracts])
       mount/start)
-  (prepare-testnet! deployer-options force-deployment?))
-
-
-(defn fixture-stop
-  "Test Fixture Teardown."
-  [])
-
-
-(defn with-smart-contract
-  "A test fixture for performing a fresh smart contract deployment
-  before the tests.
-  
-  Optional Arguments
-  
-  :deployer-options - Additional Deployment Options to provide the
-  deployer."
-  [& [opts]]
-  (fn [f]
-    (fixture-start opts)
-    (f)
-    (fixture-stop)))
+  (go (<! (prepare-testnet! deployer-options force-deployment?))))
