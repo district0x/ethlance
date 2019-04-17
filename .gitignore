@@ -14,3 +14,4 @@
 /.rebel_readline_history
 .node-xmlhttprequest-*
 package-lock.json
+.DS_Store

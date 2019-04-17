@@ -1,0 +1,51 @@
+/* font */
+
+.fontDef{
+	font-family: 'Open Sans', sans-serif;
+}
+
+.transition{
+	transition: 0.3s all ease;
+}
+.transitionLong{
+	transition: 1s all ease;
+}
+
+.atSmall(@rules) {
+	@media (max-width: 420px) {
+		@rules();
+	}
+}
+
+.atMedium(@rules) {
+	@media (max-width: 768px) {
+		@rules();
+	}
+}
+.atTablet(@rules) {
+	@media (max-width: 992px) {
+		@rules();
+	}
+}
+
+.atLarge(@rules) {
+	@media (max-width: 1220px) {
+		@rules();
+	}
+}
+
+.atXLarge(@rules) {
+	@media (min-width: 1220px) {
+		@rules();
+	}
+}
+
+.clearfix {
+	&::after {
+		content: "";
+		clear: both;
+		display: table;
+	}
+}
+
+
