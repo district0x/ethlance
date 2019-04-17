@@ -1,0 +1,31 @@
+/// splash-navigation-bar.less - Navigation Bar for the splash layout
+
+
+
+.splash-navigation-link {
+    padding: 0 1em;
+}
+
+
+.splash-navigation-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 2.5% 0 2.5%;
+
+    .links {
+	display: flex;
+	flex-direction: row;
+	margin: 0 1em 0 1em;
+	a {
+	    font-size: 1em;
+	    font-family: #font[sans];
+	    text-decoration: none;
+	    color: @color-dark-blue;
+	    padding: 0.4em;
+	    line-height: 1;
+	    border-bottom: 1px solid @color-dark-blue;
+	}
+    }
+}

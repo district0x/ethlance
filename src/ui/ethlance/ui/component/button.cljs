@@ -7,7 +7,7 @@
         :or {color :primary disabled? false active? false size :normal}}
        & children]
     (let [props (dissoc props :disabled? :active? :color :size)]
-      [:div.ethlance-button
+      [:div.button
        (merge
         {:class [(when (= color :secondary) " secondary ")
                  (when disabled? " disabled ")
@@ -15,7 +15,8 @@
                  (condp = size
                    :small " small "
                    :normal " "
-                   :large " large ")]}
+                   :large " large "
+                   :auto " auto ")]}
         props)
        children])))
 
