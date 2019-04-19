@@ -32,7 +32,13 @@
        [c-button
         {:color :primary :size :auto}
         [c-button-label [:span "Become an " [:b "Employer"]]]]]
-      [:div.district]]
+      [:div.district
+       [:figure.img-district
+        [:img {:src "./images/district.png"}]]
+       [:p "Participate in Ethlance's governance processes:"]
+       [:a {:href "http://district0x.io"}
+        "Introducing the district0x Network"]]]
+     
      [:div.part-figure
       [:figure
        [:img {:src "./images/img-top-banner.png"}]]]]
@@ -45,19 +51,62 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-service.png"}]]]]
+         [:img {:src "./images/icon-service.png"}]]
+        [:div.text "0% service fees."]]]
 
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-decentralised.png"}]]]]
+         [:img {:src "./images/icon-decentralised.png"}]]
+        [:div.text "Fully decentralized on blockchain."]]]
 
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-membership.png"}]]]]]]
-         
-    [:div.created]
+         [:img {:src "./images/icon-membership.png"}]]
+        [:div.text "No restrictions and free membership."]]]]]
+    
+    [:div.created
+     [:h3 "We Created"]
+     [:h2 "Ethlance for Everyone!"]
+     [:div.flex-box-listing
+      [:div.horizontal-box
+       [:figure
+        [:img {:src "./images/take-no-cut.png"}]]
+       [:div.text
+        [:h3 "We take no cut"]
+        [:p "Ethlance doesn't take a percentage of your earned
+        Ether. The amount of Ether the employer pays is the amount the
+        freelancer gets."]]]
+
+      [:div.horizontal-box
+       [:figure
+        [:img {:src "./images/blockchain.png"}]]
+       [:div.text
+        [:h3 "It's all on blockchain"]
+        [:p "The Ethlance database is distributed on the Ethereum
+        public blockchain and the sources files are on IPFS. Ethlance
+        is accessible to everyone forever, without any central
+        authority having control over it."]]]
+
+      [:div.horizontal-box
+       [:figure
+        [:img {:src "./images/costs.png"}]]
+       [:div.text
+        [:h3 "No artificial costs or restrictions"]
+        [:p "Everybody can apply for, or create, an unlimited number
+        of jobs. All that is needed is to pay Ethereum gas fees
+        associated with these operations."]]]
+
+      [:div.horizontal-box
+       [:figure
+        [:img {:src "./images/network.png"}]]
+       [:div.text
+        [:h3 "Part of the district0x Network"]
+        [:p "Ethlance is the first district on the "
+         [:a {:href "http://district0x.io"} "district0x Network"]
+         ", a collective of decentralized marketplaces and
+         communities."]]]]]
     [:div.checkout]]
    [:div.footer]])
    
