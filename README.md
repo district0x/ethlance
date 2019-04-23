@@ -14,13 +14,6 @@ Ethereum Smart Contracts are at `/resources/public/contracts/src`.
 2. Create a wallet and fund it with some [Ether](https://ethereum.stackexchange.com/questions/1915/how-do-i-buy-ethereum-with-usd)
 3. Go on [Ethlance](http://ethlance.com/)
 
-## Mist Browser
-
-1. Download the [Mist Browser](https://github.com/ethereum/mist)
-2. Wait for blockchain to download
-3. Fund with Ether
-4. Go on [Ethlance](http://ethlance.com/)
-
 # Running on localhost
 
 Following instructions assume you're familiar with the [Clojure](https://clojure.org/) programming language and have [lein](https://leiningen.org/) installed on your machine.
