@@ -35,8 +35,8 @@
                    :user/country-code "CA"
                    :user/email "john.doe@gmail.com"
                    :user/profile-image ""
-                   :user/date-updated 0
-                   :user/date-created 0})
+                   :user/date-updated 1
+                   :user/date-created 1})
 
   (employer/register! {:user/id 1
                        :employer/biography "A testy fellow"
@@ -143,6 +143,7 @@
       :feedback/from-user-type ::enum.user-type/employer
       :feedback/from-user-id 2
       :feedback/date-created 1
+      :feedback/date-updated 1
       :feedback/rating 4
       :feedback/text "Did an outstanding job!"})
 
@@ -161,6 +162,7 @@
       :feedback/from-user-type ::enum.user-type/employer
       :feedback/from-user-id 2
       :feedback/date-created 1
+      :feedback/date-updated 1
       :feedback/rating 5
       :feedback/text "Did an outstanding job!!"})
 

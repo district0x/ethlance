@@ -3,6 +3,9 @@
    [clojure.test :refer [deftest is are testing run-all-tests run-tests]]
    [orchestra-cljs.spec.test :as st]
 
+   ;; Mount Components
+   [district.server.logging]
+
    ;;
    ;; Test Namespaces
    ;;
