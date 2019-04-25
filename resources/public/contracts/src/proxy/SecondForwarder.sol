@@ -7,8 +7,8 @@ contract SecondForwarder is DelegateProxy {
   address public constant target = 0xDABadaBadabADaBadabADabAdabadABadAbadAbA; // checksumed to silence warning
 
   /*
-  * @dev Forwards all calls to target
-  */
+   * @dev Forwards all calls to target
+   */
   function() external payable {
     delegatedFwd(target, msg.data);
   }

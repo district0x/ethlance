@@ -22,7 +22,7 @@ contract MutableForwarder is DelegateProxy, DSAuth {
    * Only authenticated user can replace target
 
    * @param _target New target to proxy into
-  */
+   */
   function setTarget(address _target) public auth {
     target = _target;
   }
