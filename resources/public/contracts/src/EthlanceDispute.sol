@@ -26,65 +26,65 @@ contract EthlanceDispute {
   //
   // Members
   //
-  uint public dispute_index;
+  uint public disputeIndex;
     
-  uint public date_created;
+  uint public dateCreated;
 
-  uint public date_updated;
+  uint public dateUpdated;
 
-  // When date_resolved is set >0, this reflects completion
-  uint public date_resolved;
+  // When dateResolved is set >0, this reflects completion
+  uint public dateResolved;
 
   // Title of dispute, describing the reason for the dispute
   string public reason;
 
   // The amount that the employer did receive as a result of
   // resolution, with a token address for the type of ERC20 token.
-  uint public employer_resolution_amount;
-  address public employer_resolution_token;
+  uint public employerResolutionAmount;
+  address public employerResolutionToken;
 
   // The amount that the candidate did receive as a result of
   // resolution, with a token address for the type of ERC20 token.
-  uint public candidate_resolution_amount;
-  address public candidate_resolution_token;
+  uint public candidateResolutionAmount;
+  address public candidateResolutionToken;
 
   // The amount that the arbiter did receive as a result of the
   // resolution, with a token address for the type of ERC20 token.
-  uint public arbiter_resolution_amount;
-  address public arbiter_resolution_token;
+  uint public arbiterResolutionAmount;
+  address public arbiterResolutionToken;
 
   // The entity that constructed contract
   address public owner;
 
   // The EthlanceWorkContract reference.
-  EthlanceWorkContract public work_instance;
+  EthlanceWorkContract public workInstance;
     
   /// @dev Forwarder Constructor
-  /// @param _work_instance The EthlanceWorkContract parent instance for this Dispute.
+  /// @param _workInstance The EthlanceWorkContract parent instance for this Dispute.
   /// @param _reason Short string defining the reason for the dispute
   /// @param metahash A structure IPFS data structure defined by a
   /// hash string. The hash is stored as the employer or the
   /// candidate depending on is_employer_request.
-  function construct(EthlanceWorkContract _work_instance,
-                     uint _dispute_index,
+  function construct(EthlanceWorkContract _workInstance,
+                     uint _disputeIndex,
                      string calldata _reason,
                      string calldata metahash,
                      bool is_employer_request) external {
     require(owner == address(0), "EthlanceDispute contract already constructed.");
     owner = msg.sender;
 
-    work_instance = _work_instance;
-    dispute_index = _dispute_index;
+    workInstance = _workInstance;
+    disputeIndex = _disputeIndex;
     reason = _reason;
-    date_created = now;
-    date_updated = now;
+    dateCreated = now;
+    dateUpdated = now;
 
     // Fire off comment with provided metahash
     if (is_employer_request) {
-      createComment(work_instance.store_instance().employer_address(), metahash);
+      createComment(workInstance.store_instance().employer_address(), metahash);
     }
     else {
-      createComment(work_instance.candidate_address(), metahash);
+      createComment(workInstance.candidate_address(), metahash);
     }
 
     // Fire off event
@@ -93,7 +93,7 @@ contract EthlanceDispute {
 
 
   function updateDateUpdated() private {
-    date_updated = now;
+    dateUpdated = now;
   }
 
     
@@ -101,30 +101,30 @@ contract EthlanceDispute {
   /// candidate, and pays the employer and the candidate's the given
   /// amounts.
   /// @param _employer_amount The amount of tokens to pay the employer for resolution.
-  /// @param _employer_token The token address of the type of token, set to 0x0 for ETH.
-  /// @param _candidate_amount The amount of tokens to pay the candidate for resolution.
-  /// @param _candidate_token The token address of the type of token, set to 0x0 for ETH.
-  /// @param _arbiter_amount The amount of tokens to pay the arbiter for resolution.
-  /// @param _arbiter_token The token address of the type of token, set to 0x0 for ETH.
-  function resolve(uint _employer_amount,
-                   address _employer_token,
-                   uint _candidate_amount,
-                   address _candidate_token,
-                   uint _arbiter_amount,
-                   address _arbiter_token) external {
-    require(work_instance.store_instance().accepted_arbiter() == msg.sender,
+  /// @param _employerToken The token address of the type of token, set to 0x0 for ETH.
+  /// @param _candidateAmount The amount of tokens to pay the candidate for resolution.
+  /// @param _candidateToken The token address of the type of token, set to 0x0 for ETH.
+  /// @param _arbiterAmount The amount of tokens to pay the arbiter for resolution.
+  /// @param _arbiterToken The token address of the type of token, set to 0x0 for ETH.
+  function resolve(uint _employerAmount,
+                   address _employerToken,
+                   uint _candidateAmount,
+                   address _candidateToken,
+                   uint _arbiterAmount,
+                   address _arbiterToken) external {
+    require(workInstance.store_instance().accepted_arbiter() == msg.sender,
             "Only the accepted arbiter can resolve a dispute.");
-    require(date_resolved == 0, "This dispute has already been resolved.");
-    work_instance.resolveDispute(_employer_amount, _employer_token,
-                                 _candidate_amount, _candidate_token,
-                                 _arbiter_amount, _arbiter_token);
-    employer_resolution_amount = _employer_amount;
-    employer_resolution_token = _employer_token;
-    candidate_resolution_amount = _candidate_amount;
-    candidate_resolution_token = _candidate_token;
-    arbiter_resolution_amount = _arbiter_amount;
-    arbiter_resolution_token = _arbiter_token;
-    date_resolved = now;
+    require(dateResolved == 0, "This dispute has already been resolved.");
+    workInstance.resolveDispute(_employerAmount, _employerToken,
+                                 _candidateAmount, _candidateToken,
+                                 _arbiterAmount, _arbiterToken);
+    employerResolutionAmount = _employerAmount;
+    employerResolutionToken = _employerToken;
+    candidateResolutionAmount = _candidateAmount;
+    candidateResolutionToken = _candidateToken;
+    arbiterResolutionAmount = _arbiterAmount;
+    arbiterResolutionToken = _arbiterToken;
+    dateResolved = now;
     updateDateUpdated();
 
     fireEvent("DisputeResolved");
@@ -133,19 +133,19 @@ contract EthlanceDispute {
     
   /// @dev Returns true if the current dispute is resolved.
   function isResolved() external view returns(bool) {
-    return date_resolved != 0;
+    return dateResolved != 0;
   }
 
 
   /// @dev Fire events specific to the dispute.
-  /// @param event_name Unique to give the fired event
-  function fireEvent(string memory event_name) private {
-    uint[] memory event_data = new uint[](3);
-    event_data[0] = work_instance.job_index();
-    event_data[1] = work_instance.work_index();
-    event_data[2] = dispute_index;
+  /// @param eventName Unique to give the fired event
+  function fireEvent(string memory eventName) private {
+    uint[] memory eventData = new uint[](3);
+    eventData[0] = workInstance.job_index();
+    eventData[1] = workInstance.work_index();
+    eventData[2] = disputeIndex;
 
-    registry.fireEvent(event_name, version, event_data);
+    registry.fireEvent(eventName, version, eventData);
   }
 
 
@@ -153,13 +153,13 @@ contract EthlanceDispute {
   /// EMPLOYER_TYPE, ARBITER_TYPE, or GUEST_TYPE for the given
   /// address.
   function getUserType(address _address) private returns (uint) {
-    if (_address == work_instance.candidate_address()) {
+    if (_address == workInstance.candidate_address()) {
       return CANDIDATE_TYPE;
     }
-    else if (_address == work_instance.store_instance().employer_address()) {
+    else if (_address == workInstance.store_instance().employer_address()) {
       return EMPLOYER_TYPE;
     }
-    else if (_address == work_instance.store_instance().accepted_arbiter()) {
+    else if (_address == workInstance.store_instance().accepted_arbiter()) {
       return ARBITER_TYPE;
     }
     else {
@@ -177,9 +177,9 @@ contract EthlanceDispute {
 
   /// @dev Place a comment on the dispute linked to the given user
   /// address
-  function createComment(address user_address, string memory metahash) private {
-    uint user_type = getUserType(user_address);
-    require(user_type != GUEST_TYPE,
+  function createComment(address userAddress, string memory metahash) private {
+    uint userType = getUserType(userAddress);
+    require(userType != GUEST_TYPE,
             "Only the candidate, employer, and arbiter can comment.");
   
     // Create the forwarded contract
@@ -194,14 +194,14 @@ contract EthlanceDispute {
     registry.pushComment(address(this), address(comment));
 
     uint[4] memory index;
-    index[0] = work_instance.store_instance().job_index();
-    index[1] = work_instance.work_index();
-    index[2] = dispute_index;
+    index[0] = workInstance.store_instance().job_index();
+    index[1] = workInstance.work_index();
+    index[2] = disputeIndex;
     index[3] = registry.getCommentCount(address(this)) - 1;
 
     // Construct the comment contract
-    comment.construct(user_address,
-                      user_type,
+    comment.construct(userAddress,
+                      userType,
                       metahash,
                       EthlanceComment.CommentType.Dispute,
                       index);
@@ -215,16 +215,16 @@ contract EthlanceDispute {
     - Only the candidate and the employer can leave feedback on a dispute.
   */
   function leaveFeedback(uint rating, string calldata metahash) external {
-    uint user_type = getUserType(msg.sender);
-    require(user_type == CANDIDATE_TYPE || user_type == EMPLOYER_TYPE,
+    uint userType = getUserType(msg.sender);
+    require(userType == CANDIDATE_TYPE || userType == EMPLOYER_TYPE,
             "Only the candidate or the employer, can leave feedback for the arbiter.");
   
-    address to_user_address = work_instance.store_instance().accepted_arbiter();
-    uint to_user_type = ARBITER_TYPE;
+    address toUserAddress = workInstance.store_instance().accepted_arbiter();
+    uint toUserType = ARBITER_TYPE;
 
     // Check and create forwarded feedback contract instance
     EthlanceFeedback feedback;
-    if (!registry.hasFeedback(address(work_instance))) {
+    if (!registry.hasFeedback(address(workInstance))) {
       SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
                                                    // target(EthlanceFeedback)
 
@@ -234,21 +234,21 @@ contract EthlanceDispute {
       registry.permitDispatch(address(fwd));
       
       // Add feedback to the registry feedback listing
-      registry.pushFeedback(address(work_instance), address(feedback));
+      registry.pushFeedback(address(workInstance), address(feedback));
       
       // Construct the feedback contract
-      feedback.construct(address(work_instance),
-                         work_instance.store_instance().job_index(),
-                         work_instance.work_index());
+      feedback.construct(address(workInstance),
+                         workInstance.store_instance().job_index(),
+                         workInstance.work_index());
     }
     else {
-      feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(work_instance)));
+      feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(workInstance)));
     }
 
     feedback.update(msg.sender,
-                    to_user_address,
-                    user_type,
-                    to_user_type,
+                    toUserAddress,
+                    userType,
+                    toUserType,
                     metahash,
                     rating);
   }

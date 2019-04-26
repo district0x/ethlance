@@ -12,11 +12,6 @@
    [ethlance.server.contract]))
 
 
-(def ^:dynamic *comment-key*
-  "Comment Key"
-  nil) ;; [:ethlance-comment "0x0"]
-
-
 (defn call
   "Call the bound EthlanceComment contract with the given
   `method-name` and `args`."
@@ -31,21 +26,21 @@
 (defn user-type
   [address]
   (let [result-channel (chan 1)
-        [success-channel error-channel] (call address :user_type [])]
+        [success-channel error-channel] (call address :user-type [])]
     (go (let [result (<! success-channel)]
           (>! result-channel (enum.user-type/val->kw result))))
     [result-channel error-channel]))
 
 
-(defn user-address [address] (call address :user_address []))
-(defn date-created [address] (call address :date_created []))
-(defn date-updated [address] (call address :date_updated []))
+(defn user-address [address] (call address :user-address []))
+(defn date-created [address] (call address :date-created []))
+(defn date-updated [address] (call address :date-updated []))
 
 
 (defn comment-type
   [address]
   (let [result-channel (chan 1)
-        [success-channel error-channel] (call address :comment_type [])]
+        [success-channel error-channel] (call address :comment-type [])]
     (go (let [result (<! success-channel)]
           (>! result-channel (enum.comment-type/val->kw (bn/number result)))))
     [result-channel error-channel]))

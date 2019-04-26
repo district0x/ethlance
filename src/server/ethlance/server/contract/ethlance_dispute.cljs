@@ -9,11 +9,6 @@
    [ethlance.server.contract]))
 
 
-(def ^:dynamic *dispute-key*
-  "Dispute Key"
-  nil) ;; [:ethlance-dispute "0x0"]
-
-
 (defn call
   "Call the bound EthlanceDispute contract with the given
   `method-name` and `args`."
@@ -25,13 +20,13 @@
    :contract-options (or opts {})))
 
 
-(defn date-created [address] (call address :date_created []))
-(defn date-updated [address] (call address :date_updated []))
-(defn date-resolved [address] (call address :date_resolved []))
+(defn date-created [address] (call address :date-created []))
+(defn date-updated [address] (call address :date-updated []))
+(defn date-resolved [address] (call address :date-resolved []))
 (defn reason [address] (call address :reason []))
-(defn employer-resolution-amount [address] (call address :employer_resolution_amount []))
-(defn candidate-resolution-amount [address] (call address :candidate_resolution_amount []))
-(defn arbiter-resolution-amount [address] (call address :arbiter_resolution_amount []))
+(defn employer-resolution-amount [address] (call address :employer-resolution-amount []))
+(defn candidate-resolution-amount [address] (call address :candidate-resolution-amount []))
+(defn arbiter-resolution-amount [address] (call address :arbiter-resolution-amount []))
 
 
 (defn append-metahash!

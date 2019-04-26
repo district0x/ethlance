@@ -35,34 +35,34 @@ contract EthlanceComment {
   // Members
   //
   address public owner;
-  uint public user_type;
-  address public user_address;
-  uint public date_created;
-  uint public date_updated;
-  string[] public metahash_listing;
-  CommentType public comment_type;
-  uint[4] public comment_index;
+  uint public userType;
+  address public userAddress;
+  uint public dateCreated;
+  uint public dateUpdated;
+  string[] public metahashListing;
+  CommentType public commentType;
+  uint[4] public commentIndex;
 
 
   /// @dev Forwarder Constructor
-  function construct(address _user_address,
-                     uint _user_type,
+  function construct(address _userAddress,
+                     uint _userType,
                      string calldata _metahash,
-                     CommentType _comment_type,
-                     uint[4] calldata _comment_index)
+                     CommentType _commentType,
+                     uint[4] calldata _commentIndex)
   
     external {
     require(owner == address(0), "EthlanceComment contract was already constructed");
-    require(_user_type <= ARBITER_TYPE, "Unknown User Type");
+    require(_userType <= ARBITER_TYPE, "Unknown User Type");
 
     owner = msg.sender;
-    user_address = _user_address;
-    user_type = _user_type;
-    metahash_listing.push(_metahash);
-    date_created = now;
-    date_updated = now;
-    comment_type = _comment_type;
-    comment_index = _comment_index;
+    userAddress = _userAddress;
+    userType = _userType;
+    metahashListing.push(_metahash);
+    dateCreated = now;
+    dateUpdated = now;
+    commentType = _commentType;
+    commentIndex = _commentIndex;
 
     fireEvent("CommentCreated");
   }
@@ -70,29 +70,29 @@ contract EthlanceComment {
     
   /// @dev Update the given comment with a revision, replaces the latest metahash.
   function update(string calldata _metahash) external {
-    require(msg.sender == user_address, "Only the original user can edit the comment.");
-    metahash_listing.push(_metahash);
-    date_updated = now;
+    require(msg.sender == userAddress, "Only the original user can edit the comment.");
+    metahashListing.push(_metahash);
+    dateUpdated = now;
     fireEvent("CommentUpdated");
   }
 
 
   /// @dev Get the number of comment revisions.
   function getCount() public view returns(uint) {
-    return metahash_listing.length;
+    return metahashListing.length;
   }
 
 
   /// @dev Get the comment or comment revision at the given index
   function getRevisionByIndex(uint _index) public view returns(string memory) {
-    require(_index < metahash_listing.length, "Given index is out of bounds.");
-    return metahash_listing[_index];
+    require(_index < metahashListing.length, "Given index is out of bounds.");
+    return metahashListing[_index];
   }
 
 
   /// @dev Get the comment or latest comment revision.
   function getLast() public view returns(string memory) {
-    return metahash_listing[metahash_listing.length - 1];
+    return metahashListing[metahashListing.length - 1];
   }
 
 
@@ -100,10 +100,10 @@ contract EthlanceComment {
   /// @param event_name Unique to give the fired event
   function fireEvent(string memory event_name) private {
     uint[] memory event_data = new uint[](4);
-    event_data[0] = comment_index[0];
-    event_data[1] = comment_index[1];
-    event_data[2] = comment_index[2];
-    event_data[3] = comment_index[3];
+    event_data[0] = commentIndex[0];
+    event_data[1] = commentIndex[1];
+    event_data[2] = commentIndex[2];
+    event_data[3] = commentIndex[3];
 
     registry.fireEvent(event_name, version, event_data);
   }
@@ -130,6 +130,6 @@ contract EthlanceComment {
   */
   function getIndex(uint index) public view returns(uint) {
     require(index <= 4, "Index out of bounds");
-    return comment_index[index];
+    return commentIndex[index];
   }
 }
