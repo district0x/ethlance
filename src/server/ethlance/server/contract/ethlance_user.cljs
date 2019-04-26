@@ -11,11 +11,6 @@
    [ethlance.shared.async-utils :refer [<!-<throw go-try] :include-macros true]))
 
 
-(def ^:dynamic *user-key*
-  "This is dynamically rebound by the `with-ethlance-user` macro"
-  nil) ;; [:ethlance-user "0x0"]
-
-
 (defn call
   "Call the bound EthlanceUser contract with the given `method-name` and
   `args`."
@@ -27,13 +22,13 @@
    :contract-options (or opts {})))
 
 
-(defn user-address [address] (call address :user_address []))
-(defn user-id [address] (call address :user_id []))
-(defn date-created [address] (call address :date_created []))
-(defn date-updated [address] (call address :date_updated []))
+(defn user-address [address] (call address :user-address []))
+(defn user-id [address] (call address :user-id []))
+(defn date-created [address] (call address :date-created []))
+(defn date-updated [address] (call address :date-updated []))
 
 
-(defn metahash-ipfs [address] (call address :metahash_ipfs []))
+(defn metahash-ipfs [address] (call address :metahash []))
 
 
 (defn update-metahash!

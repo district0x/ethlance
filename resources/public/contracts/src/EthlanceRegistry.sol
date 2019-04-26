@@ -10,48 +10,48 @@ import "./EthlanceUser.sol";
 
 /// @title Dynamic Event Dispatch
 contract EthlanceEventDispatcher {
-  event EthlanceEvent(address indexed event_sender,
-                      string event_name,
-                      uint event_version,
+  event EthlanceEvent(address indexed eventSender,
+                      string eventName,
+                      uint eventVersion,
                       uint timestamp,
-                      uint[] event_data);
+                      uint[] eventData);
 }
 
 
 contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
 
   // Only one contract user address per an ethereum user address
-  address[] user_address_listing;
-  mapping(address => uint) user_address_mapping;
+  address[] userAddressListing;
+  mapping(address => uint) userAddressMapping;
 
   // Comment Listings
-  mapping(address => address[]) comment_listing;
+  mapping(address => address[]) commentListing;
 
   // Feedback Mapping
-  mapping(address => address) feedback_mapping;
+  mapping(address => address) feedbackMapping;
 
   // Ethereum users can have multiple jobs.
-  address[] job_store_address_listing;
+  address[] jobStoreAddressListing;
 
   // Mapping of privileged factories to carry out contract construction
-  mapping(address => bool) public privileged_factory_contracts;
+  mapping(address => bool) public privilegedFactoryContracts;
 
   // Mapping of contracts that can send an EthlanceEvent,
   // append Comments, and append Feedback.
-  mapping(address => bool) public dispatch_whitelist;
+  mapping(address => bool) public dispatchWhitelist;
 
   /// @dev Push user address into the user listing.
-  /// @param _eth_address The address of the ethereum user.
-  /// @param _user_address The address of the user contract.
+  /// @param _ethAddress The address of the ethereum user.
+  /// @param _userAddress The address of the user contract.
   /// @return The user_id of the pushed user address.
-  function pushUser(address _eth_address,
-                    address _user_address)
+  function pushUser(address _ethAddress,
+                    address _userAddress)
     auth
     public returns(uint) {
-    user_address_listing.push(_user_address);
-    user_address_mapping[_eth_address] = user_address_listing.length;
-    permitDispatch(_user_address);
-    return user_address_listing.length;
+    userAddressListing.push(_userAddress);
+    userAddressMapping[_ethAddress] = userAddressListing.length;
+    permitDispatch(_userAddress);
+    return userAddressListing.length;
   }
 
     
@@ -60,29 +60,29 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
   function getUserCount()
     public view
     returns(uint) {
-    return user_address_listing.length;
+    return userAddressListing.length;
   }
 
 
   /// @dev Get the current user address based on the assigned
   /// address, or return 0x0 if the given user does not exist.
-  /// @param _eth_address The ethereum address of the user
+  /// @param _ethAddress The ethereum address of the user
   /// @return The user contract address.
-  function getUserByAddress(address _eth_address) 
+  function getUserByAddress(address _ethAddress) 
     public view
     returns(address) {
-    uint user_id = user_address_mapping[_eth_address];
+    uint user_id = userAddressMapping[_ethAddress];
     if (user_id == 0) {
       return address(0);
     }
-    return user_address_listing[user_id - 1];
+    return userAddressListing[user_id - 1];
   }
 
     
   /// @dev Get the User ID linked to the given Ethereum
   /// Address. Returns 0 if there is no linked ethereum address.
-  function getUserId(address _eth_address) public view returns(uint) {
-    return user_address_mapping[_eth_address];
+  function getUserId(address _ethAddress) public view returns(uint) {
+    return userAddressMapping[_ethAddress];
   }
 
 
@@ -92,21 +92,21 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
   function getUserByIndex(uint index)
     public view
     returns(address) {
-    require(index < user_address_listing.length,
+    require(index < userAddressListing.length,
             "Given index is out of bounds.");
-    return user_address_listing[index];
+    return userAddressListing[index];
   }
 
 
   /// @dev Push job address into the job listing
-  /// @param _job_address The address to place in the job listing.
+  /// @param _jobAddress The address to place in the job listing.
   /// @return The job index of the pushed contract address.
-  function pushJobStore(address _job_address)
+  function pushJobStore(address _jobAddress)
     auth
     public returns(uint) {
-    job_store_address_listing.push(_job_address);
-    permitDispatch(_job_address);
-    return job_store_address_listing.length - 1;
+    jobStoreAddressListing.push(_jobAddress);
+    permitDispatch(_jobAddress);
+    return jobStoreAddressListing.length - 1;
   }
 
 
@@ -115,7 +115,7 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
   function getJobStoreCount()
     public view
     returns(uint) {
-    return job_store_address_listing.length;
+    return jobStoreAddressListing.length;
   }
 
     
@@ -125,49 +125,49 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
   function getJobStoreByIndex(uint index)
     public view
     returns(address) {
-    require(index < job_store_address_listing.length,
+    require(index < jobStoreAddressListing.length,
             "Given index is out of bounds.");
-    return job_store_address_listing[index];
+    return jobStoreAddressListing[index];
   }
 
 
   /// @dev Allow a factory contract to be privileged for contract
   /// construction.
-  /// @param factory_address The address of the privileged factory.
-  function permitFactoryPrivilege(address factory_address)
+  /// @param factoryAddress The address of the privileged factory.
+  function permitFactoryPrivilege(address factoryAddress)
     auth
     public {
-    privileged_factory_contracts[factory_address] = true;
+    privilegedFactoryContracts[factoryAddress] = true;
   }
 
     
-  /// @dev Checks if the given factory_address is privileged to
+  /// @dev Checks if the given factoryAddress is privileged to
   /// carry out contract construction.
-  /// @param factory_address The address of the factory contract
+  /// @param factoryAddress The address of the factory contract
   /// @return True, if the factory is privileged
-  function checkFactoryPrivilege(address factory_address)
+  function checkFactoryPrivilege(address factoryAddress)
     public view returns(bool) {
-    return privileged_factory_contracts[factory_address];
+    return privilegedFactoryContracts[factoryAddress];
   }
 
 
   /// @dev Emit the dynamic Ethlance Event.
-  /// @param event_name - Name of the event.
-  /// @param event_version - Version of the event.
-  /// @param event_data - Array of data within the event.
-  function fireEvent(string memory event_name,
-                     uint event_version,
-                     uint[] memory event_data)
+  /// @param eventName - Name of the event.
+  /// @param eventVersion - Version of the event.
+  /// @param eventData - Array of data within the event.
+  function fireEvent(string memory eventName,
+                     uint eventVersion,
+                     uint[] memory eventData)
     public {
-    require(dispatch_whitelist[msg.sender] == true ||
+    require(dispatchWhitelist[msg.sender] == true ||
             isAuthorized(msg.sender, msg.sig),
             "Not Permitted to fire EthlanceEvent.");
   
     emit EthlanceEvent(msg.sender,
-                       event_name,
-                       event_version,
+                       eventName,
+                       eventVersion,
                        now,
-                       event_data);
+                       eventData);
   }
 
     
@@ -181,10 +181,10 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
   */
   function permitDispatch(address _address)
     public {
-    require(dispatch_whitelist[msg.sender] ||
+    require(dispatchWhitelist[msg.sender] ||
             isAuthorized(msg.sender, msg.sig),
             "Not Authorized to permit dispatch.");
-    dispatch_whitelist[_address] = true;
+    dispatchWhitelist[_address] = true;
   }
 
 
@@ -212,8 +212,8 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
       return false;
     }
 
-    bool is_registered = user.getEmployerData();
-    return is_registered;
+    bool isRegistered = user.getEmployerData();
+    return isRegistered;
   }
 
 
@@ -227,8 +227,8 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
       return false;
     }
 
-    (bool is_registered,,) = user.getCandidateData();
-    return is_registered;
+    (bool isRegistered,,) = user.getCandidateData();
+    return isRegistered;
   }
 
     
@@ -242,62 +242,62 @@ contract EthlanceRegistry is DSAuth, EthlanceEventDispatcher {
       return false;
     }
 
-    (bool is_registered,,,) = user.getArbiterData();
-    return is_registered;
+    (bool isRegistered,,,) = user.getArbiterData();
+    return isRegistered;
   }
 
 
   /// @dev Push Comment into comment listing
-  /// @param contract_address Address of the contract which contains comments
+  /// @param contractAddress Address of the contract which contains comments
   /// @param comment Comment Contract being appended
-  function pushComment(address contract_address, address comment)
+  function pushComment(address contractAddress, address comment)
     public {
-    require(dispatch_whitelist[msg.sender] == true ||
+    require(dispatchWhitelist[msg.sender] == true ||
             isAuthorized(msg.sender, msg.sig),
             "Not Permitted to fire EthlanceEvent.");
 
-    comment_listing[contract_address].push(comment);
+    commentListing[contractAddress].push(comment);
   }
 
     
   /// @dev Get the number of comments linked to the given contract
-  function getCommentCount(address contract_address)
+  function getCommentCount(address contractAddress)
     public view returns(uint) {
-    return comment_listing[contract_address].length;
+    return commentListing[contractAddress].length;
   }
     
     
   /// @dev Get the comment contract at the given address, with the given index
-  function getCommentByIndex(address contract_address, uint index)
+  function getCommentByIndex(address contractAddress, uint index)
     public view returns(address) {
-    require(index < getCommentCount(contract_address), "Index out of bounds");
-    return comment_listing[contract_address][index];
+    require(index < getCommentCount(contractAddress), "Index out of bounds");
+    return commentListing[contractAddress][index];
   }
 
 
   /// @dev Push Feedback into feedback listing
-  /// @param contract_address Address of the contract which contains feedbacks
+  /// @param contractAddress Address of the contract which contains feedbacks
   /// @param feedback Feedback Contract being appended
-  function pushFeedback(address contract_address, address feedback)
+  function pushFeedback(address contractAddress, address feedback)
     public {
-    require(dispatch_whitelist[msg.sender] == true ||
+    require(dispatchWhitelist[msg.sender] == true ||
             isAuthorized(msg.sender, msg.sig),
             "Not Permitted to fire EthlanceEvent.");
-    require(!hasFeedback(contract_address), "Given contract address already has a feedback instance.");
+    require(!hasFeedback(contractAddress), "Given contract address already has a feedback instance.");
 
-    feedback_mapping[contract_address] = feedback;
+    feedbackMapping[contractAddress] = feedback;
   }
     
 
   /// @dev Returns true if a feedback instance is already linked to the given contract address.
-  function hasFeedback(address contract_address) public view returns(bool) {
-    return feedback_mapping[contract_address] != address(0);
+  function hasFeedback(address contractAddress) public view returns(bool) {
+    return feedbackMapping[contractAddress] != address(0);
   }
     
 
   /// @dev Get the feedback contract at the given address, with the given index
-  function getFeedbackByAddress(address contract_address)
+  function getFeedbackByAddress(address contractAddress)
     public view returns(address) {
-    return feedback_mapping[contract_address];
+    return feedbackMapping[contractAddress];
   }
 }

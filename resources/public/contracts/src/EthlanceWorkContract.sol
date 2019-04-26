@@ -65,7 +65,7 @@ contract EthlanceWorkContract {
   // 9  -> Finished
   // --
   // 10 -> Cancelled
-  uint public contract_status;
+  uint public contractStatus;
   uint public constant CONTRACT_STATUS_INITIAL = 0;
   uint public constant CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE = 1;
   uint public constant CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE = 2;
@@ -78,21 +78,21 @@ contract EthlanceWorkContract {
   uint public constant CONTRACT_STATUS_FINISHED = 9;
   uint public constant CONTRACT_STATUS_CANCELLED = 10;
     
-  uint public job_index;
-  uint public work_index;
+  uint public jobIndex;
+  uint public workIndex;
 
   // The EthlanceJobStore contains additional data about our
   // contract.
-  EthlanceJobStore public store_instance;
+  EthlanceJobStore public storeInstance;
 
   // The candidate linked to this contract
-  address payable public candidate_address;
+  address payable public candidateAddress;
 
   // The entity that constructed contract
   address public owner;
 
-  uint public date_created;
-  uint public date_updated;
+  uint public dateCreated;
+  uint public dateUpdated;
 
   // Feedback Store
     
@@ -102,37 +102,37 @@ contract EthlanceWorkContract {
   //
     
   // Dispute Listing
-  EthlanceDispute[] public dispute_listing;
+  EthlanceDispute[] public disputeListing;
 
   // Invoice Listing
-  EthlanceInvoice[] public invoice_listing;
+  EthlanceInvoice[] public invoiceListing;
 
 
   /// @dev Forwarder Constructor
-  function construct(EthlanceJobStore _store_instance,
-                     uint _work_index,
-                     address payable _candidate_address,
-                     bool is_employer_request)
+  function construct(EthlanceJobStore _storeInstance,
+                     uint _workIndex,
+                     address payable _candidateAddress,
+                     bool isEmployerRequest)
     external {
     require(owner == address(0), "EthlanceWorkContract contract already constructed.");
     owner = msg.sender;
 
     // Main members
-    store_instance = _store_instance;
-    work_index = _work_index;
-    candidate_address = _candidate_address;
-    date_created = now;
-    date_updated = now;
+    storeInstance = _storeInstance;
+    workIndex = _workIndex;
+    candidateAddress = _candidateAddress;
+    dateCreated = now;
+    dateUpdated = now;
   
     // Event Data Construction
-    job_index = store_instance.job_index();
+    jobIndex = storeInstance.jobIndex();
 
 
-    if (is_employer_request) {
-      requestInvite(store_instance.employer_address());
+    if (isEmployerRequest) {
+      requestInvite(storeInstance.employerAddress());
       return;
     }
-    requestInvite(candidate_address);
+    requestInvite(candidateAddress);
     return;
   }
 
@@ -143,14 +143,14 @@ contract EthlanceWorkContract {
   /// @dev Update the datetime of the job contract.
   function updateDateUpdated()
     private {
-    date_updated = now;
+    dateUpdated = now;
   }
 
     
   /// @dev Change the contract status
-  /// @param new_status The new contract status
-  function setContractStatus(uint new_status) private {
-    contract_status = new_status;
+  /// @param newStatus The new contract status
+  function setContractStatus(uint newStatus) private {
+    contractStatus = newStatus;
     updateDateUpdated();
   }
 
@@ -161,7 +161,7 @@ contract EthlanceWorkContract {
     Case 1:
       
     requestInvite() is initially called while the contract is in a
-    CONTRACT_STATUS_INITIAL state and the store_instance.is_bounty
+    CONTRACT_STATUS_INITIAL state and the storeInstance.is_bounty
     is true. The Contract is placed in a CONTRACT_STATUS_OPEN_BOUNTY
     state.
 
@@ -196,29 +196,29 @@ contract EthlanceWorkContract {
   function requestInvite(address _sender)
     public {
   
-    if (address(store_instance) == msg.sender) {/* _sender has been loaded by the constructor */}
-    else if (store_instance.employer_address() == msg.sender || candidate_address == msg.sender) {
+    if (address(storeInstance) == msg.sender) {/* _sender has been loaded by the constructor */}
+    else if (storeInstance.employerAddress() == msg.sender || candidateAddress == msg.sender) {
       _sender = msg.sender;
     }
     else {
       revert("Only the job store, candidate and employer can request an invite.");
     }
 
-    bool is_employer_request = false;
-    if (store_instance.employer_address() == _sender) {
-      is_employer_request = true;
+    bool isEmployerRequest = false;
+    if (storeInstance.employerAddress() == _sender) {
+      isEmployerRequest = true;
     }
 
     // Case 1
-    if (store_instance.bid_option() == store_instance.BID_OPTION_BOUNTY()) {
+    if (storeInstance.bidOption() == storeInstance.BID_OPTION_BOUNTY()) {
       setContractStatus(CONTRACT_STATUS_OPEN_BOUNTY);
       fireEvent("JobRequestWorkContract");
       return;
     }
 
     // Case 2 & 3
-    if (contract_status == CONTRACT_STATUS_INITIAL) {
-      if (is_employer_request) {
+    if (contractStatus == CONTRACT_STATUS_INITIAL) {
+      if (isEmployerRequest) {
         setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE);
         fireEvent("JobRequestWorkContract");
         return;
@@ -229,14 +229,14 @@ contract EthlanceWorkContract {
     }
   
     // Case 4
-    if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE) {
+    if (isEmployerRequest && contractStatus == CONTRACT_STATUS_REQUEST_CANDIDATE_INVITE) {
       setContractStatus(CONTRACT_STATUS_ACCEPTED);
       fireEvent("JobAcceptWorkContract");
       return;
     }
 
     // Case 5
-    if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE) {
+    if (!isEmployerRequest && contractStatus == CONTRACT_STATUS_REQUEST_EMPLOYER_INVITE) {
       setContractStatus(CONTRACT_STATUS_ACCEPTED);
       fireEvent("JobAcceptWorkContract");
       return;
@@ -266,12 +266,12 @@ contract EthlanceWorkContract {
     - This requires that the contract be within the CONTRACT_STATUS_ACCEPTED state.
   */
   function proceed() external {
-    require(store_instance.employer_address() == msg.sender,
+    require(storeInstance.employerAddress() == msg.sender,
             "Must be an employer to start a contract");
-    require(store_instance.accepted_arbiter() != address(0),
+    require(storeInstance.acceptedArbiter() != address(0),
             "Must be an accepted arbiter before work contracts can proceed");
 
-    if (contract_status == CONTRACT_STATUS_ACCEPTED) {
+    if (contractStatus == CONTRACT_STATUS_ACCEPTED) {
       setContractStatus(CONTRACT_STATUS_IN_PROGRESS);
       fireEvent("JobProceedWorkContract");
     }
@@ -309,17 +309,17 @@ contract EthlanceWorkContract {
 
   */
   function requestFinished() external {
-    require(store_instance.employer_address() == msg.sender || candidate_address == msg.sender,
+    require(storeInstance.employerAddress() == msg.sender || candidateAddress == msg.sender,
             "Only the candidate and the employer can request finishing the contract.");
 
-    bool is_employer_request = false;
-    if (store_instance.employer_address() == msg.sender) {
-      is_employer_request = true;
+    bool isEmployerRequest = false;
+    if (storeInstance.employerAddress() == msg.sender) {
+      isEmployerRequest = true;
     }
 
     // Case 1 & 2
-    if (contract_status == CONTRACT_STATUS_IN_PROGRESS) {
-      if (is_employer_request) {
+    if (contractStatus == CONTRACT_STATUS_IN_PROGRESS) {
+      if (isEmployerRequest) {
         setContractStatus(CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED);
         fireEvent("WorkContractRequestFinished");
         return;
@@ -330,14 +330,14 @@ contract EthlanceWorkContract {
     }
   
     // Case 3
-    if (!is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED) {
+    if (!isEmployerRequest && contractStatus == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED) {
       setContractStatus(CONTRACT_STATUS_FINISHED);
       fireEvent("WorkContractFinished");
       return;
     }
 
     // Case 4
-    if (is_employer_request && contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED) {
+    if (isEmployerRequest && contractStatus == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED) {
       setContractStatus(CONTRACT_STATUS_FINISHED);
       fireEvent("WorkContractFinished");
       return;
@@ -348,14 +348,14 @@ contract EthlanceWorkContract {
     
 
   /// @dev Fire events specific to the work contract
-  /// @param event_name Unique to give the fired event
-  function fireEvent(string memory event_name) private {
+  /// @param eventName Unique to give the fired event
+  function fireEvent(string memory eventName) private {
     // Event Data Pre-construction
-    uint[] memory event_data = new uint[](2);
-    event_data[0] = job_index;
-    event_data[1] = work_index;
+    uint[] memory eventData = new uint[](2);
+    eventData[0] = jobIndex;
+    eventData[1] = workIndex;
 
-    registry.fireEvent(event_name, version, event_data);
+    registry.fireEvent(eventName, version, eventData);
   }
 
 
@@ -366,17 +366,17 @@ contract EthlanceWorkContract {
   /// candidate.
   function createDispute(string memory reason, string memory metahash) public {
     // TODO: authentication
-    require(candidate_address == msg.sender || store_instance.employer_address() == msg.sender,
+    require(candidateAddress == msg.sender || storeInstance.employerAddress() == msg.sender,
             "Only the employer and the candidate can create new disputes.");
-    require(contract_status == CONTRACT_STATUS_IN_PROGRESS ||
-            contract_status == CONTRACT_STATUS_ON_HOLD ||
-            contract_status == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED ||
-            contract_status == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED,
+    require(contractStatus == CONTRACT_STATUS_IN_PROGRESS ||
+            contractStatus == CONTRACT_STATUS_ON_HOLD ||
+            contractStatus == CONTRACT_STATUS_REQUEST_EMPLOYER_FINISHED ||
+            contractStatus == CONTRACT_STATUS_REQUEST_CANDIDATE_FINISHED,
             "The current contract status does not allow you to create a dispute.");
 
-    bool is_employer_request = false;
-    if (store_instance.employer_address() == msg.sender) {
-      is_employer_request = true;
+    bool isEmployerRequest = false;
+    if (storeInstance.employerAddress() == msg.sender) {
+      isEmployerRequest = true;
     }
 
     // Create the forwarded contract
@@ -387,11 +387,11 @@ contract EthlanceWorkContract {
     registry.permitDispatch(address(fwd));
 
     EthlanceDispute dispute = EthlanceDispute(address(fwd));
-    uint dispute_index = dispute_listing.length;
-    dispute_listing.push(dispute);
+    uint disputeIndex = disputeListing.length;
+    disputeListing.push(dispute);
   
     // Construct the dispute contract
-    dispute.construct(this, dispute_index, reason, metahash, is_employer_request);
+    dispute.construct(this, disputeIndex, reason, metahash, isEmployerRequest);
 
     // Change our status to 'on hold', since we have a new open dispute.
     setContractStatus(CONTRACT_STATUS_ON_HOLD);
@@ -400,14 +400,14 @@ contract EthlanceWorkContract {
     
   /// @dev Returns the number of disputes within the work contract
   function getDisputeCount() public view returns(uint) {
-    return dispute_listing.length;
+    return disputeListing.length;
   }
 
     
   /// @dev Returns the address of the EthlanceDispute at the given
   /// index within the dispute listing.
   function getDisputeByIndex(uint index) public view returns (EthlanceDispute) {
-    return dispute_listing[index];
+    return disputeListing[index];
   }
 
 
@@ -421,17 +421,17 @@ contract EthlanceWorkContract {
     EthlanceDispute. The result is propagated to the job store for
     resolution.
   */
-  function resolveDispute(uint _employer_amount,
-                          address _employer_token,
-                          uint _candidate_amount,
-                          address _candidate_token,
-                          uint _arbiter_amount,
-                          address _arbiter_token) external {
+  function resolveDispute(uint _employerAmount,
+                          address _employerToken,
+                          uint _candidateAmount,
+                          address _candidateToken,
+                          uint _arbiterAmount,
+                          address _arbiterToken) external {
     require(isDispute(msg.sender), "Only a dispute contract can 'resolve' a dispute.");
-    store_instance.resolveDispute(_employer_amount, _employer_token,
-                                  _candidate_amount, _candidate_token,
-                                  _arbiter_amount, _arbiter_token,
-                                  candidate_address);
+    storeInstance.resolveDispute(_employerAmount, _employerToken,
+                                  _candidateAmount, _candidateToken,
+                                  _arbiterAmount, _arbiterToken,
+                                  candidateAddress);
   }
 
     
@@ -441,8 +441,8 @@ contract EthlanceWorkContract {
   /// @return True, if it is an EthlanceDispute contract that is
   /// part of the EthlanceWorkContract.
   function isDispute(address _dispute) private returns(bool) {
-    for (uint i = 0; i < dispute_listing.length; i++) {
-      if (address(dispute_listing[i]) == _dispute) {
+    for (uint i = 0; i < disputeListing.length; i++) {
+      if (address(disputeListing[i]) == _dispute) {
         return true;
       }
     }
@@ -461,11 +461,11 @@ contract EthlanceWorkContract {
     // Permit Invoice to fire registry events
     registry.permitDispatch(address(fwd));
 
-    uint invoice_index = invoice_listing.length;
-    invoice_listing.push(invoice);
+    uint invoiceIndex = invoiceListing.length;
+    invoiceListing.push(invoice);
   
     // Construct the invoice contract
-    invoice.construct(this, invoice_index, amount, metahash);
+    invoice.construct(this, invoiceIndex, amount, metahash);
   }
 
     
@@ -479,9 +479,9 @@ contract EthlanceWorkContract {
     request from the desired invoice. The result is propagated to
     the job store for payment.
   */
-  function payInvoice(uint amount_paid) external {
+  function payInvoice(uint amountPaid) external {
     require(isInvoice(msg.sender), "Only an invoice contract can 'pay' an invoice.");
-    store_instance.payInvoice(candidate_address, amount_paid);
+    storeInstance.payInvoice(candidateAddress, amountPaid);
   }
 
 
@@ -491,8 +491,8 @@ contract EthlanceWorkContract {
   /// @return True, if it is an EthlanceInvoice contract that is
   /// part of the EthlanceWorkContract.
   function isInvoice(address _invoice) private returns(bool) {
-    for (uint i = 0; i < invoice_listing.length; i++) {
-      if (address(invoice_listing[i]) == _invoice) {
+    for (uint i = 0; i < invoiceListing.length; i++) {
+      if (address(invoiceListing[i]) == _invoice) {
         return true;
       }
     }
@@ -502,14 +502,14 @@ contract EthlanceWorkContract {
     
   /// @dev Returns the number of invoices within the work contract
   function getInvoiceCount() public view returns(uint) {
-    return invoice_listing.length;
+    return invoiceListing.length;
   }
 
     
   /// @dev Returns the address of the EthlanceInvoice at the given
   /// index within the invoice listing.
   function getInvoiceByIndex(uint index) public view returns (EthlanceInvoice) {
-    return invoice_listing[index];
+    return invoiceListing[index];
   }
 
 
@@ -517,13 +517,13 @@ contract EthlanceWorkContract {
   /// EMPLOYER_TYPE, ARBITER_TYPE, or GUEST_TYPE for the given
   /// address.
   function getUserType(address _address) private returns (uint) {
-    if (_address == candidate_address) {
+    if (_address == candidateAddress) {
       return CANDIDATE_TYPE;
     }
-    else if (_address == store_instance.employer_address()) {
+    else if (_address == storeInstance.employerAddress()) {
       return EMPLOYER_TYPE;
     }
-    else if (_address == store_instance.accepted_arbiter()) {
+    else if (_address == storeInstance.acceptedArbiter()) {
       return ARBITER_TYPE;
     }
     else {
@@ -534,8 +534,8 @@ contract EthlanceWorkContract {
 
   /// @dev Place a comment on the dispute
   function addComment(string calldata metahash) external {
-    uint user_type = getUserType(msg.sender);
-    require(user_type != GUEST_TYPE,
+    uint userType = getUserType(msg.sender);
+    require(userType != GUEST_TYPE,
             "Only the candidate, employer, and arbiter can comment.");
   
     // Create the forwarded contract
@@ -550,13 +550,13 @@ contract EthlanceWorkContract {
     registry.pushComment(address(this), address(comment));
 
     uint[4] memory index;
-    index[0] = store_instance.job_index();
-    index[1] = work_index;
+    index[0] = storeInstance.jobIndex();
+    index[1] = workIndex;
     index[2] = registry.getCommentCount(address(this)) - 1;
 
     // Construct the comment contract
     comment.construct(msg.sender,
-                      user_type,
+                      userType,
                       metahash,
                       EthlanceComment.CommentType.WorkContract,
                       index);
@@ -572,20 +572,20 @@ contract EthlanceWorkContract {
     - An employer leaving feedback is meant for the candidate.
   */
   function leaveFeedback(uint rating, string calldata metahash) external {
-    uint user_type = getUserType(msg.sender);
-    require(user_type == CANDIDATE_TYPE || user_type == EMPLOYER_TYPE,
+    uint userType = getUserType(msg.sender);
+    require(userType == CANDIDATE_TYPE || userType == EMPLOYER_TYPE,
             "Only the candidate or the employer, can leave feedback.");
   
-    uint to_user_type;
-    address to_user_address;
+    uint toUserType;
+    address toUserAddress;
   
-    if (user_type == CANDIDATE_TYPE) {
-      to_user_type = EMPLOYER_TYPE;
-      to_user_address = store_instance.employer_address();
+    if (userType == CANDIDATE_TYPE) {
+      toUserType = EMPLOYER_TYPE;
+      toUserAddress = storeInstance.employerAddress();
     }
     else {
-      to_user_type = CANDIDATE_TYPE;
-      to_user_address = candidate_address;
+      toUserType = CANDIDATE_TYPE;
+      toUserAddress = candidateAddress;
     }
   
     // Check and create forwarded feedback contract instance
@@ -603,16 +603,16 @@ contract EthlanceWorkContract {
       registry.pushFeedback(address(this), address(fwd));
       
       // Construct the feedback contract
-      feedback.construct(address(this), job_index, work_index);
+      feedback.construct(address(this), jobIndex, workIndex);
     }
     else {
       feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(this)));
     }
 
     feedback.update(msg.sender,
-                    to_user_address,
-                    user_type,
-                    to_user_type,
+                    toUserAddress,
+                    userType,
+                    toUserType,
                     metahash,
                     rating);
   }

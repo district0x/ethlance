@@ -26,21 +26,21 @@
    :contract-options (or opts {})))
 
 
-(defn date-updated [address] (call address :date_updated []))
-(defn date-created [address] (call address :date_created []))
+(defn date-updated [address] (call address :date-updated []))
+(defn date-created [address] (call address :date-created []))
 
 
 (defn candidate-address
   "The accepted candidate for the currently bound work contract."
   [address]
-  (call address :candidate_address []))
+  (call address :candidate-address []))
 
 
 (defn contract-status
   "The work contract status"
   [address]
   (let [result-channel (chan 1)
-        [success-channel error-channel] (call address :contract_status [])]
+        [success-channel error-channel] (call address :contract-status [])]
     (go
       (let [result (enum.status/val->kw (<! success-channel))]
         (>! result-channel result)))

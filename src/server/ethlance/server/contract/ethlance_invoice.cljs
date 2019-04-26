@@ -25,12 +25,12 @@
    :contract-options (or opts {})))
 
 
-(defn date-created [address] (call address :date_created []))
-(defn date-updated [address] (call address :date_updated []))
-(defn date-paid [address] (call address :date_paid []))
+(defn date-created [address] (call address :date-created []))
+(defn date-updated [address] (call address :date-updated []))
+(defn date-paid [address] (call address :date-paid []))
 
-(defn amount-requested [address] (call address :amount_requested []))
-(defn amount-paid [address] (call address :amount_paid []))
+(defn amount-requested [address] (call address :amount-requested []))
+(defn amount-paid [address] (call address :amount-paid []))
 
 
 (defn pay!

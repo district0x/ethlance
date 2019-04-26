@@ -81,10 +81,10 @@ contract EthlanceDispute {
 
     // Fire off comment with provided metahash
     if (is_employer_request) {
-      createComment(workInstance.store_instance().employer_address(), metahash);
+      createComment(workInstance.storeInstance().employerAddress(), metahash);
     }
     else {
-      createComment(workInstance.candidate_address(), metahash);
+      createComment(workInstance.candidateAddress(), metahash);
     }
 
     // Fire off event
@@ -100,7 +100,7 @@ contract EthlanceDispute {
   /// @dev Resolves the dispute between the employer and the
   /// candidate, and pays the employer and the candidate's the given
   /// amounts.
-  /// @param _employer_amount The amount of tokens to pay the employer for resolution.
+  /// @param _employerAmount The amount of tokens to pay the employer for resolution.
   /// @param _employerToken The token address of the type of token, set to 0x0 for ETH.
   /// @param _candidateAmount The amount of tokens to pay the candidate for resolution.
   /// @param _candidateToken The token address of the type of token, set to 0x0 for ETH.
@@ -112,7 +112,7 @@ contract EthlanceDispute {
                    address _candidateToken,
                    uint _arbiterAmount,
                    address _arbiterToken) external {
-    require(workInstance.store_instance().accepted_arbiter() == msg.sender,
+    require(workInstance.storeInstance().acceptedArbiter() == msg.sender,
             "Only the accepted arbiter can resolve a dispute.");
     require(dateResolved == 0, "This dispute has already been resolved.");
     workInstance.resolveDispute(_employerAmount, _employerToken,
@@ -141,8 +141,8 @@ contract EthlanceDispute {
   /// @param eventName Unique to give the fired event
   function fireEvent(string memory eventName) private {
     uint[] memory eventData = new uint[](3);
-    eventData[0] = workInstance.job_index();
-    eventData[1] = workInstance.work_index();
+    eventData[0] = workInstance.jobIndex();
+    eventData[1] = workInstance.workIndex();
     eventData[2] = disputeIndex;
 
     registry.fireEvent(eventName, version, eventData);
@@ -153,13 +153,13 @@ contract EthlanceDispute {
   /// EMPLOYER_TYPE, ARBITER_TYPE, or GUEST_TYPE for the given
   /// address.
   function getUserType(address _address) private returns (uint) {
-    if (_address == workInstance.candidate_address()) {
+    if (_address == workInstance.candidateAddress()) {
       return CANDIDATE_TYPE;
     }
-    else if (_address == workInstance.store_instance().employer_address()) {
+    else if (_address == workInstance.storeInstance().employerAddress()) {
       return EMPLOYER_TYPE;
     }
-    else if (_address == workInstance.store_instance().accepted_arbiter()) {
+    else if (_address == workInstance.storeInstance().acceptedArbiter()) {
       return ARBITER_TYPE;
     }
     else {
@@ -194,8 +194,8 @@ contract EthlanceDispute {
     registry.pushComment(address(this), address(comment));
 
     uint[4] memory index;
-    index[0] = workInstance.store_instance().job_index();
-    index[1] = workInstance.work_index();
+    index[0] = workInstance.storeInstance().jobIndex();
+    index[1] = workInstance.workIndex();
     index[2] = disputeIndex;
     index[3] = registry.getCommentCount(address(this)) - 1;
 
@@ -219,7 +219,7 @@ contract EthlanceDispute {
     require(userType == CANDIDATE_TYPE || userType == EMPLOYER_TYPE,
             "Only the candidate or the employer, can leave feedback for the arbiter.");
   
-    address toUserAddress = workInstance.store_instance().accepted_arbiter();
+    address toUserAddress = workInstance.storeInstance().acceptedArbiter();
     uint toUserType = ARBITER_TYPE;
 
     // Check and create forwarded feedback contract instance
@@ -238,8 +238,8 @@ contract EthlanceDispute {
       
       // Construct the feedback contract
       feedback.construct(address(workInstance),
-                         workInstance.store_instance().job_index(),
-                         workInstance.work_index());
+                         workInstance.storeInstance().jobIndex(),
+                         workInstance.workIndex());
     }
     else {
       feedback = EthlanceFeedback(registry.getFeedbackByAddress(address(workInstance)));

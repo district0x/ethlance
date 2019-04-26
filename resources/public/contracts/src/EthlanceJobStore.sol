@@ -19,9 +19,9 @@ contract EthlanceJobStore {
   /// Represents a particular arbiter requesting, or being requested
   /// by an employer for a job contract.
   struct ArbiterRequest {
-    bool is_employer_request;
-    uint date_requested;
-    address arbiter_address;
+    bool isEmployerRequest;
+    uint dateRequested;
+    address arbiterAddress;
   }
 
   //
@@ -29,46 +29,46 @@ contract EthlanceJobStore {
   //
 
   // The job index.
-  uint public job_index;
+  uint public jobIndex;
 
   // The Accepted Arbiter assigned to the Jobs within the Job Store.
-  address payable public accepted_arbiter;
+  address payable public acceptedArbiter;
 
   /// Bid Option Enumeration
   // 0 - Hourly Rate
   // 1 - Fixed Price
   // 2 - Annual Salary
   // 3 - Bounty
-  uint8 public bid_option;
+  uint8 public bidOption;
   uint8 public constant BID_OPTION_BOUNTY = 3;
 
   // Datetime of job contract creation
-  uint public date_created;
+  uint public dateCreated;
 
   // Datetime of the last time the job contract was updated.
-  uint public date_updated;
+  uint public dateUpdated;
 
   // Datetime of job contract finishing
-  uint public date_finished;
+  uint public dateFinished;
     
   // Employer assigned to the given JobStore.
-  address payable public employer_address;
+  address payable public employerAddress;
 
   // Estimated amount of time to finish the contract (in seconds)
-  uint public estimated_length_seconds;
+  uint public estimatedLengthSeconds;
 
   // If true, additionally include ether as a token to pay out.
-  bool public include_ether_token;
-  // TODO: token_address_listing
+  bool public includeEtherToken;
+  // TODO: tokenAddress_listing
 
   // If true, only employers can request candidates and arbiters
-  bool public is_invitation_only;
+  bool public isInvitationOnly;
 
   // Additional Job Information stored in IPFS Metahash
   string public metahash;
 
   // The reward value for a completed bounty
-  uint public reward_value;
+  uint public rewardValue;
 
   // Token Storage for ERC20 tokens
   EthlanceTokenStore public tokenStore;
@@ -78,31 +78,31 @@ contract EthlanceJobStore {
   //
 
   // Arbiter Requests
-  ArbiterRequest[] public arbiter_request_listing;
-  mapping(address => uint) public arbiter_request_mapping;
+  ArbiterRequest[] public arbiterRequestListing;
+  mapping(address => uint) public arbiterRequestMapping;
 
   // Work Contract Listing
-  address[] public work_contract_listing;
-  mapping(address => bool) public work_contract_mapping;
+  address[] public workContractListing;
+  mapping(address => bool) public workContractMapping;
     
 
-  function construct(uint _job_index,
-                     address payable _employer_address,
-                     uint8 _bid_option,
-                     uint _estimated_length_seconds,
-                     bool _include_ether_token,
-                     bool _is_invitation_only,
+  function construct(uint _jobIndex,
+                     address payable _employerAddress,
+                     uint8 _bidOption,
+                     uint _estimatedLengthSeconds,
+                     bool _includeEtherToken,
+                     bool _isInvitationOnly,
                      string calldata _metahash,
-                     uint _reward_value)
+                     uint _rewardValue)
     external {
-    job_index = _job_index;
-    employer_address = _employer_address;
-    bid_option = _bid_option;
-    estimated_length_seconds = _estimated_length_seconds;
-    include_ether_token = _include_ether_token;
-    is_invitation_only = _is_invitation_only;
+    jobIndex = _jobIndex;
+    employerAddress = _employerAddress;
+    bidOption = _bidOption;
+    estimatedLengthSeconds = _estimatedLengthSeconds;
+    includeEtherToken = _includeEtherToken;
+    isInvitationOnly = _isInvitationOnly;
     metahash = _metahash;
-    reward_value = _reward_value;
+    rewardValue = _rewardValue;
 
     // Construct TokenStore forwarder
     SecondForwarder fwd = new SecondForwarder(); // Proxy Contract
@@ -118,36 +118,36 @@ contract EthlanceJobStore {
 
   /// @dev update job store's IPFS metahash
   function updateMetahash(string calldata _metahash) external {
-    require(msg.sender == employer_address, "Only the employer can update the metahash.");
+    require(msg.sender == employerAddress, "Only the employer can update the metahash.");
     metahash = _metahash;
   }
 
 
   /// @dev Fire events specific to the work contract
-  /// @param event_name Unique to give the fired event
-  /// @param event_data Additional event data to include in the
+  /// @param eventName Unique to give the fired event
+  /// @param eventData Additional event data to include in the
   /// fired event.
-  function fireEvent(string memory event_name, uint[] memory event_data) private {
-    registry.fireEvent(event_name, version, event_data);
+  function fireEvent(string memory eventName, uint[] memory eventData) private {
+    registry.fireEvent(eventName, version, eventData);
   }
 
 
   /// @dev Set the accepted arbiter for the current Job Wagon.
-  /// @param arbiter_address User address of the accepted arbiter.
-  function setAcceptedArbiter(address payable arbiter_address)
+  /// @param arbiterAddress User address of the accepted arbiter.
+  function setAcceptedArbiter(address payable arbiterAddress)
     private {
-    accepted_arbiter = arbiter_address;
+    acceptedArbiter = arbiterAddress;
 
     // Fire off event
-    uint[] memory event_data = new uint[](2);
-    event_data[0] = job_index;
-    event_data[1] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
-    fireEvent("JobArbiterAccepted", event_data);
+    uint[] memory eventData = new uint[](2);
+    eventData[0] = jobIndex;
+    eventData[1] = EthlanceUser(registry.getUserByAddress(arbiterAddress)).userId();
+    fireEvent("JobArbiterAccepted", eventData);
   }
 
 
   /// @dev Request and create a pending contract between the Candidate and the Employer
-  /// @param candidate_address The user address of the Candidate.
+  /// @param candidateAddress The user address of the Candidate.
   /*
       
     Only the employer or the candidate can request a work
@@ -155,15 +155,15 @@ contract EthlanceJobStore {
     requests a work contract, or whether the Job is bounty-based.
 
   */
-  function requestWorkContract(address payable candidate_address)
+  function requestWorkContract(address payable candidateAddress)
     public {
-    require(registry.isRegisteredUser(candidate_address),
+    require(registry.isRegisteredUser(candidateAddress),
             "Given address is not a registered user.");
-    require(msg.sender == employer_address || msg.sender == candidate_address,
+    require(msg.sender == employerAddress || msg.sender == candidateAddress,
             "ERROR: The employer can request a work contract for a candidate. The candidate can request a work contract for himself.");
-    require(work_contract_mapping[candidate_address] == false,
+    require(workContractMapping[candidateAddress] == false,
             "Candidate already has a work contract created.");
-    require(employer_address != candidate_address,
+    require(employerAddress != candidateAddress,
             "Employer cannot work on his own Job.");
 
     // Create the forwarded contract, and place in the work listing.
@@ -174,80 +174,80 @@ contract EthlanceJobStore {
     // Permit Work Contract to fire registry events
     registry.permitDispatch(address(fwd));
 
-    uint work_index = work_contract_listing.length;
-    work_contract_listing.push(address(workContract));
-    work_contract_mapping[candidate_address] = true;
+    uint workIndex = workContractListing.length;
+    workContractListing.push(address(workContract));
+    workContractMapping[candidateAddress] = true;
 
     // Determine if it's an employer or a candidate request
-    bool is_employer_request = false;
-    if (msg.sender == employer_address) {
-      is_employer_request = true;
+    bool isEmployerRequest = false;
+    if (msg.sender == employerAddress) {
+      isEmployerRequest = true;
     }
 
     // Construct the work contract.
-    workContract.construct(this, work_index, candidate_address, is_employer_request);
+    workContract.construct(this, workIndex, candidateAddress, isEmployerRequest);
   }
 
     
   /// @dev Add an arbiter to the arbiter request listing.
-  /// @param arbiter_address The user address of the arbiter.
+  /// @param arbiterAddress The user address of the arbiter.
   /*
 
     Functionality changes based on who is requesting the arbiter,
     and the status of the requested arbiter.
 
-    Case 1: Employer requests a Arbiter. (msg.sender == employer_address)
+    Case 1: Employer requests a Arbiter. (msg.sender == employerAddress)
 
-    Case 2: Arbiter requests himself. (msg.sender == arbiter_address)
+    Case 2: Arbiter requests himself. (msg.sender == arbiterAddress)
 
-    accepted_arbiter is set if:
+    acceptedArbiter is set if:
 
     - employer had already requested the arbiter, and the arbiter requests the job contract
     - arbiter requests himself, and the employer requests the same arbiter.
 
   */
-  function requestArbiter(address payable arbiter_address)
+  function requestArbiter(address payable arbiterAddress)
     public {
-    require(registry.isRegisteredUser(arbiter_address),
+    require(registry.isRegisteredUser(arbiterAddress),
             "Given address is not a registered user.");
-    require(registry.isRegisteredArbiter(arbiter_address),
+    require(registry.isRegisteredArbiter(arbiterAddress),
             "Given address is not a registered arbiter.");
-    require(accepted_arbiter == address(0), "Arbiter already accepted.");
-    require(arbiter_address != employer_address,
+    require(acceptedArbiter == address(0), "Arbiter already accepted.");
+    require(arbiterAddress != employerAddress,
             "Employer cannot be the arbiter of his own job contract.");
-    require(msg.sender == employer_address || msg.sender == arbiter_address,
+    require(msg.sender == employerAddress || msg.sender == arbiterAddress,
             "Only an employer can request an arbiter, only an arbiter can request themselves.");
 
     // Locals
-    uint request_index;
-    bool is_employer_request;
+    uint requestIndex;
+    bool isEmployerRequest;
 
     //
     // Handle case where an arbiter is requesting the job contract.
     //
 
-    if (msg.sender == arbiter_address) {
+    if (msg.sender == arbiterAddress) {
       // No previous request, so create a new Arbiter Request
-      if (arbiter_request_mapping[arbiter_address] == 0) {
-        arbiter_request_listing.push(ArbiterRequest(false, now, arbiter_address));
-        arbiter_request_mapping[arbiter_address] = arbiter_request_listing.length;
+      if (arbiterRequestMapping[arbiterAddress] == 0) {
+        arbiterRequestListing.push(ArbiterRequest(false, now, arbiterAddress));
+        arbiterRequestMapping[arbiterAddress] = arbiterRequestListing.length;
 
         // Fire off event
-        uint[] memory event_data = new uint[](2);
-        event_data[0] = job_index;
-        event_data[1] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
-        fireEvent("JobArbiterRequested", event_data);
+        uint[] memory eventData = new uint[](2);
+        eventData[0] = jobIndex;
+        eventData[1] = EthlanceUser(registry.getUserByAddress(arbiterAddress)).userId();
+        fireEvent("JobArbiterRequested", eventData);
 
         return;
       }
 
       // Was a previous request, check if an employer requested this arbiter
-      request_index = arbiter_request_mapping[arbiter_address] - 1;
-      is_employer_request = arbiter_request_listing[request_index].is_employer_request;
+      requestIndex = arbiterRequestMapping[arbiterAddress] - 1;
+      isEmployerRequest = arbiterRequestListing[requestIndex].isEmployerRequest;
       
       // If this arbiter was already requested by the employer, we have our accepted arbiter
-      if (is_employer_request) {
-        setAcceptedArbiter(arbiter_address);
+      if (isEmployerRequest) {
+        setAcceptedArbiter(arbiterAddress);
         return;
       }
 
@@ -261,26 +261,26 @@ contract EthlanceJobStore {
     //
 
     // No previous request, so create a new Arbiter Request
-    if (arbiter_request_mapping[arbiter_address] == 0) {
-      arbiter_request_listing.push(ArbiterRequest(true, now, arbiter_address));
-      arbiter_request_mapping[arbiter_address] = arbiter_request_listing.length;
+    if (arbiterRequestMapping[arbiterAddress] == 0) {
+      arbiterRequestListing.push(ArbiterRequest(true, now, arbiterAddress));
+      arbiterRequestMapping[arbiterAddress] = arbiterRequestListing.length;
       
       // Fire off event
-      uint[] memory event_data = new uint[](2);
-      event_data[0] = job_index;
-      event_data[1] = EthlanceUser(registry.getUserByAddress(arbiter_address)).user_id();
-      fireEvent("JobArbiterRequested", event_data);
+      uint[] memory eventData = new uint[](2);
+      eventData[0] = jobIndex;
+      eventData[1] = EthlanceUser(registry.getUserByAddress(arbiterAddress)).userId();
+      fireEvent("JobArbiterRequested", eventData);
 
       return;
     }
 
     // Was a previous request, check if a arbiter already requested this job.
-    request_index = arbiter_request_mapping[arbiter_address] - 1;
-    is_employer_request = arbiter_request_listing[request_index].is_employer_request;
+    requestIndex = arbiterRequestMapping[arbiterAddress] - 1;
+    isEmployerRequest = arbiterRequestListing[requestIndex].isEmployerRequest;
 
     // If this arbiter already requested this job, we have our accepted arbiter
-    if (!is_employer_request) {
-      setAcceptedArbiter(arbiter_address);
+    if (!isEmployerRequest) {
+      setAcceptedArbiter(arbiterAddress);
       return;
     }
 
@@ -294,7 +294,7 @@ contract EthlanceJobStore {
   /// @return The number of requested arbiters.
   function getRequestedArbiterCount()
     public view returns(uint) {
-    return arbiter_request_listing.length;
+    return arbiterRequestListing.length;
   }
 
     
@@ -302,15 +302,15 @@ contract EthlanceJobStore {
   /// @param index The index of the ArbiterRequest within the listing.
   /// @return 2-element tuple containing the arbiter data.
   function getRequestedArbiterByIndex(uint index)
-    public view returns (bool is_employer_request,
-                         uint date_requested,
-                         address arbiter_address) {
-    require(index < arbiter_request_listing.length,
+    public view returns (bool isEmployerRequest,
+                         uint dateRequested,
+                         address arbiterAddress) {
+    require(index < arbiterRequestListing.length,
             "Given index out of bounds.");
-    ArbiterRequest memory arbiterRequest = arbiter_request_listing[index];
-    is_employer_request = arbiterRequest.is_employer_request;
-    date_requested = arbiterRequest.date_requested;
-    arbiter_address = arbiterRequest.arbiter_address;
+    ArbiterRequest memory arbiterRequest = arbiterRequestListing[index];
+    isEmployerRequest = arbiterRequest.isEmployerRequest;
+    dateRequested = arbiterRequest.dateRequested;
+    arbiterAddress = arbiterRequest.arbiterAddress;
   }
 
 
@@ -318,7 +318,7 @@ contract EthlanceJobStore {
   /// @return The number of work contracts in the job store.
   function getWorkContractCount()
     public view returns(uint) {
-    return work_contract_listing.length;
+    return workContractListing.length;
   }
 
 
@@ -327,16 +327,16 @@ contract EthlanceJobStore {
   /// @return The address of the EthlanceWorkContract.
   function getWorkContractByIndex(uint index)
     public view returns(address) {
-    require(index < work_contract_listing.length, "Given index is out of bounds.");
-    return work_contract_listing[index];
+    require(index < workContractListing.length, "Given index is out of bounds.");
+    return workContractListing[index];
   }
 
     
-  /// @dev Returns true if the given _work_contract instance resides
+  /// @dev Returns true if the given _workContract instance resides
   /// in the current job_store.
-  function isWorkContract(address _work_contract) private returns(bool) {
-    for (uint i = 0; i < work_contract_listing.length; i++) {
-      if (address(work_contract_listing[i]) == _work_contract) {
+  function isWorkContract(address _workContract) private returns(bool) {
+    for (uint i = 0; i < workContractListing.length; i++) {
+      if (address(workContractListing[i]) == _workContract) {
         return true;
       }
     }
@@ -345,34 +345,34 @@ contract EthlanceJobStore {
 
     
   /// @dev Main function for resolving a dispute between an employer and a candidate.
-  /// @param employer_amount Amount to give the employer for dispute resolution.
-  function resolveDispute(uint employer_amount,
-                          address employer_token,
-                          uint candidate_amount,
-                          address candidate_token,
-                          uint arbiter_amount,
-                          address arbiter_token,
-                          address payable candidate_address) external {
-    require(employer_token == address(0) &&
-            candidate_token == address(0) &&
-            arbiter_token == address(0),
+  /// @param employerAmount Amount to give the employer for dispute resolution.
+  function resolveDispute(uint employerAmount,
+                          address employerToken,
+                          uint candidateAmount,
+                          address candidateToken,
+                          uint arbiterAmount,
+                          address arbiterToken,
+                          address payable candidateAddress) external {
+    require(employerToken == address(0) &&
+            candidateToken == address(0) &&
+            arbiterToken == address(0),
             "ERC20 Tokens are not implemented.");
   
     //FIXME: safemath, ERC20 compatible
-    uint total_payout = employer_amount + candidate_amount + arbiter_amount;
-    if (address(this).balance < total_payout) {
+    uint totalPayout = employerAmount + candidateAmount + arbiterAmount;
+    if (address(this).balance < totalPayout) {
       revert("Job Store balance does not satisfy resolution payout.");
     }
   
-    employer_address.transfer(employer_amount);
-    candidate_address.transfer(candidate_amount);
-    accepted_arbiter.transfer(arbiter_amount);
+    employerAddress.transfer(employerAmount);
+    candidateAddress.transfer(candidateAmount);
+    acceptedArbiter.transfer(arbiterAmount);
   }
 
 
   /// @dev Main function for paying an invoice, propagated up from EthlanceInvoice.
-  /// @param candidate_address The address of the person acquiring the payout.
-  /// @param amount_paid The amount paid to the given candidate_address in Wei.
+  /// @param candidateAddress The address of the person acquiring the payout.
+  /// @param amountPaid The amount paid to the given candidateAddress in Wei.
   /*
     Notes:
 
@@ -380,18 +380,18 @@ contract EthlanceJobStore {
     EthlanceInvoice. Access rights should be reflected in each
     step.
   */
-  function payInvoice(address payable candidate_address, uint amount_paid) external {
+  function payInvoice(address payable candidateAddress, uint amountPaid) external {
     require(isWorkContract(msg.sender), "Only a work contract has permission to transfer from the job store.");
-    require(address(this).balance >= amount_paid, "Job Store balance does not satisfy amount to pay");
-    candidate_address.transfer(amount_paid);
+    require(address(this).balance >= amountPaid, "Job Store balance does not satisfy amount to pay");
+    candidateAddress.transfer(amountPaid);
   }
 
     
   /// @dev Main function for paying an invoice with an ERC20 token, propagated from EthlanceInvoice.
-  /// @param candidate_address The address of the person acquiring the payout.
-  /// @param amount_paid The amount paid to the given candidate_address based on the ERC20 token contract amount.
-  /// @param token_address Address of the ERC20 token contract.
-  function payInvoice(address candidate_address, uint amount_paid, address token_address) external {
+  /// @param candidateAddress The address of the person acquiring the payout.
+  /// @param amountPaid The amount paid to the given candidateAddress based on the ERC20 token contract amount.
+  /// @param tokenAddress Address of the ERC20 token contract.
+  function payInvoice(address candidateAddress, uint amountPaid, address tokenAddress) external {
     revert("Not Implemented");
   }
 
@@ -401,27 +401,27 @@ contract EthlanceJobStore {
     Notes:
 
     - Anyone can fund a JobStore with ether as long as the employer
-    has included the ether token (include_ether_token)
+    has included the ether token (includeEtherToken)
 
   */
   function fund() external payable {
-    if (!include_ether_token) {
+    if (!includeEtherToken) {
       revert("Given JobStore is not ethereum fundable.");
     }
   }
 
 
   /// @dev Overload for funding the JobStore with an ERC20 token
-  /// @param token_address Address of the ERC20 token contract.
+  /// @param tokenAddress Address of the ERC20 token contract.
   /// @param amount The amount of tokens to transfer to the current JobStore contract.
   /*
     Notes:
 
-    - The token_address ERC20 token contract requires pre-approval
+    - The tokenAddress ERC20 token contract requires pre-approval
     from the person funding the contract. This will require a
     strictly client-side interaction for this pre-approval.
   */
-  function fundToken(address token_address, uint amount) external {
+  function fundToken(address tokenAddress, uint amount) external {
     revert("Not Implemented");
   }
 }

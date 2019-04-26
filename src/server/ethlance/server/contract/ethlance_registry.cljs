@@ -68,8 +68,8 @@
   Returns {:name <:event_name> :data <:event_data>}, or nil otherwise"
   [transaction-hash]
   (when-let [tx-event (contracts/contract-event-in-tx transaction-hash *registry-key* :EthlanceEvent)]
-    {:name (-> tx-event :args :event_name)
-     :data (-> tx-event :args :event_data)}))
+    {:name (-> tx-event :args :event-name)
+     :data (-> tx-event :args :event-data)}))
 
 
 (defn comment-count

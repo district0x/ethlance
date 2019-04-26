@@ -13,11 +13,6 @@
    [ethlance.server.contract]))
 
 
-(def ^:dynamic *job-store-key*
-  "JobStore Key"
-  nil) ;; [:ethlance-job-store "0x0"]
-
-
 (defn call
   "Call the bound EthlanceJobStore with the given `method-name` and `args`."
   [contract-address method-name args & [opts]]
@@ -30,25 +25,25 @@
 
 (defn bid-option [address]
   (let [result-chan (chan 1)
-        [success-channel error-channel] (call address :bid_option [])]
+        [success-channel error-channel] (call address :bid-option [])]
     (go (let [result (<! success-channel)]
           (>! result-chan (enum.bid-option/val->kw result))))
     [result-chan error-channel]))
 
 
-(defn date-created [address] (call address :date_created []))
-(defn date-updated [address] (call address :date_updated []))
-(defn date-finished [address] (call address :date_finished []))
+(defn date-created [address] (call address :date-created []))
+(defn date-updated [address] (call address :date-updated []))
+(defn date-finished [address] (call address :date-finished []))
 
 
 (defn employer-address
   "The employer address assigned to this job store."
   [address]
-  (call address :employer_address []))
+  (call address :employer-address []))
 
-(defn estimated-length-seconds [address] (call address :estimated_length_seconds []))
-(defn include-ether-token? [address] (call address :include_ether_token []))
-(defn is-invitation-only? [address] (call address :is_invitation_only []))
+(defn estimated-length-seconds [address] (call address :estimated-length-seconds []))
+(defn include-ether-token? [address] (call address :include-ether-token []))
+(defn is-invitation-only? [address] (call address :is-invitation-only []))
 
 (defn metahash
   "Retrieve the JobStore's metahash"
@@ -62,7 +57,7 @@
   (call address :update-metahash [metahash]))
 
 
-(defn reward-value [address] (call address :reward_value []))
+(defn reward-value [address] (call address :reward-value []))
 
 
 (defn token-store
@@ -83,7 +78,7 @@
 (defn accepted-arbiter
   "The accepted arbiter for all of the work contracts."
   [address]
-  (call address :accepted_arbiter []))
+  (call address :accepted-arbiter []))
 
 
 (defn requested-arbiter-count

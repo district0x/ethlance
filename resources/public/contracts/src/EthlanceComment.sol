@@ -97,15 +97,15 @@ contract EthlanceComment {
 
 
   /// @dev Fire events specific to the dispute.
-  /// @param event_name Unique to give the fired event
-  function fireEvent(string memory event_name) private {
-    uint[] memory event_data = new uint[](4);
-    event_data[0] = commentIndex[0];
-    event_data[1] = commentIndex[1];
-    event_data[2] = commentIndex[2];
-    event_data[3] = commentIndex[3];
+  /// @param eventName Unique to give the fired event
+  function fireEvent(string memory eventName) private {
+    uint[] memory eventData = new uint[](4);
+    eventData[0] = commentIndex[0];
+    eventData[1] = commentIndex[1];
+    eventData[2] = commentIndex[2];
+    eventData[3] = commentIndex[3];
 
-    registry.fireEvent(event_name, version, event_data);
+    registry.fireEvent(eventName, version, eventData);
   }
 
 

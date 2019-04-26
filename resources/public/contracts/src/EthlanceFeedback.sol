@@ -40,16 +40,16 @@ contract EthlanceFeedback {
 	//
 	struct Feedback {
 		// Address of the user leaving feedback
-		address from_user_address;
+		address fromUserAddress;
 	
 		// Address of the user receiving feedback
-		address to_user_address;
+		address toUserAddress;
 
 		// User Role of the user leaving feedback
-		uint from_user_type;
+		uint fromUserType;
 
 		// User Role of the user receiving feedback
-		uint to_user_type;
+		uint toUserType;
 
 		// Additional Metadata attached to the contract via IPFS
 		string metahash;
@@ -58,10 +58,10 @@ contract EthlanceFeedback {
 		uint rating;
 
 		// When the feedback was created
-		uint date_created;
+		uint dateCreated;
 
 		// Latest feedback update
-		uint date_updated;
+		uint dateUpdated;
 	}
 
 
@@ -69,22 +69,22 @@ contract EthlanceFeedback {
 	// Members
 	//
 	address public owner;
-	mapping(address => uint) feedback_mapping;
-	Feedback[] feedback_listing;
+	mapping(address => uint) feedbackMapping;
+	Feedback[] feedbackListing;
 
-	uint public job_index;
-	uint public work_index;
+	uint public jobIndex;
+	uint public workIndex;
 
     
 	/// @dev Forwarder Constructor
 	/// @param _owner The owning address for this feedback {EthlanceWorkContract, EthlanceDispute}
-	/// @param _job_index The EthlanceJobStore Index for the feedback
-	/// @param _work_index The EthlanceWorkContract Index for the feedback
-	function construct(address _owner, uint _job_index, uint _work_index) public {
+	/// @param _jobIndex The EthlanceJobStore Index for the feedback
+	/// @param _workIndex The EthlanceWorkContract Index for the feedback
+	function construct(address _owner, uint _jobIndex, uint _workIndex) public {
 		require(owner == address(0), "EthlanceFeedback contract was already constructed");
 		owner = _owner;
-		job_index = _job_index;
-		work_index = _work_index;
+		jobIndex = _jobIndex;
+		workIndex = _workIndex;
 	}
 
 
@@ -95,94 +95,94 @@ contract EthlanceFeedback {
 		- Feedback can only be updated by the owner, this method should
 		be superceded by the owner contract.
 	*/
-	function update(address from_user_address,
-									address to_user_address,
-									uint from_user_type,
-									uint to_user_type,
+	function update(address fromUserAddress,
+									address toUserAddress,
+									uint fromUserType,
+									uint toUserType,
 									string calldata metahash,
 									uint rating) external {
 		//require(msg.sender == owner, "Must be contract owner to update feedback.");
 		require(rating <= 5, "Rating must be a value between 0 and 5.");
 
 		Feedback memory feedback = Feedback({
-	    from_user_address: from_user_address,
-					to_user_address: to_user_address,
-					from_user_type: from_user_type,
-					to_user_type: to_user_type,
+	    fromUserAddress: fromUserAddress,
+					toUserAddress: toUserAddress,
+					fromUserType: fromUserType,
+					toUserType: toUserType,
 					metahash: metahash,
 					rating: rating,
-					date_created: now,
-					date_updated: now
+					dateCreated: now,
+					dateUpdated: now
 					});
 
 
-		uint feedback_id = feedback_mapping[from_user_address];
-		uint feedback_index; // minus one of feedback ID
+		uint feedbackId = feedbackMapping[fromUserAddress];
+		uint feedbackIndex; // minus one of feedback ID
 
 		// It's an existing user that has chosen to leave updated feedback.
-		if (feedback_id > 0) {
-	    feedback_index = feedback_id - 1;
-	    feedback_listing[feedback_index] = feedback;
-	    fireEvent("FeedbackUpdated", feedback_index);
+		if (feedbackId > 0) {
+	    feedbackIndex = feedbackId - 1;
+	    feedbackListing[feedbackIndex] = feedback;
+	    fireEvent("FeedbackUpdated", feedbackIndex);
 		}
 		// New user leaving feedback.
 		else {
-	    feedback_listing.push(feedback);
+	    feedbackListing.push(feedback);
 
-	    feedback_id = feedback_listing.length;
-	    feedback_index = feedback_id - 1;
+	    feedbackId = feedbackListing.length;
+	    feedbackIndex = feedbackId - 1;
 	    
-	    feedback_mapping[from_user_address] = feedback_id;
-	    fireEvent("FeedbackCreated", feedback_index);
+	    feedbackMapping[fromUserAddress] = feedbackId;
+	    fireEvent("FeedbackCreated", feedbackIndex);
 		}
 	}
 
 
 	/// @dev Get the number of feedback entries
 	function getFeedbackCount() public view returns(uint) {
-		return feedback_listing.length;
+		return feedbackListing.length;
 	}
 
 
 	/// @dev Get the feedback at the given index.
 	function getFeedbackByIndex(uint _index)
 		public view
-		returns(address from_user_address,
-						address to_user_address,
-						uint from_user_type,
-						uint to_user_type,
+		returns(address fromUserAddress,
+						address toUserAddress,
+						uint fromUserType,
+						uint toUserType,
 						string memory metahash,
 						uint rating,
-						uint date_created,
-						uint date_updated) {
-		require(_index < feedback_listing.length, "Given index is out of bounds.");
-		Feedback memory feedback = feedback_listing[_index];
+						uint dateCreated,
+						uint dateUpdated) {
+		require(_index < feedbackListing.length, "Given index is out of bounds.");
+		Feedback memory feedback = feedbackListing[_index];
 	
-		from_user_address = feedback.from_user_address;
-		to_user_address = feedback.to_user_address;
-		from_user_type = feedback.from_user_type;
-		to_user_type = feedback.to_user_type;
+		fromUserAddress = feedback.fromUserAddress;
+		toUserAddress = feedback.toUserAddress;
+		fromUserType = feedback.fromUserType;
+		toUserType = feedback.toUserType;
 		metahash = feedback.metahash;
 		rating = feedback.rating;
-		date_created = feedback.date_created;
-		date_updated = feedback.date_updated;
+		dateCreated = feedback.dateCreated;
+		dateUpdated = feedback.dateUpdated;
 	}
 
 
 	/// @dev Fire events specific to the feedback.
-	/// @param event_name Unique name to give the fired event
+	/// @param eventName Unique name to give the fired event
 	/// @param _index The feedback index of the feedback object throwing the event.
 	/*
 		Notes:
 
 		- EthlanceFeedback is a store of feedback objects
 	*/
-	function fireEvent(string memory event_name, uint _index) private {
-		uint[] memory event_data = new uint[](3);
-		event_data[0] = job_index;
-		event_data[1] = work_index;
-		event_data[2] = _index;
+	function fireEvent(string memory eventName, uint _index) private {
+		uint[] memory eventData = new uint[](3);
+		eventData[0] = jobIndex;
+		eventData[1] = workIndex;
+		eventData[2] = _index;
 
-		registry.fireEvent(event_name, version, event_data);
+		registry.fireEvent(eventName, version, eventData);
 	}
 }
