@@ -16,25 +16,24 @@ contract EthlanceJobFactory {
   // Methods
   //
 
-
   /// @dev Fire events specific to the JobFactory
-  /// @param event_name Unique to give the fired event
-  /// @param event_data Additional event data to include in the
+  /// @param eventName Unique to give the fired event
+  /// @param eventData Additional event data to include in the
   /// fired event.
-  function fireEvent(string memory event_name, uint[] memory event_data) private {
-    registry.fireEvent(event_name, version, event_data);
+  function fireEvent(string memory eventName, uint[] memory eventData) private {
+    registry.fireEvent(eventName, version, eventData);
   }
 
 
   /// @dev Create Job Contract for given user defined by
   /// 'employer_user_id'. Note that parameters are described in
   /// EthlanceJob contract.
-  function createJobStore(uint8 bid_option,
-                          uint estimated_length_seconds,
-                          bool include_ether_token,
-                          bool is_invitation_only,
+  function createJobStore(uint8 bidOption,
+                          uint estimatedLengthSeconds,
+                          bool includeEtherToken,
+                          bool isInvitationOnly,
                           string memory metahash,
-                          uint reward_value)
+                          uint rewardValue)
     public {
     require(registry.isRegisteredEmployer(msg.sender),
             "You are not a registered employer.");
@@ -48,19 +47,19 @@ contract EthlanceJobFactory {
     // Permit JobStore to fire registry events
     registry.permitDispatch(address(fwd));
 
-    uint job_index = registry.pushJobStore(address(jobStore));
-    jobStore.construct(job_index,
+    uint jobIndex = registry.pushJobStore(address(jobStore));
+    jobStore.construct(jobIndex,
                        msg.sender,
-                       bid_option,
-                       estimated_length_seconds,
-                       include_ether_token,
-                       is_invitation_only,
+                       bidOption,
+                       estimatedLengthSeconds,
+                       includeEtherToken,
+                       isInvitationOnly,
                        metahash,
-                       reward_value);
+                       rewardValue);
   
     // Create and Fire off event data
     uint[] memory edata = new uint[](1);
-    edata[0] = job_index;
+    edata[0] = jobIndex;
     fireEvent("JobStoreCreated", edata);
   }
 
