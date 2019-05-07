@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.availability
+(ns ethlance.shared.enumeration.availability
   (:require
    [ethlance.shared.enumeration :as enum]))
 

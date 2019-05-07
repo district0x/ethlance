@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.contract-status
+(ns ethlance.shared.enumeration.contract-status
   (:require
    [ethlance.shared.enumeration :as enum]))
 

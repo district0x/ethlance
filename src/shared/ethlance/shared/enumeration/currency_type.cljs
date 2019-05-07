@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.currency-type
+(ns ethlance.shared.enumeration.currency-type
   "Represents an enumeration type for currency."
   (:require
    [ethlance.shared.enumeration :as enum]))

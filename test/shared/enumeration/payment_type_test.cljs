@@ -1,7 +1,7 @@
-(ns ethlance.shared.enum.payment-type-test
+(ns ethlance.shared.enumeration.payment-type-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [ethlance.shared.enum.payment-type :as enum.payment]))
+   [ethlance.shared.enumeration.payment-type :as enum.payment]))
 
 
 (deftest payment-type-tests

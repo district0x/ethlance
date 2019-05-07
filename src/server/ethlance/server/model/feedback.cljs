@@ -8,7 +8,7 @@
    [taoensso.timbre :as log]
    [honeysql.core :as sql]
    [ethlance.server.db :as ethlance.db]
-   [ethlance.shared.enum.user-type :as enum.user-type]
+   [ethlance.shared.enumeration.user-type :as enum.user-type]
 
    ;; Includes additional spec namespaces
    [ethlance.shared.spec :as espec]))

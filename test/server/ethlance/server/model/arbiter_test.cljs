@@ -11,8 +11,8 @@
    [ethlance.server.model.user :as user]
    [ethlance.server.model.arbiter :as arbiter]
    [ethlance.server.test-utils.db :refer [deftest-database] :include-macros true]
-   [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.currency-type :as enum.currency]))
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]))
 
 
 (deftest-database main-arbiter-model {}

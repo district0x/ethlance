@@ -4,7 +4,7 @@
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
    [ethlance.shared.async-utils :refer [<!-<throw <!-<log <ignore-<! go-try] :include-macros true]
    [ethlance.server.contract]))
 

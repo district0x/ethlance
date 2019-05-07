@@ -5,8 +5,8 @@
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
-   [ethlance.shared.enum.user-type :as enum.user-type]
-   [ethlance.shared.enum.comment-type :as enum.comment-type]
+   [ethlance.shared.enumeration.user-type :as enum.user-type]
+   [ethlance.shared.enumeration.comment-type :as enum.comment-type]
    [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
    [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
    [ethlance.server.contract]))

@@ -1,7 +1,7 @@
-(ns ethlance.shared.enum.bid-option-test
+(ns ethlance.shared.enumeration.bid-option-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]))
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]))
 
 
 (deftest bid-option-tests

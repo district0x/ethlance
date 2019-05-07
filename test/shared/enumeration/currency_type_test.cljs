@@ -1,7 +1,7 @@
-(ns ethlance.shared.enum.currency-type-test
+(ns ethlance.shared.enumeration.currency-type-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [ethlance.shared.enum.currency-type :as enum.currency]))
+   [ethlance.shared.enumeration.currency-type :as enum.currency]))
 
 
 (deftest currency-type-tests

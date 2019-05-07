@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.comment-type
+(ns ethlance.shared.enumeration.comment-type
   (:require
    [ethlance.shared.enumeration :as enum]))
 

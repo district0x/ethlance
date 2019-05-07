@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.boolean
+(ns ethlance.shared.enumeration.boolean
   "Represents an enumeration type for a boolean value"
   (:require
    [ethlance.shared.enumeration :as enum]))

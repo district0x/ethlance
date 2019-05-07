@@ -11,9 +11,9 @@
    [ethlance.server.model.user :as user]
    [ethlance.server.model.employer :as employer]
    [ethlance.server.test-utils.db :refer [deftest-database] :include-macros true]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.boolean :as enum.boolean]
-   [ethlance.shared.enum.contract-status :as enum.status]))
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.boolean :as enum.boolean]
+   [ethlance.shared.enumeration.contract-status :as enum.status]))
 
 
 (deftest-database main-employer-model {}

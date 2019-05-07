@@ -1,7 +1,7 @@
-(ns ethlance.shared.enum.contract-status-test
+(ns ethlance.shared.enumeration.contract-status-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [ethlance.shared.enum.contract-status :as enum.status]))
+   [ethlance.shared.enumeration.contract-status :as enum.status]))
 
 
 (deftest contract-status-tests

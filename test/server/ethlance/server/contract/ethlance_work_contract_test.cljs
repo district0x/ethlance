@@ -20,10 +20,10 @@
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract-go]]
    [ethlance.server.contract.test-generators :as test-gen]
 
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.contract-status :as enum.status]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.contract-status :as enum.status]
    [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]))
 
 

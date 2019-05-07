@@ -12,11 +12,11 @@
    [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
 
    ;; Enums
-   [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.comment-type :as enum.comment-type]
-   [ethlance.shared.enum.user-type :as enum.user-type]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.comment-type :as enum.comment-type]
+   [ethlance.shared.enumeration.user-type :as enum.user-type]
 
    ;; Ethlance Models
    [ethlance.server.model.job :as model.job]

@@ -36,10 +36,10 @@
 
    [ethlance.shared.random-test]
    [ethlance.shared.spec-utils-test]
-   [ethlance.shared.enum.currency-type-test]
-   [ethlance.shared.enum.payment-type-test]
-   [ethlance.shared.enum.bid-option-test]
-   [ethlance.shared.enum.contract-status-test]))
+   [ethlance.shared.enumeration.currency-type-test]
+   [ethlance.shared.enumeration.payment-type-test]
+   [ethlance.shared.enumeration.bid-option-test]
+   [ethlance.shared.enumeration.contract-status-test]))
 
 
 (defn run-test

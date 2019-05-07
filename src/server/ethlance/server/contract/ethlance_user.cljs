@@ -5,8 +5,8 @@
    [cljs-web3.eth :as web3-eth]
    [clojure.core.async :refer [go go-loop <! >! chan close!] :include-macros true]
    [district.server.smart-contracts :as contracts]
-   [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.server.contract]
    [ethlance.shared.async-utils :refer [<!-<throw go-try] :include-macros true]))
 

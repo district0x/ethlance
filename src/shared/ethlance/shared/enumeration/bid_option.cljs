@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.bid-option
+(ns ethlance.shared.enumeration.bid-option
   (:require
    [ethlance.shared.enumeration :as enum]))
 

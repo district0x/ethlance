@@ -5,10 +5,10 @@
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
-   [ethlance.shared.enum.availability :as enum.availability]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.boolean :as enum.boolean]
-   [ethlance.shared.enum.contract-status :as enum.status]
+   [ethlance.shared.enumeration.availability :as enum.availability]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.boolean :as enum.boolean]
+   [ethlance.shared.enumeration.contract-status :as enum.status]
    [ethlance.shared.async-utils :refer [<!-<throw <!-<log <ignore-<! go-try] :include-macros true]
    [ethlance.server.contract]))
 

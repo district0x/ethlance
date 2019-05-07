@@ -6,7 +6,7 @@
    [ethlance.server.contract.ethlance-user :as user]
    [ethlance.server.contract.ethlance-job-factory :as job-factory]
    [ethlance.server.contract.ethlance-job-store :as job-store]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]))
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]))
 
   
 (defn register-user!

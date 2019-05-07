@@ -8,10 +8,10 @@
    [taoensso.timbre :as log]
    [honeysql.core :as sql]
    [ethlance.server.db :as ethlance.db]
-   [ethlance.shared.enum.availability :as enum.availability]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.boolean :as enum.boolean]
-   [ethlance.shared.enum.contract-status :as enum.status]
+   [ethlance.shared.enumeration.availability :as enum.availability]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.boolean :as enum.boolean]
+   [ethlance.shared.enumeration.contract-status :as enum.status]
 
    ;; Includes additional spec namespaces
    [ethlance.shared.spec :as espec]))

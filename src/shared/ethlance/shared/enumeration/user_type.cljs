@@ -1,4 +1,4 @@
-(ns ethlance.shared.enum.user-type
+(ns ethlance.shared.enumeration.user-type
   (:require
    [ethlance.shared.enumeration :as enum]))
 

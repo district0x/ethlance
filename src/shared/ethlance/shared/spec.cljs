@@ -3,12 +3,12 @@
   (:require
    [bignumber.core :as bn]
    [clojure.spec.alpha :as s]
-   [ethlance.shared.enum.currency-type :refer [enum-currency]]
-   [ethlance.shared.enum.bid-option :refer [enum-bid]]
-   [ethlance.shared.enum.contract-status :refer [enum-status]]
-   [ethlance.shared.enum.payment-type :refer [enum-payment]]
-   [ethlance.shared.enum.availability :refer [enum-availability]]
-   [ethlance.shared.enum.user-type :refer [enum-user-type]]))
+   [ethlance.shared.enumeration.currency-type :refer [enum-currency]]
+   [ethlance.shared.enumeration.bid-option :refer [enum-bid]]
+   [ethlance.shared.enumeration.contract-status :refer [enum-status]]
+   [ethlance.shared.enumeration.payment-type :refer [enum-payment]]
+   [ethlance.shared.enumeration.availability :refer [enum-availability]]
+   [ethlance.shared.enumeration.user-type :refer [enum-user-type]]))
 
 
 ;;

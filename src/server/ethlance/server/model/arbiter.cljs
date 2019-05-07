@@ -9,8 +9,8 @@
    [district.server.db :as district.db]
    [taoensso.timbre :as log]
    [ethlance.server.db :as ethlance.db]
-   [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
 
    ;; Includes additional spec namespaces
    [ethlance.shared.spec :as espec]))

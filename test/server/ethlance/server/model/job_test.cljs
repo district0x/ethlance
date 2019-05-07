@@ -14,12 +14,12 @@
    [ethlance.server.model.employer :as employer]
    [ethlance.server.model.job :as job]
    [ethlance.server.test-utils.db :refer [deftest-database] :include-macros true]
-   [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.boolean :as enum.boolean]
-   [ethlance.shared.enum.contract-status :as enum.status]
-   [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.availability :as enum.availability]))
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.boolean :as enum.boolean]
+   [ethlance.shared.enumeration.contract-status :as enum.status]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.availability :as enum.availability]))
 
 
 (deftest-database main-job-model {}

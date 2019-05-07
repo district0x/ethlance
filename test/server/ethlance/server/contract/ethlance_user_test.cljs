@@ -16,9 +16,9 @@
    [ethlance.server.contract.ds-guard :as ds-guard]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract-go]]
 
-   [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
    [ethlance.shared.async-utils :refer [<!-<throw <!-<log <ignore-<! go-try] :include-macros true]))
 
 

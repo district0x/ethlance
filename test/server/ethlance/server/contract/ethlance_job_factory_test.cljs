@@ -18,9 +18,9 @@
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract-go]]
    [ethlance.server.contract.test-generators :as test-gen]
 
-   [ethlance.shared.enum.bid-option :as enum.bid-option]
-   [ethlance.shared.enum.currency-type :as enum.currency]
-   [ethlance.shared.enum.payment-type :as enum.payment]
+   [ethlance.shared.enumeration.bid-option :as enum.bid-option]
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.enumeration.payment-type :as enum.payment]
    [ethlance.shared.async-utils :refer [<!-<throw <!-<log <ignore-<! go-try] :include-macros true]))
 
 
