@@ -1,6 +1,8 @@
 # ethlance
 
-Repository for [ethlance.com](http://ethlance.com) 
+[![Build Status](https://travis-ci.org/district0x/ethlance.svg?branch=master)](https://travis-ci.org/district0x/ethlance)
+
+Repository for [ethlance.com](http://ethlance.com)
 
 Ethlance is the first job market platform written in [ClojureScript](https://clojurescript.org/) and [Solidity](https://solidity.readthedocs.io/en/develop/) working completely on the [Ethereum](https://ethereum.org/) blockchain with 0% service fees.
 
