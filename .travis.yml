@@ -3,7 +3,7 @@ script: lein test
 notifications:
   email:
   recipients:
-    - juan@district0x.io
+  - juan@district0x.io
   slack:
     on_success: always
     on_failure: always
@@ -13,8 +13,12 @@ before_install:
 - sudo wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.4.24/solc-static-linux
 - sudo chmod a+x /bin/solc-static-linux
 - sudo ln -s /bin/solc-static-linux /usr/bin/solc
+env:
+  global:
+  - secure: BAJBEjtU0qQHGqdm/GO3pXHMNcPcAvBItNE5s8t7F4fgRW7IFb9aQYFGHWykfoI5LpE+awgNdFWyRxA4xCZivNMrX3zDnehNsa2tBvj4D2VLNUkdAUfMUJmv8/Siz1nNjxapCg2YMslhH/x3xu11uh31KP/ZI0/3vkiuLP/+j9Ci4EicHPO3fuzRq0ABj6AdIZXlAExMqvZJ68vU+RfvdS2AQa0iIl/gDGLwpOri5OXhDnY8NsB/0yIYxRfs6eNiCoN7yoDZPnRYqnIomyA/oZL3Zcn1cPhFjM+efkToOva+DIBoXaHDqlTN4PyuQ6fvxxF127BYPbELaebp4KqgsNEpq72LaGfUwNcTnZWb/APTCb0DfKYOxW5pdmLZHZ0KLnFs7i3G2qSPXFWwBg67f6v/6EguLES95CuF6z/nVH2LJD64PXPE++K6iX3Y7aDjKzGuMk10CQLviz8BgrD/97BPt1tIQOPECSDIkY/oTKZXdIOduUOIr7i2QU5mWNrxi8j+VjCxYdixiscODBjdKTO+nino5uw2sVB3sILMnAoQr1Fn5dTGG3c8NPIWYl0MbbcOM1kc0H9WoJBaHZNvm/28Yxk9UoD0z9Mbr4E9EHT/5bInDMrHrq1E0fGS6jNYoalCVO+e35yLiRZG9cir9NJC2XdzXELt+WXmWMvpQMc=
+  - secure: dMoPR6/eMTZmWu8Y6huYBGl7KhbINE2fMtEWy5qOlmw/1l1yCohJTQKca0sYQLFsgZh3LjqZjXIZRNctQn1OUsGkOLvc1b/4T1zzjcQrrHOVZDU+j9+QXUycXWr1KN6YQzZ7kj7JoAhS3NDa0WVZ/v++IbJO5QpwT5+Wh2/p54l1xMcjD1iYZwyf85uvEmLdA7nLdw7vdfIbDkqWMN/pw8b0+XYVRjZ2sUabBQ2UvXchYP2XSyW0IrLPC6r5tHXV6TjvZFLpl9zJ3dznT7XF5qNKGiso8fSP8un8BKtGCyUniIQjUny9/IAgkApIBM66pYzhrAgxvn7sURLYr0EDoPN4NHpNzSQKbl9fQ/zIia/32H6lBsPCl2upApWQ/NjsQ63vgQMMkavkqjiAirMMYrZ4i4m01MfH4s4KBoXAQoqovE92fvdaD7kgVc9dtWHUIhHNt7OBKU+vkv+u5Ugu2xKfoiH9llZD9bZ9Uib5ZglA9SgJ+WM6Oqp42Q+yWyxzW+U88DkOAJJXZuTbVAhBzVuYAAW/QGMmdikIYYJ87bfiIlkdaQXH4ipgGdqFkH66aJZcBW2v+aI9ePm3rw7vlNxrEizQbItj7kgrS6jAyIBfeT1/KBJjDP5M2MOyC11erLHxPjbwSddoqLHQcvoTg4JCobaCbZSbRkUqDbQWCzY=
 services:
-  - docker
+- docker
 deploy:
 - provider: script
   script: bash docker-push.sh prod
