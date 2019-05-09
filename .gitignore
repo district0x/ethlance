@@ -1,8 +1,10 @@
 /*.log
 /target
 /ethlance.iml
-/resources/public/contracts/build/*.bin
+/resources/public/contracts/build/
 /resources/public/js/compiled
+/resources/public/css/
 /.idea
 /.lein-repl-history
+.lein-failures
 /.nrepl-port

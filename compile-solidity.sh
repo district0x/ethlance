@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+mkdir -p resources/public/contracts/build
 cd resources/public/contracts/src
 
 #/Users/matus/Downloads/solidity/build/solc/solc --optimize --bin --abi ethlanceUser.sol -o ../build/

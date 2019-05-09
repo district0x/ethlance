@@ -1,1 +1,0 @@
-[{"constant":false,"inputs":[],"name":"nameRegAddress","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"}],"name":"named","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"}]

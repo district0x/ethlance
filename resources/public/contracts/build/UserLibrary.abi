@@ -1,1 +1,0 @@
-[{"constant":false,"inputs":[{"name":"db","type":"address"},{"name":"userId","type":"address"},{"name":"rating","type":"uint8"}],"name":"addToEmployerAvgRating","outputs":[],"payable":false,"type":"function"}]

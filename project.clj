@@ -36,7 +36,7 @@
 
   :source-paths ["src/clj" "src/cljs"]
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css" "target"]
 
   :figwheel {:css-dirs ["resources/public/css"]
              :server-port 6229}
