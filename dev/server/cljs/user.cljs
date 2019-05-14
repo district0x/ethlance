@@ -50,7 +50,7 @@
   (restart)                       ;; Restarts the state components (reloaded workflow)
 
   -- Development Helpers --
-  (run-tests :reset? [false])     ;; Run the Server Tests (:reset? reset the testnet snapshot)
+  (run-tests)                     ;; Run the Server Tests (:reset? reset the testnet snapshot)
   (reset-testnet!)                ;; Reset the testnet snapshot
   (repopulate-database!)          ;; Resynchronize Smart Contract Events into the Database
   (restart-graphql!)              ;; Restart/Reload GraphQL Schema and Resolvers
@@ -144,10 +144,9 @@
 
    Note: This will perform several smart contract redeployments with
   test defaults."
-  [& {:keys [reset?]}]
+  []
   (log/info "Started Running Tests!")
-  (when reset? (server.test-utils/reset-testnet!))
-  (server.test-runner/run-tests)
+  (server.test-runner/run-all-tests)
   (log/info "Finished Running Tests!"))
 
 
@@ -156,9 +155,9 @@
   
    Note: This will perform several smart contract redeployments with
   test defaults."
-  [& {:keys [reset?]}]
+  []
   (log/info "Running Server Tests Asynchronously...")
-  (.nextTick js/process #(run-tests-sync :reset? reset?)))
+  (.nextTick js/process run-tests-sync))
 
 
 (defn enable-instrumentation!
