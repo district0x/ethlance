@@ -1,6 +1,7 @@
 /*.log
 /target
 /ethlance.iml
+/resources/public/contracts
 /resources/public/contracts/build/*.bin
 /resources/public/js/compiled
 /resources/public/css

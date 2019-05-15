@@ -5,7 +5,7 @@
 const {copy, smartContractsTemplate} = require("./utils.js");
 const fs = require("fs");
 const edn = require("jsedn");
-const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle.js");
+const {env, contracts_build_directory, smart_contracts_path, parameters, encodeContractEDN} = require("../truffle.js");
 
 
 /*
@@ -25,17 +25,48 @@ function requireContract(contract_name) {
 let DSGuard = requireContract("DSGuard");
 
 
-
 /*
   Performs a deployment of the DSGuard
  */
-function deploy_DSGuard(deployer, opts) {
-  return deployer.deploy(DSGuard, opts);
+async function deploy_DSGuard(deployer, opts) {
+  let instance = await deployer.deploy(DSGuard, opts);
+
+  console.log("DSGuard Instance", instance);
+
+  // Set DSGuard Authority
+  console.log("Setting DSGuard Authority...");
+  await instance.setAuthority(instance.address, Object.assign(opts, {gas: 500000}));
+  
+  // Attach to our smart contract listings
+  await DSGuard.deployed();
+  assignContract(instance, "DSGuard");
 }
 
 
-function deploy_all(deployer, opts) {
-  return deploy_DSGuard(deployer, opts);
+let smart_contract_listing = [];
+/*
+  Concatenate the given contract to our smart contract listing.
+ */
+function assignContract(contract_instance, contract_name) {
+  console.log("- Assigning '" + contract_name + "' to smart contract listing...");
+  smart_contract_listing.concat(encodeContractEDN(contract_instance, contract_name));
+}
+
+/*
+  Write out our smart contract listing to the file defined by `smart_contracts_path`
+ */
+function writeSmartContracts() {
+  let smart_contracts = edn.encode(edn.Map(smart_contract_listing));
+  console.log("Writing to smart contract file: " + smart_contracts_path + " ...");
+  fs.writeFileSync(smart_contracts_path, smartContractsTemplate(smart_contracts, env));
+}
+
+/*
+  Deploy All Ethlance Contracts
+ */
+async function deploy_all(deployer, opts) {
+  await deploy_DSGuard(deployer, opts);
+  writeSmartContracts();
 }
 
 
@@ -47,9 +78,11 @@ module.exports = function(deployer, network, accounts) {
   deployer.then(() => {
     console.log("@@@ using Web3 version:", web3.version.api);
     console.log("@@@ using address", address);
-  });
+  }).catch(console.error);
 
   deploy_all(deployer, opts).then(() => {
     console.log("Finished Deployment!");
-  });
+  }).catch(console.error);
+
+  
 };

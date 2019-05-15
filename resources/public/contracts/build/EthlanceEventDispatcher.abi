@@ -1,1 +1,0 @@
-[{"anonymous":false,"inputs":[{"indexed":true,"name":"eventSender","type":"address"},{"indexed":false,"name":"eventName","type":"string"},{"indexed":false,"name":"eventVersion","type":"uint256"},{"indexed":false,"name":"timestamp","type":"uint256"},{"indexed":false,"name":"eventData","type":"uint256[]"}],"name":"EthlanceEvent","type":"event"}]

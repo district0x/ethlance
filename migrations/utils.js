@@ -58,13 +58,13 @@ let toSnakeCase= (s) => {
 
 let encodeContractEDN = (contract_instance, contract_name) => {
   const clj_contract_name = ":" + toSnakeCase(contract_name);
-  return new edn.Map([
+  return [
     edn.kw(clj_contract_name),
     new edn.Map([
       edn.kw(":name"), contract_name,
       edn.kw(":address"), contract_instance.address,
     ]),
-  ]);
+  ];
 };
 
 
