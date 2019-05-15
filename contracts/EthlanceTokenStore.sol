@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
-import "token/IERC20.sol";
+import "./token/IERC20.sol";
 
 
 /// @title Used to store general ERC20 token contracts.

@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
-import "DSAuth.sol";
-import "proxy/MutableForwarder.sol";
+import "./DSAuth.sol";
+import "./proxy/MutableForwarder.sol";
 import "./EthlanceUser.sol";
 
 /*

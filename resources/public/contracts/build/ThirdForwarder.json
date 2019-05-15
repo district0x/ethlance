@@ -1,0 +1,520 @@
+{
+  "contractName": "ThirdForwarder",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "target",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.0+commit.1d4f565a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"target\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/proxy/ThirdForwarder.sol\":\"ThirdForwarder\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol\":{\"keccak256\":\"0x1a0a858c7618d51c714d1bf9e86ace7c85305c7dbad48ca5b1402de31b640d1b\",\"urls\":[\"bzzr://d301fa78bb3ca5eedbc853484710c286565154823c8831046eb29ca66694c4c6\"]},\"/home/benzap/projects/ethlance/contracts/proxy/ThirdForwarder.sol\":{\"keccak256\":\"0xaffceb162310c85b246e82926243412d8cf7f93bf5ae74dae0b39d3755a1a0ad\",\"urls\":[\"bzzr://c47710e44d4d990e33e4ba38baa1f7e3431683bd58b71a8a373ff72e0537efb1\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610192806100206000396000f3fe608060405260043610610041576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063d4b83992146100a6575b6100a473dbdadbadbabdabdbadabdbafffd1234fdfadbccc6000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f820116905080830192505050505050506100fd565b005b3480156100b257600080fd5b506100bb61013b565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b61010682610153565b151561011157600080fd5b600080825160208401856127105a03f43d604051816000823e8260008114610137578282f35b8282fd5b73dbdadbadbabdabdbadabdbafffd1234fdfadbccc81565b600080823b90506000811191505091905056fea165627a7a723058207a075bd687fc3c7a74bc8335afe0dd449ce765ff34ed95a518359cbe696d1edb0029",
+  "deployedBytecode": "0x608060405260043610610041576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063d4b83992146100a6575b6100a473dbdadbadbabdabdbadabdbafffd1234fdfadbccc6000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f820116905080830192505050505050506100fd565b005b3480156100b257600080fd5b506100bb61013b565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b61010682610153565b151561011157600080fd5b600080825160208401856127105a03f43d604051816000823e8260008114610137578282f35b8282fd5b73dbdadbadbabdabdbadabdbafffd1234fdfadbccc81565b600080823b90506000811191505091905056fea165627a7a723058207a075bd687fc3c7a74bc8335afe0dd449ce765ff34ed95a518359cbe696d1edb0029",
+  "sourceMap": "63:389:21:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;63:389:21;;;;;;;",
+  "deployedSourceMap": "63:389:21:-;;;;;;;;;;;;;;;;;;;;;415:30;251:42;436:8;;415:30;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;30:3:-1;22:6;14;1:33;99:1;93:3;85:6;81:16;74:27;137:4;133:9;126:4;121:3;117:14;113:30;106:37;;169:3;161:6;157:16;147:26;;415:30:21;;;;;;:12;:30::i;:::-;63:389;218:75;;8:9:-1;5:2;;;30:1;27;20:12;5:2;218:75:21;;;;;;;;;;;;;;;;;;;;;;;;;;;302:582:16;385:16;396:4;385:10;:16::i;:::-;377:25;;;;;;;;518:1;515;503:9;497:16;490:4;479:9;475:20;469:4;461:5;456:3;452:15;439:81;541:14;582:4;576:11;619:4;616:1;611:3;596:28;806:6;818:1;813:26;;;;868:4;863:3;855:18;813:26;833:4;828:3;821:17;218:75:21;251:42;218:75;:::o;888:154:16:-;948:4;960:12;1008:7;996:20;988:28;;1036:1;1029:4;:8;1022:15;;;888:154;;;:::o",
+  "source": "pragma solidity ^0.5.0;\n\nimport \"../proxy/DelegateProxy.sol\";\n\ncontract ThirdForwarder is DelegateProxy {\n  // After compiling contract, the address placeholder is replaced in the bytecode by the real target address\n  address public constant target = 0xdBDadBADbabDABdbadabdbaFffD1234fDfAdBcCc; // checksumed to silence warning\n\n  /*\n   * @dev Forwards all calls to target\n   */\n  function() external payable {\n    delegatedFwd(target, msg.data);\n  }\n}\n",
+  "sourcePath": "/home/benzap/projects/ethlance/contracts/proxy/ThirdForwarder.sol",
+  "ast": {
+    "absolutePath": "/home/benzap/projects/ethlance/contracts/proxy/ThirdForwarder.sol",
+    "exportedSymbols": {
+      "ThirdForwarder": [
+        5934
+      ]
+    },
+    "id": 5935,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5917,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:21"
+      },
+      {
+        "absolutePath": "/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol",
+        "file": "../proxy/DelegateProxy.sol",
+        "id": 5918,
+        "nodeType": "ImportDirective",
+        "scope": 5935,
+        "sourceUnit": 5825,
+        "src": "25:36:21",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 5919,
+              "name": "DelegateProxy",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 5824,
+              "src": "90:13:21",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_DelegateProxy_$5824",
+                "typeString": "contract DelegateProxy"
+              }
+            },
+            "id": 5920,
+            "nodeType": "InheritanceSpecifier",
+            "src": "90:13:21"
+          }
+        ],
+        "contractDependencies": [
+          5824
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 5934,
+        "linearizedBaseContracts": [
+          5934,
+          5824
+        ],
+        "name": "ThirdForwarder",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "constant": true,
+            "id": 5923,
+            "name": "target",
+            "nodeType": "VariableDeclaration",
+            "scope": 5934,
+            "src": "218:75:21",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 5921,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "218:7:21",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "307864424461644241446261624441426462616461626462614666664431323334664466416442634363",
+              "id": 5922,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "251:42:21",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_address_payable",
+                "typeString": "address payable"
+              },
+              "value": "0xdBDadBADbabDABdbadabdbaFffD1234fDfAdBcCc"
+            },
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 5932,
+              "nodeType": "Block",
+              "src": "409:41:21",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 5927,
+                        "name": "target",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 5923,
+                        "src": "428:6:21",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 5928,
+                          "name": "msg",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 6037,
+                          "src": "436:3:21",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_magic_message",
+                            "typeString": "msg"
+                          }
+                        },
+                        "id": 5929,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "data",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "436:8:21",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes calldata"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes calldata"
+                        }
+                      ],
+                      "id": 5926,
+                      "name": "delegatedFwd",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 5807,
+                      "src": "415:12:21",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_bytes_memory_ptr_$returns$__$",
+                        "typeString": "function (address,bytes memory)"
+                      }
+                    },
+                    "id": 5930,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "415:30:21",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 5931,
+                  "nodeType": "ExpressionStatement",
+                  "src": "415:30:21"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 5933,
+            "implemented": true,
+            "kind": "fallback",
+            "modifiers": [],
+            "name": "",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5924,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "389:2:21"
+            },
+            "returnParameters": {
+              "id": 5925,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "409:0:21"
+            },
+            "scope": 5934,
+            "src": "381:69:21",
+            "stateMutability": "payable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "scope": 5935,
+        "src": "63:389:21"
+      }
+    ],
+    "src": "0:453:21"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/benzap/projects/ethlance/contracts/proxy/ThirdForwarder.sol",
+    "exportedSymbols": {
+      "ThirdForwarder": [
+        5934
+      ]
+    },
+    "id": 5935,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5917,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:21"
+      },
+      {
+        "absolutePath": "/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol",
+        "file": "../proxy/DelegateProxy.sol",
+        "id": 5918,
+        "nodeType": "ImportDirective",
+        "scope": 5935,
+        "sourceUnit": 5825,
+        "src": "25:36:21",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 5919,
+              "name": "DelegateProxy",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 5824,
+              "src": "90:13:21",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_DelegateProxy_$5824",
+                "typeString": "contract DelegateProxy"
+              }
+            },
+            "id": 5920,
+            "nodeType": "InheritanceSpecifier",
+            "src": "90:13:21"
+          }
+        ],
+        "contractDependencies": [
+          5824
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 5934,
+        "linearizedBaseContracts": [
+          5934,
+          5824
+        ],
+        "name": "ThirdForwarder",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "constant": true,
+            "id": 5923,
+            "name": "target",
+            "nodeType": "VariableDeclaration",
+            "scope": 5934,
+            "src": "218:75:21",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 5921,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "218:7:21",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "307864424461644241446261624441426462616461626462614666664431323334664466416442634363",
+              "id": 5922,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "251:42:21",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_address_payable",
+                "typeString": "address payable"
+              },
+              "value": "0xdBDadBADbabDABdbadabdbaFffD1234fDfAdBcCc"
+            },
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 5932,
+              "nodeType": "Block",
+              "src": "409:41:21",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 5927,
+                        "name": "target",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 5923,
+                        "src": "428:6:21",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 5928,
+                          "name": "msg",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 6037,
+                          "src": "436:3:21",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_magic_message",
+                            "typeString": "msg"
+                          }
+                        },
+                        "id": 5929,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "data",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "436:8:21",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes calldata"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_bytes_calldata_ptr",
+                          "typeString": "bytes calldata"
+                        }
+                      ],
+                      "id": 5926,
+                      "name": "delegatedFwd",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 5807,
+                      "src": "415:12:21",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_bytes_memory_ptr_$returns$__$",
+                        "typeString": "function (address,bytes memory)"
+                      }
+                    },
+                    "id": 5930,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "415:30:21",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 5931,
+                  "nodeType": "ExpressionStatement",
+                  "src": "415:30:21"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 5933,
+            "implemented": true,
+            "kind": "fallback",
+            "modifiers": [],
+            "name": "",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5924,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "389:2:21"
+            },
+            "returnParameters": {
+              "id": 5925,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "409:0:21"
+            },
+            "scope": 5934,
+            "src": "381:69:21",
+            "stateMutability": "payable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "scope": 5935,
+        "src": "63:389:21"
+      }
+    ],
+    "src": "0:453:21"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.0.9",
+  "updatedAt": "2019-05-14T23:51:40.164Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}

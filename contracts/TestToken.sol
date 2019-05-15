@@ -7,8 +7,8 @@
 
 pragma solidity ^0.5.0;
 
-import "math/SafeMath.sol";
-import "token/IERC20.sol";
+import "./math/SafeMath.sol";
+import "./token/IERC20.sol";
 
 /// @title ERC20 Token Implementation for testing purposes
 contract TestToken is IERC20 {

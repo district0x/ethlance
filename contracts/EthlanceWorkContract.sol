@@ -8,11 +8,11 @@ import "./EthlanceDispute.sol";
 import "./EthlanceInvoice.sol";
 import "./EthlanceFeedback.sol";
 import "./EthlanceComment.sol";
-import "proxy/MutableForwarder.sol";
-import "proxy/Forwarder.sol";       // target(EthlanceInvoice)
-import "proxy/SecondForwarder.sol"; // target(EthlanceDispute)
-import "proxy/ThirdForwarder.sol";  // target(EthlanceComment)
-import "proxy/FourthForwarder.sol"; // target(EthlanceFeedback)
+import "./proxy/MutableForwarder.sol";
+import "./proxy/Forwarder.sol";       // target(EthlanceInvoice)
+import "./proxy/SecondForwarder.sol"; // target(EthlanceDispute)
+import "./proxy/ThirdForwarder.sol";  // target(EthlanceComment)
+import "./proxy/FourthForwarder.sol"; // target(EthlanceFeedback)
 
 
 /// @title Work Contract to tie candidates, employers, and arbiters to

@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "proxy/MutableForwarder.sol";
+import "./proxy/MutableForwarder.sol";
 import "./EthlanceRegistry.sol";
 import "./EthlanceFeedback.sol";
 

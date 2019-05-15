@@ -4,8 +4,8 @@ import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
 import "./EthlanceComment.sol";
 import "./EthlanceFeedback.sol";
-import "proxy/Forwarder.sol";       // target(EthlanceComment)
-import "proxy/SecondForwarder.sol"; // target(EthlanceFeedback)
+import "./proxy/Forwarder.sol";       // target(EthlanceComment)
+import "./proxy/SecondForwarder.sol"; // target(EthlanceFeedback)
 
 
 /// @title Represents a Employer / Candidate work dispute

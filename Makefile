@@ -5,10 +5,15 @@
 .PHONY: fig-dev-all fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build-css build
 .PHONY: watch-contracts watch-tests watch-css
-.PHONY: testnet ipfs docs
+.PHONY: deploy testnet ipfs docs
 .PHONY: run
 .PHONY: deps test travis-test
 .PHONY: check clean clean-all
+
+
+ETHLANCE_ENV := dev # dev, qa, prod
+ETHEREUM_NETWORK := ganache # ganache, parity
+
 
 help:
 	@echo "Ethlance Development and Production Build Makefile"
@@ -25,10 +30,11 @@ help:
 	@echo "  watch-tests             :: Start and watch Server tests."
 	@echo "  watch-css               :: Start and watch CSS Stylesheet Generation (LESS)."
 	@echo "  --"
+	@echo "  deploy                  :: Deploy Smart Contracts using truffle."
 	@echo "  testnet                 :: Start the Testnet server."
 	@echo "  ipfs                    :: Start the IPFS daemon."
 	@echo "  --"
-	@echo "  docs                    :: Generate Documentation"
+	@echo "  docs                    :: Generate Documentation."
 	@echo ""
 	@echo "Production Commands:"
 	@echo "  build                   :: Perform Production Build of Ethlance."
@@ -45,8 +51,8 @@ help:
 	@echo "  test                    :: Run Server Tests (once)."
 	@echo ""
 	@echo "Misc Commands:"
-	@echo "  deps                    :: Pull and Install third-party dependencies"
-	@echo "  check                   :: Checks the status of required pre-requisites"
+	@echo "  deps                    :: Pull and Install third-party dependencies."
+	@echo "  check                   :: Checks the status of required pre-requisites."
 	@echo "  clean                   :: Clean out build artifacts."
 	@echo "  clean-all               :: Clean out more build artifacts."
 	@echo "  help                    :: Display this help message."
@@ -128,6 +134,10 @@ run:
 
 ipfs:
 	ipfs daemon
+
+
+deploy:
+	truffle migrate --network $(ETHEREUM_NETWORK) --reset
 
 
 testnet:

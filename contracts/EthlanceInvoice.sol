@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 import "./EthlanceRegistry.sol";
 import "./EthlanceWorkContract.sol";
 import "./EthlanceComment.sol";
-import "proxy/Forwarder.sol";
+import "./proxy/Forwarder.sol";
 
 
 /// @title Represents a Candidate Invoice for work

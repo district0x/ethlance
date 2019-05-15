@@ -2,8 +2,8 @@ pragma solidity ^0.5.0;
 
 import "./EthlanceRegistry.sol";
 import "./EthlanceUser.sol";
-import "proxy/MutableForwarder.sol";
-import "proxy/Forwarder.sol";
+import "./proxy/MutableForwarder.sol";
+import "./proxy/Forwarder.sol";
 
 /// @title Ethlance User Factory
 /// @dev Used for the creation of users, along with the relation to
