@@ -19,13 +19,6 @@ function requireContract(contract_name) {
 }
 
 
-function deployContract(deployer, contract_artifact, opts) {
-  return new Promise(resolve => {
-    deployer.deploy(contract_artifact, opts).then(instance => resolve(instance));
-  });
-}
-
-
 //
 // Contract Artifacts
 //
@@ -36,15 +29,15 @@ let DSGuard = requireContract("DSGuard");
   Performs a deployment of the DSGuard
  */
 async function deploy_DSGuard(deployer, opts) {
-  let instance = await deployContract(deployer, DSGuard, opts);
+  await deployer.deploy(DSGuard, opts);
+  const instance = await DSGuard.deployed();
 
   // Set DSGuard Authority
   console.log("Setting DSGuard Authority...");
   await instance.setAuthority(instance.address, Object.assign(opts, {gas: 500000}));
   
   // Attach to our smart contract listings
-  await DSGuard.deployed();
-  assignContract(instance, "DSGuard");
+  assignContract(instance, "DSGuard", "ds-guard");
 }
 
 
@@ -52,16 +45,18 @@ let smart_contract_listing = [];
 /*
   Concatenate the given contract to our smart contract listing.
  */
-function assignContract(contract_instance, contract_name) {
+function assignContract(contract_instance, contract_name, contract_key) {
   console.log("- Assigning '" + contract_name + "' to smart contract listing...");
-  smart_contract_listing.concat(encodeContractEDN(contract_instance, contract_name));
+  smart_contract_listing.concat(encodeContractEDN(contract_instance, contract_name, contract_key));
 }
 
 /*
   Write out our smart contract listing to the file defined by `smart_contracts_path`
  */
 function writeSmartContracts() {
-  let smart_contracts = edn.encode(edn.Map(smart_contract_listing));
+  console.log("Final Smart Contract Listing:");
+  console.log(smart_contract_listing);
+  const smart_contracts = edn.encode(new edn.Map(smart_contract_listing));
   console.log("Writing to smart contract file: " + smart_contracts_path + " ...");
   fs.writeFileSync(smart_contracts_path, smartContractsTemplate(smart_contracts, env));
 }
@@ -75,19 +70,23 @@ async function deploy_all(deployer, opts) {
 }
 
 
-module.exports = function(deployer, network, accounts) {
+module.exports = async function(deployer, network, accounts) {
   const address = accounts[0];
   const gas = 4e6;
   const opts = {gas: gas, from: address};
 
-  deployer.then(() => {
-    console.log("@@@ using Web3 version:", web3.version.api);
-    console.log("@@@ using address", address);
-  }).catch(console.error);
+  console.log("Ethlance Deployment Started...");
 
-  deploy_all(deployer, opts).then(() => {
-    console.log("Finished Deployment!");
-  }).catch(console.error);
+  await deployer;
+  console.log("@@@ using Web3 version:", web3.version.api);
+  console.log("@@@ using address", address);
 
-  
+  try {
+    await deploy_all(deployer, opts);
+    console.log("Ethlance Deployment Finished!");
+  }
+  catch(error) {
+    console.error("ERROR: There was a problem during deployment");
+    console.error(error);
+  }
 };

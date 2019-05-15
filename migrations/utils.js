@@ -38,31 +38,14 @@ let smartContractsTemplate = (map, env) => {
 };
 
 
-let toSnakeCase= (s) => {
-  let ss = s.substr(0, 1).toLowerCase();
-  for (c of s.substr(1)) {
-    if (c.match(/[A-Z]/)) {
-      ss += "-" + c.toLowerCase();
-    }
-    else if (c.match(/\s/)) {
-      ss += "-";
-    }
-    else {
-      ss += c;
-    }
-  }
-  
-  return ss;
-};
-
-
-let encodeContractEDN = (contract_instance, contract_name) => {
-  const clj_contract_name = ":" + toSnakeCase(contract_name);
+let encodeContractEDN = (contract_instance, contract_name, contract_key) => {
+  const clj_contract_name = ":" + contract_key;
+  const contract_address = contract_instance.address;
   return [
     edn.kw(clj_contract_name),
     new edn.Map([
       edn.kw(":name"), contract_name,
-      edn.kw(":address"), contract_instance.address,
+      edn.kw(":address"), contract_address,
     ]),
   ];
 };
@@ -73,6 +56,5 @@ module.exports = {
   copy: copy,
   linkBytecode: linkBytecode,
   smartContractsTemplate: smartContractsTemplate,
-  toSnakeCase: toSnakeCase,
   encodeContractEDN: encodeContractEDN,
 };
