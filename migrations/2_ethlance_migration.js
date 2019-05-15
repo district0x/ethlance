@@ -2,10 +2,10 @@
   Main Ethlance Deployment Script
  */
 
-const {copy, smartContractsTemplate} = require("./utils.js");
+const {copy, smartContractsTemplate, encodeContractEDN} = require("./utils.js");
 const fs = require("fs");
 const edn = require("jsedn");
-const {env, contracts_build_directory, smart_contracts_path, parameters, encodeContractEDN} = require("../truffle.js");
+const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle.js");
 
 
 /*
@@ -19,6 +19,13 @@ function requireContract(contract_name) {
 }
 
 
+function deployContract(deployer, contract_artifact, opts) {
+  return new Promise(resolve => {
+    deployer.deploy(contract_artifact, opts).then(instance => resolve(instance));
+  });
+}
+
+
 //
 // Contract Artifacts
 //
@@ -29,9 +36,7 @@ let DSGuard = requireContract("DSGuard");
   Performs a deployment of the DSGuard
  */
 async function deploy_DSGuard(deployer, opts) {
-  let instance = await deployer.deploy(DSGuard, opts);
-
-  console.log("DSGuard Instance", instance);
+  let instance = await deployContract(deployer, DSGuard, opts);
 
   // Set DSGuard Authority
   console.log("Setting DSGuard Authority...");
