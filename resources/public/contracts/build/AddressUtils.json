@@ -1,10 +1,10 @@
 {
   "contractName": "AddressUtils",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.0+commit.1d4f565a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{},\"notice\":\"Utility library of inline functions on addresses\"}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/utils/AddressUtils.sol\":\"AddressUtils\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/utils/AddressUtils.sol\":{\"keccak256\":\"0xc7ab6cea0cbdae31fdf8ad945baf85522a518c994cd940d385eca11112ac506f\",\"urls\":[\"bzzr://211c64de600f4f46f82098d7b4a3c2b2c378999402c11b50451c361136ed06f7\"]}},\"version\":1}",
-  "bytecode": "0x604c602c600b82828239805160001a60731460008114601c57601e565bfe5b5030600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a72305820670105662f7ffb5a2227502f8e6337af2f64807a286edf2c65748c0528a352e40029",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a72305820670105662f7ffb5a2227502f8e6337af2f64807a286edf2c65748c0528a352e40029",
-  "sourceMap": "86:922:23:-;;132:2:-1;166:7;155:9;146:7;137:37;252:7;246:14;243:1;238:23;232:4;229:33;270:1;265:20;;;;222:63;;265:20;274:9;222:63;;298:9;295:1;288:20;328:4;319:7;311:22;352:7;343;336:24",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{},\"notice\":\"Utility library of inline functions on addresses\"}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/utils/AddressUtils.sol\":\"AddressUtils\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/utils/AddressUtils.sol\":{\"keccak256\":\"0xc7ab6cea0cbdae31fdf8ad945baf85522a518c994cd940d385eca11112ac506f\",\"urls\":[\"bzzr://211c64de600f4f46f82098d7b4a3c2b2c378999402c11b50451c361136ed06f7\"]}},\"version\":1}",
+  "bytecode": "0x604c6023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a723058207a2acb869d2184c778c451e80032b51809420f5e266da3d7107b1d4f38cc266f0029",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a723058207a2acb869d2184c778c451e80032b51809420f5e266da3d7107b1d4f38cc266f0029",
+  "sourceMap": "86:922:23:-;;132:2:-1;166:7;155:9;146:7;137:37;255:7;249:14;246:1;241:23;235:4;232:33;222:2;;269:9;222:2;293:9;290:1;283:20;323:4;314:7;306:22;347:7;338;331:24",
   "deployedSourceMap": "86:922:23:-;;;;;;;;",
   "source": "pragma solidity ^0.5.0;\n\n\n/**\n * Utility library of inline functions on addresses\n */\nlibrary AddressUtils {\n\n  /**\n   * Returns whether the target address is a contract\n   * @dev This function will return false if invoked during the constructor of a contract,\n   *  as the code is not actually created until after the constructor finishes.\n   * @param addr address to check\n   * @return whether the target address is a contract\n   */\n  function isContract(address addr) internal view returns (bool) {\n    uint256 size;\n    // XXX Currently there is no better way to check if there is a contract in an address\n    // than to check the size of the code at that address.\n    // See https://ethereum.stackexchange.com/a/14016/36603\n    // for more details about how this works.\n    // TODO Check this again before the Serenity release, because all addresses will be\n    // contracts then.\n    assembly { size := extcodesize(addr) }  // solium-disable-line security/no-inline-assembly\n    return size > 0;\n  }\n\n}\n",
   "sourcePath": "/home/benzap/projects/ethlance/contracts/utils/AddressUtils.sol",
@@ -109,7 +109,7 @@
                   "id": 6015,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    size := extcodesize(addr)\n}",
-                  "src": "890:101:23"
+                  "src": "890:38:23"
                 },
                 {
                   "expression": {
@@ -357,7 +357,7 @@
                   "id": 6015,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    size := extcodesize(addr)\n}",
-                  "src": "890:101:23"
+                  "src": "890:38:23"
                 },
                 {
                   "expression": {
@@ -506,11 +506,11 @@
   },
   "compiler": {
     "name": "solc",
-    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+    "version": "0.5.8+commit.23d335f2.Linux.g++"
   },
   "networks": {},
   "schemaVersion": "3.0.9",
-  "updatedAt": "2019-05-14T23:51:40.165Z",
+  "updatedAt": "2019-05-15T03:25:42.176Z",
   "devdoc": {
     "methods": {}
   },

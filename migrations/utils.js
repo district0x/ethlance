@@ -1,53 +1,78 @@
-const fs = require('fs');
+const fs = require("fs");
+const edn = require ("jsedn");
 
-const utils = {
 
-  last: (array) => {
-    return array[array.length - 1];
-  },
+let last = (array) => {
+  return array[array.length - 1];
+};
 
-  copy: (srcName, dstName, contracts_build_directory, network, address) => {
 
-    let buildPath = contracts_build_directory;
+let copy = (srcName, dstName, contracts_build_directory) => {
 
-    const srcPath = buildPath + srcName + '.json';
-    const dstPath = buildPath + dstName + '.json';
+  let buildPath = contracts_build_directory;
 
-    const data = require(srcPath);
-    data.contractName = dstName;
+  const srcPath = buildPath + srcName + ".json";
+  const dstPath = buildPath + dstName + ".json";
 
-    // Save address when given
-    if (network && address) {
-      data.networks = {};
+  const data = require(srcPath);
+  data.contractName = dstName;
 
-      // Copy existing networks
-      if (fs.existsSync(dstPath)) {
-        const existing = require(dstPath);
-        data.networks = existing.networks;
-      }
+  fs.writeFileSync(dstPath, JSON.stringify(data, null, 2), {flag: "w"});
+};
 
-      data.networks[network.toString()] = {
-        address: address
-      };
-    }
-    fs.writeFileSync(dstPath, JSON.stringify(data, null, 2), { flag: 'w' });
-  },
 
-  linkBytecode: (contract, placeholder, replacement) => {
-    var placeholder = placeholder.replace('0x', '');
-    var replacement = replacement.replace('0x', '');
-    var bytecode = contract.bytecode.split(placeholder).join(replacement);
-    contract.bytecode = bytecode;
-  },
+let linkBytecode = (contract, placeholder, replacement) => {
+  placeholder = placeholder.replace("0x", "");
+  replacement = replacement.replace("0x", "");
+  let bytecode = contract.bytecode.split(placeholder).join(replacement);
+  contract.bytecode = bytecode;
+};
 
-  smartContractsTemplate: (map, env) => {
-    return `(ns memefactory.shared.smart-contracts-${env})
+
+let smartContractsTemplate = (map, env) => {
+  return `(ns memefactory.shared.smart-contracts-${env})
 
   (def smart-contracts
     ${map})
 `;
-  }
-
 };
 
-module.exports = utils;
+
+let toSnakeCase= (s) => {
+  let ss = s.substr(0, 1).toLowerCase();
+  for (c of s.substr(1)) {
+    if (c.match(/[A-Z]/)) {
+      ss += "-" + c.toLowerCase();
+    }
+    else if (c.match(/\s/)) {
+      ss += "-";
+    }
+    else {
+      ss += c;
+    }
+  }
+  
+  return ss;
+};
+
+
+let encodeContractEDN = (contract_instance, contract_name) => {
+  const clj_contract_name = ":" + toSnakeCase(contract_name);
+  return new edn.Map([
+    edn.kw(clj_contract_name),
+    new edn.Map([
+      edn.kw(":name"), contract_name,
+      edn.kw(":address"), contract_instance.address,
+    ]),
+  ]);
+};
+
+
+module.exports = {
+  last: last,
+  copy: copy,
+  linkBytecode: linkBytecode,
+  smartContractsTemplate: smartContractsTemplate,
+  toSnakeCase: toSnakeCase,
+  encodeContractEDN: encodeContractEDN,
+};

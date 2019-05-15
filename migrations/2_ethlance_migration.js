@@ -1,7 +1,11 @@
-const {last, copy, linkBytecode, smartContractsTemplate} = require ("./utils.js");
-const fs = require('fs');
+/*
+  Main Ethlance Deployment Script
+ */
+
+const {copy, smartContractsTemplate} = require("./utils.js");
+const fs = require("fs");
 const edn = require("jsedn");
-const {env, contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
+const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle.js");
 
 
 /*
@@ -18,7 +22,8 @@ function requireContract(contract_name) {
 //
 // Contract Artifacts
 //
-DSGuard = requireContract("DSGuard");
+let DSGuard = requireContract("DSGuard");
+
 
 
 /*
@@ -40,11 +45,11 @@ module.exports = function(deployer, network, accounts) {
   const opts = {gas: gas, from: address};
 
   deployer.then(() => {
-    console.log ("@@@ using Web3 version:", web3.version.api);
-    console.log ("@@@ using address", address);
+    console.log("@@@ using Web3 version:", web3.version.api);
+    console.log("@@@ using address", address);
   });
 
   deploy_all(deployer, opts).then(() => {
     console.log("Finished Deployment!");
   });
-}
+};

@@ -1,9 +1,9 @@
 {
   "contractName": "DelegateProxy",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.0+commit.1d4f565a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol\":\"DelegateProxy\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol\":{\"keccak256\":\"0x1a0a858c7618d51c714d1bf9e86ace7c85305c7dbad48ca5b1402de31b640d1b\",\"urls\":[\"bzzr://d301fa78bb3ca5eedbc853484710c286565154823c8831046eb29ca66694c4c6\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a723058203ab329d329b38beb2d6ea11ca44e58bf8e953cffb1be529f3a4b6865c20996530029",
-  "deployedBytecode": "0x6080604052600080fdfea165627a7a723058203ab329d329b38beb2d6ea11ca44e58bf8e953cffb1be529f3a4b6865c20996530029",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol\":\"DelegateProxy\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/proxy/DelegateProxy.sol\":{\"keccak256\":\"0x1a0a858c7618d51c714d1bf9e86ace7c85305c7dbad48ca5b1402de31b640d1b\",\"urls\":[\"bzzr://d301fa78bb3ca5eedbc853484710c286565154823c8831046eb29ca66694c4c6\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820cc41bd5cd31882be4554424dc74177b72bd7a2c8c3aa9b5bd3a151ab28eb40bd0029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820cc41bd5cd31882be4554424dc74177b72bd7a2c8c3aa9b5bd3a151ab28eb40bd0029",
   "sourceMap": "25:1019:16:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;25:1019:16;;;;;;;",
   "deployedSourceMap": "25:1019:16:-;;;;;",
   "source": "pragma solidity ^0.5.0;\n\ncontract DelegateProxy {\n  /**\n   * @dev Performs a delegatecall and returns whatever the delegatecall returned (entire context execution will return!)\n   * @param _dst Destination address to perform the delegatecall\n   * @param _calldata Calldata for the delegatecall\n   */\n  function delegatedFwd(address _dst, bytes memory _calldata) internal {\n    require(isContract(_dst));\n    assembly {\n      let result := delegatecall(sub(gas, 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)\n        let size := returndatasize\n\n        let ptr := mload(0x40)\n        returndatacopy(ptr, 0, size)\n\n        // revert instead of invalid() bc if the underlying call failed with invalid() it already wasted gas.\n        // if the call returned error data, forward it\n        switch result case 0 {revert(ptr, size)}\n      default {return (ptr, size)}\n    }\n  }\n\n  function isContract(address _target) internal view returns (bool) {\n    uint256 size;\n    assembly {size := extcodesize(_target)}\n    return size > 0;\n  }\n}\n",
@@ -148,7 +148,7 @@
                         "declaration": 5796,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "479:9:16",
+                        "src": "503:9:16",
                         "valueSize": 1
                       }
                     },
@@ -157,7 +157,7 @@
                         "declaration": 5796,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "503:9:16",
+                        "src": "479:9:16",
                         "valueSize": 1
                       }
                     },
@@ -174,7 +174,7 @@
                   "id": 5805,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    let result := delegatecall(sub(gas(), 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)\n    let size := returndatasize()\n    let ptr := mload(0x40)\n    returndatacopy(ptr, 0, size)\n    switch result\n    case 0 {\n        revert(ptr, size)\n    }\n    default {\n        return(ptr, size)\n    }\n}",
-                  "src": "408:476:16"
+                  "src": "408:472:16"
                 }
               ]
             },
@@ -324,7 +324,7 @@
                   "id": 5817,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    size := extcodesize(_target)\n}",
-                  "src": "978:50:16"
+                  "src": "978:39:16"
                 },
                 {
                   "expression": {
@@ -611,7 +611,7 @@
                         "declaration": 5796,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "479:9:16",
+                        "src": "503:9:16",
                         "valueSize": 1
                       }
                     },
@@ -620,7 +620,7 @@
                         "declaration": 5796,
                         "isOffset": false,
                         "isSlot": false,
-                        "src": "503:9:16",
+                        "src": "479:9:16",
                         "valueSize": 1
                       }
                     },
@@ -637,7 +637,7 @@
                   "id": 5805,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    let result := delegatecall(sub(gas(), 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)\n    let size := returndatasize()\n    let ptr := mload(0x40)\n    returndatacopy(ptr, 0, size)\n    switch result\n    case 0 {\n        revert(ptr, size)\n    }\n    default {\n        return(ptr, size)\n    }\n}",
-                  "src": "408:476:16"
+                  "src": "408:472:16"
                 }
               ]
             },
@@ -787,7 +787,7 @@
                   "id": 5817,
                   "nodeType": "InlineAssembly",
                   "operations": "{\n    size := extcodesize(_target)\n}",
-                  "src": "978:50:16"
+                  "src": "978:39:16"
                 },
                 {
                   "expression": {
@@ -936,11 +936,11 @@
   },
   "compiler": {
     "name": "solc",
-    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+    "version": "0.5.8+commit.23d335f2.Linux.g++"
   },
   "networks": {},
   "schemaVersion": "3.0.9",
-  "updatedAt": "2019-05-14T23:51:40.162Z",
+  "updatedAt": "2019-05-15T03:25:42.172Z",
   "devdoc": {
     "methods": {}
   },

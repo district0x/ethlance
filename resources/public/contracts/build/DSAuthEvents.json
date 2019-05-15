@@ -26,9 +26,9 @@
       "type": "event"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.0+commit.1d4f565a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"authority\",\"type\":\"address\"}],\"name\":\"LogSetAuthority\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"LogSetOwner\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{},\"title\":\"District Authority Events\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/DSAuth.sol\":\"DSAuthEvents\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/DSAuth.sol\":{\"keccak256\":\"0x4fb616b2ed1af57b8b6f057606348768df991fd2ca4d21ead5d962929f242dec\",\"urls\":[\"bzzr://4ef007276a9e29a3f961a43a62499843ffb642bda149b964dcde148c167b00ba\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820c6b4db79b84f4efce915cd8f577ce439918903a3e9df1e506dd19f85ad8a17ef0029",
-  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820c6b4db79b84f4efce915cd8f577ce439918903a3e9df1e506dd19f85ad8a17ef0029",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"authority\",\"type\":\"address\"}],\"name\":\"LogSetAuthority\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"LogSetOwner\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{},\"title\":\"District Authority Events\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/DSAuth.sol\":\"DSAuthEvents\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/DSAuth.sol\":{\"keccak256\":\"0x4fb616b2ed1af57b8b6f057606348768df991fd2ca4d21ead5d962929f242dec\",\"urls\":[\"bzzr://4ef007276a9e29a3f961a43a62499843ffb642bda149b964dcde148c167b00ba\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820178579264bfc2744b3b65404704bac309662806f765ea8df485e70aba0cad8e60029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820178579264bfc2744b3b65404704bac309662806f765ea8df485e70aba0cad8e60029",
   "sourceMap": "879:127:0:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;879:127:0;;;;;;;",
   "deployedSourceMap": "879:127:0:-;;;;;",
   "source": "// This program is free software: you can redistribute it and/or modify\n// it under the terms of the GNU General Public License as published by\n// the Free Software Foundation, either version 3 of the License, or\n// (at your option) any later version.\n\n// This program is distributed in the hope that it will be useful,\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n// GNU General Public License for more details.\n\n// You should have received a copy of the GNU General Public License\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\npragma solidity ^0.5.0;\n\n/// @title Interface for a defined District Authority Handler\ncontract DSAuthority {\n  function canCall(address src, address dst, bytes4 sig) public view returns (bool);\n}\n\n\n/// @title District Authority Events\ncontract DSAuthEvents {\n  event LogSetAuthority (address indexed authority);\n  event LogSetOwner     (address indexed owner);\n}\n\n\n/// @title District User Authority @dev A properly constructed DSAuth\n/// contract requires ANY of this.setOwner(...) with an appropriate\n/// authority address to be set, or this.setAuthority(...) to be set\n/// to a contract containing the DSAuthority.canCall interface method\n/// defined. see ./auth/DSGuard for an example of a defined\n/// DSAuthority.canCall method.\ncontract DSAuth is DSAuthEvents {\n  DSAuthority  public  authority;\n  address      public  owner;\n\n\n  /// @dev \n  constructor() public {\n    owner = msg.sender;\n    emit LogSetOwner(msg.sender);\n  }\n\n  //\n  // Methods\n  //\n\n  function setOwner(address owner_)\n    public\n    auth\n  {\n    owner = owner_;\n    emit LogSetOwner(owner);\n  }\n\n  function setAuthority(DSAuthority authority_)\n    public\n    auth\n  {\n    authority = authority_;\n    emit LogSetAuthority(address(authority));\n  }\n\n  //\n  // Modifiers\n  //\n\n  /// @dev Checks if the given message sender is authorized\n  modifier auth {\n    require(isAuthorized(msg.sender, msg.sig),\n            \"Unauthorized Access\");\n    _;\n  }\n\n  //\n  // Views\n  //\n\n  /// @dev Returns true, if the given address and signature pair are\n  /// authorized as designed by DSAuthority.canCall interface.\n  /// @param src The address we are checking authority against.\n  /// @param sig The 4-byte function signature we are checking authority against.\n  /// @return Returns true, if the given address/sig pair is\n  /// authorized, false otherwise.\n  function isAuthorized(address src, bytes4 sig)\n    internal view returns (bool)\n  {\n    if (src == address(this)) {\n      return true;\n    } else if (src == owner) {\n      return true;\n    } else if (authority == DSAuthority(0)) {\n      return false;\n    } else {\n      return authority.canCall(src, address(this), sig);\n    }\n  }\n}\n",
@@ -1203,7 +1203,7 @@
                           "name": "this",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6054,
+                          "referencedDeclaration": 6055,
                           "src": "2571:4:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -1415,7 +1415,7 @@
                                       "name": "this",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 6054,
+                                      "referencedDeclaration": 6055,
                                       "src": "2772:4:0",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -2924,7 +2924,7 @@
                           "name": "this",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6054,
+                          "referencedDeclaration": 6055,
                           "src": "2571:4:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -3136,7 +3136,7 @@
                                       "name": "this",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 6054,
+                                      "referencedDeclaration": 6055,
                                       "src": "2772:4:0",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -3477,11 +3477,11 @@
   },
   "compiler": {
     "name": "solc",
-    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+    "version": "0.5.8+commit.23d335f2.Linux.g++"
   },
   "networks": {},
   "schemaVersion": "3.0.9",
-  "updatedAt": "2019-05-14T23:51:40.063Z",
+  "updatedAt": "2019-05-15T03:25:42.049Z",
   "devdoc": {
     "methods": {},
     "title": "District Authority Events"

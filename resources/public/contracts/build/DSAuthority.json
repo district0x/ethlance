@@ -29,7 +29,7 @@
       "type": "function"
     }
   ],
-  "metadata": "",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"name\":\"src\",\"type\":\"address\"},{\"name\":\"dst\",\"type\":\"address\"},{\"name\":\"sig\",\"type\":\"bytes4\"}],\"name\":\"canCall\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{},\"title\":\"Interface for a defined District Authority Handler\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/benzap/projects/ethlance/contracts/DSAuth.sol\":\"DSAuthority\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/benzap/projects/ethlance/contracts/DSAuth.sol\":{\"keccak256\":\"0x4fb616b2ed1af57b8b6f057606348768df991fd2ca4d21ead5d962929f242dec\",\"urls\":[\"bzzr://4ef007276a9e29a3f961a43a62499843ffb642bda149b964dcde148c167b00ba\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
@@ -1206,7 +1206,7 @@
                           "name": "this",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6054,
+                          "referencedDeclaration": 6055,
                           "src": "2571:4:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -1418,7 +1418,7 @@
                                       "name": "this",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 6054,
+                                      "referencedDeclaration": 6055,
                                       "src": "2772:4:0",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -2927,7 +2927,7 @@
                           "name": "this",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6054,
+                          "referencedDeclaration": 6055,
                           "src": "2571:4:0",
                           "typeDescriptions": {
                             "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -3139,7 +3139,7 @@
                                       "name": "this",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 6054,
+                                      "referencedDeclaration": 6055,
                                       "src": "2772:4:0",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_contract$_DSAuth_$136",
@@ -3480,11 +3480,11 @@
   },
   "compiler": {
     "name": "solc",
-    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+    "version": "0.5.8+commit.23d335f2.Linux.g++"
   },
   "networks": {},
   "schemaVersion": "3.0.9",
-  "updatedAt": "2019-05-14T23:51:40.064Z",
+  "updatedAt": "2019-05-15T03:25:42.051Z",
   "devdoc": {
     "methods": {},
     "title": "Interface for a defined District Authority Handler"
