@@ -131,7 +131,23 @@ async function deploy_EthlanceUserFactory(deployer, opts) {
   let dsGuard = await DSGuard.deployed();
   await ethlanceUserFactoryForwarder.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
   
-  // TODO: Additional DSGuard Permissions
+  //
+  // Privileges
+  //
+
+  // DSGuard Permissions
+  const ANY = await dsGuard.ANY();
+
+  console.log("- DSGuard - Permit ANY --> EthlanceUserFactoryForwarder...");
+  await dsGuard.permit(ANY,
+                       ethlanceUserFactoryForwarder.address,
+                       ANY);
+
+  console.log("- DSGuard - Permit EthlanceRegistry --> EthlanceUserFactoryForwarder...");
+  await dsGuard.permit(ethlanceUserFactoryForwarder.address,
+                       ethlanceRegistry.address,
+                       ANY);
+
   
   console.log("- Permitting EthlanceUserFactory Factory Privilege");
   await ethlanceRegistry.permitFactoryPrivilege(EthlanceUserFactoryForwarder.address);
@@ -307,7 +323,22 @@ async function deploy_EthlanceJobFactory(deployer, opts) {
   let dsGuard = await DSGuard.deployed();
   await ethlanceJobFactoryForwarder.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
 
-  //TODO: configure authority
+  //
+  // Privileges
+  //
+
+  // DSGuard Permissions
+  const ANY = await dsGuard.ANY();
+
+  console.log("- DSGuard - Permit ANY --> EthlanceJobFactoryForwarder...");
+  await dsGuard.permit(ANY,
+                       ethlanceJobFactoryForwarder.address,
+                       ANY);
+
+  console.log("- DSGuard - Permit EthlanceRegistry --> EthlanceJobFactoryForwarder...");
+  await dsGuard.permit(ethlanceJobFactoryForwarder.address,
+                       ethlanceRegistry.address,
+                       ANY);
 
   console.log("- Permitting EthlanceJobFactory Factory Privilege");
   await ethlanceRegistry.permitFactoryPrivilege(EthlanceJobFactoryForwarder.address);
