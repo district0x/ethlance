@@ -49,9 +49,9 @@ let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) =
   ];
 
   // assign a forwards-to optional
-  if (opts.forward_to !== undefined) {
+  if (opts.forwards_to !== undefined) {
     entry_value = entry_value.concat([
-      edn.kw(":forward-to"), opts.forward_to,
+      edn.kw(":forwards-to"), opts.forward_to,
     ]);
   }
 

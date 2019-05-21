@@ -155,7 +155,7 @@ async function deploy_EthlanceUserFactory(deployer, opts) {
   // Assign
   assignContract(ethlanceUserFactory, "EthlanceUserFactory", "ethlance-user-factory");
   assignContract(ethlanceUserFactoryForwarder, "MutableForwarder", "ethlance-user-factory-fwd",
-                 {forward_to: "ethlance-user-factory"});
+                 {forwards_to: "ethlance-user-factory"});
 }
 
 
@@ -347,7 +347,7 @@ async function deploy_EthlanceJobFactory(deployer, opts) {
   // Assign
   assignContract(ethlanceJobFactory, "EthlanceJobFactory", "ethlance-job-factory");
   assignContract(ethlanceJobFactoryForwarder, "MutableForwarder", "ethlance-job-factory-fwd",
-                 {forward_to: "ethlance-job-factory"});
+                 {forwards_to: "ethlance-job-factory"});
 }
 
 
