@@ -79,7 +79,8 @@
       (merge {:logging {:level "debug" :console? true}})
       (merge {:db {:path "./resources/ethlance.db"
                    :opts {:memory false}}})
-      (update :smart-contracts merge {:print-gas-usage? true
+      (update :smart-contracts merge {:contracts-var #'ethlance.shared.smart-contracts/smart-contracts-dev
+                                      :print-gas-usage? true
                                       :auto-mining? true})
       (assoc :graphql dev-graphql-config)))
 

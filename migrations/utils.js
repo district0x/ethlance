@@ -38,15 +38,26 @@ let smartContractsTemplate = (map, env) => {
 };
 
 
-let encodeContractEDN = (contract_instance, contract_name, contract_key) => {
+let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) => {
   const clj_contract_name = ":" + contract_key;
   const contract_address = contract_instance.address;
+  opts = opts || {};
+  
+  let entry_value = [
+    edn.kw(":name"), contract_name,
+    edn.kw(":address"), contract_address,
+  ];
+
+  // assign a forwards-to optional
+  if (opts.forward_to !== undefined) {
+    entry_value = entry_value.concat([
+      edn.kw(":forward-to"), opts.forward_to,
+    ]);
+  }
+
   return [
     edn.kw(clj_contract_name),
-    new edn.Map([
-      edn.kw(":name"), contract_name,
-      edn.kw(":address"), contract_address,
-    ]),
+    new edn.Map(entry_value),
   ];
 };
 

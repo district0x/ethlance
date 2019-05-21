@@ -154,7 +154,8 @@ async function deploy_EthlanceUserFactory(deployer, opts) {
 
   // Assign
   assignContract(ethlanceUserFactory, "EthlanceUserFactory", "ethlance-user-factory");
-  assignContract(ethlanceUserFactoryForwarder, "MutableForwarder", "ethlance-user-factory-fwd");
+  assignContract(ethlanceUserFactoryForwarder, "MutableForwarder", "ethlance-user-factory-fwd",
+                 {forward_to: "ethlance-user-factory"});
 }
 
 
@@ -345,7 +346,8 @@ async function deploy_EthlanceJobFactory(deployer, opts) {
 
   // Assign
   assignContract(ethlanceJobFactory, "EthlanceJobFactory", "ethlance-job-factory");
-  assignContract(ethlanceJobFactoryForwarder, "MutableForwarder", "ethlance-job-factory-fwd");
+  assignContract(ethlanceJobFactoryForwarder, "MutableForwarder", "ethlance-job-factory-fwd",
+                 {forward_to: "ethlance-job-factory"});
 }
 
 
@@ -356,32 +358,6 @@ async function deploy_TestToken(deployer, opts) {
 
   // Assign
   assignContract(token, "TestToken", "token");
-}
-
-
-//
-// Smart Contract Functions
-//
-
-let smart_contract_listing = [];
-/*
-  Concatenate the given contract to our smart contract listing.
- */
-function assignContract(contract_instance, contract_name, contract_key) {
-  console.log("- Assigning '" + contract_name + "' to smart contract listing...");
-  smart_contract_listing = smart_contract_listing.concat(
-    encodeContractEDN(contract_instance, contract_name, contract_key));
-}
-
-/*
-  Write out our smart contract listing to the file defined by `smart_contracts_path`
- */
-function writeSmartContracts() {
-  console.log("Final Smart Contract Listing:");
-  const smart_contracts = edn.encode(new edn.Map(smart_contract_listing));
-  console.log(smart_contracts);
-  console.log("Writing to smart contract file: " + smart_contracts_path + " ...");
-  fs.writeFileSync(smart_contracts_path, smartContractsTemplate(smart_contracts, env));
 }
 
 
@@ -403,6 +379,34 @@ async function deploy_all(deployer, opts) {
   await deploy_EthlanceJobFactory(deployer, opts);
   await deploy_TestToken(deployer, opts);
   writeSmartContracts();
+}
+
+
+//
+// Smart Contract Functions
+//
+
+
+let smart_contract_listing = [];
+/*
+  Concatenate the given contract to our smart contract listing.
+ */
+function assignContract(contract_instance, contract_name, contract_key, opts) {
+  console.log("- Assigning '" + contract_name + "' to smart contract listing...");
+  opts = opts || {};
+  smart_contract_listing = smart_contract_listing.concat(
+    encodeContractEDN(contract_instance, contract_name, contract_key, opts));
+}
+
+/*
+  Write out our smart contract listing to the file defined by `smart_contracts_path`
+ */
+function writeSmartContracts() {
+  console.log("Final Smart Contract Listing:");
+  const smart_contracts = edn.encode(new edn.Map(smart_contract_listing));
+  console.log(smart_contracts);
+  console.log("Writing to smart contract file: " + smart_contracts_path + " ...");
+  fs.writeFileSync(smart_contracts_path, smartContractsTemplate(smart_contracts, env));
 }
 
 
