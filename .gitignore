@@ -16,3 +16,4 @@
 .node-xmlhttprequest-*
 package-lock.json
 .DS_Store
+smart_contracts_dev.cljs
