@@ -28,7 +28,13 @@ before_install:
 # Get ganache-cli commandline tool
 - npm install -g ganache-cli
 
+# Get truffle commandline tool
+- npm install -g truffle
+
 before_script:
+
+# Deploy Truffle Migration
+- make deploy
 
 # Build the solidity contracts
 - make build-contracts
