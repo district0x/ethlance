@@ -79,6 +79,7 @@ clean:
 	rm -rf dist
 	rm -f ./resources/ethlance.db
 	rm -rf ./resources/public/css
+	rm -rf ./resources/public/contracts/build
 
 
 clean-all: clean

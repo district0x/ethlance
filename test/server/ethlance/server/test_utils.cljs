@@ -11,6 +11,7 @@
    [mount.core :as mount :refer [defstate]]
    
    [ethlance.server.core]
+   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
 
    ;; Mount Components
    [district.server.logging]
@@ -87,7 +88,7 @@
   "Test configuration for districts."
   (-> ethlance.server.core/main-config
       (merge {:logging {:level "debug" :console? true}})
-      (update :smart-contracts merge {:contracts-var #'ethlance.shared.smart-contracts-dev/smart-contracts
+      (update :smart-contracts merge {:contracts-var #'smart-contracts-dev/smart-contracts
                                       :print-gas-usage? true
                                       :auto-mining? true})))
 
