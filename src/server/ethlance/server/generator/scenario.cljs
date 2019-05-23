@@ -32,7 +32,6 @@
    [ethlance.server.contract.ethlance-work-contract :as work-contract]
    [ethlance.server.contract.ethlance-invoice :as invoice]
    [ethlance.server.contract.ethlance-dispute :as dispute]
-   [ethlance.server.deployer :as deployer]
    [ethlance.server.generator.choice-collections :as choice-collections]))
 
 

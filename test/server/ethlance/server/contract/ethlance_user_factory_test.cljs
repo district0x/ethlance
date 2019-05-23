@@ -29,8 +29,7 @@
    {:from user-address}))
 
 
-(deftest-smart-contract-go check-authorization
-  {:deployer-options {} :force-deployment? false}
+(deftest-smart-contract-go check-authorization {}
   (let [[user1] (web3-eth/accounts @web3)]
     ;; small test for revert functionality
     (<!-<throw (register-user! user1 sample-meta-hash-2))
@@ -41,23 +40,20 @@
                        :sig ds-guard/ANY}))))))
 
 
-(deftest-smart-contract-go check-factory-privilege
-  {:deployer-options {} :force-deployment? false}
+(deftest-smart-contract-go check-factory-privilege {}
   (testing "EthlanceUserFactory Forward is privileged to carry out construction."
     (is (<!-<throw
          (registry/check-factory-privilege (contracts/contract-address :ethlance-user-factory-fwd))))))
 
 
-(deftest-smart-contract-go registering-duplicate-user
-  {:deployer-options [] :force-deployment? false}
+(deftest-smart-contract-go registering-duplicate-user {}
   (testing "Registering twice should fail the second time."
     (let [[user1] (web3-eth/accounts @web3)]
       (<!-<throw (register-user! user1 sample-meta-hash-1))
       (is (<ignore-<! (register-user! user1 sample-meta-hash-1))))))
 
 
-#_(deftest-smart-contract-go registering-user
-    {:deployer-options {} :force-deployment? false}
+#_(deftest-smart-contract-go registering-user {}
 
     (testing "Register New Users"
       (let [[user1 user2 user3 user4] (web3-eth/accounts @web3)
