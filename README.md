@@ -1,5 +1,7 @@
 # Ethlance V.2 (Newlance)
 
+![](https://travis-ci.org/district0x/ethlance.svg?branch=master)
+
 *Ethlance Version 2 is Currently in Development and is subject to
 change before final release*
 
