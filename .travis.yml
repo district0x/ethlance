@@ -25,6 +25,12 @@ before_install:
 - ipfs-update/ipfs-update install latest
 - ipfs init
 
+# Update Node Version through nvm
+- curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+- source .bashrc
+- nvm install 11.14.0
+- nvm use 11.14.0
+
 # Get ganache-cli commandline tool
 - npm install -g ganache-cli
 
