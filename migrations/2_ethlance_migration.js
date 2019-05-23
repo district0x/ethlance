@@ -64,29 +64,29 @@ let TestToken = requireContract("TestToken");
 async function deploy_DSGuard(deployer, opts) {
   console.log("Deploying DSGuard");
   await deployer.deploy(DSGuard, opts);
-  const instance = await DSGuard.deployed();
+  const dsGuard = await DSGuard.deployed();
 
   // Set DSGuard Authority
   console.log("- Configuring DSGuard Authority...");
-  await instance.setAuthority(instance.address, Object.assign(opts, {gas: 0.5e6}));
+  await dsGuard.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
   
   // Attach to our smart contract listings
-  assignContract(instance, "DSGuard", "ds-guard");
+  assignContract(dsGuard, "DSGuard", "ds-guard");
 }
 
 
 async function deploy_EthlanceRegistry(deployer, opts) {
   console.log("Deploying Ethlance Registry");
   await deployer.deploy(EthlanceRegistry, Object.assign(opts, {gas: 3e6}));
-  const instance = await EthlanceRegistry.deployed();
+  const ethlanceRegistry = await EthlanceRegistry.deployed();
 
   // Set DSGuard Authority
   console.log("- Configuring DSGuard Authority...");
   let dsGuard = await DSGuard.deployed();
-  await instance.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
+  await ethlanceRegistry.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
 
   // Attach to our smart contract listings
-  assignContract(instance, "EthlanceRegistry", "ethlance-registry");
+  assignContract(ethlanceRegistry, "EthlanceRegistry", "ethlance-registry");
 }
 
 
@@ -99,10 +99,10 @@ async function deploy_EthlanceUser(deployer, opts) {
   // Deploy
   console.log("- Deploying...");
   await deployer.deploy(EthlanceUser, Object.assign(opts, {gas: 3e6}));
-  const instance = await EthlanceUser.deployed();
+  const ethlanceUser = await EthlanceUser.deployed();
   
   // Attach
-  assignContract(instance, "EthlanceUser", "ethlance-user");
+  assignContract(ethlanceUser, "EthlanceUser", "ethlance-user");
 }
 
 
@@ -137,16 +137,17 @@ async function deploy_EthlanceUserFactory(deployer, opts) {
 
   // DSGuard Permissions
   const ANY = await dsGuard.ANY();
+  const ANYSIG = await dsGuard.ANYSIG();
 
   console.log("- DSGuard - Permit ANY --> EthlanceUserFactoryForwarder...");
   await dsGuard.permit(ANY,
                        ethlanceUserFactoryForwarder.address,
-                       ANY);
+                       ANYSIG);
 
   console.log("- DSGuard - Permit EthlanceRegistry --> EthlanceUserFactoryForwarder...");
   await dsGuard.permit(ethlanceUserFactoryForwarder.address,
                        ethlanceRegistry.address,
-                       ANY);
+                       ANYSIG);
 
   
   console.log("- Permitting EthlanceUserFactory Factory Privilege");
@@ -330,16 +331,17 @@ async function deploy_EthlanceJobFactory(deployer, opts) {
 
   // DSGuard Permissions
   const ANY = await dsGuard.ANY();
+  const ANYSIG = await dsGuard.ANYSIG();
 
   console.log("- DSGuard - Permit ANY --> EthlanceJobFactoryForwarder...");
   await dsGuard.permit(ANY,
                        ethlanceJobFactoryForwarder.address,
-                       ANY);
+                       ANYSIG);
 
   console.log("- DSGuard - Permit EthlanceRegistry --> EthlanceJobFactoryForwarder...");
   await dsGuard.permit(ethlanceJobFactoryForwarder.address,
                        ethlanceRegistry.address,
-                       ANY);
+                       ANYSIG);
 
   console.log("- Permitting EthlanceJobFactory Factory Privilege");
   await ethlanceRegistry.permitFactoryPrivilege(EthlanceJobFactoryForwarder.address);
