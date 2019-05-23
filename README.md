@@ -1,6 +1,6 @@
 # Ethlance V.2 (Newlance)
 
-![](https://travis-ci.org/district0x/ethlance.svg?branch=master)
+![](https://travis-ci.org/district0x/ethlance.svg?branch=newlance)
 
 *Ethlance Version 2 is Currently in Development and is subject to
 change before final release*
@@ -16,6 +16,8 @@ change before final release*
 * [ganache-cli](https://github.com/trufflesuite/ganache-cli)
 
 * [ipfs](https://docs.ipfs.io/introduction/install/)
+
+* [truffle](https://github.com/trufflesuite/truffle)
 
 * make
   * Note: Windows users can use Msys for build essentials
@@ -59,9 +61,14 @@ Terminal 3 (testnet):
 make testnet
 ```
 
-Terminal 4 (solc):
+Terminal 4 (truffle):
 ```bash
-make watch-contracts
+make deploy
+```
+
+Terminal 5 (solc):
+```bash
+make build-contracts
 ```
 
 Terminal 5 (ipfs):
@@ -193,14 +200,14 @@ After building, the production build can be run:
 $ make run
 ```
 
-# Testing
+# Testing One-touch
 
 To run all of the tests in a standalone test runner, you must first
 build the solidity contracts, run an instance of the testnet server,
 and an instance of the IPFS daemon. The test runner can be run via:
 
 ```bash
-make test
+make clean deploy build-contracts test
 ```
 
 ## Reloaded Workflow Testing
