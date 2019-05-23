@@ -30,7 +30,7 @@ let linkBytecode = (contract, placeholder, replacement) => {
 
 
 let smartContractsTemplate = (map, env) => {
-  return `(ns memefactory.shared.smart-contracts-${env})
+  return `(ns ethlance.shared.smart-contracts-${env})
 
   (def smart-contracts
     ${map})
@@ -51,7 +51,7 @@ let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) =
   // assign a forwards-to optional
   if (opts.forwards_to !== undefined) {
     entry_value = entry_value.concat([
-      edn.kw(":forwards-to"), opts.forward_to,
+      edn.kw(":forwards-to"), opts.forwards_to,
     ]);
   }
 

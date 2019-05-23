@@ -11,7 +11,6 @@
    [mount.core :as mount :refer [defstate]]
    
    [ethlance.server.core]
-   [ethlance.server.deployer :as deployer]
 
    ;; Mount Components
    [district.server.logging]
@@ -88,35 +87,22 @@
   "Test configuration for districts."
   (-> ethlance.server.core/main-config
       (merge {:logging {:level "debug" :console? true}})
-      (update :smart-contracts merge {:print-gas-usage? true
+      (update :smart-contracts merge {:contracts-var #'ethlance.shared.smart-contracts-dev/smart-contracts
+                                      :print-gas-usage? true
                                       :auto-mining? true})))
-
-
-(def default-deployer-config
-  "Default Configuration for Smart Contract Deployments."
-  {})
 
 
 (defn prepare-testnet!
   "Performs a deployment, or reverts the testnet if a deployment
-  snapshot is available.
-  
-  Keyword Arguments:
-
-  deployer-options - Deployment Options passed for a deployment
-
-  force-deployment? - If true, will force a deployment, without using
-  a blockchain snapshot.
+  snapshot is available. 
   
   Note:
 
   - Works on Ganache CLI v6.1.8 (ganache-core: 2.2.1)"
-  [deployer-options force-deployment?]
+  []
   (go
-    (if-not (or @*deployment-testnet-snapshot force-deployment?)
-      (do
-        (<! (deployer/deploy-all! (merge default-deployer-config deployer-options)))
-        (<! (snapshot-testnet!)))
+    (if-not @*deployment-testnet-snapshot
+      (<! (snapshot-testnet!))
       (do
         (<! (revert-testnet!))
         ;; Snapshot is 'used up' after reversion, so take another snapshot.
@@ -133,4 +119,4 @@
         #'district.server.web3/web3
         #'district.server.smart-contracts/smart-contracts])
       mount/start)
-  (go (<! (prepare-testnet! deployer-options force-deployment?))))
+  (go (<! (prepare-testnet!))))

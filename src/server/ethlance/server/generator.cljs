@@ -35,7 +35,6 @@
    [ethlance.server.contract.ethlance-work-contract :as work-contract]
    [ethlance.server.contract.ethlance-invoice :as invoice]
    [ethlance.server.contract.ethlance-dispute :as dispute]
-   [ethlance.server.deployer :as deployer]
    [ethlance.server.generator.choice-collections :as choice-collections]
    [ethlance.server.generator.scenario :as scenario]))
 
@@ -175,9 +174,4 @@
 
 (defn start
   [& config]
-  ;; Wait on our deployer before we generate users
-  (go-try
-   (log/debug "Deployment Starting!")
-   (<! (deployer/deploy-all! {}))
-   (log/debug "Deployment Finished!")
-   (<! (generate!))))
+  (go-try (<! (generate!))))
