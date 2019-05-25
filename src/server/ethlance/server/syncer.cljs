@@ -19,15 +19,13 @@
 
 
 (defn handle-event-test [_ {:keys [args] :as event}]
-  (log/debug (str "Event Handled" (pr-str event)))
-  (.log js/console "PING!!!"))
-  
+  (log/info (str "Event Handled" (pr-str event))))
 
 
 (defn start []
   (log/debug "Starting Syncer...")
   @district.server.web3-events/web3-events
-  (register-callback! :ethlance-registry/ethlance-event handle-event-test :EthlanceEvent))
+  (register-callback! :ethlance-registry/ethlance-event handle-event-test ::EthlanceEvent))
 
 
 
@@ -36,5 +34,5 @@
   []
   (log/debug "Stopping Syncer...")
   (unregister-callbacks!
-   [:EthlanceEvent]))
+   [::EthlanceEvent]))
 
