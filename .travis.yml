@@ -26,6 +26,7 @@ before_install:
 - ipfs init
 
 # Update Node Version through nvm
+- nvm install 11.14.0
 - nvm use 11.14.0
 
 # Get ganache-cli commandline tool
