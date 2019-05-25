@@ -47,9 +47,9 @@ module.exports = {
     }
   },
 
-	compilers: {
+  compilers: {
     solc: {
-      version: "native",
-		}
-	}
+      version: "0.5.8",
+    }
+  }
 }
