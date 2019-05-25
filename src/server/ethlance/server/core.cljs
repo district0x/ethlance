@@ -29,7 +29,7 @@
    [ethlance.server.syncer]
    [ethlance.server.db]
    [ethlance.server.ipfs]
-   [ethlance.shared.smart-contracts]
+   [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
 
    ;; Ethlance Libraries
    [ethlance.shared.graphql.schema :refer [graphql-schema]]
@@ -53,7 +53,7 @@
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
 
-   :smart-contracts {:contracts-var #'ethlance.shared.smart-contracts/smart-contracts
+   :smart-contracts {:contracts-var #'smart-contracts-prod/smart-contracts
                      :print-gas-usage? false
                      :auto-mining? false}
 

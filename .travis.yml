@@ -13,8 +13,8 @@ before_install:
 
 # Retrieve Specific Version of Solc
 - sudo wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.5.8/solc-static-linux
-- sudo chmod 775 /bin/solc-static-linux
-- sudo ln -s /bin/solc-static-linx /usr/bin/solc
+- sudo chmod a+x /bin/solc-static-linux
+- sudo ln -s /bin/solc-static-linux solc
 
 # Retrieve IPFS client
 - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
