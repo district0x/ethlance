@@ -66,11 +66,6 @@ Terminal 4 (truffle):
 make deploy
 ```
 
-Terminal 5 (solc):
-```bash
-make build-contracts
-```
-
 Terminal 5 (ipfs):
 ```bash
 make ipfs
@@ -207,7 +202,7 @@ build the solidity contracts, run an instance of the testnet server,
 and an instance of the IPFS daemon. The test runner can be run via:
 
 ```bash
-make clean deploy build-contracts test
+make clean deploy test
 ```
 
 ## Reloaded Workflow Testing

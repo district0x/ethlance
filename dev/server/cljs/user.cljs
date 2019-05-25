@@ -14,10 +14,11 @@
    [district.server.graphql :as graphql]
    [district.server.logging]
    [district.server.web3 :refer [web3]]
+   [district.server.web3-events]
    [district.server.smart-contracts :as contracts]
    [district.shared.error-handling :refer [try-catch try-catch-throw]]
 
-   [ethlance.shared.smart-contracts]
+   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
    [ethlance.server.core]
    [ethlance.server.db]
    [ethlance.server.syncer]
@@ -50,7 +51,6 @@
 
   -- Development Helpers --
   (run-tests)                     ;; Run the Server Tests (:reset? reset the testnet snapshot)
-  (reset-testnet!)                ;; Reset the testnet snapshot
   (repopulate-database!)          ;; Resynchronize Smart Contract Events into the Database
   (restart-graphql!)              ;; Restart/Reload GraphQL Schema and Resolvers
 
@@ -78,7 +78,7 @@
       (merge {:logging {:level "debug" :console? true}})
       (merge {:db {:path "./resources/ethlance.db"
                    :opts {:memory false}}})
-      (update :smart-contracts merge {:contracts-var #'ethlance.shared.smart-contracts-dev/smart-contracts
+      (update :smart-contracts merge {:contracts-var #'smart-contracts-dev/smart-contracts
                                       :print-gas-usage? true
                                       :auto-mining? true})
       (assoc :graphql dev-graphql-config)))
@@ -186,10 +186,12 @@
   (log/debug "Stopping syncer and database...")
   (mount/stop
    #'ethlance.server.syncer/syncer
+   #'district.server.web3-events/web3-events
    #'ethlance.server.db/ethlance-db)
   (log/debug "Starting syncer and database...")
   (mount/start
    #'ethlance.server.db/ethlance-db
+   #'district.server.web3-events/web3-events
    #'ethlance.server.syncer/syncer))
 
 

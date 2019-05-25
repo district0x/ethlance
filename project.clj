@@ -47,6 +47,7 @@
                  [district0x/district-server-smart-contracts "1.0.14"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.3"]
+                 [district0x/district-server-web3-events "1.0.3"]
 
                  ;; District UI Components
                  ;;[district0x/cljs-ipfs-native "1.0.0"]
