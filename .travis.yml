@@ -1,4 +1,9 @@
+dist: xenial
+
 language: clojure
+
+node_js:
+  - "11"
 
 install: make deps
 
@@ -6,15 +11,10 @@ script: make travis-test
 
 before_install:
 
-# Install Ethereum PPA
-- sudo add-apt-repository --yes ppa:ethereum/ethereum
-- sudo apt-get update
-
-# Installed Latest version of dpkg (Fix for solc installation)
-- sudo apt-get install dpkg --yes
-
-# Install solc commandline tool
-- sudo apt-get install solc --yes
+# Retrieve Specific Version of Solc
+- sudo wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.5.8/solc-static-linux
+- sudo chmod 775 /bin/solc-static-linux
+- sudo ln -s /bin/solc-static-linx /usr/bin/solc
 
 # Retrieve IPFS client
 - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
@@ -26,11 +26,6 @@ before_install:
 - ipfs init
 
 # Update Node Version through nvm
-- curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-- export NVM_DIR="$HOME/.nvm"
-- [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-- [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-- nvm install 11.14.0
 - nvm use 11.14.0
 
 # Get ganache-cli commandline tool
@@ -43,9 +38,6 @@ before_script:
 
 # Deploy Truffle Migration
 - make deploy
-
-# Build the solidity contracts
-- make build-contracts
 
 # Start ganache-cli as background process
 - ganache-cli > /dev/null &
