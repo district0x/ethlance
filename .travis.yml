@@ -37,11 +37,11 @@ before_install:
 
 before_script:
 
-# Deploy Truffle Migration
-- make deploy
-
 # Start ganache-cli as background process
 - ganache-cli > /dev/null &
 
 # Start IPFS Daemon as background process
 - ipfs daemon > /dev/null &
+
+# Deploy Truffle Migration
+- make deploy
