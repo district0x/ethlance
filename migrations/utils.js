@@ -40,7 +40,7 @@ let smartContractsTemplate = (map, env) => {
 
 let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) => {
   const clj_contract_name = ":" + contract_key;
-  const contract_address = contract_instance.address;
+  const contract_address = contract_instance.address.toLowerCase();
   opts = opts || {};
   
   let entry_value = [
