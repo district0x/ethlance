@@ -1,0 +1,31 @@
+.sign-up{
+    .box-content{
+        padding-bottom: 3rem!important;
+    }
+    .form-flex-tab{
+        margin-top: 3rem;
+        .inputs-forms-tabs{
+            width:auto!important;
+            .mobile({
+                width: 100%!important;
+            });
+            &:nth-child(2){
+                flex:1;                          
+            }
+            &:nth-child(3){
+                .input-text{                
+                    &:nth-last-child(-n+2){
+                        margin-bottom: 1.1rem!important;
+                    }
+                }
+            }
+        }        
+    }
+
+    
+    .mobile({
+        .box-shadow{
+            box-shadow: initial !important;
+        }
+    });
+}

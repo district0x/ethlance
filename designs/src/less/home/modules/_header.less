@@ -1,0 +1,234 @@
+header{
+    position: fixed;
+    width: 100%;
+    padding: 2% 0;
+    transition: .3s all ease-out;
+    pointer-events: none;
+    .content-center{
+        height: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+        .mobile({
+            display: inline;
+            width:100%;
+        });
+        .flex{
+            position: relative;
+            transition: .3s all ease-out;
+            width: auto;
+            display: inline-block;
+            pointer-events: auto;
+            .mobile({
+                display: block;
+                padding: 8.25%;
+                border-bottom: 1px solid #d3d7ed;
+            });
+        }
+        nav{            
+            pointer-events: auto;
+            .mobile({
+                pointer-events: none;
+                visibility: hidden;
+                opacity: 0;
+                padding: 0 5% 10%;
+            });
+        }
+    }
+    .logo-ethlance{
+        cursor: pointer;
+        svg{
+            path{
+                fill: @color-blue-dark;transition: .3s all ease-out;
+            }
+        }
+        .desktop({
+            &:hover{
+                svg{
+                    path{
+                        fill: @color-purple;
+                    }
+                }
+            }
+        });
+    }
+    .mobile({        
+        padding: 0;        
+        .logo-ethlance{
+            svg{
+                path{fill: @color-blue-dark;}
+            }
+        }
+        .menu-mobile{
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            margin-top: -1px;
+            width: 8.5%;
+            span{
+                position: absolute;
+                display: block;
+                width: 100%;
+                height: 2px;
+                background: @color-blue-dark;
+                transition: .3s all ease-out;
+                transform-origin: 50% 50%;                
+                &:nth-child(1){
+                    margin-top: -28%;
+                }
+                &:nth-child(3){
+                    margin-top: 28%;
+                }
+            }
+        }
+    });
+    .flex{
+        .mobile({
+            flex-direction: row;
+            justify-content: space-between;
+        });
+    }
+    &.menu-open{
+        position: fixed;
+        width: 100%;
+        //background: @color-blue-dark;
+        height: auto;
+        z-index: 201;
+        .flex{
+            border-color: transparent;
+            background: @color-blue-dark;
+        }
+        nav{
+            pointer-events: auto;
+            visibility: visible;
+            opacity: 1;
+        }
+        .logo-ethlance{
+            svg{
+                path{fill: #ffffff;}
+            }
+        }
+        .menu-mobile{
+            span{
+                background: white;
+                &:nth-child(1){
+                    margin-top: 0;
+                    transform: rotate(-45deg);
+                }
+                &:nth-child(2){
+                    opacity: 0;
+                }
+                &:nth-child(3){
+                    margin-top: 0;
+                    transform: rotate(45deg);
+                }
+            }
+        }
+    }
+    &.sticky-nav{
+        position: fixed;
+        top: 0;
+        left:0;
+        width: 100%;
+        padding: 1.5% 0;
+        z-index: 200;
+        background: @color-blue-dark;
+        .mobile({
+            padding: 0;
+            background: transparent;
+        });
+        .flex{            
+            border-color: transparent;
+            .mobile({
+                background: @color-blue-dark;
+            });
+        }        
+        .logo-ethlance{
+            svg{
+                path{fill: #fff;}
+            }
+        }
+        .menu-mobile{
+            span{
+                background: white;
+            }
+        }
+        nav{
+            a{
+                color: #fff;
+                .desktop({
+                    &:hover{
+                        color: #fff;
+                        border-bottom: 1px solid #fff;
+                    }
+                });                
+            }
+        }
+    }
+}
+
+.logo-ethlance{
+    width: 8rem;
+    height: 2rem;
+    .mobile({
+        position: absolute;
+        left: 5%;
+        top: 0;
+        margin-top: 5%;
+        width: 26rem;
+        height: 5.6rem;
+    });
+    figure{
+        width: 100%;
+        svg{width: 100%;height: 100%;object-fit: cover;}
+    }
+}   
+
+nav{
+    transition: .3s all ease-out;
+    width: auto;
+    display: inline;
+    a{
+        font-size: 1rem;
+        .fontDef();
+        color: @color-blue-dark;
+        margin-right: 2.8rem;
+        padding: .4rem;
+        border-bottom: 1px solid @color-blue-dark;
+        &:last-child{margin-right: 0;}
+        .transition();
+    }
+    .desktop({
+        &:hover{
+            a{
+                border-bottom: 1px solid transparent;
+                &:hover{
+                    border-bottom: 1px solid @color-blue-dark;
+                }
+            }
+        }
+    });    
+    .mobile({
+        background: @color-blue-dark;
+        position: relative;
+        flex-direction: column;
+        width: 100%;
+        left: 0;
+        justify-content: center;
+        padding-bottom: 5%;
+        display: flex;
+        margin: 0;
+        align-items: flex-start;
+        a{
+            width: 100%;
+            color: #fff;
+            font-weight: lighter;
+            font-size: 7rem;
+            padding: 6rem;
+            padding-left: 0;
+            border-bottom: 1px solid #434f9b;
+            &:first-child{border-top: 1px solid #434f9b;}
+        }
+    });
+}

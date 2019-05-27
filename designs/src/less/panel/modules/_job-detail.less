@@ -1,0 +1,66 @@
+.job-detail{
+    .box-content{
+        .flex-skills{
+            span{font-size: .70rem;}
+        }
+        .post{
+            .content-side{
+                .xga({
+                    &:nth-child(1){
+                        width: 73.5%!important;
+                    }
+                    &:nth-child(2){
+                        width: 20%!important;
+                    }
+                });
+            }
+        }
+        .proposals{
+            .table{                
+                .container{
+                    .row{                    
+                        div{
+                            .no-mobile({
+                                &:nth-child(1){width: 35.75%!important;}
+                                &:nth-child(2){width: 20.5%!important;}
+                                &:nth-child(3){width: 29.5%!important;}
+                                &:nth-child(4){width: 14.25%!important;}
+                            });
+                        }
+                    }
+                }
+                
+            }
+        }
+        .proposal-form{
+            width: 26.7%!important;
+            padding-right: 0!important;
+            .mobile({
+                width: 100%!important;
+                margin-top: 3.5em;
+                margin-bottom: 1em;
+            });
+            textarea{
+                height: 10.1rem;
+                .mobile({
+                    height: 12.75em;
+                });
+            }            
+            .position-button{
+                position: relative;
+                width: 100%; 
+                display: flex;
+                justify-content: space-between;
+                .result{
+                    width: 50%;
+                    .mobile({
+                        position: absolute;
+                        width: 100%;
+                        top: 140%;
+                        font-size: 0.75em;
+                    });
+                }
+            }
+        }
+    }
+}

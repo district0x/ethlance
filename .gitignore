@@ -17,3 +17,6 @@
 package-lock.json
 .DS_Store
 smart_contracts_dev.cljs
+/designs/node_modules/
+/designs/deploy/
+!/designs/deploy/images/

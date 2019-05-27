@@ -1,0 +1,118 @@
+/* font */
+
+.fontDef{
+	font-family: 'Open Sans', sans-serif;
+}
+
+.smooth-transition{
+	transition: 0.5s all ease-in-out;
+}
+.transition{
+	transition: 0.3s all ease-out;
+}
+.transitionLong{
+	transition: 1s all ease-out;
+}
+
+.mobile(@rules) {
+	@media (max-width: 599px) {
+		@rules();
+	}
+}
+.no-mobile(@rules) {
+	@media (min-width: 600px) {
+		@rules();
+	}
+}
+.tablet(@rules) {
+	@media  (max-width: 1024px) {
+		@rules();
+	}
+}
+
+.only-tablet(@rules) {
+	@media  (min-width: 600px) and (max-width: 1024px) {
+		@rules();
+	}
+}
+
+.desktop(@rules) {
+	@media  (min-width: 1025px) {
+		@rules();
+	}
+}
+
+.x700(@rules) {
+	@media (max-width: 700px) {
+		@rules();
+	}
+}
+
+.x800(@rules) {
+	@media (max-width: 800px) {
+		@rules();
+	}
+}
+
+.x900(@rules) {
+	@media (max-width: 900px) {
+		@rules();
+	}
+}
+
+.x950(@rules) {
+	@media (max-width: 950px) {
+		@rules();
+	}
+}
+
+.xga(@rules) {
+	@media (min-width: 600px) and (max-width: 1150px) {
+		@rules();
+	}
+}
+
+.wxga(@rules) {
+	@media (min-width: 1440px) {
+		@rules();
+	}
+}
+
+.fullhd(@rules) {
+	@media (min-width: 1920px) {
+		@rules();
+	}
+}
+
+.retina(@rules) {
+	@media (min-width: 2560px) {
+		@rules();
+	}
+}
+
+.errorBorder(@rules) {
+	&:before{
+		pointer-events: none;
+		position: absolute;
+		content:'';		
+		top:0;
+		left:0;
+		right:0;
+		bottom: 0;		
+		z-index:1;
+		border-width:3px!important;		
+		border-radius: .15rem;
+		.transition();
+		@rules();
+	}
+}
+
+.clearfix {
+	&::after {
+		content: "";
+		clear: both;
+		display: table;
+	}
+}
+
+

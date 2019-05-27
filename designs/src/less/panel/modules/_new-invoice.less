@@ -1,0 +1,117 @@
+.new-invoice{
+    .button-full{
+        input{
+            padding-right: 2rem!important;
+            .mobile({
+                padding-right: 3rem!important;
+            });
+        }
+        .icon-button{
+            display: block!important;
+            margin-left:2rem!important;
+            .mobile({
+                margin-left: 15%!important;
+            });
+        }
+    }
+    .mobile({
+        .box-side{
+            margin-right: 5rem !important;
+            &:last-child{
+                margin-right: 0 !important;
+            }
+        }
+    });
+    .subtitle-info{
+        .mobile({
+            font-size: 3.5rem !important;
+        });
+    }
+    .flex-side{
+        .content-side{
+            &:nth-child(1){
+                width: 90%;
+                margin-right: 3rem;
+                .mobile({margin-bottom: 0;width: 100%;});
+            }
+            &:nth-child(2){
+                width: 90% !important;
+                .mobile({width: 100% !important;;});
+            }
+        }
+    } 
+    &.new-invoice .form-box .box-form-part textarea{
+        height: 12rem !important;
+        border-radius: .3rem;
+        .mobile({
+            height: 50rem !important;
+            border-radius: 1.5rem;
+        });
+        
+    }
+    &.new-job .form-box .inputs-forms-tabs.arbiters .box-side:last-child{
+        .mobile({
+            width: 25%;
+        });
+        .x800({
+            margin-top: .38rem;
+        });
+    }
+    .form-box{
+        >*{
+            margin-bottom:2.1rem!important;
+            .mobile({
+                margin-bottom: 6.1rem !important;
+            })
+        }
+        .button-full{margin-bottom: 0!important;}
+    }
+    .title-principal{
+        margin-bottom: 2.5rem; 
+        .mobile({
+            margin-bottom: 8rem !important;
+        });
+    }
+    .form-box{
+        .box-form-part{
+            .mobile({
+                margin: 5rem 0;
+            });
+        }
+        .inputs-forms-tabs{
+            .mobile({
+                margin-top: 1rem !important;
+            });
+            &.arbiters{
+                .flex-box-side{
+                    flex-direction: row;
+                }
+                .box-side{
+                    &:last-child{
+                        width: 25%;
+                        .mobile({
+                            width: 40%;
+                        });
+                        input{
+                            text-align: right;
+                            padding-right: .5rem;
+                        }
+                    }
+                }
+            }
+        }
+        .box-form-part{
+            textarea{
+                height: 6rem !important;
+                .mobile({
+                    height: 31rem !important;
+                });
+            }
+        }
+    }
+    form{
+        .box-content{
+            margin-bottom: 2rem !important;
+        }
+    }
+}
