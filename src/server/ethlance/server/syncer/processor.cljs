@@ -54,18 +54,20 @@
   # Notes
 
   - Implementations are expected to return a single value async channel."
-  :name)
+  (fn [error event] [(-> event :contract :contract-key) (-> event :event)]))
 
 
 (defmethod process-event :default
-  [{:keys [name args] :as event}]
-  (go (log/warn (str/format "Unprocessed Event: %s\n%s" (pr-str name) (pp-str event)))))
+  [_ {:keys [contract] :as event}]
+  (go (log/warn (str/format "Unprocessed Event: %s\n%s" (pr-str (:contract-key contract)) (pp-str event)))))
 
 
 (declare process-registry-event)
-(defmethod process-event :registry-event
-  [event]
-  (go (<! (process-registry-event event))))
+(defmethod process-event [:ethlance-registry :EthlanceEvent]
+  [error event]
+  (log/debug "Processing Ethlance Event")
+  (log/debug event))
+  ;;(go (<! (process-registry-event event))))
 
 
 (defmulti process-registry-event
