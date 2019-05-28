@@ -35,4 +35,8 @@ deploy:
 
 
 clean:
-	rm -rf deploy
+	rm -rf deploy/css
+	rm -rf deploy/js
+	rm -rf deploy/pages
+	rm -rf deploy/css
+	rm -rf deploy/index.php
