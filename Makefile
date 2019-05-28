@@ -8,6 +8,7 @@
 .PHONY: deploy testnet ipfs docs
 .PHONY: run
 .PHONY: deps test travis-test
+.PHONY: design-build design-deploy
 .PHONY: check clean clean-all
 
 
@@ -50,6 +51,10 @@ help:
 	@echo "Testing Commands:"
 	@echo "  test                    :: Run Server Tests (once)."
 	@echo ""
+	@echo "Design Commands:"
+	@echo "  design-build            :: Build Ethlance Design Static Website."
+	@echo "  design-deploy           :: Deploy Ethlance Design Static Website."
+	@echo ""
 	@echo "Misc Commands:"
 	@echo "  deps                    :: Pull and Install third-party dependencies."
 	@echo "  check                   :: Checks the status of required pre-requisites."
@@ -84,6 +89,7 @@ clean:
 
 clean-all: clean
 	rm -rf node_modules
+	make -C ./designs clean
 
 
 deps:
@@ -159,3 +165,11 @@ watch-css:
 
 build-css:
 	lessc resources/public/less/main.less resources/public/css/main.css
+
+
+design-build:
+	make -C ./designs build
+
+
+design-deploy:
+	make -C ./designs deploy
