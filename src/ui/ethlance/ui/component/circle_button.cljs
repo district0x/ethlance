@@ -12,8 +12,12 @@
     (let [class-color (case color
                         :primary " primary "
                         :secondary " secondary "
-                        :none "")]
+                        :none "")
+          class-size  (case size
+                        :small " small "
+                        :normal ""
+                        :large " large ")]
       [:div.ethlance-circle-button.ethlance-circle-icon-button
-       {:class [class-color]}
-       [c-icon {:name name :color color}]])))
+       {:class [class-color class-size]}
+       [c-icon {:name name :color color :size size}]])))
 
