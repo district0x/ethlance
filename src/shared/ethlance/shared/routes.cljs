@@ -1,7 +1,26 @@
 (ns ethlance.shared.routes)
 
 
-(def routes [["/" :route/home]])
+(def routes [["/" :route/home]
+
+             ;; Users
+             ["/arbiters" :route.user/arbiters]
+             ["/candidates" :route.user/candidates]
+             ["/employers" :route.user/employers]
+             ["/user/:address" :route.user/profile]
+
+             ;; Jobs
+             ["/jobs" :route.job/jobs]
+             ["/jobs/new" :route.job/new] ;; general & bounty
+             ["/jobs/contract/" :route.job/contract]
+             ["/jobs/contract/:index" :route.job/contract]
+             ["/jobs/detail/" :route.job/detail]
+             ["/jobs/detail/:index" :route.job/detail]
+             
+             ;; Me
+             ["/me/contracts" :route.me/contracts]
+             ["/me/contracts/:address/new-invoice" :route.me/new-invoice]])
+
 
 
 (def dev-routes

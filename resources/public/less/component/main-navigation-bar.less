@@ -1,0 +1,36 @@
+/// main-navigation-bar.less - Main Layout Navigation bar
+
+
+.main-navigation-bar {
+    display: grid;
+    color: white;
+    grid-template-areas: 'logo . profile account-transactions';
+    grid-template-columns: 130px 3fr 1fr 300px;
+    background-color: @color-dark-blue;
+
+    .ethlance-logo {
+        grid-area: logo;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+
+        img {
+            height: 1.6em;
+        }
+    }
+
+    .profile {
+        grid-area: profile;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        
+    }
+
+    .account-transactions {
+        grid-area: account-transactions;
+        display:flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
