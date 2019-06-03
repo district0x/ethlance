@@ -9,15 +9,17 @@
 
 
 (defn c-main-layout
-  []       
-  [:div.main-layout
-   [c-main-navigation-bar]
-   [c-main-navigation-menu]
-   [:div.content "Main Content"]
-   [:div.footer
-    [:div.copyright "Copyright © 2019 Ethlance.com | All rights reserved."]
-    [:div.social
-     [c-circle-icon-button {:name :facebook :size :small}]
-     [c-circle-icon-button {:name :twitter :size :small}]
-     [c-circle-icon-button {:name :github :size :small}]
-     [c-circle-icon-button {:name :slack :size :small}]]]])
+  [{:keys [container-opts] :as opts}
+   & children]
+  (let [opts (dissoc opts :container-opts)]
+    [:div.main-layout opts
+     [c-main-navigation-bar]
+     [c-main-navigation-menu]
+     [:div.main-container container-opts children]
+     [:div.footer
+      [:div.copyright "Copyright © 2019 Ethlance.com | All rights reserved."]
+      [:div.social
+       [c-circle-icon-button {:name :facebook :size :small}]
+       [c-circle-icon-button {:name :twitter :size :small}]
+       [c-circle-icon-button {:name :github :size :small}]
+       [c-circle-icon-button {:name :slack :size :small}]]]]))

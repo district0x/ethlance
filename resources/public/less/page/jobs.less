@@ -1,0 +1,103 @@
+/// jobs.less -- Main layout for the 'job listing' page
+
+// main layout content container
+
+.jobs-main-container {
+    display: grid;
+    grid-template-areas: 'job-search-filter job-listing';
+    grid-template-columns: 1fr 4fr;
+
+    > .job-search-filter {
+        display: flex;
+        flex-direction: column;
+        grid-area: job-search-filter;
+        background-color: @color-purple;
+        border-radius: 10px 0 0 10px;
+        padding: 1.0em;
+        overflow: hidden;
+
+        > .category-selector {
+            color: white;
+            background-color: #725eff;
+            padding: 1em;
+            margin: 0.3em;
+            border-radius: 3px;
+        }
+
+        > .rating-label {
+            padding: 1em;
+            color: white;
+            font-weight: bold;
+        }
+
+        > .ethlance-component-rating {
+            padding: 1em;
+            padding-top: 0;
+        }
+    }
+
+    > .job-listing {
+        display: flex;
+        background-color: white;
+        flex-direction: column;
+        grid-area: job-listing;
+
+        > .job-search-input {
+            margin: 1.5em;
+            padding: 1.5em;
+            background-color: #e8eefe;
+        }
+
+        > .job-element {
+            display: grid;
+            height: 450px;
+            grid-template-areas:
+              'title          details'
+              'description    details'
+              'date           details'
+              'tags           details'
+              'users          details';
+            grid-template-rows: 3em minmax(7em, 1fr) 2em 2em 5fr;
+            grid-template-columns: 4fr 2fr;
+            margin: 2em;
+
+            > .title {
+                display: flex;
+                align-items: center;
+                grid-area: title;
+                font-size: 2em;
+                font-weight: 500;
+            }
+
+            > .description {
+                margin: 1em 0;
+                grid-area: description;
+                line-height: 1.4em;
+            }
+
+            > .date {
+                grid-area: date;
+                font-weight: 200;
+                font-size: 0.9em;
+            }
+
+            > .tags {
+                grid-area: tags;
+                display: flex;
+                flex-direction: row;
+                margin: 1em;
+                > .tag {
+                    margin: 0 1em;
+                }
+            }
+
+            > .users {
+                grid-area: users;
+            }
+
+            > .details {
+                grid-area: details;
+            }
+        }
+    }
+}

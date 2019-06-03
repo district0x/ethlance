@@ -4,6 +4,9 @@
    [ethlance.ui.core]))
 
 
+(enable-console-print!)
+
+
 (defn start []
   (ethlance.ui.core/init))
 

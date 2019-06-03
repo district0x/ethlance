@@ -15,45 +15,42 @@
     grid-template-rows: 4.5em 1fr 7em;
     grid-template-columns: 1fr 5fr;
 
-    .main-navigation-bar {
+    > .main-navigation-bar {
         grid-area: navigation-bar;
     }
 
     @header-margin: 3em;
 
-    .main-navigation-menu {
+    > .main-navigation-menu {
         margin-top: @header-margin;
         grid-area: navigation-menu;
     }
 
-    .content {
+    > .main-container {
         margin-top: @header-margin;
         margin-right: 1.2em;
         grid-area: content;
-        
-        // FIXME: remove in favour of applying to inner content
-        background-color: white;
         border-radius: 10px;
         box-shadow: rgba(44, 57, 143, 0.05) 0px 0px 32px 8px;
     }
 
-    .footer {
+    > .footer {
         grid-area: footer;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
         margin: 0 12em 2em 2em;
 
-        .copyright {
+        > .copyright {
             font-size: 0.8em;
             font-weight: 300;
         }
 
-        .social {
+        > .social {
             display: flex;
             flex-direction: row;
 
-            .ethlance-circle-button {
+            > .ethlance-circle-button {
                 margin: 0 0.5em;
             }
         }

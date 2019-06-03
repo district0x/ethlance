@@ -29,6 +29,7 @@
                  [org.clojure/tools.reader "1.3.2"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.10.6"]
+                 [reagent "0.8.1"]
 
                  ;; District General Libraries
                  [district0x/district-cljs-utils "1.0.4"]
