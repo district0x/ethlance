@@ -5,7 +5,8 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.rating :refer [c-rating]]))
+   [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
 
 
 (defn c-job-search-filter
@@ -45,10 +46,11 @@
    [:div.title "Ethereum Contract Implementation"]
    [:div.description "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ac ex non ipsum laoreet fringilla quis vel nibh. Praesent sed condimentum ex, consectetur gravida felis. Sed tincidunt vestibulum ante elementum pellentesque."]
    [:div.date "Posted 1 day ago | 5 Proposals"]
-   [:div.tags ;; TODO tag component implementation
-    [:div.tag "tag 1"]
-    [:div.tag "tag 2"]
-    [:div.tag "tag 3"]]
+   [:div.tags
+    [c-tag {} [c-tag-label "System Administration"]]
+    [c-tag {} [c-tag-label "Game Design"]]
+    [c-tag {} [c-tag-label "C++ Programming"]]
+    [c-tag {} [c-tag-label "HopScotch Master"]]]
 
    [:div.users
     [:span "Brian Curran"]
@@ -57,6 +59,7 @@
 
    [:div.details "details"]])
     ;;TODO: table
+
 
 (defn c-job-listing []
   [:<>

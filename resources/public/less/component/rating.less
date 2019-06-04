@@ -15,10 +15,9 @@
 	#star {
 	    cursor: pointer;
 	}
-
-	&.primary {
-	    @fill-color: #ethlance-component-rating[primary-color];
-
+        
+        /* Apply currently set @fill-color to svg elements */
+        .apply-fill-color() {
 	    path, rect, circle {
 		fill: fadeout(@fill-color, 85%) !important;
 	    }
@@ -28,34 +27,21 @@
 		    fill: @fill-color !important;
 		}
 	    }
+        }
+
+	&.primary {
+	    @fill-color: #ethlance-component-rating[primary-color];
+            .apply-fill-color();
 	}
 
 	&.white {
 	    @fill-color: #ethlance-component-rating[secondary-color];
-
-	    path, rect, circle {
-		fill: fadeout(@fill-color, 85%) !important;
-	    }
-
-	    &.active {
-		path, rect, circle {
-		    fill: @fill-color !important;
-		}
-	    }
+            .apply-fill-color();
 	}
 
 	&.black {
 	    @fill-color: black;
-
-	    path, rect, circle {
-		fill: fadeout(@fill-color, 85%) !important;
-	    }
-
-	    &.active {
-		path, rect, circle {
-		    fill: @fill-color !important;
-		}
-	    }
+            .apply-fill-color();
 	}
 
         &.small {

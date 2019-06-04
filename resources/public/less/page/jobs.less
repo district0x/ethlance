@@ -57,9 +57,12 @@
               'date           details'
               'tags           details'
               'users          details';
-            grid-template-rows: 3em minmax(7em, 1fr) 2em 2em 5fr;
+            grid-template-rows: 3em minmax(7em, 1fr) 3em 3em 5fr;
             grid-template-columns: 4fr 2fr;
             margin: 2em;
+
+            // inset box-shadow
+            box-shadow: 0px -10px 2rem .2rem rgba(75,63,182,.05) inset;
 
             > .title {
                 display: flex;
@@ -85,9 +88,10 @@
                 grid-area: tags;
                 display: flex;
                 flex-direction: row;
-                margin: 1em;
-                > .tag {
-                    margin: 0 1em;
+                flex-wrap: wrap;
+                margin: 0.3em 0;
+                > .ethlance-tag {
+                    margin: 0 0.5em 0.3em 0;
                 }
             }
 
