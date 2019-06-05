@@ -1,7 +1,12 @@
-(ns ethlance.ui.component.tag)
+(ns ethlance.ui.component.tag
+  "An ethlance tag component")
 
 
-(defn c-tag [opts & children] [:div.ethlance-tag])
+(defn c-tag []
+  (fn [opts & children]
+    [:div.ethlance-tag opts children]))
 
 
-(defn c-tag-label [label] [:div.ethlance-tag-label])
+(defn c-tag-label []
+  (fn [label]
+    [:span.ethlance-tag-label label]))
