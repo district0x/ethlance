@@ -24,12 +24,17 @@
                         :default " "
                         :large " large "
                         :small " small ")
+          size-value (case size
+                        :normal 24
+                        :default 24
+                        :large 36
+                        :small 18)
           active-class (when active? " active ")]
       [c-inline-svg {:key (str index)
                      :src rating-star-src
                      :on-ready (when on-change #(handle-svg-ready index on-change %1 %2))
-                     :width 24
-                     :height 24
+                     :width size-value
+                     :height size-value
                      :class (str " star " color-class size-class active-class)}])))
 
 

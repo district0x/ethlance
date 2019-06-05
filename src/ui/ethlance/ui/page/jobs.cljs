@@ -8,7 +8,43 @@
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]))
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
+   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
+
+
+(defn c-user-employer-detail
+  [{:keys [] :as user}]
+  [:div.user-detail.employer
+   [:div.name "Brian Curran"]
+   [c-rating {:size :small :color :primary :rating 3}]
+   [:div.rating-label "(6)"]
+   [:div.location "United States, New York"]])
+
+   
+(defn c-user-arbiter-detail
+  [{:keys [] :as user}]
+  [:div.user-detail.arbiter
+   [c-inline-svg {:class "arbiter-icon"}]
+   [:div.name "Brian Curran"]
+   [c-rating {:size :small :color :primary :rating 3}]
+   [:div.rating-label "(6)"]
+   [:div.location "United States, New York"]])
+
+
+(defn c-job-detail-table
+  [{:keys [] :as job}]
+  [:div.job-detail-table
+   [:div.name "Payment Type"]
+   [:div.value "Hourly Rate"]
+
+   [:div.name "Experience Level"]
+   [:div.value "Export ($$$)"]
+
+   [:div.name "Project Length"]
+   [:div.value "Months"]
+   
+   [:div.name "Availability"]
+   [:div.value "Full Time"]])
 
 
 (defn c-job-search-filter
@@ -29,6 +65,7 @@
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
    ;; TODO: Input currency component
+   
 
    [:span.selection-label "Payment Type"]
    [c-radio-select 
@@ -69,12 +106,11 @@
     [c-tag {} [c-tag-label "HopScotch Master"]]]
 
    [:div.users
-    [:span "Brian Curran"]
-    [:span "Brian Curran"]]
-    ;;TODO: user component
+    [c-user-employer-detail {}]
+    [c-user-arbiter-detail {}]]
 
-   [:div.details "details"]])
-    ;;TODO: table
+   [:div.details
+    [c-job-detail-table job]]])
 
 
 (defn c-job-listing []

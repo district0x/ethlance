@@ -24,13 +24,11 @@
             border-radius: 3px;
         }
 
-        > .rating-label , .selection-label {
+        > .rating-label , > .selection-label {
             padding: 1em;
             color: white;
             font-weight: bold;
         }
-
-	
 
         > .ethlance-component-rating {
             padding: 1em;
@@ -62,9 +60,7 @@
             grid-template-rows: 3em minmax(7em, 1fr) 3em 3em 5fr;
             grid-template-columns: 4fr 2fr;
             margin: 2em;
-
-            // inset box-shadow
-            box-shadow: 0px -10px 2rem .2rem rgba(75,63,182,.05) inset;
+            box-shadow: 0px -20px 1rem -0.25rem rgba(75, 63, 182, .05) inset;
 
             > .title {
                 display: flex;
@@ -99,10 +95,78 @@
 
             > .users {
                 grid-area: users;
+                display: flex;
+                flex-direction: row;
+                margin: 2em 1em;
+
+                > .user-detail {
+                    display: grid;
+                    margin-right: 2em;
+                    grid-template-areas:
+                    'name     name'
+                    'rating   rating-label'
+                    'location location';
+                    
+                    > .name {
+                        display: flex;
+                        align-items: flex-end;
+                        grid-area: name;
+                        font-weight: 700;
+                    }
+
+                    > .ethlance-rating {
+                        grid-area: rating;
+                    }
+
+                    > .rating-label {
+                        display: flex;
+                        align-items: center;
+                        grid-area: rating-label;
+                    }
+
+                    > .location {
+                        grid-area: location;
+                    }
+
+                    // FIXME: arbiter logo not showing
+                    > .ethlance-inline-svg {
+                        position: absolute;
+                        top: 0;
+                        left: -1em;
+                        width: 16px;
+                        height: 16px;
+                        background-color: black;
+                    }
+                }
             }
 
             > .details {
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding-top: 1em;
                 grid-area: details;
+                > .job-detail-table {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    
+                    @border-attr: 1px solid fadeout(@color-dark-blue, 85%);
+                    > .name , > .value {
+                        border-top: @border-attr;
+                        padding: 1.2em 0;
+                        &:last-child , &:nth-last-child(2) {
+                            border-bottom: @border-attr;
+                        }
+                    }
+
+                    > .name {
+                        font-weight: 700;
+                    }
+
+                    > .value {
+                        text-align: right;
+                    }
+                }
             }
         }
     }
