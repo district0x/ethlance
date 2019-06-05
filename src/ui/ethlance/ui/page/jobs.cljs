@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.jobs
   "General Job Listings on ethlance"
   (:require
+   [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
    ;; Ethlance Components
@@ -21,25 +22,31 @@
 
    [:span.rating-label "Min. Rating"]
    [c-rating {:rating 1 :color :white :size :small
-              :on-change (fn [index] (println "Min. Rating: " index))}]
+              :on-change (fn [index] (log/debug "Min. Rating: " index))}]
 
    [:span.rating-label "Max. Rating"]
    [c-rating {:rating 5 :color :white :size :small
-              :on-change (fn [index] (println "Max. Rating: " index))}]
+              :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
    ;; TODO: Input currency component
 
-   ;; TODO: Radio selector component
    [:span.selection-label "Payment Type"]
    [c-radio-select 
-    {:on-select (fn [selection] (println "Payment Selection: " selection))
+    {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
      :default-selection :hourly-rate}
     [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
     [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
-    [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]])
+    [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
+
+   [:span.selection-label "Experience Level"]
+   [c-radio-select 
+    {:on-selection (fn [selection] (log/debug (str "Experience Selection: " selection)))
+     :default-selection :novice}
+    [:novice [c-radio-search-filter-element "Novice ($)"]]
+    [:professional [c-radio-search-filter-element "Professional ($$)"]]
+    [:expert [c-radio-search-filter-element "Expert ($$$)"]]]])
     
 
-   
 (defn c-job-search-input
   "Main search bar at the top of the listing."
   []

@@ -14,7 +14,7 @@
    viewBox="0 0 64 64"
    version="1.1"
    id="radio-button"
-   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="radio-button.svg">
   <defs
      id="defs2" />
@@ -33,11 +33,11 @@
      showgrid="false"
      inkscape:snap-object-midpoints="false"
      units="px"
-     inkscape:window-width="1638"
-     inkscape:window-height="1005"
-     inkscape:window-x="42"
-     inkscape:window-y="1"
-     inkscape:window-maximized="1" />
+     inkscape:window-width="2700"
+     inkscape:window-height="979"
+     inkscape:window-x="0"
+     inkscape:window-y="18"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -57,8 +57,8 @@
      transform="translate(0,-233)">
     <circle
        id="outer-circle"
-       style="fill:none;stroke:#000000;stroke-width:1.51495993;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       r="30.550549"
+       style="fill:none;stroke:#000000;stroke-width:1.44454408;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       r="29.130548"
        cy="265"
        cx="32" />
     <circle
@@ -66,6 +66,6 @@
        id="inner-circle"
        cy="265"
        cx="32"
-       r="17.594793" />
+       r="16.668751" />
   </g>
 </svg>

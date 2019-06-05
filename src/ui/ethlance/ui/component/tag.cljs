@@ -4,9 +4,10 @@
 
 (defn c-tag []
   (fn [opts & children]
-    [:div.ethlance-tag opts children]))
+    (let [children (if (= (count children) 1) (first children) children)]
+      [:div.ethlance-tag opts children])))
 
 
 (defn c-tag-label []
   (fn [label]
-    [:span.ethlance-tag-label label]))
+    [:span.ethlance-tag-label {:key (str label)} label]))

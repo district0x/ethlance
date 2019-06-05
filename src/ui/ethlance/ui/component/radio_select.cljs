@@ -3,6 +3,7 @@
   (:require
    [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! timeout] :include-macros true]
    [reagent.core :as r]
+   [taoensso.timbre :as log]
 
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
@@ -30,7 +31,9 @@
         (go-loop []
           (when-let [selection (<! select-channel)]
             (reset! *currently-active selection)
-            (when on-selection (on-selection selection))
+            (if on-selection
+              (on-selection selection)
+              (log/warn "No Selection Callback set for c-radio-select component"))
             (recur))))
 
       :component-will-unmount

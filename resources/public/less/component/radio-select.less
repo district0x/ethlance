@@ -5,11 +5,14 @@
   flex-direction: column;
 
   > .ethlance-radio-element {
+    .noselect();
     display: flex;
     flex-direction: row;
     align-items: center;
     margin: 0.7em 1.0em;
     color: white;
+    cursor: pointer;
+    transition: all 0.1;
 
     > .ethlance-inline-svg {
       margin-right: 0.5em;
@@ -19,12 +22,36 @@
       }
 
       #inner-circle {
-	fill: white !important;
+	fill: transparent !important;
       }
     }
 
     > .label {
       font-weight: 300;
+    }
+
+    &:hover {
+        > .label {
+            text-decoration: underline;
+        }
+    }
+
+    &.active {
+      > .ethlance-inline-svg {
+          margin-right: 0.5em;
+          
+          #outer-circle {
+	      stroke: fadeout(white, 25%) !important;
+          }
+          
+          #inner-circle {
+	      fill: white !important;
+          }
+      }
+      
+      > .label {
+          font-weight: 500;
+      }
     }
   }
 }
