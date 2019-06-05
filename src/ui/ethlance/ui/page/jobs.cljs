@@ -6,7 +6,8 @@
    ;; Ethlance Components
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]))
 
 
 (defn c-job-search-filter
@@ -24,11 +25,19 @@
 
    [:span.rating-label "Max. Rating"]
    [c-rating {:rating 5 :color :white :size :small
-              :on-change (fn [index] (println "Max. Rating: " index))}]])
+              :on-change (fn [index] (println "Max. Rating: " index))}]
 
    ;; TODO: Input currency component
 
    ;; TODO: Radio selector component
+   [:span.selection-label "Payment Type"]
+   [c-radio-select 
+    {:on-select (fn [selection] (println "Payment Selection: " selection))
+     :default-selection :hourly-rate}
+    [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
+    [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
+    [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]])
+    
 
    
 (defn c-job-search-input

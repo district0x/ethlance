@@ -42,7 +42,8 @@
                    xml->svg)))))
 
 
-(defn c-inline-svg [{:keys [key src class id on-ready width height] :as props}]
+(defn c-inline-svg
+  [{:keys [key src class id on-ready width height] :as props}]
   (let [*inline-svg (r/atom nil)
         *dom-ref (r/atom nil)]
     (r/create-class
