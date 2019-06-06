@@ -9,7 +9,7 @@
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.search-input :refer [c-search-input]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
@@ -83,12 +83,6 @@
     [:novice [c-radio-search-filter-element "Novice ($)"]]
     [:professional [c-radio-search-filter-element "Professional ($$)"]]
     [:expert [c-radio-search-filter-element "Expert ($$$)"]]]])
-    
-
-(defn c-job-search-input
-  "Main search bar at the top of the listing."
-  []
-  [c-search-input {:class :job-search-input}])
 
 
 (defn c-job-element
@@ -124,7 +118,7 @@
   (let []
     (fn []
       [c-main-layout {:container-opts {:class :jobs-main-container}}
-       [c-job-search-filter {:default-chip-listing #{"C++"}}]
+       [c-job-search-filter]
        [:div.job-listing {:key "listing"}
-        [c-job-search-input]
+        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
         [c-job-listing]]])))

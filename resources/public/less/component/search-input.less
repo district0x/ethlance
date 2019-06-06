@@ -1,14 +1,14 @@
 /// search-input.less -- Styling for search input
 
 
-.ethlance-search-input {
-    @search-size: 48px;
+.ethlance-chip-search-input {
+    @search-size: 60px;
 
     display: grid;
     height: @search-size;
     grid-template-columns: 1fr @search-size;
     grid-template-rows: 1fr;
-    margin: 2em;
+    margin: 2.0em;
 
     > .search-container {
         display: flex;
@@ -37,5 +37,32 @@
         justify-content: center;
         align-items: center;
         background-color: @color-purple;
+    }
+}
+
+.ethlance-chip {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: white;
+    padding: 0.5em 1.0em;
+    margin: 0.7em 0.3em;
+    border-radius: 5px;
+
+    > .label {
+        padding-right: 0.5em;
+    }
+
+    > .close-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        padding: 3px;
+        margin: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 100%;
+        background-color: #dfeefc;
     }
 }
