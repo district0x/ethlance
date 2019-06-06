@@ -1,0 +1,41 @@
+/// search-input.less -- Styling for search input
+
+
+.ethlance-search-input {
+    @search-size: 48px;
+
+    display: grid;
+    height: @search-size;
+    grid-template-columns: 1fr @search-size;
+    grid-template-rows: 1fr;
+    margin: 2em;
+
+    > .search-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        background-color: #e8eefe;
+
+        > .chip-listing {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        > .search-input {
+            font-size: 1.5em;
+            flex-grow: 1;
+            background-color: transparent;
+            border: none;
+            padding-left: 0.5em;
+        }
+    }
+
+    > .search-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: @color-purple;
+    }
+}

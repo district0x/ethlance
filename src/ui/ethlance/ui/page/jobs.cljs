@@ -9,6 +9,7 @@
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
+   [ethlance.ui.component.search-input :refer [c-search-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
@@ -87,9 +88,7 @@
 (defn c-job-search-input
   "Main search bar at the top of the listing."
   []
-  [:div.job-search-input
-   {:key "search-input"}
-   "job search input"])
+  [c-search-input {:class :job-search-input}])
 
 
 (defn c-job-element
@@ -125,7 +124,7 @@
   (let []
     (fn []
       [c-main-layout {:container-opts {:class :jobs-main-container}}
-       [c-job-search-filter]
+       [c-job-search-filter {:default-chip-listing #{"C++"}}]
        [:div.job-listing {:key "listing"}
         [c-job-search-input]
         [c-job-listing]]])))
