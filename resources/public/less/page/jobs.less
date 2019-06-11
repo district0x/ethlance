@@ -5,7 +5,7 @@
 .jobs-main-container {
     display: grid;
     grid-template-areas: 'job-search-filter job-listing';
-    grid-template-columns: 1fr 4fr;
+    grid-template-columns: minmax(185px, 235px) 4fr;
 
     > .job-search-filter {
         display: flex;
@@ -33,6 +33,10 @@
         > .ethlance-component-rating {
             padding: 1em;
             padding-top: 0;
+        }
+
+        > .currency-input {
+            padding: 1em;
         }
     }
 
@@ -74,6 +78,7 @@
                 grid-area: date;
                 font-weight: 200;
                 font-size: 0.9em;
+                margin: 0.5em 0;
             }
 
             > .tags {

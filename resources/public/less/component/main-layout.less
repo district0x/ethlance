@@ -9,11 +9,11 @@
     min-height: 100%;
     display: grid;
     grid-template-areas:
-      'navigation-bar  navigation-bar'
-      'navigation-menu content'
-      'footer          footer';
+      'navigation-bar navigation-bar  navigation-bar navigation-bar'
+      '.              navigation-menu content        .'
+      'footer         footer          footer         footer';
     grid-template-rows: 4.5em 1fr 7em;
-    grid-template-columns: 1fr 5fr;
+    grid-template-columns: minmax(1em, 1fr) 2fr minmax(960px, 10fr) minmax(1em, 1fr);
 
     > .main-navigation-bar {
         grid-area: navigation-bar;

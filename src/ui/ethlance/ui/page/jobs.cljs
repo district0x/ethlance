@@ -4,12 +4,15 @@
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
+   [ethlance.shared.enumeration.currency-type :as enum.currency]
+
    ;; Ethlance Components
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
@@ -39,7 +42,7 @@
    [:div.value "Hourly Rate"]
 
    [:div.name "Experience Level"]
-   [:div.value "Export ($$$)"]
+   [:div.value "Expert ($$$)"]
 
    [:div.name "Project Length"]
    [:div.value "Months"]
@@ -65,8 +68,15 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   ;; TODO: Input currency component
+   [c-currency-input
+    {:placeholder "Min. Hourly Rate"
+     :currency-type ::enum.currency/usd
+     :on-change #(println "Currency Min Change: " %)}]
    
+   [c-currency-input
+    {:placeholder "Max. Hourly Rate"
+     :currency-type ::enum.currency/usd
+     :on-change #(println "Currency Max Change: " %)}]
 
    [:span.selection-label "Payment Type"]
    [c-radio-select 
