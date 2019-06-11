@@ -29,6 +29,7 @@
             background-color: transparent;
             border: none;
             padding-left: 0.5em;
+	    outline: none;
         }
     }
 
@@ -64,5 +65,17 @@
         height: 20px;
         border-radius: 100%;
         background-color: #dfeefc;
+	transition: 0.3s all ease-out;
+
+	&:hover {
+	  color: white;
+	  background-color: @color-dark-blue;
+	}
+
+	> .ethlance-icon {
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	}
     }
 }

@@ -14,7 +14,8 @@
    :github {:src "images/icons/github-icon.svg"}
    :linkedin {:src "images/icons/linkedin-icon.svg"}
    :slack {:src "images/icons/slack-icon.svg"}
-   :twitter {:src "images/icons/twitter-icon.svg"}})
+   :twitter {:src "images/icons/twitter-icon.svg"}
+   :close {:src "images/svg/close.svg"}})
 
 
 (defn c-icon []
@@ -33,6 +34,7 @@
                   :none "")
 
           [width height] (case size
+                           :x-small [8 8]
                            :small [16 16]
                            :normal [24 24]
                            :large [32 32])

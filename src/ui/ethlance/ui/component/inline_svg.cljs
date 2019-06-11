@@ -25,7 +25,7 @@
 
 (defn xml->svg
   [xml]
-  (let [svg (-> xml (.getElementsByTagName "svg") (aget 0))]
+  (when-let [svg (-> xml (.getElementsByTagName "svg") (aget 0))]
     (doto svg
       (.removeAttribute "xmlns:a"))))
 
