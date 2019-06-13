@@ -1,0 +1,23 @@
+/// candidates.less -- Full listing of candidates
+
+
+.candidates-main-container {
+    display: grid;
+    grid-template-areas: 'search-filter listing';
+    grid-template-columns: minmax(185px, 235px) 4fr;
+
+    > .search-filter {
+        display: flex;
+        flex-direction: column;
+        grid-area: search-filter;
+        background-color: @color-purple;
+        border-radius: 10px 0 0 10px;
+    }
+
+    > .listing {
+        display: flex;
+        background-color: white;
+        flex-direction: column;
+        grid-area: listing;
+    }
+}

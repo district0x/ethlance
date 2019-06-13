@@ -7,6 +7,7 @@
              ["/arbiters" :route.user/arbiters]
              ["/candidates" :route.user/candidates]
              ["/employers" :route.user/employers]
+             ["/user/" :route.user/employers]
              ["/user/:address" :route.user/profile]
 
              ;; Jobs
@@ -18,6 +19,8 @@
              ["/jobs/detail/:index" :route.job/detail]
              
              ;; Me
+             ["/me" :route.me/index]
+             ["/me/sign-up" :route.me/sign-up]
              ["/me/contracts" :route.me/contracts]
              ["/me/contracts/:address/new-invoice" :route.me/new-invoice]])
 
