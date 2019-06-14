@@ -1,0 +1,27 @@
+/// tabular-layout.less -- Adds a layout containing several tabs
+
+
+.tabular-layout {
+    display: grid;
+    grid-template-areas:
+      'tab-listing'
+      'active-page';
+    grid-template-rows: 80px 1fr;
+    
+    > .tab-listing {
+        grid-area: tab-listing;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .tab {
+            color: #color[secondary-accent];
+            background-color: white;
+            margin-right: 1em;
+        }
+    }
+
+    > .active-page {
+        grid-area: active-page;
+        background-color: white;
+    }
+}
