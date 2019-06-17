@@ -17,7 +17,21 @@
 
 
 (defn c-me-sidebar []
-  [:div.sidebar "Me Sidebar"])
+  [:div.sidebar
+   [:span.label "Employer"]
+   [:a "My Jobs"]
+   [:a "My Contracts"]
+   [:a "My Invoices"]
+   [:hr]
+   [:span.label "Candidate"]
+   [:a "My Jobs"]
+   [:a "My Contracts"]
+   [:a "My Invoices"]
+   [:hr]
+   [:span.label "Arbiter"]
+   [:a "My Jobs"]
+   [:a "My Contracts"]
+   [:a "My Invoices"]])
 
 
 (defmethod page :route.me/index []
@@ -34,4 +48,16 @@
 
         {:label "Pending Proposals"}
         [:div.pending-proposals-tab
-         "Pending Proposals"]]])))
+         "Pending Proposals"]
+
+        {:label "Active Contracts"}
+        [:div.active-contracts-tab
+         "Active Contracts Tab"]
+
+        {:label "Finished Contracts"}
+        [:div.finished-contracts-tab
+         "Finished Contrafts Tab"]
+
+        {:label "Cancelled Contracts"}
+        [:div.cancelled-contracts-tab
+         "Cancelled Contracts"]]])))
