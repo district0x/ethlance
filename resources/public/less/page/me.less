@@ -2,11 +2,28 @@
 
 
 .me-main-container {
+    @tab-height: #tabular-layout[tab-height];
+
+    display: grid;
+    grid-template-areas:
+      '.       tab'
+      'sidebar tab';
+    grid-template-rows: @tab-height 1fr;
+    grid-template-columns: 200px 1fr;
     background-color: transparent;
     min-height: 100%;
     margin-bottom: 8em;
 
+    > .sidebar {
+        grid-area: sidebar;
+        background-color: @color-purple;
+        color: white;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
     > .tabular-layout {
+        grid-area: tab;
         > .active-page {
             > .invitations-tab {
                 

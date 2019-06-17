@@ -19,5 +19,5 @@
               {:class (when (= @*active-tab-index index) "active")
                :on-click #(reset! *active-tab-index index)}
               [:span.label label]]))]
-         [:div.active-page
+         [:div.active-page {:key "active-page"}
           (get tab-children @*active-tab-index)]]))))

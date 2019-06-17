@@ -16,10 +16,15 @@
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]))
 
 
+(defn c-me-sidebar []
+  [:div.sidebar "Me Sidebar"])
+
+
 (defmethod page :route.me/index []
   (let []
     (fn []
       [c-main-layout {:container-opts {:class :me-main-container}}
+       [c-me-sidebar]
        [c-tabular-layout
         {:default-tab 0}
         
