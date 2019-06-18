@@ -11,7 +11,7 @@
     grid-template-areas:
       'tab-listing'
       'active-page';
-    grid-template-rows: 80px 1fr;
+    grid-template-rows: #tabular-layout[tab-height] 1fr;
     
     > .sidebar {
       display: flex;
@@ -38,7 +38,6 @@
 	    text-align: center;
             height: 100%;
             justify-content: center;
-            min-width: 180px;
             padding: 0 2em;
             transition: 0.07s all ease-in;
             &.active {
@@ -59,5 +58,6 @@
         grid-area: active-page;
         background-color: white;
         box-shadow: 0 0 2rem .5rem rgba(44,57,143,.05);
+        border-bottom-right-radius: 0.7em;
     }
 }

@@ -11,8 +11,7 @@
     grid-template-rows: @tab-height 1fr;
     grid-template-columns: 200px 1fr;
     background-color: transparent;
-    min-height: 100%;
-    margin-bottom: 8em;
+    //margin-bottom: 8em;
 
     > .sidebar {
         grid-area: sidebar;
@@ -31,7 +30,18 @@
 	}
 
 	a {
-	  padding: 0.7em 0;
+            color: white;
+	    padding: 0.7em 0;
+            line-height: 1.2em;
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+            &:active {
+                text-decoration: underline;
+                color: @color-light-blue;
+            }
 	}
 
 	hr {
