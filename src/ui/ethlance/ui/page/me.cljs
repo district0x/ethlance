@@ -36,7 +36,27 @@
 
 (defn c-invitations-tab []
   [:div.invitations-tab
-   [c-table]])
+   [c-table
+    {:headers ["Title" "Candidate" "Rate" "Total Spent"]}
+    [[:span "Cryptoeconomics Research Intern"]
+     [:span "Keegan Quigley"]
+     [:span "$30/hr"]
+     [:span "12.2 ETH"]]
+
+    [[:span "Cryptoeconomics Research Intern"]
+     [:span "Keegan Quigley"]
+     [:span "$30/hr"]
+     [:span "12.2 ETH"]]
+
+    [[:span "Cryptoeconomics Research Intern"]
+     [:span "Keegan Quigley"]
+     [:span "$30/hr"]
+     [:span "12.2 ETH"]]
+
+    [[:span "Cryptoeconomics Research Intern"]
+     [:span "Keegan Quigley"]
+     [:span "$30/hr"]
+     [:span "12.2 ETH"]]]])
 
 
 (defmethod page :route.me/index []

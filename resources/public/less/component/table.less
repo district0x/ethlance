@@ -2,5 +2,25 @@
 
 
 .ethlance-table {
-    
+    width: 100%;
+    > table {
+        width: 100%;
+        text-align: left;
+        > tr {
+            > th {
+                font-weight: 700;
+                padding: 1em;
+                border-bottom: 1px solid #d6e1fd;
+            }
+
+            > td {
+                padding: 1em;
+                border-bottom: 1px solid #d6e1fd;
+            }
+
+            &:nth-child(2n) {
+                background-color: #f9faff;
+            }
+        }
+    }
 }
