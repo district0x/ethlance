@@ -21,4 +21,4 @@
    [c-menu-item {:name :arbiters :label "Arbiters"}]
    [c-menu-item {:name :about :label "About"}]
    [c-menu-item {:name :sign-up :label "Sign Up"}]
-   [c-menu-item {:name :sign-up :label "My Activity"}]])
+   [c-menu-item {:name :my-activity :label "My Activity"}]])

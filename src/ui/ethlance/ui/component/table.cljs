@@ -3,16 +3,21 @@
    [reagent.core :as r]))
 
 
-(defn c-table [{:keys [headers]} & rows]
+(defn c-table
+  ""
+  [{:keys [headers]} & rows]
   (let []
     [:div.ethlance-table
      [:table
       [:tr
        (doall
-        (for [header headers]
-         [:th header]))]
+        (for [[i header] (map-indexed vector headers)]
+          ^{:key (str "header-" i)}
+          [:th header]))]
       (doall
-       (for [row rows]
-        [:tr
-         (for [elem row]
-          [:td elem])]))]]))
+       (for [[i row] (map-indexed vector rows)]
+         ^{:key (str "row-" i)}
+         [:tr
+          (for [[i elem] (map-indexed vector row)]
+            ^{:key (str "elem-" i)}
+            [:td elem])]))]]))

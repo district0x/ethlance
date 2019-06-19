@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 31.999999 31.999999"
+   version="1.1"
+   id="svg112"
+   sodipodi:docname="ic-arrow-left2.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   width="32"
+   height="32">
+  <metadata
+     id="metadata116">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>ic-arrow-down_1</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1916"
+     inkscape:window-height="988"
+     id="namedview114"
+     showgrid="false"
+     inkscape:zoom="21.518185"
+     inkscape:cx="22.22012"
+     inkscape:cy="15.473501"
+     inkscape:window-x="1920"
+     inkscape:window-y="18"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg112"
+     units="px" />
+  <defs
+     id="defs104">
+    <style
+       id="style102">.cls-1{fill:#4b3fb6;}</style>
+  </defs>
+  <title
+     id="title106">ic-arrow-down_1</title>
+  <g
+     id="g3890"
+     transform="matrix(-2.5577452,0,0,2.5577452,32.008599,-0.01148532)">
+    <g
+       transform="matrix(0,1,1,0,9.8630169e-4,-8.5311865e-4)"
+       data-name="Camada 2"
+       id="Camada_2">
+      <g
+         data-name="Layer 1"
+         id="Layer_1">
+        <path
+           style="fill:#4b3fb6"
+           inkscape:connector-curvature="0"
+           id="path108"
+           d="M 6.26,7.26 A 1,1 0 0 1 5.56,7 L 0.29,1.71 A 1.0040916,1.0040916 0 0 1 1.71,0.29 l 4.55,4.56 4.56,-4.56 a 1,1 0 0 1 1.41,0 1,1 0 0 1 0,1.42 L 7,7 A 1,1 0 0 1 6.26,7.26 Z"
+           class="cls-1" />
+      </g>
+    </g>
+    <g
+       id="g3882"
+       data-name="Camada 2"
+       transform="matrix(0,1,1,0,5.2587293,-8.5311865e-4)">
+      <g
+         id="g3880"
+         data-name="Layer 1">
+        <path
+           class="cls-1"
+           d="M 6.26,7.26 A 1,1 0 0 1 5.56,7 L 0.29,1.71 A 1.0040916,1.0040916 0 0 1 1.71,0.29 l 4.55,4.56 4.56,-4.56 a 1,1 0 0 1 1.41,0 1,1 0 0 1 0,1.42 L 7,7 A 1,1 0 0 1 6.26,7.26 Z"
+           id="path3878"
+           inkscape:connector-curvature="0"
+           style="fill:#4b3fb6" />
+      </g>
+    </g>
+  </g>
+</svg>

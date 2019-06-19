@@ -7,15 +7,20 @@
   {:about {:src "images/icons/ethlance-about-icon.svg"}
    :arbiters {:src "images/icons/ethlance-arbiters-icon.svg"}
    :candidates {:src "images/icons/ethlance-candidates-icon.svg"}
-   :jobs {:src "images/icons/ethlance-jobs-icon.svg"}
-   :search {:src "images/icons/ethlance-search-icon.svg"}
-   :sign-up {:src "images/icons/ethlance-sign-up-icon.svg"}
+   :close {:src "images/svg/close.svg"}
    :facebook {:src "images/icons/facebook-icon.svg"}
    :github {:src "images/icons/github-icon.svg"}
+   :ic-arrow-left {:src "images/svg/ic-arrow-left.svg"}
+   :ic-arrow-left2 {:src "images/svg/ic-arrow-left2.svg"}
+   :ic-arrow-right {:src "images/svg/ic-arrow-right.svg"}
+   :ic-arrow-right2 {:src "images/svg/ic-arrow-right2.svg"}
+   :jobs {:src "images/icons/ethlance-jobs-icon.svg"}
    :linkedin {:src "images/icons/linkedin-icon.svg"}
+   :my-activity {:src "images/svg/my-activity.svg"}
+   :search {:src "images/icons/ethlance-search-icon.svg"}
+   :sign-up {:src "images/icons/ethlance-sign-up-icon.svg"}
    :slack {:src "images/icons/slack-icon.svg"}
-   :twitter {:src "images/icons/twitter-icon.svg"}
-   :close {:src "images/svg/close.svg"}})
+   :twitter {:src "images/icons/twitter-icon.svg"}})
 
 
 (defn c-icon []
