@@ -4,13 +4,14 @@
 
 
 (defn c-tabular-layout
-  [{:keys [default-tab]} & opts-children]
-  (let [*active-tab-index (r/atom (or default-tab 0))]
+  [{:keys [default-tab] :as opts} & opts-children]
+  (let [opts (dissoc opts :default-tab)
+        *active-tab-index (r/atom (or default-tab 0))]
     (fn []
       (let [tab-parts (partition 2 opts-children)
             tab-options (map-indexed #(-> %2 first (assoc :index %1)) tab-parts)
             tab-children (mapv second tab-parts)]
-        [:div.tabular-layout
+        [:div.tabular-layout opts
          [:div.tab-listing
           (doall
            (for [{:keys [index label]} tab-options]

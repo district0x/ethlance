@@ -73,7 +73,8 @@
       [c-main-layout {:container-opts {:class :me-main-container}}
        [c-me-sidebar]
        [c-tabular-layout
-        {:default-tab 0}
+        {:key "me-tabular-layout"
+         :default-tab 0}
         
         {:label "Invitations"}
         [c-invitations-tab]

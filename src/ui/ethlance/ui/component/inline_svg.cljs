@@ -56,7 +56,7 @@
 
       :component-did-update
       (fn [this _]
-        (let [{:keys [key id class width height on-ready]}
+        (let [{:keys [key id root-class class width height on-ready]}
               (-> this r/argv second)]
           (when (and @*dom-ref @*inline-svg)
             (let [inline-svg @*inline-svg]
@@ -72,10 +72,12 @@
                 (on-ready @*dom-ref @*inline-svg))))))
 
       :reagent-render
-      (fn [{:keys [key src class id width height on-ready] :as props}]
+      (fn [{:keys [key src class id root-class width height on-ready] :as props}]
         (let [style (cond-> {}
                       width (assoc :width width)
                       height (assoc :height height))]
           [:div.ethlance-inline-svg
-           {:ref (fn [com] (reset! *dom-ref com)) :key key}
-           (when-not @*inline-svg [:img.svg {:src src :style style}])]))})))
+           {:class root-class
+            :ref (fn [com] (reset! *dom-ref com))
+            :key key}
+           (when-not @*inline-svg [:img.svg {:src src :style style :class class}])]))})))

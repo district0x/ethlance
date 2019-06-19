@@ -2,5 +2,61 @@
 
 
 .sign-up-main-container {
-    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    > .tabular-layout > .active-page {
+        > .candidate-sign-up {
+            margin: 1em;
+            > .form-container {
+                margin: 3em;
+
+                > .label {
+                    color: @color-dark-blue;
+                    font-size: 2.4em;
+                }
+                
+                > .first-forms {
+                    display: grid;
+                    grid-template-areas:
+                      'form-image form-name    form-professional-title form-professional-title'
+                      'form-image form-email   form-hourly-rate        form-hourly-rate'
+                      'form-image form-country form-connect-github     form-connect-linkedin';
+                    grid-template-rows: 1fr 1fr 1fr;
+                    grid-template-columns: 2fr 4fr 3fr 3fr;
+
+                    > .form-image {
+                        grid-area: form-image;
+                    }
+
+                    > .form-name {
+                        grid-area: form-name;
+                    }
+
+                    > .form-email {
+                        grid-area: form-email;
+                    }
+
+                    > .form-professional-title {
+                        grid-area: form-professional-title;
+                    }
+
+                    > .form-hourly-rate {
+                        grid-area: form-hourly-rate;
+                    }
+
+                    > .form-country {
+                        grid-area: form-country;
+                    }
+
+                    > .form-connect-github {
+                        grid-area:  form-connect-github;
+                    }
+
+                    > .form-connect-linkedin {
+                        grid-area: form-connect-linkedin;
+                    }
+                }
+            }
+        }
+    }
 }
