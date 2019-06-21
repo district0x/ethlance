@@ -8,6 +8,7 @@
     text-color-disabled: desaturate(#color[secondary], 50%);
     width: 200px;
     height: 50px;
+    border-radius: 5px;
     fade-duration: 0.1s;
 }
 
@@ -21,14 +22,14 @@
     width: #ethlance-button[width];
     height: #ethlance-button[height];
     background-color: #ethlance-button[background-primary];
-    border-radius: 3px;
+    border-radius: #ethlance-button[border-radius];
     transition: color @fade-duration, background-color @fade-duration;
 
     // Shadows
     -webkit-box-shadow: 0px 0px 20px -2px #ethlance-button[background-primary];
     box-shadow: 0px 0px 20px -2px #ethlance-button[background-primary];
 
-    .button-label {
+    > .button-label {
 	.noselect();
 	display: flex;
 	width: 100%;
@@ -37,6 +38,37 @@
 	justify-content: center;
 	color: #ethlance-button[text-color-primary];
 	transition: color @fade-duration, background-color @fade-duration;
+    }
+
+    > .button-icon-label {
+        .noselect();
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        overflow: hidden;
+
+        > .icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-basis: 48px;
+            border-top-left-radius: #ethlance-button[border-radius];
+            border-bottom-left-radius: #ethlance-button[border-radius];
+            height: 100%;
+            background-color: @color-dark-blue;
+            overflow: hidden;
+        }
+
+        > .label {
+            flex-grow: 1;
+            text-align: center;
+            color: white;
+            font-weight: 700;
+            text-align: center;
+            font-size: 1.2em;
+            padding: 0 0.5em;
+        }
     }
 
     &:hover {
