@@ -11,44 +11,9 @@
     grid-template-rows: @tab-height 1fr;
     grid-template-columns: 200px 1fr;
     background-color: transparent;
-    //margin-bottom: 8em;
 
     > .sidebar {
-        grid-area: sidebar;
-	display: flex;
-	flex-direction: column;
-        background-color: @color-purple;
-        color: white;
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-	padding: 2em;
-
-	.label {
-	  color: white;
-	  font-weight: 700;
-	  padding: 1.0em 0;
-	}
-
-	a {
-            color: white;
-	    padding: 0.7em 0;
-            line-height: 1.2em;
-
-            &:hover {
-                text-decoration: underline;
-            }
-
-            &:active {
-                text-decoration: underline;
-                color: @color-light-blue;
-            }
-	}
-
-	hr {
-	  @hr-color: fadeout(darken(@color-purple, 20%), 80%);
-	  border: 1px solid @hr-color;
-	  margin: 1em 0;
-	}
+        #mixin.sidebar.navigation();
     }
 
     > .tabular-layout {
