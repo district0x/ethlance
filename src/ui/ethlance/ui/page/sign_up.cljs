@@ -16,7 +16,8 @@
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label]]))
+   [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
+   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
 
 
 (defn c-candidate-sign-up []
@@ -25,9 +26,9 @@
     [:div.label "Sign Up"]
     [:div.first-forms
      [c-inline-svg {:root-class "form-image"}]
-     [c-text-input {:class "form-name"}]
-     [c-email-input {:class "form-email"}]
-     [c-text-input {:class "form-professional-title"}]
+     [c-text-input {:class "form-name" :placeholder "Name"}]
+     [c-email-input {:class "form-email" :placeholder "Email"}]
+     [c-text-input {:class "form-professional-title" :placeholder "Professional Title"}]
      [c-currency-input {:class "form-hourly-rate"}]
      [:div.select-input {:class "form-country"}] ;; TODO: implement select input
      [c-button
@@ -46,8 +47,11 @@
      [c-chip-search-input {:search-icon? false :placeholder "Search Categories"}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-     [c-chip-search-input {:search-icon? false :placeholder "Search Skills"}]]]
+     [c-chip-search-input {:search-icon? false :placeholder "Search Skills"}]
 
+     [:div.label [:h2 "Your Biography"]]
+     [c-textarea-input {:placeholder "Enter Biography"}]]]
+   
    [:div.form-submit "Create"]])
 
 

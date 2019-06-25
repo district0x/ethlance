@@ -1,18 +1,24 @@
 /// sign-up.less -- Main styling for sign-up page
 
 
+
+
+
 .sign-up-main-container {
+    @border-radius: 0.5em;
     display: flex;
     flex-direction: column;
     > .tabular-layout > .active-page {
         > .candidate-sign-up {
-            margin: 1em;
+            display: flex;
+            flex-direction: column;
             > .form-container {
-                margin: 3em;
+                margin: 4em;
+                border-top-right-radius: @border-radius;
 
                 > .label {
                     color: @color-dark-blue;
-                    font-size: 2.4em;
+                    font-size: 2.0em;
                 }
                 
                 > .first-forms {
@@ -23,6 +29,11 @@
                       'form-image form-country form-connect-github     form-connect-linkedin';
                     grid-template-rows: 1fr 1fr 1fr;
                     grid-template-columns: 2fr 4fr 3fr 3fr;
+                    grid-gap: 2em;
+
+                    > .ethlance-text-input, > .ethlance-email-input {
+                        line-height: 0.5em;
+                    }
 
                     > .form-image {
                         grid-area: form-image;
@@ -75,6 +86,23 @@
                     > .ethlance-chip-search-input {
                         margin: 0.5em 0;
                     }
+                }
+            }
+            > .form-submit {
+                background-color: @color-purple;
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-weight: 700;
+                height: 50px;
+                border-bottom-left-radius: @border-radius;
+                border-bottom-right-radius: @border-radius;
+                cursor: pointer;
+                transition: background-color 0.05s ease-in;
+
+                &:hover {
+                    background-color: @color-dark-blue;
                 }
             }
         }
