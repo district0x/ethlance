@@ -38,7 +38,9 @@
 
       :reagent-render
       (fn []
-        [:div.ethlance-chip-search-input {:key "chip-search-input"}
+        [:div.ethlance-chip-search-input
+         {:key "chip-search-input"
+          :class (when-not search-icon? "no-search-icon")}
          [:div.search-container
           [:div.chip-listing
            (doall

@@ -8,16 +8,38 @@
 
     > input[type="text"] {
         background-color: transparent;
-        width: 80%;
-        color: white;
         outline: none;
         border: none;
-        padding: 5px 5px 5px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        margin-right: 5px;
+        flex-grow: 1;
+        height: 100%;
     }
 
     > span {
-        color: white;
-        padding: 5px;
+        display: flex;
+        align-items: center;
+        margin: 0 5px;
+        height: 100%;
+    }
+
+    &.primary {
+        > input[type="text"] {
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        > span {
+            color: white;
+        }
+    }
+
+    &.secondary {
+        > input[type="text"] {
+            #mixin.input.text();
+        }
+
+        > span {
+            color: @color-dark-blue;
+        }
     }
 }

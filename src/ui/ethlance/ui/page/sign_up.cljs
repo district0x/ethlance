@@ -25,20 +25,26 @@
    [:div.form-container
     [:div.label "Sign Up"]
     [:div.first-forms
-     [c-inline-svg {:root-class "form-image"}]
-     [c-text-input {:class "form-name" :placeholder "Name"}]
-     [c-email-input {:class "form-email" :placeholder "Email"}]
-     [c-text-input {:class "form-professional-title" :placeholder "Professional Title"}]
-     [c-currency-input {:class "form-hourly-rate"}]
-     [:div.select-input {:class "form-country"}] ;; TODO: implement select input
-     [c-button
-      {:class "form-connect-github"
-       :size :large}
-      [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]
-     [c-button
-      {:class "form-connect-linkedin"
-       :size :large}
-      [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]
+     [:div.form-image
+      [c-inline-svg]]
+     [:div.form-name
+      [c-text-input {:placeholder "Name"}]]
+     [:div.form-email
+      [c-email-input {:placeholder "Email"}]]
+     [:div.form-professional-title
+      [c-text-input {:placeholder "Professional Title"}]]
+     [:div.form-hourly-rate
+      [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :secondary}]]
+     [:div.form-country
+      [:div.select-input {}]] ;; TODO: implement select input
+     [:div.form-connect-github
+      [c-button
+       {:size :large}
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+     [:div.form-connect-linkedin
+      [c-button
+       {:size :large}
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
      [c-chip-search-input {:search-icon? false :placeholder "Search Languages"}]

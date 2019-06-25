@@ -2,12 +2,16 @@
 
 
 .ethlance-chip-search-input {
-    @search-size: 60px;
+    @search-icon-size: 60px;
 
     display: grid;
-    height: @search-size;
-    grid-template-columns: 1fr @search-size;
+    height: @search-icon-size;
+    grid-template-columns: 1fr @search-icon-size;
     grid-template-rows: 1fr;
+
+    &.no-search-icon {
+        grid-template-columns: 1fr;
+    }
 
     > .search-container {
         display: flex;

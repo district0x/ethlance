@@ -1,9 +1,13 @@
 /// input.less -- general styling between input elements
 
 #mixin() {
-    .input-text {
+    .input.text {
         outline: none;
         border: none;
         border-bottom: 1px solid #d6e1fd;
+        &::placeholder {
+            font-weight: 400;
+            opacity: 0.7;
+        }
     }
 }
