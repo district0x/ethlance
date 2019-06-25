@@ -40,13 +40,13 @@
       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
-     [c-chip-search-input {}]
+     [c-chip-search-input {:search-icon? false :placeholder "Search Languages"}]
      
      [:div.label [:h2 "Categories You Are Interested In"]]
-     [c-chip-search-input {}]
+     [c-chip-search-input {:search-icon? false :placeholder "Search Categories"}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-     [c-chip-search-input {}]]]
+     [c-chip-search-input {:search-icon? false :placeholder "Search Skills"}]]]
 
    [:div.form-submit "Create"]])
 

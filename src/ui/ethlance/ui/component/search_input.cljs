@@ -17,18 +17,24 @@
 
 
 (defn c-chip-search-input
-  [{:keys [default-chip-listing auto-suggestion-listing on-chip-listing-change]}]
+  [{:keys [default-chip-listing
+           auto-suggestion-listing
+           on-chip-listing-change
+           search-icon?
+           placeholder]
+    :or {search-icon? true
+         placeholder "Search Tags"}}]
   (let [*chip-listing (r/atom (or (set default-chip-listing) #{}))
         *dom-search-input-ref (r/atom nil)]
     (r/create-class
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
-      (fn [this]
-        )
+      (fn [this])
+      
 
       :component-will-unmount
-      (fn [this]
-        )
+      (fn [this])
+      
 
       :reagent-render
       (fn []
@@ -51,6 +57,6 @@
                   (swap! *chip-listing conj (aget event "target" "value"))
                   (aset event "target" "value" ""))))
             :ref #(reset! *dom-search-input-ref %)
-            :placeholder "Search Tags"}]]
-         [:div.search-button [c-icon {:name :search :size :normal}]]])})))
+            :placeholder placeholder}]]
+         (when search-icon? [:div.search-button [c-icon {:name :search :size :normal}]])])})))
 
