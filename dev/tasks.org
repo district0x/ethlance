@@ -6,101 +6,22 @@
 #+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
 * Tasks
 ** General
-*** DONE Decide on whether to use Sass or Less for stylesheet compilation
-    CLOSED: [2019-01-07 Mon 08:06]
-    - Veering towards Sass, but Filip thinks Less is
-      more. Reinvestigate.
-    *Using LESS since our Design team is using it with memefactory*
 *** TODO Ensure production build works correctly
     ie. ~make build~
     - Should work with district.config and include production defaults
 *** TODO Look into creating a Docker image from the production build.
-*** TODO Determine whether deployments will need to be reworked
-    memefactory has veered away from using web3 for deployments, and
-    has moved to using truffle. Look into whether this will affect the
-    ethlance rework.
-    - from last discussion, the same functionality should be available
-      in the district.server.smart-contracts. Has to do with 'secure'
-      contract deployments, tested with ~ganache-cli --secure~
+*** TODO Develop Spec from new Design Work
 ** Server
-*** DONE Finish GraphQL Resolvers
-    CLOSED: [2019-02-27 Wed 11:41]
-*** TODO Setup correct district.config values for Generator
-*** TODO Setup correct district.config values for Syncer
-*** TODO Setup correct district.config values for Deployer
-*** TODO Tests for Open Bounty Functionality
-    No tests targetting the Open Bounty state cycle.
-*** TODO Generator needs OPEN_BOUNTY use case
-    Currently no job scenarios that create an open bounty, or resolve
-    it.
-*** DONE job-prog-w-inv-disp is broken
-    CLOSED: [2019-02-27 Wed 11:42]
-    - VM Exception while processing transaction: revert The current
-      contract status does not allow you to create a dispute.
-    - Probably requires a ~proceed!~ call to update contract status.
-*** TODO Generator needs more randomized selections, too stale
-    - Several different biographies.
-    - Different arbiter payment options
-    - Different disputes
-    - Different dispute resolutions
-    - Different Invoices
-    - Different Invoice Payments.
-*** TODO Generator needs profile images
-    Create a default profile image at first. This could be expanded on
-    in the future to have something similar to github where the eth
-    account hash could be used to generate a unique image profile.
-*** TODO Get Figwheel Node Server working with Cider REPL
-    This hasn't been working for a while, consider updating everything
-    to latest leiningen and middlewares.
+*** TODO Redevelop (ON HOLD)
+    - Need more info on private blockchain and how it ties into the
+      original design, focusing on UI.
 ** UI
-*** TODO Develop baseline UI compilation steps
-    ~make fig-dev-ui~ should generate a website correctly. This should
-    include the proper reloaded lifecycle. Additionally, there should
-    be configurations to correctly target a local development
-    environment. Should preferably also work in Cider.
+*** TODO Ethlance Component Implementations
+    - [ ] input select
+    - [ ] splash page owl view
+*** TODO SVG Animations
+    - [ ] Splash page animations
 *** TODO UI-Only Compilation
     - ON HOLD until rework is placed on a public testnet.
-*** TODO Implement devcards functionality
-    - Issues with devcards when using re-frame.
-      - Consider splitting out subs/dispatch functionality into a
-        proxy when first creating the components? Would allow us to
-        create a local sub/dispatch system for devcards
-      - study re-frame, and see if it can be monkey-patched to include
-        local subs/dispatch for individual reagent components.
-      - Create a new implementation of devcards that somehow supports
-        re-frame
-      - Use devcards barebones, and just use a global re-frame scope
-        between all devcards. Might require wrapping the devcards with
-        hints at which global variables they are affected by.
 ** Smart Contracts
-*** TODO Implement ERC20 Functionality for Invoice Payment
-    - EthlanceInvoice.pay(...) function requires implementation
-*** TODO Implement ERC20 Functionality for Funding
-    - EthlanceJobStore.fund(...) function requires implementation
-*** TODO Implement ERC20 Functionality for Arbiter Accepted Payments
-    - EthlanceInvoice.resolve(...) function requires implementation
-*** TODO Implement ERC20 Functionality for Job Store
-    - Might be related to 'Funding'
-*** DONE Implement Comments and Feedback
-    CLOSED: [2019-02-04 Mon 09:32]
-    - Current implementation is restrictive and requires a great deal
-      of inheritance making contract sizes difficult to manage
-      (collections/EthlanceMetahash.sol)
-    - Planning on moving to a composable model, which consists of a
-      MultiLinkedList, which resembles a 'MultiMap' of address
-      listings. This should reduce contract size, but lead to a
-      'slight' increase in gas use. The resulting MultiLinkedList will
-      be inherited by the EthlanceRegistry, and would setup privileged
-      users to append values to the list.
-*** TODO Fix for contracts with disputes not updated contract status
-    - Contracts that create disputes go into an ON HOLD state. Need to
-      check and place a contract back into IN PROGRESS when there are
-      no more open disputes.
-*** DONE Authenication for General Construction of forwarded contracts.
-    CLOSED: [2019-02-27 Wed 11:41]
-    - Requires check on construction privileges
-    - Same needs to be applied to other contracts
-    - Possible implementation could consist of a 'construction lock'
-      - require(is_contructed != true, "Contract already
-        constructed");
-        is_constructed = true;
+*** TODO Redevelop Spec from new Design
