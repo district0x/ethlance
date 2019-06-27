@@ -17,7 +17,8 @@
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
    [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
-   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
+   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]))
 
 
 (defn c-candidate-sign-up []
@@ -36,7 +37,9 @@
      [:div.form-hourly-rate
       [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :secondary}]]
      [:div.form-country
-      [:div.select-input {}]] ;; TODO: implement select input
+      [c-select-input
+       {:label "Country"
+        :selections ["United States" "Canada" "Germany"]}]]
      [:div.form-connect-github
       [c-button
        {:size :large}
