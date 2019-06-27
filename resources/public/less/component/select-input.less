@@ -2,18 +2,41 @@
 
 
 .ethlance-select-input {
-  #mixin.input.text();
+  position: relative;
   > .main {
+    #mixin.input.text();
+    #mixin.noselect();
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     height: 3em;
+    cursor: pointer;
+
+    .icon {
+
+    }
   }
 
   > .dropdown {
+    position: relative;
+    z-index: 999;
+    left: 0;
+    bottom: 0;
     > .selection {
-      
+      #mixin.noselect();
+      display: flex;
+      z-index: 999;
+      align-items: center;
+      background-color: white;
+      border-bottom: 1px solid #d6e1fd;
+      height: 3em;
+      padding-left: 0.5em;
+      cursor: pointer;
+
+      &:hover {
+	background-color: #d6e1fd;
+      }
     }
   }
 }

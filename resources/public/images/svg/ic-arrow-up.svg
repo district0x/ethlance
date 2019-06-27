@@ -10,7 +10,7 @@
    viewBox="0 0 31.999999 31.999999"
    version="1.1"
    id="svg112"
-   sodipodi:docname="ic-arrow-down.svg"
+   sodipodi:docname="ic-arrow-up.svg"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
    width="32"
    height="32">
@@ -56,7 +56,7 @@
   <g
      id="Camada_2"
      data-name="Camada 2"
-     transform="matrix(-2.5354916,0,0,2.5354916,31.874342,6.798666)">
+     transform="matrix(-2.5354916,0,0,-2.5354916,31.874342,25.201334)">
     <g
        id="Layer_1"
        data-name="Layer 1">

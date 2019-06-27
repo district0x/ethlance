@@ -10,6 +10,8 @@
    :close {:src "images/svg/close.svg"}
    :facebook {:src "images/icons/facebook-icon.svg"}
    :github {:src "images/icons/github-icon.svg"}
+   :ic-arrow-up {:src "images/svg/ic-arrow-up.svg"}
+   :ic-arrow-down {:src "images/svg/ic-arrow-down.svg"}
    :ic-arrow-left {:src "images/svg/ic-arrow-left.svg"}
    :ic-arrow-left2 {:src "images/svg/ic-arrow-left2.svg"}
    :ic-arrow-right {:src "images/svg/ic-arrow-right.svg"}

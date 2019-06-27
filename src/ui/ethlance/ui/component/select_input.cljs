@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
+   [ethlance.ui.component.icon :refer [c-icon]]))
 
 
 (defn c-select-input
@@ -14,7 +14,7 @@
        [:div.main
         {:on-click #(swap! *open? not)}
         [:span.label (or @*current-selection label)]
-        [:span.icon "x"]]
+        [c-icon {:class "icon" :name :ic-arrow-up :color :black}]]
        (when @*open?
          [:div.dropdown
           (doall
