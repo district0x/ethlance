@@ -16,6 +16,7 @@
    :ic-arrow-left2 {:src "images/svg/ic-arrow-left2.svg"}
    :ic-arrow-right {:src "images/svg/ic-arrow-right.svg"}
    :ic-arrow-right2 {:src "images/svg/ic-arrow-right2.svg"}
+   :ic-upload {:src "images/svg/ic-upload.svg"}
    :jobs {:src "images/icons/ethlance-jobs-icon.svg"}
    :linkedin {:src "images/icons/linkedin-icon.svg"}
    :my-activity {:src "images/svg/my-activity.svg"}

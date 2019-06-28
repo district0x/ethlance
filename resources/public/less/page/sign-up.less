@@ -49,8 +49,30 @@
                     }
 
                     > .form-image {
-                        grid-area: form-image;
-                        .default-form();
+		      display: flex;
+		      align-items: center;
+		      justify-content: center;
+                      grid-area: form-image;
+                      .default-form();
+		      > .upload-image {
+			@bg-color: #E8EEFE;
+			@logo-size: 150px;
+
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			background-color: @bg-color;
+			height: @logo-size;
+			width: @logo-size;
+			border-radius: 100%;
+			cursor: pointer;
+			transition: background-color 0.1s ease-in;
+
+			&:hover {
+			  background-color: darken(@bg-color, 10%);
+			}
+		      }
                     }
 
                     > .form-name {

@@ -18,7 +18,15 @@
    [ethlance.ui.component.text-input :refer [c-text-input]]
    [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]))
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.icon :refer [c-icon]]))
+
+
+(defn- c-upload-image []
+  []
+  [:div.upload-image
+   [c-icon {:name :ic-upload :color :black}]
+   [:span "Upload Image"]])
 
 
 (defn c-candidate-sign-up []
@@ -27,7 +35,7 @@
     [:div.label "Sign Up"]
     [:div.first-forms
      [:div.form-image
-      [c-inline-svg]]
+      [c-upload-image]]
      [:div.form-name
       [c-text-input {:placeholder "Name"}]]
      [:div.form-email

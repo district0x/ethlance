@@ -39,19 +39,15 @@
 	background-color: #color[background-light];
 
 	.grouping {
-	    display: grid;
+	    display: flex;
+	    flex-direction: column;
 	    margin: 0.5em;
 	    padding: 0.5em;
 	    -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5); 
 	    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
-
-	    grid-template-areas:
-	      "title"
-              "body ";
-	    grid-template-rows: 40px 1fr;
 	    
 	    .title {
-		grid-area: title;
+		height: 40px;
 	    }
 	    
 	    .body {
@@ -59,7 +55,7 @@
 		align-content: space-between;
 		justify-content: space-evenly;
 		flex-wrap: wrap;
-		grid-area: body;
+		padding: 1em;
 	    }
 	}
     }

@@ -141,5 +141,36 @@
          [:div.body
           [c-rating {:rating 3 :on-change (fn [index] (println (str "Rating: " index)))}]
           [c-rating {:color :white :rating 1}]
-          [c-rating {:color :black :rating 2}]]]]])))
+          [c-rating {:color :black :rating 2}]]]
 
+        [:div.grouping
+         [:div.title "Ethlance Icons"]
+         [:div.body
+          [c-icon {:name :about :color :black}]
+          [c-icon {:name :arbiters :color :black}]
+          [c-icon {:name :candidates :color :black}]
+          [c-icon {:name :close :color :black}]
+          [c-icon {:name :facebook :color :black}]
+          [c-icon {:name :github :color :black}]
+          [c-icon {:name :ic-arrow-up :color :black}]
+          [c-icon {:name :ic-arrow-down :color :black}]
+          [c-icon {:name :ic-arrow-left :color :black}]
+          [c-icon {:name :ic-arrow-left2 :color :black}]
+          [c-icon {:name :ic-arrow-right :color :black}]
+          [c-icon {:name :ic-arrow-right2 :color :black}]
+          [c-icon {:name :ic-upload :color :black}]]
+
+         [:div.body
+          [c-icon {:name :about :color :secondary}]
+          [c-icon {:name :arbiters :color :secondary}]
+          [c-icon {:name :candidates :color :secondary}]
+          [c-icon {:name :close :color :secondary}]
+          [c-icon {:name :facebook :color :secondary}]
+          [c-icon {:name :github :color :secondary}]
+          [c-icon {:name :ic-arrow-up :color :secondary}]
+          [c-icon {:name :ic-arrow-down :color :secondary}]
+          [c-icon {:name :ic-arrow-left :color :secondary}]
+          [c-icon {:name :ic-arrow-left2 :color :secondary}]
+          [c-icon {:name :ic-arrow-right :color :secondary}]
+          [c-icon {:name :ic-arrow-right2 :color :secondary}]
+          [c-icon {:name :ic-upload :color :secondary}]]]]])))

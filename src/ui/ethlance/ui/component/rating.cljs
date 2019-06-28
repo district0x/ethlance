@@ -38,11 +38,11 @@
                      :class (str " star " color-class size-class active-class)}])))
 
 
-(defn c-rating [{:keys [rating color on-change]
+(defn c-rating [{:keys [rating color on-change size]
                  :or {color :primary rating 0 size :default}}]
   (let [*current-rating (r/atom rating)]
-    (fn [{:keys [rating color size on-change]
-          :or {color :primary rating 0}}]
+    (fn [{:keys [rating color on-change size]
+          :or {color :primary rating 0 size :default}}]
       [:div.ethlance-component-rating
        (doall
         (for [i (range 1 6)]
