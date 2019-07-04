@@ -13,7 +13,8 @@
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
+   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]))
 
 
 (defn c-user-employer-detail
@@ -57,8 +58,11 @@
   [:div.job-search-filter
    {:key "search-filter"}
    
-   ;; TODO: implement
-   [:div.category-selector "All Categories"]
+   [:div.category-selector
+    [c-select-input
+     {:label "All Categories"
+      :color :secondary
+      :selections ["Software Development" "Web Design"]}]]
 
    [:span.rating-label "Min. Rating"]
    [c-rating {:rating 1 :color :white :size :small

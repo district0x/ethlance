@@ -2,6 +2,8 @@
 
 
 .ethlance-select-input {
+  @input-height: 3em;
+
   position: relative;
   > .main {
     #mixin.input.text();
@@ -10,19 +12,27 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    height: 3em;
+    height: @input-height;
     cursor: pointer;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     .icon {
 
     }
+
+    &:hover {
+        background-color: lighten(white, 3%);
+    }
   }
 
   > .dropdown {
-    position: relative;
+    position: absolute;
     z-index: 999;
     left: 0;
-    bottom: 0;
+    top: @input-height;
+    width: 100%;
     > .selection {
       #mixin.noselect();
       display: flex;
@@ -30,7 +40,7 @@
       align-items: center;
       background-color: white;
       border-bottom: 1px solid #d6e1fd;
-      height: 3em;
+      height: @input-height;
       padding-left: 0.5em;
       cursor: pointer;
 
@@ -38,5 +48,22 @@
 	background-color: #d6e1fd;
       }
     }
+  }
+
+  &.secondary {
+      > .main {
+          color: white;
+
+          &:hover {
+              background-color: lighten(@color-light-purple, 3%);
+          }
+      }
+
+      > .dropdown {
+          > .selection {
+              background-color: @color-light-purple;
+              color: white;
+          }
+      }
   }
 }
