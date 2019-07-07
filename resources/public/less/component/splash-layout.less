@@ -31,13 +31,17 @@
   min-height: 100%;
   width: 100%;
   background-color: #color[background-light];
-  .header {
+  > .header {
     position: fixed;
     width: 100%;
     padding: 2% 0;
+
+    @media @mobile-media-query {
+      display: none;
+    }
   }
 
-  .main-content {
+  > .main-content {
     min-height: 100%;
     width: 100%;
     max-width: @media-max-width;
@@ -45,7 +49,7 @@
     padding: 0 50px 0 50px;
 
     /* BANNER SECTION */
-    .banner {
+    > .banner {
       padding-top: 6rem;
       padding-bottom: 4.5rem;
       display: flex;
@@ -53,9 +57,14 @@
       justify-content: center;
       align-items: center;
 
-      .part-text {
+      @media @mobile-media-query {
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      > .part-text {
         flex-basis: 50%;
-        h2 {
+        > h2 {
           font-size: 4.9rem;
           font-weight: 700;
           color: @color-dark-blue;
@@ -63,17 +72,17 @@
           line-height: 6rem;
         }
 
-        &>span {
+        & > span {
           display: block;
           color: @color-purple;
           font-size: 1.45rem;
           padding-bottom: 2.5rem;
         }
 
-        .button-listing {
+        > .button-listing {
           display: flex;
           flex-direction: row;
-          .button {
+          > .button {
             padding: 0 0.5rem 0 0.5rem;
             margin: 0 1rem 0 0;
             b {
@@ -82,37 +91,37 @@
           }
         }
         
-        .district {
+        > .district {
           display: flex;
           flex-direction: column;
           font-family: #font[sans];
           margin-top: 5rem;
           font-size: 0.74rem;
-          .img-district {
+          > .img-district {
             width: 6.3rem;
             margin-bottom: 1.2rem;
-            img {
+            > img {
               width: 100%;
             }
           }
 
-          p {
+          > p {
             margin-bottom: 0.8rem;
           }
 
-          a {
+          > a {
             color: @color-gray;
             text-decoration: underline;
           }
         }
       }
-      .part-figure {
+      > .part-figure {
         flex-basis: 50%;
       }
     }
 
     /* WELCOME TO SECTION */
-    .welcome {
+    > .welcome {
       #sl.section();
 
       @border-color: fade(@color-gray, 5%);
@@ -122,14 +131,14 @@
       border-top: 1px solid @border-color;
       border-bottom: 1px solid @border-color;
 
-      .box-listing {
+      > .box-listing {
         margin-top: 7.4rem;
         display: flex;
         width: 100%;
         flex-direction: row;
         justify-content: space-around;
 
-        .box-ball {
+        > .box-ball {
           position: relative;
           width: 29%;
 
@@ -148,7 +157,7 @@
             z-index: 1;
           }
 
-          .vertical-box {
+          > .vertical-box {
             position: relative;
             display: flex;
             flex-direction: column;
@@ -170,19 +179,19 @@
               top: 45%;
             }
 
-            figure {
+            > figure {
               position: relative;
               width: 5rem;
               height: 5rem;
 
-              img {
+              > img {
                 width: 5rem;
                 height: 5rem;
                 object-fit: contain;
               }
             }
 
-            .text {
+            > .text {
               color: @color-dark-blue;
               text-align: center;
               padding: 0.5rem;
@@ -190,8 +199,8 @@
             }
           }
 
-          &:last-child{
-            .vertical-box{
+          > &:last-child{
+            > .vertical-box{
               &:before{display: none;}
             }
           }
@@ -200,41 +209,41 @@
     }
 
     /* WE CREATED */
-    .created {
+    > .created {
       #sl.section();
 
-      .flex-box-listing {
+      > .flex-box-listing {
         margin-top: 6rem;
         display: flex;
         flex-wrap: wrap;
         
-        .horizontal-box {
+        > .horizontal-box {
           display: flex;
           width: 47%;
           margin-right: 3%;
           margin-bottom: 4.5rem;
 
-          figure {
+          > figure {
             width: 27.5%;
             height: 11rem;
             margin-right: 2rem;
 
-            img {
+            > img {
               width: 100%;
             }
           }
 
-          .text {
+          > .text {
             width: 52%;
             text-align: left;
 
-            h3 {
+            > h3 {
               color: @color-purple;
               font-size: 0.9rem;
               font-weight: 700;
             }
 
-            p {
+            > p {
               margin-top: 1rem;
               line-height: 1.7rem;
               font-size: 1rem;
@@ -244,17 +253,17 @@
       }
     }
 
-    .checkout {
+    > .checkout {
       #sl.section();
       
-      .button-listing {
+      > .button-listing {
         display: flex;
         margin-top: 2em;
         flex-direction: row;
         justify-content: center;
         align-items: center;
 
-        .button {
+        > .button {
           padding: 0.5em;
           font-size: 0.8em;
           margin: 1em;
@@ -263,10 +272,10 @@
     }
   }
 
-  .footer {
+  > .footer {
     background-color: @color-dark-blue;
     width: 100%;
-    .footer-content {
+    > .footer-content {
       display: grid;
       padding: 2em;
       padding-top: 6em;
@@ -282,57 +291,57 @@
       margin: 0 auto;
 
       /* footer sections */
-      .header-section {
+      > .header-section {
         grid-area: header;
         text-align: left;
-        .ethlance-logo {
+        > .ethlance-logo {
 	  margin-bottom: 1.5em;
-	  img {
+	  > img {
 	    height: 2.5em;
 	    width: auto;
 	  }
         }
 
-        h2 {
+        > h2 {
 	  font-weight:200;
 	  font-size: 1.5em;
 	  margin: 1.5em 0;
         }
       }
 
-      .splash-section {
+      > .splash-section {
         grid-area: splash;
       }
 
-      .links-section {
+      > .links-section {
         grid-area: links;
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         
-        .listing {
+        > .listing {
 	  display: flex;
 	  flex-direction: column;
 	  font-size: 0.8em;
 
-	  .title {
+	  > .title {
 	    color: white;
 	    font-weight: bold;
 	    padding-bottom: 1em;
 	  }
 
-	  a {
+	  > a {
 	    color: white;
 	    font-weight: 200;
 	    text-decoration: none;
 	    padding: 1em 0;
 	  }
 
-	  .button-listing {
+	  > .button-listing {
 	    display: flex;
 	    flex-direction: row;
 	    flex-wrap: wrap;
 
-	    .ethlance-circle-button {
+	    > .ethlance-circle-button {
 	      margin: 0.5em;
 	      &:first {
 	        margin-left: 0;
@@ -342,26 +351,26 @@
         }
       }
 
-      .buttons-section {
+      > .buttons-section {
         grid-area: buttons;
         display: flex;
         flex-direction: row;
 
-        .button {
+        > .button {
 	  margin: 0.5em 0.5em;
-	  .button-label {
+	  > .button-label {
 	    padding: 0.5rem;
 	    line-height: 1.5em;
 	    font-size: 0.8em;
 	    text-align: center;
-	    b {
+	    > b {
 	      font-weight: bold;
 	    }
 	  }
         }
       }
 
-      .footer-section {
+      > .footer-section {
         grid-area: footer;
         display: flex;
         align-items: center;
