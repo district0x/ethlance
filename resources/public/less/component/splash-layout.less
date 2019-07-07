@@ -40,6 +40,8 @@
   .main-content {
     min-height: 100%;
     width: 100%;
+    max-width: @media-max-width;
+    margin: 0 auto;
     padding: 0 50px 0 50px;
 
     /* BANNER SECTION */
@@ -262,104 +264,109 @@
   }
 
   .footer {
-    display: grid;
-    padding: 2em;
-    padding-top: 6em;
-    flex-direction: column;
-    color: white;
     background-color: @color-dark-blue;
-    grid-template-areas:
-    'header splash'
-    'links  buttons'
-    'footer footer';
-    grid-template-rows: 4fr 4fr 30px;
-    grid-template-columns: 4fr 3fr;
-
-    /* footer sections */
-    .header-section {
-      grid-area: header;
-      text-align: left;
-      .ethlance-logo {
-	margin-bottom: 1.5em;
-	img {
-	  height: 2.5em;
-	  width: auto;
-	}
-      }
-
-      h2 {
-	font-weight:200;
-	font-size: 1.5em;
-	margin: 1.5em 0;
-      }
-    }
-
-    .splash-section {
-      grid-area: splash;
-    }
-
-    .links-section {
-      grid-area: links;
+    width: 100%;
+    .footer-content {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      
-      .listing {
-	display: flex;
-	flex-direction: column;
-	font-size: 0.8em;
+      padding: 2em;
+      padding-top: 6em;
+      flex-direction: column;
+      color: white;
+      grid-template-areas:
+        'header splash'
+          'links  buttons'
+          'footer footer';
+      grid-template-rows: 4fr 4fr 30px;
+      grid-template-columns: 4fr 3fr;
+      max-width: @media-max-width;
+      margin: 0 auto;
 
-	.title {
-	  color: white;
-	  font-weight: bold;
-	  padding-bottom: 1em;
-	}
+      /* footer sections */
+      .header-section {
+        grid-area: header;
+        text-align: left;
+        .ethlance-logo {
+	  margin-bottom: 1.5em;
+	  img {
+	    height: 2.5em;
+	    width: auto;
+	  }
+        }
 
-	a {
-	  color: white;
-	  font-weight: 200;
-	  text-decoration: none;
-	  padding: 1em 0;
-	}
+        h2 {
+	  font-weight:200;
+	  font-size: 1.5em;
+	  margin: 1.5em 0;
+        }
+      }
 
-	.button-listing {
+      .splash-section {
+        grid-area: splash;
+      }
+
+      .links-section {
+        grid-area: links;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        
+        .listing {
 	  display: flex;
-	  flex-direction: row;
-	  flex-wrap: wrap;
+	  flex-direction: column;
+	  font-size: 0.8em;
 
-	  .ethlance-circle-button {
-	    margin: 0.5em;
-	    &:first {
-	      margin-left: 0;
+	  .title {
+	    color: white;
+	    font-weight: bold;
+	    padding-bottom: 1em;
+	  }
+
+	  a {
+	    color: white;
+	    font-weight: 200;
+	    text-decoration: none;
+	    padding: 1em 0;
+	  }
+
+	  .button-listing {
+	    display: flex;
+	    flex-direction: row;
+	    flex-wrap: wrap;
+
+	    .ethlance-circle-button {
+	      margin: 0.5em;
+	      &:first {
+	        margin-left: 0;
+	      }
 	    }
 	  }
-	}
+        }
       }
-    }
 
-    .buttons-section {
-      grid-area: buttons;
-      display: flex;
-      flex-direction: row;
+      .buttons-section {
+        grid-area: buttons;
+        display: flex;
+        flex-direction: row;
 
-      .button {
-	margin: 0.5em 0.5em;
-	.button-label {
-	  padding: 0.5rem;
-	  line-height: 1.5em;
-	  font-size: 0.8em;
-	  text-align: center;
-	  b {
-	    font-weight: bold;
+        .button {
+	  margin: 0.5em 0.5em;
+	  .button-label {
+	    padding: 0.5rem;
+	    line-height: 1.5em;
+	    font-size: 0.8em;
+	    text-align: center;
+	    b {
+	      font-weight: bold;
+	    }
 	  }
-	}
+        }
       }
-    }
 
-    .footer-section {
-      grid-area: footer;
-      display: flex;
-      align-items: center;
-      font-size: 0.7em;
+      .footer-section {
+        grid-area: footer;
+        display: flex;
+        align-items: center;
+        font-size: 0.7em;
+      }
     }
   }
 }

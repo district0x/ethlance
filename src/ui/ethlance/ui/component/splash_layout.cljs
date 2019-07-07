@@ -122,47 +122,48 @@
       [c-button       
        {:color :primary}
        [c-button-label [:span "Arbiter"]]]]]]
-      
+   
    
    [:div.footer
-    [:div.header-section
-     [c-ethlance-logo {:color :white}]
-     [:h2 "The Future of Work is Now."]
-     [:h2 "Say up-to-date with Ethlance."]
-     ;; TODO: email input component
-     [:input {:type "email" :placeholder "Enter Email"}]]
+    [:div.footer-content
+     [:div.header-section
+      [c-ethlance-logo {:color :white}]
+      [:h2 "The Future of Work is Now."]
+      [:h2 "Say up-to-date with Ethlance."]
+      ;; TODO: email input component
+      [:input {:type "email" :placeholder "Enter Email"}]]
 
-    [:div.splash-section
-     [:img {:src "./images/icon-coins.png"}]]
+     [:div.splash-section
+      [:img {:src "./images/icon-coins.png"}]]
 
-    [:div.links-section
-     [:div.listing
-      [:span.title "Learn More"]
-      [:a {:href "#"} "About Us"]
-      [:a {:href "#"} "How it Works"]
-      [:a {:href "#"} "Blog"]]
-     [:div.listing
-      [:span.title "Get Started"]
-      [:a {:href "#"} "Become a Freelancer"]
-      [:a {:href "#"} "Become an Employer"]
-      [:a {:href "#"} "Find Work"]
-      [:a {:href "#"} "Find Candidates"]]
-     [:div.listing
-      [:span.title "Connect With Us"]
-      [:div.button-listing
-       [c-circle-icon-button {:name :twitter :size :small}]
-       [c-circle-icon-button {:name :github :size :small}]
-       [c-circle-icon-button {:name :slack :size :small}]
-       [c-circle-icon-button {:name :facebook :size :small}]]]]
-    [:div.buttons-section
-     [c-button       
-      {:color :primary :size :auto}
-      [c-button-label [:span "Become a " [:b "Freelancer"]]]]
-     [c-button
-      {:color :primary :size :auto}
-      [c-button-label [:span "Become an " [:b "Arbiter"]]]]
-     [c-button
-      {:color :primary :size :auto}
-      [c-button-label [:span "Become an " [:b "Employer"]]]]]
-    [:div.footer-section
-     [:span "Copyright © 2019 Ethlance.com. All rights reserved."]]]])
+     [:div.links-section
+      [:div.listing
+       [:span.title "Learn More"]
+       [:a {:href "#"} "About Us"]
+       [:a {:href "#"} "How it Works"]
+       [:a {:href "#"} "Blog"]]
+      [:div.listing
+       [:span.title "Get Started"]
+       [:a {:href "#"} "Become a Freelancer"]
+       [:a {:href "#"} "Become an Employer"]
+       [:a {:href "#"} "Find Work"]
+       [:a {:href "#"} "Find Candidates"]]
+      [:div.listing
+       [:span.title "Connect With Us"]
+       [:div.button-listing
+        [c-circle-icon-button {:name :twitter :size :small}]
+        [c-circle-icon-button {:name :github :size :small}]
+        [c-circle-icon-button {:name :slack :size :small}]
+        [c-circle-icon-button {:name :facebook :size :small}]]]]
+     [:div.buttons-section
+      [c-button       
+       {:color :primary :size :auto}
+       [c-button-label [:span "Become a " [:b "Freelancer"]]]]
+      [c-button
+       {:color :primary :size :auto}
+       [c-button-label [:span "Become an " [:b "Arbiter"]]]]
+      [c-button
+       {:color :primary :size :auto}
+       [c-button-label [:span "Become an " [:b "Employer"]]]]]
+     [:div.footer-section
+      [:span "Copyright © 2019 Ethlance.com. All rights reserved."]]]]])
