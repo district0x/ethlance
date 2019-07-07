@@ -14,8 +14,9 @@
   (let [opts (dissoc opts :container-opts)]
     [:div.main-layout opts
      [c-main-navigation-bar]
-     [c-main-navigation-menu]
-     [:div.main-container container-opts children]
+     [:div.main-margin
+      [c-main-navigation-menu]
+      [:div.main-container container-opts children]]
      [:div.footer
       [:div.copyright "Copyright © 2019 Ethlance.com | All rights reserved."]
       [:div.social
