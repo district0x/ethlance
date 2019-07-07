@@ -25,13 +25,13 @@
       [:div.button-listing
        [c-button       
         {:color :primary :size :auto}
-        [c-button-label [:span "Become a " [:b "Freelancer"]]]]
+        [c-button-label [:span "Become a "] [:b "Freelancer"]]]
        [c-button
         {:color :primary :size :auto}
-        [c-button-label [:span "Become an " [:b "Arbiter"]]]]
+        [c-button-label [:span "Become an "] [:b "Arbiter"]]]
        [c-button
         {:color :primary :size :auto}
-        [c-button-label [:span "Become an " [:b "Employer"]]]]]
+        [c-button-label [:span "Become an "] [:b "Employer"]]]]
       [:div.district
        [:figure.img-district
         [:img {:src "./images/district.png"}]]

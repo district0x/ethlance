@@ -4,6 +4,10 @@
 
 .splash-navigation-link {
     padding: 0 1em;
+
+    @media @tablet-media-query {
+      padding: 0 0.5em;
+    }
 }
 
 
@@ -17,15 +21,25 @@
     .links {
 	display: flex;
 	flex-direction: row;
-	margin: 0 1em 0 1em;
+	margin: 0 1em;
+
+        @media @tablet-media-query {
+          margin: 0 0.7em;
+        }
+        
 	a {
 	    font-size: 1em;
 	    font-family: #font[sans];
 	    text-decoration: none;
 	    color: @color-dark-blue;
 	    padding: 0.4em;
-	    line-height: 1;
+	    line-height: 1em;
 	    border-bottom: 1px solid @color-dark-blue;
+
+            @media @tablet-media-query {
+              padding: 0.2em;
+              font-size: 0.8em;
+            }
 	}
     }
 }
