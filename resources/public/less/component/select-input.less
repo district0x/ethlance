@@ -18,8 +18,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
 
-    .icon {
-
+    .ethlance-icon {
+      border-radius: 100%;
+      padding: 0.3em;
+      text-align: center;
     }
 
     &:hover {
@@ -57,6 +59,10 @@
           &:hover {
               background-color: lighten(@color-light-purple, 3%);
           }
+      }
+
+      .ethlance-icon {
+        background-color: @color-purple;
       }
 
       > .dropdown {

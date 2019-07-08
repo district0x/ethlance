@@ -21,7 +21,7 @@
        [:div.main
         {:on-click #(swap! *open? not)}
         [:span.label (or @*current-selection label)]
-        [c-icon {:class "icon" :name :ic-arrow-up :color icon-color}]]
+        [c-icon {:class "icon" :name :ic-arrow-up :color icon-color :size :small}]]
        (when @*open?
          [:div.dropdown
           (doall
