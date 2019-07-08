@@ -53,15 +53,15 @@
 
         > .job-element {
             display: grid;
-            height: 450px;
+            //height: 450px;
             grid-template-areas:
               'title          details'
               'description    details'
               'date           details'
               'tags           details'
-              'users          details';
-            grid-template-rows: 3em minmax(7em, 1fr) 3em 3em 5fr;
-            grid-template-columns: 4fr 2fr;
+              'users          users';
+            grid-template-rows: 3em 3fr 3em 3em 5fr;
+            grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
             padding: 2em;
             box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
 
