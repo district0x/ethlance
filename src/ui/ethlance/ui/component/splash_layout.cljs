@@ -54,11 +54,15 @@
          [:img {:src "./images/icon-service.png"}]]
         [:div.text "0% service fees."]]]
 
+      [:div.box-separator "+"]
+
       [:div.box-ball
        [:div.vertical-box
         [:figure
          [:img {:src "./images/icon-decentralised.png"}]]
         [:div.text "Fully decentralized on blockchain."]]]
+
+      [:div.box-separator "+"]
 
       [:div.box-ball
        [:div.vertical-box

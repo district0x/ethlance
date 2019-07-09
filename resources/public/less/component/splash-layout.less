@@ -163,18 +163,24 @@
 
       > .box-listing {
         margin-top: 7.4rem;
-        display: flex;
+        display: grid;
         width: 100%;
-        flex-direction: row;
-        justify-content: space-around;
+
+        grid-template-rows: 320px;
+        grid-template-columns: 1fr 2em 1fr 2em 1fr;
+
+        @media #media[tablet-query] {
+          grid-template-columns: 1fr 1em 1fr 1em 1fr;
+        }
+
+        @media #media[mobile-query] {
+          grid-template-rows: 1fr 2em 1fr 2em 1fr;
+          grid-template-columns: 1fr;
+        }
 
         > .box-ball {
-          position: relative;
-          width: 29%;
-
           &:before {
             content: '';
-            width: 9rem;
             height: 9rem;
             background-image: url(../images/ellipse.png);
             background-size: 100%;
@@ -199,16 +205,7 @@
             border-radius: 3px;
             box-shadow: 0 0 2rem .4rem rgba(75,63,182,.05);
             z-index: 2;
-
-            &:before {
-              content: '+';
-              font-size: 1.6rem;
-              color: @color-yellow;
-              position: absolute;
-              right: -10%;
-              top: 45%;
-            }
-
+            
             > figure {
               position: relative;
               width: 5rem;
@@ -235,6 +232,14 @@
             }
           }
         }
+        
+        > .box-separator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.6rem;
+          color: @color-yellow;
+        }
       }
     }
 
@@ -245,18 +250,42 @@
       > .flex-box-listing {
         margin-top: 6rem;
         display: flex;
+        flex-direction: row;
         flex-wrap: wrap;
         
+        @media #media[tablet-query] {
+          flex-direction: column;
+        }
+
+        @media #media[mobile-query] {
+            
+        }
+
         > .horizontal-box {
           display: flex;
+          flex-direction: row;
           width: 47%;
           margin-right: 3%;
           margin-bottom: 4.5rem;
+
+          @media #media[tablet-query] {
+            width: 100%;
+            flex-direction: column;
+          }
+
+          @media #media[mobile-query] {
+
+          }
 
           > figure {
             width: 27.5%;
             height: 11rem;
             margin-right: 2rem;
+
+            @media #media[tablet-query] {
+              width: 100%;
+              height: 100%;
+            }
 
             > img {
               width: 100%;
@@ -264,8 +293,14 @@
           }
 
           > .text {
+            margin-top: 2em;
             width: 52%;
             text-align: left;
+
+            @media #media[tablet-query] {
+              width: 100%;
+            }
+
 
             > h3 {
               color: @color-purple;
