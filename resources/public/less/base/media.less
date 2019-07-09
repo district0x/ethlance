@@ -1,5 +1,16 @@
 /// media.less - Main media queries
 
+
+#media() {
+  max-width: 1280px;
+  tablet-width: 720px;
+  mobile-width: 420px;
+  
+  tablet-query: ~'only screen and (max-width: 720px)';
+  mobile-query: ~'only screen and (max-width: 420px)';
+}
+
+
 @media-max-width: 1280px;
 @media-tablet-width: 720px;
 @media-mobile-width: 420px;

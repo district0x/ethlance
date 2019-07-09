@@ -36,7 +36,7 @@
     width: 100%;
     padding: 2% 0;
 
-    @media @mobile-media-query {
+    @media #media[mobile-query] {
       display: none;
     }
   }
@@ -57,7 +57,7 @@
       justify-content: center;
       align-items: center;
 
-      @media @mobile-media-query {
+      @media #media[mobile-query] {
         flex-direction: column;
         justify-content: flex-start;
       }
@@ -71,12 +71,12 @@
           margin-bottom: 1.7rem;
           line-height: 6rem;
 
-          @media @tablet-media-query {
+          @media #media[tablet-query] {
             font-size: 3em;
             line-height: 1.2em;
           }
 
-          @media @mobile-media-query {
+          @media #media[mobile-query] {
             font-size: 2em;
           }
         }
@@ -91,11 +91,13 @@
         > .button-listing {
           display: flex;
           flex-direction: row;
+          font-size: 0.9rem;
           > .button {
             cursor: pointer;
-            padding: 0.3rem 1rem;
+            padding: 0.3em 1em;
             margin: 0 1rem 0 0;
-            
+            width: 120px;
+
             &:last {
               margin: 0;
             }
