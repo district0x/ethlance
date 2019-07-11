@@ -1,0 +1,33 @@
+/// splash-mobile-navigation-bar.less -- Mobile Navigation Bar for the splash layout
+
+.splash-mobile-navigation-bar {
+  width: 100%;
+  > .content {
+    display: flex;
+    width: 100%;
+    padding: 1em 1em;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    > .ethlance-icon {
+      cursor: pointer;
+    }
+  }
+
+  > .drawer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: white;
+    margin: 0.5em 0.5em;
+
+    > .nav-link {
+      color: white;
+      padding: 0.5em 0.5em;
+      font-size: 2em;
+      font-weight: 300;
+      border-top: 1px solid rgba(255, 255, 255, 0.3)
+    }
+  }
+}

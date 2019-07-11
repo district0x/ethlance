@@ -19,6 +19,7 @@
    :ic-upload {:src "images/svg/ic-upload.svg"}
    :jobs {:src "images/icons/ethlance-jobs-icon.svg"}
    :linkedin {:src "images/icons/linkedin-icon.svg"}
+   :list-menu {:src "images/svg/list-menu.svg"}
    :my-activity {:src "images/svg/my-activity.svg"}
    :search {:src "images/icons/ethlance-search-icon.svg"}
    :sign-up {:src "images/icons/ethlance-sign-up-icon.svg"}
@@ -49,7 +50,7 @@
           
           src (-> icon-listing name :src)
           style (-> icon-listing name :style)]
-      [:div.ethlance-icon {:style (or style {})}
+      [:div.ethlance-icon (merge props {:style (or style {})})
        [c-inline-svg {:src src
                       :width width
                       :height height

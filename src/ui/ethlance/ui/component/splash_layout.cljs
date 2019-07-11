@@ -8,12 +8,15 @@
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]))
+   [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]
+   [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]))
 
 
 (defn c-splash-layout
   []
   [:div.splash-layout
+   [:div.mobile-header
+    [c-splash-mobile-navigation-bar]]
    [:div.header
     [c-splash-navigation-bar]]
    [:div.main-content

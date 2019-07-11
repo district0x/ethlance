@@ -33,6 +33,7 @@
   background-color: #color[background-light];
   > .header {
     position: fixed;
+    z-index: 9001;
     width: 100%;
     padding: 2% 0;
 
@@ -41,12 +42,28 @@
     }
   }
 
+  > .mobile-header {
+    position: fixed;
+    z-index: 9001;
+    width: 100%;
+    display: none;
+    background-color: @color-dark-blue;
+    
+    @media #media[mobile-query] {
+      display: flex;
+    }
+  }
+
   > .main-content {
     min-height: 100%;
     width: 100%;
     max-width: @media-max-width;
     margin: 0 auto;
-    padding: 0 50px 0 50px;
+    padding: 0 50px;
+
+    @media #media[mobile-query] {
+      padding: 0 1em;
+    }
 
     /* BANNER SECTION */
     > .banner {
@@ -74,10 +91,11 @@
           @media #media[tablet-query] {
             font-size: 3em;
             line-height: 1.2em;
+            flex-basis: initial;
           }
 
           @media #media[mobile-query] {
-            font-size: 2em;
+            font-size: 2.0em;
           }
         }
 
@@ -90,13 +108,20 @@
 
         > .button-listing {
           display: flex;
+          width: 100%;
           flex-direction: row;
           font-size: 0.9rem;
+          justify-content: space-around;
           > .button {
             cursor: pointer;
             padding: 0.3em 1em;
             margin: 0 1rem 0 0;
             width: 120px;
+
+            @media #media[mobile-query] {
+              width: 80px;
+              font-size: 0.7rem;
+            }
 
             &:last {
               margin: 0;
