@@ -55,9 +55,19 @@
             (.then (fn [svg] (reset! *inline-svg svg)))))
 
       :component-did-update
-      (fn [this _]
-        (let [{:keys [key id root-class class width height on-ready]}
-              (-> this r/argv second)]
+      (fn [this old-argv]
+        (let [{:keys [key id root-class class width height on-ready src]}
+              (-> this r/argv second)
+              old-src (-> old-argv second :src)]
+
+          ;; To support changing the src of an inline-svg, need to
+          ;; kickstart retrieving the new src and clear out the old
+          ;; one
+          (when-not (= src old-src)
+            (reset! *inline-svg nil)
+            (-> (prepare-svg src)
+                (.then (fn [svg] (reset! *inline-svg svg)))))
+
           (when (and @*dom-ref @*inline-svg)
             (let [inline-svg @*inline-svg]
               (when id (.setAttribute inline-svg "id" id))
@@ -74,10 +84,10 @@
       :reagent-render
       (fn [{:keys [key src class id root-class width height on-ready] :as props}]
         (let [style (cond-> {}
-                      width (assoc :width width)
-                      height (assoc :height height))]
+                      width (assoc :width (str width "px"))
+                      height (assoc :height (str height "px")))]
           [:div.ethlance-inline-svg
            {:class root-class
             :ref (fn [com] (reset! *dom-ref com))
             :key key}
-           (when-not @*inline-svg [:img.svg {:src src :style style :class class}])]))})))
+           (when-not @*inline-svg #_[:img.svg {:src src :style style :class class}])]))})))

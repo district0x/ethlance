@@ -9,7 +9,8 @@
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.rating :refer [c-rating]]))
+   [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]))
 
 
 (defmethod page :route.devcard/index []
@@ -118,8 +119,11 @@
           [c-circle-icon-button {:name :github}]
           [c-circle-icon-button {:name :linkedin}]
           [c-circle-icon-button {:name :slack}]
-          [c-circle-icon-button {:name :twitter}]
+          [c-circle-icon-button {:name :twitter}]]]
 
+        [:div.dark-grouping
+         [:div.title "Ethlance Circle Button with Icon (dark)"]
+         [:div.body
           [c-circle-icon-button {:name :about :color :secondary}]
 
           [c-circle-icon-button {:name :arbiters :color :secondary}]
@@ -173,4 +177,30 @@
           [c-icon {:name :ic-arrow-left2 :color :secondary}]
           [c-icon {:name :ic-arrow-right :color :secondary}]
           [c-icon {:name :ic-arrow-right2 :color :secondary}]
-          [c-icon {:name :ic-upload :color :secondary}]]]]])))
+          [c-icon {:name :ic-upload :color :secondary}]]]
+
+        [:div.grouping
+         [:div.title "Ethlance Selection Input (light)"]
+         [:div.body
+          [c-select-input {:label "Select Country"
+                           :selections #{"United States" "Canada" "Germany" "Australia"}
+                           :style {:width 200}}]
+
+          [c-select-input {:label "Select Country"
+                           :selections (sort #{"United States" "Canada" "Germany" "Australia" "Mexico" "France"})
+                           :search-bar? true
+                           :style {:width 200}}]]]
+
+        [:div.dark-grouping
+         [:div.title "Ethlance Selection Input (dark)"]
+         [:div.body
+          [c-select-input {:label "Select Country"
+                           :selections #{"United States" "Canada" "Germany" "Australia"}
+                           :color :secondary
+                           :style {:width 200}}]
+
+          [c-select-input {:label "Select Country"
+                           :selections (sort #{"United States" "Canada" "Germany" "Australia" "Mexico" "France"})
+                           :color :secondary
+                           :search-bar? true
+                           :style {:width 200}}]]]]])))

@@ -2,43 +2,43 @@
 
 
 .page-devcard {
-    display: grid;
-    background-color: #color[background-light];
-    grid-template-areas:
-      "spacer  header header"
-      "sidebar content content";
-    grid-template-columns: 1fr 2fr 2fr;
+  display: grid;
+  background-color: #color[background-light];
+  grid-template-areas:
+  "spacer  header header"
+    "sidebar content content";
+  grid-template-columns: 1fr 2fr 2fr;
 
-    .spacer {
-	background-color: #color[primary];
-    }
+  .spacer {
+	  background-color: #color[primary];
+  }
 
-    .header {
-	color: #color[background-light-accent-2];
-	background-color: #color[primary];
-	padding: 5vh;
-	font-size: 3em;
-	font-weight: bold;
-	text-align: center;
-	grid-area: header;
-    }
+  .header {
+	  color: #color[background-light-accent-2];
+	  background-color: #color[primary];
+	  padding: 5vh;
+	  font-size: 3em;
+	  font-weight: bold;
+	  text-align: center;
+	  grid-area: header;
+  }
 
-    .sidebar {
-	grid-area: sidebar;
-	margin: 0.5em;
-	border-radius: 5px;
-	background-color: #color[secondary];
-	color: #color[background-light-accent-2];
-    }
+  .sidebar {
+	  grid-area: sidebar;
+	  margin: 0.5em;
+	  border-radius: 5px;
+	  background-color: #color[secondary];
+	  color: #color[background-light-accent-2];
+  }
 
-    .content {
-	display: flex;
-	flex-direction: column;
-	grid-area: content;
-	margin: 0.5em;
-	background-color: #color[background-light];
+  .content {
+	  display: flex;
+	  flex-direction: column;
+	  grid-area: content;
+	  margin: 0.5em;
+	  background-color: #color[background-light];
 
-	.grouping {
+	  .grouping {
 	    display: flex;
 	    flex-direction: column;
 	    margin: 0.5em;
@@ -47,7 +47,7 @@
 	    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
 	    
 	    .title {
-		height: 40px;
+		    height: 40px;
 	    }
 	    
 	    .body {
@@ -57,6 +57,15 @@
 	      flex-wrap: wrap;
 	      padding: 1em;
 	    }
-	}
+	  }
+
+    .dark-grouping {
+      .grouping();
+      background-color: #color[primary];
+
+      > .title {
+        color: white;
+      }
     }
+  }
 }

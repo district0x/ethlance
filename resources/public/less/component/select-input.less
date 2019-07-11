@@ -3,6 +3,8 @@
 
 .ethlance-select-input {
   @input-height: 3em;
+  // Max height of the select-input dropdown
+  @max-container-height: 6 * @input-height;
 
   position: relative;
   > .main {
@@ -17,15 +19,20 @@
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-left: 0.5em;
+    transition: all 0.05s ease-in;
 
     .ethlance-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 100%;
-      padding: 0.3em;
-      text-align: center;
+      padding: 0 0.5em;
+      margin: 0 0.5em;
     }
 
     &:hover {
-        background-color: lighten(white, 3%);
+      background-color: lighten(white, 3%);
     }
   }
 
@@ -35,41 +42,81 @@
     left: 0;
     top: @input-height;
     width: 100%;
-    > .selection {
-      #mixin.noselect();
-      display: flex;
-      z-index: 999;
-      align-items: center;
-      background-color: white;
-      border-bottom: 1px solid #d6e1fd;
-      height: @input-height;
-      padding-left: 0.5em;
-      cursor: pointer;
+    overflow-x: none;
+    overflow-y: none;
 
-      &:hover {
-	background-color: #d6e1fd;
+    > .search-bar {
+      display: grid;
+      grid-template-columns: 1fr 3em;
+      height: @input-height;
+      background-color: white;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+
+      input {
+        #mixin.input.text();
+        font-style: italic;
+        width: 100%;
+        padding: 0 0.5em;
+        border: none;
+      }
+
+      > .ethlance-icon {
+        #mixin.noselect();
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+    }
+
+    > .selection-listing {
+      overflow-x: none;
+      overflow-y: auto;
+      max-height: @max-container-height;
+
+      > .selection {
+        #mixin.noselect();
+        display: flex;
+        z-index: 999;
+        align-items: center;
+        background-color: white;
+        border-bottom: 1px solid #d6e1fd;
+        height: @input-height;
+        padding-left: 0.5em;
+        cursor: pointer;
+
+        &:hover {
+	        background-color: #d6e1fd;
+        }
       }
     }
   }
 
   &.secondary {
-      > .main {
+    > .main {
+      color: white;
+
+      &:hover {
+        background-color: lighten(@color-light-purple, 3%);
+      }
+    }
+
+    .ethlance-icon {
+      background-color: @color-purple;
+    }
+
+    > .dropdown {
+      > .selection-listing {
+        > .selection {
+          background-color: @color-light-purple;
           color: white;
 
           &:hover {
-              background-color: lighten(@color-light-purple, 3%);
+	          background-color: lighten(@color-light-purple, 3%);
           }
+        }
       }
-
-      .ethlance-icon {
-        background-color: @color-purple;
-      }
-
-      > .dropdown {
-          > .selection {
-              background-color: @color-light-purple;
-              color: white;
-          }
-      }
+    }
   }
 }
