@@ -12,7 +12,8 @@
   [{:keys [on-close]} label]
   [:div.ethlance-chip
    [:span.label label]
-   [:span.close-button {:on-click on-close}
+   [:span.close-button
+    {:on-click on-close}
     [c-icon {:name :close :size :x-small}]]])
 
 
@@ -25,7 +26,7 @@
     :or {search-icon? true
          placeholder "Search Tags"}}]
   (let [*chip-listing (r/atom (or (set default-chip-listing) #{}))
-        *dom-search-input-ref (r/atom nil)]
+        *search-text (r/atom "")]
     (r/create-class
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
@@ -51,14 +52,16 @@
                chip-label]))]
           [:input.search-input
            {:type "text"
+            :value @*search-text
+            :on-change #(reset! *search-text (-> % .-target .-value))
             :on-key-down
             (fn [event]
-              (cond
-                (= (aget event "key") "Enter")
-                (do
-                  (swap! *chip-listing conj (aget event "target" "value"))
-                  (aset event "target" "value" ""))))
-            :ref #(reset! *dom-search-input-ref %)
+              (let [key (aget event "key")]
+                (case key
+                  "Enter"
+                  (do
+                    (swap! *chip-listing conj @*search-text)
+                    (reset! *search-text ""))
+                  nil)))
             :placeholder placeholder}]]
          (when search-icon? [:div.search-button [c-icon {:name :search :size :normal}]])])})))
-

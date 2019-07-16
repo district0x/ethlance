@@ -5,149 +5,157 @@
 
 
 .sign-up-main-container {
-    @border-radius: 0.5em;
-    display: flex;
-    flex-direction: column;
-    > .tabular-layout > .active-page {
-        > .candidate-sign-up {
-            display: flex;
-            flex-direction: column;
-            > .form-container {
-                margin: 4em;
-                border-top-right-radius: @border-radius;
+  @border-radius: 0.5em;
+  display: flex;
+  flex-direction: column;
+  > .tabular-layout > .active-page {
+    > .candidate-sign-up {
+      display: flex;
+      flex-direction: column;
+      > .form-container {
+        margin: 4em;
+        border-top-right-radius: @border-radius;
 
-                > .label {
-                    color: @color-dark-blue;
-                    font-size: 2.0em;
-                }
-                
-                > .first-forms {
-                    display: grid;
-                    grid-template-areas:
-                      'form-image form-name    form-professional-title form-professional-title'
-                      'form-image form-email   form-hourly-rate        form-hourly-rate'
-                      'form-image form-country form-connect-github     form-connect-linkedin';
-                    grid-template-rows: 1fr 1fr 1fr;
-                    grid-template-columns: 2fr 4fr 3fr 3fr;
-                    grid-gap: 2em;
-
-                    .default-form() {
-                        padding: 5px 5px 5px 0;
-                        > * {
-                            height: 3em;
-                            width: 100%;
-                        }
-                    }
-
-                    > .ethlance-text-input, > .ethlance-email-input, > .currency-input > input {
-                        line-height: 0.5em;
-                    }
-
-                    //fixes for currency input
-                    > .currency-input > input {
-                        .default-form();
-                    }
-
-                    > .form-image {
-		      display: flex;
-		      align-items: center;
-		      justify-content: center;
-                      grid-area: form-image;
-                      .default-form();
-		      > .upload-image {
-			@bg-color: #E8EEFE;
-			@logo-size: 150px;
-
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			background-color: @bg-color;
-			height: @logo-size;
-			width: @logo-size;
-			border-radius: 100%;
-			cursor: pointer;
-			transition: background-color 0.1s ease-in;
-
-			&:hover {
-			  background-color: darken(@bg-color, 10%);
-			}
-		      }
-                    }
-
-                    > .form-name {
-                        grid-area: form-name;
-                        .default-form();
-                    }
-
-                    > .form-email {
-                        grid-area: form-email;
-                        .default-form();
-                    }
-
-                    > .form-professional-title {
-                        grid-area: form-professional-title;
-                        .default-form();
-                    }
-
-                    > .form-hourly-rate {
-                        grid-area: form-hourly-rate;
-                        .default-form();
-                    }
-
-                    > .form-country {
-                        grid-area: form-country;
-                        .default-form();
-                    }
-
-                    > .form-connect-github {
-                        grid-area:  form-connect-github;
-                        .default-form();
-                    }
-
-                    > .form-connect-linkedin {
-                        grid-area: form-connect-linkedin;
-                        .default-form();
-                    }
-                }
-                
-                > .second-forms {
-                    > .label {
-                        h2 {
-                            display: inline-block;
-                            font-weight: 700;
-                            padding: 0.7em 0;
-                            padding-right: 0.5em;
-                        }
-                        
-                        i {
-                            font-style: italic;
-                            font-weight: 300;
-                        }
-                    }
-
-                    > .ethlance-chip-search-input {
-                        margin: 0.5em 0;
-                    }
-                }
-            }
-            > .form-submit {
-                background-color: @color-purple;
-                color: white;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-weight: 700;
-                height: 50px;
-                border-bottom-left-radius: @border-radius;
-                border-bottom-right-radius: @border-radius;
-                cursor: pointer;
-                transition: background-color 0.05s ease-in;
-
-                &:hover {
-                    background-color: @color-dark-blue;
-                }
-            }
+        > .label {
+          color: @color-dark-blue;
+          font-size: 2.0em;
         }
+        
+        > .first-forms {
+          display: grid;
+          grid-template-areas:
+          'form-image form-name    form-professional-title form-professional-title'
+            'form-image form-email   form-hourly-rate        form-hourly-rate'
+            'form-image form-country form-connect-github     form-connect-linkedin';
+          grid-template-rows: 1fr 1fr 1fr;
+          grid-template-columns: 2fr 4fr 3fr 3fr;
+          grid-gap: 2em;
+
+          .default-form() {
+            padding: 5px 5px 5px 0;
+            > * {
+              height: 3em;
+              width: 100%;
+            }
+          }
+
+          > .ethlance-text-input, > .ethlance-email-input, > .currency-input > input {
+            line-height: 0.5em;
+          }
+
+          //fixes for currency input
+          > .currency-input > input {
+            .default-form();
+          }
+
+          > .form-image {
+		        display: flex;
+		        align-items: center;
+		        justify-content: center;
+            grid-area: form-image;
+            .default-form();
+		        > .upload-image {
+			        @bg-color: #E8EEFE;
+			        @logo-size: 150px;
+
+			        display: flex;
+			        flex-direction: column;
+			        justify-content: center;
+			        align-items: center;
+			        background-color: @bg-color;
+			        height: @logo-size;
+			        width: @logo-size;
+			        border-radius: 100%;
+			        cursor: pointer;
+			        transition: background-color 0.1s ease-in;
+              
+              > .ethlance-icon {
+                padding: 0.5em 0;
+              }
+
+              > span {
+                padding: 0.5em 0;
+              }
+
+			        &:hover {
+			          background-color: darken(@bg-color, 10%);
+			        }
+		        }
+          }
+
+          > .form-name {
+            grid-area: form-name;
+            .default-form();
+          }
+
+          > .form-email {
+            grid-area: form-email;
+            .default-form();
+          }
+
+          > .form-professional-title {
+            grid-area: form-professional-title;
+            .default-form();
+          }
+
+          > .form-hourly-rate {
+            grid-area: form-hourly-rate;
+            .default-form();
+          }
+
+          > .form-country {
+            grid-area: form-country;
+            .default-form();
+          }
+
+          > .form-connect-github {
+            grid-area:  form-connect-github;
+            .default-form();
+          }
+
+          > .form-connect-linkedin {
+            grid-area: form-connect-linkedin;
+            .default-form();
+          }
+        }
+        
+        > .second-forms {
+          > .label {
+            h2 {
+              display: inline-block;
+              font-weight: 700;
+              padding: 0.7em 0;
+              padding-right: 0.5em;
+            }
+            
+            i {
+              font-style: italic;
+              font-weight: 300;
+            }
+          }
+
+          > .ethlance-chip-search-input {
+            margin: 0.5em 0;
+          }
+        }
+      }
+      > .form-submit {
+        background-color: @color-purple;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+        height: 50px;
+        border-bottom-left-radius: @border-radius;
+        border-bottom-right-radius: @border-radius;
+        cursor: pointer;
+        transition: background-color 0.05s ease-in;
+
+        &:hover {
+          background-color: @color-dark-blue;
+        }
+      }
     }
+  }
 }
