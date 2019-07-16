@@ -4,6 +4,7 @@
    [district.ui.component.page :refer [page]]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
@@ -46,8 +47,10 @@
       [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :secondary}]]
      [:div.form-country
       [c-select-input
-       {:label "Country"
-        :selections ["United States" "Canada" "Germany"]}]]
+       {:label "Select Country"
+        :selections constants/countries
+        :search-bar? true
+        :default-search-text "Search Countries"}]]
      [:div.form-connect-github
       [c-button
        {:size :large}

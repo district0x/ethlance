@@ -50,6 +50,7 @@
           
           src (-> icon-listing name :src)
           style (-> icon-listing name :style)]
+      (assert src "Given 'name' parameter does not exist")
       [:div.ethlance-icon (merge props {:style (or style {})})
        [c-inline-svg {:src src
                       :width width
