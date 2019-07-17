@@ -23,10 +23,10 @@
     > .main-margin {
       display: grid;
       grid-template-areas: 'main-navigation-menu main-container';
-      grid-template-columns: 1fr 3fr;
+      grid-template-columns: minmax(180px, 240px) 3fr;
       margin: auto;
       margin-top: 0;
-      max-width: @media-max-width;
+      max-width: #media[max-width];
 
       > .main-navigation-menu {
         margin-top: @header-margin;
