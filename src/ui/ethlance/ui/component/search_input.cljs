@@ -25,7 +25,8 @@
            placeholder]
     :or {search-icon? true
          placeholder "Search Tags"}}]
-  (let [*chip-listing (r/atom (or (set default-chip-listing) #{}))
+  (let [*active-suggestion (r/atom nil)
+        *chip-listing (r/atom (or (set default-chip-listing) #{}))
         *search-text (r/atom "")]
     (r/create-class
      {:display-name "ethlance-chip-search-input"
@@ -64,4 +65,7 @@
                     (reset! *search-text ""))
                   nil)))
             :placeholder placeholder}]]
-         (when search-icon? [:div.search-button [c-icon {:name :search :size :normal}]])])})))
+         (when search-icon?
+           [:div.search-button [c-icon {:name :search :size :normal}]])
+         (when (> (count @*search-text) 0)
+           [:div.dropdown "dropdown"])])})))

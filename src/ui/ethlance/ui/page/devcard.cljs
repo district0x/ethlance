@@ -10,7 +10,8 @@
    [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]))
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]))
 
 
 (defmethod page :route.devcard/index []
@@ -203,4 +204,12 @@
                            :selections (sort #{"United States" "Canada" "Germany" "Australia" "Mexico" "France"})
                            :color :secondary
                            :search-bar? true
-                           :style {:width 200}}]]]]])))
+                           :style {:width 200}}]]]
+
+
+        [:div.grouping
+         [:div.title "Ethlance Chip Search Input (light)"]
+         [:div.body
+          [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+          [c-chip-search-input {:default-chip-listing #{"C++" "Python"}
+                                :search-icon? false}]]]]])))
