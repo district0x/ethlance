@@ -3,9 +3,18 @@
    [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! timeout] :include-macros true]
    [reagent.core :as r]
    [taoensso.timbre :as log]
+   [cuerdas.core :as string]
    
    ;; Ethlance Components
    [ethlance.ui.component.icon :refer [c-icon]]))
+
+
+(defn filter-selections
+  [search-text selections]
+  (if (and (not (empty? search-text)) (not (empty? selections)))
+    (->> selections
+         (filter #(string/includes? (string/lower %) (string/lower search-text))))
+    nil))
 
 
 (defn c-chip
@@ -65,7 +74,19 @@
                     (reset! *search-text ""))
                   nil)))
             :placeholder placeholder}]]
+
          (when search-icon?
            [:div.search-button [c-icon {:name :search :size :normal}]])
-         (when (> (count @*search-text) 0)
-           [:div.dropdown "dropdown"])])})))
+
+         (when-let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+           [:div.dropdown
+            [:div.suggestion-listing
+             (doall
+              (for [suggestion suggestions]
+                ^{:key (str "suggestion-" suggestion)}
+                [:div.suggestion
+                 {:on-click (fn []
+                              (swap! *chip-listing conj suggestion)
+                              (reset! *search-text "")
+                              (reset! *active-suggestion nil))}
+                 suggestion]))]])])})))

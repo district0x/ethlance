@@ -210,6 +210,8 @@
         [:div.grouping
          [:div.title "Ethlance Chip Search Input (light)"]
          [:div.body
-          [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
           [c-chip-search-input {:default-chip-listing #{"C++" "Python"}
+                                :auto-suggestion-listing ["Clojure" "Clojurescript"]}]
+          [c-chip-search-input {:default-chip-listing #{"C++" "Python"}
+                                :auto-suggestion-listing ["Clojure" "Clojurescript"]
                                 :search-icon? false}]]]]])))
