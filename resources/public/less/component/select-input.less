@@ -89,17 +89,19 @@
         cursor: pointer;
 
         &:hover {
-	        background-color: #d6e1fd;
+	  background-color: #d6e1fd;
         }
       }
     }
   }
 
   &.secondary {
+    @border-attr: 2px solid desaturate(#color[light-purple], 15%);
+
     > .main {
       color: white;
       background-color: #color[light-purple];
-      border-bottom: none;
+      border-bottom: @border-attr;
 
       &:hover {
         color: lighten(white, 3%);
@@ -115,9 +117,10 @@
         > .selection {
           background-color: #color[light-purple];
           color: white;
+          border-bottom: @border-attr;
 
           &:hover {
-	          color: lighten(#color[light-purple], 3%);
+	    color: black;
           }
         }
       }
