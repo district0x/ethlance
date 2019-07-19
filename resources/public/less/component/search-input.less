@@ -3,10 +3,11 @@
 
 .ethlance-chip-search-input {  
   @container-height: 60px;
+  @container-color: #e8eefe;
 
   display: grid;
   position: relative;
-  height: @container-height;;
+  height: @container-height;
   grid-template-columns: [start] auto [middle] @container-height [end];
   grid-template-rows: [start] 1fr [end];
 
@@ -19,7 +20,7 @@
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    background-color: #e8eefe;
+    background-color: @container-color;
 
     > .chip-listing {
       display: flex;
@@ -61,8 +62,10 @@
 
     > .suggestion-listing {
       display: flex;
+      cursor: pointer;
       flex-direction: column;
-      background-color: #e8eefe;
+      background-color: @container-color;
+
       > .suggestion {
         display: flex;
         padding-left: 1.0em;
@@ -72,6 +75,15 @@
         
         &:first-child {
           border-top: 1px solid white;
+        }
+
+        &:hover , &.active {
+          color: black;
+          background-color: darken(@container-color, 5%);
+        }
+
+        &.active {
+          border-left: 5px solid rgba(128, 128, 128, 0.5);
         }
       }
     }

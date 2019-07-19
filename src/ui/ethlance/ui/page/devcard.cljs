@@ -2,6 +2,7 @@
   "Development Page for showing off different reagent components"
   (:require
    [district.ui.component.page :refer [page]]
+   [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
@@ -212,6 +213,7 @@
          [:div.body
           [c-chip-search-input {:default-chip-listing #{"C++" "Python"}
                                 :auto-suggestion-listing ["Clojure" "Clojurescript"]}]
-          [c-chip-search-input {:default-chip-listing #{"C++" "Python"}
-                                :auto-suggestion-listing ["Clojure" "Clojurescript"]
+          [c-chip-search-input {:default-chip-listing #{"Canada"}
+                                :auto-suggestion-listing constants/countries
+                                :placeholder "Countries Visited"
                                 :search-icon? false}]]]]])))

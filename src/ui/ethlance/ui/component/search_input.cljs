@@ -9,12 +9,38 @@
    [ethlance.ui.component.icon :refer [c-icon]]))
 
 
+(def blur-delay-ms 200) ;; ms
+(def num-filter-selections 4)
+
+
 (defn filter-selections
   [search-text selections]
   (if (and (not (empty? search-text)) (not (empty? selections)))
     (->> selections
-         (filter #(string/includes? (string/lower %) (string/lower search-text))))
+         (filter #(string/includes? (string/lower %) (string/lower search-text)))
+         (take num-filter-selections)
+         vec)
     nil))
+
+
+(defn next-element
+  "Get the next element in `xs` after element `v`."
+  [xs v]
+  (let [index (.indexOf (or xs []) v)]
+    (cond
+      (< index 0) nil
+      (>= (inc index) (count xs)) (first xs)
+      :else (get xs (inc index)))))
+
+
+(defn previous-element
+  "Get the previous element in `xs` before element `v`."
+  [xs v]
+  (let [index (.indexOf (or xs []) v)]
+    (cond
+      (< index 0) nil
+      (= index 0) (last xs)
+      :else (get xs (dec index)))))
 
 
 (defn c-chip
@@ -30,6 +56,7 @@
   [{:keys [default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
+           allow-custom-chips?
            search-icon?
            placeholder]
     :or {search-icon? true
@@ -40,7 +67,20 @@
     (r/create-class
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
-      (fn [this])
+      (fn [this]
+        (let [root-dom (r/dom-node this)
+              search-input (.querySelector root-dom ".search-input")]
+          (.addEventListener
+           search-input "blur"
+           (fn []
+             ;; Needs to be on a timeout for dropdown selections to work correctly.
+             (.setTimeout 
+              js/window
+              (fn []
+                (reset! *active-suggestion nil)
+                (reset! *search-text ""))
+              blur-delay-ms))
+           true)))
       
 
       :component-will-unmount
@@ -66,12 +106,40 @@
             :on-change #(reset! *search-text (-> % .-target .-value))
             :on-key-down
             (fn [event]
-              (let [key (aget event "key")]
+              (let [key (some-> (aget event "key") string/lower)]
                 (case key
-                  "Enter"
+                  "enter"
+                  (cond 
+                    @*active-suggestion
+                    (do
+                      (swap! *chip-listing conj @*active-suggestion)
+                      (reset! *search-text "")
+                      (reset! *active-suggestion nil))
+                    (and (> (count @*search-text) 0) allow-custom-chips?)
+                    (do
+                      (swap! *chip-listing conj @*search-text)
+                      (reset! *search-text "")
+                      (reset! *active-suggestion nil)))
+                  
+                  "arrowdown"
+                  (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+                    (if @*active-suggestion
+                      (let [next-active (next-element suggestions @*active-suggestion)]
+                        (reset! *active-suggestion next-active))
+                      (reset! *active-suggestion (first suggestions))))
+
+                  "arrowup"
+                  (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+                    (if @*active-suggestion
+                      (let [previous-active (previous-element suggestions @*active-suggestion)]
+                        (reset! *active-suggestion previous-active))
+                      (reset! *active-suggestion (last suggestions))))
+
+                  "escape"
                   (do
-                    (swap! *chip-listing conj @*search-text)
+                    (reset! *active-suggestion nil)
                     (reset! *search-text ""))
+                  
                   nil)))
             :placeholder placeholder}]]
 
@@ -85,7 +153,8 @@
               (for [suggestion suggestions]
                 ^{:key (str "suggestion-" suggestion)}
                 [:div.suggestion
-                 {:on-click (fn []
+                 {:class (when (= @*active-suggestion suggestion) "active")
+                  :on-click (fn []
                               (swap! *chip-listing conj suggestion)
                               (reset! *search-text "")
                               (reset! *active-suggestion nil))}
