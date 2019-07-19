@@ -61,8 +61,9 @@
    [:div.category-selector
     [c-select-input
      {:label "All Categories"
+      :default-selection "All Categories"
       :color :secondary
-      :selections ["Software Development" "Web Design"]}]]
+      :selections ["All Categories" "Software Development" "Web Design"]}]]
 
    [:span.rating-label "Min. Rating"]
    [c-rating {:rating 1 :color :white :size :small
