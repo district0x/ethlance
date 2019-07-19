@@ -61,7 +61,12 @@
        [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
-     [c-chip-search-input {:search-icon? false :placeholder "Search Languages"}]
+     [c-chip-search-input
+      {:search-icon? false
+       :placeholder "Search Languages"
+       :auto-suggestion-listing constants/languages
+       :allow-custom-chips? false
+       :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
      
      [:div.label [:h2 "Categories You Are Interested In"]]
      [c-chip-search-input {:search-icon? false :placeholder "Search Categories"}]

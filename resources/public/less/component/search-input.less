@@ -30,7 +30,8 @@
     }
 
     > .search-input {
-      font-size: 1.5em;
+      font-size: 1.2em;
+      height: @container-height;
       flex-grow: 1;
       background-color: transparent;
       border: none;
@@ -59,12 +60,14 @@
     max-height: @max-container-height;
     overflow-x: none;
     overflow-y: auto;
+    z-index: 10;
 
     > .suggestion-listing {
       display: flex;
       cursor: pointer;
       flex-direction: column;
       background-color: @container-color;
+      box-shadow: inset 0px 3px 20px -7px rgba(0,0,0,0.2);
 
       > .suggestion {
         display: flex;

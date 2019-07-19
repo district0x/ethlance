@@ -68,6 +68,11 @@
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
       (fn [this]
+        (add-watch *chip-listing :watcher
+                   (fn [_ _ _ new-state]
+                     (when on-chip-listing-change
+                       (on-chip-listing-change new-state))))
+
         (let [root-dom (r/dom-node this)
               search-input (.querySelector root-dom ".search-input")]
           (.addEventListener
@@ -84,7 +89,9 @@
       
 
       :component-will-unmount
-      (fn [this])
+      (fn [this]
+        ;; Probably not necessary
+        (remove-watch *chip-listing :watcher))
       
 
       :reagent-render
