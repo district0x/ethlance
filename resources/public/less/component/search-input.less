@@ -1,84 +1,133 @@
 /// search-input.less -- Styling for search input
 
 
-.ethlance-chip-search-input {
-    @search-icon-size: 60px;
+.ethlance-chip-search-input {  
+  @container-height: 60px;
+  @container-color: #e8eefe;
 
-    display: grid;
-    height: @search-icon-size;
-    grid-template-columns: 1fr @search-icon-size;
-    grid-template-rows: 1fr;
+  display: grid;
+  position: relative;
+  height: @container-height;
+  grid-template-columns: [start] auto [middle] @container-height [end];
+  grid-template-rows: [start] 1fr [end];
 
-    &.no-search-icon {
-        grid-template-columns: 1fr;
+  &.no-search-icon {
+    grid-template-columns: [start] 1fr [end];
+  }
+
+  > .search-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: @container-color;
+
+    > .chip-listing {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding-left: 0.5em;
     }
 
-    > .search-container {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-        background-color: #e8eefe;
+    > .search-input {
+      font-size: 1.2em;
+      height: @container-height;
+      flex-grow: 1;
+      background-color: transparent;
+      border: none;
+      padding-left: 0.5em;
+      outline: none;
+    }
+  }
 
-        > .chip-listing {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
+  > .search-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #color[purple];
+  }
+
+  > .dropdown {
+    @max-container-height: 6 * @container-height;
+
+    position: absolute;
+    top: @container-height;
+    left: 0;
+    width: 100%;
+    grid-row: start / end;
+    grid-column: start / end;
+    min-height: @container-height;
+    max-height: @max-container-height;
+    overflow-x: none;
+    overflow-y: auto;
+    z-index: 10;
+
+    > .suggestion-listing {
+      display: flex;
+      cursor: pointer;
+      flex-direction: column;
+      background-color: @container-color;
+      box-shadow: inset 0px 3px 20px -7px rgba(0,0,0,0.2);
+
+      > .suggestion {
+        display: flex;
+        padding-left: 1.0em;
+        align-items: center;
+        height: @container-height;
+        border-top: 2px solid #dfdfdf;
+        
+        &:first-child {
+          border-top: 1px solid white;
         }
 
-        > .search-input {
-            font-size: 1.5em;
-            flex-grow: 1;
-            background-color: transparent;
-            border: none;
-            padding-left: 0.5em;
-	    outline: none;
+        &:hover , &.active {
+          color: black;
+          background-color: darken(@container-color, 5%);
         }
-    }
 
-    > .search-button {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: @color-purple;
+        &.active {
+          border-left: 5px solid rgba(128, 128, 128, 0.5);
+        }
+      }
     }
+  }
 }
 
 .ethlance-chip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: white;
+  padding: 0.5em 1.0em;
+  margin: 0.7em 0.3em;
+  border-radius: 5px;
+
+  > .label {
+    padding-right: 0.5em;
+  }
+
+  > .close-button {
     display: flex;
-    flex-direction: row;
+    justify-content: center;
     align-items: center;
-    background-color: white;
-    padding: 0.5em 1.0em;
-    margin: 0.7em 0.3em;
-    border-radius: 5px;
+    cursor: pointer;
+    padding: 3px;
+    margin: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 100%;
+    background-color: #dfeefc;
+    transition: 0.3s all ease-out;
 
-    > .label {
-        padding-right: 0.5em;
+    &:hover {
+      color: white;
+      background-color: #color[dark-blue];
     }
 
-    > .close-button {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        padding: 3px;
-        margin: 3px;
-        width: 20px;
-        height: 20px;
-        border-radius: 100%;
-        background-color: #dfeefc;
-	transition: 0.3s all ease-out;
-
-	&:hover {
-	  color: white;
-	  background-color: @color-dark-blue;
-	}
-
-	> .ethlance-icon {
-	  display: flex;
-	  justify-content: center;
-	  align-items: center;
-	}
+    > .ethlance-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
+  }
 }

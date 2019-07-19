@@ -1,21 +1,16 @@
 /// media.less - Main media queries
 
-
 #media() {
+
+  // Defined Dimensional Points
   max-width: 1280px;
+  desktop-width: 1020px;
   tablet-width: 720px;
   mobile-width: 420px;
-  
+
+  // Media Queries
+  desktop-query: ~'only screen and (max-width: 1080px)';
   tablet-query: ~'only screen and (max-width: 720px)';
   mobile-query: ~'only screen and (max-width: 420px)';
 }
 
-
-@media-max-width: 1280px;
-@media-tablet-width: 720px;
-@media-mobile-width: 420px;
-
-
-//
-@tablet-media-query: ~'only screen and (max-width: 720px)';
-@mobile-media-query: ~'only screen and (max-width: 420px)';

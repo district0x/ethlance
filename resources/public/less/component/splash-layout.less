@@ -22,7 +22,7 @@
     }
 
     h2 {
-      color: @color-purple;
+      color: #color[purple];
     }
   }
 }
@@ -47,7 +47,7 @@
     z-index: 9001;
     width: 100%;
     display: none;
-    background-color: @color-dark-blue;
+    background-color: #color[dark-blue];
     
     @media #media[mobile-query] {
       display: flex;
@@ -57,7 +57,7 @@
   > .main-content {
     min-height: 100%;
     width: 100%;
-    max-width: @media-max-width;
+    max-width: #media[max-width];
     margin: 0 auto;
     padding: 0 50px;
 
@@ -84,7 +84,7 @@
         > h2 {
           font-size: 4.5rem;
           font-weight: 700;
-          color: @color-dark-blue;
+          color: #color[dark-blue];
           margin-bottom: 1.7rem;
           line-height: 6rem;
 
@@ -101,7 +101,7 @@
 
         > span {
           display: block;
-          color: @color-purple;
+          color: #color[purple];
           font-size: 1.45rem;
           padding-bottom: 2.5rem;
         }
@@ -161,7 +161,7 @@
           }
 
           > a {
-            color: @color-gray;
+            color: #color[gray];
             text-decoration: underline;
           }
         }
@@ -169,7 +169,7 @@
       > .part-figure {
         flex-basis: 50%;
 
-        @media @tablet-media-query {
+        @media #media[tablet-query] {
           display: none;
         }
       }
@@ -179,7 +179,7 @@
     > .welcome {
       #sl.section();
 
-      @border-color: fade(@color-gray, 5%);
+      @border-color: fade(#color[gray], 5%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -244,7 +244,7 @@
             }
 
             > .text {
-              color: @color-dark-blue;
+              color: #color[dark-blue];
               text-align: center;
               padding: 0.5rem;
               line-height: 1.5rem;
@@ -263,7 +263,7 @@
           align-items: center;
           justify-content: center;
           font-size: 1.6rem;
-          color: @color-yellow;
+          color: #color[yellow];
         }
       }
     }
@@ -330,7 +330,7 @@
 
 
             > h3 {
-              color: @color-purple;
+              color: #color[purple];
               font-size: 0.9rem;
               font-weight: 700;
             }
@@ -365,7 +365,7 @@
   }
 
   > .footer {
-    background-color: @color-dark-blue;
+    background-color: #color[dark-blue];
     width: 100%;
     > .footer-content {
       display: grid;
@@ -379,7 +379,7 @@
         'footer footer';
       grid-template-rows: 4fr 4fr 30px;
       grid-template-columns: 4fr 3fr;
-      max-width: @media-max-width;
+      max-width: #media[max-width];
       margin: 0 auto;
 
       @media #media[tablet-query] {

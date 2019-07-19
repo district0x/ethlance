@@ -26,11 +26,11 @@
         > .tab {
             #mixin.noselect();
             align-items: center;
-            background-color: @color-offwhite2;
+            background-color: #color[offwhite2];
             border-top-left-radius: 0.7em;
             border-top-right-radius: 0.7em;
             box-shadow: 0 0 2rem 0.5rem rgba(44, 57, 143, 0.05);
-            color: @color-purple;
+            color: #color[purple];
             cursor: pointer;
             display: flex;
             font-size: 1.2em;
@@ -49,7 +49,7 @@
 
             &:hover:not(.active) {
                 color: black;
-                background-color: darken(@color-offwhite2, 5%);
+                background-color: darken(#color[offwhite2], 5%);
             }
         }
     }

@@ -2,6 +2,7 @@
   "Development Page for showing off different reagent components"
   (:require
    [district.ui.component.page :refer [page]]
+   [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
@@ -10,7 +11,8 @@
    [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]))
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]))
 
 
 (defmethod page :route.devcard/index []
@@ -203,4 +205,15 @@
                            :selections (sort #{"United States" "Canada" "Germany" "Australia" "Mexico" "France"})
                            :color :secondary
                            :search-bar? true
-                           :style {:width 200}}]]]]])))
+                           :style {:width 200}}]]]
+
+
+        [:div.grouping
+         [:div.title "Ethlance Chip Search Input (light)"]
+         [:div.body
+          [c-chip-search-input {:default-chip-listing #{"C++" "Python"}
+                                :auto-suggestion-listing ["Clojure" "Clojurescript"]}]
+          [c-chip-search-input {:default-chip-listing #{"Canada"}
+                                :auto-suggestion-listing constants/countries
+                                :placeholder "Countries Visited"
+                                :search-icon? false}]]]]])))

@@ -29,6 +29,8 @@
       border-radius: 100%;
       padding: 0 0.5em;
       margin: 0 0.5em;
+      width: 32px;
+      height: 32px;
     }
 
     &:hover {
@@ -87,33 +89,38 @@
         cursor: pointer;
 
         &:hover {
-	        background-color: #d6e1fd;
+	  background-color: #d6e1fd;
         }
       }
     }
   }
 
   &.secondary {
+    @border-attr: 2px solid desaturate(#color[light-purple], 15%);
+
     > .main {
       color: white;
+      background-color: #color[light-purple];
+      border-bottom: @border-attr;
 
       &:hover {
-        background-color: lighten(@color-light-purple, 3%);
+        color: lighten(white, 3%);
       }
     }
 
     .ethlance-icon {
-      background-color: @color-purple;
+      background-color: #color[purple];
     }
 
     > .dropdown {
       > .selection-listing {
         > .selection {
-          background-color: @color-light-purple;
+          background-color: #color[light-purple];
           color: white;
+          border-bottom: @border-attr;
 
           &:hover {
-	          background-color: lighten(@color-light-purple, 3%);
+	    color: black;
           }
         }
       }

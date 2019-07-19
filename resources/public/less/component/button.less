@@ -48,7 +48,7 @@
         height: 100%;
         align-items: center;
         overflow: hidden;
-        background-color: @color-purple;
+        background-color: #color[purple];
         border-radius: #ethlance-button[border-radius];
 	transition: all @fade-duration, background-color @fade-duration;
 
@@ -57,8 +57,10 @@
             justify-content: center;
             align-items: center;
             flex-basis: 48px;
+            flex-grow: 0;
+            flex-shrink: 0;
             height: 100%;
-            background-color: @color-dark-blue;
+            background-color: #color[dark-blue];
         }
 
         > .label {
@@ -67,7 +69,8 @@
             color: white;
             font-weight: 700;
             text-align: center;
-            font-size: 1.2em;
+            font-size: 0.9em;
+            line-height: 1.2em;
             padding: 0 0.5em;
         }
     }
@@ -81,9 +84,9 @@
 	}
 
         > .button-icon-label {
-            background-color: @color-dark-blue;
+            background-color: #color[dark-blue];
             > .icon {
-                background-color: @color-purple;
+                background-color: #color[purple];
             }
 
             > .label {
