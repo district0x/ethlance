@@ -29,7 +29,7 @@
 (defn c-user-arbiter-detail
   [{:keys [] :as user}]
   [:div.user-detail.arbiter
-   [c-inline-svg {:class "arbiter-icon"}]
+   [c-inline-svg {:class "arbiter-icon" :src "images/svg/hammer.svg"}]
    [:div.name "Brian Curran"]
    [c-rating {:size :small :color :primary :rating 3}]
    [:div.rating-label "(6)"]

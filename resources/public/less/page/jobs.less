@@ -3,171 +3,182 @@
 // main layout content container
 
 .jobs-main-container {
-    display: grid;
-    grid-template-areas: 'job-search-filter job-listing';
-    grid-template-columns: minmax(185px, 235px) 4fr;
-    box-shadow: rgba(44, 57, 143, 0.05) 0px 0px 32px 8px;
+  display: grid;
+  grid-template-areas: 'job-search-filter job-listing';
+  grid-template-columns: minmax(185px, 235px) 4fr;
+  box-shadow: rgba(44, 57, 143, 0.05) 0px 0px 32px 8px;
 
-    > .job-search-filter {
-        display: flex;
-        flex-direction: column;
-        grid-area: job-search-filter;
-        background-color: @color-purple;
-        border-radius: 10px 0 0 10px;
-        padding: 1.0em;
-        overflow: hidden;
+  > .job-search-filter {
+    display: flex;
+    flex-direction: column;
+    grid-area: job-search-filter;
+    background-color: @color-purple;
+    border-radius: 10px 0 0 10px;
+    padding: 1.0em;
+    overflow: hidden;
 
-        > .category-selector {
-          margin: 1.5em 0;
-        }
-
-        > .rating-label , > .selection-label {
-            padding: 1em;
-            color: white;
-            font-weight: bold;
-        }
-
-        > .ethlance-component-rating {
-            padding: 1em;
-            padding-top: 0;
-        }
-
-        > .currency-input {
-            padding: 1em;
-        }
+    > .category-selector {
+      margin: 1.5em 0;
     }
 
-    > .job-listing {
-        display: flex;
-        background-color: white;
-        flex-direction: column;
-        grid-area: job-listing;
-
-        > .ethlance-chip-search-input {
-            margin: 2em;
-        }
-
-        > .job-element {
-            display: grid;
-            //height: 450px;
-            grid-template-areas:
-              'title          details'
-              'description    details'
-              'date           details'
-              'tags           details'
-              'users          users';
-            grid-template-rows: 3em 3fr 3em 3em 5fr;
-            grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
-            padding: 2em;
-            box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
-
-            > .title {
-                display: flex;
-                align-items: center;
-                grid-area: title;
-                font-size: 2em;
-                font-weight: 500;
-            }
-
-            > .description {
-                margin: 1em 0;
-                grid-area: description;
-                line-height: 1.4em;
-            }
-
-            > .date {
-                grid-area: date;
-                font-weight: 200;
-                font-size: 0.9em;
-                margin: 0.5em 0;
-            }
-
-            > .tags {
-                grid-area: tags;
-                display: flex;
-                flex-direction: row;
-                flex-wrap: wrap;
-                margin: 0.3em 0;
-                > .ethlance-tag {
-                    margin: 0 0.5em 0.3em 0;
-                }
-            }
-
-            > .users {
-                grid-area: users;
-                display: flex;
-                flex-direction: row;
-                margin: 2em 1em;
-
-                > .user-detail {
-                    display: grid;
-                    margin-right: 2em;
-                    grid-template-areas:
-                    'name     name'
-                    'rating   rating-label'
-                    'location location';
-                    
-                    > .name {
-                        display: flex;
-                        align-items: flex-end;
-                        grid-area: name;
-                        font-weight: 700;
-                    }
-
-                    > .ethlance-rating {
-                        grid-area: rating;
-                    }
-
-                    > .rating-label {
-                        display: flex;
-                        align-items: center;
-                        grid-area: rating-label;
-                    }
-
-                    > .location {
-                        grid-area: location;
-                    }
-
-                    // FIXME: arbiter logo not showing
-                    > .ethlance-inline-svg {
-                        position: absolute;
-                        top: 0;
-                        left: -1em;
-                        width: 16px;
-                        height: 16px;
-                        background-color: black;
-                    }
-                }
-            }
-
-            > .details {
-                display: flex;
-                justify-content: center;
-                align-items: flex-start;
-                padding-top: 1em;
-                grid-area: details;
-                > .job-detail-table {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    
-                    @border-attr: 1px solid fadeout(@color-dark-blue, 85%);
-                    > .name , > .value {
-                        border-top: @border-attr;
-                        padding: 1.2em 0;
-                        &:last-child , &:nth-last-child(2) {
-                            border-bottom: @border-attr;
-                        }
-                    }
-
-                    > .name {
-                        font-weight: 700;
-                    }
-
-                    > .value {
-                        text-align: right;
-                    }
-                }
-            }
-        }
+    > .rating-label , > .selection-label {
+      padding: 1em;
+      color: white;
+      font-weight: bold;
     }
+
+    > .ethlance-component-rating {
+      padding: 1em;
+      padding-top: 0;
+    }
+
+    > .currency-input {
+      padding: 1em;
+    }
+  }
+
+  > .job-listing {
+    display: flex;
+    background-color: white;
+    flex-direction: column;
+    grid-area: job-listing;
+
+    > .ethlance-chip-search-input {
+      margin: 2em;
+    }
+
+    > .job-element {
+      display: grid;
+      //height: 450px;
+      grid-template-areas:
+      'title          details'
+        'description    details'
+        'date           details'
+        'tags           details'
+        'users          users';
+      grid-template-rows: 3em 3fr 3em 3em 5fr;
+      grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
+      padding: 2em;
+      box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
+
+      > .title {
+        display: flex;
+        align-items: center;
+        grid-area: title;
+        font-size: 2em;
+        font-weight: 500;
+      }
+
+      > .description {
+        margin: 1em 0;
+        margin-right: 0.5em;
+        grid-area: description;
+        line-height: 1.4em;
+        @media #media[desktop-query] {
+          font-size: 0.9em;
+        }
+      }
+
+      > .date {
+        grid-area: date;
+        font-weight: 200;
+        font-size: 0.9em;
+        margin: 0.5em 0;
+      }
+
+      > .tags {
+        grid-area: tags;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin: 0.3em 0;
+        > .ethlance-tag {
+          margin: 0 0.5em 0.3em 0;
+        }
+      }
+
+      > .users {
+        grid-area: users;
+        display: flex;
+        flex-direction: row;
+        margin: 2em 1em;
+
+        > .user-detail {
+          position: relative;
+          display: grid;
+          margin-right: 2em;
+          grid-template-areas:
+          'name     name'
+            'rating   rating-label'
+            'location location';
+          
+          > .name {
+            display: flex;
+            align-items: flex-end;
+            grid-area: name;
+            font-weight: 700;
+          }
+
+          > .ethlance-rating {
+            grid-area: rating;
+          }
+
+          > .rating-label {
+            display: flex;
+            align-items: center;
+            grid-area: rating-label;
+          }
+
+          > .location {
+            grid-area: location;
+          }
+
+          // FIXME: arbiter logo not showing
+          > .ethlance-inline-svg {
+            position: absolute;
+            top: 1.5em;
+            left: -1.5em;
+            width: 16px;
+            height: 16px;
+            path {
+              opacity: 1; /* for some reason, some of the SVGs have opacity:0 */
+            }
+          }
+        }
+      }
+
+      > .details {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 1em;
+        grid-area: details;
+        > .job-detail-table {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          
+          @media #media[desktop-query] {
+            font-size: 0.9em;
+          }
+
+          @border-attr: 1px solid fadeout(@color-dark-blue, 85%);
+          > .name , > .value {
+            border-top: @border-attr;
+            padding: 1.2em 0;
+            &:last-child , &:nth-last-child(2) {
+              border-bottom: @border-attr;
+            }
+          }
+
+          > .name {
+            font-weight: 700;
+          }
+
+          > .value {
+            text-align: right;
+          }
+        }
+      }
+    }
+  }
 }
