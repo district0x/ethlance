@@ -5,7 +5,8 @@
    ;; Ethlance Components
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.main-navigation-bar :refer [c-main-navigation-bar]]
-   [ethlance.ui.component.main-navigation-menu :refer [c-main-navigation-menu]]))
+   [ethlance.ui.component.main-navigation-menu :refer [c-main-navigation-menu]]
+   [ethlance.ui.component.mobile-navigation-bar :refer [c-mobile-navigation-bar]]))
 
 
 (defn c-main-layout
@@ -14,6 +15,7 @@
   (let [opts (dissoc opts :container-opts)]
     [:div.main-layout opts
      [c-main-navigation-bar]
+     [c-mobile-navigation-bar]
      [:div.main-margin
       [c-main-navigation-menu]
       [:div.main-container container-opts children]]

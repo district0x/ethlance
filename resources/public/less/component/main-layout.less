@@ -16,7 +16,20 @@
     grid-template-columns: 1fr;
 
     > .main-navigation-bar {
+      grid-area: navigation-bar;
+      @media #media[desktop-query] {
+        display: none;
+        grid-area: none;
+      }
+    }
+
+    > .mobile-navigation-bar {
+      display: none;
+      grid-area: none;
+      @media #media[desktop-query] {
+        display: grid;
         grid-area: navigation-bar;
+      }
     }
 
     @header-margin: 3em;

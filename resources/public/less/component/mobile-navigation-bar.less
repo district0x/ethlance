@@ -1,0 +1,97 @@
+/// mobile-navigation-bar.less -- replacement navigation bar when
+/// screen dimensions are shrunk enough.
+
+
+
+.mobile-navigation-bar {
+  @container-height: 63px;
+  position: relative;
+  display: grid;
+  grid-template-columns: [start] auto auto [end];
+  grid-template-rows: auto;
+  background-color: #color[dark-blue];
+  height: @container-height;
+
+  > .logo {
+    display: flex;
+    align-items: center;
+    padding-left: 0.5em;
+  }
+
+  > .menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 1em;
+    cursor: pointer;
+    
+    > .ethlance-icon {
+      cursor: pointer;
+    }
+  }
+
+  > .dropdown {
+    position: absolute;
+    top: @container-height;
+    grid-column: start / end;
+    display: flex;
+    flex-direction: column;
+    background-color: #color[dark-blue];
+    width: 100vw;
+    z-index: 999;
+
+    > .mobile-navigation-menu {
+      display: flex;
+      flex-direction: column;
+      margin: 4em auto;
+      width: 80vw;
+
+      > .nav-element {
+        display: flex;
+        color: white;
+        flex-direction: row;
+        align-items: center;
+        padding: 1.5em 0.5em;
+        @border-attr: 2px solid desaturate(#color[dark-blue], 10%);
+        border-top: @border-attr;
+        
+        &:last-child {
+          border-bottom: @border-attr;
+        }
+
+        > .ethlance-icon {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 100%;
+          width: 32px;
+          height: 32px;
+          background-color: #color[purple];
+        }
+
+        > .label {
+          font-size: 1.2em;
+          font-weight: 100;
+          padding-left: 2em;
+        }
+      }
+    }
+
+    > .mobile-account-page {
+      display: flex;
+      flex-direction: row;
+      background-color: darken(#color[dark-blue], 10%);
+      color: white;
+      height: 50px;
+      align-items: center;
+
+      > .account-balance {
+        flex-basis: 50%;
+      }
+
+      > .account-select {
+        flex-basis: 50%;
+      }
+    }
+  }
+}
