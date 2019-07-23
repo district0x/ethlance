@@ -55,7 +55,7 @@
 (defn c-job-search-filter
   "Sidebar component for changing the search criteria."
   []
-  [:div.job-search-filter
+  [:div.job-search-filter.search-filter
    {:key "search-filter"}
    
    [:div.category-selector
@@ -134,7 +134,7 @@
     (fn []
       [c-main-layout {:container-opts {:class :jobs-main-container}}
        [c-job-search-filter]
-       [:div.job-listing {:key "listing"}
+       [:div.job-listing.listing {:key "listing"}
         [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
         [c-job-listing]]])))
 
