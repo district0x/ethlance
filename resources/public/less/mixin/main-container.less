@@ -9,27 +9,31 @@
 #mixin() {
   .main-container {
     display: grid;
-    position: relative;
     grid-template-areas: 'search-filter listing';
     grid-template-columns: [start] minmax(185px, 235px) 4fr [end];
     box-shadow: rgba(44, 57, 143, 0.05) 0px 0px 32px 8px;
+
+    @media #media[tablet-query] {
+      grid-template-areas: 'listing';
+      grid-template-columns: [start] 1fr [end]
+    }
 
     .search-filter {
       display: flex;
       flex-direction: column;
       grid-area: search-filter;
-      background-color: @color-purple;
+      background-color: #color[purple];
       border-radius: 10px 0 0 10px;
       padding: 1.0em;
       overflow: hidden;
 
-      @media #media[desktop-query] {
-        
+      @media #media[tablet-query] {
+        display: none;
       }
     }
 
     .mobile-search-filter {
-      
+
     }
 
     .listing {

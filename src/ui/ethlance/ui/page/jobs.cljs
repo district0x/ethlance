@@ -14,7 +14,8 @@
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]))
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]))
 
 
 (defn c-user-employer-detail
@@ -100,6 +101,51 @@
     [:expert [c-radio-search-filter-element "Expert ($$$)"]]]])
 
 
+(defn c-job-mobile-search-filter
+  []
+  [c-mobile-search-filter
+   [:div.category-selector
+    [c-select-input
+     {:label "All Categories"
+      :default-selection "All Categories"
+      :color :secondary
+      :selections ["All Categories" "Software Development" "Web Design"]}]]
+
+   [:span.rating-label "Min. Rating"]
+   [c-rating {:rating 1 :color :white :size :small
+              :on-change (fn [index] (log/debug "Min. Rating: " index))}]
+
+   [:span.rating-label "Max. Rating"]
+   [c-rating {:rating 5 :color :white :size :small
+              :on-change (fn [index] (log/debug "Max. Rating: " index))}]
+
+   [c-currency-input
+    {:placeholder "Min. Hourly Rate"
+     :currency-type ::enum.currency/usd
+     :on-change #(println "Currency Min Change: " %)}]
+   
+   [c-currency-input
+    {:placeholder "Max. Hourly Rate"
+     :currency-type ::enum.currency/usd
+     :on-change #(println "Currency Max Change: " %)}]
+
+   [:span.selection-label "Payment Type"]
+   [c-radio-select 
+    {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
+     :default-selection :hourly-rate}
+    [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
+    [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
+    [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
+
+   [:span.selection-label "Experience Level"]
+   [c-radio-select 
+    {:on-selection (fn [selection] (log/debug (str "Experience Selection: " selection)))
+     :default-selection :novice}
+    [:novice [c-radio-search-filter-element "Novice ($)"]]
+    [:professional [c-radio-search-filter-element "Professional ($$)"]]
+    [:expert [c-radio-search-filter-element "Expert ($$$)"]]]])
+
+
 (defn c-job-element
   "A single job element component composed from the job data."
   [job]
@@ -134,6 +180,7 @@
     (fn []
       [c-main-layout {:container-opts {:class :jobs-main-container}}
        [c-job-search-filter]
+       [c-job-mobile-search-filter]
        [:div.job-listing.listing {:key "listing"}
         [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
         [c-job-listing]]])))
