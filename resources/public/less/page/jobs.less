@@ -2,12 +2,8 @@
 
 // main layout content container
 
-.jobs-main-container {
-  #mixin.main-container();
-
-  > .job-search-filter {
-    #mixin.main-container.search-filter();
-
+#jobs() {
+  .search-filter-content {
     > .category-selector {
       margin: 1.5em 0;
     }
@@ -27,10 +23,19 @@
       padding: 1em;
     }
   }
+}
+
+.jobs-main-container {
+  #mixin.main-container();
+
+  > .job-search-filter {
+    #mixin.main-container.search-filter();
+    #jobs.search-filter-content();
+  }
 
   > .mobile-search-filter {
     > .content {
-
+      #jobs.search-filter-content();
     }
   }
 
@@ -54,6 +59,18 @@
       grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
       padding: 2em;
       box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
+
+      @media #media[mobile-query] {
+        grid-template-areas:
+        'title'
+        'description'
+        'date'
+        'tags'
+        'users'
+        'details';
+        grid-template-rows: 3em 3fr 3em 3em 5fr auto;
+        grid-template-columns: 1fr;
+      }
 
       > .title {
         display: flex;
@@ -147,6 +164,11 @@
         align-items: flex-start;
         padding-top: 1em;
         grid-area: details;
+        
+        @media #media[mobile-query] {
+          align-items: center;
+        }
+        
         > .job-detail-table {
           display: grid;
           grid-template-columns: 1fr 1fr;

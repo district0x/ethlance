@@ -9,12 +9,10 @@
   position: fixed;
   width: @bin-width;
   top: 25%;
-  min-height: 50%;
   right: -1 * @bin-width;
   background-color: #color[purple];
   border-radius: 0 0 0 10px;
   transition: right 0.2s ease-out;
-  
 
   @media #media[tablet-query] {
     display: flex;
@@ -57,5 +55,7 @@
     display: flex;
     flex-direction: column;
     padding: 1.0em;
+    max-height: 65vh;
+    overflow-y: auto;
   }
 }
