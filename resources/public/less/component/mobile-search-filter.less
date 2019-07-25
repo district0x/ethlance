@@ -25,12 +25,13 @@
   }
 
   > .filter-button {
+    #mixin.noselect();
     display: flex;
     flex-direction: row;
     align-items: center;
     position: absolute;
-    top: 24px;
-    left: -63px;
+    top: 31px;
+    left: -75px;
     padding: 1em;
     background-color: #color[purple];
     border-radius: 10px 10px 0 0;
@@ -39,6 +40,10 @@
     > span {
       padding: 0 0.5em;
       color: white;
+    }
+
+    > .ethlance-icon {
+      padding: 0 0.5em;
     }
 
     &:hover {
