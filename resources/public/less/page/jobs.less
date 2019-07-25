@@ -44,18 +44,25 @@
 
     > .ethlance-chip-search-input {
       margin: 2em;
+      
+      @media #media[tablet-query] {
+        margin: 1.5em;
+      }
+
+      @media #media[mobile-query] {
+        margin: 1em;
+      }
     }
 
     > .job-element {
       display: grid;
-      //height: 450px;
       grid-template-areas:
       'title          details'
         'description    details'
         'date           details'
         'tags           details'
         'users          users';
-      grid-template-rows: 3em 3fr 3em 3em 5fr;
+      grid-template-rows: auto 3fr auto auto 5fr;
       grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
       padding: 2em;
       box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
@@ -68,8 +75,9 @@
         'tags'
         'users'
         'details';
-        grid-template-rows: 3em 3fr 3em 3em 5fr auto;
-        grid-template-columns: 1fr;
+        grid-template-rows: auto 3fr auto auto 5fr auto;
+        grid-template-columns: 100%;
+        padding: 0.7em;
       }
 
       > .title {
@@ -78,11 +86,13 @@
         grid-area: title;
         font-size: 2em;
         font-weight: 500;
+        margin: 0.5em 0;
+        line-height: 1.2em;
       }
 
       > .description {
         margin: 1em 0;
-        margin-right: 0.5em;
+        margin-right: 0.7em;
         grid-area: description;
         line-height: 1.4em;
         @media #media[desktop-query] {
@@ -94,7 +104,7 @@
         grid-area: date;
         font-weight: 200;
         font-size: 0.9em;
-        margin: 0.5em 0;
+        margin: 1.0em 0;
       }
 
       > .tags {
@@ -103,6 +113,11 @@
         flex-direction: row;
         flex-wrap: wrap;
         margin: 0.3em 0;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
+
         > .ethlance-tag {
           margin: 0 0.5em 0.3em 0;
         }
@@ -113,6 +128,10 @@
         display: flex;
         flex-direction: row;
         margin: 2em 1em;
+
+        @media #media[mobile-query] {
+          justify-content: space-around;
+        }
 
         > .user-detail {
           position: relative;
