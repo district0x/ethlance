@@ -74,19 +74,56 @@
   }
   > .footer {
     grid-area: footer;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    display: grid;
+    grid-template-areas: 'copyright social';
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
     margin: 0 12em 2em 2em;
 
+    @media #media[tablet-query] {
+      grid-template-areas: 'social' 'copyright';
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+      margin: 0 0 0 2em;
+    }
+
     > .copyright {
+      grid-area: copyright;
+      display: flex;
+      align-items: flex-end;
       font-size: 0.8em;
       font-weight: 300;
+      
+      @media #media[tablet-query] {
+        flex-direction: column;
+        margin: 0 0.5em;
+        margin-left: 3em;
+        align-items: flex-start;
+        justify-content: center;
+      }
+
+      .spacer {
+        padding: 0 0.5em;
+
+        @media #media[tablet-query] {
+          display: none;
+        }
+      }
     }
 
     > .social {
+      grid-area: social;
       display: flex;
       flex-direction: row;
+      align-items: flex-end;
+      justify-content: flex-end;
+
+      @media #media[tablet-query] {
+        margin-top: 1em;
+        margin-left: 2em;
+        align-items: center;
+        justify-content: flex-start;
+      }
 
       > .ethlance-circle-button {
         margin: 0 0.5em;

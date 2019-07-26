@@ -20,7 +20,10 @@
       [c-main-navigation-menu]
       [:div.main-container container-opts children]]
      [:div.footer
-      [:div.copyright "Copyright © 2019 Ethlance.com | All rights reserved."]
+      [:div.copyright
+       [:span "Copyright © 2019 Ethlance.com"]
+       [:div.spacer "|"]
+       [:span "All rights reserved."]]
       [:div.social
        [c-circle-icon-button {:name :facebook :size :small}]
        [c-circle-icon-button {:name :twitter :size :small}]
