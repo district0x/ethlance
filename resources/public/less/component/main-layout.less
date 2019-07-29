@@ -2,64 +2,133 @@
 
 
 .main-layout {
-    background-image: url("../images/corner-coins.png");
-    background-repeat: no-repeat;
-    background-position: right bottom;
-    background-size: 200px 150px;
-    min-height: 100%;
-    display: grid;
-    grid-template-areas:
-      'navigation-bar'
-      'main-margin'
-      'footer';
-    grid-template-rows: 4.5em 1fr 7em;
-    grid-template-columns: 1fr;
+  background-image: url("../images/corner-coins.png");
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: 200px 150px;
+  min-height: 100%;
+  display: grid;
+  grid-template-areas:
+  'navigation-bar'
+    'main-margin'
+    'footer';
+  grid-template-rows: 4.5em 1fr 7em;
+  grid-template-columns: 1fr;
 
-    > .main-navigation-bar {
-        grid-area: navigation-bar;
+  > .main-navigation-bar {
+    grid-area: navigation-bar;
+    @media #media[desktop-query] {
+      display: none;
+      grid-area: none;
     }
+  }
 
-    @header-margin: 3em;
-    > .main-margin {
+  > .mobile-navigation-bar {
+    display: none;
+    grid-area: none;
+    @media #media[desktop-query] {
       display: grid;
-      grid-template-areas: 'main-navigation-menu main-container';
-      grid-template-columns: minmax(180px, 240px) 3fr;
-      margin: auto;
-      margin-top: 0;
-      max-width: #media[max-width];
+      grid-area: navigation-bar;
+    }
+  }
 
-      > .main-navigation-menu {
-        margin-top: @header-margin;
-        grid-area: main-navigation-menu;
-      }
+  @header-margin: 3em;
+  > .main-margin {
+    display: grid;
+    grid-template-areas: 'main-navigation-menu main-container';
+    grid-template-columns: minmax(180px, 240px) 3fr;
+    margin: auto;
+    margin-top: 0;
+    max-width: #media[max-width];
 
-      > .main-container {
-        margin-top: @header-margin;
-        margin-right: 1.2em;
-        grid-area: main-container;
-        border-radius: 10px;
+    @media #media[desktop-query] {
+      grid-template-areas: 'main-container';
+      grid-template-columns: 1fr;
+    }
+
+    > .main-navigation-menu {
+      margin-top: @header-margin;
+      grid-area: main-navigation-menu;
+
+      @media #media[desktop-query] {
+        display: none;
+        grid-area: none;
       }
     }
-    > .footer {
-        grid-area: footer;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin: 0 12em 2em 2em;
 
-        > .copyright {
-            font-size: 0.8em;
-            font-weight: 300;
-        }
+    > .main-container {
+      margin-top: @header-margin;
+      margin-right: 1.2em;
+      grid-area: main-container;
+      border-radius: 10px;
 
-        > .social {
-            display: flex;
-            flex-direction: row;
+      @media #media[desktop-query] {
+        margin-left: 1.2em;
+      }
 
-            > .ethlance-circle-button {
-                margin: 0 0.5em;
-            }
-        }
-
+      @media #media[tablet-query] {
+        margin-left: 0;
+        margin-right: 0;
+      }
     }
+  }
+  > .footer {
+    grid-area: footer;
+    display: grid;
+    grid-template-areas: 'copyright social';
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    margin: 0 12em 2em 2em;
+
+    @media #media[tablet-query] {
+      grid-template-areas: 'social' 'copyright';
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+      margin: 0 0 0 2em;
+    }
+
+    > .copyright {
+      grid-area: copyright;
+      display: flex;
+      align-items: flex-end;
+      font-size: 0.8em;
+      font-weight: 300;
+      
+      @media #media[tablet-query] {
+        flex-direction: column;
+        margin: 0 0.5em;
+        margin-left: 3em;
+        align-items: flex-start;
+        justify-content: center;
+      }
+
+      .spacer {
+        padding: 0 0.5em;
+
+        @media #media[tablet-query] {
+          display: none;
+        }
+      }
+    }
+
+    > .social {
+      grid-area: social;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: flex-end;
+
+      @media #media[tablet-query] {
+        margin-top: 1em;
+        margin-left: 2em;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      > .ethlance-circle-button {
+        margin: 0 0.5em;
+      }
+    }
+
+  }
 }
