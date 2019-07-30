@@ -31,6 +31,19 @@
           grid-template-columns: 2fr 4fr 3fr 3fr;
           grid-gap: 2em;
 
+          @media #media[tablet-query] {
+            grid-template-areas:
+            'form-image form-image'
+            'form-name form-name'
+            'form-email form-email'
+            'form-country form-country'
+            'form-professional-title form-professional-title'
+            'form-hourly-rate form-hourly-rate'
+            'form-connect-github form-connect-linkedin';
+            grid-template-rows: repeat(8, auto);
+            grid-template-columns: 1fr 1fr;
+          }
+
           .default-form() {
             padding: 5px 5px 5px 0;
             > * {
@@ -54,6 +67,12 @@
 		        justify-content: center;
             grid-area: form-image;
             .default-form();
+
+            @media #media[tablet-query] {
+              padding: 0;
+              margin: 4em 0;
+            }
+
 		        > .upload-image {
 			        @bg-color: #E8EEFE;
 			        @logo-size: 150px;
@@ -69,6 +88,14 @@
 			        cursor: pointer;
 			        transition: background-color 0.1s ease-in;
               
+              @media #media[tablet-query] {
+                border-radius: 5px;
+                width: 100%;
+                height: 100%;
+                margin-top: 2em;
+                padding: 2em;
+              }
+
               > .ethlance-icon {
                 padding: 0.5em 0;
               }
@@ -106,11 +133,20 @@
           > .form-country {
             grid-area: form-country;
             .default-form();
+            > .ethlance-select-input {
+              > .main {
+                padding-left: 0;
+              }
+            }
           }
 
           > .form-connect-github {
             grid-area:  form-connect-github;
             .default-form();
+
+            @media #media[tablet-query] {
+              height: 5em;
+            }
           }
 
           > .form-connect-linkedin {
@@ -151,6 +187,14 @@
         border-bottom-right-radius: @border-radius;
         cursor: pointer;
         transition: background-color 0.05s ease-in;
+
+        @media #media[tablet-query] {
+          margin: 2em 5em;
+          margin-top: 0;
+          border-radius: @border-radius;
+          font-size: 2em;
+          height: 100px;
+        }
 
         &:hover {
           background-color: @color-dark-blue;
