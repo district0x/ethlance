@@ -5,8 +5,8 @@
   @input-height: 3em;
   // Max height of the select-input dropdown
   @max-container-height: 6 * @input-height;
-
   position: relative;
+
   > .main {
     #mixin.input.text();
     #mixin.noselect();
@@ -89,7 +89,7 @@
         cursor: pointer;
 
         &:hover {
-	  background-color: #d6e1fd;
+	        background-color: #d6e1fd;
         }
       }
     }
@@ -121,8 +121,46 @@
           border-bottom: @border-attr;
 
           &:hover {
-	    color: black;
+	          color: black;
           }
+        }
+      }
+    }
+  }
+
+  // Override height and text sizes for a bigger input element
+  &.large {
+    @input-height: 4em;
+    // Max height of the select-input dropdown
+    @max-container-height: 6 * @input-height;
+
+    > .main {
+      height: @input-height;
+
+      > .label {
+        padding: 0 0.6em;
+        font-size: 1.2em;
+      }
+
+      > .ethlance-icon {
+        padding: 0 1.0em;
+      }
+    }
+
+    > .dropdown {
+      top: @input-height;
+
+      > .search-bar {
+        height: @input-height;
+      }
+
+      > .selection-listing {
+        max-height: @max-container-height;
+
+        > .selection {
+          height: @input-height;
+          padding: 0 1em;
+          font-size: 1.2em;
         }
       }
     }

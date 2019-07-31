@@ -15,7 +15,7 @@
 
 
 (defn c-select-input
-  [{:keys [label selections on-select default-selection color search-bar? default-search-text]
+  [{:keys [label selections on-select default-selection color search-bar? default-search-text size]
     :or {default-search-text "Search"}
     :as opts}]
   (let [*open? (r/atom false)
@@ -27,14 +27,19 @@
                       :secondary " secondary ")
         icon-color (case color
                      :primary :black
-                     :secondary :white)]
+                     :secondary :white)
+        size (or size :default)
+        size-class (case size
+                     :large " large "
+                     :default nil)]
     (fn [{:keys [label selections on-select default-selection color] :as opts}]
       (let [opts (dissoc opts
                          :label :selections
                          :on-select :default-selection
                          :color :search-bar?
-                         :default-search-text)]
-        [:div.ethlance-select-input (merge {:class color-class} opts)
+                         :default-search-text
+                         :size)]
+        [:div.ethlance-select-input (merge {:class [color-class size-class]} opts)
          [:div.main
           {:on-click #(swap! *open? not)}
           [:span.label (or @*current-selection label)]
