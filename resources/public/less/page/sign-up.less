@@ -44,6 +44,20 @@
             grid-template-columns: 1fr 1fr;
           }
 
+          @media #media[mobile-query] {
+            grid-template-areas:
+            'form-image'
+            'form-name'
+            'form-email'
+            'form-country'
+            'form-professional-title'
+            'form-hourly-rate'
+            'form-connect-github'
+            'form-connect-linkedin';
+            grid-template-rows: repeat(9, auto);
+            grid-template-columns: 1fr;
+          }
+
           .default-form() {
             padding: 5px 5px 5px 0;
             > * {
@@ -152,6 +166,10 @@
           > .form-connect-linkedin {
             grid-area: form-connect-linkedin;
             .default-form();
+
+            @media #media[tablet-query] {
+              height: 5em;
+            }
           }
         }
         
@@ -189,11 +207,15 @@
         transition: background-color 0.05s ease-in;
 
         @media #media[tablet-query] {
-          margin: 2em 5em;
+          margin: 2em 10%;
           margin-top: 0;
           border-radius: @border-radius;
           font-size: 2em;
           height: 100px;
+        }
+
+        @media #media[mobile-query] {
+
         }
 
         &:hover {
