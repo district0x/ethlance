@@ -34,12 +34,12 @@
           @media #media[tablet-query] {
             grid-template-areas:
             'form-image form-image'
-            'form-name form-name'
-            'form-email form-email'
-            'form-country form-country'
-            'form-professional-title form-professional-title'
-            'form-hourly-rate form-hourly-rate'
-            'form-connect-github form-connect-linkedin';
+              'form-name form-name'
+              'form-email form-email'
+              'form-country form-country'
+              'form-professional-title form-professional-title'
+              'form-hourly-rate form-hourly-rate'
+              'form-connect-github form-connect-linkedin';
             grid-template-rows: repeat(8, auto);
             grid-template-columns: 1fr 1fr;
           }
@@ -47,13 +47,13 @@
           @media #media[mobile-query] {
             grid-template-areas:
             'form-image'
-            'form-name'
-            'form-email'
-            'form-country'
-            'form-professional-title'
-            'form-hourly-rate'
-            'form-connect-github'
-            'form-connect-linkedin';
+              'form-name'
+              'form-email'
+              'form-country'
+              'form-professional-title'
+              'form-hourly-rate'
+              'form-connect-github'
+              'form-connect-linkedin';
             grid-template-rows: repeat(9, auto);
             grid-template-columns: 1fr;
           }
@@ -220,6 +220,57 @@
 
         &:hover {
           background-color: @color-dark-blue;
+        }
+      }
+    }
+
+    > .employer-sign-up {
+      .candidate-sign-up(); 
+    }
+
+    > .arbiter-sign-up {
+      .candidate-sign-up();
+      > .form-container {
+        > .first-forms {
+          display: grid;
+          grid-template-areas:
+          'form-image form-name    form-professional-title form-professional-title'
+            'form-image form-email   form-type-of-payment    form-type-of-payment'
+            'form-image form-country form-connect-github     form-connect-linkedin';
+          grid-template-rows: 1fr 1fr 1fr;
+          grid-template-columns: 2fr 4fr 3fr 3fr;
+          grid-gap: 2em;
+
+          @media #media[tablet-query] {
+            grid-template-areas:
+            'form-image form-image'
+              'form-name form-name'
+              'form-email form-email'
+              'form-country form-country'
+              'form-professional-title form-professional-title'
+              'form-type-of-payment form-type-of-payment'
+              'form-connect-github form-connect-linkedin';
+            grid-template-rows: repeat(8, auto);
+            grid-template-columns: 1fr 1fr;
+          }
+
+          @media #media[mobile-query] {
+            grid-template-areas:
+            'form-image'
+              'form-name'
+              'form-email'
+              'form-country'
+              'form-professional-title'
+              'form-type-of-payment'
+              'form-connect-github'
+              'form-connect-linkedin';
+            grid-template-rows: repeat(9, auto);
+            grid-template-columns: 1fr;
+          }
+
+          > .form-type-of-payment {
+            display: flex;
+          }
         }
       }
     }

@@ -42,19 +42,30 @@
       
       :reagent-render
       (fn [opts & children]
-        [:div.ethlance-radio-select
-         (doall
-          (for [[selection-key child-element] children]
-            ^{:key (str selection-key)}
-            [c-radio-element
-             {:selection-key selection-key
-              :select-channel select-channel
-              :child-element child-element
-              :currently-active @*currently-active}]))])})))
+        (let [opts (dissoc opts :default-selection :on-selection)]
+          [:div.ethlance-radio-select
+           opts
+           (doall
+            (for [[selection-key child-element] children]
+              ^{:key (str selection-key)}
+              [c-radio-element
+               {:selection-key selection-key
+                :select-channel select-channel
+                :child-element child-element
+                :currently-active @*currently-active}]))]))})))
 
 
 (defn c-radio-search-filter-element [label]
   [:<>
+   [c-inline-svg
+    {:src "./images/svg/radio-button.svg"
+     :width 24
+     :height 24}]
+   [:span.label label]])
+
+
+(defn c-radio-optional-element [label]
+  [:div.radio-optional-element
    [c-inline-svg
     {:src "./images/svg/radio-button.svg"
      :width 24
