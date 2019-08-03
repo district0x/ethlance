@@ -20,7 +20,7 @@
 
 
 (defn c-radio-select
-  [{:keys [default-selection on-selection]} & children]
+  [{:keys [default-selection on-selection flex?]} & children]
   (let [*currently-active (r/atom default-selection)
         select-channel (chan 1)]
     (r/create-class
@@ -42,19 +42,30 @@
       
       :reagent-render
       (fn [opts & children]
-        [:div.ethlance-radio-select
-         (doall
-          (for [[selection-key child-element] children]
-            ^{:key (str selection-key)}
-            [c-radio-element
-             {:selection-key selection-key
-              :select-channel select-channel
-              :child-element child-element
-              :currently-active @*currently-active}]))])})))
+        (let [opts (dissoc opts :default-selection :on-selection)]
+          [:div.ethlance-radio-select
+           {:class (when flex? "flex")}
+           (doall
+            (for [[selection-key child-element] children]
+              ^{:key (str selection-key)}
+              [c-radio-element
+               {:selection-key selection-key
+                :select-channel select-channel
+                :child-element child-element
+                :currently-active @*currently-active}]))]))})))
 
 
 (defn c-radio-search-filter-element [label]
   [:<>
+   [c-inline-svg
+    {:src "./images/svg/radio-button.svg"
+     :width 24
+     :height 24}]
+   [:span.label label]])
+
+
+(defn c-radio-secondary-element [label]
+  [:div.radio-secondary-element
    [c-inline-svg
     {:src "./images/svg/radio-button.svg"
      :width 24

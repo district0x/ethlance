@@ -1,6 +1,9 @@
 (ns ethlance.ui.component.tabular-layout
   (:require
-   [reagent.core :as r]))
+   [reagent.core :as r]
+
+   ;; Ethlance Components
+   [ethlance.ui.component.select-input :refer [c-select-input]]))
 
 
 (defn c-tabular-layout
@@ -20,5 +23,18 @@
               {:class (when (= @*active-tab-index index) "active")
                :on-click #(reset! *active-tab-index index)}
               [:span.label label]]))]
+
+         [:div.mobile-tab-listing
+          [c-select-input
+           {:default-selection (-> tab-options (get @*active-tab-index) :label)
+            :selections (mapv :label tab-options)
+            :color :secondary
+            :size :large
+            :on-select
+            (fn [selection]
+             (let [selections (map :label tab-options)
+                   new-index (.indexOf selections selection)]
+               (reset! *active-tab-index new-index)))}]]
+            
          [:div.active-page {:key "active-page"}
           (get tab-children @*active-tab-index)]]))))

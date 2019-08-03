@@ -31,6 +31,33 @@
           grid-template-columns: 2fr 4fr 3fr 3fr;
           grid-gap: 2em;
 
+          @media #media[tablet-query] {
+            grid-template-areas:
+            'form-image form-image'
+              'form-name form-name'
+              'form-email form-email'
+              'form-country form-country'
+              'form-professional-title form-professional-title'
+              'form-hourly-rate form-hourly-rate'
+              'form-connect-github form-connect-linkedin';
+            grid-template-rows: repeat(8, auto);
+            grid-template-columns: 1fr 1fr;
+          }
+
+          @media #media[mobile-query] {
+            grid-template-areas:
+            'form-image'
+              'form-name'
+              'form-email'
+              'form-country'
+              'form-professional-title'
+              'form-hourly-rate'
+              'form-connect-github'
+              'form-connect-linkedin';
+            grid-template-rows: repeat(9, auto);
+            grid-template-columns: 1fr;
+          }
+
           .default-form() {
             padding: 5px 5px 5px 0;
             > * {
@@ -54,6 +81,12 @@
 		        justify-content: center;
             grid-area: form-image;
             .default-form();
+
+            @media #media[tablet-query] {
+              padding: 0;
+              margin: 4em 0;
+            }
+
 		        > .upload-image {
 			        @bg-color: #E8EEFE;
 			        @logo-size: 150px;
@@ -69,6 +102,14 @@
 			        cursor: pointer;
 			        transition: background-color 0.1s ease-in;
               
+              @media #media[tablet-query] {
+                border-radius: 5px;
+                width: 100%;
+                height: 100%;
+                margin-top: 2em;
+                padding: 2em;
+              }
+
               > .ethlance-icon {
                 padding: 0.5em 0;
               }
@@ -106,16 +147,29 @@
           > .form-country {
             grid-area: form-country;
             .default-form();
+            > .ethlance-select-input {
+              > .main {
+                padding-left: 0;
+              }
+            }
           }
 
           > .form-connect-github {
             grid-area:  form-connect-github;
             .default-form();
+
+            @media #media[tablet-query] {
+              height: 5em;
+            }
           }
 
           > .form-connect-linkedin {
             grid-area: form-connect-linkedin;
             .default-form();
+
+            @media #media[tablet-query] {
+              height: 5em;
+            }
           }
         }
         
@@ -137,6 +191,10 @@
           > .ethlance-chip-search-input {
             margin: 0.5em 0;
           }
+
+          > #form-for-hire {
+            padding: 2em 0;
+          }
         }
       }
       > .form-submit {
@@ -152,8 +210,86 @@
         cursor: pointer;
         transition: background-color 0.05s ease-in;
 
+        @media #media[tablet-query] {
+          margin: 2em 10%;
+          margin-top: 0;
+          border-radius: @border-radius;
+          font-size: 2em;
+          height: 100px;
+        }
+
+        @media #media[mobile-query] {
+
+        }
+
         &:hover {
           background-color: @color-dark-blue;
+        }
+      }
+    }
+
+    > .employer-sign-up {
+      .candidate-sign-up(); 
+    }
+
+    > .arbiter-sign-up {
+      .candidate-sign-up();
+      > .form-container {
+        > .first-forms {
+          display: grid;
+          grid-template-areas:
+            'form-image form-name    form-professional-title form-professional-title'
+            'form-image form-email   form-type-of-payment    form-type-of-payment'
+            'form-image form-country form-connect-github     form-connect-linkedin';
+          grid-template-rows: auto auto auto;
+          grid-template-columns: 2fr 4fr 3fr 3fr;
+          grid-gap: 2em;
+
+          @media #media[tablet-query] {
+            grid-template-areas:
+              'form-image form-image'
+              'form-name form-name'
+              'form-email form-email'
+              'form-country form-country'
+              'form-professional-title form-professional-title'
+              'form-type-of-payment form-type-of-payment'
+              'form-connect-github form-connect-linkedin';
+            grid-template-rows: repeat(8, auto);
+            grid-template-columns: 1fr 1fr;
+          }
+
+          @media #media[mobile-query] {
+            grid-template-areas:
+              'form-image'
+              'form-name'
+              'form-email'
+              'form-country'
+              'form-professional-title'
+              'form-type-of-payment'
+              'form-connect-github'
+              'form-connect-linkedin';
+            grid-template-rows: repeat(9, auto);
+            grid-template-columns: 1fr;
+          }
+
+          > .form-type-of-payment {
+            display: flex;
+            grid-area: form-type-of-payment;
+            flex-direction: column;
+            justify-content: space-around;
+
+            > .label {
+              color: #color[dark-blue];
+              font-weight: 600;
+              padding-bottom: 0.7em;
+            }
+
+            > .currency-input {
+              > input {
+                padding: 1.0em 0;
+              }
+            }
+          }
         }
       }
     }
