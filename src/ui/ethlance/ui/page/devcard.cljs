@@ -12,7 +12,8 @@
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]))
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]))
 
 
 (defmethod page :route.devcard/index []
@@ -216,4 +217,10 @@
           [c-chip-search-input {:default-chip-listing #{"Canada"}
                                 :auto-suggestion-listing constants/countries
                                 :placeholder "Countries Visited"
-                                :search-icon? false}]]]]])))
+                                :search-icon? false}]]]
+
+        [:div.grouping
+         [:div.title "Ethlance Checkbox Input (light)"]
+         [:div.body
+          [c-labeled-checkbox {:default-checked? false
+                               :label "Testing"}]]]]])))

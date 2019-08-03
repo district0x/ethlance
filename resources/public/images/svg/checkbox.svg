@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 31.999999 31.999999"
+   version="1.1"
+   id="svg112"
+   sodipodi:docname="checkbox.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   width="32"
+   height="32">
+  <metadata
+     id="metadata116">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>ic-arrow-down_1</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="3836"
+     inkscape:window-height="988"
+     id="namedview114"
+     showgrid="false"
+     inkscape:zoom="21.518185"
+     inkscape:cx="12.851912"
+     inkscape:cy="13.862516"
+     inkscape:window-x="0"
+     inkscape:window-y="18"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg112" />
+  <defs
+     id="defs104">
+    <marker
+       inkscape:stockid="DotL"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="DotL"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path916"
+         d="M -2.5,-1.0 C -2.5,1.7600000 -4.7400000,4.0 -7.5,4.0 C -10.260000,4.0 -12.5,1.7600000 -12.5,-1.0 C -12.5,-3.7600000 -10.260000,-6.0 -7.5,-6.0 C -4.7400000,-6.0 -2.5,-3.7600000 -2.5,-1.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) translate(7.4, 1)" />
+    </marker>
+    <style
+       id="style102">.cls-1{fill:#4b3fb6;}</style>
+  </defs>
+  <title
+     id="title106">ic-arrow-down_1</title>
+  <rect
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3.8425827;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="outer-square"
+     width="27.920549"
+     height="27.879246"
+     x="2.0397253"
+     y="2.0603771"
+     ry="1.4042881" />
+  <g
+     id="cross"
+     transform="matrix(0.86086957,0,0,0.86086957,2.19511,2.2053382)">
+    <g
+       id="g1141"
+       transform="rotate(-45,15.867663,16.224299)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path853"
+         d="M 16.128244,5.0272774 V 27.37624"
+         style="fill:none;stroke:#000000;stroke-width:4.06565666;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:4.06565666;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 4.9537627,16.201759 H 27.302725"
+         id="path1137"
+         inkscape:connector-curvature="0" />
+    </g>
+  </g>
+</svg>
