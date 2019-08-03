@@ -49,7 +49,7 @@
    [:span.label label]
    [:span.close-button
     {:on-click on-close}
-    [c-icon {:name :close :size :x-small}]]])
+    [c-icon {:name :close :size :x-small :color :black}]]])
 
 
 (defn c-chip-search-input
