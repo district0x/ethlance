@@ -6,16 +6,19 @@
 
 (defn c-labeled-checkbox
   [{:keys [label on-change default-checked?] :as opts}]
-  (let [*checked? (r/atom default-checked?)]
+  (let [opts (dissoc opts :label :on-change :default-checked?)
+        *checked? (r/atom default-checked?)]
     (fn [opts]
       [:div.ethlance-checkbox
-       {:on-click
-        (fn []
-          (when on-change
-            (on-change @*checked?))
-          (swap! *checked? not))
+       (merge
+        opts
+        {:on-click
+         (fn []
+           (when on-change
+             (on-change @*checked?))
+           (swap! *checked? not))
 
-        :class (when @*checked? "checked")}
+         :class (when @*checked? "checked")})
        [c-inline-svg {:src "images/svg/checkbox.svg"
                       :width 24
                       :height 24}]

@@ -18,6 +18,7 @@
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
    [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
+   [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.icon :refer [c-icon]]))
@@ -75,7 +76,11 @@
      [c-chip-search-input {:search-icon? false :placeholder "Search Skills"}]
 
      [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder "Enter Biography"}]]]
+     [c-textarea-input {:placeholder "Enter Biography"}]
+     [c-labeled-checkbox
+      {:id "form-for-hire"
+       :label "I'm available for hire"
+       :on-change #(println (if % "Checked!" "Unchecked!"))}]]]
    
    [:div.form-submit "Create"]])
 
