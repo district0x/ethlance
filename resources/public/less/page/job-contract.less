@@ -2,5 +2,43 @@
 
 
 .job-contract-main-container {
-  #mixin.main-container();
+  @border-radius: 0.5em;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-shadow: 0 0 2rem 0.5rem rgba(44, 57, 143, 0.05);
+  border-radius: @border-radius;
+  background-color: white;
+
+  > .header-profile {
+    display: grid;
+    grid-template-areas:
+    'title    details'
+    'job-name details';
+    grid-template-rows: 4em auto;
+    grid-template-columns: 3fr 1fr;
+    margin: 1em 2em;
+
+    > .title {
+      grid-area: title;
+      display: flex;
+      align-items: center;
+      font-size: 2em;
+      font-weight: 600;
+    }
+
+    > .job-name {
+      grid-area: job-name;
+      display: flex;
+      font-weight: 300;
+      text-decoration: underline;
+    }
+
+    > .job-details {
+      grid-area: details;
+      > .job-detail-table {
+        #mixin.detail-table();
+      }
+    }
+  }
 }

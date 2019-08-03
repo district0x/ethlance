@@ -1,0 +1,35 @@
+/// detail-table.less -- Styling for detail tables
+
+
+#mixin() {
+  .detail-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    
+    @media #media[desktop-query] {
+      font-size: 0.9em;
+    }
+
+    @media #media[mobile-query] {
+      font-size: 1.1em;
+    }
+
+    @border-attr: 1px solid fadeout(#color[dark-blue], 85%);
+    > .name , > .value {
+      border-top: @border-attr;
+      padding: 1.2em 0;
+
+      &:last-child , &:nth-last-child(2) {
+        border-bottom: @border-attr;
+      }
+    }
+
+    > .name {
+      font-weight: 700;
+    }
+
+    > .value {
+      text-align: right;
+    }
+  }
+}
