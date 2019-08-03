@@ -53,13 +53,66 @@
         font-weight: 500;
       }
     }
+  }
 
-    > .radio-optional-element {
-      display: flex;
-      flex-direction: row;
-       > .label {
-         color: #color[dark-blue];
-       }
+  /* make the radio select more flexible */
+  &.flex {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    > .ethlance-radio-element {
+      flex-wrap: wrap;
     }
   }
+}
+
+
+.radio-secondary-element {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  > .ethlance-inline-svg {
+    margin-right: 0.5em;
+
+    #outer-circle {
+	    stroke: fadeout(black, 25%) !important;
+    }
+
+    #inner-circle {
+	    fill: fadeout(black, 90%) !important;
+    }
+  }
+
+  > .label {
+    color: #color[dark-blue];
+    font-weight: 300;
+  }
+
+  &:hover {
+    > .label {
+      text-decoration: underline;
+    }
+  }
+}
+
+
+// Hacky way to get active element to get selected correctly
+.ethlance-radio-element.active > .radio-secondary-element {
+    > .ethlance-inline-svg {
+      margin-right: 0.5em;
+      
+      #outer-circle {
+	      stroke: fadeout(black, 25%) !important;
+      }
+      
+      #inner-circle {
+	      fill: black !important;
+      }
+    }
+    
+    > .label {
+      font-weight: 500;
+    }
 }

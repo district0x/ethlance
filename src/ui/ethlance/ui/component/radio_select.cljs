@@ -20,7 +20,7 @@
 
 
 (defn c-radio-select
-  [{:keys [default-selection on-selection]} & children]
+  [{:keys [default-selection on-selection flex?]} & children]
   (let [*currently-active (r/atom default-selection)
         select-channel (chan 1)]
     (r/create-class
@@ -44,7 +44,7 @@
       (fn [opts & children]
         (let [opts (dissoc opts :default-selection :on-selection)]
           [:div.ethlance-radio-select
-           opts
+           {:class (when flex? "flex")}
            (doall
             (for [[selection-key child-element] children]
               ^{:key (str selection-key)}
@@ -64,8 +64,8 @@
    [:span.label label]])
 
 
-(defn c-radio-optional-element [label]
-  [:div.radio-optional-element
+(defn c-radio-secondary-element [label]
+  [:div.radio-secondary-element
    [c-inline-svg
     {:src "./images/svg/radio-button.svg"
      :width 24

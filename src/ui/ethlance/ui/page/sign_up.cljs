@@ -11,7 +11,7 @@
    [ethlance.ui.component.email-input :refer [c-email-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-optional-element]]
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-secondary-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
@@ -143,11 +143,14 @@
         :search-bar? true
         :default-search-text "Search Countries"}]]
      [:div.form-type-of-payment
-      [:label "Preferred Type of Payment"]
-      [c-radio-select {}
-       [:fixed-price [c-radio-optional-element "Fixed Per Dispute."]]
-       [:percentage [c-radio-optional-element "Percentage of Dispute."]]]
-      [c-currency-input {:placeholder "Hourly Rate"}]]
+      [:div.label "Preferred Type of Payment"]
+      [c-radio-select
+       {:flex? true
+        :default-selection :fixed-price
+        :on-selection (fn [selection] (log/debug "Form of Payment" selection))}
+       [:fixed-price [c-radio-secondary-element "Fixed Per Dispute."]]
+       [:percentage [c-radio-secondary-element "Percentage of Dispute."]]]
+      [c-currency-input {:placeholder "Hourly Rate" :color :secondary}]]
      [:div.form-connect-github
       [c-button
        {:size :large}
