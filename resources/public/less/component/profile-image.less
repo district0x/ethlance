@@ -1,0 +1,41 @@
+/// profile-image.less -- styling for profile-image component
+
+
+.ethlance-profile-image {
+  @large-size: 48px;
+  @normal-size: 32px;
+  @small-size: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 100%;
+  width: @normal-size;
+  height: @normal-size;
+
+  > img {
+    width: @normal-size;
+    height: @normal-size;
+  }
+
+  &.small {
+    width: @small-size;
+    height: @small-size;
+
+    > img {
+      width: @small-size;
+      height: @small-size;
+    }
+  }
+
+  &.large {
+    width: @large-size;
+    height: @large-size;
+
+    > img {
+      width: @large-size;
+      height: @large-size;
+    }
+  }
+}

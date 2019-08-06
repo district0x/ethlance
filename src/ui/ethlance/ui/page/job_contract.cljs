@@ -15,7 +15,8 @@
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]))
+   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
+   [ethlance.ui.component.chat :refer [c-chat-log]]))
 
 
 (defn c-job-detail-table
@@ -47,8 +48,26 @@
     [c-job-detail-table {}]]])
     
 
+(defn c-chat []
+  [c-chat-log
+   [{:user-type :candidate
+     :text "Hi Johan. I’ve read the white paper and I can do the STEPS smart contract for 14 ETH and the ICO smart contract for 5 ETH.
+
+I am a NY based senior blockchain developer who has done work for Consensys, Status, Gitcoin, Market Protocol, and several others. I am also a smart contract auditor at solidified.io. Please feel free to reach out directly at email@gmail.com"
+     :details ["has sent job proposal" "($25/hr)"]
+     :full-name "Brian Curran"
+     :date-updated "3 Days Ago"}
+    
+    {:user-type :employer
+     :text "Hi Cyrus, welcome on board!"
+     :details ["Has hired Brian Curran"]
+     :full-name "Clement Lesaege"
+     :date-updated "2 Days Ago"}]])
+
+
 (defmethod page :route.job/contract []
   (let []
     (fn []
       [c-main-layout {:container-opts {:class :job-contract-main-container}}
-       [c-header-profile {}]])))
+       [c-header-profile {}]
+       [c-chat]])))
