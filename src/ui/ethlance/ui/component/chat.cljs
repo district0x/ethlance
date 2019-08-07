@@ -20,10 +20,11 @@
        [:div.details
         [:div.profile-image [c-profile-image {:src "#"}]]
         [:span.full-name {:key "detail-full-name"} full-name]
-        (doall
-         (for [detail details]
-           ^{:key (str "detail-" detail)}
-           [:span.info detail]))
+        [:div.info-listing
+         (doall
+          (for [detail details]
+            ^{:key (str "detail-" detail)}
+            [:span.info detail]))]
         [:span.date-updated date-updated]]
        [:div.text text]])))
 

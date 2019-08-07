@@ -2,11 +2,76 @@
 
 
 .ethlance-chat-log {
+  @border-radius: 3em;
+
   display: flex;
   flex-direction: column;
   align-items: center;
 
   > .ethlance-chat-message {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    background-color: #color[purple];
+    min-height: 200px;
+    border-radius: 1em;
+    margin: 3em 3em;
+    margin-bottom: 0;
     
+    &:last-child {
+      margin-bottom: 3em;
+    }
+
+    > .details {
+      display: grid;
+      flex-basis: 40%;
+      flex-shrink: 0;
+      grid-template-areas:
+      'profile-image full-name'
+      'profile-image info-listing'
+      'profile-image date-updated';
+      grid-template-columns: 1fr 3fr;
+      grid-template-rows: auto auto auto;
+      color: white;
+      margin: 2em;
+
+      > .profile-image {
+        grid-area: profile-image;
+        
+      }
+
+      > .full-name {
+        grid-area: full-name;
+        font-weight: 700;
+      }
+
+      > .info-listing {
+        display: flex;
+        grid-area: info-listing;
+        flex-direction: column;
+        font-weight: 300;
+        
+        > .info {
+          margin: 0.5em 0;
+        }
+      }
+
+      > .date-updated {
+        grid-area: date-updated;
+        font-size: 0.8em;
+        font-weight: 300;
+        opacity: 0.8;
+      }
+    }
+
+    > .text {
+      display: flex;
+      height: 100%;
+      border-top-left-radius: @border-radius;
+      background-color: #E8EEFE;
+      overflow: hidden;
+      padding: 3em 1em 3em 3em;
+      color: #color[light-purple];
+      line-height: 1.4em;
+    }
   }
 }
