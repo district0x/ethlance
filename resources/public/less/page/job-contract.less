@@ -17,7 +17,7 @@
     'job-name details';
     grid-template-rows: 4em auto;
     grid-template-columns: 3fr 1fr;
-    margin: 1em 2em;
+    margin: 1em 3em;
 
     > .title {
       grid-area: title;
@@ -36,6 +36,7 @@
 
     > .job-details {
       grid-area: details;
+      margin: 1em;
       > .job-detail-table {
         #mixin.detail-table();
       }

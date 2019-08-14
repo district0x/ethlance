@@ -3,26 +3,32 @@
 
 .ethlance-chat-log {
   @border-radius: 3em;
+  @small-border-radius: 1em;
 
   display: flex;
   flex-direction: column;
   align-items: center;
 
   > .ethlance-chat-message {
+    @side-margins: 3em;
+    @total-margins: 2 * @side-margins;
     display: grid;
+    grid-template-areas: 'left right';
     grid-template-columns: 2fr 3fr;
     background-color: #color[purple];
     min-height: 200px;
-    border-radius: 1em;
-    margin: 3em 3em;
+    width: calc(100% - @total-margins);
+    border-radius: @small-border-radius;
+    margin: 3em @side-margins;
     margin-bottom: 0;
-    
+
     &:last-child {
       margin-bottom: 3em;
     }
 
     > .details {
       display: grid;
+      grid-area: left;
       flex-basis: 40%;
       flex-shrink: 0;
       grid-template-areas:
@@ -36,6 +42,9 @@
 
       > .profile-image {
         grid-area: profile-image;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         
       }
 
@@ -65,13 +74,40 @@
 
     > .text {
       display: flex;
+      grid-area: right;
       height: 100%;
+      border-radius: @small-border-radius;
       border-top-left-radius: @border-radius;
+      border-bottom-left-radius: 0;
       background-color: #E8EEFE;
       overflow: hidden;
       padding: 3em 1em 3em 3em;
       color: #color[light-purple];
       line-height: 1.4em;
     }
+
+    /*
+    Everything will need to be mirrored
+    */
+    &.left {
+      grid-template-areas: 'right left';
+      grid-template-columns: 3fr 2fr;
+
+      > .details {
+        grid-template-areas:
+        'full-name    profile-image'
+        'info-listing profile-image'
+        'date-updated profile-image';
+        grid-template-columns: 3fr 1fr;
+      }
+
+      > .text {
+        border-radius: @small-border-radius;
+        border-top-right-radius: @border-radius;
+        border-bottom-right-radius: 0;
+        padding: 3em 3em 3em 1em;
+      }
+    }
+
   }
 }
