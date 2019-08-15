@@ -10,6 +10,7 @@
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+   [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
@@ -65,9 +66,41 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
      :date-updated "2 Days Ago"}]])
 
 
+(defn c-employer-options []
+  [c-tabular-layout
+   {:key "employer-tabular-layout"
+    :default-tab 0}
+
+   {:label "Send Message"}
+   [:div.message-input-container
+    "Message"]
+
+   {:label "Raise Dispute"}
+   [:div.dispute-input-container
+    "Dispute"]
+
+   {:label "Leave Feedback"}
+   [:div.feedback-input-container
+    "Feedback"]])
+   
+
+(defn c-candidate-options [])
+
+
+(defn c-arbiter-options [])
+
+
+(defn c-guest-options [])
+
+
 (defmethod page :route.job/contract []
   (let []
     (fn []
       [c-main-layout {:container-opts {:class :job-contract-main-container}}
-       [c-header-profile {}]
-       [c-chat]])))
+       [:div.header-container
+        [c-header-profile {}]
+        [c-chat]]
+       
+       ;; TODO: switch between options based on whether it's the employer, candidate, arbiter, or guest
+       [:div.options-container
+        [c-employer-options]]])))
