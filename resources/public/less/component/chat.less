@@ -43,9 +43,9 @@
       > .profile-image {
         grid-area: profile-image;
         display: flex;
-        align-items: center;
         justify-content: center;
-        
+        margin: 0;
+        margin-right: 2em;
       }
 
       > .full-name {
@@ -81,9 +81,9 @@
       border-bottom-left-radius: 0;
       background-color: #E8EEFE;
       overflow: hidden;
-      padding: 3em 1em 3em 3em;
+      padding: 3em;
       color: #color[light-purple];
-      line-height: 1.4em;
+      line-height: 1.5em;
     }
 
     /*
@@ -99,14 +99,38 @@
         'info-listing profile-image'
         'date-updated profile-image';
         grid-template-columns: 3fr 1fr;
+
+        > .profile-image {
+          margin: 0;
+          margin-left: 2em;
+        }
+
+        > .full-name , > .info-listing , > .date-updated {
+          text-align: right;
+        }
       }
 
       > .text {
         border-radius: @small-border-radius;
         border-top-right-radius: @border-radius;
         border-bottom-right-radius: 0;
-        padding: 3em 3em 3em 1em;
       }
+    }
+
+    &.right {
+      // default
+    }
+
+    &.employer {
+      // default
+    }
+
+    &.candidate {
+      background-color: darken(desaturate(#color[teal], 50%), 10%);
+    }
+
+    &.arbiter {
+      background-color: darken(desaturate(#color[orange], 50%), 10%);
     }
 
   }

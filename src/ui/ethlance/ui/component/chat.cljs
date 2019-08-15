@@ -8,7 +8,7 @@
 
 ;; TODO: format 'text' into paragraphs <p>
 (defn c-chat-message
-  [{:keys [user-type text full-name date-created date-updated details image-url] :as message}]
+  [{:keys [id user-type text full-name date-created date-updated details image-url] :as message}]
   (let [position-class (if (contains? #{:candidate :arbiter} user-type) " right " " left ")
         color-class (case user-type
                       :candidate " candidate "
@@ -16,9 +16,10 @@
                       :arbiter " arbiter ")]
     (fn []
       [:div.ethlance-chat-message
-       {:class [position-class color-class]}
+       {:key (str "chat-message-" id)
+        :class [position-class color-class]}
        [:div.details
-        [:div.profile-image [c-profile-image {:src "#"}]]
+        [:div.profile-image [c-profile-image {:src image-url}]]
         [:span.full-name {:key "detail-full-name"} full-name]
         [:div.info-listing
          (doall

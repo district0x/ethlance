@@ -3,6 +3,9 @@
    [reagent.core :as r]))
 
 
+(def placeholder-image-url "./images/avatar-placeholder.png")
+
+
 (defn c-profile-image
   [{:keys [src size] :as opts}]
   (let [size-class (case size
@@ -12,4 +15,4 @@
                     "")]
     [:div.ethlance-profile-image
      {:class size-class}
-     [:img {:src src}]]))
+     [:img {:src (or src placeholder-image-url)}]]))
