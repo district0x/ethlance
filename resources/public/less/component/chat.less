@@ -1,0 +1,163 @@
+/// chat.less -- Styling for chat log components
+
+
+.ethlance-chat-log {
+  @border-radius: 3em;
+  @small-border-radius: 1em;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  > .ethlance-chat-message {
+    @side-margins: 3em;
+    @total-margins: 2 * @side-margins;
+    display: grid;
+    grid-template-areas: 'left right';
+    grid-template-columns: 2fr 3fr;
+    background-color: #color[purple];
+    min-height: 200px;
+    width: calc(100% - @total-margins);
+    border-radius: @small-border-radius;
+    margin: 3em @side-margins;
+    margin-bottom: 0;
+    overflow: hidden;
+
+    @media #media[tablet-query] {
+      grid-template-areas: 'left' 'right';
+      grid-template-columns: auto;
+      grid-template-rows: 2fr 3fr;
+    }
+
+    @media #media[mobile-query] {
+      margin-left: 0;
+      margin-right: 0;
+      width: 95%;
+    }
+
+    &:last-child {
+      margin-bottom: 3em;
+    }
+
+    > .details {
+      display: grid;
+      grid-area: left;
+      flex-basis: 40%;
+      flex-shrink: 0;
+      grid-template-areas:
+      'profile-image full-name'
+      'profile-image info-listing'
+      'profile-image date-updated';
+      grid-template-columns: 1fr 3fr;
+      grid-template-rows: auto auto auto;
+      color: white;
+      margin: 2em;
+
+      > .profile-image {
+        grid-area: profile-image;
+        display: flex;
+        justify-content: center;
+        margin: 0;
+        margin-right: 2em;
+      }
+
+      > .full-name {
+        grid-area: full-name;
+        font-weight: 700;
+      }
+
+      > .info-listing {
+        display: flex;
+        grid-area: info-listing;
+        flex-direction: column;
+        font-weight: 300;
+        
+        > .info {
+          margin: 0.5em 0;
+        }
+      }
+
+      > .date-updated {
+        grid-area: date-updated;
+        font-size: 0.8em;
+        font-weight: 300;
+        opacity: 0.8;
+      }
+    }
+
+    > .text {
+      display: flex;
+      grid-area: right;
+      height: 100%;
+      border-radius: @small-border-radius;
+      border-top-left-radius: @border-radius;
+      border-bottom-left-radius: 0;
+      background-color: #E8EEFE;
+      overflow: hidden;
+      padding: 3em;
+      color: #color[light-purple];
+      line-height: 1.5em;
+      
+      @media #media[tablet-query] {
+        border-top-right-radius: 0;
+      }
+    }
+
+    /*
+    Everything will need to be mirrored
+    */
+    &.left {
+      grid-template-areas: 'right left';
+      grid-template-columns: 3fr 2fr;
+
+      @media #media[tablet-query] {
+        grid-template-areas: 'left' 'right';
+        grid-template-columns: auto;
+      }
+
+      > .details {
+        grid-template-areas:
+        'full-name    profile-image'
+        'info-listing profile-image'
+        'date-updated profile-image';
+        grid-template-columns: 3fr 1fr;
+
+        > .profile-image {
+          margin: 0;
+          margin-left: 2em;
+        }
+
+        > .full-name , > .info-listing , > .date-updated {
+          text-align: right;
+        }
+      }
+
+      > .text {
+        border-radius: @small-border-radius;
+        border-top-right-radius: @border-radius;
+        border-bottom-right-radius: 0;
+
+        @media #media[tablet-query] {
+          border-top-left-radius: 0;
+        }
+      }
+    }
+
+    &.right {
+      // default
+    }
+
+    &.employer {
+      // default
+    }
+
+    &.candidate {
+      background-color: darken(desaturate(#color[teal], 50%), 10%);
+    }
+
+    &.arbiter {
+      background-color: darken(desaturate(#color[orange], 50%), 10%);
+    }
+
+  }
+}

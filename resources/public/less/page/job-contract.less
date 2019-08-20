@@ -1,0 +1,119 @@
+/// job-contract.less - Styling for individiaul job contract pages
+
+
+.job-contract-main-container {
+  display: flex;
+  flex-direction: column;
+
+  > .header-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    #mixin.paper-1();
+    margin-bottom: 3em;
+
+    > .header-profile {
+      display: grid;
+      grid-template-areas:
+      'title    details'
+        'job-name details';
+      grid-template-rows: 4em auto;
+      grid-template-columns: 3fr 3fr;
+      margin: 1em 3em;
+
+      @media #media[tablet-query] {
+        grid-template-areas: 'title' 'job-name' 'details';
+        grid-template-rows:  repeat(3, auto);
+        grid-template-columns: auto;
+      }
+
+      > .title {
+        grid-area: title;
+        display: flex;
+        align-items: center;
+        font-size: 2em;
+        font-weight: 600;
+        padding: 0.5em 2px;
+
+        @media #media[tablet-query] {
+          font-size: 3em;
+          justify-content: center;
+          text-align: center;
+        }
+      }
+
+      > .job-name {
+        grid-area: job-name;
+        display: flex;
+        font-weight: 300;
+        text-decoration: underline;
+        padding: 0.5em 0;
+
+        @media #media[tablet-query] {
+          font-size: 1.5em;
+          justify-content: center;
+          text-align: center;
+        }
+      }
+
+      > .job-details {
+        grid-area: details;
+        margin: 1em;
+        > .job-detail-table {
+          #mixin.detail-table();
+        }
+      }
+    }
+  }
+
+  > .options-container {
+    margin-bottom: 5em;
+    > .tabular-layout > .active-page {
+      
+      // Default Styling for input containers
+      .input-container() {
+        display: flex;
+        flex-direction: column;
+        margin: 1em 3em;
+
+        > .label {
+          font-weight: bold;
+          margin: 1em 0;
+        }
+        
+        > .ethlance-textarea-input {
+          margin: 1em 0;;
+          border-radius: 5px;
+        }
+
+        > .button {
+          margin: 1em 0;
+          > .button-label {
+            font-size: 1.2em;
+            font-weight: bold;
+          }
+        }
+
+        @media #media[tablet-query] {
+
+        }
+
+        @media #media[mobile-query] {
+          align-items: center;
+        }
+      }
+
+      > .message-input-container {
+        .input-container();
+      }
+
+      > .dispute-input-container {
+        .input-container();      
+      }
+
+      > .feedback-input-container {
+        .input-container();
+      }
+    }
+  }
+}
