@@ -46,4 +46,44 @@
       }
     }
   }
+
+  > .options-container > .tabular-layout > .active-page {
+    
+    // Default Styling for input containers
+    .input-container() {
+      display: flex;
+      flex-direction: column;
+      margin: 1em 3em;
+
+      > .label {
+        font-weight: bold;
+        margin: 1em 0;
+      }
+      
+      > .ethlance-textarea-input {
+        margin: 1em 0;;
+        border-radius: 5px;
+      }
+
+      > .button {
+        margin: 1em 0;
+        > .button-label {
+          font-size: 1.2em;
+          font-weight: bold;
+        }
+      }
+    }
+
+    > .message-input-container {
+      .input-container();
+    }
+
+    > .dispute-input-container {
+      .input-container();      
+    }
+
+    > .feedback-input-container {
+      .input-container();
+    }
+  }
 }

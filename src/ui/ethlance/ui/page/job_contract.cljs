@@ -17,7 +17,9 @@
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.chat :refer [c-chat-log]]))
+   [ethlance.ui.component.chat :refer [c-chat-log]]
+   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+   [ethlance.ui.component.button :refer [c-button c-button-label]]))
 
 
 (defn c-job-detail-table
@@ -73,15 +75,21 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
 
    {:label "Send Message"}
    [:div.message-input-container
-    "Message"]
+    [:div.label "Message"]
+    [c-textarea-input {:placeholder "Type Your Message"}]
+    [c-button {:color :primary} [c-button-label "Send Message"]]]
 
    {:label "Raise Dispute"}
    [:div.dispute-input-container
-    "Dispute"]
+    [:div.label "Dispute"]
+    [c-textarea-input {:placeholder "Type Your Dispute Message"}]
+    [c-button {:color :primary} [c-button-label "Raise Dispute"]]]
 
    {:label "Leave Feedback"}
    [:div.feedback-input-container
-    "Feedback"]])
+    [:div.label "Feedback"]
+    [c-textarea-input {:placeholder "Type Your Feedback Message"}]
+    [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
    
 
 (defn c-candidate-options [])
