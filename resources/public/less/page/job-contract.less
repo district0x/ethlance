@@ -4,7 +4,6 @@
 .job-contract-main-container {
   display: flex;
   flex-direction: column;
-  width: 100%;
 
   > .header-container {
     display: flex;
@@ -16,11 +15,17 @@
     > .header-profile {
       display: grid;
       grid-template-areas:
-        'title    details'
+      'title    details'
         'job-name details';
       grid-template-rows: 4em auto;
       grid-template-columns: 3fr 3fr;
       margin: 1em 3em;
+
+      @media #media[tablet-query] {
+        grid-template-areas: 'title' 'job-name' 'details';
+        grid-template-rows:  repeat(3, auto);
+        grid-template-columns: auto;
+      }
 
       > .title {
         grid-area: title;
@@ -28,6 +33,13 @@
         align-items: center;
         font-size: 2em;
         font-weight: 600;
+        padding: 0.5em 2px;
+
+        @media #media[tablet-query] {
+          font-size: 3em;
+          justify-content: center;
+          text-align: center;
+        }
       }
 
       > .job-name {
@@ -35,6 +47,13 @@
         display: flex;
         font-weight: 300;
         text-decoration: underline;
+        padding: 0.5em 0;
+
+        @media #media[tablet-query] {
+          font-size: 1.5em;
+          justify-content: center;
+          text-align: center;
+        }
       }
 
       > .job-details {
@@ -47,43 +66,54 @@
     }
   }
 
-  > .options-container > .tabular-layout > .active-page {
-    
-    // Default Styling for input containers
-    .input-container() {
-      display: flex;
-      flex-direction: column;
-      margin: 1em 3em;
-
-      > .label {
-        font-weight: bold;
-        margin: 1em 0;
-      }
+  > .options-container {
+    margin-bottom: 5em;
+    > .tabular-layout > .active-page {
       
-      > .ethlance-textarea-input {
-        margin: 1em 0;;
-        border-radius: 5px;
-      }
+      // Default Styling for input containers
+      .input-container() {
+        display: flex;
+        flex-direction: column;
+        margin: 1em 3em;
 
-      > .button {
-        margin: 1em 0;
-        > .button-label {
-          font-size: 1.2em;
+        > .label {
           font-weight: bold;
+          margin: 1em 0;
+        }
+        
+        > .ethlance-textarea-input {
+          margin: 1em 0;;
+          border-radius: 5px;
+        }
+
+        > .button {
+          margin: 1em 0;
+          > .button-label {
+            font-size: 1.2em;
+            font-weight: bold;
+          }
+        }
+
+        @media #media[tablet-query] {
+
+        }
+
+        @media #media[mobile-query] {
+          align-items: center;
         }
       }
-    }
 
-    > .message-input-container {
-      .input-container();
-    }
+      > .message-input-container {
+        .input-container();
+      }
 
-    > .dispute-input-container {
-      .input-container();      
-    }
+      > .dispute-input-container {
+        .input-container();      
+      }
 
-    > .feedback-input-container {
-      .input-container();
+      > .feedback-input-container {
+        .input-container();
+      }
     }
   }
 }

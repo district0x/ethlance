@@ -106,6 +106,10 @@
         justify-content: center;
       }
 
+      @media #media[mobile-query] {
+        margin-left: 0;
+      }
+
       .spacer {
         padding: 0 0.5em;
 
@@ -129,8 +133,16 @@
         justify-content: flex-start;
       }
 
+      @media #media[mobile-query] {
+        margin-left: 0;
+      }
+
       > .ethlance-circle-button {
         margin: 0 0.5em;
+        
+        &:first-child {
+          margin-left: 0;
+        }
       }
     }
 
