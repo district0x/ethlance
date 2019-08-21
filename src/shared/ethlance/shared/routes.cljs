@@ -7,7 +7,7 @@
              ["/arbiters" :route.user/arbiters]
              ["/candidates" :route.user/candidates]
              ["/employers" :route.user/employers]
-             ["/user/" :route.user/employers]
+             ["/user/" :route.user/profile]
              ["/user/:address" :route.user/profile]
 
              ;; Jobs
