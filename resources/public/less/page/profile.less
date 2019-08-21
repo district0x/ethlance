@@ -2,5 +2,142 @@
 
 
 .profile-main-container {
-  
+  > .tabular-layout > .active-page {
+    // remove default styling, since we're doing with several paper sections in the active page
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    
+    > .candidate-profile {
+      background-color: white;
+      box-shadow: 0 0 2rem .5rem rgba(44,57,143,.05);
+      border-bottom-left-radius: 0.7em;
+      border-bottom-right-radius: 0.7em;
+      padding: 3em;
+
+      display: grid;
+      grid-template-areas:
+        'title          title' 
+        'biography      detail-listing'
+        'rating         detail-listing'
+        'location       detail-listing'
+        'button-listing detail-listing';
+      
+      grid-template-rows: repeat(5, auto);
+      grid-template-columns: 5fr 2fr;
+
+      > .title {
+        grid-area: title;
+        display: grid;
+        grid-template-areas:
+          'profile-image name'
+          'profile-image detail';
+        grid-template-columns: 72px auto;
+        grid-template-rows: auto auto;
+        
+        > .profile-image {
+          grid-area: profile-image;
+          margin: 1em 0;
+        }
+
+        > .name {
+          grid-area: name;
+          font-size: 2.2em;
+          font-weight: 700;
+          padding: 0.5em;
+        }
+
+        > .detail {
+          grid-area: detail;
+          font-size: 0.9em;
+          font-weight: 300;
+          padding: 0.5em 1.4em;
+          
+        }
+      }
+
+      > .biography {
+        grid-area: biography;
+        padding: 1.2em 0;
+        padding-right: 1em;
+        font-size: 1.2em;
+        line-height: 1.5em;
+      }
+
+      > .detail-listing {
+        grid-area: detail-listing;
+        
+        // defaults for each of the detail listings.
+        .listings() {
+          display: flex;
+          flex-direction: column;
+          margin: 1em 0.5em;
+
+          > span {
+            font-weight: 700;
+            font-size: 1.1em;
+            padding: 1em 0;
+          }
+          
+          > .ethlance-tag {
+            margin: 0.5em 0;
+          }
+        }
+
+        > .languages , > .skills {
+          .listings();
+        }
+      }
+
+      > .rating {
+        grid-area: rating;
+        display: flex;
+        align-items: center;
+        margin: 1em 1em;
+        
+        > span {
+          padding: 0 0.5em;
+        }
+      }
+
+      > .location {
+        grid-area: location;
+        margin: 1em 1em;
+        margin-top: 0;
+        font-weight: 400;
+      }
+
+      > .button-listing {
+        grid-area: button-listing;
+        display: flex;
+        align-items: center;
+        margin: 1em 0;
+
+        > .button {
+          margin: 0 0.5em;
+          
+          &:first-child {
+            margin-left: 0;
+          }
+          
+          > .button-icon-label > .label {
+            font-size: 1.2em;
+          }
+        }
+      }
+    }
+
+    .default-listing() {
+      #mixin.paper-1();
+      margin: 1em 0;      
+    }
+
+    > .job-listing {
+      .default-listing();
+    }
+
+    > .feedback-listing {
+      .default-listing();
+    }
+  }
 }
