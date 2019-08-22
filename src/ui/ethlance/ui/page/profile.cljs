@@ -6,7 +6,7 @@
    [ethlance.shared.enumeration.currency-type :as enum.currency]
 
    ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
+   [ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
@@ -60,7 +60,35 @@
       [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
    [:div.job-listing
-    [:div.title "Created Jobs"]]
+    [:div.title "Created Jobs"]
+
+    [c-table
+     {:headers ["Title" "Hired" "Created" "Status"]}
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]]
+
+    [:div.button-listing
+     [c-circle-icon-button {:name :ic-arrow-left2}]
+     [c-circle-icon-button {:name :ic-arrow-left}]
+     [c-circle-icon-button {:name :ic-arrow-right}]
+     [c-circle-icon-button {:name :ic-arrow-right2}]]]
 
    [:div.feedback-listing
     [:div.title "Feedback"]
