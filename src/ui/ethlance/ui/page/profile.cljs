@@ -17,7 +17,8 @@
    [ethlance.ui.component.table :refer [c-table]]
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
+   [ethlance.ui.component.carousel :refer [c-carousel]]))
 
 
 (defn c-candidate-profile []
@@ -92,7 +93,8 @@
 
    [:div.feedback-listing
     [:div.title "Feedback"]
-    [:div.sub-title "Smart Contract Hacker"]]])
+    [:div.sub-title "Smart Contract Hacker"]
+    [c-carousel {}]]])
   
 
 
