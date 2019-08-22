@@ -2,5 +2,38 @@
 
 
 .ethlance-carousel {
-  
+  position: relative;
+  display: grid;
+  grid-template-areas: 'left forward-button current backward-button right';
+  grid-template-rows: auto;
+  grid-template-columns: 1fr auto 2fr auto 1fr;
+
+  height: 300px;
+  overflow: hidden;
+
+  > .left-slide , > .current-slide , > .right-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #color[dark-blue];
+    color: white;
+    border-radius: 5px;
+
+    height: 100%;
+    width: 50%;
+  }
+
+  > .left-slide {
+    grid-area: left;
+    position: absolute;
+    left: -25%;
+  }
+
+  > .current-slide {
+    grid-area: current;
+  }
+
+  > .right-slide {
+    grid-area: right;
+  }
 }

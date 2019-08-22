@@ -21,6 +21,12 @@
    [ethlance.ui.component.carousel :refer [c-carousel]]))
 
 
+(defn- c-feedback-slide
+  [{:keys [] :as feedback}]
+  [:div.feedback-slide
+   "Feedback Slide"])
+
+
 (defn c-candidate-profile []
   [:<>
    [:div.candidate-profile
@@ -94,7 +100,12 @@
    [:div.feedback-listing
     [:div.title "Feedback"]
     [:div.sub-title "Smart Contract Hacker"]
-    [c-carousel {}]]])
+    [c-carousel {}
+     [c-feedback-slide]
+     [c-feedback-slide]
+     [c-feedback-slide]
+     [c-feedback-slide]
+     [c-feedback-slide]]]])
   
 
 
