@@ -3,37 +3,72 @@
 
 .ethlance-carousel {
   position: relative;
-  display: grid;
-  grid-template-areas: 'left forward-button current backward-button right';
-  grid-template-rows: auto;
-  grid-template-columns: 1fr auto 2fr auto 1fr;
 
-  height: 300px;
-  overflow: hidden;
+  > .slide-listing {
+    position: relative;
+    display: grid;
+    grid-template-areas: 'left current right';
+    grid-template-rows: auto;
+    grid-template-columns: 1fr 2fr 1fr;
 
-  > .left-slide , > .current-slide , > .right-slide {
+    height: 300px;
+    overflow: hidden;
+
+    > .left-slide , > .current-slide , > .right-slide {
+      display: flex;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      background-color: #color[dark-blue];
+      color: white;
+      border-radius: 1em;
+      height: 100%;
+      width: 100%;
+    }
+
+    @hidden-slide-opacity: 0.2;
+
+    > .left-slide {
+      grid-area: left;
+      position: absolute;
+      left: -25%;
+      opacity: @hidden-slide-opacity;
+    }
+
+    > .current-slide {
+      grid-area: current;
+    }
+
+    > .right-slide {
+      grid-area: right;
+      position: absolute;
+      right: -25%;
+      opacity: @hidden-slide-opacity;
+    }
+  }
+
+  > .button-listing {
+    position: absolute;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: #color[dark-blue];
+    justify-content: space-between;
+    flex-direction: row;
+    z-index: 101;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
     color: white;
-    border-radius: 5px;
 
-    height: 100%;
-    width: 50%;
-  }
+    > .back-button {
+      position: relative;
+      left: calc(25% - 24px);
+    }
 
-  > .left-slide {
-    grid-area: left;
-    position: absolute;
-    left: -25%;
-  }
-
-  > .current-slide {
-    grid-area: current;
-  }
-
-  > .right-slide {
-    grid-area: right;
+    > .forward-button {
+      position: relative;
+      right: calc(25% - 24px);
+    }
   }
 }

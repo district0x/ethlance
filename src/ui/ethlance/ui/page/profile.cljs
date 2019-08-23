@@ -6,7 +6,7 @@
    [ethlance.shared.enumeration.currency-type :as enum.currency]
 
    ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
+   [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
@@ -22,9 +22,17 @@
 
 
 (defn- c-feedback-slide
-  [{:keys [] :as feedback}]
+  [{:keys [rating] :as feedback}]
   [:div.feedback-slide
-   "Feedback Slide"])
+   [:div.profile-image
+    [c-profile-image {}]]
+   [:div.rating
+    [c-rating {:rating rating :color :white}]]
+   [:div.message
+    "\"Everything about this is wonderful!\""]
+   [:div.name
+    "Brian Curran"]])
+   
 
 
 (defn c-candidate-profile []
@@ -101,11 +109,11 @@
     [:div.title "Feedback"]
     [:div.sub-title "Smart Contract Hacker"]
     [c-carousel {}
-     [c-feedback-slide]
-     [c-feedback-slide]
-     [c-feedback-slide]
-     [c-feedback-slide]
-     [c-feedback-slide]]]])
+     [c-feedback-slide {:rating 1}]
+     [c-feedback-slide {:rating 2}]
+     [c-feedback-slide {:rating 3}]
+     [c-feedback-slide {:rating 4}]
+     [c-feedback-slide {:rating 5}]]]])
   
 
 
