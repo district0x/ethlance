@@ -22,8 +22,10 @@
 
 
 (defn- c-feedback-slide
-  [{:keys [rating] :as feedback}]
+  [{:keys [id rating] :as feedback}]
   [:div.feedback-slide
+   ;; FIXME: use better unique key
+   {:key (str "feedback-" id "-" rating)}
    [:div.profile-image
     [c-profile-image {}]]
    [:div.rating
@@ -75,7 +77,7 @@
       [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
    [:div.job-listing
-    [:div.title "Created Jobs"]
+    [:div.title "Job Activity"]
 
     [c-table
      {:headers ["Title" "Hired" "Created" "Status"]}
@@ -120,13 +122,163 @@
 (defn c-employer-profile []
   [:<>
    [:div.employer-profile
-    "Employer Profile"]])
+    [:div.title
+     [:div.profile-image
+      [c-profile-image {}]]
+     [:div.name "Clement Lesaenge"]
+     [:div.detail "Graphic Design | Joined 8 Days Ago"]]
+    [:div.biography
+     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+     eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+     enim ad minim veniam, quis nostrud exercitation ullamco laboris
+     nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+     reprehenderit in voluptate velit esse cillum dolore eu fugiat
+     nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+     sunt in culpa qui officia deserunt mollit anim id est
+     laborum."]
+    [:div.rating
+     [c-rating {:rating 3 :color :primary}]
+     [:span "(8)"]]
+    [:div.location "United States, New York"]
+    [:div.detail-listing
+     [:div.languages
+      [:span "Languages"]
+      [c-tag {} [c-tag-label "English"]]
+      [c-tag {} [c-tag-label "German"]]]
+     [:div.skills
+      [:span "Skills"]
+      [c-tag {} [c-tag-label "Javascript Programming"]]
+      [c-tag {} [c-tag-label "HTML / CSS"]]]]
+      
+    [:div.button-listing
+     [c-button
+      {:size :normal}
+      [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+     [c-button
+      {:size :normal}
+      [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+   [:div.job-listing
+    [:div.title "Job Activity"]
+
+    [c-table
+     {:headers ["Title" "Hired" "Created" "Status"]}
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]]
+
+    [:div.button-listing
+     [c-circle-icon-button {:name :ic-arrow-left2}]
+     [c-circle-icon-button {:name :ic-arrow-left}]
+     [c-circle-icon-button {:name :ic-arrow-right}]
+     [c-circle-icon-button {:name :ic-arrow-right2}]]]
+
+   [:div.feedback-listing
+    [:div.title "Feedback"]
+    [:div.sub-title "Smart Contract Hacker"]
+    [c-carousel {}
+     [c-feedback-slide {:rating 1}]
+     [c-feedback-slide {:rating 2}]
+     [c-feedback-slide {:rating 3}]
+     [c-feedback-slide {:rating 4}]
+     [c-feedback-slide {:rating 5}]]]])
 
 
 (defn c-arbiter-profile []
   [:<>
    [:div.arbiter-profile
-    "Arbiter Profile"]])
+    [:div.title
+     [:div.profile-image
+      [c-profile-image {}]]
+     [:div.name "Clement Lesaenge"]
+     [:div.detail "Graphic Design | Joined 8 Days Ago"]]
+    [:div.biography
+     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+     eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+     enim ad minim veniam, quis nostrud exercitation ullamco laboris
+     nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+     reprehenderit in voluptate velit esse cillum dolore eu fugiat
+     nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+     sunt in culpa qui officia deserunt mollit anim id est
+     laborum."]
+    [:div.rating
+     [c-rating {:rating 3 :color :primary}]
+     [:span "(8)"]]
+    [:div.location "United States, New York"]
+    [:div.detail-listing
+     [:div.languages
+      [:span "Languages"]
+      [c-tag {} [c-tag-label "English"]]
+      [c-tag {} [c-tag-label "German"]]]
+     [:div.skills
+      [:span "Skills"]
+      [c-tag {} [c-tag-label "Javascript Programming"]]
+      [c-tag {} [c-tag-label "HTML / CSS"]]]]
+      
+    [:div.button-listing
+     [c-button
+      {:size :normal}
+      [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+     [c-button
+      {:size :normal}
+      [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+   [:div.job-listing
+    [:div.title "Job Activity"]
+
+    [c-table
+     {:headers ["Title" "Hired" "Created" "Status"]}
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]
+
+     [[:span "Cryptoeconomics Research Intern"]
+      [:span "1"]
+      [:span "5 Days Ago"]
+      [:span "Hiring"]]]
+
+    [:div.button-listing
+     [c-circle-icon-button {:name :ic-arrow-left2}]
+     [c-circle-icon-button {:name :ic-arrow-left}]
+     [c-circle-icon-button {:name :ic-arrow-right}]
+     [c-circle-icon-button {:name :ic-arrow-right2}]]]
+
+   [:div.feedback-listing
+    [:div.title "Feedback"]
+    [:div.sub-title "Smart Contract Hacker"]
+    [c-carousel {}
+     [c-feedback-slide {:rating 1}]
+     [c-feedback-slide {:rating 2}]
+     [c-feedback-slide {:rating 3}]
+     [c-feedback-slide {:rating 4}]
+     [c-feedback-slide {:rating 5}]]]])
 
 
 (defmethod page :route.user/profile []

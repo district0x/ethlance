@@ -14,6 +14,12 @@
     height: 300px;
     overflow: hidden;
 
+    @media #media[tablet-query] {
+      grid-template-areas: 'current';
+      grid-template-columns: auto;
+      margin: 0 4em;
+    }
+
     > .left-slide , > .current-slide , > .right-slide {
       display: flex;
       z-index: 100;
@@ -33,6 +39,11 @@
       position: absolute;
       left: -25%;
       opacity: @hidden-slide-opacity;
+
+      @media #media[tablet-query] {
+        display: none;
+        grid-area: none;
+      }
     }
 
     > .current-slide {
@@ -44,6 +55,11 @@
       position: absolute;
       right: -25%;
       opacity: @hidden-slide-opacity;
+
+      @media #media[tablet-query] {
+        display: none;
+        grid-area: none;
+      }
     }
   }
 
@@ -61,14 +77,24 @@
     
     color: white;
 
+    //TODO: replace mobile queries with a mobile button listing.
+
     > .back-button {
       position: relative;
       left: calc(25% - 24px);
+
+      @media #media[tablet-query] {
+        left: 2em;
+      }
     }
 
     > .forward-button {
       position: relative;
       right: calc(25% - 24px);
+
+      @media #media[tablet-query] {
+        right: 2em;
+      }
     }
   }
 }

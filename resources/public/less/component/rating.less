@@ -1,56 +1,72 @@
 /// rating.less - Component for Feedback ratings with 5-stars
 
 #ethlance-component-rating {
-    primary-color: #color[secondary-accent];
-    secondary-color: #color[background-light-accent-1];
-			 
+  primary-color: #color[secondary-accent];
+  secondary-color: #color[background-light-accent-1];
+	
 }
 
 .ethlance-component-rating {
-    display: flex;
-    flex-direction: row;
+  @small-size: 18px;
+  @normal-size: 24px;
+  @large-size: 36px;
+  @margin-width: 0.5em;
+  @num-stars: 5;
+  
+  // Width Dimensions
+  @total-margin: @margin-width * @num-stars;
+  @small-width: @small-size * @num-stars;
+  @normal-width: @normal-size * @num-stars;
+  @large-width: @large-size * @num-stars;
 
-    .star {
-        margin-right: 0.5em;
+  display: flex;
+  flex-direction: row;
+  height: @normal-size;
+  width: calc(@normal-width + @total-margin);
 
-	#star {
+  .star {
+    margin-right: @margin-width;
+
+	  #star {
 	    cursor: pointer;
-	}
-        
-        /* Apply currently set @fill-color to svg elements */
-        .apply-fill-color() {
+	  }
+    
+    /* Apply currently set @fill-color to svg elements */
+    .apply-fill-color() {
 	    path, rect, circle {
-		fill: fadeout(@fill-color, 85%) !important;
+		    fill: fadeout(@fill-color, 85%) !important;
 	    }
 
 	    &.active {
-		path, rect, circle {
-		    fill: @fill-color !important;
-		}
+		    path, rect, circle {
+		      fill: @fill-color !important;
+		    }
 	    }
-        }
-
-	&.primary {
-	    @fill-color: #ethlance-component-rating[primary-color];
-            .apply-fill-color();
-	}
-
-	&.white {
-	    @fill-color: #ethlance-component-rating[secondary-color];
-            .apply-fill-color();
-	}
-
-	&.black {
-	    @fill-color: black;
-            .apply-fill-color();
-	}
-
-        &.small {
-            
-        }
-	
-        &.large {
-            
-        }
     }
+
+	  &.primary {
+	    @fill-color: #ethlance-component-rating[primary-color];
+      .apply-fill-color();
+	  }
+
+	  &.white {
+	    @fill-color: #ethlance-component-rating[secondary-color];
+      .apply-fill-color();
+	  }
+
+	  &.black {
+	    @fill-color: black;
+      .apply-fill-color();
+	  }
+
+    &.small {
+      height: @small-size;
+      width: calc(@small-width + @total-margin);
+    }
+	  
+    &.large {
+      height: @large-size;
+      width: calc(@large-width + @total-margin);
+    }
+  }
 }

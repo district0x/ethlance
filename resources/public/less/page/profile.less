@@ -3,12 +3,12 @@
 
 .profile-main-container {
   > .tabular-layout > .active-page {
-    // remove default styling, since we're doing with several paper sections in the active page
+    // remove default styling, since we're dealing with several paper sections in the active page
     background-color: transparent;
     box-shadow: none;
     border-radius: 0;
     
-    > .candidate-profile {
+    > .candidate-profile , > .employer-profile , > .arbiter-profile {
       background-color: white;
       box-shadow: 0 0 2rem .5rem rgba(44,57,143,.05);
       border-bottom-left-radius: 0.7em;
@@ -26,6 +26,18 @@
       grid-template-rows: repeat(5, auto);
       grid-template-columns: 5fr 2fr;
 
+      @media #media[tablet-query] {
+        grid-template-areas:
+         'title'
+           'biography'
+           'rating'
+           'location'
+           'detail-listing'
+           'button-listing';
+        grid-template-rows: repeat(6, auto);
+        grid-template-columns: auto;
+      }
+
       > .title {
         grid-area: title;
         display: grid;
@@ -34,7 +46,11 @@
           'profile-image detail';
         grid-template-columns: 72px auto;
         grid-template-rows: auto auto;
-        
+
+        @media #media[tablet-query] {
+          margin: auto auto;
+        }
+
         > .profile-image {
           grid-area: profile-image;
           margin: 1em 0;
@@ -113,14 +129,22 @@
         display: flex;
         align-items: center;
         margin: 1em 0;
+        
+        @media #media[tablet-query] {
+          justify-content: space-around;
+        }
 
         > .button {
           margin: 0 0.5em;
           
+          @media #media[tablet-query] {
+            width: 40%;
+          }
+
           &:first-child {
             margin-left: 0;
           }
-          
+
           > .button-icon-label > .label {
             font-size: 1.2em;
           }
@@ -169,7 +193,24 @@
 
     > .feedback-listing {
       .default-listing();
-      
+      text-align: center;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+
+      > .title {
+        font-size: 1.5em;
+        font-weight: 400;
+        color: #color[secondary-accent];
+        padding: 0.5em 0;
+      }
+
+      > .sub-title {
+        margin: 0.5em 0;
+        margin-bottom: 1.5em;
+      }
+
     }
   }
 
