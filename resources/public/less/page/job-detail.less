@@ -1,0 +1,66 @@
+/// job-detail.less -- Job Detail Page Styling
+
+
+.job-detail-main-container {
+  .section-defaults() {
+    #mixin.paper-1();
+    margin: 3em 0;
+    padding: 3em;
+  }
+
+  > .header {
+    .section-defaults();
+    display: grid;
+    grid-template-areas: 'main side';
+    grid-template-rows: auto;
+    grid-template-columns: 3fr 1fr;
+    grid-column-gap: 4em;
+
+    > .main {
+      grid-area: main;
+      display: flex;
+      flex-direction: column;
+    }
+
+    > .side {
+      display: flex;
+      flex-direction: column;
+      grid-area: side;
+    }
+  }
+
+  > .proposal-listing {
+    .section-defaults();
+
+    display: grid;
+    grid-template-areas:
+      'proposal-table proposal-form'
+      'button-listing proposal-form';
+    grid-template-rows: auto;
+    grid-template-columns: 3fr 1fr;
+    grid-column-gap: 4em;
+
+    > .proposal-table {
+      grid-area: proposal-table;
+    }
+
+    > .proposal-form {
+      grid-area: proposal-form;
+    }
+
+    > .button-listing {
+      grid-area: button-listing;
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+
+  > .invoice-listing {
+    .section-defaults();
+  }
+
+  > .feedback-listing {
+    .section-defaults();
+  }
+}
+
