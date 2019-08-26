@@ -151,7 +151,10 @@
   [job]
   [:div.job-element
    [:div.title "Ethereum Contract Implementation"]
-   [:div.description "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ac ex non ipsum laoreet fringilla quis vel nibh. Praesent sed condimentum ex, consectetur gravida felis. Sed tincidunt vestibulum ante elementum pellentesque."]
+   [:div.description "Lorem ipsum dolor sit amet, consectetur
+   adipiscing elit. Morbi ac ex non ipsum laoreet fringilla quis vel
+   nibh. Praesent sed condimentum ex, consectetur gravida felis. Sed
+   tincidunt vestibulum ante elementum pellentesque."]
    [:div.date "Posted 1 day ago | 5 Proposals"]
    [:div.tags
     [c-tag {} [c-tag-label "System Administration"]]

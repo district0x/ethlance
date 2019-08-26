@@ -1,0 +1,100 @@
+/// carousel.less -- Styling for the carousel component
+
+
+.ethlance-carousel {
+  position: relative;
+
+  > .slide-listing {
+    position: relative;
+    display: grid;
+    grid-template-areas: 'left current right';
+    grid-template-rows: auto;
+    grid-template-columns: 1fr 2fr 1fr;
+
+    height: 300px;
+    overflow: hidden;
+
+    @media #media[tablet-query] {
+      grid-template-areas: 'current';
+      grid-template-columns: auto;
+      margin: 0 3em;
+    }
+
+    > .left-slide , > .current-slide , > .right-slide {
+      display: flex;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      background-color: #color[dark-blue];
+      color: white;
+      border-radius: 1em;
+      height: 100%;
+      width: 100%;
+    }
+
+    @hidden-slide-opacity: 0.2;
+
+    > .left-slide {
+      grid-area: left;
+      position: absolute;
+      left: -25%;
+      opacity: @hidden-slide-opacity;
+
+      @media #media[tablet-query] {
+        display: none;
+        grid-area: none;
+      }
+    }
+
+    > .current-slide {
+      grid-area: current;
+    }
+
+    > .right-slide {
+      grid-area: right;
+      position: absolute;
+      right: -25%;
+      opacity: @hidden-slide-opacity;
+
+      @media #media[tablet-query] {
+        display: none;
+        grid-area: none;
+      }
+    }
+  }
+
+  > .button-listing {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row;
+    z-index: 101;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
+    color: white;
+
+    //TODO: replace mobile queries with a mobile button listing.
+
+    > .back-button {
+      position: relative;
+      left: calc(25% - 24px);
+
+      @media #media[tablet-query] {
+        left: 1.5em;
+      }
+    }
+
+    > .forward-button {
+      position: relative;
+      right: calc(25% - 24px);
+
+      @media #media[tablet-query] {
+        right: 1.5em;
+      }
+    }
+  }
+}

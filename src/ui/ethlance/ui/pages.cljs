@@ -9,6 +9,9 @@
    [ethlance.ui.page.arbiters]
    [ethlance.ui.page.candidates]
 
+   ;; User Pages
+   [ethlance.ui.page.profile]
+
    ;; Job Pages
    [ethlance.ui.page.job-contract]
 
