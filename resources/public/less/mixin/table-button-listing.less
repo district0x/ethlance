@@ -1,0 +1,25 @@
+/// table-button-listing.less -- Styling for the 4 buttons listed at the end of the table
+
+//FIXME: this should be temporary
+
+#mixin() {
+  .table-button-listing {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 1em 0;
+
+    @media #media[tablet-query] {
+      justify-content: center;
+    }
+
+    > .ethlance-circle-button {
+      margin: 0.5em;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}

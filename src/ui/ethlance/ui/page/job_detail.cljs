@@ -19,6 +19,7 @@
    [ethlance.ui.component.carousel :refer [c-carousel]]))
 
 
+;; FIXME: description needs to be broken up into paragraphs. <p>
 (def ^{:private true} fake-description
   "We are looking for help building a blockchain game called E.T.H. (Extreme Time Heroes). This is a turn-style fighting game that will be run on a custom hybrid plasma state-channels implementation. Players can collect heroes, battle for wagers or hero pink slips, and earn points for winning battles that let you mine new heroes. In collaboration with district0x, we are building a district to manage the hero/item marketplace. We also have plans to extend these NFT-wagered fights to other systems like Decentraland Land.
 
@@ -36,7 +37,7 @@ Please contact us if this sounds interesting.")
          [:div.title "Finality Labs Full-Stack dApp Dev"]
          [:div.sub-title "Web, Mobile, and Software Development"]
          [:div.description fake-description]
-         [:div.title "Required Skills"]
+         [:div.label "Required Skills"]
          [:div.skill-listing
           [c-tag {} [c-tag-label "System Administration"]]
           [c-tag {} [c-tag-label "Game Design"]]
@@ -49,7 +50,7 @@ Please contact us if this sounds interesting.")
           [:div.employer-detail]
           [:div.arbiter-detail]]]
         [:div.side
-         [:div.title "Posted 7 Days Ago"]
+         [:div.label "Posted 7 Days Ago"]
          [c-tag {} [c-tag-label "Hiring"]]
          [c-tag {} [c-tag-label "Hourly Rate"]]
          [c-tag {} [c-tag-label "For Months"]]
@@ -59,6 +60,7 @@ Please contact us if this sounds interesting.")
 
 
        [:div.proposal-listing
+        [:div.label "Proposals"]
         [:div.proposal-table
          [c-table
           {:headers ["Candidate" "Rate" "Created" "Status"]}
@@ -75,6 +77,7 @@ Please contact us if this sounds interesting.")
          "Proposal Form"]]
 
        [:div.invoice-listing
+        [:div.label "Invoices"]
         [c-table
          {:headers ["Candidate" "Amount" "Created" "Status"]}
          [[:span "Giacomo Guilizzoni"]
