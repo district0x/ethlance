@@ -164,7 +164,7 @@ watch-css:
 
 
 build-css:
-	lessc resources/public/less/main.less resources/public/css/main.css
+	less resources/public/less/main.less resources/public/css/main.css
 
 
 design-build:

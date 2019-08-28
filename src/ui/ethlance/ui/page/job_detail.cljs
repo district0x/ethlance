@@ -4,7 +4,7 @@
    [district.ui.component.page :refer [page]]
 
    ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
+   [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
@@ -16,7 +16,10 @@
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.carousel :refer [c-carousel]]))
+   [ethlance.ui.component.carousel :refer [c-carousel]]
+   [ethlance.ui.component.text-input :refer [c-text-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
 
 
 ;; FIXME: description needs to be broken up into paragraphs. <p>
@@ -43,9 +46,10 @@ Please contact us if this sounds interesting.")
           [c-tag {} [c-tag-label "Game Design"]]
           [c-tag {} [c-tag-label "Game Development"]]
           [c-tag {} [c-tag-label "Web Programming"]]]
-         [:div.ticket
-          [:div.label "Available Funds"]
-          [:div.amount "14,000 SNT"]]
+         [:div.ticket-listing
+          [:div.ticket
+           [:div.label "Available Funds"]
+           [:div.amount "14,000 SNT"]]]
          [:div.profiles
           [:div.employer-detail]
           [:div.arbiter-detail]]]
@@ -57,7 +61,6 @@ Please contact us if this sounds interesting.")
          [c-tag {} [c-tag-label "For Expert ($$$)"]]
          [c-tag {} [c-tag-label "Full Time"]]
          [c-tag {} [c-tag-label "Needs 3 Freelancers"]]]]
-
 
        [:div.proposal-listing
         [:div.label "Proposals"]
@@ -74,7 +77,18 @@ Please contact us if this sounds interesting.")
          [c-circle-icon-button {:name :ic-arrow-right}]
          [c-circle-icon-button {:name :ic-arrow-right2}]]
         [:div.proposal-form
-         "Proposal Form"]]
+         [:div.label "Send Proposal"]
+         [:div.amount-input
+          [c-text-input
+           {:placeholder "0"}]
+          [c-select-input
+           {:label "Token"
+            :selections #{"ETH" "SNT" "DAI"}
+            :default-selection "ETH"}]]
+         [:div.description-input
+          [c-textarea-input
+           {:placeholder "Proposal Description"}]]
+         [c-button {:size :small} [c-button-label "Send"]]]]
 
        [:div.invoice-listing
         [:div.label "Invoices"]

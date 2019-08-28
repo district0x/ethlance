@@ -57,32 +57,34 @@
         }
       }
 
-      > .ticket {
-        @background-color: #F9FAFF;
-        @border-color: #D6E1FD;
-        height: 120px;
-        width: 40%;
-        padding: 1em 2em;
-        margin: 2em 0;
+      > .ticket-listing {
+        > .ticket {
+          @background-color: #F9FAFF;
+          @border-color: #D6E1FD;
+          height: 120px;
+          width: 40%;
+          padding: 1em 2em;
+          margin: 2em 0;
 
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-        background-color: @background-color;
-        border: 1px solid @border-color;
-        border-left: 1em solid @border-color;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
+          background-color: @background-color;
+          border: 1px solid @border-color;
+          border-left: 1em solid @border-color;
 
-        > .label {
-          font-size: 1.2em;
-          font-weight: 700;
-        }
+          > .label {
+            font-size: 1.2em;
+            font-weight: 700;
+          }
 
-        > .amount {
-          color: black;
-          opacity: 0.5;
-          font-weight: 400;
-          font-size: 1.5em;
-          font-family: monospace;
+          > .amount {
+            color: black;
+            opacity: 0.5;
+            font-weight: 400;
+            font-size: 1.5em;
+            font-family: monospace;
+          }
         }
       }
     }
@@ -100,7 +102,7 @@
       }
 
       > .ethlance-tag {
-        margin: 1em 0;
+        margin: 0.5em 0;
       }
     }
   }
@@ -110,14 +112,17 @@
 
     display: grid;
     grid-template-areas:
+    'label          proposal-form'
     'proposal-table proposal-form'
-      'button-listing proposal-form';
-    grid-template-rows: auto;
+    'button-listing proposal-form';
+    grid-template-rows: auto auto auto;
     grid-template-columns: 3fr 1fr;
     grid-column-gap: 4em;
 
     > .label {
-      
+      #mixin.title-header();
+      grid-area: label;
+      margin-bottom: 1em;
     }
 
     > .proposal-table {
@@ -126,10 +131,44 @@
 
     > .proposal-form {
       grid-area: proposal-form;
+      display: flex;
+      flex-direction: column;
+      
+      > .label {
+        #mixin.title-header();
+        margin-bottom: 1em;
+      }
+
+      > .amount-input {
+        display: flex;
+        flex-direction: row;
+        margin: 0.5em 0;
+        margin-bottom: 1em;
+      }
+
+      > .description-input > .ethlance-textarea-input {
+        @background-color: #F9FAFF;
+        @border-color: #D6E1FD;
+        background-color: @background-color;
+        border: 1px solid @border-color;
+        color: lighten(black, 40%);
+      }
+
+      > .button {
+        margin: 1em 0;
+        align-self: flex-end;
+        
+        > .button-label {
+          font-size: 1.1em;
+          font-weight: 700;
+        }
+      }
+
     }
 
     > .button-listing {
       #mixin.table-button-listing();
+      grid-area: button-listing;
     }
   }
 
