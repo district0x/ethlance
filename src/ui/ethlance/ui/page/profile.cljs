@@ -18,23 +18,7 @@
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.carousel :refer [c-carousel]]))
-
-
-(defn- c-feedback-slide
-  [{:keys [id rating] :as feedback}]
-  [:div.feedback-slide
-   ;; FIXME: use better unique key
-   {:key (str "feedback-" id "-" rating)}
-   [:div.profile-image
-    [c-profile-image {}]]
-   [:div.rating
-    [c-rating {:rating rating :color :white}]]
-   [:div.message
-    "\"Everything about this is wonderful!\""]
-   [:div.name
-    "Brian Curran"]])
-   
+   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]))
 
 
 (defn c-candidate-profile []

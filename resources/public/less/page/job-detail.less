@@ -87,6 +87,67 @@
           }
         }
       }
+
+      > .profiles {
+        display: flex;
+        flex-direction: row;
+        margin: 1em 1em;
+
+        > .employer-detail , > .arbiter-detail {
+          display: grid;
+          grid-template-areas:
+          'header         header'
+          'profile-image  name'
+          'profile-image  rating'
+          'profile-image  location'
+          'profile-image  fee';
+          grid-template-rows: repeat(auto, 4);
+          grid-template-columns: auto auto;
+          margin: 1em 1em;
+          
+          &:first-child {
+            margin-left: 0;
+          }
+
+          > .header {
+            @border-color: #D6E1FD;
+            grid-area: header;
+            margin: 1em 0;
+            padding: 0.5em 0;
+            font-weight: 700;
+            font-size: 1.1em;
+            border-bottom: 1px solid @border-color
+          }
+
+          > .profile-image {
+            grid-area: profile-image;
+            margin: 0.5em 0;
+            margin-right: 2em;
+          }
+
+          > .name {
+            grid-area: name;
+            margin: 0.5em 0;
+            font-size: 1.1em;
+            font-weight: 700;
+          }
+
+          > .rating {
+            grid-area: rating;
+            margin: 0.5em 0;
+          }
+
+          > .location {
+            grid-area: location;
+            margin: 0.5em 0;
+          }
+
+          > .fee {
+            grid-area: fee;
+            margin: 0.5em 0;
+          }
+        }
+      }
     }
 
     > .side {
@@ -174,6 +235,7 @@
 
   > .invoice-listing {
     .section-defaults();
+
     > .ethlance-table {
 
     }

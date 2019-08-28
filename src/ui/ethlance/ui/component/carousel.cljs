@@ -4,7 +4,9 @@
    
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]))
+   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
+   [ethlance.ui.component.rating :refer [c-rating]]))
 
 
 (defn c-carousel
@@ -37,3 +39,19 @@
               {:name :ic-arrow-right
                :hide? last-slide?
                :on-click #(swap! *current-index inc)}]]]]))})))
+
+
+(defn c-feedback-slide
+  [{:keys [id rating] :as feedback}]
+  [:div.feedback-slide
+   ;; FIXME: use better unique key
+   {:key (str "feedback-" id "-" rating)}
+   [:div.profile-image
+    [c-profile-image {}]]
+   [:div.rating
+    [c-rating {:rating rating :color :white}]]
+   [:div.message
+    "\"Everything about this is wonderful!\""]
+   [:div.name
+    "Brian Curran"]])
+   

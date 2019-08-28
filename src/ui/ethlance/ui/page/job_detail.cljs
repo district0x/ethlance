@@ -16,7 +16,7 @@
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.carousel :refer [c-carousel]]
+   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
@@ -51,8 +51,20 @@ Please contact us if this sounds interesting.")
            [:div.label "Available Funds"]
            [:div.amount "14,000 SNT"]]]
          [:div.profiles
-          [:div.employer-detail]
-          [:div.arbiter-detail]]]
+          [:div.employer-detail
+           [:div.header "Employer"]
+           [:div.profile-image [c-profile-image {}]]
+           [:div.name "Brian Curran"]
+           [:div.rating [c-rating {:rating 3}]]
+           [:div.location "New York, United States"]
+           [:div.fee ""]]
+          [:div.arbiter-detail
+           [:div.header "Arbiter"]
+           [:div.profile-image [c-profile-image {}]]
+           [:div.name "Brian Curran"]
+           [:div.rating [c-rating {:rating 3}]]
+           [:div.location "New York, United States"]
+           [:div.fee "Fee: 0.12 ETH"]]]]
         [:div.side
          [:div.label "Posted 7 Days Ago"]
          [c-tag {} [c-tag-label "Hiring"]]
@@ -105,5 +117,10 @@ Please contact us if this sounds interesting.")
          [c-circle-icon-button {:name :ic-arrow-right2}]]]
 
        [:div.feedback-listing
-        [c-carousel {}]]])))
+        [c-carousel {}
+         [c-feedback-slide {:rating 1}]
+         [c-feedback-slide {:rating 2}]
+         [c-feedback-slide {:rating 3}]
+         [c-feedback-slide {:rating 4}]
+         [c-feedback-slide {:rating 5}]]]])))
          
