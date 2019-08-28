@@ -117,6 +117,7 @@ Please contact us if this sounds interesting.")
          [c-circle-icon-button {:name :ic-arrow-right2}]]]
 
        [:div.feedback-listing
+        [:div.label "Feedback"]
         [c-carousel {}
          [c-feedback-slide {:rating 1}]
          [c-feedback-slide {:rating 2}]

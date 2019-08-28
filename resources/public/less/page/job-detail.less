@@ -6,6 +6,20 @@
     #mixin.paper-1();
     margin: 3em 0;
     padding: 3em;
+
+    @media #media[desktop-query] {
+      margin: 2em 0;
+      padding: 3em 2em;
+    }
+
+    @media #media[tablet-query] {
+      margin: 1.5em 0;
+      padding: 2em 1.5em;
+    }
+
+    @media #media[mobile-query] {
+      text-align: center;
+    }
   }
 
   > .header {
@@ -16,6 +30,12 @@
     grid-template-rows: auto;
     grid-template-columns: 3fr 1fr;
     grid-column-gap: 4em;
+
+    @media #media[desktop-query] {
+      grid-template-areas: 'main';
+      grid-template-columns: auto;
+      grid-column-gap: 0;
+    }
 
     > .main {
       grid-area: main;
@@ -36,6 +56,15 @@
         font-size: 1.5em;
         line-height: 1.5em;
         padding: 2em 0;
+        
+        @media #media[desktop-query] {
+          font-size: 1.2em;
+        }
+
+        @media #media[mobile-query] {
+          font-size: 1.0em;
+          text-align: left;
+        }
       }
 
       > .label {
@@ -47,22 +76,32 @@
       > .skill-listing {
         display: flex;
         flex-direction: row;
-        flex-wrap: 1;
+        flex-wrap: wrap;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
+
         > .ethlance-tag {
-          margin: 1em 0.5em;
-          
-          &:first-child {
-            margin-left: 0;
-          }
+          margin: 1em 0;
+          margin-right: 1em;
         }
       }
 
       > .ticket-listing {
+        display: flex;
+        flex-directoin: row;
+        flex-wrap: wrap;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
+
         > .ticket {
           @background-color: #F9FAFF;
           @border-color: #D6E1FD;
           height: 120px;
-          width: 40%;
+          min-width: 200px;
           padding: 1em 2em;
           margin: 2em 0;
 
@@ -93,6 +132,11 @@
         flex-direction: row;
         margin: 1em 1em;
 
+        @media #media[tablet-query] {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
         > .employer-detail , > .arbiter-detail {
           display: grid;
           grid-template-areas:
@@ -104,7 +148,8 @@
           grid-template-rows: repeat(auto, 4);
           grid-template-columns: auto auto;
           margin: 1em 1em;
-          
+          text-align: left;
+
           &:first-child {
             margin-left: 0;
           }
@@ -156,6 +201,10 @@
       grid-area: side;
       margin-top: 11em;
       
+      @media #media[desktop-query] {
+        display: none;
+      }
+
       > .label {
         font-size: 1.1em;
         font-weight: 600;
@@ -163,6 +212,7 @@
       }
 
       > .ethlance-tag {
+        text-align: center;
         margin: 0.5em 0;
       }
     }
@@ -180,6 +230,20 @@
     grid-template-columns: 3fr 1fr;
     grid-column-gap: 4em;
 
+    @media #media[desktop-query] {
+      grid-column-gap: 2em;
+    }
+
+    @media #media[tablet-query] {
+      grid-template-areas:
+        'label'
+        'proposal-table'
+        'button-listing'
+        'proposal-form';
+      grid-template-rows: repeat(auto, 4);
+      grid-template-columns: auto;
+    }
+
     > .label {
       #mixin.title-header();
       grid-area: label;
@@ -194,10 +258,18 @@
       grid-area: proposal-form;
       display: flex;
       flex-direction: column;
+
+      @media #media[mobile-query] {
+        justify-content: center;
+      }      
       
       > .label {
         #mixin.title-header();
         margin-bottom: 1em;
+
+        @media #media[tablet-query] {
+          margin-top: 2em;
+        }
       }
 
       > .amount-input {
@@ -205,6 +277,10 @@
         flex-direction: row;
         margin: 0.5em 0;
         margin-bottom: 1em;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
       }
 
       > .description-input > .ethlance-textarea-input {
@@ -219,6 +295,11 @@
         margin: 1em 0;
         align-self: flex-end;
         
+        @media #media[mobile-query] {
+          align-self: center;
+          width:  50%;
+        }
+          
         > .button-label {
           font-size: 1.1em;
           font-weight: 700;
@@ -236,6 +317,11 @@
   > .invoice-listing {
     .section-defaults();
 
+    > .label {
+      #mixin.title-header();
+      margin-bottom: 1em;
+    }
+
     > .ethlance-table {
 
     }
@@ -247,6 +333,12 @@
 
   > .feedback-listing {
     .section-defaults();
+    text-align: center;
+
+    > .label {
+      #mixin.title-header();
+      margin-bottom: 1em;
+    }
   }
 }
 
