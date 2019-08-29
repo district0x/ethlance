@@ -14,6 +14,7 @@
 
    ;; Job Pages
    [ethlance.ui.page.job-contract]
+   [ethlance.ui.page.job-detail]
 
    ;; Me Pages
    [ethlance.ui.page.sign-up]
@@ -21,3 +22,4 @@
 
    ;; Development Pages
    [ethlance.ui.page.devcard]))
+

@@ -1,0 +1,344 @@
+/// job-detail.less -- Job Detail Page Styling
+
+
+.job-detail-main-container {
+  .section-defaults() {
+    #mixin.paper-1();
+    margin: 3em 0;
+    padding: 3em;
+
+    @media #media[desktop-query] {
+      margin: 2em 0;
+      padding: 3em 2em;
+    }
+
+    @media #media[tablet-query] {
+      margin: 1.5em 0;
+      padding: 2em 1.5em;
+    }
+
+    @media #media[mobile-query] {
+      text-align: center;
+    }
+  }
+
+  > .header {
+    .section-defaults();
+    margin-top: 0;
+    display: grid;
+    grid-template-areas: 'main side';
+    grid-template-rows: auto;
+    grid-template-columns: 3fr 1fr;
+    grid-column-gap: 4em;
+
+    @media #media[desktop-query] {
+      grid-template-areas: 'main';
+      grid-template-columns: auto;
+      grid-column-gap: 0;
+    }
+
+    > .main {
+      grid-area: main;
+      display: flex;
+      flex-direction: column;
+      
+      > .title {
+        font-size: 2.3em;
+        padding-bottom: 0.5em;
+      }
+
+      > .sub-title {
+        padding: 0.5em 0;
+        padding-bottom: 2.5em;
+      }
+
+      > .description {
+        font-size: 1.5em;
+        line-height: 1.5em;
+        padding: 2em 0;
+        
+        @media #media[desktop-query] {
+          font-size: 1.2em;
+        }
+
+        @media #media[mobile-query] {
+          font-size: 1.0em;
+          text-align: left;
+        }
+      }
+
+      > .label {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 1em;
+      }
+
+      > .skill-listing {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
+
+        > .ethlance-tag {
+          margin: 1em 0;
+          margin-right: 1em;
+        }
+      }
+
+      > .ticket-listing {
+        display: flex;
+        flex-directoin: row;
+        flex-wrap: wrap;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
+
+        > .ticket {
+          @background-color: #F9FAFF;
+          @border-color: #D6E1FD;
+          height: 120px;
+          min-width: 200px;
+          padding: 1em 2em;
+          margin: 2em 0;
+
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
+          background-color: @background-color;
+          border: 1px solid @border-color;
+          border-left: 1em solid @border-color;
+
+          > .label {
+            font-size: 1.2em;
+            font-weight: 700;
+          }
+
+          > .amount {
+            color: black;
+            opacity: 0.5;
+            font-weight: 400;
+            font-size: 1.5em;
+            font-family: monospace;
+          }
+        }
+      }
+
+      > .profiles {
+        display: flex;
+        flex-direction: row;
+        margin: 1em 1em;
+
+        @media #media[tablet-query] {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        > .employer-detail , > .arbiter-detail {
+          display: grid;
+          grid-template-areas:
+          'header         header'
+          'profile-image  name'
+          'profile-image  rating'
+          'profile-image  location'
+          'profile-image  fee';
+          grid-template-rows: repeat(auto, 4);
+          grid-template-columns: auto auto;
+          margin: 1em 1em;
+          text-align: left;
+
+          &:first-child {
+            margin-left: 0;
+          }
+
+          > .header {
+            @border-color: #D6E1FD;
+            grid-area: header;
+            margin: 1em 0;
+            padding: 0.5em 0;
+            font-weight: 700;
+            font-size: 1.1em;
+            border-bottom: 1px solid @border-color
+          }
+
+          > .profile-image {
+            grid-area: profile-image;
+            margin: 0.5em 0;
+            margin-right: 2em;
+          }
+
+          > .name {
+            grid-area: name;
+            margin: 0.5em 0;
+            font-size: 1.1em;
+            font-weight: 700;
+          }
+
+          > .rating {
+            grid-area: rating;
+            margin: 0.5em 0;
+          }
+
+          > .location {
+            grid-area: location;
+            margin: 0.5em 0;
+          }
+
+          > .fee {
+            grid-area: fee;
+            margin: 0.5em 0;
+          }
+        }
+      }
+    }
+
+    > .side {
+      display: flex;
+      flex-direction: column;
+      grid-area: side;
+      margin-top: 11em;
+      
+      @media #media[desktop-query] {
+        display: none;
+      }
+
+      > .label {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 1em;
+      }
+
+      > .ethlance-tag {
+        text-align: center;
+        margin: 0.5em 0;
+      }
+    }
+  }
+
+  > .proposal-listing {
+    .section-defaults();
+
+    display: grid;
+    grid-template-areas:
+    'label          proposal-form'
+    'proposal-table proposal-form'
+    'button-listing proposal-form';
+    grid-template-rows: auto auto auto;
+    grid-template-columns: 3fr 1fr;
+    grid-column-gap: 4em;
+
+    @media #media[desktop-query] {
+      grid-column-gap: 2em;
+    }
+
+    @media #media[tablet-query] {
+      grid-template-areas:
+        'label'
+        'proposal-table'
+        'button-listing'
+        'proposal-form';
+      grid-template-rows: repeat(auto, 4);
+      grid-template-columns: auto;
+    }
+
+    > .label {
+      #mixin.title-header();
+      grid-area: label;
+      margin-bottom: 1em;
+    }
+
+    > .proposal-table {
+      grid-area: proposal-table;
+    }
+
+    > .proposal-form {
+      grid-area: proposal-form;
+      display: flex;
+      flex-direction: column;
+
+      @media #media[mobile-query] {
+        justify-content: center;
+      }      
+      
+      > .label {
+        #mixin.title-header();
+        margin-bottom: 1em;
+
+        @media #media[tablet-query] {
+          margin-top: 2em;
+        }
+      }
+
+      > .amount-input {
+        display: flex;
+        flex-direction: row;
+        margin: 0.5em 0;
+        margin-bottom: 1em;
+
+        @media #media[mobile-query] {
+          justify-content: center;
+        }
+      }
+
+      > .description-input > .ethlance-textarea-input {
+        @background-color: #F9FAFF;
+        @border-color: #D6E1FD;
+        background-color: @background-color;
+        border: 1px solid @border-color;
+        color: lighten(black, 40%);
+      }
+
+      > .button {
+        margin: 1em 0;
+        align-self: flex-end;
+        
+        @media #media[mobile-query] {
+          align-self: center;
+          width:  50%;
+        }
+          
+        > .button-label {
+          font-size: 1.1em;
+          font-weight: 700;
+        }
+      }
+
+    }
+
+    > .button-listing {
+      #mixin.table-button-listing();
+      grid-area: button-listing;
+    }
+  }
+
+  > .invoice-listing {
+    .section-defaults();
+
+    > .label {
+      #mixin.title-header();
+      margin-bottom: 1em;
+    }
+
+    > .ethlance-table {
+
+    }
+
+    > .button-listing {
+      #mixin.table-button-listing();
+    }
+  }
+
+  > .feedback-listing {
+    .section-defaults();
+    text-align: center;
+
+    > .label {
+      #mixin.title-header();
+      margin-bottom: 1em;
+    }
+  }
+}
+
