@@ -18,13 +18,15 @@
              ["/jobs/detail/" :route.job/detail]
              ["/jobs/detail/:index" :route.job/detail]
              
+             ;; Invoices
              ["/invoices/new" :route.invoice/new]
+             ["/invoices/" :route.invoice/index]
+             ["/invoices/:index" :route.invoice/index]
 
              ;; Me
              ["/me" :route.me/index]
              ["/me/sign-up" :route.me/sign-up]
-             ["/me/contracts" :route.me/contracts]
-             ["/me/contracts/:address/new-invoice" :route.me/new-invoice]])
+             ["/me/contracts" :route.me/contracts]])
 
 
 

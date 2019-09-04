@@ -1,0 +1,137 @@
+/// invoice-detail.less --- Styling for Invoice Detail Page
+
+.invoice-detail-main-container {
+  #mixin.paper-1();
+  display: grid;
+  grid-template-areas:
+    'title  status'
+      'left   right'
+      'button button';
+  grid-template-columns: 3fr 4fr;
+  grid-template-rows: auto auto 40px;
+  grid-column-gap: 6em;
+
+  @media #media[tablet-query] {
+    grid-template-areas:
+      'title'
+      'status'
+      'left'
+      'right'
+      'button';
+    grid-template-columns: auto;
+    grid-template-rows: repeat(4, auto) 40px;
+    margin-bottom: 4em;
+  }
+
+  > .title {
+    grid-area: title;
+    font-size: 2.2em;
+    font-weight: 500;
+    padding: 0.5em 1.2em;
+    padding-top: 1em;
+  }
+
+  > .invoice-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    grid-area: status;
+    background-color: #d6e1fd;
+    border-radius: 10px;
+    margin: 2em;
+    margin-right: 3em;
+    padding: 0.5em;
+    font-weight: 300;
+    font-size: 1.3em;
+    text-align: center;
+  }
+
+  > .left {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    padding: 3em 0 3em 3em;
+
+    @media #media[tablet-query] {
+      padding: 3em;
+    }
+
+    > .profile {
+      display: grid;
+      grid-template-areas:
+        'label         label'
+        'profile-image name'
+        'profile-image rating'
+        'profile-image location';
+      grid-template-columns: 2fr 3fr;
+      grid-template-rows: repeat(4, auto);
+      margin: 1em 0;
+
+      &:first-child {
+        margin-top: 0;
+        
+        > .label {
+          margin-top: 0;
+        }
+      }
+
+      > .label {
+        grid-area: label;
+        font-size: 1.2em;
+        font-weight: 600;
+        border-bottom: 1px solid grey;
+        padding: 0.5em 0;
+        margin: 1em 0;
+      }
+
+      > .ethlance-profile-image {
+        grid-area: profile-image;
+        display: flex;
+        align-items: center;
+        margin: 2em 0.5em;
+      }
+
+      > .name {
+        grid-area: name;
+        padding: 0.5em 0;
+        font-weight: 600;
+      }
+
+      > .ethlance-component-rating {
+        grid-area: rating;
+        padding: 0.5em 0;
+      }
+
+      > .location {
+        grid-area: location;
+        padding: 0.5em 0;
+      }
+    }
+  }
+
+  > .right {
+    grid-area: right;
+    display: flex;
+    flex-direction: column;
+    padding: 3em 3em 3em 0;
+
+    @media #media[tablet-query] {
+      padding: 3em;
+      padding-top: 0;
+    }
+  }
+
+  > .button {
+    grid-area: button;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #color[purple];
+    color: white;
+    height: 50px;
+    width: 100%;
+    border-radius: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
