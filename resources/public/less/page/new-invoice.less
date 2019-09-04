@@ -1,0 +1,109 @@
+/// new-invoice.less -- Styling for New Invoice Page
+
+.new-invoice-main-container {
+  #mixin.paper-1();
+  display: grid;
+  grid-template-areas:
+    'title  title'
+    'left   right'
+    'button button';
+  grid-template-columns: 3fr 4fr;
+  grid-template-rows: auto auto 40px;
+  grid-column-gap: 3em;
+
+  @media #media[tablet-query] {
+    grid-template-areas:
+      'title'
+      'left'
+      'right'
+      'button';
+    grid-template-columns: auto;
+    grid-template-rows: repeat(3, auto) 40px;
+    margin-bottom: 4em;
+  }
+
+  > .title {
+    grid-area: title;
+    font-size: 2.2em;
+    font-weight: 500;
+    padding: 0.5em 1.2em;
+    padding-top: 1em;
+  }
+
+  > .left-form {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    padding: 3em 0 3em 3em;
+
+    @media #media[tablet-query] {
+      padding: 3em;
+    }
+
+    > .input-stripe {
+      display: flex;
+      flex-direction: row;
+      border-bottom: 1px solid #e8eefe;
+      align-items: center;
+      margin: 1em 0;
+      padding: 1em 0;
+
+      &:first-child {
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      > .label {
+        font-weight: 700;
+      }
+
+      > input {
+        text-align: right;
+        border: none;
+        flex-grow: 1;
+        color: darken(#e8eefe, 20%);
+      }
+
+      > .post-label {
+        text-align: right;
+        font-weight: 700;
+        padding-left: 0.4em;
+      }
+    }
+  }
+
+  > .right-form {
+    grid-area: right;
+    display: flex;
+    flex-direction: column;
+    padding: 3em 3em 3em 0;
+
+    @media #media[tablet-query] {
+      padding: 3em;
+      padding-top: 0;
+    }
+
+    > .label {
+      font-weight: 700;
+    }
+
+    > .ethlance-textarea-input {
+      margin: 1em 0;
+      border-radius: 5px;
+    }
+  }
+
+  > .button {
+    grid-area: button;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #color[purple];
+    color: white;
+    height: 50px;
+    width: 100%;
+    border-radius: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
