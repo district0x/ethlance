@@ -18,6 +18,8 @@
              ["/jobs/detail/" :route.job/detail]
              ["/jobs/detail/:index" :route.job/detail]
              
+             ["/invoices/new" :route.invoice/new]
+
              ;; Me
              ["/me" :route.me/index]
              ["/me/sign-up" :route.me/sign-up]
