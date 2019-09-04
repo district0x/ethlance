@@ -36,85 +36,92 @@
 
 
 (defmethod page :route.job/new []
-  (let [*job-type (r/atom :job)]
+  (let [*job-type (r/atom :job)
+        *with-arbiter? (r/atom true)]
     (fn []
-      [c-main-layout {:container-opts {:class :new-job-main-container}}
-       [:div.forms-left
-        [:div.title "New Job"]
-        [:div.job-type-input
-         [c-radio-select
-          {:default-selection :job
-           :on-selection (fn [selection] (reset! *job-type selection))
-           :flex? true}
-          [:job [c-radio-secondary-element "Job"]]
-          [:bounty [c-radio-secondary-element "Bounty"]]]]
-        [:div.name-input
-         [c-text-input {:placeholder "Job Name"}]]
-        [:div.category-input
-         [c-select-input
-          {:label "Select Category"
-           :selections ["All Categories" "Programming"]}]]
-        [:div.bid-for-radio-input.radio
-         [:div.label "Candidates Should Bid For"]
-         [c-radio-select
-          {:default-selection :hourly-rate
-           :on-selection (fn [selection])}
-          [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
-          [:fixed-price [c-radio-secondary-element "Fixed Price"]]]]
+      (let [is-bounty? (= @*job-type :bounty)]
+        [c-main-layout {:container-opts {:class :new-job-main-container}}
+         [:div.forms-left
+          [:div.title (if is-bounty? "New Bounty" "New Job")]
+          [:div.job-type-input
+           [c-radio-select
+            {:default-selection :job
+             :on-selection (fn [selection] (reset! *job-type selection))
+             :flex? true}
+            [:job [c-radio-secondary-element "Job"]]
+            [:bounty [c-radio-secondary-element "Bounty"]]]]
+          [:div.name-input
+           [c-text-input {:placeholder "Job Name"}]]
+          [:div.category-input
+           [c-select-input
+            {:label "Select Category"
+             :selections ["All Categories" "Programming"]}]]
+          (when-not is-bounty?
+            [:div.bid-for-radio-input.radio
+             [:div.label "Candidates Should Bid For"]
+             [c-radio-select
+              {:default-selection :hourly-rate
+               :on-selection (fn [selection])}
+              [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
+              [:fixed-price [c-radio-secondary-element "Fixed Price"]]]])
 
-        [:div.experience-radio-input.radio
-         [:div.label "Required Experience Level"]
-         [c-radio-select
-          {:default-selection :intermediate
-           :on-selection (fn [selection])}
-          [:beginner [c-radio-secondary-element "Beginner ($)"]]
-          [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
-          [:expert [c-radio-secondary-element "Expert ($$$)"]]]]
+          (when-not is-bounty?
+            [:div.experience-radio-input.radio
+             [:div.label "Required Experience Level"]
+             [c-radio-select
+              {:default-selection :intermediate
+               :on-selection (fn [selection])}
+              [:beginner [c-radio-secondary-element "Beginner ($)"]]
+              [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
+              [:expert [c-radio-secondary-element "Expert ($$$)"]]]])
 
-        [:div.project-length-radio-input.radio
-         [:div.label "Estimated Project Length"]
-         [c-radio-select
-          {:default-selection :day
-           :on-selection (fn [selection])}
-          [:day [c-radio-secondary-element "Hours or Days"]]
-          [:week [c-radio-secondary-element "Weeks"]]
-          [:month [c-radio-secondary-element "Months"]]
-          [:year [c-radio-secondary-element ">6 Months"]]]]
+          (when-not is-bounty?
+            [:div.project-length-radio-input.radio
+             [:div.label "Estimated Project Length"]
+             [c-radio-select
+              {:default-selection :day
+               :on-selection (fn [selection])}
+              [:day [c-radio-secondary-element "Hours or Days"]]
+              [:week [c-radio-secondary-element "Weeks"]]
+              [:month [c-radio-secondary-element "Months"]]
+              [:year [c-radio-secondary-element ">6 Months"]]]])
 
-        [:div.availability-radio-input.radio
-         [:div.label "Required Availability"]
-         [c-radio-select
-          {:default-selection :full-time
-           :on-selection (fn [selection])}
-          [:full-time [c-radio-secondary-element "Full-Time"]]
-          [:part-time [c-radio-secondary-element "Part-Time"]]]]
+          (when-not is-bounty?
+            [:div.availability-radio-input.radio
+             [:div.label "Required Availability"]
+             [c-radio-select
+              {:default-selection :full-time
+               :on-selection (fn [selection])}
+              [:full-time [c-radio-secondary-element "Full-Time"]]
+              [:part-time [c-radio-secondary-element "Part-Time"]]]])
 
-        [:div.with-arbiter-radio-input.radio
-         [:div.label "Arbiter"]
-         [c-radio-select
-          {:default-selection :with-arbiter
-           :on-selection (fn [selection])}
-          [:with-arbiter [c-radio-secondary-element "With Arbiter"]]
-          [:no-arbiter [c-radio-secondary-element "Without Arbiter"]]]]]
+          [:div.with-arbiter-radio-input.radio
+           [:div.label "Arbiter"]
+           [c-radio-select
+            {:default-selection :with-arbiter
+             :on-selection (fn [selection] (reset! *with-arbiter? (= :with-arbiter selection)))}
+            [:with-arbiter [c-radio-secondary-element "With Arbiter"]]
+            [:no-arbiter [c-radio-secondary-element "Without Arbiter"]]]]]
 
-       [:div.forms-right
-        [:div.required-skills-chip.chip
-         [:div.label "Required Skills"]
-         [c-chip-search-input
-          {:search-icon? false
-           :placeholder "Search Skills"
-           :allow-custom-chips? true}]]
+         [:div.forms-right
+          [:div.required-skills-chip.chip
+           [:div.label "Required Skills"]
+           [c-chip-search-input
+            {:search-icon? false
+             :placeholder "Search Skills"
+             :allow-custom-chips? true}]]
 
-        [:div.description-text.chip
-         [:div.label "Description"]
-         [c-textarea-input
-          {:placeholder "Enter Description"}]]]
+          [:div.description-text.chip
+           [:div.label "Description"]
+           [c-textarea-input
+            {:placeholder "Enter Description"}]]]
 
-       [:div.arbiters
-        [c-arbiter-for-hire {}]
-        [c-arbiter-for-hire {}]
-        [c-arbiter-for-hire {}]]
+         (when @*with-arbiter?
+           [:div.arbiters
+            [c-arbiter-for-hire {}]
+            [c-arbiter-for-hire {}]
+            [c-arbiter-for-hire {}]])
 
-       [:div.button
-        {:on-click (fn [e])}
-        [:div.label "Create"]]])))
+         [:div.button
+          {:on-click (fn [e])}
+          [:div.label "Create"]]]))))
