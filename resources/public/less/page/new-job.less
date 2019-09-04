@@ -1,0 +1,162 @@
+/// new-job.less -- Styling for the 'New Job' Page
+
+.new-job-main-container {
+  #mixin.paper-1();
+  display: grid;
+  grid-template-areas:
+   'left right'
+   'arbiters arbiters'
+   'button button';
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto 40px;
+  width: 100%;
+  grid-column-gap: 2em;
+  margin-bottom: 4em;
+
+  @media #media[tablet-query] {
+    grid-template-areas:
+      'left'
+      'arbiters'
+      'right'
+      'button';
+    grid-template-columns: auto;
+    grid-template-rows: auto auto auto 40px;
+    
+  }
+
+  > .forms-left {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    padding: 3em 0 3em 3em;
+
+    @media #media[tablet-query] {
+      padding: 1.5em 3em;
+    }
+
+    > .title {
+      font-size: 2.2em;
+      font-weight: 500;
+      padding-bottom: 0.5em;
+    }
+
+    > .job-type-input {
+      padding: 0.5em 0;
+
+      > .ethlance-radio-select {
+        > .ethlance-radio-element {
+          margin-left: 0;
+        }
+      }
+    }
+
+    > .name-input {
+      padding: 1em 0;
+    }
+
+    > .category-input {
+      padding: 1em 0;
+    }
+    
+    > .radio {
+      > .label {
+        font-size: 1.2em;
+        font-weight: 400;
+        padding: 1em 0;
+      }
+
+      > .ethlance-radio-select {
+        > .ethlance-radio-element {
+          margin-left: 0;
+        }
+      }
+    }
+
+    > .bid-for-radio-input {
+      
+    }
+  }
+
+  > .forms-right {
+    grid-area: right;
+    display: flex;
+    flex-direction: column;
+    padding: 3em 3em 3em 0;
+
+    @media #media[tablet-query] {
+      padding: 1.5em 3em;
+      padding-bottom: 3em;
+    }
+
+    > .chip {
+      > .label {
+        font-size: 1.2em;
+        font-weight: 400;
+        padding: 1em 0;
+      }
+    }
+  }
+
+  > .arbiters {
+    grid-area: arbiters;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-column-gap: 2em;
+    padding: 3em;
+    
+    @media #media[tablet-query] {
+      grid-template-columns: auto;
+    }
+
+    > .arbiter-for-hire {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #f9faff;
+      border: 1px solid #d6e1fd;
+      border-top: 10px solid #d6e1fd;
+      height: 300px;
+
+      @media #media[tablet-query] {
+        margin: 1em 0;
+      }
+
+      > .ethlance-profile-image {
+        padding: 0.5em;
+      }
+
+      > .name {
+        font-size: 1.2em;
+        font-weight: 600;
+        padding: 0.5em;
+      }
+
+      > .ethlance-component-rating {
+        margin: 0.5em;
+      }
+
+      > .price {
+        padding: 0.5em;
+      }
+
+      > .button {
+        margin: 0.5em;
+      }
+    }
+  }
+
+  > .button {
+    grid-area: button;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #color[purple];
+    color: white;
+    height: 50px;
+    width: 100%;
+    border-radius: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
