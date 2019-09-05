@@ -1,22 +1,137 @@
 /// arbiters.less -- Main layout for the 'arbiter listing' page
 
+#arbiters() {
+  .search-filter-content {
+    > .category-selector , > .country-selector {
+      margin: 1.5em 0;
+    }
+
+    > .rating-label , > .selection-label {
+      padding: 1em;
+      color: white;
+      font-weight: bold;
+    }
+
+    > .ethlance-component-rating {
+      padding: 1em;
+      padding-top: 0;
+    }
+
+    > .currency-input {
+      padding: 1em;
+    }
+  }
+}
+
 .arbiters-main-container {
-    display: grid;
-    grid-template-areas: 'search-filter listing';
-    grid-template-columns: minmax(185px, 235px) 4fr;
+  #mixin.main-container();
 
-    > .search-filter {
-        display: flex;
-        flex-direction: column;
-        grid-area: search-filter;
-        background-color: @color-purple;
-        border-radius: 10px 0 0 10px;
+  > .search-filter {
+    #mixin.main-container.search-filter();
+    #arbiters.search-filter-content();
+  }
+
+  > .mobile-search-filter {
+    > .content {
+      #jobs.search-filter-content();
+    }
+  }
+
+  > .listing {
+    #mixin.main-container.listing();
+
+    > .ethlance-chip-search-input {
+      margin: 2em;
+      max-width: 100vw;
+      
+      @media #media[tablet-query] {
+        margin: 1.5em;
+      }
+
+      @media #media[mobile-query] {
+        margin: 0.0em;
+      }
     }
 
-    > .listing {
+    > .arbiter-element {
+      display: grid;
+      grid-template-areas:
+      'profile  price'
+      'tags     .'
+      'rating   .'
+      'location .';
+      grid-template-columns: repeat(2, auto);
+      grid-template-rows: repeat(4, auto);
+      min-height: 100px;
+      padding: 2em;
+      box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
+      grid-column-gap: 1em;
+
+      > .profile {
+        grid-area: profile;
+        display: grid;
+        grid-template-areas:
+        'profile-image name'
+        'profile-image title';
+        grid-template-columns: repeat(2, auto);
+        grid-template-rows: repeat(2, auto);
+
+        > .ethlance-profile-image {
+          grid-area: profile-image;
+        }
+
+        > .name {
+          grid-area: name;
+          font-size: 1.3em;
+          font-weight: 600;
+          padding: 0.5em;
+        }
+
+        > .title {
+          grid-area: title;
+          padding: 0.7em;
+        }
+      }
+
+      > .price {
+        grid-area: price;
         display: flex;
-        background-color: white;
-        flex-direction: column;
-        grid-area: listing;
+        align-items: center;
+        justify-content: center;
+        margin: 0.5em 0;
+        font-size: 1.4em;
+        border-bottom: 2px solid #color[orange];
+      }
+
+      > .tags {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        grid-area: tags;
+        margin: 1em 0;
+        > .ethlance-tag {
+          margin-right: 1em;
+          margin-bottom: 0.5em;
+        }
+      }
+
+      > .rating {
+        grid-area: rating;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 0.5em 0;
+        > .label {
+          padding-left: 0.5em;
+          font-weight: 400;
+          font-size: 1.1em;
+        }
+      }
+
+      > .location {
+        grid-area: location;
+        margin: 0.5em 0;
+      }
     }
+  }
 }
