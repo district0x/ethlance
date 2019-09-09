@@ -4,6 +4,9 @@
  Mixins consist of the main container, and it's two child containers
  '.search-filter' and '.listing'
 
+ .main-container-w-sidebar is very similar to the .main-container class, but is more generic
+ TODO: merge both stylings
+
 */  
 
 #mixin() {
@@ -45,6 +48,28 @@
       @media #media[desktop-query] {
         
       }
+    }
+  }
+  
+  .main-container-w-sidebar {
+    #mixin.main-container();
+    grid-template-areas: 'sidebar listing';
+
+    .sidebar {
+      #mixin.main-container.search-filter();
+      grid-area: sidebar;
+
+      @media #media[tablet-query] {
+        display: none;
+      }
+    }
+
+    .mobile-search-filter {
+      #mixin.main-container.mobile-search-filter();
+    }
+
+    .listing {
+      #mixin.main-container.listing();
     }
   }
 }

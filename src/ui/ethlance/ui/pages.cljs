@@ -22,6 +22,7 @@
    ;; Me Pages
    [ethlance.ui.page.sign-up]
    [ethlance.ui.page.me]
+   [ethlance.ui.page.my-contracts]
 
    ;; Development Pages
    [ethlance.ui.page.devcard]))
