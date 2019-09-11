@@ -28,6 +28,36 @@
 ;;
 
 
+(defn c-default-listing []
+  [:<>
+   [c-table
+    {:headers ["Title" "Candidate" "Rate" "Total Spent"]}
+    [[:span "Cryptoeconomics Research Intern"]
+     [:span "Keegan Quigley"]
+     [:span "$30/hr"]
+     [:span "12.2 ETH"]]
+
+    [[:span "Smart Contract Hacker"]
+     [:span "Cyrus Karsen"]
+     [:span "$25"]
+     [:span "1000 SNT"]]
+
+    [[:span "Interactive Developer"]
+     [:span "Ari Kaplan"]
+     [:span "$75"]
+     [:span "5.4 ETH"]]
+
+    [[:span "Cryptoeconomics Research Intern"]
+     [:span "Keegan Quigley"]
+     [:span "$30/hr"]
+     [:span "12.2 ETH"]]]
+   [:div.button-listing
+    [c-circle-icon-button {:name :ic-arrow-left2}]
+    [c-circle-icon-button {:name :ic-arrow-left}]
+    [c-circle-icon-button {:name :ic-arrow-right}]
+    [c-circle-icon-button {:name :ic-arrow-right2}]]])
+
+
 (defn c-my-employer-job-listing []
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
@@ -35,44 +65,24 @@
 
    {:label "Invitations"}
    [:div.listing.my-employer-job-listing
-    [c-table
-     {:headers ["Title" "Candidate" "Rate" "Total Spent"]}
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "Keegan Quigley"]
-      [:span "$30/hr"]
-      [:span "12.2 ETH"]]
-
-     [[:span "Smart Contract Hacker"]
-      [:span "Cyrus Karsen"]
-      [:span "$25"]
-      [:span "1000 SNT"]]
-
-     [[:span "Interactive Developer"]
-      [:span "Ari Kaplan"]
-      [:span "$75"]
-      [:span "5.4 ETH"]]
-
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "Keegan Quigley"]
-      [:span "$30/hr"]
-      [:span "12.2 ETH"]]]
-    [:div.button-listing
-     [c-circle-icon-button {:name :ic-arrow-left2}]
-     [c-circle-icon-button {:name :ic-arrow-left}]
-     [c-circle-icon-button {:name :ic-arrow-right}]
-     [c-circle-icon-button {:name :ic-arrow-right2}]]]
+    [c-default-listing]]
+    
 
    {:label "Pending Proposals"}
-   [:div "Proposals"]
+   [:div.listing
+    [c-default-listing]]
    
    {:label "Active Contracts"}
-   [:div "Active Contracts"]
+   [:div.listing
+    [c-default-listing]]
 
    {:label "Finished Contracts"}
-   [:div "Finished Contracts"]
+   [:div.listing
+    [c-default-listing]]
 
    {:label "Canceled Contracts"}
-   [:div "Canceled Contracts"]])
+   [:div.listing
+    [c-default-listing]]])
   
 (defn c-my-employer-contract-listing [])
 (defn c-my-employer-invoice-listing [])
