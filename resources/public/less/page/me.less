@@ -1,40 +1,67 @@
-/// me.less -- My Activity (me) page styling
+/// my-contracts.less -- Styling for the My Contracts page
 
+.my-contracts-main-container {
+  #mixin.main-container-w-sidebar();
+  box-shadow: none;
 
-.me-main-container {
-    @tab-height: #tabular-layout[tab-height];
+  > .sidebar {
+    margin-top: #tabular-layout[tab-height];
 
-    display: grid;
-    grid-template-areas:
-      '.       tab'
-      'sidebar tab';
-    grid-template-rows: @tab-height 1fr;
-    grid-template-columns: 200px 1fr;
-    background-color: transparent;
+    > .section {
+      padding: 1em;
+      
+      &:not(:last-child) {
+        @attr-color: #4c3fbc;
+        border-bottom: 1px solid @attr-color;
+      }
 
-    > .sidebar {
-        #mixin.sidebar.navigation();
-    }
+      > .label {
+        font-weight: 600;
+        color: white;
+        padding: 1em 0;
+      }
 
-    > .tabular-layout {
-        grid-area: tab;
-        > .active-page {
-            > .invitations-tab {
-                margin-top: 4em;
-                padding: 2em;
-                > .button-listing {
-                    display: flex;
-                    justify-content: flex-end;
-                    padding: 1em 0.5em;
-                    > .ethlance-circle-button {
-                        margin: 0.5em;
+      > .link {
+        color: white;
+        font-weight: 300;
+        padding: 0.5em 0;
+        line-height: 1.1em;
+        cursor: pointer;
 
-                        &:last-child {
-                          margin-right: 0;
-                        }
-                    }
-                }
-            }
+        &:hover {
+          text-decoration: underline;
         }
+
+        &.active {
+          @attr-color: #00e4ff;
+
+          color: @attr-color;
+          text-decoration: underline;
+        }
+      }
     }
+  }
+
+  > .listing {
+    min-height: 100%;
+    > .tabular-layout > .active-page {
+      min-height: 100%;
+      > .listing {
+        margin-top: 4em;
+        padding: 2em;
+        > .button-listing {
+          display: flex;
+          justify-content: flex-end;
+          padding: 1em 0.5em;
+          > .ethlance-circle-button {
+            margin: 0.5em;
+
+            &:last-child {
+              margin-right: 0;
+            }
+          }
+        }
+      }
+    }
+  }
 }
