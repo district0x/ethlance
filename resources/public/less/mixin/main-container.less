@@ -4,6 +4,7 @@
  Mixins consist of the main container, and it's two child containers
  '.search-filter' and '.listing'
 
+ Alternative .main-container-w-child is a more generic container.
 */  
 
 #mixin() {
@@ -45,6 +46,28 @@
       @media #media[desktop-query] {
         
       }
+    }
+  }
+  
+  .main-container-w-sidebar {
+    #mixin.main-container();
+    grid-template-areas: 'sidebar listing';
+
+    .sidebar {
+      #mixin.main-container.search-filter();
+      grid-area: sidebar;
+
+      @media #media[tablet-query] {
+        display: none;
+      }
+    }
+
+    .mobile-search-filter {
+      #mixin.main-container.mobile-search-filter();
+    }
+
+    .listing {
+      #mixin.main-container.listing();
     }
   }
 }
