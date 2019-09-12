@@ -1,5 +1,7 @@
 (ns ethlance.ui.component.ethlance-logo
-  "The ethlance logo as an SVG image")
+  "The ethlance logo as an SVG image"
+  (:require
+   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
 (def primary-logo-url "images/ethlance_logo_primary.svg")
@@ -16,4 +18,4 @@
                :white white-logo-url
                :black black-logo-url)]
       [:div.ethlance-logo
-       [:img {:src src :class []}]])))
+       [c-inline-svg {:src src :class []}]])))

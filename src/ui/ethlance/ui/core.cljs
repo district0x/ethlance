@@ -12,7 +12,8 @@
 
    ;; Ethlance
    [ethlance.ui.config :as ui.config]
-   [ethlance.ui.pages]))
+   [ethlance.ui.pages]
+   [ethlance.ui.util.injection :as util.injection]))
 
 
 (enable-console-print!)
@@ -22,6 +23,7 @@
   (let [main-config (ui.config/get-config)]
     (.log js/console "Initializing...")
     (.log js/console (clj->js main-config))
+    (util.injection/inject-data-scroll! {:injection-selector "#app"})
     (-> (mount/with-args main-config)
         (mount/start))))
 

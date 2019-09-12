@@ -1,0 +1,32 @@
+/// animation.less -- Animation library
+
+
+// Opacity
+
+@keyframes fade-in {
+  from {
+    opacity: 1.0;
+  }
+
+  to {
+    opacity: 0.0;
+  }
+}
+
+
+.animation-fade-in {
+  animation-name: fade-in;
+  animation-duration: 0.5s;
+}
+
+
+.animation-fade-in-fast {
+  animation-name: fade-in;
+  animation-duration: 0.3s;
+}
+
+
+.animation-fade-in-slow {
+  animation-name: fade-in;
+  animation-duration: 1.0s;
+}
