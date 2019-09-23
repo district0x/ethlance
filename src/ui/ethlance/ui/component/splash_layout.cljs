@@ -58,8 +58,9 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-service.png"}]]
-        [:div.text "0% service fees."]]]
+         [:img.ic-service {:src "./images/icon-service.png"}]
+         [:img.ic-service-center.animation-shrink-fade {:src "./images/ic-service-center.png"}]]
+        [:div.text "Decentralized dispute resolution, anyone can become an arbiter."]]]
 
       [:div.box-separator "+"]
 

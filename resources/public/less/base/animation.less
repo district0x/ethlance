@@ -53,3 +53,34 @@
   animation-fill-mode: none;
   animation-play-state: running;
 }
+
+
+@keyframes shrink-fade {
+  0% {
+    transform: scale(1.0);
+    opacity: 1.0;
+  }
+
+  80% {
+    transform: scale(1.0);
+    opacity: 1.0;
+  }
+
+  100% {
+    transform: scale(0.0);
+    opacity: 0.0;
+  }
+}
+
+
+.animation-shrink-fade {
+  transform-origin: center;
+  animation-name: shrink-fade;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 3s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}
