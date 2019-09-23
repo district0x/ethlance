@@ -150,11 +150,9 @@
           margin-top: 5rem;
           font-size: 0.74rem;
           > .img-district {
+            position: relative;
             width: 6.3rem;
             margin-bottom: 1.2rem;
-            > img {
-              width: 100%;
-            }
           }
 
           > p {
@@ -168,10 +166,47 @@
         }
       }
       > .part-figure {
+        position: relative;
         flex-basis: 50%;
 
         @media #media[tablet-query] {
           display: none;
+        }
+
+        img:first-child {
+          width: 100%;
+        }
+        
+        .home-dialog {
+          position: absolute;
+        }
+        
+        .home-dialog-1 {
+          width: 7.25%;
+          top: 32.75%;
+          left: 10.5%;
+          animation-delay: 0s;
+        }
+
+        .home-dialog-2 {
+          width: 7.25%;
+          top: 18.5%;
+          left: 22.1%;
+          animation-delay: 1.5s;
+        }
+
+        .home-dialog-3 {
+          width: 7.25%;
+          top: 15.5%;
+          right: 15.75%;
+          animation-delay: 1.1s;
+        }
+
+        .home-dialog-4 {
+          width: 7.25%;
+          top: 39%;
+          right: 11.1%;
+          animation-delay: 2.5s;
         }
       }
     }

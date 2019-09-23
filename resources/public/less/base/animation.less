@@ -30,3 +30,26 @@
   animation-name: fade-in;
   animation-duration: 1.0s;
 }
+
+
+@keyframes hovering {
+  from {
+    margin-top: -1%;
+  }
+
+  to {
+    margin-top: 1%;
+  }
+}
+
+
+.animation-hovering {
+  animation-name: hovering;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}

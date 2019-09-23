@@ -44,7 +44,11 @@
      
      [:div.part-figure
       [:figure
-       [:img {:src "./images/img-top-banner.png"}]]]]
+       [:img {:src "./images/img-top-banner.png"}]
+       [:img.home-dialog.home-dialog-1.animation-hovering {:src "./images/svg/home-dialog-1.svg"}]
+       [:img.home-dialog.home-dialog-2.animation-hovering {:src "./images/svg/home-dialog-2.svg"}]
+       [:img.home-dialog.home-dialog-3.animation-hovering {:src "./images/svg/home-dialog-3.svg"}]
+       [:img.home-dialog.home-dialog-4.animation-hovering {:src "./images/svg/home-dialog-4.svg"}]]]]
 
     ;; BEGIN WELCOME TO
     [:div.welcome
