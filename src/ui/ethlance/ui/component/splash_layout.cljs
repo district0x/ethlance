@@ -67,7 +67,11 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-decentralised.png"}]]
+         [:img {:src "./images/icon-decentralised.png"}]
+         [:img.ic-circle.ic-circle-1.animation-move-about {:src "./images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-2.animation-move-about {:src "./images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-3.animation-move-about {:src "./images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-4.animation-move-about {:src "./images/svg/circle.svg"}]]
         [:div.text "Fully decentralized on blockchain."]]]
 
       [:div.box-separator "+"]
@@ -75,7 +79,8 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-membership.png"}]]
+         [:img.ic-free-ring.animation-ring-rotate {:src "./images/svg/ring.svg"}]
+         [:img.ic-free.animation-tag-rotate {:src "./images/ic-free.png"}]]
         [:div.text "No restrictions and free membership."]]]]]
     
     [:div.created
@@ -139,7 +144,7 @@
    [:div.footer
     [:div.footer-content
      [:div.header-section
-      [c-ethlance-logo {:color :white}]
+      ;;[c-ethlance-logo {:color :white}]
       [:h2 "The Future of Work is Now."]
       [:h2 "Say up-to-date with Ethlance."]
       ;; TODO: email input component

@@ -291,6 +291,7 @@
               position: relative;
               width: 5rem;
               height: 5rem;
+              flex-basis: 50%;
 
               > .ic-service {
                 width: 5rem;
@@ -303,6 +304,55 @@
                 top: 1.7rem;
                 left: 1.5rem;
                 width: 2rem;
+              }
+
+              > .ic-free {
+                position: absolute;
+                width: 5rem;
+                height: 5rem;
+                object-fit: contain;
+                z-index: 5;
+                top: 0;
+                left: 0;
+              }
+
+              > .ic-free-ring {
+                position: absolute;
+                top: -11%;
+                left: 45%;
+                width: 25%;
+                height: 25%;
+                z-index: 4;
+              }
+
+              > .ic-circle {
+                position: absolute;
+                width: 35%;
+                height: 35%;
+              }
+
+              > .ic-circle-1 {
+                top: -10%;
+                left: 10%;
+                animation-delay: 0.5s;
+              }
+
+              > .ic-circle-2 {
+                top: -10%;
+                right: 0;
+                animation-delay: 1.0s;
+              }
+
+              > .ic-circle-3 {
+                bottom: 43%;
+                left: 10%;
+                animation-delay: 1.5s;
+              }
+
+              > .ic-circle-4 {
+                bottom: 43%;
+                right: 0;
+                animation-delay: 2s;
               }
             }
 
