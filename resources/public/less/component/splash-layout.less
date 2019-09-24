@@ -461,18 +461,22 @@
 
     > .checkout {
       #sl.section();
-      
-      > .button-listing {
-        display: flex;
-        margin-top: 2em;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
+      #mixin.paper-1();
+      margin-bottom: 5em;
 
-        > .button {
-          padding: 0.5em;
-          font-size: 0.8em;
-          margin: 1em;
+      > .how-it-works-layout {
+        > .button-listing {
+          display: flex;
+          margin-top: 2em;
+          flex-direction: row;
+          justify-content: center;
+          align-items: center;
+
+          > .button {
+            padding: 0.5em;
+            font-size: 0.8em;
+            margin: 1em;
+          }
         }
       }
     }
@@ -489,8 +493,8 @@
       color: white;
       grid-template-areas:
         'header splash'
-        'links  buttons'
-        'footer footer';
+          'links  buttons'
+          'footer footer';
       grid-template-rows: 4fr 4fr 30px;
       grid-template-columns: 4fr 3fr;
       max-width: #media[max-width];
@@ -499,10 +503,10 @@
       @media #media[tablet-query] {
         grid-template-areas:
           'header'
-          'links'
-          'splash'
-          'buttons'
-          'footer';
+            'links'
+            'splash'
+            'buttons'
+            'footer';
         grid-template-rows: 1fr 1fr fit-content(100%) 80px 60px;
         grid-template-columns: 2fr;
         grid-row-gap: 2em;
@@ -514,17 +518,17 @@
         grid-area: header;
         text-align: left;
         > .ethlance-logo {
-	        margin-bottom: 1.5em;
-	        > img {
-	          height: 2.5em;
-	          width: auto;
-	        }
+	  margin-bottom: 1.5em;
+	  > img {
+	    height: 2.5em;
+	    width: auto;
+	  }
         }
 
         > h2 {
-	        font-weight:200;
-	        font-size: 1.5em;
-	        margin: 1.5em 0;
+	  font-weight:200;
+	  font-size: 1.5em;
+	  margin: 1.5em 0;
         }
       }
 
@@ -545,35 +549,35 @@
         grid-template-columns: 1fr 1fr 1fr;
         
         > .listing {
-	        display: flex;
-	        flex-direction: column;
-	        font-size: 0.8em;
+	  display: flex;
+	  flex-direction: column;
+	  font-size: 0.8em;
 
-	        > .title {
-	          color: white;
-	          font-weight: bold;
-	          padding-bottom: 1em;
-	        }
+	  > .title {
+	    color: white;
+	    font-weight: bold;
+	    padding-bottom: 1em;
+	  }
 
-	        > a {
-	          color: white;
-	          font-weight: 200;
-	          text-decoration: none;
-	          padding: 1em 0;
-	        }
+	  > a {
+	    color: white;
+	    font-weight: 200;
+	    text-decoration: none;
+	    padding: 1em 0;
+	  }
 
-	        > .button-listing {
-	          display: flex;
-	          flex-direction: row;
-	          flex-wrap: wrap;
+	  > .button-listing {
+	    display: flex;
+	    flex-direction: row;
+	    flex-wrap: wrap;
 
-	          > .ethlance-circle-button {
-	            margin: 0.5em;
-	            &:first {
-	              margin-left: 0;
-	            }
-	          }
-	        }
+	    > .ethlance-circle-button {
+	      margin: 0.5em;
+	      &:first {
+	        margin-left: 0;
+	      }
+	    }
+	  }
         }
       }
 
@@ -588,17 +592,17 @@
         }
 
         > .button {
-	        margin: 0.5em 0.5em;
+	  margin: 0.5em 0.5em;
           max-width: 120px;
-	        > .button-label {
-	          padding: 0.5rem;
-	          line-height: 1.5em;
-	          font-size: 0.8em;
-	          text-align: center;
-	          > b {
-	            font-weight: bold;
-	          }
-	        }
+	  > .button-label {
+	    padding: 0.5rem;
+	    line-height: 1.5em;
+	    font-size: 0.8em;
+	    text-align: center;
+	    > b {
+	      font-weight: bold;
+	    }
+	  }
         }
       }
 

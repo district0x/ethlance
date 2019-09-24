@@ -1,5 +1,6 @@
 (ns ethlance.ui.component.splash-layout
   (:require
+   [reagent.core :as r]
    [re-frame.core :as rf]
 
    ;; Ethlance Components
@@ -10,6 +11,40 @@
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]
    [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]))
+
+
+(defn c-how-it-works-layout
+  []
+  (let [*current-selection (r/atom :candidate)]
+    (fn []
+     [:div.how-it-works-layout
+      [:div.button-listing
+       [c-button
+        {:color :primary
+         :disabled? (= @*current-selection :candidate)
+         :on-click #(reset! *current-selection :candidate)}
+        [c-button-label [:span "Freelancer"]]]
+       [c-button
+        {:color :primary
+         :disabled? (= @*current-selection :employer)
+         :on-click #(reset! *current-selection :employer)}
+        [c-button-label [:span "Employer"]]]
+       [c-button
+        {:color :primary
+         :disabled? (= @*current-selection :arbiter)
+         :on-click #(reset! *current-selection :arbiter)}
+        [c-button-label [:span "Arbiter"]]]]
+
+      (case @*current-selection
+       :candidate
+       [:div.active-page.candidate-page
+        "Candidate Page"]
+       :employer
+       [:div.active-page.employer-page
+        "Employer Page"]
+       :arbiter
+       [:div.active-page.arbiter-page
+        "Arbiter Page"])])))
 
 
 (defn c-splash-layout
@@ -129,16 +164,7 @@
      [:h3 "Check Out"]
      [:h2 "How Ethlance Works"]
      ;; TODO: owl listing component
-     [:div.button-listing
-      [c-button       
-       {:color :primary}
-       [c-button-label [:span "Freelancer"]]]
-      [c-button       
-       {:color :primary}
-       [c-button-label [:span "Employer"]]]
-      [c-button       
-       {:color :primary}
-       [c-button-label [:span "Arbiter"]]]]]]
+     [c-how-it-works-layout]]]
    
    
    [:div.footer
