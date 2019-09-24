@@ -212,7 +212,7 @@
      [:div.header-section
       ;;[c-ethlance-logo {:color :white}]
       [:h2 "The Future of Work is Now."]
-      [:h2 "Say up-to-date with Ethlance."]
+      [:h2 "Stay up-to-date with Ethlance."]
       ;; TODO: email input component
       [:input {:type "email" :placeholder "Enter Email"}]]
 
