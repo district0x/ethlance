@@ -1,5 +1,6 @@
 (ns ethlance.ui.component.splash-layout
   (:require
+   [reagent.core :as r]
    [re-frame.core :as rf]
 
    ;; Ethlance Components
@@ -10,6 +11,80 @@
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]
    [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]))
+
+
+(defn c-how-to-card [label src]
+  [:div.how-to-card
+   [:div.image 
+    [:img {:src src}]]
+   [:span.label label]])
+
+
+(defn c-how-to-candidate
+  []
+  [:div.how-to-candidate
+   [c-how-to-card "Find A Job" "./images/icon-find.png"]
+   [c-how-to-card "Apply For A Job" "./images/icon-applyjob.png"]
+   [c-how-to-card "Get Hired" "./images/icon-ok.png"]
+   [c-how-to-card "Create Invoices" "./images/icon-tasks.png"]
+   [c-how-to-card "Receive Ether" "./images/icon-free-ether.png"]
+   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+
+
+(defn c-how-to-employer
+  []
+  [:div.how-to-candidate
+   [c-how-to-card "Create A Job" "./images/icon-create.png"]
+   [c-how-to-card "Invite Freelancers" "./images/icon-invite.png"]
+   [c-how-to-card "Accept Job Proposals" "./images/icon-accept.png"]
+   [c-how-to-card "Get Tasks Done" "./images/icon-free-tasks.png"]
+   [c-how-to-card "Pay Invoices In Ether" "./images/icon-ether.png"]
+   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+
+
+(defn c-how-to-arbiter
+  []
+  [:div.how-to-candidate
+   [c-how-to-card "Complete Your Profile" "./images/icon-free-tasks.png"]
+   [c-how-to-card "Receive Invite For Job" "./images/icon-invite.png"]
+   [c-how-to-card "Investigate The Problem" "./images/icon-find.png"]
+   [c-how-to-card "Resolve The Dispute" "./images/icon-ok.png"]
+   [c-how-to-card "Receive Ether" "./images/icon-free-ether.png"]
+   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+
+
+(defn c-how-it-works-layout
+  []
+  (let [*current-selection (r/atom :candidate)]
+    (fn []
+     [:div.how-it-works-layout
+      [:div.button-listing
+       [c-button
+        {:color :primary
+         :disabled? (= @*current-selection :candidate)
+         :on-click #(reset! *current-selection :candidate)}
+        [c-button-label [:span "Freelancer"]]]
+       [c-button
+        {:color :primary
+         :disabled? (= @*current-selection :employer)
+         :on-click #(reset! *current-selection :employer)}
+        [c-button-label [:span "Employer"]]]
+       [c-button
+        {:color :primary
+         :disabled? (= @*current-selection :arbiter)
+         :on-click #(reset! *current-selection :arbiter)}
+        [c-button-label [:span "Arbiter"]]]]
+
+      (case @*current-selection
+       :candidate
+       [:div.active-page.candidate-page
+        [c-how-to-candidate]]
+       :employer
+       [:div.active-page.employer-page
+        [c-how-to-employer]]
+       :arbiter
+       [:div.active-page.arbiter-page
+        [c-how-to-arbiter]])])))
 
 
 (defn c-splash-layout
@@ -44,7 +119,11 @@
      
      [:div.part-figure
       [:figure
-       [:img {:src "./images/img-top-banner.png"}]]]]
+       [:img {:src "./images/img-top-banner.png"}]
+       [:img.home-dialog.home-dialog-1.animation-hovering {:src "./images/svg/home-dialog-1.svg"}]
+       [:img.home-dialog.home-dialog-2.animation-hovering {:src "./images/svg/home-dialog-2.svg"}]
+       [:img.home-dialog.home-dialog-3.animation-hovering {:src "./images/svg/home-dialog-3.svg"}]
+       [:img.home-dialog.home-dialog-4.animation-hovering {:src "./images/svg/home-dialog-4.svg"}]]]]
 
     ;; BEGIN WELCOME TO
     [:div.welcome
@@ -54,15 +133,20 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-service.png"}]]
-        [:div.text "0% service fees."]]]
+         [:img.ic-service {:src "./images/icon-service.png"}]
+         [:img.ic-service-center.animation-shrink-fade {:src "./images/ic-service-center.png"}]]
+        [:div.text "Decentralized dispute resolution, anyone can become an arbiter."]]]
 
       [:div.box-separator "+"]
 
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-decentralised.png"}]]
+         [:img {:src "./images/icon-decentralised.png"}]
+         [:img.ic-circle.ic-circle-1.animation-move-about {:src "./images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-2.animation-move-about {:src "./images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-3.animation-move-about {:src "./images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-4.animation-move-about {:src "./images/svg/circle.svg"}]]
         [:div.text "Fully decentralized on blockchain."]]]
 
       [:div.box-separator "+"]
@@ -70,7 +154,8 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-membership.png"}]]
+         [:img.ic-free-ring.animation-ring-rotate {:src "./images/svg/ring.svg"}]
+         [:img.ic-free.animation-tag-rotate {:src "./images/ic-free.png"}]]
         [:div.text "No restrictions and free membership."]]]]]
     
     [:div.created
@@ -119,24 +204,15 @@
      [:h3 "Check Out"]
      [:h2 "How Ethlance Works"]
      ;; TODO: owl listing component
-     [:div.button-listing
-      [c-button       
-       {:color :primary}
-       [c-button-label [:span "Freelancer"]]]
-      [c-button       
-       {:color :primary}
-       [c-button-label [:span "Employer"]]]
-      [c-button       
-       {:color :primary}
-       [c-button-label [:span "Arbiter"]]]]]]
+     [c-how-it-works-layout]]]
    
    
    [:div.footer
     [:div.footer-content
      [:div.header-section
-      [c-ethlance-logo {:color :white}]
+      ;;[c-ethlance-logo {:color :white}]
       [:h2 "The Future of Work is Now."]
-      [:h2 "Say up-to-date with Ethlance."]
+      [:h2 "Stay up-to-date with Ethlance."]
       ;; TODO: email input component
       [:input {:type "email" :placeholder "Enter Email"}]]
 

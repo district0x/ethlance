@@ -4,8 +4,8 @@
 .main-navigation-bar {
     display: grid;
     color: white;
-    grid-template-areas: 'logo . profile account-transactions';
-    grid-template-columns: 130px 3fr 1fr 300px;
+    grid-template-areas: 'logo . profile account-balances';
+    grid-template-columns: 130px 3fr auto auto;
     background-color: #color[dark-blue];
 
     > .ethlance-logo {
@@ -13,6 +13,7 @@
         display: flex;
         justify-content: flex-start;
         align-items: center;
+        padding: 0 1em;
 
         > img {
             height: 1.6em;
@@ -25,12 +26,35 @@
         justify-content: flex-end;
         align-items: center;
         
+        > .ethlance-profile-image {
+          margin: 0 1em;
+        }
+
+        > .name {
+          font-weight: bold;
+          padding: 0 1em;
+        }
     }
 
-    > .account-transactions {
-        grid-area: account-transactions;
+    > .account-balances {
+        grid-area: account-balances;
         display:flex;
         justify-content: center;
+        flex-direction: column;
         align-items: center;
+        background-color: darken(#color[dark-blue], 10%);
+        margin-left: 1em;
+        width: 200px;
+        padding: 0 1em;
+        line-height: 1.5em;
+
+        > .token-value {
+          font-weight: 600;
+          font-size: 1.1em;
+        }
+        
+        > .usd-value {
+          font-weight: 300;
+        }
     }
 }

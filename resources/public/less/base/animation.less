@@ -1,0 +1,171 @@
+/// animation.less -- Animation library
+
+
+// Opacity
+
+@keyframes fade-in {
+  from {
+    opacity: 1.0;
+  }
+
+  to {
+    opacity: 0.0;
+  }
+}
+
+
+.animation-fade-in {
+  animation-name: fade-in;
+  animation-duration: 0.5s;
+}
+
+
+.animation-fade-in-fast {
+  animation-name: fade-in;
+  animation-duration: 0.3s;
+}
+
+
+.animation-fade-in-slow {
+  animation-name: fade-in;
+  animation-duration: 1.0s;
+}
+
+
+@keyframes hovering {
+  from {
+    margin-top: -1%;
+  }
+
+  to {
+    margin-top: 1%;
+  }
+}
+
+
+.animation-hovering {
+  animation-name: hovering;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}
+
+
+@keyframes shrink-fade {
+  0% {
+    transform: scale(1.1);
+    opacity: 1.0;
+  }
+
+  10% {
+    transform: scale(1.0);
+    opacity: 1.0;
+  }
+
+  80% {
+    transform: scale(1.1);
+    opacity: 1.0;
+  }
+
+  100% {
+    transform: scale(0.0);
+    opacity: 0.0;
+  }
+}
+
+
+.animation-shrink-fade {
+  transform-origin: center;
+  animation-name: shrink-fade;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 3s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}
+
+
+@keyframes ring-rotate {
+  0% {
+    transform: rotateZ(-10deg);
+  }
+
+  100% {
+    transform: rotateZ(10deg);
+  }
+}
+
+
+.animation-ring-rotate {
+  transform-origin: bottom;
+  animation-name: ring-rotate;
+  animation-duration: 2.5s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}
+
+
+@keyframes tag-rotate {
+  0% {
+    transform: rotateZ(-5deg);
+  }
+
+  100% {
+    transform: rotateZ(5deg);
+  }
+}
+
+
+.animation-tag-rotate {
+  transform-origin: top;
+  animation-name: tag-rotate;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: none;
+  animation-play-state: running;
+}
+
+
+@keyframes move-about {
+  0% {
+    transform: scale(1.0);
+  }
+
+  50% {
+    transform: scale(0.8);
+  }
+
+  75% {
+    transform: scale(2);
+  }
+
+  100% {
+    transform: scale(1.0);
+  }
+}
+
+
+.animation-move-about {
+  transform-origin: center;
+  animation-name: move-about;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: both;
+  animation-play-state: running;
+}
