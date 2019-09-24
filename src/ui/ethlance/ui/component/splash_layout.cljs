@@ -13,6 +13,46 @@
    [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]))
 
 
+(defn c-how-to-card [label src]
+  [:div.how-to-card
+   [:div.image 
+    [:img {:src src}]]
+   [:span.label label]])
+
+
+(defn c-how-to-candidate
+  []
+  [:div.how-to-candidate
+   [c-how-to-card "Find A Job" "./images/icon-find.png"]
+   [c-how-to-card "Apply For A Job" "./images/icon-applyjob.png"]
+   [c-how-to-card "Get Hired" "./images/icon-ok.png"]
+   [c-how-to-card "Create Invoices" "./images/icon-tasks.png"]
+   [c-how-to-card "Receive Ether" "./images/icon-free-ether.png"]
+   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+
+
+(defn c-how-to-employer
+  []
+  [:div.how-to-candidate
+   [c-how-to-card "Create A Job" "./images/icon-create.png"]
+   [c-how-to-card "Invite Freelancers" "./images/icon-invite.png"]
+   [c-how-to-card "Accept Job Proposals" "./images/icon-accept.png"]
+   [c-how-to-card "Get Tasks Done" "./images/icon-free-tasks.png"]
+   [c-how-to-card "Pay Invoices In Ether" "./images/icon-ether.png"]
+   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+
+
+(defn c-how-to-arbiter
+  []
+  [:div.how-to-candidate
+   [c-how-to-card "Complete Your Profile" "./images/icon-free-tasks.png"]
+   [c-how-to-card "Receive Invite For Job" "./images/icon-invite.png"]
+   [c-how-to-card "Investigate The Problem" "./images/icon-find.png"]
+   [c-how-to-card "Resolve The Dispute" "./images/icon-ok.png"]
+   [c-how-to-card "Receive Ether" "./images/icon-free-ether.png"]
+   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+
+
 (defn c-how-it-works-layout
   []
   (let [*current-selection (r/atom :candidate)]
@@ -38,13 +78,13 @@
       (case @*current-selection
        :candidate
        [:div.active-page.candidate-page
-        "Candidate Page"]
+        [c-how-to-candidate]]
        :employer
        [:div.active-page.employer-page
-        "Employer Page"]
+        [c-how-to-employer]]
        :arbiter
        [:div.active-page.arbiter-page
-        "Arbiter Page"])])))
+        [c-how-to-arbiter]])])))
 
 
 (defn c-splash-layout

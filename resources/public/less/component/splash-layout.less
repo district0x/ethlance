@@ -478,6 +478,82 @@
             margin: 1em;
           }
         }
+        
+        > .active-page {
+          > .how-to-candidate {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-column-gap: 1.5em;
+            margin: 1.5em;
+            margin-top: 4em;
+
+            > .how-to-card {
+              position: relative;
+              display: grid;
+              grid-template-rows: 2fr 1fr;
+              grid-template-columns: auto;
+              background-color: #f7f6fe;
+              padding: 0.7em;
+
+              &:before {
+                content: '';
+                width: 4.5rem;
+                height: 7rem;
+                position: absolute;
+                background-size: 100%;
+                background-position: center bottom;
+                background-repeat: no-repeat;
+              }
+              
+              &:nth-child(2n) {
+                margin-top: 2.5em;
+
+                &:before {
+                  background-image: url(../images/svg/traces-yellow-v.svg);
+                  bottom: -3.5rem;
+                  right: -3.2rem;
+                }
+              }
+
+              &:nth-child(2n+1) {
+                margin-bottom: 2.5em;
+
+                &:before {
+                  background-image: url(../images/svg/traces-blue-v.svg);
+                  top: -4.5rem;
+                  right: -3.5rem;
+                }
+              }
+
+              &:last-child:before {
+                background-image: none;
+              }
+
+              > .image {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 1em 0;
+                > img {
+                  display: block;
+                  max-width: 80px;
+                  max-height: 80px;
+                  width: auto;
+                  height: auto;
+                }
+              }
+              
+              > .label {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.6em;
+                font-weight: 300;
+                line-height: 2em;
+              }
+            }
+          }
+        }
       }
     }
   }
