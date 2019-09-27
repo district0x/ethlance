@@ -95,7 +95,8 @@ clean-all: clean
 deps:
 	lein deps
 	npm install @sentry/node # Hotfix
-	npm install less
+	npm install less@3.10.3
+	npm install less-watch-compiler@1.14.1
 
 
 watch-contracts:

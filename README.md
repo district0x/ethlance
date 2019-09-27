@@ -9,6 +9,8 @@ change before final release*
 
 ## Prerequisites
 
+* [NodeJS](https://nodejs.org) (Latest LTS Version)
+
 * [Leiningen](https://leiningen.org/)
 
 * [solc](https://www.npmjs.com/package/solc)
@@ -89,6 +91,8 @@ If this is a first time setup, or you accidentally ran `make
 clean-all`, you are required to re-install additional node
 dependencies with:
 
+**Tested with GCC 6 & GCC 7, does not appear to work with GCC 8**
+
 ```bash
 make deps
 ```
@@ -98,6 +102,14 @@ If you're having issues with your environment, you can run this command:
 ```bash
 make clean-all deps
 ```
+
+#### Additional Troubleshooting
+
+- Make sure you are using NodeJS LTS Version. (Latest LTS Version is
+  v10.16.3 as of this posting)
+
+- GCC 8+ do not work with some of the district libraries. This might
+  change in the future. Please use GCC Version 6, or GCC Version 7.
 
 ### Figwheel Server and Node Server Instance
 

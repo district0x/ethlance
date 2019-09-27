@@ -116,7 +116,12 @@
          ;; Note: district0x/district-server-web3 uses ganache-core@2.0.2, which depends on 0.6.0
          ;; Note: https://github.com/ethereumjs/ethereumjs-wallet/issues/64
          [ethereumjs-wallet "0.6.0"]
-         [jsedn "0.4.1"]]}
+         [jsedn "0.4.1"]
+
+         ;; Development Dependencies
+         [less "3.10.3"]
+         [less-watch-compiler "1.14.1"]
+         [ganache-cli "6.7.0"]]}
 
   :solc {:src-path "contracts/"
          :build-path "resources/public/contracts/build"
