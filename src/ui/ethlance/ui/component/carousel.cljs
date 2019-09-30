@@ -10,6 +10,27 @@
 
 
 (defn c-carousel
+  "Carousel Component for displaying multiple 'slides' of content
+
+  # Keyword Arguments
+
+  opts - Optional Arguments
+
+  children - Each individual slide to be displayed within the carousel.
+
+  # Optional Arguments (opts)
+
+  :default-index - The index within the `children` to display
+  first [default: 0]
+
+  # Examples
+
+  ```clojure
+  [c-carousel {}
+   [c-feedback-slide feedback-1]
+   [c-feedback-slide feedback-2]]
+  ```
+  "
   [{:keys [default-index]
     :or {default-index 0}
     :as opts} & children]
