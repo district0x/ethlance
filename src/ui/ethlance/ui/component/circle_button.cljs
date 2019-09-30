@@ -5,6 +5,36 @@
 
 
 (defn c-circle-icon-button
+  "Circular Button Component with an icon.
+
+  # Keyword Arguments
+
+  opts - Optional Arguments
+
+  # Optional Arguments
+
+  :name - Keyword name of the icon to use. List of allowed keywords
+  can be found in the ethlance.ui.component.icon namespace.
+
+  :color - Color scheme to use with the component. `:primary`,
+  `:secondary`, or `:none`. [default: :primary].
+
+  :size - Size of the circular button. `:small`, `:normal`,
+  `:large`. [default: :normal].
+
+  :disabled? - If true, sets the 'disabled' class.
+
+  :hide? - If true, sets the 'hide' class, which will precent
+  displaying of the component.
+
+  :on-click - Provide an on-click handler, for when the button is pressed.
+
+  # Examples
+
+  ```clojure
+  [c-circle-button {:name :github :on-click #(log/info \"You want to navigate to the github page\")}]
+  ```
+  "
   []
   (fn [{:keys [name color size disabled? hide? on-click]
         :or {name :about color :primary size :normal}
