@@ -14,7 +14,9 @@
 
 ETHLANCE_ENV := dev # dev, qa, prod
 ETHEREUM_NETWORK := ganache # ganache, parity
-
+LESS_WATCH_SCRIPT := ./node_modules/less-watch-compiler/dist/less-watch-compiler.js
+LESS_BIN_PATH := ./node_modules/less/bin
+PATH := $(PATH):$(LESS_BIN_PATH)
 
 help:
 	@echo "Ethlance Development and Production Build Makefile"
@@ -160,8 +162,9 @@ check:
 	@sh ./scripts/check_prerequisites.sh
 
 
+
 watch-css:
-	less-watch-compiler resources/public/less resources/public/css main.less
+	node $(LESS_WATCH_SCRIPT) resources/public/less resources/public/css main.less
 
 
 build-css:
