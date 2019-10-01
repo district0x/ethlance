@@ -137,6 +137,7 @@ run:
 ipfs:
 	ipfs daemon
 
+
 # Environment setup for truffle
 TRUFFLE_SCRIPT_FILE := ./node_modules/truffle/build/cli.bundled.js
 deploy:

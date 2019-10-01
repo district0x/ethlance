@@ -80,7 +80,6 @@
                  [district0x/re-frame-ipfs-fx "0.0.2"]]
 
   :plugins [[lein-ancient "0.6.15"]
-            [lein-solc "1.0.1-1"]
             [lein-cljsbuild "1.1.7"]
             [lein-npm "0.6.2"]
             [lein-shell "0.5.0"]
@@ -109,7 +108,6 @@
          [graphql "0.13.1"]
          [graphql-fields "1.0.2"]
          [graphql-tools "3.0.1"]
-         [solc "0.4.20"]
          [source-map-support "0.5.9"]
          [ws "4.0.0"]
 
@@ -123,17 +121,6 @@
          [less-watch-compiler "1.14.1"]
          [ganache-cli "6.7.0"]
          [truffle "5.0.38"]]}
-
-  :solc {:src-path "contracts/"
-         :build-path "resources/public/contracts/build"
-         ;; :byte-count true
-         :solc-err-only true
-         :verbose false
-         :abi? false
-         :bin? false
-         :truffle-artifacts? true
-         :wc true
-         :contracts :all}
 
   :profiles
   {:dev
