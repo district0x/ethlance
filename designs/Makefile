@@ -8,7 +8,7 @@
 # Quickstart:
 #  - make build deploy
 
-.PHONY: help build deploy clean
+.PHONY: help build deploy clean deps
 
 
 SERVER_PORT := 8080
@@ -18,6 +18,7 @@ help:
 	@echo "Ethlance Static PHP Site"
 	@echo ""
 	@echo "Development Commands:"
+	@echo "  deps               :: Setup initial dependencies."
 	@echo "  build              :: Build the src files for deployment."
 	@echo "  deploy             :: Run a local PHP server for development."
 	@echo ""
@@ -32,6 +33,10 @@ build:
 
 deploy:
 	cd ./deploy && php -S localhost:$(SERVER_PORT)
+
+
+deps:
+	npm install .
 
 
 clean:

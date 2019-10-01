@@ -4,19 +4,21 @@
 .PHONY: dev-server
 .PHONY: fig-dev-all fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build-css build
-.PHONY: watch-contracts watch-tests watch-css
+.PHONY: watch-tests watch-css
 .PHONY: deploy testnet ipfs docs
 .PHONY: run
 .PHONY: deps test travis-test
-.PHONY: design-build design-deploy
+.PHONY: design-build design-deploy design-deps
 .PHONY: check clean clean-all
 
 
 ETHLANCE_ENV := dev # dev, qa, prod
 ETHEREUM_NETWORK := ganache # ganache, parity
-LESS_WATCH_SCRIPT := ./node_modules/less-watch-compiler/dist/less-watch-compiler.js
-LESS_BIN_PATH := ./node_modules/less/bin
-PATH := $(PATH):$(LESS_BIN_PATH)
+
+
+#
+# Start
+#
 
 help:
 	@echo "Ethlance Development and Production Build Makefile"
@@ -29,7 +31,6 @@ help:
 	@echo "  fig-dev-server          :: Start and watch Figwheel Server Build."
 	@echo "  fig-dev-ui              :: Start and watch Figwheel UI Build."
 	@echo "  --"
-	@echo "  watch-contracts         :: Start and watch Solidity Contracts."
 	@echo "  watch-tests             :: Start and watch Server tests."
 	@echo "  watch-css               :: Start and watch CSS Stylesheet Generation (LESS)."
 	@echo "  --"
@@ -54,6 +55,7 @@ help:
 	@echo "  test                    :: Run Server Tests (once)."
 	@echo ""
 	@echo "Design Commands:"
+	@echo "  design-deps             :: Initial Setup of the Design Site. (once)"
 	@echo "  design-build            :: Build Ethlance Design Static Website."
 	@echo "  design-deploy           :: Deploy Ethlance Design Static Website."
 	@echo ""
@@ -97,12 +99,6 @@ clean-all: clean
 deps:
 	lein deps
 	npm install @sentry/node # Hotfix
-	npm install less@3.10.3
-	npm install less-watch-compiler@1.14.1
-
-
-watch-contracts:
-	lein solc auto
 
 
 watch-tests:
@@ -117,17 +113,13 @@ build-server:
 	lein cljsbuild once prod-server
 
 
-build-contracts:
-	lein solc once
-
-
-build-dist: deps
+build-dist:
 	cp -R ./resources ./dist/
 	cp -R node_modules ./dist/
 	sed -i s/ethlance_ui.js/ethlance_ui.min.js/g dist/resources/public/index.html
 
 
-build: clean-all deps build-ui build-server build-contracts build-css build-dist
+build: build-ui build-server build-contracts build-css build-dist
 
 
 test:
@@ -145,13 +137,21 @@ run:
 ipfs:
 	ipfs daemon
 
-
+# Environment setup for truffle
+TRUFFLE_SCRIPT_FILE := ./node_modules/truffle/build/cli.bundled.js
 deploy:
-	truffle migrate --network $(ETHEREUM_NETWORK) --reset
+	node $(TRUFFLE_SCRIPT_FILE) migrate --network $(ETHEREUM_NETWORK) --reset
 
 
+build-contracts:
+	node $(TRUFFLE_SCRIPT_FILE) compile
+
+
+# Environment setup for ganache-cli
+TESTNET_SCRIPT_FILE := ./node_modules/ganache-cli/cli.js
+TESTNET_PORT := 8545 # 8549
 testnet:
-	ganache-cli
+	node $(TESTNET_SCRIPT_FILE) -p $(TESTNET_PORT)
 
 
 docs:
@@ -162,13 +162,22 @@ check:
 	@sh ./scripts/check_prerequisites.sh
 
 
+# Environment Setup for lessc, and less-watch-compiler
+LESS_WATCH_SCRIPT := ./node_modules/less-watch-compiler/dist/less-watch-compiler.js
+LESS_BIN_PATH := ./node_modules/less/bin
+PATH := $(LESS_BIN_PATH):$(PATH)
+
 
 watch-css:
 	node $(LESS_WATCH_SCRIPT) resources/public/less resources/public/css main.less
 
 
 build-css:
-	less resources/public/less/main.less resources/public/css/main.css
+	$(LESS_BIN_PATH)/lessc resources/public/less/main.less resources/public/css/main.css
+
+
+design-deps:
+	make -C ./designs deps
 
 
 design-build:

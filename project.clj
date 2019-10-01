@@ -121,7 +121,8 @@
          ;; Development Dependencies
          [less "3.10.3"]
          [less-watch-compiler "1.14.1"]
-         [ganache-cli "6.7.0"]]}
+         [ganache-cli "6.7.0"]
+         [truffle "5.0.38"]]}
 
   :solc {:src-path "contracts/"
          :build-path "resources/public/contracts/build"
