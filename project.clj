@@ -1,6 +1,6 @@
 (defproject district0x/ethlance "2.0.0-SNAPSHOT"
   :url "https://github.com/district0x/ethlance"
-  :dependencies [[org.clojure/clojure "1.10.0"]
+  :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/clojurescript "1.10.520"]
 
                  ;; General
@@ -8,11 +8,11 @@
                  [camel-snake-kebab "0.4.0"]
                  [cljs-web3 "0.19.0-0-11"]
                  [cljsjs/buffer "5.1.0-1"]
-                 [cljsjs/d3 "5.9.2-0"]
+                 [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.rpl/specter "1.1.2"]
-                 [com.taoensso/encore "2.112.0"]
+                 [com.taoensso/encore "2.116.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/bignumber "1.0.3"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
@@ -20,15 +20,15 @@
                  [expound "0.7.2"]
                  [funcool/cuerdas "2.2.0"]
                  [garden "1.3.9"]
-                 [medley "1.1.0"]
+                 [medley "1.2.0"]
                  [mount "0.1.16"]
                  [orchestra "2019.02.06-1"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
-                 [org.clojure/core.async "0.4.490"]
+                 [org.clojure/core.async "0.4.500"]
                  [org.clojure/core.match "0.3.0"]
                  [org.clojure/tools.reader "1.3.2"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.10.6"]
+                 [re-frame "0.10.9"]
                  [reagent "0.8.1"]
 
                  ;; District General Libraries
@@ -130,11 +130,11 @@
     :resource-paths ["dev/resources"]
     :dependencies [[cider/piggieback "0.4.1"]
                    [org.clojure/tools.nrepl "0.2.13"]
-                   [figwheel "0.5.18"]
-                   [figwheel-sidecar "0.5.18"]
+                   [figwheel "0.5.19"]
+                   [figwheel-sidecar "0.5.19"]
                    [binaryage/devtools "0.9.10"]
                    [doo "0.1.11"]]
-    :plugins [[lein-figwheel "0.5.18"]
+    :plugins [[lein-figwheel "0.5.19"]
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns ethlance.dev.user
                    :nrepl-middleware [cider.piggieback/wrap-cljs-repl]
