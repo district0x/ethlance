@@ -41,7 +41,7 @@
 
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
-                 [district0x/district-server-db "1.0.3"]
+                 [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-graphql "1.0.15"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
@@ -101,7 +101,8 @@
   :exclusions [cljsjs/react-with-addons]
 
   :npm {:dependencies
-        [[chalk "2.3.0"]
+        [[better-sqlite "5.4.0"]
+         [chalk "2.3.0"]
          [cors "2.8.4"]
          [express "4.15.3"]
          [express-graphql "0.7.1"]
