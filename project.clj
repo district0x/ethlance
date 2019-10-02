@@ -34,21 +34,21 @@
                  ;; District General Libraries
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
-                 [district0x/district-format "1.0.5"]
-                 [district0x/district-graphql-utils "1.0.8"]
-                 [district0x/district-sendgrid "1.0.0"]
+                 [district0x/district-format "1.0.7"]
+                 [district0x/district-graphql-utils "1.0.9"]
+                 [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-time "1.0.1"]
 
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
-                 [district0x/district-server-graphql "1.0.15"]
+                 [district0x/district-server-graphql "1.0.17"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.0.14"]
+                 [district0x/district-server-smart-contracts "1.0.17"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.3"]
-                 [district0x/district-server-web3-events "1.0.3"]
+                 [district0x/district-server-web3-events "1.0.4"]
 
                  ;; District UI Components
                  ;;[district0x/cljs-ipfs-native "1.0.0"]
