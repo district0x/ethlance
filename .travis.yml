@@ -3,18 +3,13 @@ dist: xenial
 language: clojure
 
 node_js:
-  - "11"
+  - "10"
 
 install: make deps
 
 script: make travis-test
 
 before_install:
-
-# Retrieve Specific Version of Solc
-- sudo wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.5.8/solc-static-linux
-- sudo chmod a+x /bin/solc-static-linux
-- sudo ln -s /bin/solc-static-linux /bin/solc
 
 # Retrieve IPFS client
 - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
@@ -25,23 +20,17 @@ before_install:
 - ipfs-update/ipfs-update install latest
 - ipfs init
 
-# Update Node Version through nvm
-- nvm install 11.14.0
-- nvm use 11.14.0
-
-# Get ganache-cli commandline tool
-- npm install -g ganache-cli
-
-# Get truffle commandline tool
-- npm install -g truffle
+# Update Node Version through nvm (latest LTS version)
+- nvm install 10.16.3
+- nvm use 10.16.3
 
 before_script:
 
 # Start ganache-cli as background process
-- ganache-cli > /dev/null &
+- make testnet > /dev/null &
 
 # Start IPFS Daemon as background process
-- ipfs daemon > /dev/null &
+- make ipfs > /dev/null &
 
 # Deploy Truffle Migration
 - make deploy
