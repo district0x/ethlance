@@ -245,19 +245,6 @@ contract EthlanceWorkContract {
     revert("Failed to meet required requestInvite criteria");
   }
 
-    
-  /// @dev Overloaded requestInvite for direct employer and candidate requests.
-  /*
-    Notes:
-
-    - The address is set to 0x0 to reflect that it's a direct
-    request from a candidate, or an employer.
-
-  */
-  function requestInvite() public {
-    requestInvite(address(0));
-  }
-    
 
   /// @dev Start the work contract
   /*
