@@ -8,7 +8,7 @@
 # Quickstart:
 #  - make build deploy
 
-.PHONY: help build deploy clean deps
+.PHONY: help build deploy clean clean-all deps
 
 
 SERVER_PORT := 8080
@@ -27,8 +27,9 @@ help:
 	@echo "  help               :: Displays this help message."
 
 
+GULP_SCRIPT := ./node_modules/gulp/bin/gulp.js
 build:
-	gulp build
+	node $(GULP_SCRIPT) build
 
 
 deploy:
@@ -45,3 +46,7 @@ clean:
 	rm -rf deploy/pages
 	rm -rf deploy/css
 	rm -rf deploy/index.php
+
+
+clean-all: clean
+	rm -rf node_modules
