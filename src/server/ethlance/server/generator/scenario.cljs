@@ -131,7 +131,7 @@
        (let [work-address (<!-<throw (job/work-contract-by-index job-address work-index))]
          (when candidate-accepted?
            (log/debug (str/format "--- Accepting Work Contract [%s] for Candidate [%s]" work-index candidate-address))
-           (<!-<throw (work-contract/request-invite! work-address {:from employer-address})))
+           (<!-<throw (work-contract/request-invite! work-address employer-address {:from employer-address})))
          (>! result-chan {:work-index work-index :work-address work-address}))))
     result-chan))
 

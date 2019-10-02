@@ -35,11 +35,13 @@
         (web3-eth/accounts @web3)
 
         ;; Employer User
+        _ (log/debug "- Registering Employer...")
         tx-1 (<!-<throw (test-gen/register-user! employer-address "QmZhash1"))
         employer-contract-address (<!-<throw (user-factory/user-by-address employer-address))
         _ (<!-<throw (user/register-employer! employer-contract-address {:from employer-address}))
 
         ;; Candidate User
+        _ (log/debug "- Registering Candidate...")
         tx-2 (<!-<throw (test-gen/register-user! candidate-address "QmZhash2"))
         candidate-contract-address (<!-<throw (user-factory/user-by-address candidate-address))
         _ (<!-<throw
@@ -50,6 +52,7 @@
             {:from candidate-address}))
 
         ;; Arbiter User
+        _ (log/debug "- Registering Arbiter...")
         tx-3 (<!-<throw (test-gen/register-user! arbiter-address "QmZhash3"))
         arbiter-contract-address (<!-<throw (user-factory/user-by-address arbiter-address))
         _ (<!-<throw
@@ -60,6 +63,7 @@
              :payment-type ::enum.payment/percentage}
             {:from arbiter-address}))
 
+        _ (log/debug "- Creating Job Store...")
         _ (<!-<throw (test-gen/create-job-store! {} {:from employer-address}))
         job-address (<!-<throw (job-factory/job-store-by-index 0))]
 
@@ -67,10 +71,12 @@
       (is (= employer-address (<!-<throw (job-store/employer-address job-address))))
 
       ;; Request the accepted arbiter
+      (log/debug "- Requesting the Arbiter")
       (<!-<throw (job-store/request-arbiter! job-address arbiter-address {:from arbiter-address}))
       (<!-<throw (job-store/request-arbiter! job-address arbiter-address {:from employer-address}))
 
       ;; Create the initial work contract as the candidate
+      (log/debug "- Requesting Work Contract as the Candidate...")
       (<!-<throw (job-store/request-work-contract! job-address candidate-address {:from candidate-address}))
       (let [work-address (<!-<throw (job-store/work-contract-by-index job-address 0))]
 
@@ -78,40 +84,49 @@
         (is (= ::enum.status/request-candidate-invite (<!-<throw (work-contract/contract-status work-address))))
         
         ;; Invite the candidate as the employer
-        (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+        (log/debug "- Inviting Candidate as the Employer...")
+        (<!-<throw (work-contract/request-invite! work-address employer-address {:from employer-address}))
         (is (= ::enum.status/accepted) (<!-<throw (work-contract/contract-status work-address)))
 
         ;; Proceed with the work contract
+        (log/debug "- Proceeding with the Work Contract")
         (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
         (is (= ::enum.status/in-progress (<!-<throw (work-contract/contract-status work-address))))))
 
     (testing "Create a invite request as a employer, and accept the invite as a candidate"
+      (log/debug "- Creating the next Job Store...")
       (test-gen/create-job-store! {} {:from employer-address})
       (let [job-address (<!-<throw (job-factory/job-store-by-index 1))]
 
         ;; Request the accepted arbiter
+        (log/debug "- Accepting the Arbiter...")
         (<!-<throw (job-store/request-arbiter! job-address arbiter-address {:from arbiter-address}))
         (<!-<throw (job-store/request-arbiter! job-address arbiter-address {:from employer-address}))
 
         ;; Create the initial work contract as the employer.
+        (log/debug "- Requesting the Candidate as the Employer...")
         (<!-<throw (job-store/request-work-contract! job-address candidate-address {:from employer-address}))
         (let [work-address (<!-<throw (job-store/work-contract-by-index job-address 0))]
           (is (= candidate-address (<!-<throw (work-contract/candidate-address work-address))))
           (is (= ::enum.status/request-employer-invite (<!-<throw (work-contract/contract-status work-address))))
 
           (testing "Accept the invite as the candidate."
-            (<!-<throw (work-contract/request-invite! work-address {:from candidate-address}))
+            (log/debug "- Accepting the work contract...")
+            (<!-<throw (work-contract/request-invite! work-address candidate-address {:from candidate-address}))
             (is (= ::enum.status/accepted) (<!-<throw (work-contract/contract-status work-address))))
 
           (testing "Proceed with the work contract."
+            (log/debug "- Proceeding with the work contract...")
             (<!-<throw (work-contract/proceed! work-address {:from employer-address}))
             (is (= ::enum.status/in-progress (<!-<throw (work-contract/contract-status work-address)))))
 
           (testing "Request Finished by candidate,"
+            (log/debug "- Finishing the Contract as the Candidate...")
             (is (<!-<throw (work-contract/request-finished! work-address {:from candidate-address})))
             (is (= ::enum.status/request-candidate-finished
                    (<!-<throw (work-contract/contract-status work-address)))))
 
           (testing "Accept Finished by employer"
+            (log/debug "- Finishing the Contract as the Employer for final finished state...")
             (is (<!-<throw (work-contract/request-finished! work-address {:from employer-address})))
             (is (= ::enum.status/finished (<!-<throw (work-contract/contract-status work-address))))))))))

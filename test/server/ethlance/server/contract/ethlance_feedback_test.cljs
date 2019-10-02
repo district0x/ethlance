@@ -79,7 +79,7 @@
     (<!-<throw (job-store/request-work-contract! job-address candidate-address {:from candidate-address}))
     (let [work-address (<!-<throw (job-store/work-contract-by-index job-address 0))]
       (log/debug "Accepting Work Contract...")
-      (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+      (<!-<throw (work-contract/request-invite! work-address employer-address {:from employer-address}))
       
       (log/debug "Proceeding Work Contract...")
       (<!-<throw (work-contract/proceed! work-address {:from employer-address}))

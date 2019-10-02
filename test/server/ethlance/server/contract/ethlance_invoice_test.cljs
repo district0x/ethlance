@@ -75,7 +75,7 @@
       
       ;; Invite the candidate as the employer
       (log/debug "Accepting Work Contract...")
-      (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+      (<!-<throw (work-contract/request-invite! work-address employer-address {:from employer-address}))
       (is (= ::enum.status/accepted) (<!-<throw (work-contract/contract-status work-address)))
 
       ;; Proceed with the work contract
@@ -140,7 +140,7 @@
       (is (= ::enum.status/request-candidate-invite (<!-<throw (work-contract/contract-status work-address))))
       
       (log/debug "Accept the contract as the employer...")
-      (<!-<throw (work-contract/request-invite! work-address {:from employer-address}))
+      (<!-<throw (work-contract/request-invite! work-address employer-address {:from employer-address}))
       (is (= ::enum.status/accepted) (<!-<throw (work-contract/contract-status work-address)))
 
       (log/debug "Proceed with the work contract...")

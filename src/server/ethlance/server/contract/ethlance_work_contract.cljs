@@ -49,8 +49,8 @@
 
 
 (defn request-invite!
-  [address & [opts]]
-  (call address :request-invite [] (merge {:gas 2000000} opts)))
+  [address sender & [opts]]
+  (call address :request-invite [sender] (merge {:gas 2000000} opts)))
 
 
 (defn proceed!
