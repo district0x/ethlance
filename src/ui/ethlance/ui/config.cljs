@@ -3,7 +3,7 @@
 
    ;; District UI Components
    [district.ui.component.router]
-   
+
    [ethlance.shared.routes]))
 
 
@@ -16,10 +16,13 @@
    {:id "app"
     :component-var #'district.ui.component.router/router}
 
-   :router 
+   :router
    {:routes ethlance.shared.routes/routes
     :default-route :route/home
-    :scroll-top? true}})
+    :scroll-top? true}
+
+   ;; Default one, should be moved to per env config file
+   :graphql {:jwt-sign-secret "SECRET"}})
 
 
 (def development-config

@@ -51,6 +51,7 @@
                  [district0x/district-server-web3-events "1.0.4"]
 
                  ;; District UI Components
+                 [day8.re-frame/http-fx "0.1.6"]
                  [district0x/cljs-ipfs-native "1.0.2"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
@@ -58,7 +59,7 @@
                  [district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
-                 [district0x/district-ui-graphql "1.0.9"]
+                 [district0x/district-ui-graphql "1.0.10"]
                  [district0x/district-ui-logging "1.1.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
@@ -111,6 +112,9 @@
          [source-map-support "0.5.9"]
          [ws "4.0.0"]
 
+         ;; Sign in functionality
+         [eth-sig-util "2.4.4"]
+         [jsonwebtoken "8.5.1"]
          ;; Note: district0x/district-server-web3 uses ganache-core@2.0.2, which depends on 0.6.0
          ;; Note: https://github.com/ethereumjs/ethereumjs-wallet/issues/64
          [ethereumjs-wallet "0.6.0"]
@@ -178,7 +182,7 @@
                 :optimizations :advanced
                 :closure-defines {goog.DEBUG false}
                 :pretty-print false}}
-    
+
     {:id "prod-server"
      :source-paths ["src/server" "src/shared"]
      :compiler {:main ethlance.server.core
@@ -188,7 +192,7 @@
                 :optimizations :simple
                 :closure-defines {goog.DEBUG false}
                 :pretty-print false}}
-    
+
     {:id "test-ui"
      :source-paths ["src/ui" "src/shared"
                     "dev/ui" "dev/shared"
@@ -200,7 +204,7 @@
                 :asset-path "/js/compiled/out-ui-test-runner"
                 :source-map-timestamp true
                 :closure-defines {goog.DEBUG true}}}
-    
+
     {:id "test-server"
      :source-paths ["src/server" "src/shared"
                     "dev/server" "dev/shared"

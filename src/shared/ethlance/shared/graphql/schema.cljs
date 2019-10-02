@@ -114,6 +114,11 @@
             invoice_index: Int!): Invoice
   }
 
+  type Mutation {
+    signIn(dataSignature: String!, data: String!): String
+  }
+
+
 
   # User Types
 
