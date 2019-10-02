@@ -12,7 +12,8 @@
    [ethlance.server.graphql.resolvers.invoice :as resolvers.invoice]
    [ethlance.server.graphql.resolvers.dispute :as resolvers.dispute]
    [ethlance.server.graphql.resolvers.comment :as resolvers.comment]
-   [ethlance.server.graphql.resolvers.feedback :as resolvers.feedback]))
+   [ethlance.server.graphql.resolvers.feedback :as resolvers.feedback]
+   [ethlance.server.graphql.mutations.sign-in :as mutations.sign-in]))
 
 
 (defn default-item-resolver
@@ -22,6 +23,16 @@
   [item-list]
   (get item-list :items []))
 
+(defn require-auth
+  "Given a `resolver` fn returns a wrapped resolver.
+  It will call the given `resolver` if the request contains currentUser,
+  see `ethlance.server.graphql.mutations.sign-in/session-middleware`.
+  It will throw a error otherwise."
+  [resolver]
+  (fn [& [_ _ req :as args]]
+    (if (.-currentUser req)
+      (apply resolver args)
+      (throw (js/Error. "Authentication required")))))
 
 (def graphql-resolver-map
   {:Query
@@ -48,6 +59,12 @@
 
     ;; Work Contract Queries
     :work-contract resolvers.work-contract/work-contract-query}
+
+   :Mutation
+
+   {;; Sign in with signed message
+    :sign-in mutations.sign-in/sign-in
+    }
 
    ;;
    ;; Defined Models

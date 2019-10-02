@@ -33,12 +33,14 @@
 
    ;; Ethlance Libraries
    [ethlance.shared.graphql.schema :refer [graphql-schema]]
-   [ethlance.server.graphql.resolver :refer [graphql-resolver-map]]))
+   [ethlance.server.graphql.resolver :refer [graphql-resolver-map]]
 
+   [ethlance.server.graphql.mutations.sign-in :as sign-in]))
 
 (def graphql-config
   {:port 6200
    :path "/graphql"
+   :middlewares [sign-in/session-middleware]
    :schema (build-schema graphql-schema graphql-resolver-map
                          {:kw->gql-name graphql-utils/kw->gql-name
                           :gql-name->kw graphql-utils/gql-name->kw})

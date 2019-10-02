@@ -5,10 +5,10 @@
    [clojure.pprint :refer [pprint]]
    [cljs.tests :as tests]
    [cljs.instrumentation :as instrumentation]
-   [mount.core :as mount] 
+   [mount.core :as mount]
    [honeysql.core :as sql]
    [taoensso.timbre :as log]
-   
+
    [district.graphql-utils :as graphql-utils]
    [district.server.db]
    [district.server.graphql :as graphql]
@@ -25,7 +25,7 @@
    [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
    [ethlance.server.test-runner :as server.test-runner]))
-   
+
 
 (def gql "Shorthand for district.server.graphql/run-query"
   graphql/run-query)
@@ -118,7 +118,6 @@
    js/process
    (fn []
      (apply stop-sync opts))))
-  
 
 (defn restart-sync
   "Restart the mount components."
@@ -152,7 +151,6 @@
 
 (defn run-tests
   "Runs the server tests asynchronously on the dev server.
-  
    Note: This will perform several smart contract redeployments with
   test defaults."
   []

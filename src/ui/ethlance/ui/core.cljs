@@ -13,7 +13,14 @@
    ;; Ethlance
    [ethlance.ui.config :as ui.config]
    [ethlance.ui.pages]
-   [ethlance.ui.util.injection :as util.injection]))
+   [ethlance.ui.util.injection :as util.injection]
+
+   ;; Events
+   [ui.ethlance.ui.events]
+
+   ;; Fxs
+   [ui.ethlance.ui.fxs]
+   ))
 
 
 (enable-console-print!)
