@@ -7,6 +7,7 @@
 
 
 (defn- c-menu-item
+  "Menu Item used within the navigation menu."
   [{:keys [name label route active?]}]
   [:div.nav-element
    [c-icon {:name name :color :primary :size :small}]
@@ -14,6 +15,7 @@
 
 
 (defn c-main-navigation-menu
+  "Main Navigation Menu seen while the ethlance website is in desktop-mode."
   []
   [:div.main-navigation-menu
    [c-menu-item {:name :jobs :label "Jobs"}]

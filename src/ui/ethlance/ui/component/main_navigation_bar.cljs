@@ -8,6 +8,7 @@
 
 
 (defn c-main-navigation-bar
+  "Main Navigation bar seen while the site is in desktop-mode."
   []
   [:div.main-navigation-bar
    [c-ethlance-logo {:color :white :size :small}]

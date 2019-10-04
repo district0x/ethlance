@@ -38,8 +38,30 @@
                      :class (str " star " color-class size-class active-class)}])))
 
 
-(defn c-rating [{:keys [rating color on-change size]
-                 :or {color :primary rating 0 size :default}}]
+(defn c-rating
+  "Rating Component, for displaying feedback within ethlance.
+
+  # Keyword Arguments
+  
+  opts - Optional Arguments
+
+  # Optional Arguments (opts)
+
+  :rating - An initial rating between 1 and 5
+
+  :color - The color styling of the rating component. `:primary`,
+  `:white`, `:black`. [default: `:primary`]
+
+  :on-change - Event callback function called when the rating of the
+  given component changes. Function receives one parameter which
+  consists of the rating between 1 and 5. (fn [rating]).
+
+  :size - The size styling of the rating component. `:normal`,
+  `:default`, `:large`, `:small`. [default: `:default`].
+  "
+  [{:keys [rating color on-change size]
+    :or {color :primary rating 0 size :default}
+    :as opts}]
   (let [*current-rating (r/atom rating)]
     (fn [{:keys [rating color on-change size]
           :or {color :primary rating 0 size :default}}]

@@ -15,7 +15,42 @@
 
 
 (defn c-select-input
-  [{:keys [label selections on-select default-selection color search-bar? default-search-text size]
+  "Select Input Component for a dropdown listing of selections. Can also
+  include a search box for easier navigation.
+
+  # Keyword Arguments
+
+  opts - React Props and Optional Arguments
+
+  # Optional Arguments (opts)
+
+  :label - Placeholder Text for the selection input
+
+  :selections - Collection of selections that can be made within the selection input.
+
+  :on-select - Callback function called when the selection is changed. (fn [selection]).
+
+  :default-selection - Default selection to make on initial load. [default: nil]
+
+  :color - Component Color Styling. `:primary`,
+  `:secondary`. [default: `:primary`].
+
+  :search-bar? - If true, will include a search bar for searching
+  through selections. [default: false]
+
+  :default-search-text - Placeholder Text for the search
+  bar. [default: \"Search\"]
+
+  :size - Component Size Styling. `:large`, `:default`. [default:
+  `:default`]"
+  [{:keys [label 
+           selections 
+           on-select 
+           default-selection 
+           color 
+           search-bar? 
+           default-search-text 
+           size]
     :or {default-search-text "Search"}
     :as opts}]
   (let [*open? (r/atom false)
@@ -55,7 +90,10 @@
                         :on-change #(reset! *search-text (-> % .-target .-value))
                         :placeholder default-search-text
                         :value @*search-text}]
-               [c-icon {:name :close :size :x-small :title "Clear Search" :on-click #(reset! *search-text "")}]])
+               [c-icon {:name :close
+                        :size :x-small
+                        :title "Clear Search"
+                        :on-click #(reset! *search-text "")}]])
             [:div.selection-listing
              (doall
               (for [selection (filter-selections @*search-text selections)]

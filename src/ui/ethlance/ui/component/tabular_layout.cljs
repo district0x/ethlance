@@ -7,6 +7,47 @@
 
 
 (defn c-tabular-layout
+  "Tabular Layout used within several pages on Ethlance.
+
+  # Keyword Arguments
+
+  opts - Optional Arguments and React Props for Desktop
+
+  # Optional Arguments (opts)
+
+  :default-tab - The default tab index to display on initial load.
+
+  # Rest Arguments (opts-children)
+
+  Consists of two parts. The options for the tab, and the tab element
+  
+  ## Options for the tab
+
+  :label - The text label to display for the given tab
+
+  ## Tab element
+
+  Reagent component to display when it is the active tab.
+
+  # Examples
+
+  [c-tabular-layout
+   {:key \"example-tabular-layout\"
+    :default-tab 0}
+
+   {:label \"First Tab\"}
+   [:div.first-tab [:b \"This is the first tab\"]]
+
+   {:label \"Second Tab\"}
+   [:div.second-tab [:b \"This is the second tab\"]]
+
+   {:label \"Third Tab\"}
+   [:div.third-tab [:b \"This is the third tab\"]]]
+
+  # Notes
+
+  - Only supports up to 5 tabs
+  "
   [{:keys [default-tab] :as opts} & opts-children]
   (let [opts (dissoc opts :default-tab)
         *active-tab-index (r/atom (or default-tab 0))]
