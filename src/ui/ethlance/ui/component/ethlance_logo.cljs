@@ -10,8 +10,21 @@
 (def black-logo-url "images/ethlance_logo_bw.svg")
 
 
-(defn c-ethlance-logo []
-  (fn [{:keys [color] :or {color :primary}}]
+(defn c-ethlance-logo 
+  "Ethlance Logo Component which displays the ethlance logo.
+  
+  # Keyword Arguments
+  
+  opts - Optional Arguments
+
+  # Optional Arguments (opts)
+
+  :color - Choose between different color schemes of the ethlance
+  logo, `:primary`, `:secondary`, `:white`, `:black`.
+
+  "
+  []
+  (fn [{:keys [color] :or {color :primary} :as opts}]
     (let [src (case color
                :primary primary-logo-url
                :secondary secondary-logo-url

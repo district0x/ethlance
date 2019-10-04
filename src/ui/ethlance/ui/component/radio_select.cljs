@@ -20,7 +20,33 @@
 
 
 (defn c-radio-select
-  [{:keys [default-selection on-selection flex?]} & children]
+  "Radio Select Input for collaboration with several radio elements.
+  
+  # Keyword Arguments
+
+  opts - Optional Arguments
+
+  # Optional Arguments
+
+  :default-selection - The default 'key' of the radio element to be selected on initial load.
+
+  :on-selection - event callback function supplied to handle changes
+  in the radio selection. Function has one parameter, consisting of
+  the key of the radio element that was chosen. (fn [selection])
+
+  :flex? - Applies the 'flex' class to the radio select component, to
+  make the component 'flexible'.
+
+  # Examples
+
+  [c-radio-select
+   {:default-selection :job
+    :on-selection (fn [selection] (println \"You have chosen: \" selection))
+    :flex? true}
+   [:job [c-radio-secondary-element \"Job\"]]
+   [:bounty [c-radio-secondary-element \"Bounty\"]]]
+  "
+  [{:keys [default-selection on-selection flex?] :as opts} & children]
   (let [*currently-active (r/atom default-selection)
         select-channel (chan 1)]
     (r/create-class

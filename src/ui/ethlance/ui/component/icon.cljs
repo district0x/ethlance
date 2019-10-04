@@ -27,7 +27,30 @@
    :twitter {:src "images/icons/twitter-icon.svg"}})
 
 
-(defn c-icon []
+(defn c-icon
+  "SVG Icon of common icons throughout the Ethlance website.
+
+  # Keyword Arguments:
+
+  props - Additonal optional arguments, along with React Props
+
+  # Optional Arguments (props)
+
+  :name - The name of the icon to use, as supplied by the
+  `ethlance.ui.component.icon/icon-listing`. [default: `:about`]
+
+  :color - The color of the SVG icon. `:primary`, `:secondary`,
+  `:white`, `:black`, `:none`. [default: `:primary`]
+
+  :size - The size of the SVG icon. `:x-small`, `:small`, `:normal`, `:large`.
+  
+  # Notes
+
+  - Additional React Props can be supplied to the `props` keyword
+  argument.
+
+  "
+  []
   (fn [{:keys [name color size]
         :or {name :about
              color :primary

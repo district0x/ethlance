@@ -1,4 +1,5 @@
 (ns ethlance.ui.component.main-layout
+  ""
   (:require
    [re-frame.core :as rf]
    
@@ -10,6 +11,17 @@
 
 
 (defn c-main-layout
+  "The main layout of each page in the ethlance ui.
+
+  # Keyword Arguments
+
+  opts - React Props and additional Optional Arguments
+
+  # Optional Arguments (opts)
+
+  :container-opts - React Props to be applied to the main container
+  that contains the child component.
+  "
   [{:keys [container-opts] :as opts}
    & children]
   (let [opts (dissoc opts :container-opts)]

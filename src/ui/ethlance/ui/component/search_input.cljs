@@ -53,6 +53,34 @@
 
 
 (defn c-chip-search-input
+  "A standalone component for handling chip search inputs.
+
+  # Keywoard Arguments
+
+  opts - Optional Arguments
+
+  # Optional Arguments (opts)
+
+  :default-chip-listing - A collection of chip searches to use by
+  default on initial load.
+
+  :auto-suggestion-listing - A collection of string elements, which is
+  displayed as a dropdown menu to choose from while searching for new
+  chips to apply to the chip search.
+
+  :on-chip-listing-change - An event callback function, consisting of
+  one parameter, containing the currently applied
+  chips. (fn [chip-listing])
+
+  :allow-custom-chips? - If true, will allow the user to supply any
+  custom chips that do not need to adhere to the supplied listing
+  within `:auto-suggestiong-listing`. [:default false]
+
+  :search-icon? - If true, will display a styled search icon within
+  the component. [default: true].
+
+  :placeholder - Input Placeholder text to display in the chip search
+  component."
   [{:keys [default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
@@ -60,7 +88,8 @@
            search-icon?
            placeholder]
     :or {search-icon? true
-         placeholder "Search Tags"}}]
+         placeholder "Search Tags"}
+    :as opts}]
   (let [*active-suggestion (r/atom nil)
         *chip-listing (r/atom (or (set default-chip-listing) #{}))
         *search-text (r/atom "")]
