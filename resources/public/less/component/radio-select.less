@@ -1,5 +1,10 @@
 /// radio-select.less -- Ethlance component for making radio selection
 
+
+@checkbox-background-color: #color[offwhite3];
+@checkbox-foreground-color: #color[dark-blue];
+
+
 .ethlance-radio-select {
   display: flex;
   flex-direction: column;
@@ -18,11 +23,12 @@
       margin-right: 0.5em;
 
       #outer-circle {
-	      stroke: fadeout(white, 25%) !important;
+	stroke: @checkbox-background-color !important;
+        //fill: @checkbox-background-color !important;
       }
 
       #inner-circle {
-	      fill: transparent !important;
+	fill: transparent !important;
       }
     }
 
@@ -41,11 +47,11 @@
         margin-right: 0.5em;
         
         #outer-circle {
-	        stroke: fadeout(white, 25%) !important;
+	  stroke: fadeout(white, 25%) !important;
         }
         
         #inner-circle {
-	        fill: white !important;
+	  fill: white !important;
         }
       }
       
@@ -77,11 +83,12 @@
     margin-right: 0.5em;
 
     #outer-circle {
-	    stroke: fadeout(black, 50%) !important;
+      stroke: @checkbox-background-color !important;
+      fill: @checkbox-background-color !important;
     }
 
     #inner-circle {
-	    fill: fadeout(black, 90%) !important;
+      fill: @checkbox-background-color !important;
     }
   }
 
@@ -92,7 +99,7 @@
 
   &:hover {
     > .label {
-      color: fadeout(#color[dark-blue], 25%);
+      color: fadein(#color[dark-blue], 25%);
     }
   }
 }
@@ -100,19 +107,20 @@
 
 // Hacky way to get active element to get selected correctly
 .ethlance-radio-element.active > .radio-secondary-element {
-    > .ethlance-inline-svg {
-      margin-right: 0.5em;
-      
-      #outer-circle {
-	      stroke: fadeout(black, 25%) !important;
-      }
-      
-      #inner-circle {
-	      fill: black !important;
-      }
+  > .ethlance-inline-svg {
+
+    margin-right: 0.5em;
+    
+    #outer-circle {
+      stroke: @checkbox-background-color !important;
     }
     
-    > .label {
-      color: black;
+    #inner-circle {
+      fill: @checkbox-foreground-color !important;
     }
+  }
+  
+  > .label {
+    color: black;
+  }
 }
