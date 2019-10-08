@@ -79,7 +79,7 @@
           {:on-click #(swap! *open? not)}
           [:span.label (or @*current-selection label)]
           [c-icon {:class "icon"
-                   :name (if @*open? :ic-arrow-down :ic-arrow-up)
+                   :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
                    :size :small}]]
          (when @*open?

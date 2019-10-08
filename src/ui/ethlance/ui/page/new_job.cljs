@@ -3,6 +3,8 @@
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
    [reagent.core :as r]
+   
+   [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
@@ -51,10 +53,10 @@
             [:job [c-radio-secondary-element "Job"]]
             [:bounty [c-radio-secondary-element "Bounty"]]]]
           [:div.name-input
-           [c-text-input {:placeholder "Job Name"}]]
+           [c-text-input {:placeholder "Name"}]]
           [:div.category-input
            [c-select-input
-            {:label "Select Category"
+            {:label "Category"
              :selections ["All Categories" "Programming"]}]]
           (when-not is-bounty?
             [:div.bid-for-radio-input.radio
@@ -108,8 +110,9 @@
            [:div.label "Required Skills"]
            [c-chip-search-input
             {:search-icon? false
+             :auto-suggestion-listing constants/skills
              :placeholder "Search Skills"
-             :allow-custom-chips? true}]]
+             :allow-custom-chips? false}]]
 
           [:div.description-text.chip
            [:div.label "Description"]
