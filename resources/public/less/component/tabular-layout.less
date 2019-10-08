@@ -21,8 +21,16 @@
   > .tab-listing {
     grid-area: tab-listing;
     display: grid;
-	  grid-template-columns: repeat(5, 1fr);
-	  grid-column-gap: 1em;
+    grid-template-columns: repeat(5, 1fr);
+    grid-column-gap: 1em;
+    
+    &.tab-count-1 , &.tab-count-2 , &.tab-count-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    &.tab-count-4 , &.tab-count-5 {
+      grid-template-columns: repeat(5, 1fr);
+    }
 
     @media #media[tablet-query] {
       display: none;
