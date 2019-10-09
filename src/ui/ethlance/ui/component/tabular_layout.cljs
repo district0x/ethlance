@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.tabular-layout
   (:require
    [reagent.core :as r]
+   [medley.core :refer [deep-merge]]
 
    ;; Ethlance Components
    [ethlance.ui.component.select-input :refer [c-select-input]]))
@@ -52,11 +53,14 @@
   (let [opts (dissoc opts :default-tab)
         *active-tab-index (r/atom (or default-tab 0))]
     (fn []
-      (let [tab-parts (partition 2 opts-children)
+      (let [opts (dissoc opts :default-tab)
+            tab-parts (partition 2 opts-children)
             tab-options (map-indexed #(-> %2 first (assoc :index %1)) tab-parts)
-            tab-children (mapv second tab-parts)]
+            tab-children (mapv second tab-parts)
+            tab-count-class (str "tab-count-" (count tab-children))]
         [:div.tabular-layout opts
          [:div.tab-listing
+          {:class tab-count-class}
           (doall
            (for [{:keys [index label]} tab-options]
              ^{:key (str "tab-" index)}
@@ -73,9 +77,9 @@
             :size :large
             :on-select
             (fn [selection]
-             (let [selections (map :label tab-options)
-                   new-index (.indexOf selections selection)]
-               (reset! *active-tab-index new-index)))}]]
-            
+              (let [selections (map :label tab-options)
+                    new-index (.indexOf selections selection)]
+                (reset! *active-tab-index new-index)))}]]
+         
          [:div.active-page {:key "active-page"}
           (get tab-children @*active-tab-index)]]))))
