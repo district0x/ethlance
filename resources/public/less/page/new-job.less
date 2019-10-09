@@ -51,7 +51,11 @@
     }
 
     > .name-input {
-      padding: 1em 0;
+      > input {
+        #mixin.input.text();
+        padding: 1em 0.5em;
+        width: 100%;
+      }
     }
 
     > .category-input {

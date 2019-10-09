@@ -34,20 +34,25 @@
 
   @header-margin: 3em;
   > .main-margin {
+    @sidebar-width: 240px;
+
     display: grid;
     grid-template-areas: 'main-navigation-menu main-container';
-    grid-template-columns: minmax(180px, 240px) 3fr;
+    grid-template-columns: @sidebar-width 3fr;
     margin: auto;
     margin-top: 0;
     max-width: #media[max-width];
+    min-width: #media[desktop-width];
 
     @media #media[desktop-query] {
       grid-template-areas: 'main-container';
       grid-template-columns: 1fr;
+      min-width: #media[tablet-width];
     }
 
     @media #media[tablet-query] {
       width: 100%;
+      min-width: #media[mobile-width];
     }
 
     > .main-navigation-menu {
@@ -65,6 +70,7 @@
       margin-right: 1.2em;
       grid-area: main-container;
       border-radius: 10px;
+      width: 100%;
 
       @media #media[desktop-query] {
         margin-left: 1.2em;

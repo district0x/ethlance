@@ -21,36 +21,36 @@
         > .first-forms {
           display: grid;
           grid-template-areas:
-          'form-image form-name    form-professional-title form-professional-title'
-            'form-image form-email   form-hourly-rate        form-hourly-rate'
-            'form-image form-country form-connect-github     form-connect-linkedin';
+            'form-image form-name    form-professional-title form-professional-title'
+              'form-image form-email   form-hourly-rate        form-hourly-rate'
+              'form-image form-country form-connect-github     form-connect-linkedin';
           grid-template-rows: 1fr 1fr 1fr;
           grid-template-columns: 2fr 4fr 3fr 3fr;
           grid-gap: 2em;
 
           @media #media[tablet-query] {
             grid-template-areas:
-            'form-image form-image'
-              'form-name form-name'
-              'form-email form-email'
-              'form-country form-country'
-              'form-professional-title form-professional-title'
-              'form-hourly-rate form-hourly-rate'
-              'form-connect-github form-connect-linkedin';
+              'form-image form-image'
+                'form-name form-name'
+                'form-email form-email'
+                'form-country form-country'
+                'form-professional-title form-professional-title'
+                'form-hourly-rate form-hourly-rate'
+                'form-connect-github form-connect-linkedin';
             grid-template-rows: repeat(8, auto);
             grid-template-columns: 1fr 1fr;
           }
 
           @media #media[mobile-query] {
             grid-template-areas:
-            'form-image'
-              'form-name'
-              'form-email'
-              'form-country'
-              'form-professional-title'
-              'form-hourly-rate'
-              'form-connect-github'
-              'form-connect-linkedin';
+              'form-image'
+                'form-name'
+                'form-email'
+                'form-country'
+                'form-professional-title'
+                'form-hourly-rate'
+                'form-connect-github'
+                'form-connect-linkedin';
             grid-template-rows: repeat(9, auto);
             grid-template-columns: 1fr;
           }
@@ -73,9 +73,9 @@
           }
 
           > .form-image {
-		        display: flex;
-		        align-items: center;
-		        justify-content: center;
+	    display: flex;
+	    align-items: center;
+	    justify-content: center;
             grid-area: form-image;
             .default-form();
 
@@ -84,20 +84,20 @@
               margin: 4em 0;
             }
 
-		        > .upload-image {
-			        @bg-color: #E8EEFE;
-			        @logo-size: 150px;
+	    > .upload-image {
+	      @bg-color: #E8EEFE;
+	      @logo-size: 150px;
 
-			        display: flex;
-			        flex-direction: column;
-			        justify-content: center;
-			        align-items: center;
-			        background-color: @bg-color;
-			        height: @logo-size;
-			        width: @logo-size;
-			        border-radius: 100%;
-			        cursor: pointer;
-			        transition: background-color 0.1s ease-in;
+	      display: flex;
+	      flex-direction: column;
+	      justify-content: center;
+	      align-items: center;
+	      background-color: @bg-color;
+	      height: @logo-size;
+	      width: @logo-size;
+	      border-radius: 100%;
+	      cursor: pointer;
+	      transition: background-color 0.1s ease-in;
               
               @media #media[tablet-query] {
                 border-radius: 5px;
@@ -115,10 +115,10 @@
                 padding: 0.5em 0;
               }
 
-			        &:hover {
-			          background-color: darken(@bg-color, 10%);
-			        }
-		        }
+	      &:hover {
+		background-color: darken(@bg-color, 10%);
+	      }
+	    }
           }
 
           > .form-name {
@@ -236,8 +236,8 @@
           display: grid;
           grid-template-areas:
             'form-image form-name    form-professional-title form-professional-title'
-            'form-image form-email   form-type-of-payment    form-type-of-payment'
-            'form-image form-country form-connect-github     form-connect-linkedin';
+              'form-image form-email   form-type-of-payment    form-type-of-payment'
+              'form-image form-country form-connect-github     form-connect-linkedin';
           grid-template-rows: auto auto auto;
           grid-template-columns: 2fr 4fr 3fr 3fr;
           grid-gap: 2em;
@@ -245,12 +245,12 @@
           @media #media[tablet-query] {
             grid-template-areas:
               'form-image form-image'
-              'form-name form-name'
-              'form-email form-email'
-              'form-country form-country'
-              'form-professional-title form-professional-title'
-              'form-type-of-payment form-type-of-payment'
-              'form-connect-github form-connect-linkedin';
+                'form-name form-name'
+                'form-email form-email'
+                'form-country form-country'
+                'form-professional-title form-professional-title'
+                'form-type-of-payment form-type-of-payment'
+                'form-connect-github form-connect-linkedin';
             grid-template-rows: repeat(8, auto);
             grid-template-columns: 1fr 1fr;
           }
@@ -258,13 +258,13 @@
           @media #media[mobile-query] {
             grid-template-areas:
               'form-image'
-              'form-name'
-              'form-email'
-              'form-country'
-              'form-professional-title'
-              'form-type-of-payment'
-              'form-connect-github'
-              'form-connect-linkedin';
+                'form-name'
+                'form-email'
+                'form-country'
+                'form-professional-title'
+                'form-type-of-payment'
+                'form-connect-github'
+                'form-connect-linkedin';
             grid-template-rows: repeat(9, auto);
             grid-template-columns: 1fr;
           }
