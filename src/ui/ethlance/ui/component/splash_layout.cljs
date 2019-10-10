@@ -61,17 +61,17 @@
       [:div.button-listing
        [c-button
         {:color :primary
-         :disabled? (= @*current-selection :candidate)
+         :disabled? (not= @*current-selection :candidate)
          :on-click #(reset! *current-selection :candidate)}
         [c-button-label [:span "Freelancer"]]]
        [c-button
         {:color :primary
-         :disabled? (= @*current-selection :employer)
+         :disabled? (not= @*current-selection :employer)
          :on-click #(reset! *current-selection :employer)}
         [c-button-label [:span "Employer"]]]
        [c-button
         {:color :primary
-         :disabled? (= @*current-selection :arbiter)
+         :disabled? (not= @*current-selection :arbiter)
          :on-click #(reset! *current-selection :arbiter)}
         [c-button-label [:span "Arbiter"]]]]
 
@@ -106,10 +106,10 @@
         [c-button-label [:span "Become a "] [:b "Freelancer"]]]
        [c-button
         {:color :primary :size :auto}
-        [c-button-label [:span "Become an "] [:b "Arbiter"]]]
+        [c-button-label [:span "Become an "] [:b "Employer"]]]
        [c-button
         {:color :primary :size :auto}
-        [c-button-label [:span "Become an "] [:b "Employer"]]]]
+        [c-button-label [:span "Become an "] [:b "Arbiter"]]]]
       [:div.district
        [:figure.img-district
         [:img {:src "./images/district.png"}]]
@@ -210,11 +210,14 @@
    [:div.footer
     [:div.footer-content
      [:div.header-section
-      ;;[c-ethlance-logo {:color :white}]
+      [:div.logo
+       [c-ethlance-logo {:color :white}]]
       [:h2 "The Future of Work is Now."]
       [:h2 "Stay up-to-date with Ethlance."]
       ;; TODO: email input component
-      [:input {:type "email" :placeholder "Enter Email"}]]
+      [:div.fancy-email
+       [:input.form-input {:type "email" :placeholder "Enter Email"}]
+       [:span.form-button [c-icon {:name :ic-arrow-right :size :small :color :black}]]]]
 
      [:div.splash-section
       [:img {:src "./images/icon-coins.png"}]]
