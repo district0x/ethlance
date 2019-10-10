@@ -45,7 +45,7 @@
 
    [:div.country-selector
     [c-select-input
-     {:label "Select Country"
+     {:label "Country"
       :selections constants/countries
       :search-bar? true
       :color :secondary
@@ -78,7 +78,7 @@
 
    [:div.country-selector
     [c-select-input
-     {:label "Select Country"
+     {:label "Country"
       :selections constants/countries
       :search-bar? true
       :color :secondary
@@ -92,7 +92,7 @@
     [c-profile-image {}]
     [:div.name "Brian Curran"]
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
-   [:div.price "$15 / Fixed Price"]
+   [:div.price "$15"]
    [:div.tags
     [c-tag {} [c-tag-label "System Administration"]]
     [c-tag {} [c-tag-label "Game Design"]]
@@ -119,5 +119,8 @@
        [c-arbiter-search-filter]
        [c-arbiter-mobile-search-filter]
        [:div.arbiter-listing.listing {:key "listing"}
-        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+        [c-chip-search-input
+         {:auto-suggestion-listing constants/skills
+          :allow-custom-chips? false
+          :placeholder "Search Tags"}]
         [c-arbiter-listing]]])))
