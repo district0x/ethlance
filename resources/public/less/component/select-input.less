@@ -64,7 +64,7 @@
         #mixin.input.text();
         font-style: italic;
         width: 100%;
-        padding: 0 0.5em;
+        padding: 0 1em;
         border: none;
       }
 
@@ -90,7 +90,7 @@
         background-color: white;
         border-bottom: 1px solid #d6e1fd;
         height: @input-height;
-        padding-left: 0.5em;
+        padding-left: 1em;
         cursor: pointer;
 
         &:hover {
@@ -101,17 +101,23 @@
   }
 
   &.secondary {
-    @border-attr: 2px solid desaturate(#color[light-purple], 15%);
+    @border-attr: 1px solid lighten(#color[dark-blue], 5%);
+
+    &:hover {
+      > .main {
+        background-color: #4b3fb6;
+      }
+      
+      > .ethlance-icon {
+        background-color: #color[purple];
+      }
+    }
 
     > .main {
       color: white;
       background-color: #color[light-purple];
       border-bottom: @border-attr;
       border-radius: 3px;
-
-      &:hover {
-        color: lighten(white, 3%);
-      }
     }
 
     .ethlance-icon {
@@ -119,6 +125,23 @@
     }
 
     > .dropdown {
+      > .search-bar {
+        border: none;
+        border-bottom: @border-attr;
+        background-color: #color[light-purple];
+
+        > input {
+          outline: none;
+          border: none;
+          color: white;
+          background-color: desaturate(#color[light-purple], 5%);
+        }
+
+        > .ethlance-icon {
+          background-color: desaturate(#color[light-purple], 5%);
+        }
+      }
+      
       > .selection-listing {
         > .selection {
           background-color: #color[light-purple];
@@ -126,7 +149,7 @@
           border-bottom: @border-attr;
 
           &:hover {
-	    color: black;
+	    background-color: #4b3fb6;
           }
         }
       }
