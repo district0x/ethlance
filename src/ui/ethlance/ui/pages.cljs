@@ -8,6 +8,7 @@
    [ethlance.ui.page.jobs]
    [ethlance.ui.page.arbiters]
    [ethlance.ui.page.candidates]
+   [ethlance.ui.page.employers]
 
    ;; User Pages
    [ethlance.ui.page.profile]
