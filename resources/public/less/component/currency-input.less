@@ -2,45 +2,45 @@
 
 
 .currency-input {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+
+  > input {
+    background-color: transparent;
+    outline: none;
+    border: none;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 0.5em 0;
+    max-width: 100%;
+  }
+
+  > span {
     display: flex;
     align-items: center;
-    flex-direction: row;
-    overflow: hidden;
+    justify-content: center;
+    margin: 0 5px;
+  }
 
+  &.primary {
     > input[type="text"] {
-        background-color: transparent;
-        outline: none;
-        border: none;
-        margin-right: 5px;
-        flex-grow: 1;
-        height: 100%;
+      color: white;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     }
 
     > span {
-        display: flex;
-        align-items: center;
-        margin: 0 5px;
-        height: 100%;
+      color: white;
+    }
+  }
+
+  &.secondary {
+    > input[type="text"] {
+      #mixin.input.text();
     }
 
-    &.primary {
-        > input[type="text"] {
-            color: white;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        > span {
-            color: white;
-        }
+    > span {
+      color: #color[dark-blue];
     }
-
-    &.secondary {
-        > input[type="text"] {
-            #mixin.input.text();
-        }
-
-        > span {
-            color: #color[dark-blue];
-        }
-    }
+  }
 }

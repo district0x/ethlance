@@ -11,6 +11,7 @@
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+   [ethlance.ui.component.text-input :refer [c-text-input]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
@@ -36,16 +37,13 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [:span.selection-label "Payment Type"]
-   [c-radio-select 
-    {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
-     :default-selection :fixed}
-    [:fixed [c-radio-search-filter-element "Fixed Price"]]
-    [:percentage [c-radio-search-filter-element "Percentage of Dispute"]]]
+   [c-currency-input {:placeholder "Min. Hourly Rate"}]
+   [c-currency-input {:placeholder "Max. Hourly Rate"}]
+   [c-text-input {:placeholder "Number of Feedbacks"}]
 
    [:div.country-selector
     [c-select-input
-     {:label "Select Country"
+     {:label "Country"
       :selections constants/countries
       :search-bar? true
       :color :secondary
@@ -69,16 +67,13 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [:span.selection-label "Payment Type"]
-   [c-radio-select 
-    {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
-     :default-selection :fixed}
-    [:fixed [c-radio-search-filter-element "Fixed Price"]]
-    [:percentage [c-radio-search-filter-element "Percentage of Dispute"]]]
+   [c-currency-input {:placeholder "Min. Hourly Rate"}]
+   [c-currency-input {:placeholder "Max. Hourly Rate"}]
+   [c-text-input {:placeholder "Number of Feedbacks"}]
 
    [:div.country-selector
     [c-select-input
-     {:label "Select Country"
+     {:label "Country"
       :selections constants/countries
       :search-bar? true
       :color :secondary
@@ -92,7 +87,7 @@
     [c-profile-image {}]
     [:div.name "Brian Curran"]
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
-   [:div.price "$15 / Fixed Price"]
+   [:div.price "$15"]
    [:div.tags
     [c-tag {} [c-tag-label "System Administration"]]
     [c-tag {} [c-tag-label "Game Design"]]
@@ -119,5 +114,8 @@
        [c-arbiter-search-filter]
        [c-arbiter-mobile-search-filter]
        [:div.arbiter-listing.listing {:key "listing"}
-        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+        [c-chip-search-input
+         {:auto-suggestion-listing constants/skills
+          :allow-custom-chips? false
+          :placeholder "Search Tags"}]
         [c-arbiter-listing]]])))
