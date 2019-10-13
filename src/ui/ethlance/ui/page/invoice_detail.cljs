@@ -29,7 +29,8 @@
       (let []
         [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
          [:div.title "Invoice"]
-         [:div.invoice-status "Pending"]
+         [:div.invoice-status [:span.label "Pending"]]
+
          [:div.left
           [:div.profile.employer
            [:div.label "Employer"]
@@ -37,18 +38,21 @@
            [:div.name "Brian Curran"]
            [c-rating {:rating 3}]
            [:div.location "United States, New York"]]
+
           [:div.profile.candidate
            [:div.label "Candidate"]
            [c-profile-image {}]
            [:div.name "Brian Curran"]
            [c-rating {:rating 3}]
            [:div.location "United States, New York"]]
+
           [:div.profile.arbiter
            [:div.label "Arbiter"]
            [c-profile-image {}]
            [:div.name "Brian Curran"]
            [c-rating {:rating 3}]
            [:div.location "United States, New York"]]]
+
          [:div.right
           [:div.ethlance-table
            [:table

@@ -13,11 +13,10 @@
 
   @media #media[tablet-query] {
     grid-template-areas:
-      'title'
-      'status'
-      'left'
-      'right'
-      'button';
+      'title status'
+      'left  left'
+      'right right'
+      'button button';
     grid-template-columns: auto;
     grid-template-rows: repeat(4, auto) 40px;
     margin-bottom: 4em;
@@ -33,17 +32,23 @@
 
   > .invoice-status {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    justify-content: center;
     grid-area: status;
-    background-color: #d6e1fd;
-    border-radius: 10px;
-    margin: 2em;
-    margin-right: 3em;
-    padding: 0.5em;
-    font-weight: 300;
-    font-size: 1.3em;
-    text-align: center;
+    > .label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: flex-end;
+      background-color: #d6e1fd;
+      border-radius: 5px;
+      min-width: 120px;
+      margin: 2em;
+      margin-right: 3em;
+      padding: 0.5em 1.0em;
+      font-weight: 300;
+      font-size: 1.0em;
+    }
   }
 
   > .left {
