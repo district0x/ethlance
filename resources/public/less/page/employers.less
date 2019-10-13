@@ -1,6 +1,6 @@
-/// candidates.less -- Main layout for the 'candidate listing' page
+/// employers.less -- Main layout for the 'employer listing' page
 
-#candidates() {
+#employers() {
   .search-filter-content {
     > .category-selector , > .country-selector {
       margin: 1.5em 0;
@@ -23,12 +23,12 @@
   }
 }
 
-.candidates-main-container {
+.employers-main-container {
   #mixin.main-container();
 
   > .search-filter {
     #mixin.main-container.search-filter();
-    #candidates.search-filter-content();
+    #employers.search-filter-content();
   }
 
   > .mobile-search-filter {
@@ -53,7 +53,7 @@
       }
     }
 
-    > .candidate-element {
+    > .employer-element {
       display: grid;
       grid-template-areas:
       'profile  price'
