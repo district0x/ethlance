@@ -25,7 +25,6 @@
    [district.server.graphql.utils :refer [build-schema build-default-field-resolver]]
 
    ;; Ethlance Mount Components
-   [ethlance.server.generator]
    [ethlance.server.syncer]
    [ethlance.server.db]
    [ethlance.server.ipfs]

@@ -7,8 +7,6 @@
 
    ;; Mount Components
    [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
-
-   [ethlance.server.model.synchronization :as model.sync]
    [ethlance.server.syncer.processor :as processor]))
 
 

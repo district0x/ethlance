@@ -23,8 +23,7 @@
    [ethlance.shared.spec-utils-test]
    [ethlance.shared.enumeration.currency-type-test]
    [ethlance.shared.enumeration.payment-type-test]
-   [ethlance.shared.enumeration.bid-option-test]
-   [ethlance.shared.enumeration.contract-status-test]))
+   [ethlance.shared.enumeration.bid-option-test]))
 
 
 (defn run-all-tests
@@ -41,7 +40,6 @@
    'ethlance.shared.enumeration.currency-type-test
    'ethlance.shared.enumeration.payment-type-test
    'ethlance.shared.enumeration.bid-option-test
-   'ethlance.shared.enumeration.contract-status-test
 
    ;; Database Tests
    #_'ethlance.server.db-test
