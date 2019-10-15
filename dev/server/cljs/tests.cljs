@@ -2,95 +2,26 @@
   "Place to put specific test cases to run"
   (:require
    [clojure.test :refer [run-tests]]
-   [ethlance.server.contract.ethlance-user-test]
-   [ethlance.server.contract.ethlance-user-factory-test]
-   [ethlance.server.contract.ethlance-job-factory-test]
-   [ethlance.server.contract.ethlance-job-store-test]
-   [ethlance.server.contract.ethlance-work-contract-test]
-   [ethlance.server.contract.ethlance-invoice-test]
-   [ethlance.server.contract.ethlance-dispute-test]
-   [ethlance.server.contract.ethlance-comment-test]
-   [ethlance.server.contract.ethlance-feedback-test]
-   [ethlance.server.contract.ethlance-token-store-test]
    [ethlance.server.contract.token-test]
    [ethlance.server.db-test]
-   [ethlance.server.model.user-test]
-   [ethlance.server.model.candidate-test]
-   [ethlance.server.model.arbiter-test]
-   [ethlance.server.model.employer-test]
-   [ethlance.server.model.job-test]
-   [ethlance.server.model.comment-test]
-   [ethlance.server.model.feedback-test]
    [ethlance.server.ipfs-test]
    [ethlance.shared.random-test]
    [ethlance.shared.enumeration.currency-type-test]
    [ethlance.shared.enumeration.payment-type-test]
-   [ethlance.shared.enumeration.bid-option-test]
-   [ethlance.shared.enumeration.contract-status-test]))
-
+   [ethlance.shared.enumeration.bid-option-test]))
 
 
 (defn run-enum-tests []
   (run-tests
    'ethlance.shared.enumeration.currency-type-test
    'ethlance.shared.enumeration.payment-type-test
-   'ethlance.shared.enumeration.bid-option-test
-   'ethlance.shared.enumeration.contract-status-test))
-
-
-(defn run-user-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-user-test
-               'ethlance.server.contract.ethlance-user-factory-test)))
-
-
-(defn run-job-factory-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-job-factory-test)))
-
-
-(defn run-job-store-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-job-store-test)))
-
-
-(defn run-work-contract-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-work-contract-test)))
-
-
-(defn run-invoice-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-invoice-test)))
-
-
-(defn run-dispute-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-dispute-test)))
+   'ethlance.shared.enumeration.bid-option-test))
 
 
 (defn run-db-tests []
   (.nextTick js/process
              #(run-tests
                'ethlance.server.db-test)))
-
-
-(defn run-model-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.model.user-test
-               'ethlance.server.model.candidate-test
-               'ethlance.server.model.arbiter-test
-               'ethlance.server.model.job-test
-               'ethlance.server.model.employer-test
-               'ethlance.server.model.comment-test
-               'ethlance.server.model.feedback-test)))
 
 
 (defn run-ipfs-tests []
@@ -109,22 +40,4 @@
   (.nextTick js/process
              #(run-tests
                'ethlance.server.contract.token-test)))
-
-
-(defn run-comment-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-comment-test)))
-
-
-(defn run-feedback-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-feedback-test)))
-
-
-(defn run-token-store-tests []
-  (.nextTick js/process
-             #(run-tests
-               'ethlance.server.contract.ethlance-token-store-test)))
 

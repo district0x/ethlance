@@ -20,8 +20,3 @@ check_command sed
 check_command lein
 check_command npm
 check_command ipfs
-check_command solc
-check_command ganache-cli
-check_command lessc
-check_command less-watch-compiler
-check_command truffle

@@ -7,8 +7,6 @@
 
    ;; Mount Components
    [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
-
-   [ethlance.server.model.synchronization :as model.sync]
    [ethlance.server.syncer.processor :as processor]))
 
 
@@ -27,11 +25,9 @@
   (register-callback! :ethlance-registry/ethlance-event handle-event-test ::EthlanceEvent))
 
 
-
 (defn stop
   "Stop the syncer mount component."
   []
   (log/debug "Stopping Syncer...")
   (unregister-callbacks!
    [::EthlanceEvent]))
-

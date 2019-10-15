@@ -22,7 +22,6 @@
    [ethlance.server.core]
    [ethlance.server.db]
    [ethlance.server.syncer]
-   [ethlance.server.generator :as generator]
    [ethlance.server.test-utils :as server.test-utils]
    [ethlance.server.test-runner :as server.test-runner]))
 
