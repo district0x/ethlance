@@ -1,5 +1,7 @@
 (ns ethlance.server.graphql.resolver
-  "Main GraphQL Resolver Entry-point")
+  "Main GraphQL Resolver Entry-point"
+  (:require
+   [ethlance.server.graphql.mutations.sign-in :as mutations.sign-in]))
 
 
 (defn default-item-resolver
