@@ -25,11 +25,9 @@
   (register-callback! :ethlance-registry/ethlance-event handle-event-test ::EthlanceEvent))
 
 
-
 (defn stop
   "Stop the syncer mount component."
   []
   (log/debug "Stopping Syncer...")
   (unregister-callbacks!
    [::EthlanceEvent]))
-
