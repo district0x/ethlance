@@ -152,7 +152,7 @@ build-contracts:
 TESTNET_SCRIPT_FILE := ./node_modules/ganache-cli/cli.js
 TESTNET_PORT := 8549
 testnet:
-	node $(TESTNET_SCRIPT_FILE) -p $(TESTNET_PORT)
+	node $(TESTNET_SCRIPT_FILE) -p $(TESTNET_PORT) $(TESTNET_OPTIONS)
 
 
 docs:
