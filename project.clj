@@ -87,8 +87,8 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/ui" "src/server" "src/shared"]
-  :test-paths ["test/clj"]
+  :source-paths ["src"]
+  :test-paths ["test"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
 
@@ -128,9 +128,8 @@
 
   :profiles
   {:dev
-   {:source-paths ["src/clj" "src/ui" "src/shared" "src/server"
-                   "dev/clj" "dev/ui" "dev/shared" "dev/server"
-                   "test/clj" "test/ui" "test/shared" "test/server"]
+   {:source-paths ["src" "test"
+                   "dev/clj" "dev/ui" "dev/shared" "dev/server"]
     :resource-paths ["dev/resources"]
     :dependencies [[cider/piggieback "0.4.1"]
                    [org.clojure/tools.nrepl "0.2.13"]
@@ -147,9 +146,8 @@
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src/ui" "src/shared"
-                    "dev/ui" "dev/shared"
-                    "test/ui" "test/shared"]
+     :source-paths ["src" "test"
+                    "dev/ui" "dev/shared"]
      :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main cljs.user ;; ./dev/ui
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
@@ -161,9 +159,8 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src/server" "src/shared"
-                    "dev/server" "dev/shared"
-                    "test/server" "test/shared"]
+     :source-paths ["src" "test"
+                    "dev/server" "dev/shared"]
      :figwheel true
      :compiler {:main cljs.user ;; ./dev/server
                 :output-to "target/node/ethlance_server.js"
@@ -175,7 +172,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "prod-ui"
-     :source-paths ["src/ui" "src/shared"]
+     :source-paths ["src"]
      :compiler {:main ethlance.ui.core
                 :output-to "dist/resources/public/js/compiled/ethlance_ui.min.js"
                 :output-dir "dist/resources/public/js/compiled/out-prod-ui"
@@ -184,7 +181,7 @@
                 :pretty-print false}}
 
     {:id "prod-server"
-     :source-paths ["src/server" "src/shared"]
+     :source-paths ["src"]
      :compiler {:main ethlance.server.core
                 :output-to "dist/ethlance_server.js"
                 :output-dir "target/node/out-prod-server"
@@ -194,9 +191,8 @@
                 :pretty-print false}}
 
     {:id "test-ui"
-     :source-paths ["src/ui" "src/shared"
-                    "dev/ui" "dev/shared"
-                    "test/ui" "test/shared"]
+     :source-paths ["src" "test"
+                    "dev/ui" "dev/shared"]
      :figwheel true
      :compiler {:main ethlance.ui.test-runner ;; ./test/ui
                 :output-to "dev/resources/public/js/compiled/test_runner.js"
@@ -206,9 +202,8 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "test-server"
-     :source-paths ["src/server" "src/shared"
-                    "dev/server" "dev/shared"
-                    "test/server" "test/shared"]
+     :source-paths ["src" "test"
+                    "dev/server" "dev/shared"]
      :figwheel true
      :compiler {:main ethlance.server.test-runner ;; ./test/server
                 :output-to "target/node_test/test_runner.js"

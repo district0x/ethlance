@@ -3,9 +3,9 @@ const ETHLANCE_ENV = process.env.ETHLANCE_ENV || "dev";
 
 
 const smartContractsPaths = {
-  "dev" : '/src/shared/ethlance/shared/smart_contracts_dev.cljs',
-  "qa" : '/src/shared/ethlance/shared/smart_contracts_qa.cljs',
-  "prod" :'/src/shared/ethlance/shared/smart_contracts_prod.cljs'
+  "dev" : '/src/ethlance/shared/smart_contracts_dev.cljs',
+  "qa" : '/src/ethlance/shared/smart_contracts_qa.cljs',
+  "prod" :'/src/ethlance/shared/smart_contracts_prod.cljs'
 };
 
 
@@ -32,7 +32,7 @@ module.exports = {
   networks: {
     ganache: {
       host: 'localhost',
-      port: 8545,
+      port: 8549,
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
@@ -40,7 +40,7 @@ module.exports = {
 
     parity: {
       host: 'localhost',
-      port: 8545,
+      port: 8549,
       gas: 6e6,
       gasPrice: 6e9, // 6 gwei
       network_id: '*'
