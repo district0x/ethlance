@@ -150,7 +150,7 @@ build-contracts:
 
 # Environment setup for ganache-cli
 TESTNET_SCRIPT_FILE := ./node_modules/ganache-cli/cli.js
-TESTNET_PORT := 8545 # 8549
+TESTNET_PORT := 8549
 testnet:
 	node $(TESTNET_SCRIPT_FILE) -p $(TESTNET_PORT)
 
