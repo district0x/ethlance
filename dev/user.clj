@@ -1,8 +1,8 @@
-(ns ethlance.dev.user
+(ns user
   (:require
    [figwheel-sidecar.repl-api :as fig-repl]
    [figwheel-sidecar.config :as fig-config]))
- 
+
 
 
 (def help-msg "
