@@ -4,6 +4,7 @@
   (:require
    [cuerdas.core :as str]
    [com.rpl.specter :as $ :include-macros true]
+   [clojure.pprint :as pprint]
    [district.server.config :refer [config]]
    [district.server.db :as db]
    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
@@ -37,7 +38,7 @@
   Notes:
 
   - Table Entry order matters for creation and deletion.
-  
+
   - :id-keys is a listing which makes up a table's compound key
 
   - :list-keys is a listing which makes up a table's key for producing
@@ -46,7 +47,329 @@
   ;;
   ;; Ethlance Tables
   ;;
-  [])
+  [{:table-name :User
+    :table-columns
+    [[:user/address address]
+     [:user/conutry-code :varchar not-nil]
+     [:user/full-name :varchar]
+     [:user/email :varchar not-nil]
+     [:user/profile-image :varchar]
+     [:user/date-created :unsigned :integer]
+     [:user/date-updated :unsigned :integer]
+     [:user/github-username :varchar]
+     [:user/linkedin-username :varchar]
+     [:user/status :varchar]
+     ;; PK
+     [(sql/call :primary-key :user/address)]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Candidate
+    :table-columns
+    [[:user/address address]
+     [:candidate/bio :varchar]
+     [:candidate/professional-title :varchar]
+     [:candidate/rate :integer not-nil]
+     [:candidate/rate-currency-id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Employer
+    :table-columns
+    [[:user/address address not-nil]
+     [:employer/bio :varchar]
+     [:employer/professional-title :varchar]
+     ;; PK
+     [(sql/call :primary-key :user/address)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Arbiter
+    :table-columns
+    [[:user/address address not-nil]
+     [:arbiter/bio :varchar]
+     [:arbiter/professional-title :varchar]
+     [:arbiter/rate :integer not-nil]
+     [:arbiter/rate-currency-id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :UserLanguage
+    :table-columns
+    [[:user/address address not-nil]
+     [:language/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address :language/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :ArbiterCategory
+    :table-columns
+    [[:user/address address not-nil]
+     [:category/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address :category/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
+     [[(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :ArbiterSkills
+    :table-columns
+    [[:user/address address not-nil]
+     [:skill/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address :skill/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
+     [[(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :CandidateCategory
+    :table-columns
+    [[:user/address address not-nil]
+     [:category/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address :category/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
+     [[(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :CandidateSkill
+    :table-columns
+    [[:user/address address not-nil]
+     [:skill/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :user/address :skill/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
+     [[(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Job
+    :table-columns
+    [[:job/id :integer]
+     [:job/bounty-id :integer]
+     [:job/title :varchar not-nil]
+     [:job/description :varchar not-nil]
+     [:job/category :varchar]
+     [:job/status :varchar]
+     [:job/date-created :unsigned :integer]
+     [:job/date-published :unsigned :integer]
+     [:job/date-updated :unsigned :integer]
+     [:job/estimated-length :unsigned :integer]
+     [:job/required-availability :integer]
+     [:job/bid-option :integer]
+     [:job/expertise-level :integer]
+     [:job/number-of-candidates :integer]
+     [:job/invitation-only? :integer]
+     [:job/token address]
+     [:job/token-version :integer]
+     [:job/reward :unsigned :integer]
+     [:job/date-deadline :unsigned :integer]
+     [:job/platform :varchar]
+     [:job/web-reference-url :varchar]
+     [:job/language-id :varchar]
+     ;; PK
+     [(sql/call :primary-key :job/id)]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :JobCreator
+    :table-columns
+    [[:job/id :integer]
+     [:user/address address]
+     ;; PK
+     [(sql/call :primary-key :job/id :user/address)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :JobSkill
+    :table-columns
+    [[:job/id :integer]
+     [:skill/id :varchar]
+     ;; PK
+     [(sql/call :primary-key :job/id :skill/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
+     [[(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :JobArbiter
+    :table-columns
+    [[:job/id :integer]
+     [:user/address address]
+     [:job-arbiter/arbiter-message :varchar]
+     [:job-arbiter/fee :unsigned :integer]
+     [:job-arbiter/fee-currency-id :varchar]
+     [:job-arbiter/status :varchar]
+     ;; PK
+     [(sql/call :primary-key :job/id :user/address)]
+     ;; FKs
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :JobFile
+    :table-columns
+    [[:job/id :integer]
+     [:job/file-id :integer]
+
+     ;; FKs
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
+     ]
+    :id-keys [:job/id :job/file-id]
+    :list-keys []}
+
+   {:table-name :Contract
+    :table-columns
+    [[:contract/id :integer]
+     [:job/id :integer]
+     [:contract/status :varchar]
+     [:contract/date-created :unsigned :integer]
+     [:contract/date-updated :unsigned :integer]
+     [:contract/invitation-message-id :integer]
+     [:contract/proposal-message-id :integer]
+     [:contract/proposal-rate :integer]
+     [:contract/proposal-rate-currency-id :varchar]
+     [:contract/raised-dispute-message-id :integer]
+     [:contract/resolved-dispute-message-id :integer]
+     ;; PK
+     [(sql/call :primary-key :contract/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :ContractCandidate
+    :table-columns
+    [[:contract/id :integer]
+     [:user/address address]
+     ;; PK
+     [(sql/call :primary-key :contract/id :user/address)]
+     ;; FKs
+     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
+     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :ContractMessage
+    :table-columns
+    [[:contract/id :integer]
+     [:message/id :integer]
+     ;; PK
+     [(sql/call :primary-key :contract/id :message/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
+     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Feedback
+    :table-columns
+    [[:contract/id :integer]
+     [:message/id :integer]
+     [:feedback/rating :integer]
+     ;; PK
+     [(sql/call :primary-key :contract/id :message/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
+     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Invoice
+    :table-columns
+    [[:invoice/id :integer]
+     [:contract/id :integer]
+     [:message/id :integer]
+     [:invoice/status :varchar]
+     [:invoice/amount-requested :unsigned :integer]
+     [:invoice/amount-paid :unsigned :integer]
+     [:invoice/date-paid :unsigned :integer]
+     [:invoice/date-work-started :unsigned :integer]
+     [:invoice/date-work-ended :unsigned :integer]
+     [:invoice/date-work-duration :unsigned :integer]
+     ;; PK
+     [(sql/call :primary-key :invoice/id :contract/id :message/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
+     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Message
+    :table-columns
+    [[:message/id :integer]
+     [:message/creator address]
+     [:message/text :varchar]
+     [:message/date-created :unsigned :integer]
+     ;; PK
+     [(sql/call :primary-key :message/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+    :id-keys [:message/id]
+    :list-keys []}
+
+   {:table-name :DirectMessage
+    :table-columns
+    [[:message/id :integer]
+     [:direct-message/receiver address]
+     [:direct-message/read? :integer]
+     ;; PK
+     [(sql/call :primary-key :message/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+    :id-keys [:message/id]
+    :list-keys []}
+
+   {:table-name :MessageFile
+    :table-columns
+    [[:message/id :integer]
+     [:file/id :integer]
+
+     ;; PK
+     [(sql/call :primary-key :message/id :file/id)]
+     ;; FKs
+     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]
+     [[(sql/call :foreign-key :file/id) (sql/call :references :File :file/id)]]]
+    :id-keys [:message/id :file/id]
+    :list-keys []}
+
+   {:table-name :File
+    :table-columns
+    [[:file/id :integer]
+     [:file/hash :varchar]
+     [:file/name :varchar]
+     [:file/directory-hash :varchar]
+
+     ;; PK
+     [(sql/call :primary-key :file/id)]
+     ]
+    :id-keys []
+    :list-keys []}])
 
 
 (defn list-tables
@@ -58,6 +381,22 @@
                  :where [:= :type "table"]})]
     (mapv :name results)))
 
+(defn print-db
+  "(print-db) prints all db tables to the repl
+   (print-db :users) prints only users table"
+  ([] (print-db nil))
+  ([table]
+   (let [select (fn [& [select-fields & r]]
+                  (pprint/print-table (db/all (->> (partition 2 r)
+                                                   (map vec)
+                                                   (into {:select select-fields})))))
+         all-tables (if table
+                      [(name table)]
+                      (->> (db/all {:select [:name] :from [:sqlite-master] :where [:= :type "table"]})
+                           (map :name)))]
+     (doseq [t all-tables]
+       (println "#######" (str/upper t) "#######")
+       (select [:*] :from [(keyword t)])))))
 
 (defn table-exists?
   [name]
@@ -209,4 +548,3 @@
   "Stop the ethlance-db mount component."
   []
   (drop-db!))
-
