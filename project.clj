@@ -128,8 +128,7 @@
 
   :profiles
   {:dev
-   {:source-paths ["src" "test"
-                   "dev/clj" "dev/ui" "dev/shared" "dev/server"]
+   {:source-paths ["src" "test" "dev"]
     :resource-paths ["dev/resources"]
     :dependencies [[cider/piggieback "0.4.1"]
                    [org.clojure/tools.nrepl "0.2.13"]
@@ -139,17 +138,19 @@
                    [doo "0.1.11"]]
     :plugins [[lein-figwheel "0.5.19"]
               [lein-doo "0.1.10"]]
-    :repl-options {:init-ns ethlance.dev.user
+    :repl-options {:init-ns user
                    :nrepl-middleware [cider.piggieback/wrap-cljs-repl]
-                   :port 6450}}}
+                   ;; not fixing port by default so we can start multiple repl instances
+                   ;; :port 6450
+                   }}}
 
   :cljsbuild
   {:builds
    [{:id "dev-ui"
      :source-paths ["src" "test"
-                    "dev/ui" "dev/shared"]
+                    "dev/ui"]
      :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
-     :compiler {:main cljs.user ;; ./dev/ui
+     :compiler {:main ethlance.ui.core
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"
@@ -160,9 +161,9 @@
 
     {:id "dev-server"
      :source-paths ["src" "test"
-                    "dev/server" "dev/shared"]
+                    "dev/server"]
      :figwheel true
-     :compiler {:main cljs.user ;; ./dev/server
+     :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"
                 :output-dir "target/node/out-dev-server"
                 :target :nodejs
@@ -192,7 +193,7 @@
 
     {:id "test-ui"
      :source-paths ["src" "test"
-                    "dev/ui" "dev/shared"]
+                    "dev/ui"]
      :figwheel true
      :compiler {:main ethlance.ui.test-runner ;; ./test/ui
                 :output-to "dev/resources/public/js/compiled/test_runner.js"
@@ -203,7 +204,7 @@
 
     {:id "test-server"
      :source-paths ["src" "test"
-                    "dev/server" "dev/shared"]
+                    "dev/server"]
      :figwheel true
      :compiler {:main ethlance.server.test-runner ;; ./test/server
                 :output-to "target/node_test/test_runner.js"

@@ -1,6 +1,6 @@
 (ns ethlance.server.core
   "Main entrypoint for an ethlance production server.
-  
+
   Notes:
 
   - For Development, ./dev/server/ethlance/server/user.cljs is the main entrypoint.
@@ -29,12 +29,16 @@
    [ethlance.server.db]
    [ethlance.server.ipfs]
    [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
+   [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
+   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
 
    ;; Ethlance Libraries
    [ethlance.shared.graphql.schema :refer [graphql-schema]]
    [ethlance.server.graphql.resolver :refer [graphql-resolver-map]]
 
-   [ethlance.server.graphql.mutations.sign-in :as sign-in]))
+   [ethlance.server.graphql.mutations.sign-in :as sign-in]
+
+   [ethlance.shared.utils :as shared-utils]))
 
 (def graphql-config
   {:port 6200
@@ -46,6 +50,11 @@
    :field-resolver (build-default-field-resolver graphql-utils/gql-name->kw)
    :graphiql false})
 
+(def contracts-var
+  (condp = (shared-utils/get-environment)
+    "prod" #'smart-contracts-prod/smart-contracts
+    "qa" #'smart-contracts-qa/smart-contracts
+    "dev" #'smart-contracts-dev/smart-contracts))
 
 (def main-config
   {:web3 {:port 8549}
@@ -54,7 +63,7 @@
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
 
-   :smart-contracts {:contracts-var #'smart-contracts-prod/smart-contracts
+   :smart-contracts {:contracts-var contracts-var
                      :print-gas-usage? false
                      :auto-mining? false}
 
@@ -62,7 +71,9 @@
 
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"
-          :gateway "http://127.0.0.1:8080/ipfs"}})
+          :gateway "http://127.0.0.1:8080/ipfs"}
+   :logging {:level "info"
+             :console? true}})
 
 
 (defn -main [& args]
