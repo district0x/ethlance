@@ -27,7 +27,7 @@
 (defn- c-upload-image []
   []
   [:div.upload-image
-   [c-icon {:name :ic-upload :color :black}]
+   [c-icon {:name :ic-upload :color :dark-blue}]
    [:span "Upload Image"]])
 
 
