@@ -27,7 +27,7 @@
 (defn- c-upload-image []
   []
   [:div.upload-image
-   [c-icon {:name :ic-upload :color :black}]
+   [c-icon {:name :ic-upload :color :dark-blue}]
    [:span "Upload Image"]])
 
 
@@ -64,19 +64,19 @@
      [:div.label [:h2 "Languages You Speak"]]
      [c-chip-search-input
       {:search-icon? false
-       :placeholder "Search Languages"
+       :placeholder ""
        :auto-suggestion-listing constants/languages
        :allow-custom-chips? false
        :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
      
      [:div.label [:h2 "Categories You Are Interested In"]]
-     [c-chip-search-input {:search-icon? false :placeholder "Search Categories"}]
+     [c-chip-search-input {:search-icon? false :placeholder ""}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-     [c-chip-search-input {:search-icon? false :placeholder "Search Skills"}]
+     [c-chip-search-input {:search-icon? false :placeholder ""}]
 
      [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder "Enter Biography"}]
+     [c-textarea-input {:placeholder ""}]
      [c-labeled-checkbox
       {:id "form-for-hire"
        :label "I'm available for hire"
@@ -117,13 +117,13 @@
      [:div.label [:h2 "Languages You Speak"]]
      [c-chip-search-input
       {:search-icon? false
-       :placeholder "Search Languages"
+       :placeholder ""
        :auto-suggestion-listing constants/languages
        :allow-custom-chips? false
        :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
 
      [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder "Enter Biography"}]]]
+     [c-textarea-input {:placeholder ""}]]]
 
    [:div.form-submit "Create"]])
 
@@ -147,15 +147,8 @@
         :selections constants/countries
         :search-bar? true
         :default-search-text "Search Countries"}]]
-     [:div.form-type-of-payment
-      [:div.label "Preferred Type of Payment"]
-      [c-radio-select
-       {:flex? true
-        :default-selection :fixed-price
-        :on-selection (fn [selection] (log/debug "Form of Payment" selection))}
-       [:fixed-price [c-radio-secondary-element "Fixed Per Dispute."]]
-       [:percentage [c-radio-secondary-element "Percentage of Dispute."]]]
-      [c-currency-input {:placeholder "Hourly Rate" :color :secondary}]]
+     [:div.form-hourly-rate
+      [c-currency-input {:placeholder "Fixed Rate Per A Dispute" :color :secondary}]]
      [:div.form-connect-github
       [c-button
        {:size :large}
@@ -169,13 +162,13 @@
      [:div.label [:h2 "Languages You Speak"]]
      [c-chip-search-input
       {:search-icon? false
-       :placeholder "Search Languages"
+       :placeholder ""
        :auto-suggestion-listing constants/languages
        :allow-custom-chips? false
        :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
 
      [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder "Enter Biography"}]]]
+     [c-textarea-input {:placeholder ""}]]]
 
    [:div.form-submit "Create"]])
 

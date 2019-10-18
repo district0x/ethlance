@@ -40,7 +40,7 @@
   `ethlance.ui.component.icon/icon-listing`. [default: `:about`]
 
   :color - The color of the SVG icon. `:primary`, `:secondary`,
-  `:white`, `:black`, `:none`. [default: `:primary`]
+  `:white`, `:black`, `:dark-blue`, `:none`. [default: `:primary`]
 
   :size - The size of the SVG icon. `:x-small`, `:small`, `:normal`, `:large`.
   
@@ -63,6 +63,7 @@
                   :secondary "secondary"
                   :white "white"
                   :black "black"
+                  :dark-blue "dark-blue"
                   :none "")
 
           [width height] (case size

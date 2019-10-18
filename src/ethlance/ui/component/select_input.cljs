@@ -61,7 +61,7 @@
                       :primary " primary "
                       :secondary " secondary ")
         icon-color (case color
-                     :primary :black
+                     :primary :dark-blue
                      :secondary :white)
         size (or size :default)
         size-class (case size

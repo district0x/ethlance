@@ -11,7 +11,7 @@
    version="1.1"
    id="svg112"
    sodipodi:docname="checkbox.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
    width="32"
    height="32">
   <metadata
@@ -35,12 +35,12 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="3836"
-     inkscape:window-height="988"
+     inkscape:window-width="2924"
+     inkscape:window-height="979"
      id="namedview114"
      showgrid="false"
      inkscape:zoom="21.518185"
-     inkscape:cx="12.851912"
+     inkscape:cx="-3.4598727"
      inkscape:cy="13.862516"
      inkscape:window-x="0"
      inkscape:window-y="18"
@@ -68,16 +68,16 @@
   <title
      id="title106">ic-arrow-down_1</title>
   <rect
-     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3.8425827;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="outer-square"
-     width="27.920549"
-     height="27.879246"
-     x="2.0397253"
-     y="2.0603771"
-     ry="1.4042881" />
+     width="31.999998"
+     height="31.999998"
+     x="0.038455043"
+     y="-0.062064629"
+     ry="1.6118518" />
   <g
      id="cross"
-     transform="matrix(0.86086957,0,0,0.86086957,2.19511,2.2053382)">
+     transform="matrix(0.99401487,0,0,0.99401487,0.05999417,0.07180428)">
     <g
        id="g1141"
        transform="rotate(-45,15.867663,16.224299)">
@@ -85,9 +85,9 @@
          inkscape:connector-curvature="0"
          id="path853"
          d="M 16.128244,5.0272774 V 27.37624"
-         style="fill:none;stroke:#000000;stroke-width:4.06565666;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         style="fill:none;stroke:#000000;stroke-width:2.32323241;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <path
-         style="fill:none;stroke:#000000;stroke-width:4.06565666;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:none;stroke:#000000;stroke-width:2.32323241;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="M 4.9537627,16.201759 H 27.302725"
          id="path1137"
          inkscape:connector-curvature="0" />

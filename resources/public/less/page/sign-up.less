@@ -124,6 +124,9 @@
           > .form-name {
             grid-area: form-name;
             .default-form();
+            > input {
+              padding-left: 0;
+            }
           }
 
           > .form-email {
@@ -134,6 +137,9 @@
           > .form-professional-title {
             grid-area: form-professional-title;
             .default-form();
+            > input {
+              padding-left: 0;
+            }
           }
 
           > .form-hourly-rate {
@@ -147,6 +153,9 @@
             > .ethlance-select-input {
               > .main {
                 padding-left: 0;
+                > span {
+                  padding-left: 0;
+                }
               }
             }
           }
@@ -231,64 +240,6 @@
 
     > .arbiter-sign-up {
       .candidate-sign-up();
-      > .form-container {
-        > .first-forms {
-          display: grid;
-          grid-template-areas:
-            'form-image form-name    form-professional-title form-professional-title'
-              'form-image form-email   form-type-of-payment    form-type-of-payment'
-              'form-image form-country form-connect-github     form-connect-linkedin';
-          grid-template-rows: auto auto auto;
-          grid-template-columns: 2fr 4fr 3fr 3fr;
-          grid-gap: 2em;
-
-          @media #media[tablet-query] {
-            grid-template-areas:
-              'form-image form-image'
-                'form-name form-name'
-                'form-email form-email'
-                'form-country form-country'
-                'form-professional-title form-professional-title'
-                'form-type-of-payment form-type-of-payment'
-                'form-connect-github form-connect-linkedin';
-            grid-template-rows: repeat(8, auto);
-            grid-template-columns: 1fr 1fr;
-          }
-
-          @media #media[mobile-query] {
-            grid-template-areas:
-              'form-image'
-                'form-name'
-                'form-email'
-                'form-country'
-                'form-professional-title'
-                'form-type-of-payment'
-                'form-connect-github'
-                'form-connect-linkedin';
-            grid-template-rows: repeat(9, auto);
-            grid-template-columns: 1fr;
-          }
-
-          > .form-type-of-payment {
-            display: flex;
-            grid-area: form-type-of-payment;
-            flex-direction: column;
-            justify-content: space-around;
-
-            > .label {
-              color: #color[dark-blue];
-              font-weight: 600;
-              padding-bottom: 0.7em;
-            }
-
-            > .currency-input {
-              > input {
-                padding: 1.0em 0;
-              }
-            }
-          }
-        }
-      }
     }
   }
 }

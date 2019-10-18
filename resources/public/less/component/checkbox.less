@@ -7,10 +7,12 @@
   align-items: center;
   height: auto;
   cursor: pointer;
+  transition: all 0.1s ease-in;
 
   > .ethlance-inline-svg {
     #outer-square {
       stroke: #color[dark-blue] !important;
+      fill: #color[offwhite3] !important;
     }
 
     #cross path {
@@ -22,18 +24,20 @@
     #mixin.noselect();
     color: #color[dark-blue];
     padding-left: 0.5em;
-    font-weight: 600;
+    font-weight: 400;
   }
 
   &:hover {
     > .ethlance-inline-svg {
       
       #outer-square {
-        fill: darken(white, 10%) !important;
+        transition: all 0.1s ease-in;
+        fill: #color[dark-blue] !important;
       }
 
       #cross path {
-        opacity: 0.1;
+        transition: all 0.1s ease-in;
+        stroke: white !important;
       }
     }
   }
