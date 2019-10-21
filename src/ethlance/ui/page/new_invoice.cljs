@@ -33,7 +33,7 @@
          [:div.left-form
           [:div.input-stripe
            [:div.label "Job"]
-           [:input {:type "text" :value "Smart Contract Hacker"}]]
+           [c-select-input {:selections ["Smart Contract" "USD" "ETH"]}]]
           [:div.input-stripe
            [:div.label "Hours Worked (Optional)"]
            [:input {:type "text" :value "2"}]]

@@ -57,12 +57,31 @@
         font-weight: 700;
       }
 
-      > input {
+      > input , > .ethlance-select-input {
         text-align: right;
         border: none;
         flex-grow: 1;
         flex-shrink: 1;
         color: #color[dark-blue];
+      }
+
+      > .ethlance-select-input {
+        > .main {
+          border: none;
+          text-align: right;
+          justify-content: flex-end;
+          overflow: visible;
+
+          > .label {
+
+          }
+
+          > .ethlance-icon {
+            padding-right: 0;
+            margin-right: -10px;
+            overflow: visible;
+          }
+        }
       }
 
       > .post-label {
