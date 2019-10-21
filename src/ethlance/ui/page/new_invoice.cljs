@@ -6,20 +6,21 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
+   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+   [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element c-radio-secondary-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.table :refer [c-table]]
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
 
 
@@ -32,9 +33,9 @@
          [:div.left-form
           [:div.input-stripe
            [:div.label "Job"]
-           [:input {:type "text" :value "Smart Contract Hacker"}]]
+           [c-select-input {:selections ["Smart Contract" "USD" "ETH"]}]]
           [:div.input-stripe
-           [:div.label "Hours Worked"]
+           [:div.label "Hours Worked (Optional)"]
            [:input {:type "text" :value "2"}]]
           [:div.input-stripe
            [:div.label "Hourly Rate"]
@@ -46,9 +47,11 @@
            [:div.post-label "ETH"]]
           [:div.usd-estimate
            "$645.23 (1 ETH = 243.34 USD)"]]
-          
+         
          [:div.right-form
           [:div.label "Message"]
           [c-textarea-input {:placeholder ""}]]
 
-         [:div.button "Send >"]]))))
+         [:div.button
+          [:div.label "Send"]
+          [c-icon {:name :ic-arrow-right :size :small}]]]))))
