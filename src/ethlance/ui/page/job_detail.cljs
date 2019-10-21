@@ -84,10 +84,10 @@ Please contact us if this sounds interesting.")
            [:span "5 Days Ago"]
            [:span "Pending"]]]]
         [:div.button-listing
-         [c-circle-icon-button {:name :ic-arrow-left2}]
-         [c-circle-icon-button {:name :ic-arrow-left}]
-         [c-circle-icon-button {:name :ic-arrow-right}]
-         [c-circle-icon-button {:name :ic-arrow-right2}]]
+         [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+         [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+         [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+         [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
         [:div.proposal-form
          [:div.label "Send Proposal"]
          [:div.amount-input
@@ -111,10 +111,10 @@ Please contact us if this sounds interesting.")
           [:span "5 Days Ago"]
           [:span "Full Payment"]]]
         [:div.button-listing
-         [c-circle-icon-button {:name :ic-arrow-left2}]
-         [c-circle-icon-button {:name :ic-arrow-left}]
-         [c-circle-icon-button {:name :ic-arrow-right}]
-         [c-circle-icon-button {:name :ic-arrow-right2}]]]
+         [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+         [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+         [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+         [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
 
        [:div.feedback-listing
         [:div.label "Feedback"]

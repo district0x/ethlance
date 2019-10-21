@@ -79,19 +79,42 @@
     }
 
     > .mobile-account-page {
-      display: flex;
-      flex-direction: row;
-      background-color: darken(#color[dark-blue], 10%);
+      display: grid;
       color: white;
-      height: 50px;
-      align-items: center;
+      height: 5.5em;
+      grid-template-columns: 1fr 1fr;
 
       > .account-balance {
-        flex-basis: 50%;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        background-color: darken(#color[dark-blue], 10%);
+        line-height: 1.5em;
+
+        > .token-value {
+          font-weight: 600;
+          font-size: 1.1em;
+        }
+        
+        > .usd-value {
+          font-weight: 300;
+        }
       }
 
-      > .account-select {
-        flex-basis: 50%;
+      > .account-profile {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        > .ethlance-profile-image {
+          margin: 0 1em;
+        }
+
+        > .name {
+          font-weight: bold;
+          padding: 0 1em;
+        }
       }
     }
   }

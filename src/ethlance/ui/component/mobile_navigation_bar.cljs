@@ -4,6 +4,7 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.icon :refer [c-icon]]))
 
 
@@ -26,8 +27,12 @@
 
 (defn c-mobile-account-page []
   [:div.mobile-account-page
-   [:div.account-balance "account balance"]
-   [:div.account-select "account select"]])
+   [:div.account-profile
+    [c-profile-image {}]
+    [:span.name "Brian Curran"]]
+   [:div.account-balance
+    [:span.token-value "9.20 ETH"]
+    [:span.usd-value "$1,337.00"]]])
 
 
 (defn c-mobile-navigation-bar []
