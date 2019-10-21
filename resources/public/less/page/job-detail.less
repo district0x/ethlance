@@ -100,9 +100,9 @@
         > .ticket {
           @background-color: #F9FAFF;
           @border-color: #D6E1FD;
-          height: 120px;
-          min-width: 200px;
-          padding: 1em 2em;
+          height: 100px;
+          min-width: 250px;
+          padding: 0.5em 2em;
           margin: 2em 0;
 
           display: flex;
@@ -113,16 +113,15 @@
           border-left: 1em solid @border-color;
 
           > .label {
-            font-size: 1.2em;
+            font-size: 1.0em;
             font-weight: 700;
           }
 
           > .amount {
-            color: black;
-            opacity: 0.5;
+            color: #7a81a9;
             font-weight: 400;
-            font-size: 1.5em;
-            font-family: monospace;
+            font-size: 1.2em;
+            font-family: #font[sans-serif];
           }
         }
       }
@@ -288,7 +287,6 @@
         @border-color: #D6E1FD;
         background-color: @background-color;
         border: 1px solid @border-color;
-        color: lighten(black, 40%);
       }
 
       > .button {

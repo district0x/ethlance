@@ -30,7 +30,7 @@
     
     a {
       font-size: 1em;
-      font-family: #font[sans];
+      font-family: #font[sans-serif];
       text-decoration: none;
       color: #color[dark-blue];
       padding: 0.4em;
@@ -46,20 +46,18 @@
 }
 
 // Use Injected Scroll Value to fade in the navigation bar
-#app:not([data-scroll='0']) {
-  .header {
-    background-color: #color[dark-blue];
-    a {
-      color: white;
-      border-bottom: none;
-    }
- 
-    .ethlance-logo {
-      path, rect, circle, polygon, g {
-        fill: #ffffff !important;
-        opacity: 1;
-      }
-    }
+#app:not([data-scroll='0']) > .splash-layout > .header {
+  background-color: #color[dark-blue];
 
+  a {
+    color: white;
+    border-bottom: none;
+  }
+  
+  .ethlance-logo {
+    path, rect, circle, polygon, g {
+      fill: #ffffff !important;
+      opacity: 1;
+    }
   }
 }
