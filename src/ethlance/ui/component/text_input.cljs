@@ -10,5 +10,10 @@
   
   opts - React Props
   "
-  [{:keys [] :as opts}]
-  [:input.ethlance-text-input opts])
+  [{:keys [color] :as opts}]
+  (let [class-color (case color
+                      :primary ""
+                      :secondary " secondary ")]
+    (fn []
+      [:input.ethlance-text-input
+       (merge opts {:class class-color})])))
