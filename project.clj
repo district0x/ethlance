@@ -32,7 +32,7 @@
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.4"]
             [lein-shell "0.5.0"]
-            [deraen/lein-less4j "0.5.0"]]
+            [deraen/lein-less4j "0.6.2"]]
 
   :min-lein-version "2.5.3"
 
