@@ -52,10 +52,10 @@
      [:span "$30/hr"]
      [:span "12.2 ETH"]]]
    [:div.button-listing
-    [c-circle-icon-button {:name :ic-arrow-left2}]
-    [c-circle-icon-button {:name :ic-arrow-left}]
-    [c-circle-icon-button {:name :ic-arrow-right}]
-    [c-circle-icon-button {:name :ic-arrow-right2}]]])
+    [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+    [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+    [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+    [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]])
 
 
 (defn c-my-employer-job-listing []

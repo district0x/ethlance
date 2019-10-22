@@ -55,6 +55,10 @@
       min-width: #media[mobile-width];
     }
 
+    @media #media[mobile-query] {
+      min-width: unset;
+    }
+
     > .main-navigation-menu {
       margin-top: @header-margin;
       grid-area: main-navigation-menu;
