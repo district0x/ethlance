@@ -24,8 +24,8 @@
                  [madvas/reagent-patched "0.6.1" :exclusions [cljsjs/react cljsjs/react-dom]]
                  [medley "0.8.3"]
                  [mount "0.1.13"]
-                 [org.clojure/clojure "1.9.0-alpha10"]
-                 [org.clojure/clojurescript "1.9.671"]
+                 [org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojurescript "1.10.520"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.9.2" :exclusions [reagent]]]
 
