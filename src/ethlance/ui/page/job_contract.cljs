@@ -7,19 +7,19 @@
    [ethlance.shared.enumeration.currency-type :as enum.currency]
 
    ;; Ethlance Components
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.button :refer [c-button c-button-label]]
+   [ethlance.ui.component.chat :refer [c-chat-log]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.chat :refer [c-chat-log]]
-   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
-   [ethlance.ui.component.button :refer [c-button c-button-label]]))
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
+   [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
 
 
 (defn c-job-detail-table
@@ -76,21 +76,23 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
    {:label "Send Message"}
    [:div.message-input-container
     [:div.label "Message"]
-    [c-textarea-input {:placeholder "Type Your Message"}]
+    [c-textarea-input {:placeholder ""}]
     [c-button {:color :primary} [c-button-label "Send Message"]]]
 
    {:label "Raise Dispute"}
    [:div.dispute-input-container
     [:div.label "Dispute"]
-    [c-textarea-input {:placeholder "Type Your Dispute Message"}]
+    [c-textarea-input {:placeholder ""}]
     [c-button {:color :primary} [c-button-label "Raise Dispute"]]]
 
    {:label "Leave Feedback"}
    [:div.feedback-input-container
+    [:div.rating-input
+     [c-rating {:rating 3}] [:span "(3)"]]
     [:div.label "Feedback"]
-    [c-textarea-input {:placeholder "Type Your Feedback Message"}]
+    [c-textarea-input {:placeholder ""}]
+    [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
     [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
-   
 
 (defn c-candidate-options [])
 

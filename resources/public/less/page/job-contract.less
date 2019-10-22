@@ -31,8 +31,8 @@
         grid-area: title;
         display: flex;
         align-items: center;
-        font-size: 2em;
-        font-weight: 600;
+        font-size: 2.3em;
+        font-weight: 500;
         padding: 0.5em 2px;
 
         @media #media[tablet-query] {
@@ -113,6 +113,22 @@
 
       > .feedback-input-container {
         .input-container();
+        
+        > .rating-input {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          margin: 1em 0;
+          
+          > span {
+            padding-left: 0.5em;
+            font-size: 1.2em;
+          }
+        }
+
+        > .note {
+          padding: 1em 0;
+        }
       }
     }
   }
