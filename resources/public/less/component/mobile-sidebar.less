@@ -1,0 +1,61 @@
+/// mobile-sidebar.less -- Styling for the mobile sidebar pull-up menu
+
+
+.mobile-sidebar {
+  @bin-width: 235px;
+
+  z-index: 9002;
+  display: none;
+  position: fixed;
+  width: @bin-width;
+  top: 25%;
+  right: -1 * @bin-width;
+  background-color: #color[purple];
+  border-radius: 0 0 0 10px;
+  transition: right 0.2s ease-out;
+
+  @media #media[tablet-query] {
+    display: flex;
+  }
+
+  &.open {
+    right: 0;
+  }
+
+  > .nav-button {
+    #mixin.noselect();
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: absolute;
+    top: 43px;
+    left: -87px;
+    padding: 1em;
+    background-color: #color[purple];
+    border-radius: 10px 10px 0 0;
+    transform: rotate(-90deg);
+    cursor: pointer;
+    > span {
+      padding: 0 0.5em;
+      color: white;
+    }
+
+    > .ethlance-icon {
+      padding: 0 0.5em;
+    }
+
+    &:hover {
+      > span {
+        color: darken(white, 20%);
+      }
+    }
+  }
+
+  > .content {
+    display: flex;
+    flex-direction: column;
+    padding: 1.0em;
+    max-height: 65vh;
+    overflow-y: auto;
+  }
+}

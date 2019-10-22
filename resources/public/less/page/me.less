@@ -1,12 +1,7 @@
 /// my-contracts.less -- Styling for the My Contracts page
 
-.my-contracts-main-container {
-  #mixin.main-container-w-sidebar();
-  box-shadow: none;
-
-  > .sidebar {
-    margin-top: #tabular-layout[tab-height];
-
+#me() {
+  .sidebar-content {
     > .section {
       padding: 1em;
       
@@ -41,10 +36,32 @@
       }
     }
   }
+}
+
+.my-contracts-main-container {
+  #mixin.main-container-w-sidebar();
+  box-shadow: none;
+
+  > .sidebar {
+    margin-top: #tabular-layout[tab-height];
+    #me.sidebar-content();
+  }
+
+  > .mobile-sidebar {
+    > .content {
+      width: 100%;
+      > .sidebar {
+        width: 100%;
+        #me.sidebar-content();
+      }
+    }
+  }
 
   > .listing {
     min-height: 100%;
     > .tabular-layout > .active-page {
+      display: flex;
+      flex-direction: column;
       min-height: 100%;
       > .listing {
         margin-top: 4em;
