@@ -71,7 +71,7 @@
 
          [:div.mobile-tab-listing
           [c-select-input
-           {:default-selection (-> tab-options (get @*active-tab-index) :label)
+           {:default-selection (-> tab-options (nth @*active-tab-index) :label)
             :selections (mapv :label tab-options)
             :color :secondary
             :size :large

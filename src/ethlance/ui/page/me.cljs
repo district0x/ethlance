@@ -12,7 +12,7 @@
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
+   [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
@@ -52,10 +52,10 @@
      [:span "$30/hr"]
      [:span "12.2 ETH"]]]
    [:div.button-listing
-    [c-circle-icon-button {:name :ic-arrow-left2}]
-    [c-circle-icon-button {:name :ic-arrow-left}]
-    [c-circle-icon-button {:name :ic-arrow-right}]
-    [c-circle-icon-button {:name :ic-arrow-right2}]]])
+    [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+    [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+    [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+    [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]])
 
 
 (defn c-my-employer-job-listing []
@@ -67,7 +67,6 @@
    [:div.listing.my-employer-job-listing
     [c-default-listing]]
     
-
    {:label "Pending Proposals"}
    [:div.listing
     [c-default-listing]]
@@ -83,7 +82,8 @@
    {:label "Canceled Contracts"}
    [:div.listing
     [c-default-listing]]])
-  
+
+
 (defn c-my-employer-contract-listing [])
 (defn c-my-employer-invoice-listing [])
 (defn c-my-employer-dispute-listing [])
@@ -130,6 +130,31 @@
       [:div.link "My Disputes"]]]))
 
 
+(defn c-mobile-navigation [{:keys [*sidebar-choice]}]
+  (fn []
+    [c-mobile-sidebar
+     [:div.sidebar
+      [:div.section
+       [:div.label "Employer"]
+       [:div.link.active "My Jobs"]
+       [:div.link "My Contracts"]
+       [:div.link "My Invoices"]
+       [:div.link "My Disputes"]]
+      
+      [:div.section
+       [:div.label "Candidate"]
+       [:div.link "My Jobs"]
+       [:div.link "My Contracts"]
+       [:div.link "My Invoices"]
+       [:div.link "My Disputes"]]
+
+      [:div.section
+       [:div.label "Arbiter"]
+       [:div.link "My Jobs"]
+       [:div.link "My Contracts"]
+       [:div.link "My Disputes"]]]]))
+
+
 (defn c-listing [{:keys [*sidebar-choice]}]
   [:div.listing
    (case @*sidebar-choice
@@ -142,4 +167,5 @@
     (fn []
       [c-main-layout {:container-opts {:class :my-contracts-main-container}}
        [c-sidebar {:*sidebar-choice *sidebar-choice}]
+       [c-mobile-navigation {:*sidebar-choice *sidebar-choice}]
        [c-listing {:*sidebar-choice *sidebar-choice}]])))

@@ -53,7 +53,7 @@
     #mixin.main-container();
     grid-template-areas: 'sidebar listing';
 
-    .sidebar {
+    > .sidebar {
       #mixin.main-container.search-filter();
       grid-area: sidebar;
 
@@ -62,11 +62,11 @@
       }
     }
 
-    .mobile-search-filter {
+    > .mobile-search-filter {
       #mixin.main-container.mobile-search-filter();
     }
 
-    .listing {
+    > .listing {
       #mixin.main-container.listing();
     }
   }

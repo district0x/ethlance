@@ -25,12 +25,8 @@
 
              ;; Me
              ["/me" :route.me/index]
-             ["/me/sign-up" :route.me/sign-up]
-             ["/me/contracts" :route.me/contracts]])
-
+             ["/me/sign-up" :route.me/sign-up]])
 
 
 (def dev-routes
-  (-> routes
-      (concat [["/devcard/index" :route.devcard/index]])
-      vec))
+  (conj routes ["/devcard/index" :route.devcard/index]))
