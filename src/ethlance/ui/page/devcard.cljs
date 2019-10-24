@@ -238,7 +238,7 @@
         [:div.dark-grouping
          [:div.title "Ethlance Scrollable (dark)"]
          [:div.body
-          [c-scrollable {}
+          [c-scrollable {:fixed-height? true}
            [:ul
             (doall
              (for [i (range 100)]

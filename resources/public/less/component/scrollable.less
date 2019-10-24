@@ -1,22 +1,60 @@
 /// scrollable.less -- Styling for scrollable component
 
 .scrollable {
+  display: grid;
   position: relative;
-  max-width: 100%;
+  overflow: hidden;
+  grid-template-rows: auto;
+  grid-template-columns: auto;
+  grid-template-areas: 'fill';
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+
   > .scroll-container {
     position: absolute;
-    overflow: hidden;
+    top: 0;
+    left: 0;
+    grid-area: fill;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: 5;
+  }
+
+  &.fixed-width {
+    > .scroll-container {
+      right: 0;
+    }
+  }
+
+  &.fixed-height {
+    > .scroll-container {
+      bottom: 0;
+    }
   }
 
   > .scroll-bar-x , > .scroll-bar-y {
     position: absolute;
+    grid-area: fill;
+    background-color: #color[offwhite2];
   }
 
-  > .scroll-bar-x {
+  @scroll-bar-width: 16px;
+  @scroll-bar-height: 16px;
 
+  > .scroll-bar-x {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: @scroll-bar-height;
+    z-index: 6;
   }
 
   > .scroll-bar-y {
-
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: @scroll-bar-width;
+    z-index: 6;
   }
 }
