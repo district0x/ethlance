@@ -229,17 +229,35 @@
         [:div.grouping
          [:div.title "Ethlance Scrollable (light)"]
          [:div.body
-          [c-scrollable {}
-           [:ul
-            (doall
-             (for [i (range 100)]
-               [:li (str "Element " (inc i))]))]]]]
+          [:div.scrollable-fixed-vertical
+           [c-scrollable {}
+            [:ul
+             (doall
+              (for [i (range 100)]
+                ^{:key (str "el-" i)}
+                [:li (str "Element " (inc i))]))]]]
+
+          [:div.scrollable-fixed-horizontal
+           [c-scrollable {}
+            [:div
+             (doall
+              (for [i (range 100)]
+                ^{:key (str "el-" i)}
+                [:span (str "Element " (inc i))]))]]]]]
 
         [:div.dark-grouping
          [:div.title "Ethlance Scrollable (dark)"]
          [:div.body
-          [c-scrollable {:fixed-height? true}
-           [:ul
-            (doall
-             (for [i (range 100)]
-               [:li (str "Element " (inc i))]))]]]]]])))
+          [:div.scrollable-fixed-vertical
+           [c-scrollable {}
+            [:ul
+             (doall
+              (for [i (range 100)]
+                [:li (str "Element " (inc i))]))]]]
+
+          [:div.scrollable-fixed-horizontal
+           [c-scrollable {}
+            [:div
+             (doall
+              (for [i (range 100)]
+                [:span (str "Element " (inc i))]))]]]]]]])))
