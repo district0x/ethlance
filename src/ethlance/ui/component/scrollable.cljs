@@ -24,7 +24,14 @@
 
           ;; Container Events
           (.addEventListener dom-container "mousedown" #(reset! *mouse-down? true))
-          (.addEventListener dom-container "mouseup" #(reset! *mouse-down? false))
+          (.addEventListener
+           dom-container "mouseup"
+           (fn [_]
+             (reset! *mouse-down? false)
+             (swap! *scroll-position-x #(- % @*scroll-delta-x))
+             (swap! *scroll-position-y #(- % @*scroll-delta-y))
+             (reset! *scroll-delta-x 0)
+             (reset! *scroll-delta-y 0)))
           (.addEventListener
            dom-container "mousemove"
            (fn [event]
@@ -35,12 +42,12 @@
                  (do
                    (reset! *current-position-x mouse-x)
                    (reset! *current-position-y mouse-y))
-                 (let [delta-x (- mouse-x @*current-position-x)
-                       delta-y (- mouse-y @*current-position-y)
+                 (let [delta-x (- @*current-position-x mouse-x)
+                       delta-y (- @*current-position-y mouse-y)
                        scroll-height (aget dom-container "scrollHeight")
-                       scroll-width (aget dom-container "scrollWidth")]
-                   (reset! *scroll-delta-x delta-x)
-                   (reset! *scroll-delta-y delta-y)
+                       scroll-width (aget dom-container "scrollWidth")
+                       view-height (aget dom-scrollable "clientHeight")
+                       view-width (aget dom-scrollable "clientWidth")]
 
                    (println "scroll height" scroll-height)
                    (println "scroll width" scroll-width)
@@ -49,25 +56,25 @@
 
                    ;; Clamp at [0, scroll-width]
                    (cond
-                     (and (> delta-x 0) (> (+ delta-x @*scroll-position-x) scroll-width))
-                     (reset! *scroll-position-x scroll-width)
+                     (and (> delta-x 0) (> (+ delta-x @*scroll-position-x) (- scroll-width view-width)))
+                     (reset! *scroll-delta-x (- scroll-width view-width @*scroll-position-x))
 
                      (and (< delta-x 0) (< (+ delta-x @*scroll-position-x) 0))
-                     (reset! *scroll-position-x 0)
+                     (reset! *scroll-delta-x (- @*scroll-position-x))
                      
                      :else
-                     (swap! *scroll-position-x #(+ % delta-x)))
+                     (reset! *scroll-delta-x delta-x))
                    
                    ;; Clamp at [0, scroll-height]
                    (cond
-                     (and (> delta-y 0) (> (+ delta-y @*scroll-position-y) scroll-height))
-                     (reset! *scroll-position-y scroll-height)
+                     (and (> delta-y 0) (> (+ delta-y @*scroll-position-y) (- scroll-height view-height)))
+                     (reset! *scroll-delta-y (- scroll-height view-height @*scroll-position-y))
 
                      (and (< delta-y 0) (< (+ delta-y @*scroll-position-y) 0))
-                     (reset! *scroll-position-y 0)
+                     (reset! *scroll-delta-y (- @*scroll-position-y))
                      
                      :else
-                     (swap! *scroll-position-y #(+ % delta-y))))))))))
+                     (reset! *scroll-delta-y delta-y)))))))))
 
       :reagent-render
       (fn [{:keys [fixed-width? min-width
@@ -93,8 +100,8 @@
            [:div.container
             {:style {:min-width min-width
                      :min-height min-height
-                     :left (str @*scroll-position-x "px")
-                     :top (str @*scroll-position-y "px")}}
+                     :left (str (- @*scroll-position-x @*scroll-delta-x) "px")
+                     :top (str (- @*scroll-position-y @*scroll-delta-y) "px")}}
             child]
            [:div.scroll-bar-x]
            [:div.scroll-bar-y]]))})))
