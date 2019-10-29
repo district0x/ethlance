@@ -96,9 +96,19 @@ clean-all: clean
 	make -C ./designs clean
 
 
-deps:
+lein-deps:
 	lein deps
 	npm install @sentry/node # Hotfix
+
+
+WEBPACK_SCRIPT_FILE := ./node_modules/webpack-cli/bin/cli.js
+
+
+build-ui-deps:
+	node $(WEBPACK_SCRIPT_FILE)
+
+
+deps: lein-deps build-ui-deps
 
 
 watch-tests:

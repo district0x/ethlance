@@ -233,7 +233,7 @@
            [c-scrollable {}
             [:ul
              (doall
-              (for [i (range 100)]
+              (for [i (range 30)]
                 ^{:key (str "el-" i)}
                 [:li (str "Element " (inc i))]))]]]
 
@@ -241,7 +241,7 @@
            [c-scrollable {}
             [:div
              (doall
-              (for [i (range 100)]
+              (for [i (range 30)]
                 ^{:key (str "el-" i)}
                 [:span (str "Element " (inc i))]))]]]]]
 
@@ -252,12 +252,12 @@
            [c-scrollable {}
             [:ul
              (doall
-              (for [i (range 100)]
+              (for [i (range 30)]
                 [:li (str "Element " (inc i))]))]]]
 
           [:div.scrollable-fixed-horizontal
            [c-scrollable {}
             [:div
              (doall
-              (for [i (range 100)]
+              (for [i (range 30)]
                 [:span (str "Element " (inc i))]))]]]]]]])))

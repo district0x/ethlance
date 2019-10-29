@@ -21,3 +21,4 @@ smart_contracts_dev.cljs
 /designs/deploy
 !/designs/deploy/images
 !/designs/deploy/images/*
+/resources/public/js/deps_bundle.js
