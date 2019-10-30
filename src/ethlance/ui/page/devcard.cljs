@@ -249,7 +249,7 @@
          [:div.title "Ethlance Scrollable (dark)"]
          [:div.body
           [:div.scrollable-fixed-vertical
-           [c-scrollable {}
+           [c-scrollable {:maxHeight 400}
             [:ul
              (doall
               (for [i (range 30)]
