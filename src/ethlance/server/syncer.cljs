@@ -22,7 +22,9 @@
 
 (defn start []
   (log/debug "Starting Syncer...")
-  (register-callback! :ethlance-registry/ethlance-event handle-event-test ::EthlanceEvent))
+  ;; Uncomment once we have deployed registry contract
+  ;; (register-callback! :ethlance-registry/ethlance-event handle-event-test ::EthlanceEvent)
+  )
 
 
 (defn stop
