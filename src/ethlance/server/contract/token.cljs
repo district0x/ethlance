@@ -11,7 +11,7 @@
   (:refer-clojure :exclude [name symbol])
   (:require
    [bignumber.core :as bn]
-   [cljs-web3.eth :as web3-eth]
+   [cljs-web3-next.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
    [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
    [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
@@ -72,7 +72,7 @@
   with the given amount of TEST tokens, `value`."
   [address from to value & [opts]]
   (call address :transfer-from [from to value] opts))
-  
+
 
 (defn mint!
   "Mint TEST tokens to the given address `to` a given number defined by `value`.

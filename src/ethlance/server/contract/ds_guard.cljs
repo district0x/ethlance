@@ -1,7 +1,7 @@
 (ns ethlance.server.contract.ds-guard
   "Functions for manipulating the DSGuard contract."
   (:require
-   [cljs-web3.eth :as web3-eth]
+   [cljs-web3-next.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
    [ethlance.server.contract]))
 
@@ -21,7 +21,7 @@
   "Call the DSGuard contract with the given `method-name` and using the
   given `args`."
   [method-name args opts]
-  (ethlance.server.contract/call 
+  (ethlance.server.contract/call
    :contract-key *guard-key*
    :method-name method-name
    :contract-arguments args
@@ -38,9 +38,9 @@
   address with function signature `sig`.
 
   Key Arguments:
-  
+
   :src - The source address.
-  
+
   :dst - The destination address.
 
   :sig - The calldata Function Identifier.

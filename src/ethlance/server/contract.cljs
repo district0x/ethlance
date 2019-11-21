@@ -4,36 +4,6 @@
    [clojure.core.async :as async :refer [go go-loop <! >! put! chan close!] :include-macros true]
    [district.server.smart-contracts :as contracts]))
 
-
-(defn deploy!
-  "Deploy the given `contract-key` with constructor `args` and
-  additional `opts`. Returns a success channel and an error channel.
-
-  # Notes:
-
-  - This function wraps
-  `district.server.smart-contracts/deploy-smart-contract!` for use
-  with core.async.
-  "
-  [& {:keys [contract-key contract-arguments contract-options]
-      :or {contract-arguments []
-           contract-options {}}}]
-  (let [success-channel (chan 1)
-        error-channel (chan 1)]
-    (go
-      (-> (contracts/deploy-smart-contract! contract-key contract-arguments contract-options)
-          (.then
-           ;; Success
-           (fn [result]
-             (put! success-channel result)
-             (close! error-channel))
-           ;; Failure
-           (fn [error-object]
-             (put! error-channel error-object)
-             (close! success-channel)))))
-    [success-channel error-channel]))
-
-
 (defn call
   "Call the given `contract-address` with the kebab-case formatted
   `method-name` and with the given `args`. Returns a success channel

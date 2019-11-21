@@ -10,7 +10,7 @@
    [mount.core :as mount]
    [taoensso.timbre :as log]
    [cljs.nodejs :as nodejs]
-   [cljs-web3.eth :as web3-eth]
+   [cljs-web3-next.eth :as web3-eth]
 
    ;; District Mount Components
    [district.server.web3]
@@ -57,9 +57,12 @@
     "dev" #'smart-contracts-dev/smart-contracts))
 
 (def main-config
-  {:web3 {:port 8549}
+  {:web3 {:url "ws://127.0.0.1:8549"}
 
-   :web3-events {:events {:ethlance-registry/ethlance-event [:ethlance-registry :EthlanceEvent {} {:from-block 0 :to-block "latest"}]}
+   :web3-events {:events {
+                          ;; Uncomment once we have deployed registry contract
+                          ;; :ethlance-registry/ethlance-event [:ethlance-registry :EthlanceEvent {} {:from-block 0 :to-block "latest"}]
+                          }
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
 
