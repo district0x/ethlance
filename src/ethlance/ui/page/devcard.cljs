@@ -230,7 +230,7 @@
          [:div.title "Ethlance Scrollable (light)"]
          [:div.body
           [:div.scrollable-fixed-vertical
-           [c-scrollable {}
+           [c-scrollable {:forceVisible true :autoHide false}
             [:ul
              (doall
               (for [i (range 30)]
@@ -238,7 +238,7 @@
                 [:li (str "Element " (inc i))]))]]]
 
           [:div.scrollable-fixed-horizontal
-           [c-scrollable {}
+           [c-scrollable {:forceVisible true :autoHide false}
             [:div
              (doall
               (for [i (range 30)]
@@ -249,7 +249,7 @@
          [:div.title "Ethlance Scrollable (dark)"]
          [:div.body
           [:div.scrollable-fixed-vertical
-           [c-scrollable {:maxHeight 400}
+           [c-scrollable {:maxHeight 400 :forceVisible true :autoHide false}
             [:ul
              (doall
               (for [i (range 30)]
