@@ -7,7 +7,7 @@
 .PHONY: watch-tests watch-css
 .PHONY: deploy testnet ipfs docs
 .PHONY: run
-.PHONY: deps test travis-test
+.PHONY: deps lein-deps test travis-test
 .PHONY: design-build design-deploy design-deps
 .PHONY: check clean clean-all
 
@@ -101,14 +101,7 @@ lein-deps:
 	npm install @sentry/node # Hotfix
 
 
-WEBPACK_SCRIPT_FILE := ./node_modules/webpack-cli/bin/cli.js
-
-
-build-ui-deps:
-	node $(WEBPACK_SCRIPT_FILE)
-
-
-deps: lein-deps build-ui-deps
+deps: lein-deps
 
 
 watch-tests:

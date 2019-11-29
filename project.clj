@@ -158,12 +158,6 @@
      :compiler {:main ethlance.ui.core
                 :infer-externs true
                 :npm-deps false
-                :foreign-libs
-                [#_{:file "resources/public/js/deps_bundle.js"
-                    :provides ["simplebar-react" "react" "react-dom"]
-                    :global-exports {simplebar-react SimpleBarReact
-                                     react React
-                                     react-dom ReactDOM}}]
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"
