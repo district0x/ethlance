@@ -1,7 +1,7 @@
 (ns ethlance.ui.component.scrollable
   (:require
    [reagent.core :as r]
-   [simplebar-react]))
+   [flib.simplebar]))
 
 
 (def default-opts
@@ -25,6 +25,20 @@
 
   - Additional Readme Options (opts)
     https://github.com/Grsmto/simplebar/blob/master/packages/simplebar/README.md#options"
-  [:> simplebar-react
-   (merge default-opts opts)
-   child])
+  (let [*instance (r/atom nil)]
+    (r/create-class
+     {:display-name "c-scrollable"
+      
+      :component-did-mount
+      (fn [this]
+        (let [elnode (r/dom-node this)
+              simplebar (js/SimpleBar. elnode (clj->js opts))]
+          (reset! *instance simplebar)))
+
+      :component-will-unmount
+      (fn [this]
+        (.unMount @*instance))
+
+      :reagent-render
+      (fn [opts child]
+        [:div.scrollable child])})))

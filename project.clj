@@ -10,6 +10,8 @@
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
+                 [flib/simplebar "5.0.7-SNAPSHOT"]
+                 
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.rpl/specter "1.1.2"]
                  [com.taoensso/encore "2.116.0"]
@@ -98,7 +100,7 @@
 
   :aliases {}
 
-  :exclusions [cljsjs/react-with-addons cljsjs/react cljsjs/react-dom]
+  :exclusions [cljsjs/react-with-addons]
 
   :npm {:dependencies
         [[better-sqlite3 "5.4.0"]
@@ -157,11 +159,11 @@
                 :infer-externs true
                 :npm-deps false
                 :foreign-libs
-                [{:file "resources/public/js/deps_bundle.js"
-                  :provides ["simplebar-react" "react" "react-dom"]
-                  :global-exports {simplebar-react SimpleBarReact
-                                   react React
-                                   react-dom ReactDOM}}]
+                [#_{:file "resources/public/js/deps_bundle.js"
+                    :provides ["simplebar-react" "react" "react-dom"]
+                    :global-exports {simplebar-react SimpleBarReact
+                                     react React
+                                     react-dom ReactDOM}}]
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"
