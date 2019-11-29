@@ -1,0 +1,33 @@
+/// scrollable.less -- Styling for scrollable component
+
+// Uses simplebar
+// https://github.com/Grsmto/simplebar
+// https://github.com/Grsmto/simplebar/tree/master/packages/simplebar-react
+@import (inline) "https://unpkg.com/simplebar@5.0.7/dist/simplebar.css";
+
+.scrollable {
+  > .simplebar-wrapper {
+    
+  }
+
+  > .simplebar-track {
+    > .simplebar-scrollbar {
+      &::before {
+        opacity: 0.75;
+        background: #color[dark-blue];
+      }
+    }
+  }
+
+  > .simplebar-horizontal {
+    > .simplebar-scrollbar {
+      
+    }
+  }
+
+  > .simplebar-vertical {
+    > .simplebar-scrollbar {
+      
+    }
+  }
+}

@@ -10,6 +10,8 @@
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
+                 [flib/simplebar "5.0.7-SNAPSHOT"]
+                 
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.rpl/specter "1.1.2"]
                  [com.taoensso/encore "2.116.0"]
@@ -28,8 +30,8 @@
                  [org.clojure/core.match "0.3.0"]
                  [org.clojure/tools.reader "1.3.2"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.10.9"]
-                 [reagent "0.8.1"]
+                 [re-frame "0.11.0-rc2"]
+                 [reagent "0.9.0-rc2"]
 
                  ;; District General Libraries
                  [district0x/district-cljs-utils "1.0.4"]
@@ -120,7 +122,14 @@
          [ethereumjs-wallet "0.6.0"]
          [jsedn "0.4.1"]
 
+         ;; UI Component
+         [react "16.9.0"]
+         [react-dom "16.9.0"]
+         [simplebar-react "2.0.5"]
+
          ;; Development Dependencies
+         [webpack "4.41.2"]
+         [webpack-cli "3.3.9"]
          [less "3.10.3"]
          [less-watch-compiler "1.14.1"]
          [ganache-cli "6.7.0"]
@@ -139,18 +148,22 @@
     :plugins [[lein-figwheel "0.5.19"]
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns user
-                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]
-                   ;; not fixing port by default so we can start multiple repl instances
-                   ;; :port 6450
-                   }}}
+                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}}
 
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src" "test"
-                    "dev/ui"]
+     :source-paths ["src" "test" "dev/ui"]
      :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
+                :infer-externs true
+                :npm-deps false
+                :foreign-libs
+                [#_{:file "resources/public/js/deps_bundle.js"
+                    :provides ["simplebar-react" "react" "react-dom"]
+                    :global-exports {simplebar-react SimpleBarReact
+                                     react React
+                                     react-dom ReactDOM}}]
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"
@@ -160,8 +173,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src" "test"
-                    "dev/server"]
+     :source-paths ["src" "test" "dev/server"]
      :figwheel true
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"
@@ -192,9 +204,7 @@
                 :pretty-print false}}
 
     {:id "test-ui"
-     :source-paths ["src" "test"
-                    "dev/ui"]
-     :figwheel true
+     :source-paths ["src" "test" "dev/ui"]
      :compiler {:main ethlance.ui.test-runner ;; ./test/ui
                 :output-to "dev/resources/public/js/compiled/test_runner.js"
                 :output-dir "dev/resources/public/js/compiled/out-ui-test-runner"
@@ -203,9 +213,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "test-server"
-     :source-paths ["src" "test"
-                    "dev/server"]
-     :figwheel true
+     :source-paths ["src" "test" "dev/server"]
      :compiler {:main ethlance.server.test-runner ;; ./test/server
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"

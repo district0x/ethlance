@@ -13,7 +13,8 @@
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]))
+   [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
+   [ethlance.ui.component.scrollable :refer [c-scrollable]]))
 
 
 (defmethod page :route.devcard/index []
@@ -223,4 +224,40 @@
          [:div.title "Ethlance Checkbox Input (light)"]
          [:div.body
           [c-labeled-checkbox {:default-checked? false
-                               :label "Testing"}]]]]])))
+                               :label "Testing"}]]]
+
+        [:div.grouping
+         [:div.title "Ethlance Scrollable (light)"]
+         [:div.body
+          [:div.scrollable-fixed-vertical
+           [c-scrollable {:forceVisible true :autoHide false}
+            [:ul
+             (doall
+              (for [i (range 30)]
+                ^{:key (str "el-" i)}
+                [:li (str "Element " (inc i))]))]]]
+
+          [:div.scrollable-fixed-horizontal
+           [c-scrollable {:forceVisible true :autoHide false}
+            [:div
+             (doall
+              (for [i (range 30)]
+                ^{:key (str "el-" i)}
+                [:span (str "Element " (inc i))]))]]]]]
+
+        [:div.dark-grouping
+         [:div.title "Ethlance Scrollable (dark)"]
+         [:div.body
+          [:div.scrollable-fixed-vertical
+           [c-scrollable {:maxHeight 400 :forceVisible true :autoHide false}
+            [:ul
+             (doall
+              (for [i (range 30)]
+                [:li (str "Element " (inc i))]))]]]
+
+          [:div.scrollable-fixed-horizontal
+           [c-scrollable {}
+            [:div
+             (doall
+              (for [i (range 30)]
+                [:span (str "Element " (inc i))]))]]]]]]])))

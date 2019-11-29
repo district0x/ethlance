@@ -249,8 +249,12 @@
       margin-bottom: 1em;
     }
 
-    > .proposal-table {
+    > .scrollable {
       grid-area: proposal-table;
+      overflow: scroll;
+      .ethlance-table {
+        width: 600px;
+      }
     }
 
     > .proposal-form {
@@ -320,8 +324,11 @@
       margin-bottom: 1em;
     }
 
-    > .ethlance-table {
-
+    > .scrollable {
+      overflow: scroll;
+      .ethlance-table {
+        width: 600px;
+      }
     }
 
     > .button-listing {
