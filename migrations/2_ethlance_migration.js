@@ -30,7 +30,7 @@ const thirdForwarderTargetPlaceholder = "dbdadbadbabdabdbadabdbafffd1234fdfadbcc
 const fourthForwarderTargetPlaceholder = "beefabeefabeefabeefabeefabeefabeefabeefa";
 const districtConfigPlaceholder = "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd";
 const registryPlaceholder = "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb";
-
+const standardBountiesPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
 
 //
 // Contract Artifacts
@@ -38,6 +38,8 @@ const registryPlaceholder = "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb";
 
 let DSGuard = requireContract("DSGuard");
 let TestToken = requireContract("TestToken");
+let StandardBounties = requireContract("StandardBounties");
+let EthlanceBountyIssuer = requireContract("EthlanceBountyIssuer");
 
 
 //
@@ -56,7 +58,7 @@ async function deploy_DSGuard(deployer, opts) {
   // Set DSGuard Authority
   console.log("- Configuring DSGuard Authority...");
   await dsGuard.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
-  
+
   // Attach to our smart contract listings
   assignContract(dsGuard, "DSGuard", "ds-guard");
 }
@@ -71,6 +73,15 @@ async function deploy_TestToken(deployer, opts) {
   assignContract(token, "TestToken", "token");
 }
 
+async function deploy_EthlanceBountyIssuer(deployer, opts){
+  let standardBounties = await deployer.deploy(StandardBounties, Object.assign(opts, {gas: 6.4e6}));
+  assignContract(standardBounties, "StandardBounties", "standard-bounties");
+
+  linkBytecode(EthlanceBountyIssuer, standardBountiesPlaceholder, standardBounties.address);
+  var ethlanceBountyIssuer = await deployer.deploy(EthlanceBountyIssuer, Object.assign(opts, {gas: 6e6}));
+
+  assignContract(ethlanceBountyIssuer, "EthlanceBountyIssuer", "ethlance-bounty-issuer");
+}
 
 /*
   Deploy All Ethlance Contracts
@@ -78,6 +89,7 @@ async function deploy_TestToken(deployer, opts) {
 async function deploy_all(deployer, opts) {
   await deploy_DSGuard(deployer, opts);
   await deploy_TestToken(deployer, opts);
+  await deploy_EthlanceBountyIssuer(deployer, opts);
   writeSmartContracts();
 }
 

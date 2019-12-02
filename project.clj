@@ -17,6 +17,7 @@
                  [com.taoensso/encore "2.116.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/bignumber "1.0.3"]
+                 [cljsjs/bignumber "4.1.0-0"]
                  [district0x/error-handling "1.0.4"]
                  [expound "0.7.2"]
                  [funcool/cuerdas "2.2.0"]
@@ -46,7 +47,7 @@
                  [district0x/district-server-graphql "1.0.18"]
                  [district0x/district-server-logging "1.0.6"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.2.0"]
+                 [district0x/district-server-smart-contracts "1.2.2"]
                  [district0x/district-server-web3 "1.2.0"]
                  [district0x/district-server-web3-events "1.1.6"]
 
@@ -133,7 +134,9 @@
          [less "3.10.3"]
          [less-watch-compiler "1.14.1"]
          [ganache-cli "6.7.0"]
-         [truffle "5.0.38"]]}
+         [truffle "5.0.38"]
+
+         ["@sentry/node" "4.2.1"]]}
 
   :profiles
   {:dev
