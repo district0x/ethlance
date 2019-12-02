@@ -9,7 +9,7 @@
    [cljs-web3.eth :as web3-eth]
    [cljs-web3.evm :as web3-evm]
    [mount.core :as mount :refer [defstate]]
-   
+
    [ethlance.server.core]
    [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
 
@@ -95,8 +95,8 @@
 
 (defn prepare-testnet!
   "Performs a deployment, or reverts the testnet if a deployment
-  snapshot is available. 
-  
+  snapshot is available.
+
   Note:
 
   - Works on Ganache CLI v6.1.8 (ganache-core: 2.2.1)"
@@ -120,4 +120,5 @@
         #'district.server.web3/web3
         #'district.server.smart-contracts/smart-contracts])
       mount/start)
-  (go (<! (prepare-testnet!))))
+  ;; commenting this out for now, we don't have snapshoting system in new cljs-web3-next
+  (go true #_(<! (prepare-testnet!))))
