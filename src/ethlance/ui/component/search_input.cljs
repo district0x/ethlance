@@ -10,7 +10,6 @@
 
 
 (def blur-delay-ms 200) ;; ms
-(def num-filter-selections 4)
 
 
 (defn filter-selections
@@ -18,7 +17,6 @@
   (if (and (not (empty? search-text)) (not (empty? selections)))
     (->> selections
          (filter #(string/includes? (string/lower %) (string/lower search-text)))
-         (take num-filter-selections)
          vec)
     nil))
 
