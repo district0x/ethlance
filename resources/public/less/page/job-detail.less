@@ -251,7 +251,6 @@
 
     > .scrollable {
       grid-area: proposal-table;
-      overflow: scroll;
       .ethlance-table {
         width: 600px;
       }
@@ -283,6 +282,10 @@
 
         @media #media[mobile-query] {
           justify-content: center;
+        }
+
+        > .ethlance-text-input {
+          margin: 0;
         }
       }
 
@@ -325,9 +328,9 @@
     }
 
     > .scrollable {
-      overflow: scroll;
       .ethlance-table {
-        width: 600px;
+        width: 100%;
+        min-width: 600px;
       }
     }
 
