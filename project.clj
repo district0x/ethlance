@@ -88,20 +88,15 @@
             [lein-marginalia "0.9.1"]]
 
   :min-lein-version "2.5.3"
-
   :source-paths ["src"]
   :test-paths ["test"]
-
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
-
   :figwheel {:css-dirs ["resources/public/css"]
              :nrepl-port 9000
-             :server-port 6500}
-
+             :server-port 6500
+             :ring-handler handler/figwheel-request-handler}
   :aliases {}
-
   :exclusions [cljsjs/react-with-addons]
-
   :npm {:dependencies
         [[better-sqlite3 "5.4.0"]
          [chalk "2.3.0"]
