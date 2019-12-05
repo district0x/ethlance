@@ -5,7 +5,7 @@
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
-(def rating-star-src "images/icons/ethlance-star-icon.svg")
+(def rating-star-src "/images/icons/ethlance-star-icon.svg")
 
 
 (defn handle-svg-ready [index on-change dom-ref inline-svg]

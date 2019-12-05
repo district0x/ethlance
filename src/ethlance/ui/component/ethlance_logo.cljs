@@ -4,10 +4,10 @@
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
-(def primary-logo-url "images/ethlance_logo_primary.svg")
-(def secondary-logo-url "images/ethlance_logo_secondary.svg")
-(def white-logo-url "images/ethlance_logo_white.svg")
-(def black-logo-url "images/ethlance_logo_bw.svg")
+(def primary-logo-url "/images/ethlance_logo_primary.svg")
+(def secondary-logo-url "/images/ethlance_logo_secondary.svg")
+(def white-logo-url "/images/ethlance_logo_white.svg")
+(def black-logo-url "/images/ethlance_logo_bw.svg")
 
 
 (defn c-ethlance-logo 
@@ -29,6 +29,8 @@
                :primary primary-logo-url
                :secondary secondary-logo-url
                :white white-logo-url
-               :black black-logo-url)]
-      [:div.ethlance-logo
+               :black black-logo-url)
+          opts (dissoc opts :color)]
+      [:a.ethlance-logo
+       opts
        [c-inline-svg {:src src :class []}]])))

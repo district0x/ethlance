@@ -5,11 +5,18 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-   [ethlance.ui.component.icon :refer [c-icon]]))
+   [ethlance.ui.component.icon :refer [c-icon]]
+
+   ;; Ethlance Utils
+   [ethlance.ui.util.navigation :as util.navigation]))
 
 
-(defn c-nav-link [{:keys [name href]}]
-  [:a.nav-link {:href href} name])
+(defn c-nav-link [{:keys [name route]}]
+  [:a.nav-link
+   {:title name
+    :on-click (util.navigation/create-handler {:route route})
+    :href (util.navigation/resolve-route {:route route})}
+   name])
 
 
 (defn c-splash-mobile-navigation-bar []
@@ -23,6 +30,6 @@
                  :on-click #(swap! *open? not)}]]
        (when @*open?
          [:div.drawer
-          [c-nav-link {:name "Find Work" :href "#"}]
-          [c-nav-link {:name "Find Candidates" :href "#"}]
-          [c-nav-link {:name "How It Works" :href "#"}]])])))
+          [c-nav-link {:name "Find Work" :route :route.job/jobs}]
+          [c-nav-link {:name "Find Candidates" :route :route.user/candidates}]
+          [c-nav-link {:name "How It Works" :route :route.misc/how-it-works}]])])))

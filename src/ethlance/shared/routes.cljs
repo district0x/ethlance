@@ -25,7 +25,11 @@
 
              ;; Me
              ["/me" :route.me/index]
-             ["/me/sign-up" :route.me/sign-up]])
+             ["/me/sign-up" :route.me/sign-up]
+
+             ;; Misc.
+             ["/how-it-works" :route.misc/how-it-works]
+             ["/about" :route.misc/about]])
 
 
 (def dev-routes

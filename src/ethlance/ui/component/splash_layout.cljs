@@ -4,13 +4,17 @@
    [re-frame.core :as rf]
 
    ;; Ethlance Components
-   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
    [ethlance.ui.component.button :refer [c-button c-button-label]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+   [ethlance.ui.component.icon :refer [c-icon]]
+   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+   [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]
    [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]
-   [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]))
+
+   ;; Ethlance Utils
+   [ethlance.ui.util.navigation :as util.navigation]))
+   
 
 
 (defn c-how-to-card [label src]
@@ -102,13 +106,25 @@
       [:span "Hire or Work for Ether cryptocurrency"]
       [:div.button-listing
        [c-button       
-        {:color :primary :size :auto}
+        {:color :primary
+         :size :auto
+         :title "Become a Freelancer"
+         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :candidate}})
+         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :candidate}})}
         [c-button-label [:span "Become a "] [:b "Freelancer"]]]
        [c-button
-        {:color :primary :size :auto}
+        {:color :primary
+         :size :auto
+         :title "Become an Employer"
+         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :employer}})
+         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :employer}})}
         [c-button-label [:span "Become an "] [:b "Employer"]]]
        [c-button
-        {:color :primary :size :auto}
+        {:color :primary
+         :size :auto
+         :title "Become an Arbiter"
+         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :arbiter}})
+         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :arbiter}})}
         [c-button-label [:span "Become an "] [:b "Arbiter"]]]]
       [:div.district
        [:figure.img-district
@@ -225,31 +241,68 @@
      [:div.links-section
       [:div.listing
        [:span.title "Learn More"]
-       [:a {:href "#"} "About Us"]
-       [:a {:href "#"} "How it Works"]
-       [:a {:href "#"} "Blog"]]
+       [:a
+        {:title "About Us"
+         :on-click (util.navigation/create-handler {:route :route.misc/about})
+         :href (util.navigation/resolve-route {:route :route.misc/about})}
+        "About Us"]
+       [:a 
+        {:title "How it Works"
+         :on-click (util.navigation/create-handler {:route :route.misc/how-it-works})
+         :href (util.navigation/resolve-route {:route :route.misc/how-it-works})}
+        "How it Works"]
+       [:a {:href "https://blog.district0x.io/"} "Blog"]]
       [:div.listing
        [:span.title "Get Started"]
-       [:a {:href "#"} "Become a Freelancer"]
-       [:a {:href "#"} "Become an Employer"]
-       [:a {:href "#"} "Find Work"]
-       [:a {:href "#"} "Find Candidates"]]
+       [:a 
+        {:title "Become a Freelancer"
+         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :candidate}})
+         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :candidate}})}
+        "Become a Freelancer"]
+       [:a
+        {:title "Become an Employer"
+         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :employer}})
+         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :employer}})}
+        "Become an Employer"]
+       [:a
+        {:title "Find Work"
+         :on-click (util.navigation/create-handler {:route :route.job/jobs})
+         :href (util.navigation/resolve-route {:route :route.job/jobs})}
+        "Find Work"]
+       [:a
+        {:title "Find Candidates"
+         :on-click (util.navigation/create-handler {:route :route.user/candidates})
+         :href (util.navigation/resolve-route {:route :route.user/candidates})}
+        "Find Candidates"]]
       [:div.listing
        [:span.title "Connect With Us"]
        [:div.button-listing
-        [c-circle-icon-button {:name :twitter :size :small}]
-        [c-circle-icon-button {:name :github :size :small}]
-        [c-circle-icon-button {:name :slack :size :small}]
-        [c-circle-icon-button {:name :facebook :size :small}]]]]
+        [c-circle-icon-button {:name :facebook :title "District0x Facebook"
+                               :size :small :href "https://www.facebook.com/district0x/"}]
+        [c-circle-icon-button {:name :twitter :title "District0x Twitter"
+                               :size :small :href "https://twitter.com/district0x?lang=en"}]
+        [c-circle-icon-button {:name :github :title "District0x Github"
+                               :size :small :href "https://github.com/district0x"}]
+        [c-circle-icon-button {:name :slack :title "District0x Slack"
+                               :size :small :href "https://district0x-slack.herokuapp.com/"}]]]]
      [:div.buttons-section
       [c-button       
-       {:color :primary :size :auto}
+       {:color :primary :size :auto
+        :title "Become a Freelancer"
+        :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :candidate}})
+        :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :candidate}})}
        [c-button-label [:span "Become a " [:b "Freelancer"]]]]
       [c-button
-       {:color :primary :size :auto}
+       {:color :primary :size :auto
+        :title "Become an Arbiter"
+        :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :arbiter}})
+        :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :arbiter}})}
        [c-button-label [:span "Become an " [:b "Arbiter"]]]]
       [c-button
-       {:color :primary :size :auto}
+       {:color :primary :size :auto
+        :title "Become an Employer"
+        :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :employer}})
+        :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :employer}})}
        [c-button-label [:span "Become an " [:b "Employer"]]]]]
      [:div.footer-section
       [:span "Copyright © 2019 Ethlance.com. All rights reserved."]]]]])

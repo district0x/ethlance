@@ -19,7 +19,8 @@
    :router
    {:routes ethlance.shared.routes/routes
     :default-route :route/home
-    :scroll-top? true}
+    :scroll-top? true
+    :html5? true}
 
    ;; Default one, should be moved to per env config file
    :graphql {:jwt-sign-secret "SECRET"}})

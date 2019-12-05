@@ -37,7 +37,11 @@
        [:div.spacer "|"]
        [:span "All rights reserved."]]
       [:div.social
-       [c-circle-icon-button {:name :facebook :size :small}]
-       [c-circle-icon-button {:name :twitter :size :small}]
-       [c-circle-icon-button {:name :github :size :small}]
-       [c-circle-icon-button {:name :slack :size :small}]]]]))
+       [c-circle-icon-button {:name :facebook :title "District0x Facebook"
+                              :size :small :href "https://www.facebook.com/district0x/"}]
+       [c-circle-icon-button {:name :twitter :title "District0x Twitter"
+                              :size :small :href "https://twitter.com/district0x?lang=en"}]
+       [c-circle-icon-button {:name :github :title "District0x Github"
+                              :size :small :href "https://github.com/district0x"}]
+       [c-circle-icon-button {:name :slack :title "District0x Slack"
+                              :size :small :href "https://district0x-slack.herokuapp.com/"}]]]]))

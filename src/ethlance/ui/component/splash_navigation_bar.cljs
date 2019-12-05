@@ -4,15 +4,19 @@
    [re-frame.core :as rf]
 
    ;; Ethlance Components
-   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]))
+   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+
+   ;; Ethlance Utils
+   [ethlance.ui.util.navigation :as util.navigation]))
 
 
 (defn c-splash-navigation-link
-  [{:keys [name link *hover]}]
+  [{:keys [name route *hover]}]
   [:div.splash-navigation-link
    {:on-mouse-over #(swap! *hover name)}
-   [:a {:href link
+   [:a {:href (util.navigation/resolve-route {:route route})
         :title name
+        :on-click (util.navigation/create-handler {:route route})
         :class (when (= @*hover name) "hover")} name]])
 
 
@@ -23,6 +27,6 @@
        [:div.logo
         [c-ethlance-logo]]
        [:div.links
-        [c-splash-navigation-link {:*hover *hover :name "Find Work" :link "/employees"}]
-        [c-splash-navigation-link {:*hover *hover :name "Find Candidates" :link "/candidates"}]
-        [c-splash-navigation-link {:*hover *hover :name "How it Works" :link "/how-it-works"}]]])))
+        [c-splash-navigation-link {:*hover *hover :name "Find Work" :route :route.job/jobs}]
+        [c-splash-navigation-link {:*hover *hover :name "Find Candidates" :route :route.user/candidates}]
+        [c-splash-navigation-link {:*hover *hover :name "How it Works" :route :route.misc/how-it-works}]]])))
