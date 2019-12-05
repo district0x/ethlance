@@ -147,4 +147,5 @@
            {:class root-class
             :ref (fn [com] (reset! *dom-ref com))
             :key key}
-           (when-not @*inline-svg #_[:img.svg {:src src :style style :class class}])]))})))
+           (when-not @*inline-svg [:img.svg {:style (merge style {:opacity 0})
+                                             :class class}])]))})))

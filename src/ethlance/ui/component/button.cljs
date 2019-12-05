@@ -33,7 +33,7 @@
         :or {color :primary disabled? false active? false size :normal}}
        & children]
     (let [props (dissoc props :disabled? :active? :color :size)]
-      [:div.button
+      [:a.button
        (merge
         {:class [(when (= color :secondary) " secondary ")
                  (when disabled? " disabled ")

@@ -3,7 +3,7 @@
    [reagent.core :as r]))
 
 
-(def placeholder-image-url "./images/avatar-placeholder.png")
+(def placeholder-image-url "/images/avatar-placeholder.png")
 
 
 (defn c-profile-image

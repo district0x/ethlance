@@ -50,7 +50,7 @@
                         :large " large ")
           class-disabled (when disabled? " disabled ")
           class-hide (when hide? " hide ")]
-      [:div.ethlance-circle-button.ethlance-circle-icon-button
+      [:a.ethlance-circle-button.ethlance-circle-icon-button
        (merge
         opts
         {:class [class-color class-size class-disabled class-hide]

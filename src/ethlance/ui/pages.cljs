@@ -24,6 +24,10 @@
    [ethlance.ui.page.sign-up]
    [ethlance.ui.page.me]
 
+   ;; Misc Pages
+   [ethlance.ui.page.how-it-works]
+   [ethlance.ui.page.about]
+
    ;; Development Pages
    [ethlance.ui.page.devcard]))
 

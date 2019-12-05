@@ -41,7 +41,7 @@
            (swap! *checked? not))
 
          :class (when @*checked? "checked")})
-       [c-inline-svg {:src "images/svg/checkbox.svg"
+       [c-inline-svg {:src "/images/svg/checkbox.svg"
                       :width 24
                       :height 24}]
        [:span.label label]])))
