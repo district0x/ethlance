@@ -20,7 +20,8 @@ type Mutation {
 }
 
 input UpdateUserProfileInput {
-  user_Username: String
+  user_address: ID!
+  user_userName: String
   user_profileImage: String
   user_countryCode: String
 }

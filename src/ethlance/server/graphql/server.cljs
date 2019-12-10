@@ -2,6 +2,7 @@
   (:require [cljs.nodejs :as nodejs]
             [district.server.config :as config]
             [district.shared.async-helpers :refer [promise->]]
+            [ethlance.server.graphql.authorization :as authorization]
             [ethlance.server.graphql.resolvers :as resolvers]
             [ethlance.server.middlewares :as middlewares]
             [ethlance.shared.graphql.schema :as schema]
@@ -30,8 +31,8 @@
                                                 ;; middlewares/logging-middleware
                                                 middlewares/response->gql-middleware)
         server (new ApolloServer (clj->js {:schema schema-with-middleware
-                                           :context (fn [request]
-                                                      {:fu :bar})}))]
+                                           :context (fn [event]
+                                                      {:current-user (authorization/token->user event @config/config)})}))]
     (promise-> (js-invoke server "listen" (clj->js opts))
                (fn [url]
                  (log/info "Graphql server started...")

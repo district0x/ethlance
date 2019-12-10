@@ -9,6 +9,8 @@
    [district.server.db :as db]
    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
    [district.server.db.honeysql-extensions]
+   ;; [honeysql-postgres.helpers :as postgres-helpers]
+   ;; [honeysql-postgres.format]
    [honeysql.core :as sql]
    [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
    [medley.core :as medley]
@@ -49,10 +51,10 @@
   [{:table-name :User
     :table-columns
     [[:user/address address]
-     [:user/country-code :varchar not-nil]
+     [:user/country-code :varchar #_not-nil]
      [:user/user-name :varchar]
      [:user/full-name :varchar]
-     [:user/email :varchar not-nil]
+     [:user/email :varchar #_not-nil]
      [:user/profile-image :varchar]
      [:user/date-created :unsigned :integer]
      [:user/date-updated :unsigned :integer]
@@ -541,6 +543,13 @@
   (db/get {:select [:*]
            :from [:User]
            :where [:= address :User.user/address]}))
+
+(defn upsert-user! [args]
+  (let [values (select-keys args (get-table-column-names :User))]
+    (db/run! {:insert-into :User
+              :values [values]
+              :upsert {:on-conflict [:user/address]
+                       :do-update-set (keys values)}})))
 
 (defn start
   "Start the ethlance-db mount component."

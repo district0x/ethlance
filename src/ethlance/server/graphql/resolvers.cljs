@@ -17,35 +17,6 @@
                       offset (assoc :offset offset))]
     (db/all paged-query)))
 
-#_(defn default-item-resolver
-  "The default resolver that is used with GraphQL schemas that return an
-  `:item` key
-  "
-  [item-list]
-  (get item-list :items []))
-
-;; TODO
-#_(defn require-auth
-  "Given a `resolver` fn returns a wrapped resolver.
-  It will call the given `resolver` if the request contains currentUser,
-  see `ethlance.server.graphql.mutations.sign-in/session-middleware`.
-  It will throw a error otherwise."
-  [resolver]
-  (fn [& [_ _ req :as args]]
-    (if (.-currentUser req)
-      (apply resolver args)
-      (throw (js/Error. "Authentication required")))))
-
-
-#_(def graphql-resolver-map
-
-  {:Query
-   {}
-
-   :Mutation
-   {;; Sign in with signed message
-    :sign-in mutations.sign-in/sign-in}})
-
 (defn user-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "user-resolver" args)
@@ -76,18 +47,25 @@
                  true (sql-helpers/merge-order-by [[:User.user/address :desc]]))]
      (paged-query db query limit offset))))
 
-;; TODO : mutation
 (defn update-user-profile-mutation [_ {:keys [:input]} _ #_{:keys [:user/id]}]
-  #_(let [{:keys [:user/name :user/photo :user/bio :user/location] :as args} (utils/gql-input->clj input)]
-    (promise-> current-user
-               (fn [authenticated-user]
-                 (let [user (merge args authenticated-user)]
-                   (log/debug "edit-user-mutation" user)
-                   (promise-> (db/upsert-user! user db)
-                              #(db/get-user user db)))))))
+  (try-catch-throw
+   (let [{:keys [:user/address :user/user-name :user/profile-image :user/country-code] :as user} (graphql-utils/gql-input->clj input)]
+     (log/debug "update-user-profile-mutation" user)
+     (ethlance-db/upsert-user! user)
+     (ethlance-db/get-user user))))
+
+(defn require-auth [next]
+  "Given a `resolver` fn returns a wrapped resolver.
+  It will call the given `resolver` if the request contains currentUser,
+  see `ethlance.server.graphql.mutations.sign-in/session-middleware`.
+  It will throw a error otherwise."
+  (fn [root args {:keys [:current-user] :as context} info]
+    (if-not current-user
+      (throw (js/Error. "Authentication required"))
+      (next root args context info))))
 
 ;; TODO : auth + context
-(def resolvers-map {:Query {:user user-resolver
+(def resolvers-map {:Query {:user (require-auth user-resolver)
                             :searchUsers search-users-resolver}
                     :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver}
                     :Mutation {:updateUserProfile update-user-profile-mutation}})

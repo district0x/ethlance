@@ -2,8 +2,7 @@
   "Development Entrypoint for CLJS-Server."
   (:require
    [cljs-web3.eth :as web3-eth]
-   [cljs.instrumentation :as instrumentation]
-   [cljs.tests :as tests]
+   ;; [cljs.instrumentation :as instrumentation]
    [clojure.pprint :refer [pprint]]
    [clojure.string :as string]
    [district.graphql-utils :as graphql-utils]
@@ -138,19 +137,6 @@
   (log/info "Running Server Tests Asynchronously...")
   (.nextTick js/process run-tests-sync))
 
-
-(defn enable-instrumentation!
-  "Strict conforms function fspecs for all specs."
-  []
-  (instrumentation/enable!))
-
-
-(defn disable-instrumentation!
-  "Disables strict conformity of fspecs."
-  []
-  (instrumentation/disable!))
-
-
 (defn reset-testnet!
   "Resets the testnet deployment snapshot for server tests."
   []
@@ -204,6 +190,15 @@
         (ethlance-db/insert-row! :Candidate {:user/address (str id)
                                              :candidate/rate (rand-int 200)
                                              :candidate/rate-currency-id currency})))))
+
+;; TODO : temporary
+(defn test-it []
+  (ethlance-db/upsert-user! {:user/address "1"
+                             :user/country-code "PL"
+                             :user/user-name (str "@" "Jan")
+                             :user/full-name (str "Jan" " " "Koval")
+                             :user/email (string/lower-case (str "Jan" "@" "Koval" "." "com"))
+                             :user/profile-image (str "https://randomuser.me/api/portraits/lego/" 1 ".jpg")}))
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"
