@@ -73,7 +73,10 @@
      [c-chip-search-input {:search-icon? false :placeholder ""}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-     [c-chip-search-input {:search-icon? false :placeholder ""}]
+     [c-chip-search-input
+      {:search-icon? false
+       :placeholder ""
+       :auto-suggestion-listing constants/skills}]
 
      [:div.label [:h2 "Your Biography"]]
      [c-textarea-input {:placeholder ""}]

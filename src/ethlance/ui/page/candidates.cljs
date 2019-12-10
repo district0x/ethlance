@@ -119,5 +119,8 @@
        [c-candidate-search-filter]
        [c-candidate-mobile-search-filter]
        [:div.candidate-listing.listing {:key "listing"}
-        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+        [c-chip-search-input
+         {:placeholder "Search Candidate Skills"
+          :allow-custom-chips? false
+          :auto-suggestion-listing constants/skills}]
         [c-candidate-listing]]])))

@@ -44,16 +44,18 @@
 (defn c-chip
   [{:keys [on-close]} label]
   [:div.ethlance-chip
+   {:title label}
    [:span.label label]
    [:span.close-button
-    {:on-click on-close}
+    {:on-click on-close
+     :title (str "Remove '" label "'")}
     [c-icon {:name :close :size :x-small :color :black}]]])
 
 
 (defn c-chip-search-input
   "A standalone component for handling chip search inputs.
 
-  # Keywoard Arguments
+  # Keyword Arguments
 
   opts - Optional Arguments
 
@@ -78,7 +80,7 @@
   the component. [default: true].
 
   :placeholder - Input Placeholder text to display in the chip search
-  component."
+  component. [default: 'Search Tags']"
   [{:keys [default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
