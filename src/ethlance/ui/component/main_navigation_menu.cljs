@@ -16,7 +16,6 @@
   (fn []
     (let [*active-page (re/subscribe [::ui.router.subs/active-page])
           {active-route-name :name} @*active-page]
-      (println @*active-page)
       [:a.nav-element
        {:title label
         :class (when (= route active-route-name) "active")
