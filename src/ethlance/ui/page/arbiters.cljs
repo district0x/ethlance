@@ -117,5 +117,5 @@
         [c-chip-search-input
          {:auto-suggestion-listing constants/skills
           :allow-custom-chips? false
-          :placeholder "Search Tags"}]
+          :placeholder "Search Arbiter Skills"}]
         [c-arbiter-listing]]])))

@@ -210,6 +210,9 @@
        [c-job-search-filter]
        [c-job-mobile-search-filter]
        [:div.job-listing.listing {:key "listing"}
-        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+        [c-chip-search-input 
+         {:placeholder "Search Job Skill Requirements"
+          :allow-custom-chips? false
+          :auto-suggestion-listing constants/skills}]
         [c-job-listing]]])))
 

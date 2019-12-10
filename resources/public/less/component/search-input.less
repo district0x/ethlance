@@ -94,6 +94,7 @@
 }
 
 .ethlance-chip {
+  #mixin.noselect();
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -104,6 +105,10 @@
 
   > .label {
     padding-right: 0.5em;
+    max-width: 80px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   > .close-button {
