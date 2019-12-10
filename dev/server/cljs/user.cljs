@@ -2,43 +2,31 @@
   "Development Entrypoint for CLJS-Server."
   (:require
    [cljs-web3.eth :as web3-eth]
-   [clojure.pprint :refer [pprint]]
-   [cljs.tests :as tests]
    [cljs.instrumentation :as instrumentation]
-   [mount.core :as mount]
-   [honeysql.core :as sql]
-   [taoensso.timbre :as log]
-
+   [cljs.tests :as tests]
+   [clojure.pprint :refer [pprint]]
+   [clojure.string :as string]
    [district.graphql-utils :as graphql-utils]
    [district.server.db]
-   [district.server.graphql :as graphql]
    [district.server.logging]
+   [district.server.smart-contracts :as contracts]
    [district.server.web3 :refer [web3]]
    [district.server.web3-events]
-   [district.server.smart-contracts :as contracts]
    [district.shared.error-handling :refer [try-catch try-catch-throw]]
-
-   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
    [ethlance.server.core]
-   [ethlance.server.db]
+   [ethlance.server.db :as ethlance-db]
    [ethlance.server.syncer]
+   [ethlance.server.test-runner :as server.test-runner]
    [ethlance.server.test-utils :as server.test-utils]
-   [ethlance.server.test-runner :as server.test-runner]))
-
-
-(def gql "Shorthand for district.server.graphql/run-query"
-  graphql/run-query)
-
+   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+   [honeysql.core :as sql]
+   [mount.core :as mount]
+   [taoensso.timbre :as log]
+   ))
 
 (def sql-format
   "Shorthand for honeysql.core/format"
   sql/format)
-
-
-;; More GraphQL Shortcuts
-(def gql-name->kw graphql-utils/gql-name->kw)
-(def kw->gql-name graphql-utils/kw->gql-name)
-
 
 (def help-message "
   CLJS-Server Repl Commands:
@@ -73,7 +61,7 @@
 
 (def dev-config
   "Default district development configuration for mount components."
-  (-> ethlance.server.core/main-config
+  (-> ethlance.server.core/default-config
       (merge {:logging {:level "debug" :console? true}})
       (merge {:db {:path "./resources/ethlance.db"
                    :opts {:memory false}}})
@@ -81,12 +69,6 @@
                                       :print-gas-usage? true
                                       :auto-mining? true})
       (assoc :graphql dev-graphql-config)))
-
-
-(defn restart-graphql!
-  "Restart the GraphQL State Component with new schema and resolver."
-  []
-  (graphql/restart dev-graphql-config))
 
 
 (defn start-sync
@@ -203,6 +185,25 @@
   []
   (println help-message))
 
+(defn generate-dev-data []
+  (for [id (range 0 101)]
+    (let [[country-code _] (shuffle ["US" "BE" "UA" "CA" "SLO" "PL"])
+          [first-name _] (shuffle ["Filip" "Juan" "Ben" "Matus"])
+          [second-name _] (shuffle ["Fu" "Bar" "Smith" "Doe" "Hoe"])
+          [extension _] (shuffle ["io" "com" "gov"])
+          [profile-id _] (shuffle (range 0 10))
+          [candidate? _] (shuffle [true false])
+          [currency _] (shuffle ["EUR" "USD"])]
+      (ethlance-db/insert-row! :User {:user/address (str id)
+                                      :user/country-code country-code
+                                      :user/user-name (str "@" first-name)
+                                      :user/full-name (str first-name " " second-name)
+                                      :user/email (string/lower-case (str first-name "@" second-name "." extension))
+                                      :user/profile-image (str "https://randomuser.me/api/portraits/lego/" profile-id ".jpg")})
+      (when candidate?
+        (ethlance-db/insert-row! :Candidate {:user/address (str id)
+                                             :candidate/rate (rand-int 200)
+                                             :candidate/rate-currency-id currency})))))
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"

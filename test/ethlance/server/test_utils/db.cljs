@@ -12,7 +12,7 @@
 
 (def test-config
   "Test configuration for the database."
-  (-> ethlance.server.core/main-config
+  (-> ethlance.server.core/default-config
       (merge {:logging {:level "debug" :console? true}})
       (update :db merge {:opts {:memory true}})
       #_(update :db merge {:opts {:memory false}

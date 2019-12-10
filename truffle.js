@@ -27,24 +27,16 @@ module.exports = {
   env: ETHLANCE_ENV,
   smart_contracts_path: __dirname + smartContractsPaths [ETHLANCE_ENV],
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
-  parameters : parameters [ETHLANCE_ENV],  
+  parameters : parameters [ETHLANCE_ENV],
 
   networks: {
     ganache: {
       host: 'localhost',
-      port: 8549,
+      port: 8545,
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
-
-    parity: {
-      host: 'localhost',
-      port: 8549,
-      gas: 6e6,
-      gasPrice: 6e9, // 6 gwei
-      network_id: '*'
-    }
   },
 
   compilers: {

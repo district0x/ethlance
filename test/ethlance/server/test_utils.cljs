@@ -9,7 +9,7 @@
    [cljs-web3.eth :as web3-eth]
    [cljs-web3.evm :as web3-evm]
    [mount.core :as mount :refer [defstate]]
-   
+
    [ethlance.server.core]
    [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
 
@@ -86,7 +86,7 @@
 
 (def test-config
   "Test configuration for districts."
-  (-> ethlance.server.core/main-config
+  (-> ethlance.server.core/default-config
       (merge {:logging {:level "debug" :console? true}})
       (update :smart-contracts merge {:contracts-var #'smart-contracts-dev/smart-contracts
                                       :print-gas-usage? true
@@ -95,8 +95,8 @@
 
 (defn prepare-testnet!
   "Performs a deployment, or reverts the testnet if a deployment
-  snapshot is available. 
-  
+  snapshot is available.
+
   Note:
 
   - Works on Ganache CLI v6.1.8 (ganache-core: 2.2.1)"

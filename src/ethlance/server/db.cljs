@@ -13,7 +13,6 @@
    [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
    [medley.core :as medley]
    [mount.core :as mount :refer [defstate]]
-   [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]))
 
 
@@ -27,7 +26,7 @@
 
 (defstate ^{:on-reload :noop} ethlance-db
   :start (start (merge (get @config mount-state-key)
-                       (get (mount/args) mount-state-key)))
+                       (mount-state-key (mount/args))))
   :stop (stop))
 
 
@@ -50,7 +49,8 @@
   [{:table-name :User
     :table-columns
     [[:user/address address]
-     [:user/conutry-code :varchar not-nil]
+     [:user/country-code :varchar not-nil]
+     [:user/user-name :varchar]
      [:user/full-name :varchar]
      [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
@@ -426,7 +426,7 @@
   (log/info "Creating Sqlite Database...")
   (doseq [{:keys [table-name table-columns]} database-schema]
     (log/debug (str/format "  - Creating Database Table '%s' ..." table-name))
-    (db/run! {:create-table [table-name] :with-columns [table-columns]}))
+    (db/run! {:create-table [table-name :if-not-exists] :with-columns [table-columns]}))
   (log/debug "Tables Created: " (list-tables)))
 
 
@@ -537,14 +537,21 @@
                             :where where-clause}))))
     (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
+(defn get-user [{:keys [:user/address] :as args}]
+  (db/get {:select [:*]
+           :from [:User]
+           :where [:= address :User.user/address]}))
 
 (defn start
   "Start the ethlance-db mount component."
-  [config]
+  [{:keys [:resync?] :as opts}]
+  (when resync?
+    (log/info "Database module called with a resync flag.")
+    (drop-db!))
   (create-db!))
 
 
 (defn stop
   "Stop the ethlance-db mount component."
   []
-  (drop-db!))
+  ::stopped)

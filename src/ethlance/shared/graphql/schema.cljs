@@ -1,6 +1,79 @@
 (ns ethlance.shared.graphql.schema)
 
-(def graphql-schema
+(def schema "
+
+type Query {
+  user(user_address: ID!): User
+  searchUsers(
+    user_address: ID,
+    user_fullName: String,
+    user_userName: String,
+    orderBy: UsersOrderBy,
+    orderDirection: OrderDirection,
+    limit: Int,
+    offset: Int
+  ): [User]
+}
+
+type Mutation {
+  updateUserProfile(input: UpdateUserProfileInput): User!
+}
+
+input UpdateUserProfileInput {
+  user_Username: String
+  user_profileImage: String
+  user_countryCode: String
+}
+
+type User {
+  user_id: Int
+
+  \"Ethereum Address Corresponding to this Registered User.\"
+  user_address: ID
+
+  \"Two Letter Country Code\"
+  user_countryCode: String
+
+  \"Full Name of the Given User\"
+  user_fullName: String
+
+  \"The short-form username of the User\"
+  user_userName: String
+
+  \"Email Address\"
+  user_email: String
+
+  \"Profile Picture Assigned to the given User\"
+  user_profileImage: String
+
+  \"Date when the user was Registered\"
+  user_dateCreated: Int
+
+  \"Int when the user was Last Updated\"
+  user_dateUpdated: Int
+
+  \"List of languages the user speaks\"
+  user_languages: [String!]
+
+  \"Registration Checks\"
+  user_isRegisteredCandidate: Boolean!
+  user_isRegisteredArbiter: Boolean!
+  user_isRegisteredEmployer: Boolean!
+}
+
+enum UsersOrderBy {
+  users_orderBy_userName
+  users_orderBy_random
+}
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+")
+
+#_(def graphql-schema
   "The main GraphQL Schema"
   "
   #
@@ -21,7 +94,7 @@
   }
 
 
-  # 
+  #
   # Begin
   #
 
@@ -140,7 +213,7 @@
 
     \"Email Address\"
     user_email: String
-   
+
     \"Profile Picture Assigned to the given User\"
     user_profileImage: String
 
@@ -255,7 +328,7 @@
   type Arbiter {
     \"User ID for the given arbiter\"
     user_id: Int
- 
+
     \"Date the Arbiter was registered\"
     arbiter_dateRegistered: Date
 
@@ -344,7 +417,7 @@
 
     \"Date of creation\"
     workContract_dateCreated: Date
-   
+
     \"Date when the contract was finished\"
     workContract_dateFinished: Date
 
@@ -493,7 +566,7 @@
   }
 
   # Feedback Types
-  
+
   type Feedback {
     job_index: Int!
     workContract_index: Int!

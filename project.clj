@@ -11,7 +11,7 @@
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
                  [flib/simplebar "5.0.7-SNAPSHOT"]
-                 
+
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.rpl/specter "1.1.2"]
                  [com.taoensso/encore "2.116.0"]
@@ -98,14 +98,21 @@
   :aliases {}
   :exclusions [cljsjs/react-with-addons]
   :npm {:dependencies
-        [[better-sqlite3 "5.4.0"]
+        [["@sentry/node" "4.2.1"]
+
+         [apollo-server "2.9.13"]
+         [graphql-middleware "4.0.1"]
+         [graphql-tools "4.0.5"]
+         [graphql "14.2.1"]
+
+         [better-sqlite3 "5.4.0"]
          [chalk "2.3.0"]
          [cors "2.8.4"]
-         [express "4.15.3"]
-         [express-graphql "0.7.1"]
-         [graphql "0.13.1"]
-         [graphql-fields "1.0.2"]
-         [graphql-tools "3.0.1"]
+         ;; [express "4.15.3"]
+         ;; [express-graphql "0.7.1"]
+         ;; [graphql "0.13.1"]
+         ;; [graphql-fields "1.0.2"]
+         ;; [graphql-tools "3.0.1"]
          [source-map-support "0.5.9"]
          [ws "4.0.0"]
 
@@ -148,7 +155,7 @@
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src" "test" "dev/ui"]
+     :source-paths ["src" "dev/ui"]
      :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
                 :infer-externs true
@@ -162,8 +169,8 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src" "test" "dev/server"]
-     :figwheel true
+     :source-paths ["src" "dev/server"]
+     :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"
                 :output-dir "target/node/out-dev-server"
