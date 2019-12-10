@@ -2,27 +2,39 @@
 
 
 .main-navigation-menu {
+  display: flex;
+  flex-direction: column;
+  margin: 1em 1em;
+
+  > .nav-element {
     display: flex;
-    flex-direction: column;
-    margin: 1em 1em;
+    flex-direction: row;
+    align-items: center;
 
-    > .nav-element {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-
-        > .ethlance-icon {
-            border-radius: 100%;
-            padding: 0.5em;
-            margin: 0.7em;
-            background-color: #color[purple];
-        }
-
-        > .label {
-            font-weight: 500;
-            font-size: 1.2em;
-        }
-
+    > .ethlance-icon {
+      border-radius: 100%;
+      padding: 0.5em;
+      margin: 0.7em;
+      background-color: #color[purple];
     }
-    
+
+    > .label {
+      font-weight: 500;
+      font-size: 1.2em;
+    }
+
+    &.active {
+      > .label {
+        color: black;
+      }
+
+      > .ethlance-icon {
+        path, rect, circle, polygon {
+          @active-color: lighten(#color[orange], 10%);
+          fill: @active-color !important;
+          stroke: @active-color !important;
+        }
+      }
+    }
+  }  
 }
