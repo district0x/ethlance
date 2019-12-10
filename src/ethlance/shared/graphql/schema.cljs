@@ -4,6 +4,7 @@
 
 type Query {
   user(user_address: ID!): User
+  currentUser: User
   searchUsers(
     user_address: ID,
     user_fullName: String,

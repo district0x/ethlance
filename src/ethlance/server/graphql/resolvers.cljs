@@ -22,6 +22,11 @@
    (log/debug "user-resolver" args)
    (ethlance-db/get-user args)))
 
+(defn current-user-resolver [_ _ {:keys [:current-user]}]
+  (try-catch-throw
+   (log/debug "current-user-resolver" current-user)
+   (ethlance-db/get-user current-user)))
+
 (defn user->is-registered-candidate-resolver [root _ _]
   (try-catch-throw
    (let [{user-address :user/address :as user} (graphql-utils/gql->clj root)]
@@ -70,7 +75,8 @@
       (next root args context info))))
 
 ;; TODO : auth + context
-(def resolvers-map {:Query {:user #_require-auth user-resolver
+(def resolvers-map {:Query {:user user-resolver
+                            :currentUser (require-auth current-user-resolver)
                             :searchUsers search-users-resolver}
                     :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver}
                     :Mutation {:updateUserProfile update-user-profile-mutation}})
