@@ -8,6 +8,7 @@ type Query {
     user_address: ID,
     user_fullName: String,
     user_userName: String,
+    notCurrentUser: Boolean
     orderBy: UsersOrderBy,
     orderDirection: OrderDirection,
     limit: Int,
