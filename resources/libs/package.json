@@ -20,6 +20,7 @@
     "graphql": "14.2.1",
     "graphql-tag": "2.10.1",
     "react": "16.9.0",
+    "react-bottom-scroll-listener": "^3.0.0",
     "react-dom": "16.9.0"
   },
   "devDependencies": {

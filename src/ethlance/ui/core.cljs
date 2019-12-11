@@ -13,7 +13,7 @@
    ;; Ethlance
    [ethlance.ui.config :as ui.config]
    [ethlance.ui.pages]
-   ;; [ethlance.ui.util.injection :as util.injection]
+   [ethlance.ui.util.injection :as util.injection]
 
    ;; Events
    [ui.ethlance.ui.events]
@@ -42,9 +42,9 @@
 (defn ^:export init []
   (let [main-config (ui.config/get-config)]
     (.log js/console (clj->js main-config))
-    ;; (util.injection/inject-data-scroll! {:injection-selector "#app"})
-    #_(-> (mount/with-args main-config)
-          (mount/start))
+    (util.injection/inject-data-scroll! {:injection-selector "#app"})
+    (-> (mount/with-args main-config)
+        (mount/start))
     (rerender)))
 
 

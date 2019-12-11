@@ -21,6 +21,7 @@ import { parse } from "graphql";
  */
 // import { RecyclerListView, DataProvider, LayoutProvider } from 'recyclerlistview/web';
 import FlatList from 'flatlist-react';
+import BottomScrollListener from 'react-bottom-scroll-listener';
 
 /*
  * react
@@ -48,6 +49,7 @@ window.parseGraphql = parse;
  * infinite scroll
  */
 window.FlatList = FlatList;
+window.BottomScrollListener = BottomScrollListener;
 // window.RecyclerListView = RecyclerListView;
 // window.DataProvider = DataProvider;
 // window.LayoutProvider = LayoutProvider;

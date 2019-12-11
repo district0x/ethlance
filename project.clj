@@ -179,6 +179,7 @@
                                            "parseGraphql"
 
                                            "FlatList"
+                                           "BottomScrollListener"
                                            ;; "RecyclerListView"
                                            ;; "DataProvider"
                                            ;; "LayoutProvider"
@@ -199,6 +200,7 @@
                                                  react-dom ReactDOM
 
                                                  FlatList FlatList
+                                                 BottomScrollListener BottomScrollListener
                                                  ;; RecyclerListView RecyclerListView
                                                  ;; DataProvider DataProvider
                                                  ;; LayoutProvider LayoutProvider
