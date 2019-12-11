@@ -1,21 +1,21 @@
 (ns ethlance.ui.graphql.client
-  (:require
-   [ApolloClient]
-   [ApolloLink]
-   [HttpLink]
-   [InMemoryCache]
-   [defaultDataIdFromObject]
-   [ethlance.shared.graphql.utils :as graphql-shared-utils]
-   [ethlance.ui.graphql.utils :as graphql-ui-utils]
-   [ethlance.ui.graphql.middleware :as middleware]
-   [setContext]
-   [useQuery]
-   [useMutation]
-   [gql]
-   [taoensso.timbre :as log]))
+  (:require [ApolloClient]
+            [ApolloLink]
+            [HttpLink]
+            [InMemoryCache]
+            [defaultDataIdFromObject]
+            [ethlance.shared.graphql.utils :as graphql-shared-utils]
+            [ethlance.ui.graphql.middleware :as middleware]
+            [ethlance.ui.graphql.utils :as graphql-ui-utils]
+            [gql]
+            [setContext]
+            [taoensso.timbre :as log]
+            [useMutation]
+            [useQuery]))
 
 (defn apollo-client [{:keys [:graphql] :as opts}]
   (let [cache (new InMemoryCache (clj->js {:dataIdFromObject (fn [object]
+                                                               ;; TODO : use address or id fields
                                                                (let [entity (graphql-shared-utils/gql->clj object)
                                                                      [id-key _] (filter #(= "id" (name %))
                                                                                         (keys entity))]

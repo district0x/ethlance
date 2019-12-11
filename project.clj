@@ -165,7 +165,8 @@
                 :infer-externs true
                 :npm-deps false
                 :foreign-libs [{:file "./resources/libs/dist/index.bundle.js"
-                                :provides ["useQuery"
+                                :provides ["react" "react-dom"
+                                           "useQuery"
                                            "useMutation"
                                            "InMemoryCache"
                                            "defaultDataIdFromObject"
@@ -176,8 +177,13 @@
                                            "ApolloProvider"
                                            "gql"
                                            "parseGraphql"
-                                           ;; "printGraphql"
-                                           "react" "react-dom"]
+
+                                           "FlatList"
+                                           ;; "RecyclerListView"
+                                           ;; "DataProvider"
+                                           ;; "LayoutProvider"
+
+                                           ]
                                 :global-exports {useQuery useQuery
                                                  useMutation useMutation
                                                  InMemoryCache InMemoryCache
@@ -189,9 +195,14 @@
                                                  ApolloProvider ApolloProvider
                                                  gql gql
                                                  parse-graphql parseGraphql
-                                                 ;; print-graphql printGraphql
                                                  react React
                                                  react-dom ReactDOM
+
+                                                 FlatList FlatList
+                                                 ;; RecyclerListView RecyclerListView
+                                                 ;; DataProvider DataProvider
+                                                 ;; LayoutProvider LayoutProvider
+
                                                  }}]
 
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
