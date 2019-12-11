@@ -40,6 +40,7 @@
                  ;; [district0x/district-graphql-utils "1.0.9"]
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-time "1.0.1"]
+                 [district0x/graphql-query "1.0.6"]
 
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
@@ -126,9 +127,9 @@
          [jsedn "0.4.1"]
 
          ;; UI Component
-         [react "16.9.0"]
-         [react-dom "16.9.0"]
-         [simplebar-react "2.0.5"]
+         ;; [react "16.9.0"]
+         ;; [react-dom "16.9.0"]
+         ;; [simplebar-react "2.0.5"]
 
          ;; Development Dependencies
          [webpack "4.41.2"]
@@ -173,6 +174,9 @@
                                            "setContext"
                                            "HttpLink"
                                            "ApolloProvider"
+                                           "gql"
+                                           "parseGraphql"
+                                           ;; "printGraphql"
                                            "react" "react-dom"]
                                 :global-exports {useQuery useQuery
                                                  useMutation useMutation
@@ -183,6 +187,9 @@
                                                  setContext setContext
                                                  HttpLink HttpLink
                                                  ApolloProvider ApolloProvider
+                                                 gql gql
+                                                 parse-graphql parseGraphql
+                                                 ;; print-graphql printGraphql
                                                  react React
                                                  react-dom ReactDOM
                                                  }}]

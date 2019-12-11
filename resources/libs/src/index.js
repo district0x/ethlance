@@ -1,18 +1,16 @@
-import {ApolloProvider, useQuery, useMutation} from '@apollo/react-hooks';
-import {InMemoryCache, defaultDataIdFromObject} from 'apollo-cache-inmemory';
-import {ApolloClient} from 'apollo-client';
-import {ApolloLink} from 'apollo-link';
-import {setContext} from 'apollo-link-context';
-// import {createUploadLink} from 'apollo-upload-client';
-import {HttpLink} from 'apollo-link-http';
-import * as gql from "graphql-tag";
-
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { ApolloProvider, useQuery, useMutation } from '@apollo/react-hooks';
+import { InMemoryCache, defaultDataIdFromObject } from 'apollo-cache-inmemory';
+import { ApolloClient } from 'apollo-client';
+import { ApolloLink } from 'apollo-link';
+import { setContext } from 'apollo-link-context';
+import { HttpLink } from 'apollo-link-http';
+import * as gql from "graphql-tag";
+import { parse } from "graphql";
 
 window.React = React;
 window.ReactDOM = ReactDOM;
-
 window.ApolloProvider = ApolloProvider;
 window.useQuery = useQuery;
 window.useMutation = useMutation;
@@ -22,3 +20,6 @@ window.ApolloClient = ApolloClient;
 window.ApolloLink = ApolloLink;
 window.setContext = setContext;
 window.HttpLink = HttpLink;
+window.gql = gql;
+window.parseGraphql = parse;
+// window.printGraphql = print;
