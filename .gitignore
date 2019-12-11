@@ -22,3 +22,7 @@ smart_contracts_dev.cljs
 !/designs/deploy/images
 !/designs/deploy/images/*
 /resources/public/js/deps_bundle.js
+/resources/libs/dist/
+/resources/libs/node_modules/
+/resources/libs/yarn-error.log
+/resources/libs/yarn.lock

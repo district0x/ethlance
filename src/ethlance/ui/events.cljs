@@ -1,14 +1,15 @@
 (ns ui.ethlance.ui.events
   (:require [ajax.core :as ajax]
             [day8.re-frame.http-fx]
-            [district.ui.graphql.utils :as graphql-ui-utils]
-            [district.graphql-utils :as graphql-utils]
-            [district.ui.graphql.events :as graphql.events]
+            ;; [district.ui.graphql.utils :as graphql-ui-utils]
+            ;; [district.graphql-utils :as graphql-utils]
+            ;; [district.ui.graphql.events :as graphql.events]
             [district.ui.logging.events :as logging]
             [district.ui.web3-accounts.queries :as account-queries]
             [ethlance.ui.config :as config]
             [re-frame.core :as re-frame :refer [reg-event-fx reg-event-db]]))
 
+;; TODO : use-mutation
 
 (reg-event-fx
  ::sign-data-and-sign-in
@@ -21,11 +22,11 @@
                            :on-success [::sign-in data-str]
                            :on-error [::error]}})))
 
-(defn- parse-query [query]
+#_(defn- parse-query [query]
   (:query-str (graphql-ui-utils/parse-query {:queries [query]}
                                             {:kw->gql-name graphql-utils/kw->gql-name})))
 
-(reg-event-fx
+#_(reg-event-fx
  ::sign-in
  (fn [{:keys [db] :as cofxs} [_ data signed-data]]
    (let [mutation (str "mutation" (parse-query [:sign-in
@@ -41,10 +42,10 @@
                    :on-success      [::signed-in]
                    :on-failure      [::logging/error "Error calling sendVerificationCode"]}})))
 
-(reg-event-fx
- ::signed-in
- (fn [{:keys [db]} [_ token]]
-   {:dispatch [::graphql.events/set-authorization-token token]}))
+;; (reg-event-fx
+;;  ::signed-in
+;;  (fn [{:keys [db]} [_ token]]
+;;    {:dispatch [::graphql.events/set-authorization-token token]}))
 
 (comment
   (re-frame/dispatch [::sign-data-and-sign-in])

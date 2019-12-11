@@ -37,14 +37,14 @@
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.7"]
-                 [district0x/district-graphql-utils "1.0.9"]
+                 ;; [district0x/district-graphql-utils "1.0.9"]
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-time "1.0.1"]
 
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
-                 [district0x/district-server-graphql "1.0.17"]
+                 ;; [district0x/district-server-graphql "1.0.17"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.0.17"]
@@ -61,7 +61,7 @@
                  [district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
-                 [district0x/district-ui-graphql "1.0.10"]
+                 ;; [district0x/district-ui-graphql "1.0.10"]
                  [district0x/district-ui-logging "1.1.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
@@ -96,7 +96,8 @@
              :server-port 6500
              :ring-handler handler/figwheel-request-handler}
   :aliases {}
-  :exclusions [cljsjs/react-with-addons]
+  :exclusions [cljsjs/react-with-addons
+               reagent]
   :npm {:dependencies
         [["@sentry/node" "4.2.1"]
 
@@ -156,10 +157,36 @@
   {:builds
    [{:id "dev-ui"
      :source-paths ["src" "dev/ui"]
-     :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
+     :figwheel {:on-jsload "ethlance.ui.core/rerender"
+                ;; "district.ui.reagent-render/rerender"
+                }
      :compiler {:main ethlance.ui.core
                 :infer-externs true
                 :npm-deps false
+                :foreign-libs [{:file "./resources/libs/dist/index.bundle.js"
+                                :provides ["useQuery"
+                                           "useMutation"
+                                           "InMemoryCache"
+                                           "defaultDataIdFromObject"
+                                           "ApolloClient"
+                                           "ApolloLink"
+                                           "setContext"
+                                           "HttpLink"
+                                           "ApolloProvider"
+                                           "react" "react-dom"]
+                                :global-exports {useQuery useQuery
+                                                 useMutation useMutation
+                                                 InMemoryCache InMemoryCache
+                                                 defaultDataIdFromObject defaultDataIdFromObject
+                                                 ApolloClient ApolloClient
+                                                 ApolloLink ApolloLink
+                                                 setContext setContext
+                                                 HttpLink HttpLink
+                                                 ApolloProvider ApolloProvider
+                                                 react React
+                                                 react-dom ReactDOM
+                                                 }}]
+
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"
