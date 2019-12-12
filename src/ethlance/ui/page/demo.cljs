@@ -5,11 +5,22 @@
    [ethlance.shared.graphql.utils :as graphql-utils]
    [ethlance.ui.graphql.client :as client]
    [ethlance.ui.graphql.queries :refer [component->query]]
+   [re-frame.core :as re-frame]
    [reagent.core :as reagent]))
 
 (def scroll-interval 10)
 (def flat-list (reagent/adapt-react-class FlatList))
 (def troll-face "https://www.pinpng.com/pngs/m/397-3975612_troll-face-transparent-png-troll-face-profile-png.png")
+
+(re-frame/reg-event-db
+   ::assoc-element-color
+   (fn [db [_ color]]
+     (assoc db :background-color color)))
+
+(re-frame/reg-sub
+ ::element-color
+ (fn [db]
+   (:background-color db)))
 
 (defn button [{:keys [:label :on-click :color]}]
   [:button {:style {:background-color color
@@ -32,14 +43,14 @@
    [:h2 {:style {:color :white}}
     "Loading..."]])
 
-(defn row-renderer [{:keys [:index :data :update-profile :query]}]
+(defn row-renderer [{:keys [:index :data :update-profile :query :color]}]
   (let [{:keys [:address :full-name :profile-image]} (js->clj data :keywordize-keys true)]
     [:div {:style {:display :flex
                    :flex-direction :row
                    :align-items :center
                    :justify-content :space-between
                    :heigh 100
-                   :background-color "#1E212C"
+                   :background-color color
                    :margin-left 15
                    :margin-right 15
                    :padding 5
@@ -64,6 +75,7 @@
                    :color :white
                    :opacity 0.9}}
       full-name]
+     [button {:label "change-color" :color "#5A667E" :on-click (fn [] (re-frame/dispatch [::assoc-element-color :white]))}]
      [button {:label "optimistic" :color "#5A667E" :on-click (fn []
                                                                (update-profile (clj->js {:variables {:address address
                                                                                                      :photo troll-face}
@@ -100,7 +112,7 @@
 
 ;; TODO : mutations
 ;; - cache update
-(defn page-element []
+(defn page-element [props]
   (let [query [:search-users
                {:limit :$limit
                 :offset :$offset}
@@ -126,7 +138,8 @@
                                                                           {:variable/name :$photo
                                                                            :variable/type :String}]
                                                               :operation {:operation/type :mutation
-                                                                          :operation/name :UpdateProfile}})]
+                                                                          :operation/name :UpdateProfile}})
+        {:keys [:element-color]} (graphql-utils/gql->clj props)]
 
     (when error
       (log/error "Error calling graphql endpoint" {:error error}))
@@ -137,7 +150,7 @@
        [flat-list {:list items
                    :renderItem (fn [item index]
                                  (reagent/as-element
-                                  ^{:key index} [row-renderer {:index index :data item :update-profile update-profile :query query}]))
+                                  ^{:key index} [row-renderer {:index index :data item :update-profile update-profile :color element-color :query query}]))
                    :paginationLoadingIndicator (reagent/as-element [indicator])
                    :hasMoreItems true
                    :loadMoreItems (fn []
@@ -155,4 +168,5 @@
                                                                                                     (into previous-items new-items))))))}))))}]))))
 
 (defn page []
-  [:> page-element])
+  (let [element-color @(re-frame/subscribe [::element-color])]
+    [:> page-element {:element-color (or element-color "#1E212C")}]))
