@@ -1,14 +1,11 @@
 (ns ethlance.server.graphql.resolvers
-  "Main GraphQL Resolver Entry-point"
-  (:require
-   [district.shared.error-handling :refer [try-catch-throw]]
-   [taoensso.timbre :as log :refer [spy]]
-   [ethlance.server.db :as ethlance-db]
-   [ethlance.shared.graphql.utils :as graphql-utils]
-   [honeysql.helpers :as sql-helpers]
-   [honeysql.core :as sql]
-   [district.server.db :as db]
-   #_[ethlance.server.graphql.mutations.sign-in :as mutations.sign-in]))
+  (:require [district.server.db :as db]
+            [district.shared.error-handling :refer [try-catch-throw]]
+            [ethlance.server.db :as ethlance-db]
+            [ethlance.shared.graphql.utils :as graphql-utils]
+            [honeysql.core :as sql]
+            [honeysql.helpers :as sql-helpers]
+            [taoensso.timbre :as log :refer [spy]]))
 
 (defn- paged-query
   [query limit offset]
@@ -35,7 +32,7 @@
                         :from [:Candidate]
                         :where [:= user-address :Candidate.user/address]}))))))
 
-(defn search-users-resolver [_ {:keys [:user/address :not-current-user :limit :offset :order-by :order-direction] :as args} {:keys [:current-user]}]
+(defn search-users-resolver [_ {:keys [:limit :offset :user/address :not-current-user  :order-by :order-direction] :as args} {:keys [:current-user]}]
   (try-catch-throw
    (log/debug "search-users-resolver" {:args args
                                        :current-user current-user})
@@ -50,11 +47,7 @@
                                                               ;; random order as a placeholder for ordering
                                                               :users.order-by/random (sql/call :random)}
                                                              (graphql-utils/gql-name->kw order-by))
-                                                        (or (keyword order-direction) :asc)]])
-
-                 ;; true (sql-helpers/merge-order-by [[:User.user/address :desc]])
-
-                 )]
+                                                        (or (keyword order-direction) :asc)]]))]
      (paged-query query limit offset))))
 
 (defn update-user-profile-mutation [_ {:keys [:input]} _]
@@ -74,7 +67,6 @@
       (throw (js/Error. "Authentication required"))
       (next root args context info))))
 
-;; TODO : auth + context
 (def resolvers-map {:Query {:user user-resolver
                             :currentUser (require-auth current-user-resolver)
                             :searchUsers search-users-resolver}

@@ -78,28 +78,28 @@
                    :color :white
                    :opacity 0.9}}
       full-name]
-     [button {:label "change-color" :color "#5A667E" :on-click (fn [] (re-frame/dispatch [::toggle-element-color :white]))}]
-     [button {:label "optimistic" :color "#5A667E" :on-click (fn []
-                                                               (update-profile (clj->js {:variables {:address address
-                                                                                                     :photo troll-face}
-                                                                                         :update (fn [cache response]
-                                                                                                   (let [user (get-in (graphql-utils/gql->clj response) [:data :update-user-profile])
-                                                                                                         query [:search-users
-                                                                                                                {:limit 10
-                                                                                                                 :offset 0}
-                                                                                                                [:user/address
-                                                                                                                 :user/full-name
-                                                                                                                 :user/profile-image]]
-                                                                                                         cached-data (client/read-cache cache {:queries [query]})
-                                                                                                         updated-data (update-in cached-data [:search-users index] (fn [old] (merge user old)))]
-                                                                                                     (client/write-cache cache {:queries [query]} updated-data)))})))}]
      [button {:label "query refetch" :color "#1414FF9B" :on-click (fn []
-                                                                    (update-profile (clj->js {:variables {:address address
-                                                                                                          :photo troll-face}
-                                                                                              :refetchQueries [(name (:ethlance.ui.page.demo/page component->query))]})))}]]))
+                                                                    (update-profile (clj->js
+                                                                                     {:variables {:address address
+                                                                                                  :photo troll-face}
+                                                                                      :refetchQueries [(name (:ethlance.ui.page.demo/page component->query))]})))}]
+     [button {:label "optimistic" :color "#5A667E" :on-click (fn []
+                                                               (update-profile (clj->js
+                                                                                {:variables {:address address
+                                                                                             :photo troll-face}
+                                                                                 :update (fn [cache response]
+                                                                                           (let [user (get-in (graphql-utils/gql->clj response) [:data :update-user-profile])
+                                                                                                 query [:search-users
+                                                                                                        {:limit 10
+                                                                                                         :offset 0}
+                                                                                                        [:user/address
+                                                                                                         :user/full-name
+                                                                                                         :user/profile-image]]
+                                                                                                 cached-data (client/read-cache cache {:queries [query]})
+                                                                                                 updated-data (update-in cached-data [:search-users index] (fn [old] (merge user old)))]
+                                                                                             (client/write-cache cache {:queries [query]} updated-data)))})))}]
+     [button {:label "change-color" :color "#5A667E" :on-click (fn [] (re-frame/dispatch [::toggle-element-color]))}]]))
 
-;; TODO : mutations
-;; - cache update
 (defn page-element [props]
   (let [query [:search-users
                {:limit :$limit

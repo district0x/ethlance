@@ -27,7 +27,8 @@
 (defn start [opts]
   (let [executable-schema (makeExecutableSchema (clj->js {:typeDefs (gql schema/schema)
                                                           :resolvers resolvers/resolvers-map}))
-        schema-with-middleware (applyMiddleware executable-schema middlewares/args->clj-middleware
+        schema-with-middleware (applyMiddleware executable-schema
+                                                middlewares/args->clj-middleware
                                                 ;; middlewares/logging-middleware
                                                 middlewares/response->gql-middleware)
         server (new ApolloServer (clj->js {:schema schema-with-middleware
@@ -47,7 +48,7 @@
                                               (log/debug "Graphql server stopped...")
                                               (resolve ::stopped))))))))
 
-;; TODO : blows up, port occupied even after stop, why?
+;; TODO : implement restart
 (defn restart []
   (log/debug "restarting graphql server")
   (let [opts (merge (:graphql @config/config)
