@@ -13,9 +13,13 @@
 (def troll-face "https://www.pinpng.com/pngs/m/397-3975612_troll-face-transparent-png-troll-face-profile-png.png")
 
 (re-frame/reg-event-db
-   ::assoc-element-color
-   (fn [db [_ color]]
-     (assoc db :background-color color)))
+ ::toggle-element-color
+ (fn [db _]
+   (let [color (case (:background-color db)
+                 :white "#1E212C"
+                 "#1E212C" :white
+                 :white)]
+     (assoc db :background-color color))))
 
 (re-frame/reg-sub
  ::element-color
@@ -34,8 +38,7 @@
    label])
 
 (defn indicator []
-  [:div {:style {
-                 :display :flex
+  [:div {:style {:display :flex
                  :height "100%"
                  :width "100%"
                  :align-items :center
@@ -43,7 +46,7 @@
    [:h2 {:style {:color :white}}
     "Loading..."]])
 
-(defn row-renderer [{:keys [:index :data :update-profile :query :color]}]
+(defn row-renderer [{:keys [:index :data :update-profile :color]}]
   (let [{:keys [:address :full-name :profile-image]} (js->clj data :keywordize-keys true)]
     [:div {:style {:display :flex
                    :flex-direction :row
@@ -75,36 +78,21 @@
                    :color :white
                    :opacity 0.9}}
       full-name]
-     [button {:label "change-color" :color "#5A667E" :on-click (fn [] (re-frame/dispatch [::assoc-element-color :white]))}]
+     [button {:label "change-color" :color "#5A667E" :on-click (fn [] (re-frame/dispatch [::toggle-element-color :white]))}]
      [button {:label "optimistic" :color "#5A667E" :on-click (fn []
                                                                (update-profile (clj->js {:variables {:address address
                                                                                                      :photo troll-face}
                                                                                          :update (fn [cache response]
-                                                                                           (let [{:keys [:user/address :user/profile-image] :as resp}
-                                                                                                 (get-in (graphql-utils/gql->clj response) [:data :update-user-profile])
-                                                                                                 cached-data (client/read-cache cache {:queries [query]
-                                                                                                                                       ;; :variables [{:variable/name :$limit
-                                                                                                                                       ;;              :variable/type :Int}
-                                                                                                                                       ;;             {:variable/name :$offset
-                                                                                                                                       ;;              :variable/type :Int}]
-                                                                                                                                       ;; :operation {:operation/type :query
-                                                                                                                                       ;;             :operation/name (:ethlance.ui.page.demo/page component->query)}
-
-                                                                                                                                       }
-                                                                                                                                ;; {:variables {:limit scroll-interval
-                                                                                                                                ;;              :offset 0}}
-                                                                                                                                )
-                                                                                                 ;; updated-data
-                                                                                                 ;; (-> cached-data
-                                                                                                 ;;     (assoc-in [:user :user/is-current-user-following] is-followed)
-                                                                                                 ;;     (assoc-in [:user :user/followers-count] followers-count))
-                                                                                                 ]
-
-                                                                                             (log/debug "cached data" {:r cached-data})
-
-                                                                                             #_(apollo/write-cache cache {:queries [user-query]} updated-data))
-
-                                                                                                   )})))}]
+                                                                                                   (let [user (get-in (graphql-utils/gql->clj response) [:data :update-user-profile])
+                                                                                                         query [:search-users
+                                                                                                                {:limit 10
+                                                                                                                 :offset 0}
+                                                                                                                [:user/address
+                                                                                                                 :user/full-name
+                                                                                                                 :user/profile-image]]
+                                                                                                         cached-data (client/read-cache cache {:queries [query]})
+                                                                                                         updated-data (update-in cached-data [:search-users index] (fn [old] (merge user old)))]
+                                                                                                     (client/write-cache cache {:queries [query]} updated-data)))})))}]
      [button {:label "query refetch" :color "#1414FF9B" :on-click (fn []
                                                                     (update-profile (clj->js {:variables {:address address
                                                                                                           :photo troll-face}
@@ -150,7 +138,7 @@
        [flat-list {:list items
                    :renderItem (fn [item index]
                                  (reagent/as-element
-                                  ^{:key index} [row-renderer {:index index :data item :update-profile update-profile :color element-color :query query}]))
+                                  ^{:key index} [row-renderer {:index index :data item :update-profile update-profile :color element-color}]))
                    :paginationLoadingIndicator (reagent/as-element [indicator])
                    :hasMoreItems true
                    :loadMoreItems (fn []
