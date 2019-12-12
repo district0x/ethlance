@@ -24,23 +24,23 @@
   }
 
   &.primary {
-    > input[type="text"] {
-      color: white;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    > span {
-      color: white;
-    }
-  }
-
-  &.secondary {
-    > input[type="text"] {
-      #mixin.input.text();
+    > input {
+      #mixin.input.text.primary();
+      color: #color[dark-blue];
     }
 
     > span {
       color: #color[dark-blue];
+    }
+  }
+
+  &.secondary {
+    > input {
+      #mixin.input.text.secondary();
+    }
+
+    > span {
+      color: white;
     }
   }
 }

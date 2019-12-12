@@ -37,9 +37,9 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [c-currency-input {:placeholder "Min. Hourly Rate"}]
-   [c-currency-input {:placeholder "Max. Hourly Rate"}]
-   [c-text-input {:placeholder "Number of Feedbacks"}]
+   [c-currency-input {:placeholder "Min. Hourly Rate" :color :secondary}]
+   [c-currency-input {:placeholder "Max. Hourly Rate" :color :secondary}]
+   [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]
 
    [:div.country-selector
     [c-select-input
@@ -67,9 +67,9 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [c-currency-input {:placeholder "Min. Hourly Rate"}]
-   [c-currency-input {:placeholder "Max. Hourly Rate"}]
-   [c-text-input {:placeholder "Number of Feedbacks"}]
+   [c-currency-input {:placeholder "Min. Hourly Rate" :color :secondary}]
+   [c-currency-input {:placeholder "Max. Hourly Rate" :color :secondary}]
+   [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]
 
    [:div.country-selector
     [c-select-input

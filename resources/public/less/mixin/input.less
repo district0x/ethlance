@@ -7,13 +7,47 @@
     color: #color[dark-blue];
     border-bottom: 1px solid #d6e1fd;
 
-    &::placeholder {
+    &::placeholder , &::-webkit-input-placeholder , &:-ms-input-placeholder {
       font-weight: 400;
       opacity: 0.7;
+      color: white;
     }
     
     &.secondary {
       color: white;
+
+      &::placeholder , &::-webkit-input-placeholder , &:-ms-input-placeholder {
+        color: white;
+      }
+    }
+  }
+
+  // Primary styling for input field (light palette)
+  .input.text.primary {
+    outline: none;
+    border: none;
+    color: #color[dark-blue];
+    border-bottom: 1px solid #d6e1fd;
+    
+    &::placeholder , &::-webkit-input-placeholder , &:-ms-input-placeholder {
+      font-weight: 400;
+      opacity: 0.7;
+      color: white;
+    }
+  }
+
+  // Secondary styling for input field (dark palette)
+  .input.text.secondary {
+    outline: none;
+    border: none;
+    color: white;
+    border-bottom: 1px solid #d6e1fd;
+    background-color: transparent;
+
+    &::placeholder , &:-webkit-input-placeholder , &:-ms-input-placeholder {
+      font-weight: 400;
+      opacity: 0.7;
+      color: black
     }
   }
 }
