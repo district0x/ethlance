@@ -5,7 +5,6 @@
    ;; [cljs.instrumentation :as instrumentation]
    [clojure.pprint :refer [pprint]]
    [clojure.string :as string]
-   [district.graphql-utils :as graphql-utils]
    [district.server.db]
    [district.server.logging]
    [district.server.smart-contracts :as contracts]

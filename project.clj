@@ -157,7 +157,7 @@
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src" "dev/ui"]
+     :source-paths ["src/ethlance/ui" "dev/ui"]
      :figwheel {:on-jsload "ethlance.ui.core/rerender"
                 ;; "district.ui.reagent-render/rerender"
                 }
@@ -180,9 +180,7 @@
 
                                            "FlatList"
                                            "BottomScrollListener"
-                                           ;; "RecyclerListView"
-                                           ;; "DataProvider"
-                                           ;; "LayoutProvider"
+                                           "useBottomScrollListener"
 
                                            ]
                                 :global-exports {useQuery useQuery
@@ -195,15 +193,13 @@
                                                  HttpLink HttpLink
                                                  ApolloProvider ApolloProvider
                                                  gql gql
-                                                 parse-graphql parseGraphql
+                                                 parseGraphql parseGraphql
                                                  react React
                                                  react-dom ReactDOM
 
                                                  FlatList FlatList
                                                  BottomScrollListener BottomScrollListener
-                                                 ;; RecyclerListView RecyclerListView
-                                                 ;; DataProvider DataProvider
-                                                 ;; LayoutProvider LayoutProvider
+                                                 useBottomScrollListener useBottomScrollListener
 
                                                  }}]
 
@@ -216,7 +212,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src" "dev/server"]
+     :source-paths ["src/ethlance/server" "dev/server"]
      :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"

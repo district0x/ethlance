@@ -18,7 +18,7 @@ type Query {
 }
 
 type Mutation {
-  updateUserProfile(input: UpdateUserProfileInput): User!
+  updateUserProfile(input: UpdateUserProfileInput): User
 }
 
 input UpdateUserProfileInput {

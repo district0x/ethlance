@@ -17,7 +17,10 @@
   (let [cache (new InMemoryCache (clj->js {:dataIdFromObject (fn [object]
                                                                ;; TODO : use address or id fields
                                                                (let [entity (graphql-shared-utils/gql->clj object)
-                                                                     [id-key _] (filter #(= "id" (name %))
+                                                                     [id-key _] (filter (fn [k] (case (name k)
+                                                                                                  "address" true
+                                                                                                  "id" true
+                                                                                                  nil))
                                                                                         (keys entity))]
                                                                  (if id-key
                                                                    (do (log/debug "dataIdFromObject" {:id-key id-key})
@@ -52,3 +55,23 @@
        :loading? loading})
     (catch :default e
       (log/error "Error in use-mutation" {:error e}))))
+
+(defn read-cache [cache {:keys [:queries :operation :variables] :as query} & [opts]]
+  (try
+    (let [{:keys [:query-str]} (graphql-ui-utils/parse-query query)
+          gql-query (gql query-str)
+          data (apply js-invoke cache "readQuery" (remove nil?
+                                                          [(clj->js {:query gql-query}) (clj->js opts)]))]
+      (graphql-shared-utils/gql->clj data))
+    (catch :default e
+      (log/error "Error in read-cache" {:error e}))))
+
+(defn write-cache [cache {:keys [:queries :operation :variables] :as query} data & [opts]]
+  (try
+    (let [{:keys [:query-str]} (graphql-ui-utils/parse-query query)
+          gql-query (gql query-str)]
+      (apply js-invoke cache "writeQuery" (remove nil?
+                                                  [(clj->js {:query gql-query
+                                                             :data (graphql-shared-utils/clj->gql data)}) (clj->js opts)])))
+    (catch :default e
+      (log/error "Error in write-cache" {:error e}))))
