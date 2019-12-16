@@ -1,26 +1,24 @@
 (ns cljs.user
   "Development Entrypoint for CLJS-Server."
-  (:require
-   [cljs-web3.eth :as web3-eth]
-   ;; [cljs.instrumentation :as instrumentation]
-   [clojure.pprint :refer [pprint]]
-   [clojure.string :as string]
-   [district.server.db]
-   [district.server.logging]
-   [district.server.smart-contracts :as contracts]
-   [district.server.web3 :refer [web3]]
-   [district.server.web3-events]
-   [district.shared.error-handling :refer [try-catch try-catch-throw]]
-   [ethlance.server.core]
-   [ethlance.server.db :as ethlance-db]
-   [ethlance.server.syncer]
-   [ethlance.server.test-runner :as server.test-runner]
-   [ethlance.server.test-utils :as server.test-utils]
-   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
-   [honeysql.core :as sql]
-   [mount.core :as mount]
-   [taoensso.timbre :as log]
-   ))
+  (:require [cljs-web3.eth :as web3-eth]
+            [cljs.instrumentation :as instrumentation]
+            [clojure.pprint :refer [pprint]]
+            [clojure.string :as string]
+            [district.server.db]
+            [district.server.logging]
+            [district.server.smart-contracts :as contracts]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-events]
+            [district.shared.error-handling :refer [try-catch try-catch-throw]]
+            [ethlance.server.core]
+            [ethlance.server.db :as ethlance-db]
+            [ethlance.server.syncer]
+            [ethlance.server.test-runner :as server.test-runner]
+            [ethlance.server.test-utils :as server.test-utils]
+            [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+            [honeysql.core :as sql]
+            [mount.core :as mount]
+            [taoensso.timbre :as log]))
 
 (def sql-format
   "Shorthand for honeysql.core/format"
@@ -74,6 +72,18 @@
   []
   (-> (mount/with-args dev-config)
       mount/start))
+
+
+(defn enable-instrumentation!
+  "Strict conforms function fspecs for all specs."
+  []
+  (instrumentation/enable!))
+
+
+(defn disable-instrumentation!
+  "Disables strict conformity of fspecs."
+  []
+  (instrumentation/disable!))
 
 
 (defn start
@@ -189,15 +199,6 @@
         (ethlance-db/insert-row! :Candidate {:user/address (str id)
                                              :candidate/rate (rand-int 200)
                                              :candidate/rate-currency-id currency})))))
-
-;; TODO : temporary
-(defn test-it []
-  (ethlance-db/upsert-user! {:user/address "1"
-                             :user/country-code "PL"
-                             :user/user-name (str "@" "Jan")
-                             :user/full-name (str "Jan" " " "Koval")
-                             :user/email (string/lower-case (str "Jan" "@" "Koval" "." "com"))
-                             :user/profile-image (str "https://randomuser.me/api/portraits/lego/" 1 ".jpg")}))
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"
