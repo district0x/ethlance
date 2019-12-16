@@ -47,8 +47,8 @@ change before final release*
   * My Invoices - Invoices with payments arbiter received for dispute resolution.
 
 ### Integration of StandardBounties
-Ethlance uses [StandardBounties.sol](https://github.com/Bounties-Network/StandardBounties/blob/master/contracts/StandardBounties.sol) smart-contract for almost all of its operations. In addition to StandardBounties, it uses EthlanceBountyIssuer smart-contract, which helps managing arbiters for a job. 
-Following list explains how StandardBounties and EthlanceBountyIssuer smart-contract functions integrate into Ethlance: 
+Ethlance uses [StandardBounties.sol](https://github.com/Bounties-Network/StandardBounties/blob/master/contracts/StandardBounties.sol) smart-contract for almost all of its operations. In addition to StandardBounties, it uses EthlanceBountyIssuer smart-contract, which helps managing arbiters for a job.
+Following list explains how StandardBounties and EthlanceBountyIssuer smart-contract functions integrate into Ethlance:
 * `EthlanceBountyIssuer::issueAndContribute` - This function calls `StandardBounties::issueAndContribute`, passing as issuers address of itself and sender's address, so later this contract has priviledges to add a approver (arbiter) to StandardBounties job. It also stores addresses of invited arbiters and arbiter's fee.
 * `EthlanceBountyIssuer::inviteArbiters` - This function is for inviting more arbiters, in case nobody accepted in the initial round of invites.
 * `EthlanceBountyIssuer::acceptArbiterInvitation` - Arbiter calls this function to accept an invitation. If he's first, who accepted invitation for a particular job, it'll transfer fee to him and add him as an arbiter for the job. This function calls `StandardBounties::addApprovers`.
@@ -78,7 +78,7 @@ Following list explains how StandardBounties and EthlanceBountyIssuer smart-cont
 
 * make
   * Note: Windows users can use Msys for build essentials
-	(Untested)
+    (Untested)
 
 
 Run `make check` to determine whether you are missing any prerequisites
@@ -131,9 +131,9 @@ make ipfs
 
 Terminal 1 (server repl):
 ```clojure
-(start) 
-	    ;; By default, this will deploy the smart contracts, generate users
-	    ;; and scenarios, and synchronize the results within the SQLite database.
+(start)
+        ;; By default, this will deploy the smart contracts, generate users
+        ;; and scenarios, and synchronize the results within the SQLite database.
 
 (help)  ;; To review additional commands
 ```
@@ -176,7 +176,7 @@ Open two terminals. In the first terminal, type:
 $ make fig-dev-server
 ```
 
-After a short while, the build will prompt for a connection. 
+After a short while, the build will prompt for a connection.
 
 In the second terminal, type:
 
@@ -196,6 +196,29 @@ configuration.
 
 ```bash
 $ ganache-cli # Run in a separate terminal
+```
+
+### GraphQL endpoints
+
+#### Sign-in endpoint
+
+To obtain JWT token:
+
+```
+mutation {
+  signIn(
+    input: {
+      dataSignature: "0xfed02f1045f42eebdeea9f63096387076b180ed8b32aaa39f994058023b55d6c4293bc25ffc2df58f839d2c067157f09bda04911e961485dfdae08b6361114911c"
+      data: "0x48692074686572652120596f7572207370656369616c206e6f6e63653a2037343566366630382d613537362d343137632d393461632d373764666233363034353366"
+    }
+  )
+}
+```
+
+To authorize with ethlance services any subsequent request should include an `access-token` header with subsequent requests, example:
+
+```
+{"access-token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQWRkcmVzcyI6IjB4NGMzZjEzODk4OTEzZjE1ZjEyZjkwMmQ2NDgwMTc4NDg0MDYzYTZmYiIsImlhdCI6MTU3NjQ5MTg5NH0.4iLcXFcKctgDtp53RT5EmK24oF0l_CfrQLUvsVYMXMc"}
 ```
 
 ### IPFS Server
@@ -237,7 +260,7 @@ changed during development.
 If all of the previous sections are completed, we can perform a smart
 contract deployment on the testnet through the fig-dev-server
 CLJS-REPL.
- 
+
 While in the Figwheel Server CLJS REPL, type:
 
 ```clojure

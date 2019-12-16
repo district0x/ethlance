@@ -2,15 +2,13 @@
   "Represents the ethlance in-memory sqlite database. Contains a mount
   component for creating the in-memory database upon initial load."
   (:require
-   [cuerdas.core :as str]
-   [com.rpl.specter :as $ :include-macros true]
    [clojure.pprint :as pprint]
+   [com.rpl.specter :as $ :include-macros true]
+   [cuerdas.core :as str]
    [district.server.config :refer [config]]
    [district.server.db :as db]
    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
    [district.server.db.honeysql-extensions]
-   ;; [honeysql-postgres.helpers :as postgres-helpers]
-   ;; [honeysql-postgres.format]
    [honeysql.core :as sql]
    [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
    [medley.core :as medley]
@@ -550,6 +548,11 @@
               :values [values]
               :upsert {:on-conflict [:user/address]
                        :do-update-set (keys values)}})))
+
+(defn insert-user-language! [args]
+(let [values (select-keys args (get-table-column-names :UserLanguage))]
+    (db/run! {:insert-into :UserLanguage
+              :values [values]})))
 
 (defn start
   "Start the ethlance-db mount component."

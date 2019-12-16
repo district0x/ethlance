@@ -24,7 +24,7 @@
        (log/info "No access-token header present in request")
 
        access-token
-       (let [user {:user/address (aget "userAddress" (parse-jwt access-token sign-in-secret))}]
+       (let [user {:user/address (aget (parse-jwt access-token sign-in-secret) "userAddress")}]
          (log/debug "returning user" user)
          user)
 

@@ -1,7 +1,9 @@
 (ns cljs.user
   "Development Entrypoint for CLJS-Server."
   (:require [cljs-web3.eth :as web3-eth]
-            [cljs.instrumentation :as instrumentation]
+            ;; [cljs.instrumentation :as instrumentation]
+            [cljs-time.core :as time]
+            [cljs-time.coerce :as time-coerce]
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]
             [district.server.db]
@@ -74,16 +76,16 @@
       mount/start))
 
 
-(defn enable-instrumentation!
-  "Strict conforms function fspecs for all specs."
-  []
-  (instrumentation/enable!))
+;; (defn enable-instrumentation!
+;;   "Strict conforms function fspecs for all specs."
+;;   []
+;;   (instrumentation/enable!))
 
 
-(defn disable-instrumentation!
-  "Disables strict conformity of fspecs."
-  []
-  (instrumentation/disable!))
+;; (defn disable-instrumentation!
+;;   "Disables strict conformity of fspecs."
+;;   []
+;;   (instrumentation/disable!))
 
 
 (defn start
@@ -180,25 +182,55 @@
   []
   (println help-message))
 
-(defn generate-dev-data []
-  (for [id (range 0 101)]
+;; TODO : languages
+(defn generate-user-languages [user-addresses]
+  (let [languages ["en" "nl" "pl" "de" "es" "fr"]]
+    (for [address user-addresses language languages]
+      (let [[speaks? _] (shuffle [true false])]
+        (when speaks?
+          (ethlance-db/insert-user-language! {:user/address address
+                                              :language/id language})
+
+          ))
+
+      )))
+
+(defn generate-users [user-addresses]
+  (for [address user-addresses]
     (let [[country-code _] (shuffle ["US" "BE" "UA" "CA" "SLO" "PL"])
           [first-name _] (shuffle ["Filip" "Juan" "Ben" "Matus"])
           [second-name _] (shuffle ["Fu" "Bar" "Smith" "Doe" "Hoe"])
           [extension _] (shuffle ["io" "com" "gov"])
           [profile-id _] (shuffle (range 0 10))
           [candidate? _] (shuffle [true false])
-          [currency _] (shuffle ["EUR" "USD"])]
-      (ethlance-db/insert-row! :User {:user/address (str id)
+          [currency _] (shuffle ["EUR" "USD"])
+          date-created (time-coerce/to-long (time/minus (time/now) (time/days 60)))
+          lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis."
+          from (rand-int 100)
+          [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of WIne and Whisky"])]
+      (ethlance-db/insert-row! :User {:user/address address
                                       :user/country-code country-code
                                       :user/user-name (str "@" first-name)
                                       :user/full-name (str first-name " " second-name)
                                       :user/email (string/lower-case (str first-name "@" second-name "." extension))
-                                      :user/profile-image (str "https://randomuser.me/api/portraits/lego/" profile-id ".jpg")})
+                                      :user/profile-image (str "https://randomuser.me/api/portraits/lego/" profile-id ".jpg")
+                                      :user/date-created date-created
+                                      :user/date-updated date-created
+
+                                      })
       (when candidate?
-        (ethlance-db/insert-row! :Candidate {:user/address (str id)
+        (ethlance-db/insert-row! :Candidate {:user/address address
                                              :candidate/rate (rand-int 200)
-                                             :candidate/rate-currency-id currency})))))
+                                             :candidate/rate-currency-id currency
+                                             :candidate/bio (subs lorem from (+ 100 from))
+                                             :candidate/professional-title professional-title})))))
+
+(defn generate-dev-data []
+  (let [user-addresses (map str (range 0 11))]
+    (generate-users user-addresses)
+    (generate-user-languages user-addresses)
+
+    ))
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"
