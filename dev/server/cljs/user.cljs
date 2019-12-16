@@ -182,19 +182,15 @@
   []
   (println help-message))
 
-;; TODO : languages
 (defn generate-user-languages [user-addresses]
   (let [languages ["en" "nl" "pl" "de" "es" "fr"]]
     (for [address user-addresses language languages]
       (let [[speaks? _] (shuffle [true false])]
         (when speaks?
-          (ethlance-db/insert-user-language! {:user/address address
-                                              :language/id language})
+          (ethlance-db/insert-row! :UserLanguage {:user/address address
+                                                  :language/id language}))))))
 
-          ))
-
-      )))
-
+;; TODO : promise
 (defn generate-users [user-addresses]
   (for [address user-addresses]
     (let [[country-code _] (shuffle ["US" "BE" "UA" "CA" "SLO" "PL"])
@@ -203,11 +199,14 @@
           [extension _] (shuffle ["io" "com" "gov"])
           [profile-id _] (shuffle (range 0 10))
           [candidate? _] (shuffle [true false])
+          [employer? _] (shuffle [true false])
+          [arbiter? _] (shuffle [true false])
           [currency _] (shuffle ["EUR" "USD"])
           date-created (time-coerce/to-long (time/minus (time/now) (time/days 60)))
           lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis."
           from (rand-int 100)
-          [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of WIne and Whisky"])]
+          bio (subs lorem from (+ 100 from))
+          [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
       (ethlance-db/insert-row! :User {:user/address address
                                       :user/country-code country-code
                                       :user/user-name (str "@" first-name)
@@ -215,15 +214,23 @@
                                       :user/email (string/lower-case (str first-name "@" second-name "." extension))
                                       :user/profile-image (str "https://randomuser.me/api/portraits/lego/" profile-id ".jpg")
                                       :user/date-created date-created
-                                      :user/date-updated date-created
-
-                                      })
+                                      :user/date-updated date-created})
       (when candidate?
         (ethlance-db/insert-row! :Candidate {:user/address address
                                              :candidate/rate (rand-int 200)
                                              :candidate/rate-currency-id currency
-                                             :candidate/bio (subs lorem from (+ 100 from))
-                                             :candidate/professional-title professional-title})))))
+                                             :candidate/bio bio
+                                             :candidate/professional-title professional-title}))
+      (when employer?
+        (ethlance-db/insert-row! :Employer {:user/address address
+                                            :employer/bio bio
+                                            :employer/professional-title professional-title}))
+      (when arbiter?
+        (ethlance-db/insert-row! :Arbiter {:user/address address
+                                           :arbiter/bio bio
+                                           :arbiter/professional-title professional-title
+                                           :arbiter/rate (rand-int 200)
+                                           :arbiter/rate-currency-id currency})))))
 
 (defn generate-dev-data []
   (let [user-addresses (map str (range 0 11))]

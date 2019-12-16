@@ -16,8 +16,6 @@
                       offset (assoc :offset offset))]
     (db/all paged-query)))
 
-
-
 #_(defn current-user-resolver [_ _ {:keys [:current-user]}]
   (try-catch-throw
    (log/debug "current-user-resolver" current-user)
@@ -65,11 +63,27 @@
 
 (defn user->is-registered-candidate-resolver [root _ _]
   (try-catch-throw
-   (let [{user-address :user/address :as user} (graphql-utils/gql->clj root)]
+   (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
      (log/debug "user->is-registered-candidate-resolver" {:user user})
-     (not (= 0 (db/get {:select [[(sql/call :count :*) :count]]
-                        :from [:Candidate]
-                        :where [:= user-address :Candidate.user/address]}))))))
+     (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                :from [:Candidate]
+                                :where [:= address :Candidate.user/address]})))))))
+
+(defn user->is-registered-employer-resolver [root _ _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+     (log/debug "user->is-registered-employer-resolver" {:user user})
+     (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                :from [:Employer]
+                                :where [:= address :Employer.user/address]})))))))
+
+(defn user->is-registered-arbiter-resolver [root _ _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+     (log/debug "user->is-registered-arbiter-resolver" {:user user})
+     (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                :from [:Arbiter]
+                                :where [:= address :Arbiter.user/address]})))))))
 
 (defn user->languages-resolvers [root _ _]
   (try-catch-throw
@@ -95,8 +109,12 @@
                             ;; :currentUser (require-auth current-user-resolver)
                             ;; :searchUsers search-users-resolver
                             }
-                    :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver
-                           :user_languages user->languages-resolvers}
+                    :User {:user_languages user->languages-resolvers
+                           :user_isRegisteredCandidate user->is-registered-candidate-resolver
+                           :user_isRegisteredEmployer user->is-registered-employer-resolver
+                           :user_isRegisteredArbiter user->is-registered-arbiter-resolver
+
+                           }
                     :Mutation {:signIn sign-in-mutation}
 
 

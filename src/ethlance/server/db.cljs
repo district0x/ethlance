@@ -549,11 +549,6 @@
               :upsert {:on-conflict [:user/address]
                        :do-update-set (keys values)}})))
 
-(defn insert-user-language! [args]
-(let [values (select-keys args (get-table-column-names :UserLanguage))]
-    (db/run! {:insert-into :UserLanguage
-              :values [values]})))
-
 (defn start
   "Start the ethlance-db mount component."
   [{:keys [:resync?] :as opts}]
