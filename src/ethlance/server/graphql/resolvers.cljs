@@ -23,14 +23,6 @@
    (log/debug "current-user-resolver" current-user)
    (ethlance-db/get-user current-user)))
 
-(defn user->is-registered-candidate-resolver [root _ _]
-  (try-catch-throw
-   (let [{user-address :user/address :as user} (graphql-utils/gql->clj root)]
-     (log/debug "user->is-registered-candidate-resolver" {:user user})
-     (not (= 0 (db/get {:select [[(sql/call :count :*) :count]]
-                        :from [:Candidate]
-                        :where [:= user-address :Candidate.user/address]}))))))
-
 #_(defn search-users-resolver [_ {:keys [:limit :offset :user/address :not-current-user  :order-by :order-direction] :as args} {:keys [:current-user]}]
   (try-catch-throw
    (log/debug "search-users-resolver" {:args args
@@ -71,6 +63,23 @@
    (log/debug "user-resolver" args)
    (ethlance-db/get-user args)))
 
+(defn user->is-registered-candidate-resolver [root _ _]
+  (try-catch-throw
+   (let [{user-address :user/address :as user} (graphql-utils/gql->clj root)]
+     (log/debug "user->is-registered-candidate-resolver" {:user user})
+     (not (= 0 (db/get {:select [[(sql/call :count :*) :count]]
+                        :from [:Candidate]
+                        :where [:= user-address :Candidate.user/address]}))))))
+
+(defn user->languages-resolvers [root _ _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+     (log/debug "user->languages-resolvers" {:user user})
+     (map :language/id
+          (db/all {:select [:*]
+                   :from [:UserLanguage]
+                   :where [:= address :UserLanguage.user/address]})))))
+
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
   recovers user address. If successful returns a JWT containing the user address."
@@ -86,7 +95,8 @@
                             ;; :currentUser (require-auth current-user-resolver)
                             ;; :searchUsers search-users-resolver
                             }
-                    ;; :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver}
+                    :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver
+                           :user_languages user->languages-resolvers}
                     :Mutation {:signIn sign-in-mutation}
 
 
