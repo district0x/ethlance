@@ -33,7 +33,8 @@
                                                 middlewares/response->gql-middleware)
         server (new ApolloServer (clj->js {:schema schema-with-middleware
                                            :context (fn [event]
-                                                      {:current-user (authorization/token->user event @config/config)})}))]
+                                                      {:config @config/config
+                                                       :current-user (authorization/token->user event @config/config)})}))]
     (promise-> (js-invoke server "listen" (clj->js opts))
                (fn [url]
                  (log/info "Graphql server started...")

@@ -51,10 +51,10 @@
   [{:table-name :User
     :table-columns
     [[:user/address address]
-     [:user/country-code :varchar #_not-nil]
+     [:user/country-code :varchar not-nil]
      [:user/user-name :varchar]
      [:user/full-name :varchar]
-     [:user/email :varchar #_not-nil]
+     [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
      [:user/date-created :unsigned :integer]
      [:user/date-updated :unsigned :integer]

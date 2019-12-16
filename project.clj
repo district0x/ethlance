@@ -157,51 +157,10 @@
   {:builds
    [{:id "dev-ui"
      :source-paths ["src/ethlance/ui" "dev/ui"]
-     :figwheel {:on-jsload "ethlance.ui.core/rerender"
-                ;; "district.ui.reagent-render/rerender"
-                }
+     :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
                 :infer-externs true
                 :npm-deps false
-                :foreign-libs [{:file "./resources/libs/dist/index.bundle.js"
-                                :provides ["react" "react-dom"
-                                           "useQuery"
-                                           "useMutation"
-                                           "InMemoryCache"
-                                           "defaultDataIdFromObject"
-                                           "ApolloClient"
-                                           "ApolloLink"
-                                           "setContext"
-                                           "HttpLink"
-                                           "ApolloProvider"
-                                           "gql"
-                                           "parseGraphql"
-
-                                           "FlatList"
-                                           "BottomScrollListener"
-                                           "useBottomScrollListener"
-
-                                           ]
-                                :global-exports {useQuery useQuery
-                                                 useMutation useMutation
-                                                 InMemoryCache InMemoryCache
-                                                 defaultDataIdFromObject defaultDataIdFromObject
-                                                 ApolloClient ApolloClient
-                                                 ApolloLink ApolloLink
-                                                 setContext setContext
-                                                 HttpLink HttpLink
-                                                 ApolloProvider ApolloProvider
-                                                 gql gql
-                                                 parseGraphql parseGraphql
-                                                 react React
-                                                 react-dom ReactDOM
-
-                                                 FlatList FlatList
-                                                 BottomScrollListener BottomScrollListener
-                                                 useBottomScrollListener useBottomScrollListener
-
-                                                 }}]
-
                 :output-to "resources/public/js/compiled/ethlance_ui.js"
                 :output-dir "resources/public/js/compiled/out-dev-ui"
                 :asset-path "/js/compiled/out-dev-ui"

@@ -1,82 +1,6 @@
 (ns ethlance.shared.graphql.schema)
 
-(def schema "
-
-type Query {
-  user(user_address: ID!): User
-  currentUser: User
-  searchUsers(
-    user_address: ID,
-    user_fullName: String,
-    user_userName: String,
-    notCurrentUser: Boolean
-    orderBy: UsersOrderBy,
-    orderDirection: OrderDirection,
-    limit: Int,
-    offset: Int
-  ): [User]
-}
-
-type Mutation {
-  updateUserProfile(input: UpdateUserProfileInput): User
-}
-
-input UpdateUserProfileInput {
-  user_address: ID!
-  user_userName: String
-  user_profileImage: String
-  user_countryCode: String
-}
-
-type User {
-  user_id: Int
-
-  \"Ethereum Address Corresponding to this Registered User.\"
-  user_address: ID
-
-  \"Two Letter Country Code\"
-  user_countryCode: String
-
-  \"Full Name of the Given User\"
-  user_fullName: String
-
-  \"The short-form username of the User\"
-  user_userName: String
-
-  \"Email Address\"
-  user_email: String
-
-  \"Profile Picture Assigned to the given User\"
-  user_profileImage: String
-
-  \"Date when the user was Registered\"
-  user_dateCreated: Int
-
-  \"Int when the user was Last Updated\"
-  user_dateUpdated: Int
-
-  \"List of languages the user speaks\"
-  user_languages: [String!]
-
-  \"Registration Checks\"
-  user_isRegisteredCandidate: Boolean!
-  user_isRegisteredArbiter: Boolean!
-  user_isRegisteredEmployer: Boolean!
-}
-
-enum UsersOrderBy {
-  users_orderBy_userName
-  users_orderBy_random
-}
-
-enum OrderDirection {
-  asc
-  desc
-}
-
-")
-
-#_(def graphql-schema
+(def schema
   "The main GraphQL Schema"
   "
   #
@@ -102,11 +26,9 @@ enum OrderDirection {
   #
 
   type Query {
-    \"Retrieve the User ID for the given Ethereum Address, or null\"
-    userId(user_address : ID!): Int
 
     \"Retrieve the User Data for the User defined by the given User ID\"
-    user(user_id : Int!): User
+    user(user_address : ID!): User
 
     \"Search for and create User Listings\"
     userSearch(
@@ -115,17 +37,17 @@ enum OrderDirection {
       user_userName: String,
       orderBy: UserListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): UserList
 
     \"Retrieve the Candidate Data defined by the User ID\"
-    candidate(user_id : Int!): Candidate
+    candidate(user_address: ID!): Candidate
 
     # TODO: Rating
     \"Search for and create Candidate Listings\"
     candidateSearch(
-      user_id: Int,
+      user_address: ID,
       categoriesAnd: [String!],
       categoriesOr: [String!],
       skillsAnd: [String!],
@@ -133,35 +55,35 @@ enum OrderDirection {
       professionalTitle: String,
       orderBy: CandidateListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): CandidateList
 
     \"Retrieve the Employer Data defined by the User ID\"
-    employer(user_id : Int!): Employer
+    employer(user_address : ID!): Employer
 
     # TODO: Rating
     \"Search for and create Employer Listings\"
     employerSearch(
-      user_id: Int,
+      user_address: ID,
       professionalTitle: String,
       orderBy: EmployerListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): EmployerList
 
     \"Retrieve the Arbiter Data defined by the User ID\"
-    arbiter(user_id : Int!): Arbiter
+    arbiter(user_address : ID!): Arbiter
 
     # TODO: Rating
     \"Search for and create Arbiter Listings\"
     arbiterSearch(
-      user_id: Int,
+      user_address: ID,
       orderBy: ArbiterListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): ArbiterList
 
     \"Retrieve the Job Data defined by the Job Index\"
@@ -172,8 +94,8 @@ enum OrderDirection {
       job_index: Int,
       orderBy: JobListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): JobList
 
     \"Retrieve the Work Contract Data defined by the Work Contract Index\"
@@ -191,16 +113,17 @@ enum OrderDirection {
   }
 
   type Mutation {
-    signIn(dataSignature: String!, data: String!): String
+    signIn(input: SignInInput!): String!
   }
 
-
+  input SignInInput {
+    dataSignature: String!,
+    data: String!
+  }
 
   # User Types
 
   type User {
-    \"User Identifier\"
-    user_id: Int
 
     \"Ethereum Address Corresponding to this Registered User.\"
     user_address: ID
@@ -252,7 +175,7 @@ enum OrderDirection {
 
   type Candidate {
     \"User ID for the given candidate\"
-    user_id: Int
+    user_address: ID
 
     \"Auto Biography written by the Candidate\"
     candidate_biography: String
@@ -271,8 +194,8 @@ enum OrderDirection {
 
     \"Feedback for the candidate\"
     candidate_feedback(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int
     ): FeedbackList!
   }
 
@@ -294,7 +217,7 @@ enum OrderDirection {
 
   type Employer {
     \"User ID for the given employer\"
-    user_id: Int
+    user_address: ID
 
     \"Auto Biography written by the Employer\"
     employer_biography: String
@@ -307,8 +230,8 @@ enum OrderDirection {
 
     \"Feedback for the employer\"
     employer_feedback(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int
     ): FeedbackList!
   }
 
@@ -330,7 +253,7 @@ enum OrderDirection {
 
   type Arbiter {
     \"User ID for the given arbiter\"
-    user_id: Int
+    user_address: ID
 
     \"Date the Arbiter was registered\"
     arbiter_dateRegistered: Date
@@ -346,8 +269,8 @@ enum OrderDirection {
 
     \"Feedback for the arbiter\"
     arbiter_feedback(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int
     ): FeedbackList!
   }
 
@@ -371,7 +294,7 @@ enum OrderDirection {
     \"Identifier for the given Job\"
     job_index: Int
     job_title: String
-    job_acceptedArbiter: ID
+    job_acceptedArbiterAddress: ID
     job_availability: Keyword
     job_bidOption: Keyword
     job_category: String
@@ -379,12 +302,15 @@ enum OrderDirection {
     job_dateCreated: Date
     job_dateStarted: Date
     job_dateFinished: Date
-    job_employerUid: ID
+    job_employerAddress: ID
     job_estimatedLengthSeconds: Int
     job_includeEtherToken_: Boolean
     job_isInvitationOnly_: Boolean
     job_rewardValue: Int
-    job_workContracts(first: Int, after: String): WorkContractList
+    job_workContracts(
+      limit: Int,
+      offset: Int
+    ): WorkContractList
   }
 
   type JobList {
@@ -426,22 +352,22 @@ enum OrderDirection {
 
     \"Invoice Listing for Work Contract\"
     workContract_invoices(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int,
     ): InvoiceList
 
     \"Dispute Listing for Work Contract\"
     workContract_disputes(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int,
     ): DisputeList
 
     workContract_employerFeedback: Feedback
     workContract_candidateFeedback: Feedback
 
     workContract_comments(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int
     ): CommentList
   }
 
@@ -486,8 +412,8 @@ enum OrderDirection {
     invoice_amountPaid: Int
 
     invoice_comments(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int,
     ): CommentList
   }
 
@@ -534,8 +460,8 @@ enum OrderDirection {
     dispute_arbiterResolutionAmount: Int
 
     dispute_comments(
-      first: Int,
-      after: String
+      limit: Int,
+      offset: Int,
     ): CommentList
   }
 
@@ -577,7 +503,7 @@ enum OrderDirection {
     feedback_toUserType: Keyword!
     feedback_toUserId: Int!
     feedback_fromUserType: Keyword!
-    feedback_fromUserId: Int!
+    feedback_fromUserAddress: ID!
     feedback_dateCreated: Date
     feedback_rating: Int!
     feedback_text: String

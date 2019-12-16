@@ -1,5 +1,7 @@
 (ns ethlance.server.graphql.resolvers
-  (:require [district.server.db :as db]
+  (:require [cljs.nodejs :as nodejs]
+            [district.server.db :as db]
+            [ethlance.server.graphql.authorization :as authorization]
             [district.shared.error-handling :refer [try-catch-throw]]
             [ethlance.server.db :as ethlance-db]
             [ethlance.shared.graphql.utils :as graphql-utils]
@@ -14,12 +16,9 @@
                       offset (assoc :offset offset))]
     (db/all paged-query)))
 
-(defn user-resolver [_ {:keys [:user/address] :as args} _]
-  (try-catch-throw
-   (log/debug "user-resolver" args)
-   (ethlance-db/get-user args)))
 
-(defn current-user-resolver [_ _ {:keys [:current-user]}]
+
+#_(defn current-user-resolver [_ _ {:keys [:current-user]}]
   (try-catch-throw
    (log/debug "current-user-resolver" current-user)
    (ethlance-db/get-user current-user)))
@@ -32,7 +31,7 @@
                         :from [:Candidate]
                         :where [:= user-address :Candidate.user/address]}))))))
 
-(defn search-users-resolver [_ {:keys [:limit :offset :user/address :not-current-user  :order-by :order-direction] :as args} {:keys [:current-user]}]
+#_(defn search-users-resolver [_ {:keys [:limit :offset :user/address :not-current-user  :order-by :order-direction] :as args} {:keys [:current-user]}]
   (try-catch-throw
    (log/debug "search-users-resolver" {:args args
                                        :current-user current-user})
@@ -50,7 +49,7 @@
                                                         (or (keyword order-direction) :asc)]]))]
      (paged-query query limit offset))))
 
-(defn update-user-profile-mutation [_ {:keys [:input]} _]
+#_(defn update-user-profile-mutation [_ {:keys [:input]} _]
   (try-catch-throw
    (let [{:keys [:user/address :user/user-name :user/profile-image :user/country-code] :as user} (graphql-utils/gql-input->clj input)]
      (log/debug "update-user-profile-mutation" user)
@@ -67,8 +66,37 @@
       (throw (js/Error. "Authentication required"))
       (next root args context info))))
 
+(defn user-resolver [_ {:keys [:user/address] :as args} _]
+  (try-catch-throw
+   (log/debug "user-resolver" args)
+   (ethlance-db/get-user args)))
+
+;; mutation {
+;;   signIn(
+;;     input: {
+;;       dataSignature: "0xfed02f1045f42eebdeea9f63096387076b180ed8b32aaa39f994058023b55d6c4293bc25ffc2df58f839d2c067157f09bda04911e961485dfdae08b6361114911c"
+;;       data: "0x48692074686572652120596f7572207370656369616c206e6f6e63653a2037343566366630382d613537362d343137632d393461632d373764666233363034353366"
+;;     }
+;;   )
+;; }
+
+(defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
+  "Graphql sign-in mutation. Given `data` and `data-signature`
+  recovers user address. If successful returns a JWT containing the user address."
+  (try-catch-throw
+   (let [bsign-in-secret (-> config :graphql :sign-in-secret)
+         {:keys [:data-signature :data] :as input} (graphql-utils/gql-input->clj input)
+         user-address (authorization/recover-personal-signature data data-signature)
+         jwt (authorization/create-jwt user-address sign-in-secret)]
+     (log/debug "sign-in-mutation" {:input input})
+     jwt)))
+
 (def resolvers-map {:Query {:user user-resolver
-                            :currentUser (require-auth current-user-resolver)
-                            :searchUsers search-users-resolver}
-                    :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver}
-                    :Mutation {:updateUserProfile update-user-profile-mutation}})
+                            ;; :currentUser (require-auth current-user-resolver)
+                            ;; :searchUsers search-users-resolver
+                            }
+                    ;; :User {:user_isRegisteredCandidate user->is-registered-candidate-resolver}
+                    :Mutation {:signIn sign-in-mutation}
+
+
+                    })
