@@ -12,12 +12,9 @@
    {:level :debug
     :console? true}
 
-   ;; :reagent-render
-   ;; {:id "app"
-   ;;  :component-var
-   ;;  ;; #'ethlance.ui.core/root
-   ;;  #'district.ui.component.router/router
-   ;;  }
+   :reagent-render
+   {:id "app"
+    :component-var #'district.ui.component.router/router}
 
    :router
    {:routes ethlance.shared.routes/routes
@@ -26,9 +23,7 @@
     :html5? true}
 
    ;; Default one, should be moved to per env config file
-   :graphql {:url "http://localhost:4000/graphql"}
-
-   })
+   :graphql {:jwt-sign-secret "SECRET"}})
 
 
 (def development-config

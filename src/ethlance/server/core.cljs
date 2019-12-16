@@ -20,9 +20,6 @@
    [district.server.logging]
 
    ;; District Libraries
-   ;; [district.graphql-utils :as graphql-utils]
-   ;; [district.server.graphql]
-   ;; [district.server.graphql.utils :refer [build-schema build-default-field-resolver]]
 
    ;; Ethlance Mount Components
    [ethlance.server.graphql.server]
@@ -35,23 +32,11 @@
    [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
 
    ;; Ethlance Libraries
-   ;; [ethlance.shared.graphql.schema :refer [graphql-schema]]
-   ;; [ethlance.server.graphql.resolver :refer [graphql-resolver-map]]
-
-   ;; [ethlance.server.graphql.mutations.sign-in :as sign-in]
 
    [ethlance.shared.utils :as shared-utils]))
 
 (def graphql-config
-  {:port 4000
-   ;; :path "/graphql"
-   ;; :middlewares [sign-in/session-middleware]
-   ;; :schema (build-schema graphql-schema graphql-resolver-map
-   ;;                       {:kw->gql-name graphql-utils/kw->gql-name
-   ;;                        :gql-name->kw graphql-utils/gql-name->kw})
-   ;; :field-resolver (build-default-field-resolver graphql-utils/gql-name->kw)
-   ;; :graphiql false
-   })
+  {:port 4000})
 
 (def contracts-var
   (condp = (shared-utils/get-environment)
