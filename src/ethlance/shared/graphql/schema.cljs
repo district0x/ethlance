@@ -161,7 +161,7 @@
   type UserList {
     items: [User!]
     totalCount: Int
-    endCursor: String
+    endCursor: Int
     hasNextPage: Boolean
   }
 

@@ -156,7 +156,7 @@
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src/ethlance/ui" "dev/ui"]
+     :source-paths ["src/ethlance/ui" "src/ethlance/shared" "dev/ui"]
      :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
                 :infer-externs true
@@ -170,7 +170,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src/ethlance/server" "dev/server"]
+     :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server"]
      :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"

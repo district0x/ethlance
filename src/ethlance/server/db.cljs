@@ -557,7 +557,6 @@
     (drop-db!))
   (create-db!))
 
-
 (defn stop
   "Stop the ethlance-db mount component."
   []
