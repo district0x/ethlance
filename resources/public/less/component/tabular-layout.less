@@ -39,11 +39,11 @@
 
     > .tab {
       #mixin.noselect();
+      #mixin.box-shadow.main();
       align-items: center;
       background-color: #color[offwhite2];
       border-top-left-radius: 0.7em;
       border-top-right-radius: 0.7em;
-      box-shadow: 0 0 2rem 0.5rem rgba(44, 57, 143, 0.05);
       color: #color[purple];
       cursor: pointer;
       display: flex;
@@ -55,7 +55,7 @@
       padding: 0 0.5em;
       transition: 0.07s all ease-in;
       &.active {
-        box-shadow: none;
+        #mixin.box-shadow.none();
         color: #color[secondary-accent];
         background-color: white;
         z-index: 1;
@@ -86,9 +86,9 @@
   }
 
   > .active-page {
+    #mixin.box-shadow.main();
     grid-area: active-page;
     background-color: white;
-    box-shadow: 0 0 2rem .5rem rgba(44,57,143,.05);
     border-bottom-left-radius: 0.7em;
     border-bottom-right-radius: 0.7em;
   }

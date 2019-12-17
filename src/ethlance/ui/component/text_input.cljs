@@ -12,9 +12,9 @@
   "
   [{:keys [color] :as opts}]
   (let [class-color (case color
-                      :primary ""
-                      :secondary " secondary "
-                      "")]
+                      :primary "primary"
+                      :secondary "secondary"
+                      " primary ")]
     (fn []
       [:input.ethlance-text-input
-       (merge opts {:class class-color})])))
+       (merge opts {:class [class-color]})])))

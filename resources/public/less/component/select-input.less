@@ -61,7 +61,7 @@
       border-bottom: 2px solid rgba(0, 0, 0, 0.2);
 
       input {
-        #mixin.input.text();
+        #mixin.input.text.primary();
         font-style: italic;
         width: 100%;
         padding: 0 1em;
@@ -131,6 +131,7 @@
         background-color: #color[light-purple];
 
         > input {
+          #mixin.input.text.secondary();
           outline: none;
           border: none;
           color: white;

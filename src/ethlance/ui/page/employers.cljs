@@ -37,7 +37,8 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [c-text-input {:placeholder "Number of Feedbacks"}]
+   [:div.feedback-input
+    [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]]
 
    [:div.country-selector
     [c-select-input
@@ -66,7 +67,8 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [c-text-input {:placeholder "Number of Feedbacks"}]
+   [:div.feedback-input
+    [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]]
 
    [:div.country-selector
     [c-select-input

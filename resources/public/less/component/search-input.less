@@ -30,6 +30,7 @@
     }
 
     > .search-input {
+      #mixin.input.text.primary();
       font-size: 1.2em;
       height: @container-height;
       flex-grow: 1;
@@ -67,7 +68,7 @@
       cursor: pointer;
       flex-direction: column;
       background-color: @container-color;
-      box-shadow: inset 0px 3px 20px -7px rgba(0,0,0,0.2);
+      box-shadow: 0px 3px 20px -7px rgba(0,0,0,0.2) inset;
 
       .suggestion {
         display: flex;
@@ -100,10 +101,11 @@
   align-items: center;
   background-color: white;
   padding: 0.5em 1.0em;
-  margin: 0.7em 0.3em;
+  margin: 0 0.3em;
   border-radius: 5px;
 
   > .label {
+    height: 1em;
     padding-right: 0.5em;
     max-width: 80px;
     text-overflow: ellipsis;
