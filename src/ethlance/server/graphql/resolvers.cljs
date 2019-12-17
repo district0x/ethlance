@@ -23,7 +23,6 @@
      :end-cursor end-cursor
      :has-next-page (< end-cursor total-count)}))
 
-;; TODO
 (defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/full-name :user/user-name :order-by :order-direction]
                                :as args} _]
   (try-catch-throw
@@ -47,7 +46,6 @@
                  ;; order-by (sql-helpers/merge-order-by [[:User.user/address :asc]])
 
                  )]
-
      (paged-query query limit offset))))
 
 (defn user-resolver [_ {:keys [:user/address] :as args} _]
@@ -88,6 +86,25 @@
                    :from [:UserLanguage]
                    :where [:= address :UserLanguage.user/address]})))))
 
+(defn candidate-resolver [_ {:keys [:user/address] :as args} _]
+  (try-catch-throw
+   (log/debug "candidate-resolver" args)
+   (db/all {:select [:*]
+            :from [:Candidate]
+            :where [:= address :Candidate.user/address]})))
+
+;; TODO
+(defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
+     (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
+
+     ;; [:contract/id :integer]
+     ;; [:message/id :integer]
+     ;; [:feedback/rating :integer]
+
+     )))
+
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
   recovers user address. If successful returns a JWT containing the user address."
@@ -111,9 +128,11 @@
 
 (def resolvers-map {:Query {:user user-resolver
                             :userSearch user-search-resolver
+                            :candidate candidate-resolver
                             }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
                            :user_isRegisteredArbiter user->is-registered-arbiter-resolver}
+                    :Candidate {:candidate_feedback candidate->feedback-resolver}
                     :Mutation {:signIn sign-in-mutation}})

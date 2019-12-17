@@ -2,8 +2,11 @@
   "Development Entrypoint for CLJS-Server."
   (:require [cljs-web3.eth :as web3-eth]
             ;; [cljs.instrumentation :as instrumentation]
+
+            ;; [district.time :refer []]
             [cljs-time.core :as time]
             [cljs-time.coerce :as time-coerce]
+
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]
             [district.server.db]
@@ -183,20 +186,38 @@
   []
   (println help-message))
 
+(def lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis.")
+
+(def job-categories
+  {0 "All Categories"
+   1 "Web, Mobile & Software Dev"
+   2 "IT & Networking"
+   3 "Data Science & Analytics"
+   4 "Design & Creative"
+   5 "Writing"
+   6 "Translation"
+   7 "Legal"
+   8 "Admin Support"
+   9 "Customer Service"
+   10 "Sales & Marketing"
+   11 "Accounting & Consulting"
+   12 "Other"})
+
+(def languages ["en" "nl" "pl" "de" "es" "fr"])
+
 (defn generate-user-languages [user-addresses]
-  (let [languages ["en" "nl" "pl" "de" "es" "fr"]]
-    (js/Promise.
-     (fn [resolve reject]
-       (try
-         (doall (for [address user-addresses language languages]
-                  (let [[speaks? _] (shuffle [true false])]
-                    (when speaks?
-                      (ethlance-db/insert-row! :UserLanguage {:user/address address
-                                                              :language/id language})))))
-         (resolve true)
-         (catch :default e
-           (log/error "Error" {:error e})
-           (reject e)))))))
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [address user-addresses language languages]
+                (let [[speaks? _] (shuffle [true false])]
+                  (when speaks?
+                    (ethlance-db/insert-row! :UserLanguage {:user/address address
+                                                            :language/id language})))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
 
 ;; TODO : promise
 (defn generate-users [user-addresses]
@@ -214,7 +235,6 @@
                       [arbiter? _] (shuffle [true false])
                       [currency _] (shuffle ["EUR" "USD"])
                       date-created (time-coerce/to-long (time/minus (time/now) (time/days (rand-int 60))))
-                      lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis."
                       from (rand-int 100)
                       bio (subs lorem from (+ 100 from))
                       [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
@@ -247,13 +267,69 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
-(defn generate-dev-data []
-  (let [user-addresses (map str (range 0 11))]
-    (promise-> (generate-users user-addresses)
-               #(generate-user-languages user-addresses)
-               #(log/debug "Done"))
+;; TODO
+(defn generate-jobs [ids]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [id ids]
+                (let [title (str (-> ["marmot" "deer" "mammut" "tiger" "lion" "elephant" "bobcat"] shuffle first) " "
+                                   (-> ["control" "design" "programming" "aministartion" "development"] shuffle first))
+                      from (rand-int 100)
+                      description (subs lorem from (+ 20 from))
+                      category (get job-categories (rand-int 13))
+                      [status _] (shuffle ["Hiring" "Hiring Done"])
+                      date-created (time/minus (time/now) (time/days (rand-int 60)))
+                      date-published (time/plus date-created (time/days (rand-int 5)))
+                      date-updated (time/plus date-published (time/days (rand-int 7)))
+                      estimated-length (case (-> [:hours :days :weeks] shuffle first)
+                                         :hours (time/hours (rand-int 24))
+                                         :days (time/days (rand-int 30))
+                                         :weeks (time/weeks (rand-int 100)))
+                      [availability _] (shuffle ["Part Time" "Full Time"])
+                      [expertise-level _] (shuffle ["Beginner" "Intermediate" "Expert"])
+                      [bid-option _] (shuffle ["Hourly Rate" "Bounty"])
+                      number-of-candidates (rand-int 5)
+                      [invitation-only? _] (shuffle [true false])
+                      token "0x8f389F672Ef0586628689f9227e1d0e09f9A3245"
+                      reward (rand-int 300)
+                      date-deadline (time/plus date-updated estimated-length)
+                      [platform _] (shuffle ["mobile" "web" "embedded"])
+                      [language _] (shuffle languages)]
+                  (ethlance-db/insert-row! :Job {:job/id id
+                                                 :job/bounty-id id
+                                                 :job/title title
+                                                 :job/description description
+                                                 :job/category category
+                                                 :job/status status
+                                                 :job/date-created (time-coerce/to-long date-created)
+                                                 :job/date-published (time-coerce/to-long date-published)
+                                                 :job/date-updated (time-coerce/to-long date-updated)
+                                                 :job/estimated-length (time/in-millis estimated-length)
+                                                 :job/required-availability availability
+                                                 :job/bid-option bid-option
+                                                 :job/expertise-level expertise-level
+                                                 :job/number-of-candidates number-of-candidates
+                                                 :job/invitation-only? invitation-only?
+                                                 :job/token token
+                                                 :job/token-version 1
+                                                 :job/reward reward
+                                                 :job/date-deadline (time-coerce/to-long date-deadline)
+                                                 :job/platform platform
+                                                 :job/web-reference-url "http://this/that.com"
+                                                 :job/language-id language}))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
 
-    ))
+(defn generate-dev-data []
+  (let [user-addresses (map str (range 0 11))
+        job-ids (map str (range 0 6))]
+    (promise-> ;;(generate-users user-addresses)
+               ;; #(generate-user-languages user-addresses)
+               (generate-jobs job-ids)
+               #(log/debug "Done"))))
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"
