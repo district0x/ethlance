@@ -4,13 +4,13 @@
 .profile-main-container {
   > .tabular-layout > .active-page {
     // remove default styling, since we're dealing with several paper sections in the active page
+    #mixin.box-shadow.none();
     background-color: transparent;
-    box-shadow: none;
     border-radius: 0;
     
     > .candidate-profile , > .employer-profile , > .arbiter-profile {
+      #mixin.box-shadow.main();
       background-color: white;
-      box-shadow: 0 0 2rem .5rem rgba(44,57,143,.05);
       border-bottom-left-radius: 0.7em;
       border-bottom-right-radius: 0.7em;
       padding: 3em;

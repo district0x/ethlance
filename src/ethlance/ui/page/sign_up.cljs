@@ -45,7 +45,7 @@
      [:div.form-professional-title
       [c-text-input {:placeholder "Professional Title"}]]
      [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :secondary}]]
+      [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :primary}]]
      [:div.form-country
       [c-select-input
        {:label "Select Country"
@@ -151,7 +151,7 @@
         :search-bar? true
         :default-search-text "Search Countries"}]]
      [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Fixed Rate Per A Dispute" :color :secondary}]]
+      [c-currency-input {:placeholder "Fixed Rate Per A Dispute" :color :primary}]]
      [:div.form-connect-github
       [c-button
        {:size :large}

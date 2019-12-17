@@ -79,11 +79,13 @@
    [c-currency-input
     {:placeholder "Min. Hourly Rate"
      :currency-type ::enum.currency/usd
+     :color :secondary
      :on-change #(println "Currency Min Change: " %)}]
    
    [c-currency-input
     {:placeholder "Max. Hourly Rate"
      :currency-type ::enum.currency/usd
+     :color :secondary
      :on-change #(println "Currency Max Change: " %)}]
 
    [:div.feedback-input

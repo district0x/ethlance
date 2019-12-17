@@ -39,7 +39,10 @@
 
    [c-currency-input {:placeholder "Min. Hourly Rate" :color :secondary}]
    [c-currency-input {:placeholder "Max. Hourly Rate" :color :secondary}]
-   [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]
+   [:div.feedback-input
+    [c-text-input
+     {:placeholder "Number of Feedbacks"
+      :color :secondary}]]
 
    [:div.country-selector
     [c-select-input
@@ -69,7 +72,10 @@
 
    [c-currency-input {:placeholder "Min. Hourly Rate" :color :secondary}]
    [c-currency-input {:placeholder "Max. Hourly Rate" :color :secondary}]
-   [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]
+   [:div.feedback-input
+    [c-text-input
+     {:placeholder "Number of Feedbacks"
+      :color :secondary}]]
 
    [:div.country-selector
     [c-select-input

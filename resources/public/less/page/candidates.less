@@ -54,6 +54,7 @@
     }
 
     > .candidate-element {
+      #mixin.box-shadow.item-inset();
       display: grid;
       grid-template-areas:
       'profile  price'
@@ -64,7 +65,6 @@
       grid-template-rows: repeat(4, auto);
       min-height: 100px;
       padding: 2em;
-      box-shadow: 0px 20px 1rem 0.25rem rgba(75, 63, 182, .05) inset;
       grid-column-gap: 1em;
 
       > .profile {
