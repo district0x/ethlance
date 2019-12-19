@@ -10,7 +10,7 @@
    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
    [district.server.db.honeysql-extensions]
    [honeysql.core :as sql]
-   [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
+   [honeysql.helpers :as sqlh :refer [merge-where merge-order-by merge-left-join defhelper]]
    [medley.core :as medley]
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]))
@@ -475,7 +475,6 @@
     (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
     (db/run! {:drop-table [:if-exists table-name]})))
 
-
 (defn insert-row!
   "Inserts into the given `table-name` with the given `item`. The
   table-name and item structure are defined in the `database-schema`."
@@ -580,6 +579,15 @@
               :values [values]
               :upsert {:on-conflict [:user/address]
                        :do-update-set (keys values)}})))
+
+(defn add-job [job creators]
+  (insert-row! :Job job)
+  (doseq [user-address creators]
+    (insert-row! :JobCreator {:job/id (:job/id job)
+                              :user/address user-address})))
+
+(defn update-job-data [job-data]
+  (update-row! :Job job))
 
 (defn start
   "Start the ethlance-db mount component."
