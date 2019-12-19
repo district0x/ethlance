@@ -1,11 +1,14 @@
 (ns ethlance.ui.component.modal
   "Component for displaying a modal container"
   (:require
-   [ethlance.ui.component.icon :refer [c-icon]]))
+   [re-frame.core :as re]
+   [ethlance.ui.component.icon :refer [c-icon]]
+   [ethlance.ui.subscriptions :as ui.subs]))
 
 
 (defn c-modal
   ""
-  [{:keys [] :as opts} & children]
+  [{:keys [] :as opts} child]
   [:div.ethlance-modal
-   children])
+   {:on-click #(re/dispatch [:modal/close])}
+   child])
