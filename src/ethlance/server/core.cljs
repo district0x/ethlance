@@ -47,9 +47,22 @@
 (def default-config
   {:web3 {:url "ws://127.0.0.1:8549"}
 
-   ;; :web3-events {:events {:ethlance-registry/ethlance-event [:ethlance-registry :EthlanceEvent {} {:from-block 0 :to-block "latest"}]}
-   ;;               :write-events-into-file? true
-   ;;               :file-path "ethlance-events.log"}
+   :web3-events {:events {:standard-bounties/bounty-issued [:standard-bounties :BountyIssued {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-approvers-updated [:standard-bounties :BountyApproversUpdated {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/contribution-added [:standard-bounties :ContributionAdded {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/contribution-refunded [:standard-bounties :ContributionRefunded {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/contributions-refunded [:standard-bounties :ContributionsRefunded {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-drained [:standard-bounties :BountyDrained {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/action-performed [:standard-bounties :ActionPerformed {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-fulfilled [:standard-bounties :BountyFulfilled {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/fulfillment-updated [:standard-bounties :FulfillmentUpdated {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/fulfillment-accepted [:standard-bounties :FulfillmentAccepted {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-changed [:standard-bounties :BountyChanged {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-issuers-updated [:standard-bounties :BountyIssuersUpdated {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-data-changed [:standard-bounties :BountyDataChanged {} {:from-block 0 :to-block "latest"}]
+                          :standard-bounties/bounty-deadline-changed [:standard-bounties :BountyDeadlineChanged {} {:from-block 0 :to-block "latest"}]}
+                 :write-events-into-file? true
+                 :file-path "ethlance-events.log"}
 
    ;; :smart-contracts {:contracts-var contracts-var
    ;;                   :print-gas-usage? false
@@ -62,8 +75,7 @@
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"
           :gateway "http://127.0.0.1:8080/ipfs"}
-
-   :logging {:level "info"
+   :logging {:level "debug"
              :console? true}})
 
 (defn -main [& args]

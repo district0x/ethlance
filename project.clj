@@ -48,9 +48,9 @@
                  [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.2.2"]
-                 [district0x/district-server-web3 "1.2.0"]
-                 [district0x/district-server-web3-events "1.1.6"]
+                 [district0x/district-server-smart-contracts "1.2.3"]
+                 [district0x/district-server-web3 "1.2.3"]
+                 [district0x/district-server-web3-events "1.1.8-SNAPSHOT"]
 
                  ;; UI Components
                  [cljs-web3 "0.19.0-0-10"]
@@ -61,7 +61,7 @@
 
                  ;; District UI Components
                  [day8.re-frame/http-fx "0.1.6"]
-                 [district0x/cljs-ipfs-native "1.0.2"]
+                 [district0x/cljs-ipfs-http-client "1.0.5"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
                  [district0x/district-ui-component-form "0.2.13"]
