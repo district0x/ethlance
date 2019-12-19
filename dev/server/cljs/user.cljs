@@ -9,7 +9,7 @@
 
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]
-            [district.server.db]
+            [district.server.db :as db]
             [district.server.logging]
             [district.server.smart-contracts :as contracts]
             [district.server.web3 :refer [web3]]
@@ -219,7 +219,6 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
-;; TODO : promise
 (defn generate-users [user-addresses]
   (js/Promise.
    (fn [resolve reject]
@@ -267,7 +266,6 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
-;; TODO
 (defn generate-jobs [ids]
   (js/Promise.
    (fn [resolve reject]
@@ -323,13 +321,105 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
+(defn generate-message [{:keys [:message/creator :message/id]}]
+  {:message/id id
+   :message/creator creator
+   :message/text (let [from (rand-int 200)]
+                   (subs lorem from (+ 20 from)))
+   :message/date-created (time-coerce/to-long (time/minus (time/now)
+                                                          (time/days (rand-int 60))))})
+
+;; TODO : messages
+(defn generate-contracts [contract-ids job-ids user-addresses]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [contract-id contract-ids]
+                (let [[job-id _] (shuffle job-ids)
+                      [status _] (shuffle ["Proposal Pending" "Active" "Finished" "Cancelled"])
+                      date-created (time/minus (time/now) (time/days (rand-int 60)))
+
+                      [creator-address proposee-address & _] (-> user-addresses shuffle)
+                      last-message-index  (:count (db/get {:select [[:%count.* :count]]
+                                                           :from [:Message]}))
+                      invitation-message (generate-message {:message/creator creator-address
+                                                            :message/id (+ last-message-index 1)})
+                      proposal-message (generate-message {:message/creator proposee-address
+                                                          :message/id (+ last-message-index 2)})
+
+                      proposal-rate (rand-int 300)
+                      [currency _] (shuffle ["EUR" "USD"])
+                      raised-dispute-message (generate-message {:message/creator creator-address
+                                                                :message/id (+ last-message-index 3)})
+                      resolved-dispute-message (generate-message {:message/creator proposee-address
+                                                                  :message/id (+ last-message-index 4)})
+                      ]
+
+                  (log/debug "@@@ CONTRACT" {:contract/id contract-id
+                                             :job/id job-id
+                                             :contract/status status
+                                             :contract/date-created (time-coerce/to-long date-created)
+                                             :contract/date-updated (time-coerce/to-long date-created)
+                                             :contract/invitation-message-id (:message/id invitation-message)
+                                             :contract/proposal-message-id (:message/id proposal-message)
+                                             :contract/proposal-rate proposal-rate
+                                             :contract/proposal-rate-currency-id currency
+                                             :contract/raised-dispute-message-id (:message/id raised-dispute-message)
+                                             :contract/resolved-dispute-message-id (:message/id resolved-dispute-message)})
+
+                  ;; TODO : message, contract, contract-message
+                  (ethlance-db/insert-row! :Message (merge {:contract/id contract-id}
+                                                               invitation-message))
+
+                  (ethlance-db/insert-row! :Message (merge {:contract/id contract-id}
+                                                               proposal-message))
+
+                  (ethlance-db/insert-row! :Message (merge {:contract/id contract-id}
+                                                               raised-dispute-message))
+
+                  (ethlance-db/insert-row! :Message (merge {:contract/id contract-id}
+                                                               resolved-dispute-message))
+
+                  (ethlance-db/insert-row! :Contract {:contract/id contract-id
+                                                      :job/id job-id
+                                                      :contract/status status
+                                                      :contract/date-created (time-coerce/to-long date-created)
+                                                      :contract/date-updated (time-coerce/to-long date-created)
+                                                      :contract/invitation-message-id (:message/id invitation-message)
+                                                      :contract/proposal-message-id (:message/id proposal-message)
+                                                      :contract/proposal-rate proposal-rate
+                                                      :contract/proposal-rate-currency-id currency
+                                                      :contract/raised-dispute-message-id (:message/id raised-dispute-message)
+                                                      :contract/resolved-dispute-message-id (:message/id resolved-dispute-message)})
+
+                  ;; (ethlance-db/insert-contract-message! (merge {:contract/id contract-id}
+                  ;;                                              invitation-message))
+
+                  ;; (ethlance-db/insert-contract-message! (merge {:contract/id contract-id}
+                  ;;                                              proposal-message))
+
+                  ;; (ethlance-db/insert-contract-message! (merge {:contract/id contract-id}
+                  ;;                                              raised-dispute-message))
+
+                  ;; (ethlance-db/insert-contract-message! (merge {:contract/id contract-id}
+                  ;;                                              resolved-dispute-message))
+
+                  )))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
+
 (defn generate-dev-data []
   (let [user-addresses (map str (range 0 11))
-        job-ids (map str (range 0 6))]
-    (promise-> ;;(generate-users user-addresses)
-               ;; #(generate-user-languages user-addresses)
-               (generate-jobs job-ids)
-               #(log/debug "Done"))))
+        job-ids (map str (range 0 6))
+        contract-ids (map str (range 0 5))]
+    (promise->
+     (generate-users user-addresses)
+     #(generate-user-languages user-addresses)
+     #(generate-jobs job-ids)
+     #(generate-contracts contract-ids job-ids user-addresses)
+     #(log/debug "Done"))))
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"

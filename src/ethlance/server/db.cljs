@@ -74,7 +74,7 @@
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -86,7 +86,7 @@
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -100,7 +100,7 @@
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -111,7 +111,7 @@
      ;; PK
      [(sql/call :primary-key :user/address :language/id)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -122,8 +122,8 @@
      ;; PK
      [(sql/call :primary-key :user/address :category/id)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
-     [[(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -134,8 +134,8 @@
      ;; PK
      [(sql/call :primary-key :user/address :skill/id)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
-     [[(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -146,8 +146,8 @@
      ;; PK
      [(sql/call :primary-key :user/address :category/id)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
-     [[(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -158,8 +158,8 @@
      ;; PK
      [(sql/call :primary-key :user/address :skill/id)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
-     [[(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -199,8 +199,8 @@
      ;; PK
      [(sql/call :primary-key :job/id :user/address)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -211,8 +211,8 @@
      ;; PK
      [(sql/call :primary-key :job/id :skill/id)]
      ;; FKs
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
-     [[(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id)]]]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -227,8 +227,8 @@
      ;; PK
      [(sql/call :primary-key :job/id :user/address)]
      ;; FKs
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -238,7 +238,7 @@
      [:job/file-id :integer]
 
      ;; FKs
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
      ]
     :id-keys [:job/id :job/file-id]
     :list-keys []}
@@ -258,8 +258,16 @@
      [:contract/resolved-dispute-message-id :integer]
      ;; PK
      [(sql/call :primary-key :contract/id)]
+
      ;; FKs
-     [[(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id)]]]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+
+     [(sql/call :foreign-key :contract/invitation-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :contract/proposal-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :contract/raised-dispute-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :contract/resolved-dispute-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+
+     ]
     :id-keys []
     :list-keys []}
 
@@ -270,8 +278,8 @@
      ;; PK
      [(sql/call :primary-key :contract/id :user/address)]
      ;; FKs
-     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
-     [[(sql/call :foreign-key :user/address) (sql/call :references :User :user/address)]]]
+     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -282,8 +290,8 @@
      ;; PK
      [(sql/call :primary-key :contract/id :message/id)]
      ;; FKs
-     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
-     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -295,8 +303,8 @@
      ;; PK
      [(sql/call :primary-key :contract/id :message/id)]
      ;; FKs
-     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
-     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -315,8 +323,8 @@
      ;; PK
      [(sql/call :primary-key :invoice/id :contract/id :message/id)]
      ;; FKs
-     [[(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id)]]
-     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
@@ -329,7 +337,7 @@
      ;; PK
      [(sql/call :primary-key :message/id)]
      ;; FKs
-     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys [:message/id]
     :list-keys []}
 
@@ -341,7 +349,7 @@
      ;; PK
      [(sql/call :primary-key :message/id)]
      ;; FKs
-     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys [:message/id]
     :list-keys []}
 
@@ -353,8 +361,8 @@
      ;; PK
      [(sql/call :primary-key :message/id :file/id)]
      ;; FKs
-     [[(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id)]]
-     [[(sql/call :foreign-key :file/id) (sql/call :references :File :file/id)]]]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :file/id) (sql/call :references :File :file/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys [:message/id :file/id]
     :list-keys []}
 
@@ -436,7 +444,7 @@
   (log/info "Dropping Sqlite Database...")
   (doseq [{:keys [table-name]} (reverse database-schema)]
     (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
-    (db/run! {:drop-table [table-name]})))
+    (db/run! {:drop-table [:if-exists table-name]})))
 
 
 (defn insert-row!
@@ -548,6 +556,10 @@
               :values [values]
               :upsert {:on-conflict [:user/address]
                        :do-update-set (keys values)}})))
+
+#_(defn insert-contract-message! [args]
+  (insert-row! :Message args)
+  (insert-row! :ContractMessage args))
 
 (defn start
   "Start the ethlance-db mount component."

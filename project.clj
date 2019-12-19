@@ -170,7 +170,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server"]
+     :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server/cljs"]
      :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"
