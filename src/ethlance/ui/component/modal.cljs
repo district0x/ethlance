@@ -9,6 +9,4 @@
 (defn c-modal
   ""
   [{:keys [] :as opts} child]
-  [:div.ethlance-modal
-   {:on-click #(re/dispatch [:modal/close])}
-   child])
+  [:div.ethlance-modal opts child])
