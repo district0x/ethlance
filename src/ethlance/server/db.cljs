@@ -262,6 +262,7 @@
      ;; FKs
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
 
+     ;; TODO : ContractMesage ref?
      [(sql/call :foreign-key :contract/invitation-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :contract/proposal-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :contract/raised-dispute-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
@@ -304,6 +305,7 @@
      [(sql/call :primary-key :contract/id :message/id)]
      ;; FKs
      [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
@@ -328,12 +330,14 @@
     :id-keys []
     :list-keys []}
 
+   ;; TODO message/type
    {:table-name :Message
     :table-columns
     [[:message/id :integer]
      [:message/creator address]
      [:message/text :varchar]
      [:message/date-created :unsigned :integer]
+     [:message/type :varchar]
      ;; PK
      [(sql/call :primary-key :message/id)]
      ;; FKs
@@ -545,21 +549,12 @@
                             :where where-clause}))))
     (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
-(defn get-user [{:keys [:user/address] :as args}]
-  (db/get {:select [:*]
-           :from [:User]
-           :where [:= address :User.user/address]}))
-
 (defn upsert-user! [args]
   (let [values (select-keys args (get-table-column-names :User))]
     (db/run! {:insert-into :User
               :values [values]
               :upsert {:on-conflict [:user/address]
                        :do-update-set (keys values)}})))
-
-#_(defn insert-contract-message! [args]
-  (insert-row! :Message args)
-  (insert-row! :ContractMessage args))
 
 (defn start
   "Start the ethlance-db mount component."

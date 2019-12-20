@@ -51,7 +51,9 @@
 (defn user-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "user-resolver" args)
-   (ethlance-db/get-user args)))
+   (db/get {:select [:*]
+           :from [:User]
+           :where [:= address :User.user/address]})))
 
 (defn user->is-registered-candidate-resolver [root _ _]
   (try-catch-throw
@@ -89,7 +91,7 @@
 (defn candidate-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "candidate-resolver" args)
-   (db/all {:select [:*]
+   (db/get {:select [:*]
             :from [:Candidate]
             :where [:= address :Candidate.user/address]})))
 
@@ -102,6 +104,25 @@
      ;; [:contract/id :integer]
      ;; [:message/id :integer]
      ;; [:feedback/rating :integer]
+
+     {:items (db/all {:select [:*]
+                      :from [:Feedback]
+                      :join [
+
+                             :Contract [:= :Feedback.contract/id :Contract.contract/id]
+
+                             :Job [:= :Contract.job/id :Job.job/id ]
+
+                             :Message [:= :Message.message/id :Feedback.message/id]
+
+                             :JobCreator [:= :JobCreator.job/id :Job.job/id]
+
+                             :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]
+
+                             ]
+
+                      :where [:= address :ContractCandidate.user/address]
+                      })}
 
      )))
 

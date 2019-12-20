@@ -87,11 +87,11 @@
     ): ArbiterList
 
     \"Retrieve the Job Data defined by the Job Index\"
-    job(job_index : Int!): Job
+    job(job_id : Int!): Job
 
     \"Search for and create Job Listings\"
     jobSearch(
-      job_index: Int,
+      job_id: Int,
       orderBy: JobListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -99,17 +99,17 @@
     ): JobList
 
     \"Retrieve the Work Contract Data defined by the Work Contract Index\"
-    workContract(job_index: Int!, workContract_index: Int!): WorkContract
+    workContract(job_id: Int!, workContract_id: Int!): WorkContract
 
     \"Retrieve the Dispute Data defined by the dispute index\"
-    dispute(job_index: Int!,
-            workContract_index: Int!,
-            dispute_index: Int!): Dispute
+    dispute(job_id: Int!,
+            workContract_id: Int!,
+            dispute_id: Int!): Dispute
 
     \"Retrieve the Invoice Data defined by the invoice index\"
-    invoice(job_index: Int!,
-            workContract_index: Int!,
-            invoice_index: Int!): Invoice
+    invoice(job_id: Int!,
+            workContract_id: Int!,
+            invoice_id: Int!): Invoice
   }
 
   type Mutation {
@@ -292,7 +292,7 @@
 
   type Job {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
     job_title: String
     job_acceptedArbiterAddress: ID
     job_availability: Keyword
@@ -330,10 +330,10 @@
 
   type WorkContract {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
 
     \"Identifier for the given Work Contract\"
-    workContract_index: Int
+    workContract_id: Int
 
     \"Work Contract Status\"
     workContract_contractStatus: Keyword
@@ -388,13 +388,13 @@
 
   type Invoice {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
 
     \"Identifier for the given Work Contract\"
-    workContract_index: Int
+    workContract_id: Int
 
     \"Identifier for the given Invoice\"
-    invoice_index: Int
+    invoice_id: Int
 
     \"Date of creation\"
     invoice_dateCreated: Date
@@ -429,13 +429,13 @@
 
   type Dispute {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
 
     \"Identifier for the given Work Contract\"
-    workContract_index: Int
+    workContract_id: Int
 
     \"Identifier for the given Dispute\"
-    dispute_index: Int
+    dispute_id: Int
 
     \"Reason for the Dispute\"
     dispute_reason: String
@@ -475,11 +475,11 @@
   # Comment Types
 
   type Comment {
-    job_index: Int!
-    workContract_index: Int!
-    dispute_index: Int
-    invoice_index: Int
-    comment_index: Int!
+    job_id: Int!
+    workContract_id: Int!
+    dispute_id: Int
+    invoice_id: Int
+    comment_id: Int!
     comment_revision: Int!
     user_id: Int
     comment_userType: Keyword
@@ -497,15 +497,15 @@
   # Feedback Types
 
   type Feedback {
-    job_index: Int!
-    workContract_index: Int!
-    feedback_index: Int!
-    feedback_toUserType: Keyword!
-    feedback_toUserId: Int!
-    feedback_fromUserType: Keyword!
-    feedback_fromUserAddress: ID!
+    job_id: Int!
+    contract_id: Int
+    #feedback_id: Int
+    feedback_toUserType: Keyword
+    feedback_toUserAddress: ID
+    feedback_fromUserType: Keyword
+    feedback_fromUserAddress: ID
     feedback_dateCreated: Date
-    feedback_rating: Int!
+    feedback_rating: Int
     feedback_text: String
   }
 
