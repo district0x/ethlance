@@ -178,7 +178,7 @@
     user_address: ID
 
     \"Auto Biography written by the Candidate\"
-    candidate_biography: String
+    candidate_bio: String
 
     \"The date when the Candidate was registered\"
     candidate_dateRegistered: Date
@@ -497,9 +497,8 @@
   # Feedback Types
 
   type Feedback {
-    job_id: Int!
+    job_id: Int
     contract_id: Int
-    #feedback_id: Int
     feedback_toUserType: Keyword
     feedback_toUserAddress: ID
     feedback_fromUserType: Keyword

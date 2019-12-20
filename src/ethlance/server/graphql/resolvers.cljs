@@ -52,8 +52,8 @@
   (try-catch-throw
    (log/debug "user-resolver" args)
    (db/get {:select [:*]
-           :from [:User]
-           :where [:= address :User.user/address]})))
+            :from [:User]
+            :where [:= address :User.user/address]})))
 
 (defn user->is-registered-candidate-resolver [root _ _]
   (try-catch-throw
@@ -91,40 +91,47 @@
 (defn candidate-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "candidate-resolver" args)
-   (db/get {:select [:*]
+   (db/get {:select [[:User.user/address :user/address]
+                     [:Candidate.candidate/professional-title :candidate/professional-title]
+                     [:Candidate.candidate/bio :candidate/bio]
+                     [:User.user/date-created :candidate/date-created]]
             :from [:Candidate]
+            :join [:User [:= :User.user/address :Candidate.user/address]]
             :where [:= address :Candidate.user/address]})))
 
-;; TODO
-(defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
+(defn candidate->candidate-categories-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
+     (log/debug "candidate->candidate-categories-resolver" {:candidate candidate})
+     (map :category/id (db/all {:select [:*]
+                                :from [::CandidateCategory]
+                                :where [:= address :CandidateCategory.user/address]})))))
+
+(defn candidate->candidate-skills-resolver [root _ _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
+     (log/debug "candidate->candidate-skills-resolver" {:candidate candidate})
+     (map :skill/id (db/all {:select [:*]
+                             :from [::CandidateSkill]
+                             :where [:= address :CandidateCategory.user/address]})))))
+
+(defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)
+         query {:select [:Job.job/id :Contract.contract/id :feedback/rating
+                         [:JobCreator.user/address :feedback/from-user-address]
+                         [:ContractCandidate.user/address :feedback/to-user-address]
+                         [:Message.message/date-created :feedback/date-created]
+                         [:Message.message/text :feedback/text]]
+                :from [:Feedback]
+                :join [:Contract [:= :Feedback.contract/id :Contract.contract/id]
+                       :Job [:= :Contract.job/id :Job.job/id]
+                       :Message [:= :Message.message/id :Feedback.message/id]
+                       :JobCreator [:= :JobCreator.job/id :Job.job/id]
+                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
+                :where [:= address :ContractCandidate.user/address]}]
      (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
-
-     ;; [:contract/id :integer]
-     ;; [:message/id :integer]
-     ;; [:feedback/rating :integer]
-
-     {:items (db/all {:select [:*]
-                      :from [:Feedback]
-                      :join [
-
-                             :Contract [:= :Feedback.contract/id :Contract.contract/id]
-
-                             :Job [:= :Contract.job/id :Job.job/id ]
-
-                             :Message [:= :Message.message/id :Feedback.message/id]
-
-                             :JobCreator [:= :JobCreator.job/id :Job.job/id]
-
-                             :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]
-
-                             ]
-
-                      :where [:= address :ContractCandidate.user/address]
-                      })}
-
-     )))
+     (paged-query query limit offset))))
 
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
@@ -155,5 +162,9 @@
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
                            :user_isRegisteredArbiter user->is-registered-arbiter-resolver}
-                    :Candidate {:candidate_feedback candidate->feedback-resolver}
+                    :Candidate {:candidate_feedback candidate->feedback-resolver
+                                :candidate_categories candidate->candidate-categories-resolver
+                                :candidate_skills candidate->candidate-skills-resolver
+
+                                }
                     :Mutation {:signIn sign-in-mutation}})

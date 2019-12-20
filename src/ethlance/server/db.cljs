@@ -115,6 +115,14 @@
     :id-keys []
     :list-keys []}
 
+   {:table-name :Category
+    :table-columns
+    [[:category/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :category/id :category/id)]]
+    :id-keys []
+    :list-keys []}
+
    {:table-name :ArbiterCategory
     :table-columns
     [[:user/address address not-nil]
