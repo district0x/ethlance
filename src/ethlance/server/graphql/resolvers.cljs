@@ -26,7 +26,7 @@
 (defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/full-name :user/user-name :order-by :order-direction]
                                :as args} _]
   (try-catch-throw
-   (log/debug "search-users-resolver" {:args args})
+   (log/debug "user-search-resolver" {:args args})
    (let [query (cond-> {:select [:*]
                         :from [:User]}
 
@@ -44,31 +44,6 @@
                                                         (or (keyword order-direction) :asc)]])
 
                  ;; order-by (sql-helpers/merge-order-by [[:User.user/address :asc]])
-
-                 )]
-     (paged-query query limit offset))))
-
-;; TODO
-(defn candidate-search-resolver [_ {:keys [:limit :offset  :order-by :order-direction]
-                                    :as args} _]
-  (try-catch-throw
-   (log/debug "candidate-users-resolver" {:args args})
-   (let [query (cond-> {:select [:*]
-                        :from [:Candidate]}
-
-                 ;; address (sql-helpers/merge-where [:= :User.user/address address])
-
-                 ;; full-name (sql-helpers/merge-where [:= :User.user/full-name full-name])
-
-                 ;; user-name (sql-helpers/merge-where [:= :User.user/user-name user-name])
-
-                 ;; order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
-                 ;;                                              :date-updated :user/date-updated
-                 ;;                                              ;; random order as a placeholder for ordering
-                 ;;                                              :order-by/random (sql/call :random)}
-                 ;;                                             (graphql-utils/gql-name->kw order-by))
-                 ;;                                        (or (keyword order-direction) :asc)]])
-
 
                  )]
      (paged-query query limit offset))))
@@ -113,22 +88,54 @@
                    :from [:UserLanguage]
                    :where [:= address :UserLanguage.user/address]})))))
 
+(def ^:private candidate-query
+  {:select [[:User.user/address :user/address]
+            [:Candidate.candidate/professional-title :candidate/professional-title]
+            [:Candidate.candidate/bio :candidate/bio]
+            [:User.user/date-registered :candidate/date-registered]]
+   :from [:Candidate]
+   :join [:User [:= :User.user/address :Candidate.user/address]]})
+
 (defn candidate-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "candidate-resolver" args)
-   (db/get {:select [[:User.user/address :user/address]
-                     [:Candidate.candidate/professional-title :candidate/professional-title]
-                     [:Candidate.candidate/bio :candidate/bio]
-                     [:User.user/date-created :candidate/date-created]]
-            :from [:Candidate]
-            :join [:User [:= :User.user/address :Candidate.user/address]]
-            :where [:= address :Candidate.user/address]})))
+   (db/get (sql-helpers/merge-where candidate-query [:= address :Candidate.user/address]))))
+
+;; TODO
+(defn candidate-search-resolver [_ {:keys [:limit :offset
+                                           :user/address
+                                           :categories-and
+                                           :categories-or
+                                           :skills-and
+                                           :skills-or
+                                           :professional-title
+                                           :order-by :order-direction]
+                                    :as args} _]
+  (try-catch-throw
+   (log/debug "candidate-search-resolver" {:args args})
+   (let [query (cond-> #_{:select [:*]
+                        :from [:Candidate]
+                        :modifiers [:distinct]}
+                 (merge candidate-query {:modifiers [:distinct]})
+
+                 address (sql-helpers/merge-where [:= :Candidate.user/address address])
+
+                 ;; TODO : join where in
+                 categories-or (sql-helpers/merge-left-join :CandidateCategory
+                                                       [:= :CandidateCategory.user/address :Candidate.user/address])
+
+                 categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
+
+
+
+                 )]
+     (log/debug "@@@ candidate-search" query)
+     (paged-query query limit offset))))
 
 (defn candidate->candidate-categories-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
      (log/debug "candidate->candidate-categories-resolver" {:candidate candidate})
-     #_["FUBAR"]
      (map :category/id (db/all {:select [:*]
                                 :from [:CandidateCategory]
                                 :where [:= address :CandidateCategory.user/address]})))))
