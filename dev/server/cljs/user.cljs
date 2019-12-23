@@ -2,11 +2,8 @@
   "Development Entrypoint for CLJS-Server."
   (:require [cljs-web3.eth :as web3-eth]
             ;; [cljs.instrumentation :as instrumentation]
-
-            ;; [district.time :refer []]
             [cljs-time.core :as time]
             [cljs-time.coerce :as time-coerce]
-
             [clojure.pprint :refer [pprint]]
             [clojure.string :as string]
             [district.server.db :as db]
@@ -219,6 +216,42 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
+(defn generate-categories [categories [_ candidate arbiter]]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [category categories]
+                (do
+                  (ethlance-db/insert-row! :Category {:category/id category})
+
+                  (ethlance-db/insert-row! :CandidateCategory {:user/address candidate
+                                                               :category/id category})
+
+                  (ethlance-db/insert-row! :ArbiterCategory {:user/address arbiter
+                                                             :category/id category}))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
+
+(defn generate-skills [skills [_ candidate arbiter]]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [skill skills]
+                (do
+                  (ethlance-db/insert-row! :Skill {:skill/id skill})
+
+                  (ethlance-db/insert-row! :CandidateSkill {:user/address candidate
+                                                            :skill/id skill})
+
+                  (ethlance-db/insert-row! :ArbiterSkill {:user/address arbiter
+                                                          :skill/id skill}))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
+
 (defn generate-users [user-addresses]
   (js/Promise.
    (fn [resolve reject]
@@ -230,7 +263,7 @@
                       [extension _] (shuffle ["io" "com" "gov"])
                       [profile-id _] (shuffle (range 0 10))
                       [currency _] (shuffle ["EUR" "USD"])
-                      date-created (time-coerce/to-long (time/minus (time/now) (time/days (rand-int 60))))
+                      date-registered (time-coerce/to-long (time/minus (time/now) (time/days (rand-int 60))))
                       from (rand-int 100)
                       bio (subs lorem from (+ 100 from))
                       [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
@@ -240,12 +273,14 @@
                                                   :user/full-name (str first-name " " second-name)
                                                   :user/email (string/lower-case (str first-name "@" second-name "." extension))
                                                   :user/profile-image (str "https://randomuser.me/api/portraits/lego/" profile-id ".jpg")
-                                                  :user/date-created date-created
-                                                  :user/date-updated date-created})
+                                                  :user/date-registered date-registered
+                                                  :user/date-updated date-registered})
+
                   (when (= "EMPLOYER" address)
                     (ethlance-db/insert-row! :Employer {:user/address address
                                                         :employer/bio bio
                                                         :employer/professional-title professional-title}))
+
                   (when (= "CANDIDATE" address)
                     (ethlance-db/insert-row! :Candidate {:user/address address
                                                          :candidate/rate (rand-int 200)
@@ -269,7 +304,7 @@
      (try
        (doall (for [job-id job-ids]
                 (let [title (str (-> ["marmot" "deer" "mammut" "tiger" "lion" "elephant" "bobcat"] shuffle first) " "
-                                   (-> ["control" "design" "programming" "aministartion" "development"] shuffle first))
+                                 (-> ["control" "design" "programming" "aministartion" "development"] shuffle first))
                       from (rand-int 100)
                       description (subs lorem from (+ 20 from))
                       category (get job-categories (rand-int 13))
@@ -350,7 +385,6 @@
                       resolved-dispute-message (generate-message {:message/creator candidate
                                                                   :message/id (+ last-message-index 4)})]
 
-                  ;; TODO : create Contract, Message, ContractMessage, update Contract
                   (ethlance-db/insert-row! :Message invitation-message)
                   (ethlance-db/insert-row! :Message proposal-message)
                   (ethlance-db/insert-row! :Message raised-dispute-message)
@@ -368,19 +402,8 @@
                                                       :contract/raised-dispute-message-id (:message/id raised-dispute-message)
                                                       :contract/resolved-dispute-message-id (:message/id resolved-dispute-message)})
 
-                  ;; (ethlance-db/insert-row! :ContractMessage (merge {:contract/id contract-id}
-                  ;;                                                  invitation-message))
-                  ;; (ethlance-db/insert-row! :ContractMessage (merge {:contract/id contract-id}
-                  ;;                                                  proposal-message))
-                  ;; (ethlance-db/insert-row! :ContractMessage (merge {:contract/id contract-id}
-                  ;;                                                  raised-dispute-message))
-                  ;; (ethlance-db/insert-row! :ContractMessage (merge {:contract/id contract-id}
-                  ;;                                                  resolved-dispute-message))
-
                   (ethlance-db/insert-row! :ContractCandidate {:contract/id contract-id
-                                                               :user/address candidate})
-
-                  )))
+                                                               :user/address candidate}))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
@@ -399,8 +422,6 @@
                       rating (rand-int 5)
                       [read? _] (shuffle [true false])]
 
-                  (log/debug "Feedback/message" feedback-message)
-
                   (ethlance-db/insert-row! :Message (merge feedback-message
                                                            {:message/type "FEEDBACK"}))
 
@@ -414,10 +435,14 @@
 
 (defn generate-dev-data []
   (let [user-addresses ["EMPLOYER" "CANDIDATE" "ARBITER"]
+        categories ["Web" "Mobile" "Embedded"]
+        skills ["Solidity" "Clojure"]
         job-ids (map str (range 0 3))
         contract-ids (map str (range 0 3))]
     (promise->
      (generate-users user-addresses)
+     #(generate-categories categories user-addresses)
+     #(generate-skills skills user-addresses)
      #(generate-user-languages user-addresses)
      #(generate-jobs job-ids user-addresses)
      #(generate-contracts contract-ids job-ids user-addresses)

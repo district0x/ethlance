@@ -144,7 +144,7 @@
     user_profileImage: String
 
     \"Date when the user was Registered\"
-    user_dateCreated: Date
+    user_dateRegistered: Date
 
     \"Date when the user was Last Updated\"
     user_dateUpdated: Date

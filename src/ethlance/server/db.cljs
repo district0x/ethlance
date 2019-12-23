@@ -54,7 +54,7 @@
      [:user/full-name :varchar]
      [:user/email :varchar not-nil]
      [:user/profile-image :varchar]
-     [:user/date-created :unsigned :integer]
+     [:user/date-registered :unsigned :integer]
      [:user/date-updated :unsigned :integer]
      [:user/github-username :varchar]
      [:user/linkedin-username :varchar]
@@ -119,7 +119,15 @@
     :table-columns
     [[:category/id :varchar not-nil]
      ;; PK
-     [(sql/call :primary-key :category/id :category/id)]]
+     [(sql/call :primary-key :category/id)]]
+    :id-keys []
+    :list-keys []}
+
+   {:table-name :Skill
+    :table-columns
+    [[:skill/id :varchar not-nil]
+     ;; PK
+     [(sql/call :primary-key :skill/id)]]
     :id-keys []
     :list-keys []}
 
@@ -135,7 +143,7 @@
     :id-keys []
     :list-keys []}
 
-   {:table-name :ArbiterSkills
+   {:table-name :ArbiterSkill
     :table-columns
     [[:user/address address not-nil]
      [:skill/id :varchar not-nil]

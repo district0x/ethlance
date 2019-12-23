@@ -48,6 +48,31 @@
                  )]
      (paged-query query limit offset))))
 
+;; TODO
+(defn candidate-search-resolver [_ {:keys [:limit :offset  :order-by :order-direction]
+                                    :as args} _]
+  (try-catch-throw
+   (log/debug "candidate-users-resolver" {:args args})
+   (let [query (cond-> {:select [:*]
+                        :from [:Candidate]}
+
+                 ;; address (sql-helpers/merge-where [:= :User.user/address address])
+
+                 ;; full-name (sql-helpers/merge-where [:= :User.user/full-name full-name])
+
+                 ;; user-name (sql-helpers/merge-where [:= :User.user/user-name user-name])
+
+                 ;; order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
+                 ;;                                              :date-updated :user/date-updated
+                 ;;                                              ;; random order as a placeholder for ordering
+                 ;;                                              :order-by/random (sql/call :random)}
+                 ;;                                             (graphql-utils/gql-name->kw order-by))
+                 ;;                                        (or (keyword order-direction) :asc)]])
+
+
+                 )]
+     (paged-query query limit offset))))
+
 (defn user-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "user-resolver" args)
@@ -103,8 +128,9 @@
   (try-catch-throw
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
      (log/debug "candidate->candidate-categories-resolver" {:candidate candidate})
+     #_["FUBAR"]
      (map :category/id (db/all {:select [:*]
-                                :from [::CandidateCategory]
+                                :from [:CandidateCategory]
                                 :where [:= address :CandidateCategory.user/address]})))))
 
 (defn candidate->candidate-skills-resolver [root _ _]
@@ -112,8 +138,8 @@
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
      (log/debug "candidate->candidate-skills-resolver" {:candidate candidate})
      (map :skill/id (db/all {:select [:*]
-                             :from [::CandidateSkill]
-                             :where [:= address :CandidateCategory.user/address]})))))
+                             :from [:CandidateSkill]
+                             :where [:= address :CandidateSkill.user/address]})))))
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
@@ -157,6 +183,7 @@
 (def resolvers-map {:Query {:user user-resolver
                             :userSearch user-search-resolver
                             :candidate candidate-resolver
+                            :candidateSearch candidate-search-resolver
                             }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
