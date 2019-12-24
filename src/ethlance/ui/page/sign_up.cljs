@@ -45,7 +45,7 @@
      [:div.form-professional-title
       [c-text-input {:placeholder "Professional Title"}]]
      [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :primary}]]
+      [c-currency-input {:placeholder "Hourly Rate" :color :primary}]]
      [:div.form-country
       [c-select-input
        {:label "Select Country"
