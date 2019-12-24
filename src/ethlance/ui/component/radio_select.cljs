@@ -84,7 +84,7 @@
 (defn c-radio-search-filter-element [label]
   [:<>
    [c-inline-svg
-    {:src "./images/svg/radio-button.svg"
+    {:src "/images/svg/radio-button.svg"
      :width 24
      :height 24}]
    [:span.label label]])
@@ -93,7 +93,7 @@
 (defn c-radio-secondary-element [label]
   [:div.radio-secondary-element
    [c-inline-svg
-    {:src "./images/svg/radio-button.svg"
+    {:src "/images/svg/radio-button.svg"
      :width 24
      :height 24}]
    [:span.label label]])
