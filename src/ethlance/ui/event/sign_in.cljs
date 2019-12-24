@@ -29,7 +29,7 @@
      {:web3 (:web3 db)
       :data-str data-str
       :from active-account
-      :on-success [:user.sign-in/-authenticate {:active-account active-account
+      :on-success [:user/-authenticate {:active-account active-account
                                                 :data-str data-str}]
       :on-error [::logging.events/error "Error Signing with Active Ethereum Account."]}}))
 
@@ -59,7 +59,7 @@
       :timeout         8000
       :response-format (ajax/json-response-format {:keywords? true})
       :format          (ajax/json-request-format)
-      :on-success      [:user.sign-in/-set-active-session active-account]
+      :on-success      [:user/-set-active-session active-account]
       :on-failure      [::logging.events/error "Error Performing Sign In Authentication."]}}))
 
 
@@ -86,8 +86,8 @@
 (re/reg-event-fx :user/sign-out sign-out)
 
 ;; Intermediates
-(re/reg-event-fx :user.sign-in/-authenticate authenticate)
-(re/reg-event-fx :user.sign-in/-set-active-session set-active-session)
+(re/reg-event-fx :user/-authenticate authenticate)
+(re/reg-event-fx :user/-set-active-session set-active-session)
 
 
 (comment
