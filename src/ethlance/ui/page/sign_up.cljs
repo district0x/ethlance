@@ -70,7 +70,11 @@
        :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
      
      [:div.label [:h2 "Categories You Are Interested In"]]
-     [c-chip-search-input {:search-icon? false :placeholder ""}]
+     [c-chip-search-input
+      {:search-icon? false
+       :placeholder ""
+       :auto-suggestion-listing constants/categories
+       :allow-custom-chips? false}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
      [c-chip-search-input
