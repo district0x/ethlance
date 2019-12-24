@@ -1,5 +1,5 @@
 (ns ethlance.ui.event.sign-in
-  "Event Handlers for "
+  "Event Handlers for signing in a user with an active ethereum account."
   (:require 
    [re-frame.core :as re]
    [ajax.core :as ajax]
@@ -29,8 +29,8 @@
      {:web3 (:web3 db)
       :data-str data-str
       :from active-account
-      :on-success [:sign-in/-authenticate {:active-account active-account
-                                           :data-str data-str}]
+      :on-success [:user/-authenticate {:active-account active-account
+                                                :data-str data-str}]
       :on-error [::logging.events/error "Error Signing with Active Ethereum Account."]}}))
 
 
@@ -59,7 +59,7 @@
       :timeout         8000
       :response-format (ajax/json-response-format {:keywords? true})
       :format          (ajax/json-request-format)
-      :on-success      [:sign-in/-set-active-session active-account]
+      :on-success      [:user/-set-active-session active-account]
       :on-failure      [::logging.events/error "Error Performing Sign In Authentication."]}}))
 
 
@@ -67,14 +67,14 @@
   "Event FX Handler. Give the currently active account proper
   authorities and associate the active account as 'signed in'."
   [{:keys [db]} [_ active-account token]]
-  {:db (assoc db :sign-in/active-account active-account)
+  {:db (assoc db :user/active-account active-account)
    :dispatch [::graphql.events/set-authorization-token token]})
 
 
 (defn sign-out
   "Event FX Handler. Sign out the currently active ethereum account."
   [{:keys [db]} [_ active-account token]]
-  {:db (assoc db :sign-in/active-account nil)})
+  {:db (assoc db :user/active-account nil)})
 
 
 ;;
@@ -82,12 +82,12 @@
 ;;
 
 
-(re/reg-event-fx :sign-in sign-in)
-(re/reg-event-fx :sign-out sign-out)
+(re/reg-event-fx :user/sign-in sign-in)
+(re/reg-event-fx :user/sign-out sign-out)
 
 ;; Intermediates
-(re/reg-event-fx :sign-in/-authenticate authenticate)
-(re/reg-event-fx :sign-in/-set-active-session set-active-session)
+(re/reg-event-fx :user/-authenticate authenticate)
+(re/reg-event-fx :user/-set-active-session set-active-session)
 
 
 (comment

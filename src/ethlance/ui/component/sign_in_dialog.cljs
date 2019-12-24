@@ -22,7 +22,7 @@
 
 
 (defn sign-in! []
-  (re/dispatch [:sign-in])
+  (re/dispatch [:user/sign-in])
   (close!))
 
 
