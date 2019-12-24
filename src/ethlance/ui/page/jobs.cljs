@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.jobs
   "General Job Listings on ethlance"
   (:require
+   [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
@@ -18,6 +19,12 @@
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.text-input :refer [c-text-input]]))
+
+
+;;
+;; Page State
+;;
+(def *search-input-listing (r/atom #{}))
 
 
 (defn c-user-employer-detail
@@ -184,10 +191,12 @@
    tincidunt vestibulum ante elementum pellentesque."]
    [:div.date "Posted 1 day ago | 5 Proposals"]
    [:div.tags
-    [c-tag {} [c-tag-label "System Administration"]]
-    [c-tag {} [c-tag-label "Game Design"]]
-    [c-tag {} [c-tag-label "C++ Programming"]]
-    [c-tag {} [c-tag-label "HopScotch Master"]]]
+    (doall
+     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+       ^{:key (str "tag-" tag-label)}
+       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
+               :title (str "Add '" tag-label "' to Search")}
+        [c-tag-label tag-label]]))]
 
    [:div.users
     [c-user-employer-detail {}]
@@ -213,7 +222,8 @@
        [c-job-mobile-search-filter]
        [:div.job-listing.listing {:key "listing"}
         [c-chip-search-input 
-         {:placeholder "Search Job Skill Requirements"
+         {:*chip-listing *search-input-listing
+          :placeholder "Search Job Skill Requirements"
           :allow-custom-chips? false
           :auto-suggestion-listing constants/skills}]
         [c-job-listing]]])))
