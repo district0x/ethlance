@@ -21,5 +21,5 @@
                      "primary")]
     [:div.currency-input
      {:class color-class}
-     [:input {:type "text" :placeholder placeholder}]
+     [:input {:type "number" :placeholder placeholder}]
      [:span currency-symbol]]))
