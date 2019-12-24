@@ -81,18 +81,23 @@
 
   :placeholder - Input Placeholder text to display in the chip search
   component. [default: 'Search Tags']"
-  [{:keys [default-chip-listing
+  [{:keys [*chip-listing
+           default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
            allow-custom-chips?
            search-icon?
            placeholder]
-    :or {search-icon? true
+    :or {*chip-listing (r/atom #{})
+         search-icon? true
          placeholder "Search Tags"}
     :as opts}]
   (let [*active-suggestion (r/atom nil)
-        *chip-listing (r/atom (or (set default-chip-listing) #{}))
         *search-text (r/atom "")]
+
+    (when default-chip-listing
+      (reset! *chip-listing (set default-chip-listing)))
+
     (r/create-class
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
