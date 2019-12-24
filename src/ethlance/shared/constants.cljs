@@ -5098,3 +5098,19 @@
    "xnCode Linkr"
    ])
 
+
+(def categories
+  [
+   "Web, Mobile & Software Dev"
+   "IT & Networking"
+   "Data Science & Analytics"
+   "Design & Creative"
+   "Writing"
+   "Translation"
+   "Legal"
+   "Admin Support"
+   "Customer Service"
+   "Sales & Marketing"
+   "Accounting & Consulting"
+   "Other"
+   ])
