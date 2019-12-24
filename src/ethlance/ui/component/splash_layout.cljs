@@ -93,7 +93,7 @@
 
 (defn c-splash-layout
   []
-  [:div.splash-layout
+  [:div.splash-layout.animation-fade-in
    [:div.mobile-header
     [c-splash-mobile-navigation-bar]]
    [:div.header

@@ -26,7 +26,8 @@
   [{:keys [container-opts] :as opts}
    & children]
   (let [opts (dissoc opts :container-opts)]
-    [:div.main-layout opts
+    [:div.main-layout
+     opts
      [c-main-navigation-bar]
      [c-mobile-navigation-bar]
      [:div.main-margin
