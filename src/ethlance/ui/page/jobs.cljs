@@ -221,10 +221,11 @@
        [c-job-search-filter]
        [c-job-mobile-search-filter]
        [:div.job-listing.listing {:key "listing"}
-        [c-chip-search-input 
-         {:*chip-listing *search-input-listing
-          :placeholder "Search Job Skill Requirements"
-          :allow-custom-chips? false
-          :auto-suggestion-listing constants/skills}]
+        [:div.search-container
+         [c-chip-search-input 
+          {:*chip-listing *search-input-listing
+           :placeholder "Search Job Skill Requirements"
+           :allow-custom-chips? false
+           :auto-suggestion-listing constants/skills}]]
         [c-job-listing]]])))
 

@@ -129,9 +129,10 @@
        [c-arbiter-search-filter]
        [c-arbiter-mobile-search-filter]
        [:div.arbiter-listing.listing {:key "listing"}
-        [c-chip-search-input
-         {:*chip-listing *search-input-listing
-          :auto-suggestion-listing constants/skills
-          :allow-custom-chips? false
-          :placeholder "Search Arbiter Skills"}]
+        [:div.search-container
+         [c-chip-search-input
+          {:*chip-listing *search-input-listing
+           :auto-suggestion-listing constants/skills
+           :allow-custom-chips? false
+           :placeholder "Search Arbiter Skills"}]]
         [c-arbiter-listing]]])))
