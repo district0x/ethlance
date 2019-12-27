@@ -2,20 +2,25 @@
 
 
 .main-navigation-menu {
+  @transition-attr: background-color 0.7s;
+
   display: flex;
   flex-direction: column;
   margin: 1em 1em;
+  transition: @transition-attr;
 
   > .nav-element {
     display: flex;
     flex-direction: row;
     align-items: center;
+    transition: @transition-attr;
 
     > .ethlance-icon {
       border-radius: 100%;
       padding: 0.5em;
       margin: 0.7em;
       background-color: #color[purple];
+      transition: @transition-attr;
     }
 
     > .label {
@@ -29,12 +34,18 @@
       }
 
       > .ethlance-icon {
-        path, rect, circle, polygon {
-          @active-color: lighten(#color[orange], 10%);
-          fill: @active-color !important;
-          stroke: @active-color !important;
-        }
+        background-color: darken(#color[dark-purple], 10%);
       }
     }
-  }  
+
+    &:hover {
+      > .label {
+        text-decoration: underline;
+      }
+
+      > .ethlance-icon {
+        background-color: #color[dark-purple];
+      }
+    }
+  }
 }
