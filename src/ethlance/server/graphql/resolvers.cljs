@@ -9,6 +9,11 @@
             [honeysql.helpers :as sql-helpers]
             [taoensso.timbre :as log :refer [spy]]))
 
+;; (defn- cons-and [k v]
+;;   (cons :and (map (fn [elem]
+;;                     [:= k elem])
+;;                   v)))
+
 (defn- paged-query
   [query limit offset]
   (let [paged-query (cond-> query
@@ -101,7 +106,23 @@
    (log/debug "candidate-resolver" args)
    (db/get (sql-helpers/merge-where candidate-query [:= address :Candidate.user/address]))))
 
-;; TODO
+(defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
+  (reduce-kv (fn [result index value]
+               (let [table-name (-> query :from first name)
+                     alias (str "c" index)
+                     on-column-name (name on-column)
+                     on-column-namespace (namespace on-column)
+                     column-name (name column)
+                     column-namespace (namespace column)]
+                 (sql-helpers/merge-join result
+                                         [join-table (keyword alias)]
+                                         [:and
+                                          [:= (keyword (str alias "." on-column-namespace) on-column-name)
+                                           (keyword (str table-name "." on-column-namespace) on-column-name)]
+                                          [:= value (keyword (str alias "." column-namespace) column-name)]])))
+             query
+             all-values))
+
 (defn candidate-search-resolver [_ {:keys [:limit :offset
                                            :user/address
                                            :categories-and
@@ -114,23 +135,31 @@
   (try-catch-throw
    (log/debug "candidate-search-resolver" {:args args})
    (let [query (cond-> #_{:select [:*]
-                        :from [:Candidate]
-                        :modifiers [:distinct]}
-                 (merge candidate-query {:modifiers [:distinct]})
+                          :from [:Candidate]
+                          :modifiers [:distinct]}
+                       (merge candidate-query {:modifiers [:distinct]})
 
-                 address (sql-helpers/merge-where [:= :Candidate.user/address address])
+                       address (sql-helpers/merge-where [:= :Candidate.user/address address])
 
-                 ;; TODO : join where in
-                 categories-or (sql-helpers/merge-left-join :CandidateCategory
-                                                       [:= :CandidateCategory.user/address :Candidate.user/address])
+                       categories-or (sql-helpers/merge-left-join :CandidateCategory
+                                                                  [:= :CandidateCategory.user/address :Candidate.user/address])
 
-                 categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
+                       categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
 
+                       categories-and (match-all {:join-table :CandidateCategory
+                                                  :on-column :user/address
+                                                  :column :category/id
+                                                  :all-values categories-and}))
 
+         ;; TODO : skills
 
-                 )]
+         ]
+
      (log/debug "@@@ candidate-search" query)
-     (paged-query query limit offset))))
+
+     (paged-query
+      query
+      limit offset))))
 
 (defn candidate->candidate-categories-resolver [root _ _]
   (try-catch-throw
