@@ -346,7 +346,6 @@
     :id-keys []
     :list-keys []}
 
-   ;; TODO message/type
    {:table-name :Message
     :table-columns
     [[:message/id :integer]

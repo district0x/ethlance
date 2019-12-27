@@ -52,7 +52,6 @@
       categoriesOr: [String!],
       skillsAnd: [String!],
       skillsOr: [String!],
-      professionalTitle: String,
       orderBy: CandidateListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -196,7 +195,7 @@
     candidate_feedback(
       limit: Int,
       offset: Int
-    ): FeedbackList!
+    ): FeedbackList
   }
 
   type CandidateList {
@@ -220,7 +219,7 @@
     user_address: ID
 
     \"Auto Biography written by the Employer\"
-    employer_biography: String
+    employer_bio: String
 
     \"Date of Registration\"
     employer_dateRegistered: Date
@@ -232,7 +231,7 @@
     employer_feedback(
       limit: Int,
       offset: Int
-    ): FeedbackList!
+    ): FeedbackList
   }
 
   type EmployerList {
@@ -271,7 +270,7 @@
     arbiter_feedback(
       limit: Int,
       offset: Int
-    ): FeedbackList!
+    ): FeedbackList
   }
 
   type ArbiterList  {
@@ -497,6 +496,7 @@
   # Feedback Types
 
   type Feedback {
+    message_id: Int!
     job_id: Int
     contract_id: Int
     feedback_toUserType: Keyword

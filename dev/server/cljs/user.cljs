@@ -385,10 +385,14 @@
                       resolved-dispute-message (generate-message {:message/creator candidate
                                                                   :message/id (+ last-message-index 4)})]
 
-                  (ethlance-db/insert-row! :Message invitation-message)
-                  (ethlance-db/insert-row! :Message proposal-message)
-                  (ethlance-db/insert-row! :Message raised-dispute-message)
-                  (ethlance-db/insert-row! :Message resolved-dispute-message)
+                  (ethlance-db/insert-row! :Message (merge invitation-message
+                                                           {:message/type "INVITATION"}))
+                  (ethlance-db/insert-row! :Message (merge proposal-message
+                                                           {:message/type "PROPOSAL"}))
+                  (ethlance-db/insert-row! :Message (merge raised-dispute-message
+                                                           {:message/type "RAISED-DISPUTE"}))
+                  (ethlance-db/insert-row! :Message (merge resolved-dispute-message
+                                                           {:message/type "RESOLVED-DISPUTE"}))
 
                   (ethlance-db/insert-row! :Contract {:contract/id contract-id
                                                       :job/id job-id
@@ -416,18 +420,31 @@
        (doall (for [contract-id contract-ids]
                 (let [last-message-index (:count (db/get {:select [[:%count.* :count]]
                                                           :from [:Message]}))
-                      message-id (inc last-message-index)
-                      feedback-message (generate-message {:message/creator employer
-                                                          :message/id message-id})
-                      rating (rand-int 5)
-                      [read? _] (shuffle [true false])]
+                      candidate-feedback-message-id (inc last-message-index)
+                      candidate-feedback (generate-message {:message/creator employer
+                                                            :message/id candidate-feedback-message-id})
+                      candidate-rating (rand-int 5)
+                      [candidate-feedback-read? _] (shuffle [true false])
 
-                  (ethlance-db/insert-row! :Message (merge feedback-message
+                      employer-feedback-message-id (-> last-message-index inc inc)
+                      employer-feedback (generate-message {:message/creator candidate
+                                                           :message/id employer-feedback-message-id})
+                      [employer-feedback-read? _] (shuffle [true false])
+                      employer-rating (rand-int 5)]
+                  ;; feedback for the candidate
+                  (ethlance-db/insert-row! :Message (merge candidate-feedback
                                                            {:message/type "FEEDBACK"}))
 
                   (ethlance-db/insert-row! :Feedback {:contract/id contract-id
-                                                      :message/id message-id
-                                                      :feedback/rating rating}))))
+                                                      :message/id candidate-feedback-message-id
+                                                      :feedback/rating candidate-rating})
+                  ;; feedback for the employer
+                  (ethlance-db/insert-row! :Message (merge employer-feedback
+                                                           {:message/type "FEEDBACK"}))
+
+                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
+                                                      :message/id employer-feedback-message-id
+                                                      :feedback/rating employer-rating}))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
@@ -438,7 +455,7 @@
         categories ["Web" "Mobile" "Embedded"]
         skills ["Solidity" "Clojure"]
         job-ids (map str (range 0 3))
-        contract-ids (map str (range 0 3))]
+        contract-ids (map str (range 0 5))]
     (promise->
      (generate-users user-addresses)
      #(generate-categories categories user-addresses)

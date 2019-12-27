@@ -31,7 +31,7 @@
 (defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/full-name :user/user-name :order-by :order-direction]
                                :as args} _]
   (try-catch-throw
-   (log/debug "user-search-resolver" {:args args})
+   (log/debug "user-search-resolver" args)
    (let [query (cond-> {:select [:*]
                         :from [:User]}
 
@@ -63,7 +63,7 @@
 (defn user->is-registered-candidate-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
-     (log/debug "user->is-registered-candidate-resolver" {:user user})
+     (log/debug "user->is-registered-candidate-resolver" user)
      (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
                                 :from [:Candidate]
                                 :where [:= address :Candidate.user/address]})))))))
@@ -71,7 +71,7 @@
 (defn user->is-registered-employer-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
-     (log/debug "user->is-registered-employer-resolver" {:user user})
+     (log/debug "user->is-registered-employer-resolver" user)
      (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
                                 :from [:Employer]
                                 :where [:= address :Employer.user/address]})))))))
@@ -79,7 +79,7 @@
 (defn user->is-registered-arbiter-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
-     (log/debug "user->is-registered-arbiter-resolver" {:user user})
+     (log/debug "user->is-registered-arbiter-resolver" user)
      (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
                                 :from [:Arbiter]
                                 :where [:= address :Arbiter.user/address]})))))))
@@ -87,11 +87,57 @@
 (defn user->languages-resolvers [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
-     (log/debug "user->languages-resolvers" {:user user})
+     (log/debug "user->languages-resolvers" user)
      (map :language/id
           (db/all {:select [:*]
                    :from [:UserLanguage]
                    :where [:= address :UserLanguage.user/address]})))))
+
+(defn employer-resolver [_ {:keys [:user/address] :as args} _]
+  (try-catch-throw
+   (log/debug "employer-resolver" args)
+   (db/get {:select [[:Employer.user/address :user/address]
+                     [:Employer.employer/professional-title :employer/professional-title]
+                     [:Employer.employer/bio :employer/bio]
+                     [:User.user/date-registered :employer/date-registered]]
+            :from [:Employer]
+            :join [:User [:= :User.user/address :Employer.user/address]]
+            :where [:= address :Employer.user/address]})))
+
+(defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as employer} (graphql-utils/gql->clj root)
+         query {:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
+                         [:JobCreator.user/address :feedback/to-user-address]
+                         [:ContractCandidate.user/address :feedback/from-user-address]
+                         [:Message.message/date-created :feedback/date-created]
+                         [:Message.message/text :feedback/text]]
+                :from [:Feedback]
+                :join [:Contract [:= :Feedback.contract/id :Contract.contract/id]
+                       :Job [:= :Contract.job/id :Job.job/id]
+                       :Message [:= :Message.message/id :Feedback.message/id]
+                       :JobCreator [:= :JobCreator.job/id :Job.job/id]
+                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
+                :where [:and [:= address :JobCreator.user/address]
+                        [:= :Message.message/creator :ContractCandidate.user/address]]}]
+     (log/debug "employer->feedback-resolver" {:employer employer :args args})
+     (paged-query query limit offset))))
+
+;; TODO
+(defn feedback->to-user-type-resolver [root _ _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as feedback} (graphql-utils/gql->clj root)]
+
+     (log/debug "feedback->to-user-type-resolver" feedback)
+
+     #_(db/get {:select [[(sql/call :count :*) :count]]
+              :from [:Arbiter]
+              :where [:= address :Arbiter.user/address]})))
+
+  )
+
+;; TODO
+(defn feedback->from-user-type-resolver [])
 
 (def ^:private candidate-query
   {:select [[:User.user/address :user/address]
@@ -129,15 +175,12 @@
                                            :categories-or
                                            :skills-and
                                            :skills-or
-                                           :professional-title
                                            :order-by :order-direction]
                                     :as args} _]
   (try-catch-throw
    (log/debug "candidate-search-resolver" {:args args})
-   (let [query (cond-> #_{:select [:*]
-                          :from [:Candidate]
-                          :modifiers [:distinct]}
-                       (merge candidate-query {:modifiers [:distinct]})
+   (let [query (cond-> (merge candidate-query
+                              {:modifiers [:distinct]})
 
                        address (sql-helpers/merge-where [:= :Candidate.user/address address])
 
@@ -149,22 +192,23 @@
                        categories-and (match-all {:join-table :CandidateCategory
                                                   :on-column :user/address
                                                   :column :category/id
-                                                  :all-values categories-and}))
+                                                  :all-values categories-and})
 
-         ;; TODO : skills
+                       skills-or (sql-helpers/merge-left-join :CandidateSkill
+                                                              [:= :CandidateSkill.user/address :Candidate.user/address])
 
-         ]
+                       skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
 
-     (log/debug "@@@ candidate-search" query)
-
-     (paged-query
-      query
-      limit offset))))
+                       skills-and (match-all {:join-table :CandidateSkill
+                                              :on-column :user/address
+                                              :column :skill/id
+                                              :all-values skills-and}))]
+     (paged-query query limit offset))))
 
 (defn candidate->candidate-categories-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
-     (log/debug "candidate->candidate-categories-resolver" {:candidate candidate})
+     (log/debug "candidate->candidate-categories-resolver" candidate)
      (map :category/id (db/all {:select [:*]
                                 :from [:CandidateCategory]
                                 :where [:= address :CandidateCategory.user/address]})))))
@@ -172,7 +216,7 @@
 (defn candidate->candidate-skills-resolver [root _ _]
   (try-catch-throw
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
-     (log/debug "candidate->candidate-skills-resolver" {:candidate candidate})
+     (log/debug "candidate->candidate-skills-resolver" candidate)
      (map :skill/id (db/all {:select [:*]
                              :from [:CandidateSkill]
                              :where [:= address :CandidateSkill.user/address]})))))
@@ -180,7 +224,7 @@
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)
-         query {:select [:Job.job/id :Contract.contract/id :feedback/rating
+         query {:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
                          [:JobCreator.user/address :feedback/from-user-address]
                          [:ContractCandidate.user/address :feedback/to-user-address]
                          [:Message.message/date-created :feedback/date-created]
@@ -191,7 +235,8 @@
                        :Message [:= :Message.message/id :Feedback.message/id]
                        :JobCreator [:= :JobCreator.job/id :Job.job/id]
                        :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
-                :where [:= address :ContractCandidate.user/address]}]
+                :where [:and [:= address :ContractCandidate.user/address]
+                        [:= :Message.message/creator :JobCreator.user/address]]}]
      (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
      (paged-query query limit offset))))
 
@@ -220,6 +265,7 @@
                             :userSearch user-search-resolver
                             :candidate candidate-resolver
                             :candidateSearch candidate-search-resolver
+                            :employer employer-resolver
                             }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
@@ -228,6 +274,9 @@
                     :Candidate {:candidate_feedback candidate->feedback-resolver
                                 :candidate_categories candidate->candidate-categories-resolver
                                 :candidate_skills candidate->candidate-skills-resolver
-
                                 }
+                    :Employer {:employer_feedback employer->feedback-resolver
+                               }
+                    :Feedback {:feedback_toUserType feedback->to-user-type-resolver
+                               :feedback_fromUserType feedback->from-user-type-resolver}
                     :Mutation {:signIn sign-in-mutation}})
