@@ -93,16 +93,19 @@
                    :from [:UserLanguage]
                    :where [:= address :UserLanguage.user/address]})))))
 
+(def ^:private employer-query {:select [[:Employer.user/address :user/address]
+                                        [:Employer.employer/professional-title :employer/professional-title]
+                                        [:Employer.employer/bio :employer/bio]
+                                        [:User.user/date-registered :employer/date-registered]]
+                               :from [:Employer]
+                               :join [:User [:= :User.user/address :Employer.user/address]]
+                               ;; :where [:= address :Employer.user/address]
+                               })
+
 (defn employer-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
    (log/debug "employer-resolver" args)
-   (db/get {:select [[:Employer.user/address :user/address]
-                     [:Employer.employer/professional-title :employer/professional-title]
-                     [:Employer.employer/bio :employer/bio]
-                     [:User.user/date-registered :employer/date-registered]]
-            :from [:Employer]
-            :join [:User [:= :User.user/address :Employer.user/address]]
-            :where [:= address :Employer.user/address]})))
+   (db/get (sql-helpers/merge-where employer-query [:= address :Employer.user/address]))))
 
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
@@ -184,6 +187,7 @@
                                            :categories-or
                                            :skills-and
                                            :skills-or
+                                           :professional-title
                                            :order-by :order-direction]
                                     :as args} _]
   (try-catch-throw
@@ -191,27 +195,29 @@
    (let [query (cond-> (merge candidate-query
                               {:modifiers [:distinct]})
 
-                       address (sql-helpers/merge-where [:= :Candidate.user/address address])
+                 address (sql-helpers/merge-where [:= :Candidate.user/address address])
 
-                       categories-or (sql-helpers/merge-left-join :CandidateCategory
-                                                                  [:= :CandidateCategory.user/address :Candidate.user/address])
+                 professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
 
-                       categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
+                 categories-or (sql-helpers/merge-left-join :CandidateCategory
+                                                            [:= :CandidateCategory.user/address :Candidate.user/address])
 
-                       categories-and (match-all {:join-table :CandidateCategory
-                                                  :on-column :user/address
-                                                  :column :category/id
-                                                  :all-values categories-and})
+                 categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
 
-                       skills-or (sql-helpers/merge-left-join :CandidateSkill
-                                                              [:= :CandidateSkill.user/address :Candidate.user/address])
+                 categories-and (match-all {:join-table :CandidateCategory
+                                            :on-column :user/address
+                                            :column :category/id
+                                            :all-values categories-and})
 
-                       skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
+                 skills-or (sql-helpers/merge-left-join :CandidateSkill
+                                                        [:= :CandidateSkill.user/address :Candidate.user/address])
 
-                       skills-and (match-all {:join-table :CandidateSkill
-                                              :on-column :user/address
-                                              :column :skill/id
-                                              :all-values skills-and}))]
+                 skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
+
+                 skills-and (match-all {:join-table :CandidateSkill
+                                        :on-column :user/address
+                                        :column :skill/id
+                                        :all-values skills-and}))]
      (paged-query query limit offset))))
 
 (defn candidate->candidate-categories-resolver [root _ _]
@@ -249,6 +255,22 @@
      (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
      (paged-query query limit offset))))
 
+
+                                        ; TODO
+(defn employer-search-resolver [_ {:keys [:limit :offset
+                                          :user/address
+                                          :professional-title
+                                          :order-by :order-direction]
+                                   :as args} _]
+  (try-catch-throw
+   (log/debug "employer-search-resolver" args)
+   (let [query (cond-> employer-query
+
+                 address (sql-helpers/merge-where [:= address :Employer.user/address])
+
+                 professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title]))]
+     (paged-query query limit offset))))
+
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
   recovers user address. If successful returns a JWT containing the user address."
@@ -275,6 +297,7 @@
                             :candidate candidate-resolver
                             :candidateSearch candidate-search-resolver
                             :employer employer-resolver
+                            :employerSearch employer-search-resolver
                             }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver

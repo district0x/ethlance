@@ -52,6 +52,7 @@
       categoriesOr: [String!],
       skillsAnd: [String!],
       skillsOr: [String!],
+      professionalTitle: String,
       orderBy: CandidateListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
