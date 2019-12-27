@@ -291,8 +291,8 @@
                     (ethlance-db/insert-row! :Arbiter {:user/address address
                                                        :arbiter/bio bio
                                                        :arbiter/professional-title professional-title
-                                                       :arbiter/rate (rand-int 200)
-                                                       :arbiter/rate-currency-id currency})))))
+                                                       :arbiter/fee (rand-int 200)
+                                                       :arbiter/fee-currency-id currency})))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
@@ -351,6 +351,24 @@
 
                   (ethlance-db/insert-row! :JobCreator {:job/id job-id
                                                         :user/address employer}))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
+
+(defn generate-job-arbiters [job-ids [employer candidate arbiter]]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [job-id job-ids]
+                (let [[status _] (shuffle ["invited" "accepted" ])
+                      fee (rand-int 200)
+                      [fee-currency-id _] (shuffle ["EUR" "USD"])]
+                  (ethlance-db/insert-row! :JobArbiter {:job/id job-id
+                                                        :user/address arbiter
+                                                        :job-arbiter/fee fee
+                                                        :job-arbiter/fee-currency-id fee-currency-id
+                                                        :job-arbiter/status status}))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
@@ -487,6 +505,7 @@
      #(generate-skills skills user-addresses)
      #(generate-user-languages user-addresses)
      #(generate-jobs job-ids user-addresses)
+     #(generate-job-arbiters job-ids user-addresses)
      #(generate-contracts contract-ids job-ids user-addresses)
      #(generate-feedback contract-ids user-addresses)
      #(log/debug "Done"))))

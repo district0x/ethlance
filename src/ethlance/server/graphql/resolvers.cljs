@@ -120,14 +120,16 @@
                        :JobCreator [:= :JobCreator.job/id :Job.job/id]
                        :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
                 :where [:and [:= address :JobCreator.user/address]
-                        [:= :Message.message/creator :ContractCandidate.user/address]]}]
+                        [:= :Message.message/creator :ContractCandidate.user/address]
+                        [:= "EMPLOYER FEEDBACK" :Message.message/type]
+                        ]}]
      (log/debug "employer->feedback-resolver" {:employer employer :args args})
      (paged-query query limit offset))))
 
 (def ^:private arbiter-query {:select [:Arbiter.user/address
                                        :Arbiter.arbiter/bio
-                                       :Arbiter.arbiter/rate
-                                       :Arbiter.arbiter/rate-currency-id
+                                       :Arbiter.arbiter/fee
+                                       :Arbiter.arbiter/fee-currency-id
                                        [:User.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
                               :join [:User [:= :User.user/address :Arbiter.user/address]]})
@@ -141,7 +143,7 @@
 (defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
    (let [{:keys [:user/address] :as arbiter} (graphql-utils/gql->clj root)
-         #_query #_{:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
+         query {:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
                          [:JobCreator.user/address :feedback/to-user-address]
                          [:ContractCandidate.user/address :feedback/from-user-address]
                          [:Message.message/date-created :feedback/date-created]
@@ -151,11 +153,13 @@
                        :Job [:= :Contract.job/id :Job.job/id]
                        :Message [:= :Message.message/id :Feedback.message/id]
                        :JobCreator [:= :JobCreator.job/id :Job.job/id]
-                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
-                :where [:and [:= address :JobCreator.user/address]
-                        [:= :Message.message/creator :ContractCandidate.user/address]]}]
+                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]
+                       :JobArbiter [:= :JobArbiter.job/id :Job.job/id]
+                       ]
+                :where [:and [:= address :JobArbiter.user/address]
+                        [:= "ARBITER FEEDBACK" :Message.message/type]]}]
      (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
-     #_(paged-query query limit offset))))
+     (paged-query query limit offset))))
 
 (def ^:private user-type-query
   {:select [:type]
@@ -283,7 +287,9 @@
                        :JobCreator [:= :JobCreator.job/id :Job.job/id]
                        :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
                 :where [:and [:= address :ContractCandidate.user/address]
-                        [:= :Message.message/creator :JobCreator.user/address]]}]
+                        [:= :Message.message/creator :JobCreator.user/address]
+                        [:= "CANDIDATE FEEDBACK" :Message.message/type]
+                        ]}]
      (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
      (paged-query query limit offset))))
 

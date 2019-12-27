@@ -95,8 +95,8 @@
     [[:user/address address not-nil]
      [:arbiter/bio :varchar]
      [:arbiter/professional-title :varchar]
-     [:arbiter/rate :integer not-nil]
-     [:arbiter/rate-currency-id :varchar not-nil]
+     [:arbiter/fee :integer not-nil]
+     [:arbiter/fee-currency-id :varchar not-nil]
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs
@@ -236,7 +236,7 @@
     :table-columns
     [[:job/id :integer]
      [:user/address address]
-     [:job-arbiter/arbiter-message :varchar]
+     ;; [:job-arbiter/arbiter-message :varchar]
      [:job-arbiter/fee :unsigned :integer]
      [:job-arbiter/fee-currency-id :varchar]
      [:job-arbiter/status :varchar]

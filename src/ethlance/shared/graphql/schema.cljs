@@ -264,9 +264,9 @@
 
     arbiter_bio: String
 
-    arbiter_rateCurrencyId: Keyword
+    arbiter_feeCurrencyId: Keyword
 
-    arbiter_rate: Int
+    arbiter_fee: Int
 
     \"Feedback for the arbiter\"
     arbiter_feedback(
