@@ -57,16 +57,24 @@
   > .job-listing {
     #mixin.main-container.listing();
 
-    > .ethlance-chip-search-input {
-      margin: 2em;
-      max-width: 100vw;
-      
-      @media #media[tablet-query] {
-        margin: 1.5em;
+    > .search-container {
+      transition: background-color 0.2s;
+      &:focus-within {
+        background-color: #color[purple];
       }
 
-      @media #media[mobile-query] {
-        margin: 0.0em;
+      > .ethlance-chip-search-input {
+
+        margin: 2em;
+        max-width: 100vw;
+        
+        @media #media[tablet-query] {
+          margin: 1.5em;
+        }
+
+        @media #media[mobile-query] {
+          margin: 0.0em;
+        }
       }
     }
 
@@ -74,23 +82,23 @@
       #mixin.box-shadow.item-inset();
       display: grid;
       grid-template-areas:
-      'title          details'
-        'description    details'
-        'date           details'
-        'tags           details'
-        'users          users';
+        'title          details'
+          'description    details'
+          'date           details'
+          'tags           details'
+          'users          users';
       grid-template-rows: auto 3fr auto auto 5fr;
       grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
       padding: 2em;
 
       @media #media[mobile-query] {
         grid-template-areas:
-        'title'
-        'description'
-        'date'
-        'tags'
-        'users'
-        'details';
+          'title'
+            'description'
+            'date'
+            'tags'
+            'users'
+            'details';
         grid-template-rows: auto 3fr auto auto 5fr auto;
         grid-template-columns: 100%;
         padding: 0.7em;
@@ -171,9 +179,9 @@
           display: grid;
           margin-right: 2em;
           grid-template-areas:
-          'name     name'
-            'rating   rating-label'
-            'location location';
+            'name     name'
+              'rating   rating-label'
+              'location location';
           
           @media #media[mobile-query] {
             margin-right: 0;

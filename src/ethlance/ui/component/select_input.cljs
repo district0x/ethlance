@@ -81,7 +81,7 @@
           [c-icon {:class "icon"
                    :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
-                   :size :small}]]
+                   :size :smaller}]]
          (when @*open?
            [:div.dropdown
             (when search-bar?

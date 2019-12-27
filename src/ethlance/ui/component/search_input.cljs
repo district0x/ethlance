@@ -182,7 +182,7 @@
                     (reset! *search-text ""))
                   
                   nil)))
-            :placeholder placeholder}]]
+            :placeholder (when (empty? @*chip-listing) placeholder)}]]
 
          (when search-icon?
            [:div.search-button [c-icon {:name :search :size :normal}]])

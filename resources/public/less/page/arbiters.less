@@ -51,16 +51,24 @@
   > .listing {
     #mixin.main-container.listing();
 
-    > .ethlance-chip-search-input {
-      margin: 2em;
-      max-width: 100vw;
-      
-      @media #media[tablet-query] {
-        margin: 1.5em;
+    > .search-container {
+      transition: background-color 0.2s;
+      &:focus-within {
+        background-color: #color[purple];
       }
 
-      @media #media[mobile-query] {
-        margin: 0.0em;
+      > .ethlance-chip-search-input {
+
+        margin: 2em;
+        max-width: 100vw;
+        
+        @media #media[tablet-query] {
+          margin: 1.5em;
+        }
+
+        @media #media[mobile-query] {
+          margin: 0.0em;
+        }
       }
     }
 
@@ -111,6 +119,7 @@
         align-items: center;
         justify-content: center;
         margin: 0.5em 0;
+        width: 120px;
         font-size: 1.4em;
         border-bottom: 1px solid #color[secondary-accent];
       }

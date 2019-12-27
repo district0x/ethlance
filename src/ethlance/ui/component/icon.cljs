@@ -68,6 +68,7 @@
 
           [width height] (case size
                            :x-small [8 8]
+                           :smaller [12 12]
                            :small [16 16]
                            :normal [24 24]
                            :large [32 32])

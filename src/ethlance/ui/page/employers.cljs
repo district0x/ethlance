@@ -122,9 +122,10 @@
        [c-employer-search-filter]
        [c-employer-mobile-search-filter]
        [:div.employer-listing.listing {:key "listing"}
-        [c-chip-search-input
-         {:*chip-listing *search-input-listing
-          :auto-suggestion-listing constants/skills
-          :allow-custom-chips? false
-          :placeholder "Search Employer Skills"}]
+        [:div.search-container
+         [c-chip-search-input
+          {:*chip-listing *search-input-listing
+           :auto-suggestion-listing constants/skills
+           :allow-custom-chips? false
+           :placeholder "Search Employer Skills"}]]
         [c-employer-listing]]])))

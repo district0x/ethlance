@@ -41,6 +41,7 @@
 
 (defmethod page :route.job/new []
   (let [*job-type (r/atom :job)
+        *with-token? (r/atom false)
         *with-arbiter? (r/atom true)]
     (fn []
       (let [is-bounty? (= @*job-type :bounty)]
@@ -59,7 +60,7 @@
           [:div.category-input
            [c-select-input
             {:label "Category"
-             :selections ["All Categories" "Programming"]}]]
+             :selections (sort constants/categories)}]]
           (when-not is-bounty?
             [:div.bid-for-radio-input.radio
              [:div.label "Candidates Should Bid For"]
@@ -128,13 +129,25 @@
           
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]
+           
            [c-radio-select
             {:default-selection :ethereum
-             :on-selection (fn [selection])}
+             :on-selection
+             (fn [selection]
+               (case selection
+                 :ethereum (reset! *with-token? false)
+                 :erc20 (reset! *with-token? true)
+                 (reset! *with-token? false)))}
             [:ethereum [c-radio-secondary-element "Ether"]]
-            [:erc20 [c-radio-secondary-element "ERC20 Token"]]
-            [:erc721 [c-radio-secondary-element "ERC721 Token"]]]]]
-
+            [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
+           
+           (when @*with-token?
+             [:div.token-address-input
+              [:div.input
+               [c-text-input {:placeholder "Token Address"}]
+               [:div.token-label "SNT"]]
+              ;; TODO: retrieve token logo
+              [:div.token-logo]])]]
 
          (when @*with-arbiter?
            [:div.arbiters

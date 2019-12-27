@@ -105,23 +105,22 @@
 
     &:hover {
       > .main {
-        background-color: #4b3fb6;
-      }
-      
-      > .ethlance-icon {
-        background-color: #color[purple];
+        background-color: #color[dark-purple];
+        > .ethlance-icon {
+          background-color: #color[purple];
+        }
       }
     }
 
     > .main {
       color: white;
       background-color: #color[light-purple];
-      border-bottom: @border-attr;
       border-radius: 3px;
-    }
+      border: none;
 
-    .ethlance-icon {
-      background-color: #color[purple];
+      > .ethlance-icon {
+        background-color: #color[dark-purple];
+      }
     }
 
     > .dropdown {
@@ -150,7 +149,7 @@
           border-bottom: @border-attr;
 
           &:hover {
-	    background-color: #4b3fb6;
+	    background-color: #color[dark-purple];
           }
         }
       }

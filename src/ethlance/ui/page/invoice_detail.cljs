@@ -29,6 +29,9 @@
       (let []
         [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
          [:div.title "Invoice"]
+         [:a.sub-title
+          {:on-click (fn [])}
+          "Finality Labs Full-Stack dApp Dev"]
          [:div.invoice-status [:span.label "Pending"]]
 
          [:div.left
