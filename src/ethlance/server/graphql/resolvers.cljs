@@ -123,21 +123,30 @@
      (log/debug "employer->feedback-resolver" {:employer employer :args args})
      (paged-query query limit offset))))
 
-;; TODO
+(def ^:private user-type-query
+  {:select [:type]
+   :from [{:union [{:select [:Candidate.user/address ["Candidate" :type]]
+                    :from [:Candidate]}
+                   {:select [:Employer.user/address ["Employer" :type]]
+                    :from [:Employer]}
+                   {:select [:Arbiter.user/address ["Arbiter" :type]]
+                    :from [:Arbiter]}]}]})
+
 (defn feedback->to-user-type-resolver [root _ _]
   (try-catch-throw
-   (let [{:keys [:user/address] :as feedback} (graphql-utils/gql->clj root)]
-
+   (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)]
      (log/debug "feedback->to-user-type-resolver" feedback)
+     (-> (sql-helpers/merge-where user-type-query [:= to-user-address :user/address])
+         db/get
+         :type))))
 
-     #_(db/get {:select [[(sql/call :count :*) :count]]
-              :from [:Arbiter]
-              :where [:= address :Arbiter.user/address]})))
-
-  )
-
-;; TODO
-(defn feedback->from-user-type-resolver [])
+(defn feedback->from-user-type-resolver [root _ _]
+  (try-catch-throw
+   (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)]
+     (log/debug "feedback->to-user-type-resolver" feedback)
+     (-> (sql-helpers/merge-where user-type-query [:= from-user-address :user/address])
+         db/get
+         :type ))))
 
 (def ^:private candidate-query
   {:select [[:User.user/address :user/address]
