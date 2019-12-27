@@ -98,9 +98,7 @@
                                         [:Employer.employer/bio :employer/bio]
                                         [:User.user/date-registered :employer/date-registered]]
                                :from [:Employer]
-                               :join [:User [:= :User.user/address :Employer.user/address]]
-                               ;; :where [:= address :Employer.user/address]
-                               })
+                               :join [:User [:= :User.user/address :Employer.user/address]]})
 
 (defn employer-resolver [_ {:keys [:user/address] :as args} _]
   (try-catch-throw
@@ -125,6 +123,39 @@
                         [:= :Message.message/creator :ContractCandidate.user/address]]}]
      (log/debug "employer->feedback-resolver" {:employer employer :args args})
      (paged-query query limit offset))))
+
+(def ^:private arbiter-query {:select [:Arbiter.user/address
+                                       :Arbiter.arbiter/bio
+                                       :Arbiter.arbiter/rate
+                                       :Arbiter.arbiter/rate-currency-id
+                                       [:User.user/date-registered :arbiter/date-registered]]
+                              :from [:Arbiter]
+                              :join [:User [:= :User.user/address :Arbiter.user/address]]})
+
+(defn arbiter-resolver [_ {:keys [:user/address] :as args} _]
+  (try-catch-throw
+   (log/debug "arbiter-resolver" args)
+   (db/get (sql-helpers/merge-where arbiter-query [:= address :Arbiter.user/address]))))
+
+;; TODO
+(defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} _]
+  (try-catch-throw
+   (let [{:keys [:user/address] :as arbiter} (graphql-utils/gql->clj root)
+         #_query #_{:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
+                         [:JobCreator.user/address :feedback/to-user-address]
+                         [:ContractCandidate.user/address :feedback/from-user-address]
+                         [:Message.message/date-created :feedback/date-created]
+                         [:Message.message/text :feedback/text]]
+                :from [:Feedback]
+                :join [:Contract [:= :Feedback.contract/id :Contract.contract/id]
+                       :Job [:= :Contract.job/id :Job.job/id]
+                       :Message [:= :Message.message/id :Feedback.message/id]
+                       :JobCreator [:= :JobCreator.job/id :Job.job/id]
+                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
+                :where [:and [:= address :JobCreator.user/address]
+                        [:= :Message.message/creator :ContractCandidate.user/address]]}]
+     (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
+     #_(paged-query query limit offset))))
 
 (def ^:private user-type-query
   {:select [:type]
@@ -181,6 +212,7 @@
              query
              all-values))
 
+;; TODO : order-by
 (defn candidate-search-resolver [_ {:keys [:limit :offset
                                            :user/address
                                            :categories-and
@@ -256,7 +288,7 @@
      (paged-query query limit offset))))
 
 
-                                        ; TODO
+;; TODO : order-by
 (defn employer-search-resolver [_ {:keys [:limit :offset
                                           :user/address
                                           :professional-title
@@ -298,6 +330,7 @@
                             :candidateSearch candidate-search-resolver
                             :employer employer-resolver
                             :employerSearch employer-search-resolver
+                            :arbiter arbiter-resolver
                             }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
@@ -305,10 +338,9 @@
                            :user_isRegisteredArbiter user->is-registered-arbiter-resolver}
                     :Candidate {:candidate_feedback candidate->feedback-resolver
                                 :candidate_categories candidate->candidate-categories-resolver
-                                :candidate_skills candidate->candidate-skills-resolver
-                                }
-                    :Employer {:employer_feedback employer->feedback-resolver
-                               }
+                                :candidate_skills candidate->candidate-skills-resolver}
+                    :Employer {:employer_feedback employer->feedback-resolver}
+                    :Arbiter {:arbiter_feedback arbiter->feedback-resolver}
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :Mutation {:signIn sign-in-mutation}})

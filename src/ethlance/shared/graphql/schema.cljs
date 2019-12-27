@@ -192,6 +192,10 @@
     \"Skills of the Candidate\"
     candidate_skills: [String!]
 
+    candidate_rateCurrencyId: Keyword
+
+    candidate_rate: Int
+
     \"Feedback for the candidate\"
     candidate_feedback(
       limit: Int,
@@ -258,14 +262,11 @@
     \"Date the Arbiter was registered\"
     arbiter_dateRegistered: Date
 
-    \"Type of currency to get paid in\"
-    arbiter_currencyType: Keyword
+    arbiter_bio: String
 
-    \"The amount to be paid based on payment type\"
-    arbiter_paymentValue: Int
+    arbiter_rateCurrencyId: Keyword
 
-    \"The payment type\"
-    arbiter_paymentType: Keyword
+    arbiter_rate: Int
 
     \"Feedback for the arbiter\"
     arbiter_feedback(

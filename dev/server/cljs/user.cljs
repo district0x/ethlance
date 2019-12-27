@@ -420,31 +420,56 @@
        (doall (for [contract-id contract-ids]
                 (let [last-message-index (:count (db/get {:select [[:%count.* :count]]
                                                           :from [:Message]}))
+
                       candidate-feedback-message-id (inc last-message-index)
                       candidate-feedback (generate-message {:message/creator employer
                                                             :message/id candidate-feedback-message-id})
                       candidate-rating (rand-int 5)
-                      [candidate-feedback-read? _] (shuffle [true false])
 
-                      employer-feedback-message-id (-> last-message-index inc inc)
+                      employer-feedback-message-id (+ last-message-index 2)
                       employer-feedback (generate-message {:message/creator candidate
                                                            :message/id employer-feedback-message-id})
-                      [employer-feedback-read? _] (shuffle [true false])
-                      employer-rating (rand-int 5)]
+                      employer-rating (rand-int 5)
+
+                      arbiter-feedback-from-candidate-message-id (+ last-message-index 3)
+                      arbiter-feedback-from-candidate (generate-message {:message/creator candidate
+                                                                         :message/id arbiter-feedback-from-candidate-message-id})
+                      arbiter-from-candidate-rating (rand-int 5)
+
+                      arbiter-feedback-from-employer-message-id (+ last-message-index 4)
+                      arbiter-feedback-from-employer (generate-message {:message/creator employer
+                                                                        :message/id arbiter-feedback-from-employer-message-id})
+                      arbiter-from-employer-rating (rand-int 5)                      ]
                   ;; feedback for the candidate
                   (ethlance-db/insert-row! :Message (merge candidate-feedback
-                                                           {:message/type "FEEDBACK"}))
+                                                           {:message/type "CANDIDATE FEEDBACK"}))
 
                   (ethlance-db/insert-row! :Feedback {:contract/id contract-id
                                                       :message/id candidate-feedback-message-id
                                                       :feedback/rating candidate-rating})
                   ;; feedback for the employer
                   (ethlance-db/insert-row! :Message (merge employer-feedback
-                                                           {:message/type "FEEDBACK"}))
+                                                           {:message/type "EMPLOYER FEEDBACK"}))
 
                   (ethlance-db/insert-row! :Feedback {:contract/id contract-id
                                                       :message/id employer-feedback-message-id
-                                                      :feedback/rating employer-rating}))))
+                                                      :feedback/rating employer-rating})
+
+                  ;; feedback for the arbiter from candidate
+                  (ethlance-db/insert-row! :Message (merge arbiter-feedback-from-candidate
+                                                           {:message/type "ARBITER FEEDBACK"}))
+
+                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
+                                                      :message/id arbiter-feedback-from-candidate-message-id
+                                                      :feedback/rating arbiter-from-candidate-rating})
+
+                  ;; feedback for the arbiter from employer
+                  (ethlance-db/insert-row! :Message (merge arbiter-feedback-from-employer
+                                                           {:message/type "ARBITER FEEDBACK"}))
+
+                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
+                                                      :message/id arbiter-feedback-from-employer-message-id
+                                                      :feedback/rating arbiter-from-employer-rating}))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})

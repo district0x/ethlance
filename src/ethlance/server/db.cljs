@@ -352,7 +352,7 @@
      [:message/creator address]
      [:message/text :varchar]
      [:message/date-created :unsigned :integer]
-     [:message/type :varchar]
+     [:message/type :varchar not-nil]
      ;; PK
      [(sql/call :primary-key :message/id)]
      ;; FKs
