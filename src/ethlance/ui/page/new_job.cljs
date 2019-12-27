@@ -60,7 +60,7 @@
           [:div.category-input
            [c-select-input
             {:label "Category"
-             :selections ["All Categories" "Programming"]}]]
+             :selections (sort constants/categories)}]]
           (when-not is-bounty?
             [:div.bid-for-radio-input.radio
              [:div.label "Candidates Should Bid For"]
