@@ -73,8 +73,9 @@
      [c-chip-search-input
       {:search-icon? false
        :placeholder ""
-       :auto-suggestion-listing constants/categories
-       :allow-custom-chips? false}]
+       :auto-suggestion-listing (sort constants/categories)
+       :allow-custom-chips? false
+       :display-listing-on-focus? true}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
      [c-chip-search-input

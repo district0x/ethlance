@@ -80,20 +80,25 @@
   the component. [default: true].
 
   :placeholder - Input Placeholder text to display in the chip search
-  component. [default: 'Search Tags']"
+  component. [default: 'Search Tags']
+
+  :display-listing-on-focus? - If true, the listing of search results
+  will show upon focusing the main input."
   [{:keys [*chip-listing
            default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
            allow-custom-chips?
            search-icon?
-           placeholder]
+           placeholder
+           display-listing-on-focus?]
     :or {*chip-listing (r/atom #{})
          search-icon? true
          placeholder "Search Tags"}
     :as opts}]
   (let [*active-suggestion (r/atom nil)
-        *search-text (r/atom "")]
+        *search-text (r/atom "")
+        *input-focused? (r/atom false)]
 
     (when default-chip-listing
       (reset! *chip-listing (set default-chip-listing)))
@@ -117,8 +122,20 @@
               js/window
               (fn []
                 (reset! *active-suggestion nil)
-                (reset! *search-text ""))
+                (reset! *search-text "")
+                (reset! *input-focused? false))
               blur-delay-ms))
+           true)
+          
+          ;; Keep track of when the input is focused
+          (.addEventListener
+           search-input "focus"
+           (fn []
+             (.setTimeout 
+              js/window
+              (fn []
+                (reset! *input-focused? true))
+              0))
            true)))
       
 
@@ -187,16 +204,17 @@
          (when search-icon?
            [:div.search-button [c-icon {:name :search :size :normal}]])
 
-         (when-let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
-           [:div.dropdown
-            [:div.suggestion-listing
-             (doall
-              (for [suggestion suggestions]
-                ^{:key (str "suggestion-" suggestion)}
-                [:div.suggestion
-                 {:class (when (= @*active-suggestion suggestion) "active")
-                  :on-click (fn []
-                              (swap! *chip-listing conj suggestion)
-                              (reset! *search-text "")
-                              (reset! *active-suggestion nil))}
-                 suggestion]))]])])})))
+         (let [suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
+           (when (or (not (empty? @*search-text)) (and display-listing-on-focus? @*input-focused?))
+             [:div.dropdown
+              [:div.suggestion-listing
+               (doall
+                (for [suggestion suggestions]
+                  ^{:key (str "suggestion-" suggestion)}
+                  [:div.suggestion
+                   {:class (when (= @*active-suggestion suggestion) "active")
+                    :on-click (fn []
+                                (swap! *chip-listing conj suggestion)
+                                (reset! *search-text "")
+                                (reset! *active-suggestion nil))}
+                   suggestion]))]]))])})))
