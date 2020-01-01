@@ -11,6 +11,9 @@
    [reagent.core :as r]))
 
 
+(def *cached-svg-listing (atom {}))
+
+
 (defn fetch-url
   "Returns js/Promise"
   [url]
@@ -44,18 +47,27 @@
   # Return Value
   
   A DOMElement, consisting of the SVG DOM Structure.
+
+  # Notes
+
+  - Also performs caching for individual SVGs
   "
   [url]
-  (-> (fetch-url url)
-      (.then (fn [response] (.text response)))
-      (.then (fn [text]
-               (-> text
-                   parse-xml-from-string
-                   xml->svg)))))
+  (if-let [svg (get @*cached-svg-listing url)]
+    (js/Promise. (fn [resolve reject] (resolve (.cloneNode svg))))
+    (-> (fetch-url url)
+        (.then (fn [response] (.text response)))
+        (.then (fn [text]
+                 (let [svg
+                       (-> text
+                           parse-xml-from-string
+                           xml->svg)]
+                   (swap! *cached-svg-listing assoc url svg)
+                   (.cloneNode svg)))))))
 
 
 (defn c-inline-svg
-  "Inline SVG Component, so that an SVG element that exists as an SVG
+"Inline SVG Component, so that an SVG element that exists as an SVG
   image can be processed and placed within the DOM. This allows CSS
   styling to be applied to SVGs that exist within the page.
 
@@ -100,52 +112,52 @@
   SVG. This can be useful for styling and animating individual pieces
   of the SVG.
   "
-  [{:keys [key src class id on-ready width height] :as props}]
-  (let [*inline-svg (r/atom nil)
-        *dom-ref (r/atom nil)]
-    (r/create-class
-     {:display-name "c-inline-svg"
+[{:keys [key src class id on-ready width height] :as props}]
+(let [*inline-svg (r/atom nil)
+      *dom-ref (r/atom nil)]
+  (r/create-class
+   {:display-name "c-inline-svg"
 
-      :component-did-mount
-      (fn [this]
-        (-> (prepare-svg src)
-            (.then (fn [svg] (reset! *inline-svg svg)))))
+    :component-did-mount
+    (fn [this]
+      (-> (prepare-svg src)
+          (.then (fn [svg] (reset! *inline-svg svg)))))
 
-      :component-did-update
-      (fn [this old-argv]
-        (let [{:keys [key id root-class class width height on-ready src]}
-              (-> this r/argv second)
-              old-src (-> old-argv second :src)]
+    :component-did-update
+    (fn [this old-argv]
+      (let [{:keys [key id root-class class width height on-ready src]}
+            (-> this r/argv second)
+            old-src (-> old-argv second :src)]
 
-          ;; To support changing the src of an inline-svg, need to
-          ;; kickstart retrieving the new src and clear out the old
-          ;; one
-          (when-not (= src old-src)
-            (reset! *inline-svg nil)
-            (-> (prepare-svg src)
-                (.then (fn [svg] (reset! *inline-svg svg)))))
+        ;; To support changing the src of an inline-svg, need to
+        ;; kickstart retrieving the new src and clear out the old
+        ;; one
+        (when-not (= src old-src)
+          (reset! *inline-svg nil)
+          (-> (prepare-svg src)
+              (.then (fn [svg] (reset! *inline-svg svg)))))
 
-          (when (and @*dom-ref @*inline-svg)
-            (let [inline-svg @*inline-svg]
-              (when id (.setAttribute inline-svg "id" id))
-              (when class (.setAttribute inline-svg "class" class))
-              (when width (.setAttribute inline-svg "width" width))
-              (when height (.setAttribute inline-svg "height" height))
-              (when-not (= @*inline-svg (-> @*dom-ref .-firstChild))
-                (doto @*dom-ref
-                  (aset "innerHTML" "")
-                  (.appendChild inline-svg)))
-              (when on-ready
-                (on-ready @*dom-ref @*inline-svg))))))
+        (when (and @*dom-ref @*inline-svg)
+          (let [inline-svg @*inline-svg]
+            (when id (.setAttribute inline-svg "id" id))
+            (when class (.setAttribute inline-svg "class" class))
+            (when width (.setAttribute inline-svg "width" width))
+            (when height (.setAttribute inline-svg "height" height))
+            (when-not (= @*inline-svg (-> @*dom-ref .-firstChild))
+              (doto @*dom-ref
+                (aset "innerHTML" "")
+                (.appendChild inline-svg)))
+            (when on-ready
+              (on-ready @*dom-ref @*inline-svg))))))
 
-      :reagent-render
-      (fn [{:keys [key src class id root-class width height on-ready] :as props}]
-        (let [style (cond-> {}
-                      width (assoc :width (str width "px"))
-                      height (assoc :height (str height "px")))]
-          [:div.ethlance-inline-svg
-           {:class root-class
-            :ref (fn [com] (reset! *dom-ref com))
-            :key key}
-           (when-not @*inline-svg [:img.svg {:style (merge style {:opacity 0})
-                                             :class class}])]))})))
+    :reagent-render
+    (fn [{:keys [key src class id root-class width height on-ready] :as props}]
+      (let [style (cond-> {}
+                    width (assoc :width (str width "px"))
+                    height (assoc :height (str height "px")))]
+        [:div.ethlance-inline-svg
+         {:class root-class
+          :ref (fn [com] (reset! *dom-ref com))
+          :key key}
+         (when-not @*inline-svg [:img.svg {:style (merge style {:opacity 0})
+                                           :class class}])]))})))
