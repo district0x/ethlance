@@ -41,16 +41,10 @@
 
                  user-name (sql-helpers/merge-where [:= :User.user/user-name user-name])
 
-                 order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
-                                                              :date-updated :user/date-updated
-                                                              ;; random order as a placeholder for ordering
-                                                              :order-by/random (sql/call :random)}
+                 order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
+                                                              :date-updated :user/date-updated}
                                                              (graphql-utils/gql-name->kw order-by))
-                                                        (or (keyword order-direction) :asc)]])
-
-                 ;; order-by (sql-helpers/merge-order-by [[:User.user/address :asc]])
-
-                 )]
+                                                        (or (keyword order-direction) :asc)]]))]
      (paged-query query limit offset))))
 
 (defn user-resolver [_ {:keys [:user/address] :as args} _]
@@ -105,26 +99,52 @@
    (log/debug "employer-resolver" args)
    (db/get (sql-helpers/merge-where employer-query [:= address :Employer.user/address]))))
 
+(def ^:private employer-feedback-query {:select [:Job.job/id :Contract.contract/id :Message.message/id :Feedback.feedback/rating
+                                                 [:JobCreator.user/address :feedback/to-user-address]
+                                                 [:ContractCandidate.user/address :feedback/from-user-address]
+                                                 [:Message.message/date-created :feedback/date-created]
+                                                 [:Message.message/text :feedback/text]]
+                                        :from [:Feedback]
+                                        :join [:Contract [:= :Feedback.contract/id :Contract.contract/id]
+                                               :Job [:= :Contract.job/id :Job.job/id]
+                                               :Message [:= :Message.message/id :Feedback.message/id]
+                                               :JobCreator [:= :JobCreator.job/id :Job.job/id]
+                                               :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
+                                        :where [:and
+                                                [:= :Message.message/creator :ContractCandidate.user/address]
+                                                [:= "EMPLOYER FEEDBACK" :Message.message/type]]})
+
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
    (let [{:keys [:user/address] :as employer} (graphql-utils/gql->clj root)
-         query {:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
-                         [:JobCreator.user/address :feedback/to-user-address]
-                         [:ContractCandidate.user/address :feedback/from-user-address]
-                         [:Message.message/date-created :feedback/date-created]
-                         [:Message.message/text :feedback/text]]
-                :from [:Feedback]
-                :join [:Contract [:= :Feedback.contract/id :Contract.contract/id]
-                       :Job [:= :Contract.job/id :Job.job/id]
-                       :Message [:= :Message.message/id :Feedback.message/id]
-                       :JobCreator [:= :JobCreator.job/id :Job.job/id]
-                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
-                :where [:and [:= address :JobCreator.user/address]
-                        [:= :Message.message/creator :ContractCandidate.user/address]
-                        [:= "EMPLOYER FEEDBACK" :Message.message/type]
-                        ]}]
+         query (sql-helpers/merge-where employer-feedback-query [:= address :JobCreator.user/address])
+         #_{:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
+                     [:JobCreator.user/address :feedback/to-user-address]
+                     [:ContractCandidate.user/address :feedback/from-user-address]
+                     [:Message.message/date-created :feedback/date-created]
+                     [:Message.message/text :feedback/text]]
+            :from [:Feedback]
+            :join [:Contract [:= :Feedback.contract/id :Contract.contract/id]
+                   :Job [:= :Contract.job/id :Job.job/id]
+                   :Message [:= :Message.message/id :Feedback.message/id]
+                   :JobCreator [:= :JobCreator.job/id :Job.job/id]
+                   :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]
+            :where [:and [:= address :JobCreator.user/address]
+                    [:= :Message.message/creator :ContractCandidate.user/address]
+                    [:= "EMPLOYER FEEDBACK" :Message.message/type]
+                    ]}]
      (log/debug "employer->feedback-resolver" {:employer employer :args args})
      (paged-query query limit offset))))
+
+;; TODO
+(defn contract->employer-feedback-resolver [root _ _]
+  (try-catch-throw
+   (let [{:keys [:contract/id] :as contract} (graphql-utils/gql->clj root)]
+     (log/debug "contract->employer-feedback-resolver" {:contract contract})
+
+     ;; (db/get (sql-helpers/merge-where employer-feedback-query [:= address :JobCreator.user/address]))
+
+     )))
 
 (def ^:private arbiter-query {:select [:Arbiter.user/address
                                        :Arbiter.arbiter/bio
@@ -139,7 +159,21 @@
    (log/debug "arbiter-resolver" args)
    (db/get (sql-helpers/merge-where arbiter-query [:= address :Arbiter.user/address]))))
 
-;; TODO
+(defn arbiter-search-resolver [_ {:keys [:limit :offset
+                                         :user/address
+                                         :order-by :order-direction]
+                                  :as args} _]
+  (try-catch-throw
+   (log/debug "arbtier-search-resolver" args)
+   (let [query (cond-> arbiter-query
+                 address (sql-helpers/merge-where [:= address :Employer.user/address])
+
+                 order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
+                                                              :date-updated :user/date-updated}
+                                                             (graphql-utils/gql-name->kw order-by))
+                                                        (or (keyword order-direction) :asc)]]))]
+     (paged-query query limit offset))))
+
 (defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
    (let [{:keys [:user/address] :as arbiter} (graphql-utils/gql->clj root)
@@ -216,7 +250,6 @@
              query
              all-values))
 
-;; TODO : order-by
 (defn candidate-search-resolver [_ {:keys [:limit :offset
                                            :user/address
                                            :categories-and
@@ -253,7 +286,12 @@
                  skills-and (match-all {:join-table :CandidateSkill
                                         :on-column :user/address
                                         :column :skill/id
-                                        :all-values skills-and}))]
+                                        :all-values skills-and})
+
+                 order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
+                                                              :date-updated :user/date-updated}
+                                                             (graphql-utils/gql-name->kw order-by))
+                                                        (or (keyword order-direction) :asc)]]))]
      (paged-query query limit offset))))
 
 (defn candidate->candidate-categories-resolver [root _ _]
@@ -293,8 +331,6 @@
      (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
      (paged-query query limit offset))))
 
-
-;; TODO : order-by
 (defn employer-search-resolver [_ {:keys [:limit :offset
                                           :user/address
                                           :professional-title
@@ -306,8 +342,72 @@
 
                  address (sql-helpers/merge-where [:= address :Employer.user/address])
 
-                 professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title]))]
+                 professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title])
+
+                 order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
+                                                              :date-updated :user/date-updated}
+                                                             (graphql-utils/gql-name->kw order-by))
+                                                        (or (keyword order-direction) :asc)]]))]
      (paged-query query limit offset))))
+
+;; TODO
+(def ^:private job-query {:select
+                          [
+                           :Job.job/id
+                           :Job.job/title
+                           :Job.job/status
+                           :Job.job/bid-option
+                           :Job.job/category
+                           :Job.job/description
+                           :Job.job/date-created
+                           :Job.job/date-published
+                           :Job.job/date-updated
+                           :Job.job/estimated-length
+                           :Job.job/reward
+
+                           [:Job.job/invitation-only? :job/is-invitation-only]
+                           [:JobArbiter.user/address :job/accepted-arbiter-address]
+                           [:JobCreator.user/address :job/employer-address]
+
+                           ]
+                          :from [:Job]
+
+                          :join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]
+                                 :JobCreator [:= :JobCreator.job/id :Job.job/id]
+                                 ]
+
+                          })
+
+(defn job-resolver [_ {:keys [:job/id] :as args} _]
+  (try-catch-throw
+   (log/debug "job-resolver" args)
+   (db/get (sql-helpers/merge-where job-query [:= id :Job.job/id]))))
+
+;; TODO
+(defn job->contracts-resolver [root {:keys [:limit :offset] :as args} _]
+  (try-catch-throw
+   (let [{:keys [:job/id] :as job} (graphql-utils/gql->clj root)
+         query {:select [:Contract.contract/id :Contract.job/id :Contract.contract/status
+                         :Contract.contract/date-created
+                         :Contract.contract/date-updated
+
+                         [:ContractCandidate.user/address :contract/candidate-address]
+
+                         ]
+                :from [:Contract]
+
+                :join [
+                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]
+                       ]
+
+                :where [:= id :Contract.job/id]}]
+     (log/debug "job->work-contracts-resolver" {:job job :args args})
+     (paged-query query limit offset)
+     )))
+
+
+
+
 
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
@@ -337,7 +437,14 @@
                             :employer employer-resolver
                             :employerSearch employer-search-resolver
                             :arbiter arbiter-resolver
+                            :arbiterSearch arbiter-search-resolver
+                            :job job-resolver
+
                             }
+                    :Job {:job_contracts job->contracts-resolver}
+                    :WorkContract {:contract_employerFeedback contract->employer-feedback-resolver
+                                   ;; :contract_candidateFeedback
+                                   }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver

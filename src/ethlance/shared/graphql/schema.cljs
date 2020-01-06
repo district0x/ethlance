@@ -167,7 +167,7 @@
 
   enum UserListOrderBy {
     dateUpdated
-    dateCreated
+    dateRegistered
   }
 
 
@@ -212,7 +212,6 @@
 
   enum CandidateListOrderBy {
     dateUpdated
-    dateCreated
     dateRegistered
   }
 
@@ -248,7 +247,6 @@
 
   enum EmployerListOrderBy {
     dateUpdated
-    dateCreated
     dateRegistered
   }
 
@@ -296,19 +294,18 @@
     job_id: Int
     job_title: String
     job_acceptedArbiterAddress: ID
-    job_availability: Keyword
+    job_status: Keyword
     job_bidOption: Keyword
     job_category: String
     job_description: String
     job_dateCreated: Date
-    job_dateStarted: Date
-    job_dateFinished: Date
+    job_datePublished: Date
+    job_dateUpdated: Date
     job_employerAddress: ID
-    job_estimatedLengthSeconds: Int
-    job_includeEtherToken_: Boolean
-    job_isInvitationOnly_: Boolean
-    job_rewardValue: Int
-    job_workContracts(
+    job_estimatedLength: Int
+    job_isInvitationOnly: Boolean
+    job_reward: Int
+    job_contracts(
       limit: Int,
       offset: Int
     ): WorkContractList
@@ -334,39 +331,36 @@
     job_id: Int
 
     \"Identifier for the given Work Contract\"
-    workContract_id: Int
+    contract_id: Int
 
     \"Work Contract Status\"
-    workContract_contractStatus: Keyword
+    contract_status: Keyword
 
     \"Address of the Accepted Candidate\"
-    workContract_candidateAddress: ID
-
-    \"Date last updated\"
-    workContract_dateUpdated: Date
+    contract_candidateAddress: ID
 
     \"Date of creation\"
-    workContract_dateCreated: Date
+    contract_dateCreated: Date
 
-    \"Date when the contract was finished\"
-    workContract_dateFinished: Date
+    \"Date last updated\"
+    contract_dateUpdated: Date
+
+    contract_employerFeedback: Feedback
+    contract_candidateFeedback: Feedback
 
     \"Invoice Listing for Work Contract\"
-    workContract_invoices(
+    contract_invoices(
       limit: Int,
       offset: Int,
     ): InvoiceList
 
     \"Dispute Listing for Work Contract\"
-    workContract_disputes(
+    contract_disputes(
       limit: Int,
       offset: Int,
     ): DisputeList
 
-    workContract_employerFeedback: Feedback
-    workContract_candidateFeedback: Feedback
-
-    workContract_comments(
+    contract_comments(
       limit: Int,
       offset: Int
     ): CommentList
