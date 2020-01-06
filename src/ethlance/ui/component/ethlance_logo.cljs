@@ -33,4 +33,4 @@
           opts (dissoc opts :color)]
       [:a.ethlance-logo
        opts
-       [c-inline-svg {:src src :class []}]])))
+       [:img {:src src :class []}]])))

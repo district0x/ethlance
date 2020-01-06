@@ -21,7 +21,7 @@
         :class (when (= route active-route-name) "active")
         :href (util.navigation/resolve-route {:route route})
         :on-click (util.navigation/create-handler {:route route})}
-       [c-icon {:name name :color :primary :size :small}]
+       [c-icon {:name name :color :white :size :small :inline? false}]
        [:span.label label]])))
 
 
