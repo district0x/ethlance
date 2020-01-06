@@ -471,7 +471,7 @@
 
   type Comment {
     job_id: Int!
-    workContract_id: Int!
+    contract_id: Int!
     dispute_id: Int
     invoice_id: Int
     comment_id: Int!
