@@ -41,6 +41,15 @@
   (.cloneNode elnode true))
 
 
+(defn- remove-element-children [elnode]
+  (loop [child (aget elnode "lastElementChild")]
+    (when child
+      (.removeChild elnode child)
+      (recur (aget elnode "lastElementChild"))))
+  elnode)
+      
+
+
 (defn prepare-svg
   "Prepares the given SVG image residing at the given `url`.
 
@@ -68,7 +77,7 @@
 
 
 (defn c-inline-svg
-"Inline SVG Component, so that an SVG element that exists as an SVG
+  "Inline SVG Component, so that an SVG element that exists as an SVG
   image can be processed and placed within the DOM. This allows CSS
   styling to be applied to SVGs that exist within the page.
 
@@ -114,15 +123,17 @@
   of the SVG.
   "
   [{:keys [key src class id on-ready width height] :as props}]
-  (let [*inline-svg (r/atom nil)
-        *dom-ref (r/atom nil)]
+  (let [*inline-svg (r/atom nil)]
     (r/create-class
      {:display-name "c-inline-svg"
 
       :component-did-mount
       (fn [this]
-        (-> (prepare-svg src)
-            (.then (fn [svg] (reset! *inline-svg svg)))))
+        ;; Preemptive Caching
+        (if-let [cached-svg (get @*cached-svg-listing src)]
+          (reset! *inline-svg (clone-element cached-svg))
+          (-> (prepare-svg src)
+              (.then (fn [svg] (reset! *inline-svg svg))))))
 
       :component-did-update
       (fn [this old-argv]
@@ -134,22 +145,22 @@
           ;; kickstart retrieving the new src and clear out the old
           ;; one
           (when-not (= src old-src)
-            (reset! *inline-svg nil)
             (-> (prepare-svg src)
                 (.then (fn [svg] (reset! *inline-svg svg)))))
 
-          (when (and @*dom-ref @*inline-svg)
-            (let [inline-svg @*inline-svg]
+          (when @*inline-svg
+            (let [inline-svg @*inline-svg
+                  elnode (r/dom-node this)]
               (when id (.setAttribute inline-svg "id" id))
               (when class (.setAttribute inline-svg "class" class))
               (when width (.setAttribute inline-svg "width" width))
               (when height (.setAttribute inline-svg "height" height))
-              (when-not (= @*inline-svg (-> @*dom-ref .-firstChild))
-                (doto @*dom-ref
-                  (aset "innerHTML" "")
+              (when (not= inline-svg (-> elnode .-firstChild))
+                (doto elnode
+                  (remove-element-children)
                   (.appendChild inline-svg)))
               (when on-ready
-                (on-ready @*dom-ref @*inline-svg))))))
+                (on-ready elnode inline-svg))))))
 
       :reagent-render
       (fn [{:keys [key src class id root-class width height on-ready] :as props}]
@@ -157,8 +168,6 @@
                       width (assoc :width (str width "px"))
                       height (assoc :height (str height "px")))]
           [:div.ethlance-inline-svg
-           {:class root-class
-            :ref (fn [com] (reset! *dom-ref com))
-            :key key}
+           {:class root-class :key key}
            (when-not @*inline-svg [:img.svg {:style (merge style {:opacity 0})
                                              :class class}])]))})))
