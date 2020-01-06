@@ -37,6 +37,10 @@
         grid-template-rows: repeat(6, auto);
         grid-template-columns: auto;
       }
+      
+      @media #media[mobile-query] {
+        padding: 1.5em;
+      }
 
       > .title {
         grid-area: title;
@@ -169,9 +173,11 @@
         color: #color[secondary-accent];
         padding: 0.5em 0;
       }
-
-      > .ethlance-table {
-        
+      
+      > .scrollable {
+        > .ethlance-table {
+          width: 600px;
+        }
       }
 
       > .button-listing {

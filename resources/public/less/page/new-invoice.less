@@ -8,7 +8,7 @@
       'left   right'
       'button button';
   grid-template-columns: 3fr 4fr;
-  grid-template-rows: auto auto 40px;
+  grid-template-rows: repeat(2, auto) 40px;
   grid-column-gap: 3em;
 
   @media #media[tablet-query] {
@@ -18,7 +18,7 @@
         'right'
         'button';
     grid-template-columns: auto;
-    grid-template-rows: repeat(3, auto) 40px;
+    grid-template-rows: repeat(3, auto) auto;
     margin-bottom: 4em;
   }
 
@@ -131,11 +131,12 @@
     transition: background-color 0.05s ease-in;
 
     @media #media[tablet-query] {
-      margin: 2em 10%;
+      margin: 2em;
       margin-top: 0;
       border-radius: @border-radius;
       font-size: 2em;
       height: 100px;
+      width: unset;
     }
 
     @media #media[mobile-query] {
