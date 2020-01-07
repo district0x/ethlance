@@ -27,7 +27,7 @@
 (defn- c-upload-image []
   []
   [:div.upload-image
-   [c-icon {:name :ic-upload :color :dark-blue}]
+   [c-icon {:name :ic-upload :color :dark-blue :inline? false}]
    [:span "Upload Image"]])
 
 
@@ -55,11 +55,11 @@
      [:div.form-connect-github
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
      [:div.form-connect-linkedin
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
      [c-chip-search-input
@@ -115,11 +115,11 @@
      [:div.form-connect-github
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
      [:div.form-connect-linkedin
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
@@ -160,11 +160,11 @@
      [:div.form-connect-github
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
      [:div.form-connect-linkedin
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]

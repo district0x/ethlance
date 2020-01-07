@@ -64,7 +64,6 @@
       }
 
       > .ethlance-chip-search-input {
-
         margin: 2em;
         max-width: 100vw;
         
@@ -179,29 +178,39 @@
           display: grid;
           margin-right: 2em;
           grid-template-areas:
-            'name     name'
-              'rating   rating-label'
-              'location location';
-          
+            'name'
+            'rating-container'
+            'location';
+          grid-template-rows: repeat(3, auto);
+
           @media #media[mobile-query] {
             margin-right: 0;
           }
 
           > .name {
-            display: flex;
-            align-items: flex-end;
             grid-area: name;
+            display: flex;
+            align-items: center;
             font-weight: 700;
           }
 
-          > .ethlance-rating {
-            grid-area: rating;
-          }
-
-          > .rating-label {
+          > .rating-container {
             display: flex;
+            grid-area: rating-container;
+            justify-content: flex-start;
             align-items: center;
-            grid-area: rating-label;
+
+            > .ethlance-rating {
+              display: flex;
+              grid-area: rating;
+              align-items: center;
+            }
+
+            > .rating-label {
+              display: flex;
+              grid-area: rating-label;
+              align-items: cetner;
+            }
           }
 
           > .location {

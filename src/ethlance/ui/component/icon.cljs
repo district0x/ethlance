@@ -7,20 +7,31 @@
   {:about {:src "/images/icons/ethlance-about-icon.svg"}
    :arbiters {:src "/images/icons/ethlance-arbiters-icon.svg"}
    :candidates {:src "/images/icons/ethlance-candidates-icon.svg"}
-   :close {:src "/images/svg/close.svg"}
+   :close {:src {:default "/images/svg/close.svg"
+                 :white "/images/svg/close-white.svg"
+                 :black "/images/svg/close-black.svg"}}
    :facebook {:src "/images/icons/facebook-icon.svg"}
-   :github {:src "/images/icons/github-icon.svg"}
-   :ic-arrow-up {:src "/images/svg/ic-arrow-up.svg"}
-   :ic-arrow-down {:src "/images/svg/ic-arrow-down.svg"}
+   :github {:src {:default "/images/icons/github-icon.svg"
+                  :white "/images/icons/github-icon-white.svg"}}
+   :ic-arrow-up {:src {:default "/images/svg/ic-arrow-up.svg"
+                       :primary "/images/svg/ic-arrow-up-primary.svg"
+                       :secondary "/images/svg/ic-arrow-up-secondary.svg"}}
+   :ic-arrow-down {:src {:default "/images/svg/ic-arrow-down.svg"
+                         :primary "/images/svg/ic-arrow-down-primary.svg"
+                         :secondary "/images/svg/ic-arrow-down-secondary.svg"}}
    :ic-arrow-left {:src "/images/svg/ic-arrow-left.svg"}
    :ic-arrow-left2 {:src "/images/svg/ic-arrow-left2.svg"}
    :ic-arrow-right {:src "/images/svg/ic-arrow-right.svg"}
    :ic-arrow-right2 {:src "/images/svg/ic-arrow-right2.svg"}
-   :ic-upload {:src "/images/svg/ic-upload.svg"}
+   :ic-upload {:src {:default "/images/svg/ic-upload.svg"
+                     :primary "/images/svg/ic-upload-primary.svg"}}
    :jobs {:src "/images/icons/ethlance-jobs-icon.svg"}
-   :linkedin {:src "/images/icons/linkedin-icon.svg"}
+   :linkedin {:src {:default "/images/icons/linkedin-icon.svg"
+                    :white "/images/icons/linkedin-icon-white.svg"}}
    :list-menu {:src "/images/svg/list-menu.svg"}
-   :my-activity {:src {:black "/images/svg/my-activity.svg"
+   :my-activity {:src {:default "/images/svg/my-activity.svg"
+                       :primary "/images/svg/my-activity-primary.svg"
+                       :black "/images/svg/my-activity.svg"
                        :white "/images/svg/my-activity-white.svg"}}
    :search {:src "/images/icons/ethlance-search-icon.svg"}
    :sign-up {:src "/images/icons/ethlance-sign-up-icon.svg"}
@@ -33,7 +44,7 @@
   (when-let [icon-attr (get-in icon-listing [name :src])]
     (cond
       (map? icon-attr)
-      (get icon-attr color)
+      (or (get icon-attr color) (get icon-attr :default))
 
       :else
       icon-attr)))

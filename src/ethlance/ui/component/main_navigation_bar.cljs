@@ -15,10 +15,12 @@
   []
   [:div.main-navigation-bar
    [c-ethlance-logo
-    {:color :white :size :small
+    {:color :white
+     :size :small
      :title "Go to Home Page"
      :on-click (util.navigation/create-handler {:route :route/home})
-     :href (util.navigation/resolve-route {:route :route/home})}]
+     :href (util.navigation/resolve-route {:route :route/home})
+     :inline? false}]
    [:div.profile
     [c-profile-image {:size :small}]
     [:div.name "Brian Curran"]]

@@ -23,40 +23,15 @@
   flex-direction: row;
   height: @normal-size;
   width: calc(@normal-width + @total-margin);
+  align-items: center;
 
   .star {
+    transition: all 0.1s;
+    opacity: 0.5;
     margin-right: @margin-width;
 
-    #star {
-      cursor: pointer;
-    }
-    
-    /* Apply currently set @fill-color to svg elements */
-    .apply-fill-color() {
-      path, rect, circle {
-	fill: fadeout(@fill-color, 85%) !important;
-      }
-
-      &.active {
-	path, rect, circle {
-	  fill: @fill-color !important;
-	}
-      }
-    }
-
-    &.primary {
-      @fill-color: #ethlance-component-rating[primary-color];
-      .apply-fill-color();
-    }
-
-    &.white {
-      @fill-color: #ethlance-component-rating[secondary-color];
-      .apply-fill-color();
-    }
-
-    &.black {
-      @fill-color: black;
-      .apply-fill-color();
+    &.active {
+      opacity: 1.0;
     }
 
     &.small {
@@ -68,5 +43,13 @@
       height: @large-size;
       width: calc(@large-size + @margin-width);
     }
+  }
+
+  &.small {
+    width: calc(@small-width + @total-margin);
+  }
+
+  &.large {
+    width: calc(@large-width + @total-margin);
   }
 }

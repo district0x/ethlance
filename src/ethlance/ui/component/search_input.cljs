@@ -49,7 +49,7 @@
    [:span.close-button
     {:on-click on-close
      :title (str "Remove '" label "'")}
-    [c-icon {:name :close :size :x-small :color :black}]]])
+    [c-icon {:name :close :size :x-small :color :black :inline? false}]]])
 
 
 (defn c-chip-search-input
@@ -202,7 +202,7 @@
             :placeholder (when (empty? @*chip-listing) placeholder)}]]
 
          (when search-icon?
-           [:div.search-button [c-icon {:name :search :size :normal}]])
+           [:div.search-button [c-icon {:name :search :size :normal :inline? false}]])
 
          (let [suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
            (when (or (not (empty? @*search-text)) (and display-listing-on-focus? @*input-focused?))

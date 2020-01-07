@@ -5,37 +5,36 @@
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
-(def rating-star-src "/images/icons/ethlance-star-icon.svg")
-
-
-(defn handle-svg-ready [index on-change dom-ref inline-svg]
-  (.addEventListener inline-svg "click" #(on-change index)))
+(def rating-star-src-primary "/images/icons/ethlance-star-icon-primary.svg")
+(def rating-star-src-black "/images/icons/ethlance-star-icon-black.svg")
+(def rating-star-src-white "/images/icons/ethlance-star-icon-white.svg")
 
 
 (defn c-star []
   (fn [{:keys [active? color index on-change size]
         :or {color :primary size :default}}]
-    (let [color-class (case color
-                        :primary " primary "
-                        :white   " white "
-                        :black   " black ")
+    (let [color-src (case color
+                      :primary rating-star-src-primary
+                      :white   rating-star-src-white
+                      :black   rating-star-src-black)
           size-class (case size
-                        :normal " "
-                        :default " "
-                        :large " large "
-                        :small " small ")
+                       :normal ""
+                       :default ""
+                       :large "large"
+                       :small "small")
           size-value (case size
-                        :normal 24
-                        :default 24
-                        :large 36
-                        :small 18)
-          active-class (when active? " active ")]
-      [c-inline-svg {:key (str index)
-                     :src rating-star-src
-                     :on-ready (when on-change #(handle-svg-ready index on-change %1 %2))
-                     :width size-value
-                     :height size-value
-                     :class (str " star " color-class size-class active-class)}])))
+                       :normal 24
+                       :default 24
+                       :large 36
+                       :small 18)
+          active-class (when active? "active")]
+      [:img.star
+       {:key (str "c-star-" index)
+        :src color-src
+        :on-click #(on-change index)
+        :style {:width (str size-value "px")
+                :height (str size-value "px")}
+        :class [active-class size-class]}])))
 
 
 (defn c-rating
@@ -62,10 +61,19 @@
   [{:keys [rating color on-change size]
     :or {color :primary rating 0 size :default}
     :as opts}]
-  (let [*current-rating (r/atom rating)]
+  (let [*current-rating (r/atom rating)
+        color-class (case color
+                      :primary "primary"
+                      :white "white"
+                      :black "black")
+        size-class (case size
+                     :default ""
+                     :small "small"
+                     :large "large")]
     (fn [{:keys [rating color on-change size]
           :or {color :primary rating 0 size :default}}]
       [:div.ethlance-component-rating
+       {:class [color-class size-class]}
        (doall
         (for [i (range 1 6)]
           ^{:key i}
