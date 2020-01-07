@@ -20,7 +20,8 @@
    :jobs {:src "/images/icons/ethlance-jobs-icon.svg"}
    :linkedin {:src "/images/icons/linkedin-icon.svg"}
    :list-menu {:src "/images/svg/list-menu.svg"}
-   :my-activity {:src {:black "/images/svg/my-activity.svg"
+   :my-activity {:src {:primary "/images/svg/my-activity-primary.svg"
+                       :black "/images/svg/my-activity.svg"
                        :white "/images/svg/my-activity-white.svg"}}
    :search {:src "/images/icons/ethlance-search-icon.svg"}
    :sign-up {:src "/images/icons/ethlance-sign-up-icon.svg"}
