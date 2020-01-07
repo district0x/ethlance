@@ -78,12 +78,16 @@
 
    :label-test - Label represented as a string.
 
+   :inline? - Passes on the icon inline property [default: true]
+
    # Notes
 
    - The list of icons can be found in the ethlance.ui.component.icon namespace."
   []
-  (fn [{:keys [icon-name label-text] :as opts}]
+  (fn [{:keys [icon-name label-text inline?]
+        :or {inline? true}
+        :as opts}]
     [:div.button-icon-label
      [:div.icon
-      [c-icon {:name icon-name}]]
+      [c-icon {:name icon-name :inline? inline? :color :white}]]
      [:span.label label-text]]))
