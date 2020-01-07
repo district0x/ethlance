@@ -67,6 +67,7 @@
                       :white "white"
                       :black "black")
         size-class (case size
+                     :default ""
                      :small "small"
                      :large "large")]
     (fn [{:keys [rating color on-change size]
