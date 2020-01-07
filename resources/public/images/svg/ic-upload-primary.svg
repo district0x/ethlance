@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg5454"
+   sodipodi:docname="ic-upload-primary.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata5458">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>ic-upload</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1276"
+     inkscape:window-height="1009"
+     id="namedview5456"
+     showgrid="false"
+     inkscape:zoom="9.8333333"
+     inkscape:cx="-4.8813559"
+     inkscape:cy="12"
+     inkscape:window-x="1280"
+     inkscape:window-y="18"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg5454" />
+  <defs
+     id="defs5446">
+    <style
+       id="style5444">.cls-1{fill:#2c398f;}</style>
+  </defs>
+  <title
+     id="title5448">ic-upload</title>
+  <g
+     id="Camada_2"
+     data-name="Camada 2">
+    <g
+       id="Layer_1"
+       data-name="Layer 1">
+      <path
+         class="cls-1"
+         d="M22,24H2a2,2,0,0,1-2-2V12a1,1,0,0,1,2,0V22H22V12a1,1,0,0,1,2,0V22A2,2,0,0,1,22,24ZM17,7a1,1,0,0,1-.71-.29L12,2.41,7.71,6.71A1,1,0,0,1,6.29,5.29l5-5a1,1,0,0,1,1.42,0l5,5a1,1,0,0,1,0,1.42A1,1,0,0,1,17,7ZM12,18a1,1,0,0,1-1-1V1a1,1,0,0,1,2,0V17A1,1,0,0,1,12,18Z"
+         id="path5450" />
+    </g>
+  </g>
+</svg>

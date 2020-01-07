@@ -92,7 +92,12 @@
                [c-icon {:name :close
                         :size :x-small
                         :title "Clear Search"
-                        :on-click #(reset! *search-text "")}]])
+                        :on-click #(reset! *search-text "")
+                        :color (case color
+                                 :primary :black
+                                 :secondary :white
+                                 :black)
+                        :inline? false}]])
             [:div.selection-listing
              (doall
               (for [selection (filter-selections @*search-text selections)]

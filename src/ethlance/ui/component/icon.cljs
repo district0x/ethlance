@@ -7,7 +7,9 @@
   {:about {:src "/images/icons/ethlance-about-icon.svg"}
    :arbiters {:src "/images/icons/ethlance-arbiters-icon.svg"}
    :candidates {:src "/images/icons/ethlance-candidates-icon.svg"}
-   :close {:src "/images/svg/close.svg"}
+   :close {:src {:default "/images/svg/close.svg"
+                 :white "/images/svg/close-white.svg"
+                 :black "/images/svg/close-black.svg"}}
    :facebook {:src "/images/icons/facebook-icon.svg"}
    :github {:src {:default "/images/icons/github-icon.svg"
                   :white "/images/icons/github-icon-white.svg"}}
