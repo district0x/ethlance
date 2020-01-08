@@ -18,5 +18,4 @@
         [:span "Navigate"]
         [c-icon {:name (if @*open? :ic-arrow-down  :ic-arrow-up)
                  :size :small}]]
-       [:div.content
-        children]])))
+       (into [:div.content] children)])))

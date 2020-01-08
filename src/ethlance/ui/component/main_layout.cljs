@@ -32,7 +32,7 @@
      [c-mobile-navigation-bar]
      [:div.main-margin
       [c-main-navigation-menu]
-      [:div.main-container container-opts children]]
+      (into [:div.main-container container-opts] children)]
      [:div.footer
       [:div.copyright
        [:span "Copyright © 2019 Ethlance.com"]

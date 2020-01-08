@@ -31,7 +31,7 @@
                 :secondary secondary-logo-url
                 :white white-logo-url
                 :black black-logo-url)
-          opts (dissoc opts :color)]
+          opts (dissoc opts :color :inline?)]
       [:a.ethlance-logo
        opts
        (if inline?
