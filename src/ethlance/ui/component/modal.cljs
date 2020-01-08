@@ -8,5 +8,5 @@
 
 (defn c-modal
   ""
-  [{:keys [] :as opts} child]
-  [:div.ethlance-modal opts child])
+  [{:keys [] :as opts} & children]
+  (into [:div.ethlance-modal opts] children))

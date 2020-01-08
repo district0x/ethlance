@@ -68,8 +68,6 @@
   "Sidebar component for changing the search criteria."
   []
   [:div.job-search-filter.search-filter
-   {:key "search-filter"}
-   
    [:div.category-selector
     [c-select-input
      {:label "All Categories"

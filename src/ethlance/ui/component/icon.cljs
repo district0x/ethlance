@@ -88,7 +88,7 @@
              size :normal
              inline? true}
         :as props}]
-    (let [props (dissoc props :name :color :size)
+    (let [props (dissoc props :name :color :size :inline?)
           
           color-class (case color
                         :primary "primary"

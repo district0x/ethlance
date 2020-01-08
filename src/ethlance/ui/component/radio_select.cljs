@@ -68,9 +68,9 @@
       
       :reagent-render
       (fn [opts & children]
-        (let [opts (dissoc opts :default-selection :on-selection)]
+        (let [opts (dissoc opts :default-selection :on-selection :flex?)]
           [:div.ethlance-radio-select
-           {:class (when flex? "flex")}
+           (merge opts {:class (when flex? "flex")})
            (doall
             (for [[selection-key child-element] children]
               ^{:key (str selection-key)}

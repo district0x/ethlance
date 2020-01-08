@@ -18,8 +18,7 @@
   [c-tag {} [c-tag-label \"C++ Programming\"]]"
   []
   (fn [opts & children]
-    (let [children (if (= (count children) 1) (first children) children)]
-      [:div.ethlance-tag opts children])))
+    (into [:div.ethlance-tag opts] children)))
 
 
 (defn c-tag-label
