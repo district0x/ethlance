@@ -27,10 +27,8 @@
 
   type Query {
 
-    \"Retrieve the User Data for the User defined by the given User ID\"
     user(user_address : ID!): User
 
-    \"Search for and create User Listings\"
     userSearch(
       user_address: ID,
       user_fullName: String,
@@ -41,11 +39,9 @@
       offset: Int,
     ): UserList
 
-    \"Retrieve the Candidate Data defined by the User ID\"
     candidate(user_address: ID!): Candidate
 
     # TODO: Rating
-    \"Search for and create Candidate Listings\"
     candidateSearch(
       user_address: ID,
       categoriesAnd: [String!],
@@ -59,11 +55,9 @@
       offset: Int,
     ): CandidateList
 
-    \"Retrieve the Employer Data defined by the User ID\"
     employer(user_address : ID!): Employer
 
     # TODO: Rating
-    \"Search for and create Employer Listings\"
     employerSearch(
       user_address: ID,
       professionalTitle: String,
@@ -73,11 +67,9 @@
       offset: Int,
     ): EmployerList
 
-    \"Retrieve the Arbiter Data defined by the User ID\"
     arbiter(user_address : ID!): Arbiter
 
     # TODO: Rating
-    \"Search for and create Arbiter Listings\"
     arbiterSearch(
       user_address: ID,
       orderBy: ArbiterListOrderBy,
@@ -86,10 +78,8 @@
       offset: Int,
     ): ArbiterList
 
-    \"Retrieve the Job Data defined by the Job Index\"
     job(job_id : Int!): Job
 
-    \"Search for and create Job Listings\"
     jobSearch(
       job_id: Int,
       orderBy: JobListOrderBy,
@@ -98,17 +88,16 @@
       offset: Int,
     ): JobList
 
-    \"Retrieve the Work Contract Data defined by the Work Contract Index\"
-    workContract(job_id: Int!, workContract_id: Int!): WorkContract
+    contract(job_id: Int!, contract_id: Int!): Contract
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(job_id: Int!,
-            workContract_id: Int!,
+            contract_id: Int!,
             dispute_id: Int!): Dispute
 
     \"Retrieve the Invoice Data defined by the invoice index\"
     invoice(job_id: Int!,
-            workContract_id: Int!,
+            contract_id: Int!,
             invoice_id: Int!): Invoice
   }
 
@@ -308,7 +297,7 @@
     job_contracts(
       limit: Int,
       offset: Int
-    ): WorkContractList
+    ): ContractList
   }
 
   type JobList {
@@ -324,16 +313,14 @@
     dateFinished
   }
 
-  # WorkContract Types
-
-  type WorkContract {
+  type Contract {
     \"Identifier for the given Job\"
     job_id: Int
 
-    \"Identifier for the given Work Contract\"
+    \"Identifier for the given Contract\"
     contract_id: Int
 
-    \"Work Contract Status\"
+    \"Contract Status\"
     contract_status: Keyword
 
     \"Address of the Accepted Candidate\"
@@ -348,32 +335,26 @@
     contract_employerFeedback: Feedback
     contract_candidateFeedback: Feedback
 
-    \"Invoice Listing for Work Contract\"
     contract_invoices(
       limit: Int,
       offset: Int,
     ): InvoiceList
 
-    \"Dispute Listing for Work Contract\"
     contract_disputes(
       limit: Int,
       offset: Int,
     ): DisputeList
 
-    contract_comments(
-      limit: Int,
-      offset: Int
-    ): CommentList
   }
 
-  type WorkContractList {
-    items: [WorkContract!]
+  type ContractList {
+    items: [Contract!]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
   }
 
-  enum WorkContractOrderBy {
+  enum ContractOrderBy {
     dateUpdated
     dateCreated
   }
@@ -385,8 +366,8 @@
     \"Identifier for the given Job\"
     job_id: Int
 
-    \"Identifier for the given Work Contract\"
-    workContract_id: Int
+    \"Identifier for the given Contract\"
+    contract_id: Int
 
     \"Identifier for the given Invoice\"
     invoice_id: Int
@@ -406,10 +387,6 @@
     \"Amount of invoice actually paid\"
     invoice_amountPaid: Int
 
-    invoice_comments(
-      limit: Int,
-      offset: Int,
-    ): CommentList
   }
 
   type InvoiceList  {
@@ -419,18 +396,14 @@
     hasNextPage: Boolean
   }
 
-
   # Dispute Types
 
   type Dispute {
     \"Identifier for the given Job\"
     job_id: Int
 
-    \"Identifier for the given Work Contract\"
-    workContract_id: Int
-
-    \"Identifier for the given Dispute\"
-    dispute_id: Int
+    \"Identifier for the given Contract\"
+    contract_id: Int
 
     \"Reason for the Dispute\"
     dispute_reason: String
@@ -438,52 +411,13 @@
     \"Date of creation\"
     dispute_dateCreated: Date
 
-    \"Date last updated\"
-    dispute_dateUpdated: Date
-
     \"Date when the dispute was resolved\"
     dispute_dateResolved: Date
 
-    # TODO: incorporate resolution amounts for differing currencies (ERC20)
-    \"Amount paid out to employer\"
-    dispute_employerResolutionAmount: Int
-
-    \"Amount paid out to candidate\"
-    dispute_candidateResolutionAmount: Int
-
-    \"Amount paid out to arbiter\"
-    dispute_arbiterResolutionAmount: Int
-
-    dispute_comments(
-      limit: Int,
-      offset: Int,
-    ): CommentList
   }
 
   type DisputeList {
     items: [Dispute!]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
-
-  # Comment Types
-
-  type Comment {
-    job_id: Int!
-    contract_id: Int!
-    dispute_id: Int
-    invoice_id: Int
-    comment_id: Int!
-    comment_revision: Int!
-    user_id: Int
-    comment_userType: Keyword
-    comment_dateCreated: Date
-    comment_text: String
-  }
-
-  type CommentList {
-    items: [Comment!]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean

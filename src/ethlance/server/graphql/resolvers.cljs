@@ -343,78 +343,76 @@
                                                         (or (keyword order-direction) :asc)]]))]
      (paged-query query limit offset))))
 
-(def ^:private job-query {:select
-                          [
-                           :Job.job/id
-                           :Job.job/title
-                           :Job.job/status
-                           :Job.job/bid-option
-                           :Job.job/category
-                           :Job.job/description
-                           :Job.job/date-created
-                           :Job.job/date-published
-                           :Job.job/date-updated
-                           :Job.job/estimated-length
-                           :Job.job/reward
-
-                           [:Job.job/invitation-only? :job/is-invitation-only]
-                           [:JobArbiter.user/address :job/accepted-arbiter-address]
-                           [:JobCreator.user/address :job/employer-address]
-
-                           ]
+(def ^:private job-query {:select [:Job.job/id
+                                   :Job.job/title
+                                   :Job.job/status
+                                   :Job.job/bid-option
+                                   :Job.job/category
+                                   :Job.job/description
+                                   :Job.job/date-created
+                                   :Job.job/date-published
+                                   :Job.job/date-updated
+                                   :Job.job/estimated-length
+                                   :Job.job/reward
+                                   [:Job.job/invitation-only? :job/is-invitation-only]
+                                   [:JobArbiter.user/address :job/accepted-arbiter-address]
+                                   [:JobCreator.user/address :job/employer-address]]
                           :from [:Job]
-
                           :join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]
-                                 :JobCreator [:= :JobCreator.job/id :Job.job/id]
-                                 ]
-
-                          })
+                                 :JobCreator [:= :JobCreator.job/id :Job.job/id]]})
 
 (defn job-resolver [_ {:keys [:job/id] :as args} _]
   (try-catch-throw
    (log/debug "job-resolver" args)
    (db/get (sql-helpers/merge-where job-query [:= id :Job.job/id]))))
 
-;; TODO
+(def ^:private contract-query {:select [:Contract.contract/id
+                                        :Job.job/id
+                                        :Contract.contract/status
+                                        :Contract.contract/date-created
+                                        :Contract.contract/date-updated
+
+                                        :Contract.contract/raised-dispute-message-id
+                                        :Contract.contract/resolved-dispute-message-id
+
+                                        [:ContractCandidate.user/address :contract/candidate-address]]
+                               :from [:Contract]
+                               :join [:Job [:= :Job.job/id :Contract.job/id]
+                                      :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]]})
+
 (defn job->contracts-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
-   (let [{:keys [:job/id] :as job} (graphql-utils/gql->clj root)
-         query {:select [:Contract.contract/id :Contract.job/id :Contract.contract/status
-                         :Contract.contract/date-created :Contract.contract/date-updated
-                         [:ContractCandidate.user/address :contract/candidate-address]
+   (let [{:keys [:job/id] :as job} (graphql-utils/gql->clj root)]
+     (log/debug "job->contracts-resolver" {:job job :args args})
+     (paged-query (sql-helpers/merge-where contract-query [:= id :Contract.job/id]) limit offset))))
 
-                         ]
-                :from [:Contract]
-
-                :join [
-                       :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]
-                       ]
-
-                :where [:= id :Contract.job/id]}]
-     (log/debug "job->work-contracts-resolver" {:job job :args args})
-     (paged-query query limit offset)
-     )))
+(defn contract-resolver [_ {job-id :job/id contract-id :contract/id :as args} _]
+  (try-catch-throw
+   (log/debug "contract-resolver" args)
+   (db/get (-> contract-query
+               (sql-helpers/merge-where [:= job-id :Job.job/id])
+               (sql-helpers/merge-where [:= contract-id :Contract.contract/id])))))
 
 ;; TODO
-(defn contract->comments-resolver [root {:keys [:limit :offset] :as args} _]
+(defn contract->disputes-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
-   (let [{:keys [:contract/id] :as contract} (graphql-utils/gql->clj root)
-         query {}
-         #_{:select [:Contract.contract/id :Contract.job/id :Contract.contract/status
-                              :Contract.contract/date-created :Contract.contract/date-updated
-                              [:ContractCandidate.user/address :contract/candidate-address]
-
-                              ]
-                     :from [:Contract]
-
-                     :join [
-                            :ContractCandidate [:= :ContractCandidate.contract/id :Contract.contract/id]
-                            ]
-
-                     :where [:= id :Contract.job/id]}]
-     (log/debug "contract->comments-resolver" {:contract contract})
-     ;; (paged-query query limit offset)
-     )))
+   (let [{contract-id :contract/id job-id :job/id
+          raised-dispute-message-id :contract/raised-dispute-message-id
+          resolved-dispute-message-id :contract/resolved-dispute-message-id
+          :as contract} (graphql-utils/gql->clj root)
+         query {:select [[contract-id :contract/id]
+                         [job-id :job/id]
+                         [{:select [:message/text]
+                           :from [:Message]
+                           :where [:= raised-dispute-message-id :Message.message/id]} :dispute/reason]
+                         [{:select [:message/date-created]
+                           :from [:Message]
+                           :where [:= raised-dispute-message-id :Message.message/id]} :dispute/date-created]
+                         [{:select [:message/date-created]
+                           :from [:Message]
+                           :where [:= resolved-dispute-message-id :Message.message/id]} :dispute/date-resolved]]}]
+     (log/debug "contract->disputes-resolver" {:contract contract :args args})
+     (paged-query query limit offset))))
 
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
@@ -446,14 +444,14 @@
                             :arbiter arbiter-resolver
                             :arbiterSearch arbiter-search-resolver
                             :job job-resolver
+                            :contract contract-resolver
 
                             }
                     :Job {:job_contracts job->contracts-resolver}
-                    :WorkContract {:contract_employerFeedback contract->employer-feedback-resolver
-                                   :contract_candidateFeedback contract->candidate-feedback-resolver
-                                   :contract_comments contract->comments-resolver
-
-                                   }
+                    :Contract {:contract_employerFeedback contract->employer-feedback-resolver
+                               :contract_candidateFeedback contract->candidate-feedback-resolver
+                               :contract_disputes contract->disputes-resolver
+                               }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
