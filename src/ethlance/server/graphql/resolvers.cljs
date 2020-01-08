@@ -421,6 +421,14 @@
                               :join [:Contract [:= :Contract.contract/id :Invoice.contract/id]
                                      :Job [:= :Job.job/id :Contract.job/id]]})
 
+(defn invoice-resolver [_ {job-id :job/id contract-id :contract/id invoice-id :invoice/id :as args} _]
+  (try-catch-throw
+   (log/debug "invoice-resolver" {:args args})
+   (db/get (-> invoice-query
+               (sql-helpers/merge-where [:= invoice-id :Invoice.invoice/id])
+               (sql-helpers/merge-where [:= job-id :Job.job/id])
+               (sql-helpers/merge-where [:= contract-id :Contract.contract/id])))))
+
 (defn contract->invoices-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
    (let [{contract-id :contract/id job-id :job/id :as contract} (graphql-utils/gql->clj root)
@@ -462,13 +470,12 @@
                             :job job-resolver
                             :contract contract-resolver
                             :dispute dispute-resolver
-                            }
+                            :invoice invoice-resolver}
                     :Job {:job_contracts job->contracts-resolver}
                     :Contract {:contract_employerFeedback contract->employer-feedback-resolver
                                :contract_candidateFeedback contract->candidate-feedback-resolver
                                :contract_disputes contract->disputes-resolver
-                               :contract_invoices contract->invoices-resolver
-                               }
+                               :contract_invoices contract->invoices-resolver}
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
