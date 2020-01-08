@@ -337,7 +337,7 @@
      [:invoice/date-paid :unsigned :integer]
      [:invoice/date-work-started :unsigned :integer]
      [:invoice/date-work-ended :unsigned :integer]
-     [:invoice/date-work-duration :unsigned :integer]
+     [:invoice/work-duration :unsigned :integer]
      ;; PK
      [(sql/call :primary-key :invoice/id :contract/id :message/id)]
      ;; FKs

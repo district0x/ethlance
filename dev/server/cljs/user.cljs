@@ -431,6 +431,41 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
+(defn generate-invoices [invoice-ids contract-ids [employer candidate arbiter]]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [invoice-id invoice-ids]
+                (let [[contract-id _] (shuffle contract-ids)
+                      last-message-index  (:count (db/get {:select [[:%count.* :count]]
+                                                           :from [:Message]}))
+                      invoice-message (generate-message {:message/creator candidate
+                                                         :message/id (+ last-message-index 1)})
+                      [status _] (shuffle ["PAID" "PENDING"])
+                      date-work-started (time/minus (time/now) (time/days (rand-int 60)))
+                      work-duration (case (-> [:hours :days :weeks] shuffle first)
+                                      :hours (time/hours (rand-int 24))
+                                      :days (time/days (rand-int 30))
+                                      :weeks (time/weeks (rand-int 100)))
+                      date-work-ended (time/plus date-work-started work-duration)
+                      date-paid (when (= "PAID" status) (time-coerce/to-long (time/plus date-work-ended (time/days (rand-int 7)))))]
+                  (ethlance-db/insert-row! :Message (merge invoice-message
+                                                           {:message/type "INVOICE"}))
+                  (ethlance-db/insert-row! :Invoice {:invoice/id invoice-id
+                                                     :contract/id contract-id
+                                                     :message/id (:message/id invoice-message)
+                                                     :invoice/status status
+                                                     :invoice/amount-requested (rand-int 12000)
+                                                     :invoice/amount-paid (rand-int 12000)
+                                                     :invoice/date-work-started (time-coerce/to-long date-work-started)
+                                                     :invoice/work-duration (time/in-millis work-duration)
+                                                     :invoice/date-work-ended (time-coerce/to-long date-work-ended)
+                                                     :invoice/date-paid date-paid}))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
+
 (defn generate-feedback [contract-ids [employer candidate arbiter]]
   (js/Promise.
    (fn [resolve reject]
@@ -498,7 +533,8 @@
         categories ["Web" "Mobile" "Embedded"]
         skills ["Solidity" "Clojure"]
         job-ids (map str (range 0 3))
-        contract-ids (map str (range 0 5))]
+        contract-ids (map str (range 0 5))
+        invoice-ids (map str (range 0 10))]
     (promise->
      (generate-users user-addresses)
      #(generate-categories categories user-addresses)
@@ -507,6 +543,7 @@
      #(generate-jobs job-ids user-addresses)
      #(generate-job-arbiters job-ids user-addresses)
      #(generate-contracts contract-ids job-ids user-addresses)
+     #(generate-invoices invoice-ids contract-ids user-addresses)
      #(generate-feedback contract-ids user-addresses)
      #(log/debug "Done"))))
 

@@ -393,7 +393,6 @@
                (sql-helpers/merge-where [:= job-id :Job.job/id])
                (sql-helpers/merge-where [:= contract-id :Contract.contract/id])))))
 
-;; TODO
 (defn contract->disputes-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
    (let [{contract-id :contract/id job-id :job/id
@@ -413,6 +412,27 @@
                            :where [:= resolved-dispute-message-id :Message.message/id]} :dispute/date-resolved]]}]
      (log/debug "contract->disputes-resolver" {:contract contract :args args})
      (paged-query query limit offset))))
+
+;; TODO
+(defn contract->invoices-resolver [root {:keys [:limit :offset] :as args} _]
+  (try-catch-throw
+   (let [{contract-id :contract/id job-id :job/id
+          ;; raised-dispute-message-id :contract/raised-dispute-message-id
+          ;; resolved-dispute-message-id :contract/resolved-dispute-message-id
+          :as contract} (graphql-utils/gql->clj root)
+         query {} #_{:select [[contract-id :contract/id]
+                            [job-id :job/id]
+                            [{:select [:message/text]
+                              :from [:Message]
+                              :where [:= raised-dispute-message-id :Message.message/id]} :dispute/reason]
+                            [{:select [:message/date-created]
+                              :from [:Message]
+                              :where [:= raised-dispute-message-id :Message.message/id]} :dispute/date-created]
+                            [{:select [:message/date-created]
+                              :from [:Message]
+                              :where [:= resolved-dispute-message-id :Message.message/id]} :dispute/date-resolved]]}]
+     (log/debug "contract->invoices-resolver" {:contract contract :args args})
+     #_(paged-query query limit offset))))
 
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
@@ -451,6 +471,7 @@
                     :Contract {:contract_employerFeedback contract->employer-feedback-resolver
                                :contract_candidateFeedback contract->candidate-feedback-resolver
                                :contract_disputes contract->disputes-resolver
+                               :contract_invoices contract->invoices-resolver
                                }
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
