@@ -397,20 +397,12 @@
                       proposal-message (generate-message {:message/creator candidate
                                                           :message/id (+ last-message-index 2)})
                       proposal-rate (rand-int 300)
-                      [currency _] (shuffle ["EUR" "USD"])
-                      raised-dispute-message (generate-message {:message/creator employer
-                                                                :message/id (+ last-message-index 3)})
-                      resolved-dispute-message (generate-message {:message/creator candidate
-                                                                  :message/id (+ last-message-index 4)})]
+                      [currency _] (shuffle ["EUR" "USD"])]
 
                   (ethlance-db/insert-row! :Message (merge invitation-message
                                                            {:message/type "INVITATION"}))
                   (ethlance-db/insert-row! :Message (merge proposal-message
                                                            {:message/type "PROPOSAL"}))
-                  (ethlance-db/insert-row! :Message (merge raised-dispute-message
-                                                           {:message/type "RAISED-DISPUTE"}))
-                  (ethlance-db/insert-row! :Message (merge resolved-dispute-message
-                                                           {:message/type "RESOLVED-DISPUTE"}))
 
                   (ethlance-db/insert-row! :Contract {:contract/id contract-id
                                                       :job/id job-id
@@ -420,12 +412,36 @@
                                                       :contract/invitation-message-id (:message/id invitation-message)
                                                       :contract/proposal-message-id (:message/id proposal-message)
                                                       :contract/proposal-rate proposal-rate
-                                                      :contract/proposal-rate-currency-id currency
-                                                      :contract/raised-dispute-message-id (:message/id raised-dispute-message)
-                                                      :contract/resolved-dispute-message-id (:message/id resolved-dispute-message)})
+                                                      :contract/proposal-rate-currency-id currency})
 
                   (ethlance-db/insert-row! :ContractCandidate {:contract/id contract-id
                                                                :user/address candidate}))))
+       (resolve true)
+       (catch :default e
+         (log/error "Error" {:error e})
+         (reject e))))))
+
+(defn generate-disputes [contract-ids job-ids [employer candidate arbiter]]
+  (js/Promise.
+   (fn [resolve reject]
+     (try
+       (doall (for [job-id job-ids
+                    contract-id contract-ids]
+                (when (-> [true false] shuffle first)
+                  (let [last-message-index (:count (db/get {:select [[:%count.* :count]]
+                                                            :from [:Message]}))
+                        raised-dispute-message (generate-message {:message/creator employer
+                                                                  :message/id (+ last-message-index 1)})
+                        resolved-dispute-message (generate-message {:message/creator candidate
+                                                                    :message/id (+ last-message-index 2)})]
+                    (ethlance-db/insert-row! :Message (merge raised-dispute-message
+                                                             {:message/type "RAISED-DISPUTE"}))
+                    (ethlance-db/insert-row! :Message (merge resolved-dispute-message
+                                                             {:message/type "RESOLVED-DISPUTE"}))
+                    (ethlance-db/insert-row! :Dispute {:job/id job-id
+                                                       :contract/id contract-id
+                                                       :dispute/raised-message-id (:message/id raised-dispute-message)
+                                                       :dispute/resolved-message-id (:message/id resolved-dispute-message)})))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
@@ -543,6 +559,7 @@
      #(generate-jobs job-ids user-addresses)
      #(generate-job-arbiters job-ids user-addresses)
      #(generate-contracts contract-ids job-ids user-addresses)
+     #(generate-disputes contract-ids job-ids user-addresses)
      #(generate-invoices invoice-ids contract-ids user-addresses)
      #(generate-feedback contract-ids user-addresses)
      #(log/debug "Done"))))

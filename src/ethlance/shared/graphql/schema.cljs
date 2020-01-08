@@ -41,7 +41,6 @@
 
     candidate(user_address: ID!): Candidate
 
-    # TODO: Rating
     candidateSearch(
       user_address: ID,
       categoriesAnd: [String!],
@@ -57,7 +56,6 @@
 
     employer(user_address : ID!): Employer
 
-    # TODO: Rating
     employerSearch(
       user_address: ID,
       professionalTitle: String,
@@ -69,7 +67,6 @@
 
     arbiter(user_address : ID!): Arbiter
 
-    # TODO: Rating
     arbiterSearch(
       user_address: ID,
       orderBy: ArbiterListOrderBy,
@@ -92,8 +89,7 @@
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(job_id: Int!,
-            contract_id: Int!,
-            dispute_id: Int!): Dispute
+            contract_id: Int!): Dispute
 
     \"Retrieve the Invoice Data defined by the invoice index\"
     invoice(job_id: Int!,
@@ -371,12 +367,6 @@
 
     \"Identifier for the given Invoice\"
     invoice_id: Int
-
-    \"Date of creation\"
-    invoice_dateCreated: Date
-
-    \"Date last updated\"
-    invoice_dateUpdated: Date
 
     \"Date the invoice was paid\"
     invoice_datePaid: Date

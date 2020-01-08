@@ -371,10 +371,6 @@
                                         :Contract.contract/status
                                         :Contract.contract/date-created
                                         :Contract.contract/date-updated
-
-                                        :Contract.contract/raised-dispute-message-id
-                                        :Contract.contract/resolved-dispute-message-id
-
                                         [:ContractCandidate.user/address :contract/candidate-address]]
                                :from [:Contract]
                                :join [:Job [:= :Job.job/id :Contract.job/id]
@@ -393,46 +389,46 @@
                (sql-helpers/merge-where [:= job-id :Job.job/id])
                (sql-helpers/merge-where [:= contract-id :Contract.contract/id])))))
 
+(def ^:private dispute-query {:select [:Dispute.job/id
+                                       :Dispute.contract/id
+                                       :Dispute.dispute/raised-message-id
+                                       :Dispute.dispute/resolved-message-id
+                                       [:RaisedMessage.message/text :dispute/reason]
+                                       [:RaisedMessage.message/date-created :dispute/date-created]
+                                       [:ResolvedMessage.message/date-created :dispute/date-resolved]]
+                              :from [:Dispute]
+                              :join [[:Message :RaisedMessage] [:= :RaisedMessage.message/id :Dispute.dispute/raised-message-id]
+                                     [:Message :ResolvedMessage] [:= :ResolvedMessage.message/id :Dispute.dispute/resolved-message-id]]})
+
+(defn dispute-resolver [_ {job-id :job/id contract-id :contract/id :as args} _]
+  (try-catch-throw
+   (log/debug "dispute-resolver" {:args args})
+   (db/get (-> dispute-query
+               (sql-helpers/merge-where [:= job-id :Dispute.job/id])
+               (sql-helpers/merge-where [:= contract-id :Dispute.contract/id])))))
+
 (defn contract->disputes-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
-   (let [{contract-id :contract/id job-id :job/id
-          raised-dispute-message-id :contract/raised-dispute-message-id
-          resolved-dispute-message-id :contract/resolved-dispute-message-id
-          :as contract} (graphql-utils/gql->clj root)
-         query {:select [[contract-id :contract/id]
-                         [job-id :job/id]
-                         [{:select [:message/text]
-                           :from [:Message]
-                           :where [:= raised-dispute-message-id :Message.message/id]} :dispute/reason]
-                         [{:select [:message/date-created]
-                           :from [:Message]
-                           :where [:= raised-dispute-message-id :Message.message/id]} :dispute/date-created]
-                         [{:select [:message/date-created]
-                           :from [:Message]
-                           :where [:= resolved-dispute-message-id :Message.message/id]} :dispute/date-resolved]]}]
+   (let [{contract-id :contract/id job-id :job/id :as contract} (graphql-utils/gql->clj root)]
      (log/debug "contract->disputes-resolver" {:contract contract :args args})
-     (paged-query query limit offset))))
+     (paged-query (-> dispute-query
+                      (sql-helpers/merge-where [:= job-id :Dispute.job/id])
+                      (sql-helpers/merge-where [:= contract-id :Dispute.contract/id])) limit offset))))
 
-;; TODO
+(def ^:private invoice-query {:select [:Invoice.invoice/id :Invoice.invoice/date-paid :Invoice.invoice/amount-requested :Invoice.invoice/amount-paid
+                                       :Contract.contract/id :Job.job/id]
+                              :from [:Invoice]
+                              :join [:Contract [:= :Contract.contract/id :Invoice.contract/id]
+                                     :Job [:= :Job.job/id :Contract.job/id]]})
+
 (defn contract->invoices-resolver [root {:keys [:limit :offset] :as args} _]
   (try-catch-throw
-   (let [{contract-id :contract/id job-id :job/id
-          ;; raised-dispute-message-id :contract/raised-dispute-message-id
-          ;; resolved-dispute-message-id :contract/resolved-dispute-message-id
-          :as contract} (graphql-utils/gql->clj root)
-         query {} #_{:select [[contract-id :contract/id]
-                            [job-id :job/id]
-                            [{:select [:message/text]
-                              :from [:Message]
-                              :where [:= raised-dispute-message-id :Message.message/id]} :dispute/reason]
-                            [{:select [:message/date-created]
-                              :from [:Message]
-                              :where [:= raised-dispute-message-id :Message.message/id]} :dispute/date-created]
-                            [{:select [:message/date-created]
-                              :from [:Message]
-                              :where [:= resolved-dispute-message-id :Message.message/id]} :dispute/date-resolved]]}]
+   (let [{contract-id :contract/id job-id :job/id :as contract} (graphql-utils/gql->clj root)
+         query (-> invoice-query
+                   (sql-helpers/merge-where [:= job-id :Job.job/id])
+                   (sql-helpers/merge-where [:= contract-id :Contract.contract/id]))]
      (log/debug "contract->invoices-resolver" {:contract contract :args args})
-     #_(paged-query query limit offset))))
+     (paged-query query limit offset))))
 
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
@@ -465,7 +461,7 @@
                             :arbiterSearch arbiter-search-resolver
                             :job job-resolver
                             :contract contract-resolver
-
+                            :dispute dispute-resolver
                             }
                     :Job {:job_contracts job->contracts-resolver}
                     :Contract {:contract_employerFeedback contract->employer-feedback-resolver
