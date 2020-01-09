@@ -210,7 +210,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "test-server"
-     :source-paths ["src" "test" "dev/server"]
+     :source-paths ["src/ethlance/server" "src/ethlance/shared" "test/ethlance"] ;;["src" "test" "dev/server"]
      :compiler {:main ethlance.server.test-runner ;; ./test/server
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"
