@@ -49,7 +49,7 @@
   [{:table-name :User
     :table-columns
     [[:user/address address]
-     [:user/country-code :varchar not-nil]
+     [:user/country-code :varchar #_not-nil]
      [:user/user-name :varchar]
      [:user/full-name :varchar]
      [:user/email :varchar not-nil]

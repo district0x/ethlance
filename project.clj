@@ -34,6 +34,7 @@
                  [reagent "0.9.0-rc2"]
 
                  ;; District General Libraries
+                 [district0x/async-helpers "0.1.3"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.7"]
@@ -131,6 +132,7 @@
          ;; [simplebar-react "2.0.5"]
 
          ;; Development Dependencies
+         [axios "0.19.0"]
          [webpack "4.41.2"]
          [webpack-cli "3.3.9"]
          [less "3.10.3"]
@@ -210,7 +212,8 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "test-server"
-     :source-paths ["src/ethlance/server" "src/ethlance/shared" "test/ethlance"] ;;["src" "test" "dev/server"]
+     :source-paths ["src/ethlance/server" "src/ethlance/shared" "test/ethlance"]
+     #_["src" "test" "dev/server"]
      :compiler {:main ethlance.server.test-runner ;; ./test/server
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"

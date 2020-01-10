@@ -9,11 +9,6 @@
             [honeysql.helpers :as sql-helpers]
             [taoensso.timbre :as log :refer [spy]]))
 
-;; (defn- cons-and [k v]
-;;   (cons :and (map (fn [elem]
-;;                     [:= k elem])
-;;                   v)))
-
 (defn- paged-query
   [query limit offset]
   (let [paged-query (cond-> query
