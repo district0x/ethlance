@@ -156,8 +156,8 @@
   (try-catch-throw
    (let [{:keys [:user/address] :as arbiter} (graphql-utils/gql->clj root)
          query {:select [:Job.job/id :Contract.contract/id :Message.message/id :feedback/rating
-                         [:JobCreator.user/address :feedback/to-user-address]
-                         [:ContractCandidate.user/address :feedback/from-user-address]
+                         [:JobArbiter.user/address :feedback/to-user-address]
+                         [:Message.message/creator :feedback/from-user-address]
                          [:Message.message/date-created :feedback/date-created]
                          [:Message.message/text :feedback/text]]
                 :from [:Feedback]
