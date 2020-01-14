@@ -96,7 +96,6 @@
              :nrepl-port 9000
              :server-port 6500
              :ring-handler handler/figwheel-request-handler}
-  :aliases {}
   :exclusions [cljsjs/react-with-addons
                reagent]
   :npm {:dependencies
@@ -110,11 +109,6 @@
          [better-sqlite3 "5.4.0"]
          [chalk "2.3.0"]
          [cors "2.8.4"]
-         ;; [express "4.15.3"]
-         ;; [express-graphql "0.7.1"]
-         ;; [graphql "0.13.1"]
-         ;; [graphql-fields "1.0.2"]
-         ;; [graphql-tools "3.0.1"]
          [source-map-support "0.5.9"]
          [ws "4.0.0"]
 
@@ -125,11 +119,6 @@
          ;; Note: https://github.com/ethereumjs/ethereumjs-wallet/issues/64
          [ethereumjs-wallet "0.6.0"]
          [jsedn "0.4.1"]
-
-         ;; UI Component
-         ;; [react "16.9.0"]
-         ;; [react-dom "16.9.0"]
-         ;; [simplebar-react "2.0.5"]
 
          ;; Development Dependencies
          [axios "0.19.0"]
@@ -213,8 +202,7 @@
 
     {:id "test-server"
      :source-paths ["src/ethlance/server" "src/ethlance/shared" "test/ethlance"]
-     #_["src" "test" "dev/server"]
-     :compiler {:main ethlance.server.test-runner ;; ./test/server
+     :compiler {:main ethlance.server.test-runner
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"
                 :target :nodejs
