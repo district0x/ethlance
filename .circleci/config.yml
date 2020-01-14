@@ -36,7 +36,7 @@ jobs:
           key: npm-dependencies-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
-      - run: env ETHLANCE_ENV=dev truffle migrate --network ganache --reset
+      - run: env ETHLANCE_ENV=dev npx truffle migrate --network ganache --reset
       - run: lein doo node "test-server" once
 
 workflows:
