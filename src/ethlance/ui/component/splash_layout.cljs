@@ -27,34 +27,34 @@
 (defn c-how-to-candidate
   []
   [:div.how-to-candidate
-   [c-how-to-card "Find A Job" "./images/icon-find.png"]
-   [c-how-to-card "Apply For A Job" "./images/icon-applyjob.png"]
-   [c-how-to-card "Get Hired" "./images/icon-ok.png"]
-   [c-how-to-card "Create Invoices" "./images/icon-tasks.png"]
-   [c-how-to-card "Receive Ether" "./images/icon-free-ether.png"]
-   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+   [c-how-to-card "Find A Job" "/images/icon-find.png"]
+   [c-how-to-card "Apply For A Job" "/images/icon-applyjob.png"]
+   [c-how-to-card "Get Hired" "/images/icon-ok.png"]
+   [c-how-to-card "Create Invoices" "/images/icon-tasks.png"]
+   [c-how-to-card "Receive Ether" "/images/icon-free-ether.png"]
+   [c-how-to-card "Leave Feedback" "/images/icon-feedback.png"]])
 
 
 (defn c-how-to-employer
   []
   [:div.how-to-candidate
-   [c-how-to-card "Create A Job" "./images/icon-create.png"]
-   [c-how-to-card "Invite Freelancers" "./images/icon-invite.png"]
-   [c-how-to-card "Accept Job Proposals" "./images/icon-accept.png"]
-   [c-how-to-card "Get Tasks Done" "./images/icon-free-tasks.png"]
-   [c-how-to-card "Pay Invoices In Ether" "./images/icon-ether.png"]
-   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+   [c-how-to-card "Create A Job" "/images/icon-create.png"]
+   [c-how-to-card "Invite Freelancers" "/images/icon-invite.png"]
+   [c-how-to-card "Accept Job Proposals" "/images/icon-accept.png"]
+   [c-how-to-card "Get Tasks Done" "/images/icon-free-tasks.png"]
+   [c-how-to-card "Pay Invoices In Ether" "/images/icon-ether.png"]
+   [c-how-to-card "Leave Feedback" "/images/icon-feedback.png"]])
 
 
 (defn c-how-to-arbiter
   []
   [:div.how-to-candidate
-   [c-how-to-card "Complete Your Profile" "./images/icon-free-tasks.png"]
-   [c-how-to-card "Receive Invite For Job" "./images/icon-invite.png"]
-   [c-how-to-card "Investigate The Problem" "./images/icon-find.png"]
-   [c-how-to-card "Resolve The Dispute" "./images/icon-ok.png"]
-   [c-how-to-card "Receive Ether" "./images/icon-free-ether.png"]
-   [c-how-to-card "Leave Feedback" "./images/icon-feedback.png"]])
+   [c-how-to-card "Complete Your Profile" "/images/icon-free-tasks.png"]
+   [c-how-to-card "Receive Invite For Job" "/images/icon-invite.png"]
+   [c-how-to-card "Investigate The Problem" "/images/icon-find.png"]
+   [c-how-to-card "Resolve The Dispute" "/images/icon-ok.png"]
+   [c-how-to-card "Receive Ether" "/images/icon-free-ether.png"]
+   [c-how-to-card "Leave Feedback" "/images/icon-feedback.png"]])
 
 
 (defn c-how-it-works-layout
@@ -93,7 +93,7 @@
 
 (defn c-splash-layout
   []
-  [:div.splash-layout
+  [:div.splash-layout.animation-fade-in
    [:div.mobile-header
     [c-splash-mobile-navigation-bar]]
    [:div.header
@@ -128,18 +128,18 @@
         [c-button-label [:span "Become an "] [:b "Arbiter"]]]]
       [:div.district
        [:figure.img-district
-        [:img {:src "./images/district.png"}]]
+        [:img {:src "/images/district.png"}]]
        [:p "Participate in Ethlance's governance processes:"]
        [:a {:href "http://district0x.io"}
         "Introducing the district0x Network"]]]
      
      [:div.part-figure
       [:figure
-       [:img {:src "./images/img-top-banner.png"}]
-       [:img.home-dialog.home-dialog-1.animation-hovering {:src "./images/svg/home-dialog-1.svg"}]
-       [:img.home-dialog.home-dialog-2.animation-hovering {:src "./images/svg/home-dialog-2.svg"}]
-       [:img.home-dialog.home-dialog-3.animation-hovering {:src "./images/svg/home-dialog-3.svg"}]
-       [:img.home-dialog.home-dialog-4.animation-hovering {:src "./images/svg/home-dialog-4.svg"}]]]]
+       [:img {:src "/images/img-top-banner.png"}]
+       [:img.home-dialog.home-dialog-1.animation-hovering {:src "/images/svg/home-dialog-1.svg"}]
+       [:img.home-dialog.home-dialog-2.animation-hovering {:src "/images/svg/home-dialog-2.svg"}]
+       [:img.home-dialog.home-dialog-3.animation-hovering {:src "/images/svg/home-dialog-3.svg"}]
+       [:img.home-dialog.home-dialog-4.animation-hovering {:src "/images/svg/home-dialog-4.svg"}]]]]
 
     ;; BEGIN WELCOME TO
     [:div.welcome
@@ -149,8 +149,8 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img.ic-service {:src "./images/icon-service.png"}]
-         [:img.ic-service-center.animation-shrink-fade {:src "./images/ic-service-center.png"}]]
+         [:img.ic-service {:src "/images/icon-service.png"}]
+         [:img.ic-service-center.animation-shrink-fade {:src "/images/ic-service-center.png"}]]
         [:div.text "Decentralized dispute resolution, anyone can become an arbiter."]]]
 
       [:div.box-separator "+"]
@@ -158,11 +158,11 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img {:src "./images/icon-decentralised.png"}]
-         [:img.ic-circle.ic-circle-1.animation-move-about {:src "./images/svg/circle.svg"}]
-         [:img.ic-circle.ic-circle-2.animation-move-about {:src "./images/svg/circle.svg"}]
-         [:img.ic-circle.ic-circle-3.animation-move-about {:src "./images/svg/circle.svg"}]
-         [:img.ic-circle.ic-circle-4.animation-move-about {:src "./images/svg/circle.svg"}]]
+         [:img {:src "/images/icon-decentralised.png"}]
+         [:img.ic-circle.ic-circle-1.animation-move-about {:src "/images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-2.animation-move-about {:src "/images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-3.animation-move-about {:src "/images/svg/circle.svg"}]
+         [:img.ic-circle.ic-circle-4.animation-move-about {:src "/images/svg/circle.svg"}]]
         [:div.text "Fully decentralized on blockchain."]]]
 
       [:div.box-separator "+"]
@@ -170,8 +170,8 @@
       [:div.box-ball
        [:div.vertical-box
         [:figure
-         [:img.ic-free-ring.animation-ring-rotate {:src "./images/svg/ring.svg"}]
-         [:img.ic-free.animation-tag-rotate {:src "./images/ic-free.png"}]]
+         [:img.ic-free-ring.animation-ring-rotate {:src "/images/svg/ring.svg"}]
+         [:img.ic-free.animation-tag-rotate {:src "/images/ic-free.png"}]]
         [:div.text "No restrictions and free membership."]]]]]
     
     [:div.created
@@ -180,7 +180,7 @@
      [:div.flex-box-listing
       [:div.horizontal-box
        [:figure
-        [:img {:src "./images/take-no-cut.png"}]]
+        [:img {:src "/images/take-no-cut.png"}]]
        [:div.text
         [:h3 "We take no cut"]
         [:p "Ethlance doesn't take a percentage of your earned
@@ -189,7 +189,7 @@
 
       [:div.horizontal-box
        [:figure
-        [:img {:src "./images/blockchain.png"}]]
+        [:img {:src "/images/blockchain.png"}]]
        [:div.text
         [:h3 "It's all on blockchain"]
         [:p "The Ethlance database is distributed on the Ethereum
@@ -199,7 +199,7 @@
 
       [:div.horizontal-box
        [:figure
-        [:img {:src "./images/costs.png"}]]
+        [:img {:src "/images/costs.png"}]]
        [:div.text
         [:h3 "No artificial costs or restrictions"]
         [:p "Everybody can apply for, or create, an unlimited number
@@ -208,7 +208,7 @@
 
       [:div.horizontal-box
        [:figure
-        [:img {:src "./images/network.png"}]]
+        [:img {:src "/images/network.png"}]]
        [:div.text
         [:h3 "Part of the district0x Network"]
         [:p "Ethlance is the first district on the "
@@ -236,7 +236,7 @@
        [:span.form-button [c-icon {:name :ic-arrow-right :size :small :color :black}]]]]
 
      [:div.splash-section
-      [:img {:src "./images/icon-coins.png"}]]
+      [:img {:src "/images/icon-coins.png"}]]
 
      [:div.links-section
       [:div.listing

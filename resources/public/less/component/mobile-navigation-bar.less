@@ -55,10 +55,6 @@
         padding: 1.5em 0.5em;
         @border-attr: 2px solid desaturate(#color[dark-blue], 10%);
         border-top: @border-attr;
-        
-        &:last-child {
-          border-bottom: @border-attr;
-        }
 
         > .ethlance-icon {
           display: flex;
@@ -74,6 +70,20 @@
           font-size: 1.2em;
           font-weight: 100;
           padding-left: 2em;
+        }
+
+        &:last-child {
+          border-bottom: @border-attr;
+        }
+
+        &.active {
+          > .label {
+            color: lighten(#color[gray], 10%);
+          }
+
+          > .ethlance-icon {
+            background-color: darken(#color[dark-purple], 10%);
+          }
         }
       }
     }

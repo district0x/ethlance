@@ -44,16 +44,18 @@
 (defn c-chip
   [{:keys [on-close]} label]
   [:div.ethlance-chip
+   {:title label}
    [:span.label label]
    [:span.close-button
-    {:on-click on-close}
-    [c-icon {:name :close :size :x-small :color :black}]]])
+    {:on-click on-close
+     :title (str "Remove '" label "'")}
+    [c-icon {:name :close :size :x-small :color :black :inline? false}]]])
 
 
 (defn c-chip-search-input
   "A standalone component for handling chip search inputs.
 
-  # Keywoard Arguments
+  # Keyword Arguments
 
   opts - Optional Arguments
 
@@ -78,19 +80,29 @@
   the component. [default: true].
 
   :placeholder - Input Placeholder text to display in the chip search
-  component."
-  [{:keys [default-chip-listing
+  component. [default: 'Search Tags']
+
+  :display-listing-on-focus? - If true, the listing of search results
+  will show upon focusing the main input."
+  [{:keys [*chip-listing
+           default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
            allow-custom-chips?
            search-icon?
-           placeholder]
-    :or {search-icon? true
+           placeholder
+           display-listing-on-focus?]
+    :or {*chip-listing (r/atom #{})
+         search-icon? true
          placeholder "Search Tags"}
     :as opts}]
   (let [*active-suggestion (r/atom nil)
-        *chip-listing (r/atom (or (set default-chip-listing) #{}))
-        *search-text (r/atom "")]
+        *search-text (r/atom "")
+        *input-focused? (r/atom false)]
+
+    (when default-chip-listing
+      (reset! *chip-listing (set default-chip-listing)))
+
     (r/create-class
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
@@ -110,8 +122,20 @@
               js/window
               (fn []
                 (reset! *active-suggestion nil)
-                (reset! *search-text ""))
+                (reset! *search-text "")
+                (reset! *input-focused? false))
               blur-delay-ms))
+           true)
+          
+          ;; Keep track of when the input is focused
+          (.addEventListener
+           search-input "focus"
+           (fn []
+             (.setTimeout 
+              js/window
+              (fn []
+                (reset! *input-focused? true))
+              0))
            true)))
       
 
@@ -175,21 +199,22 @@
                     (reset! *search-text ""))
                   
                   nil)))
-            :placeholder placeholder}]]
+            :placeholder (when (empty? @*chip-listing) placeholder)}]]
 
          (when search-icon?
-           [:div.search-button [c-icon {:name :search :size :normal}]])
+           [:div.search-button [c-icon {:name :search :size :normal :inline? false}]])
 
-         (when-let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
-           [:div.dropdown
-            [:div.suggestion-listing
-             (doall
-              (for [suggestion suggestions]
-                ^{:key (str "suggestion-" suggestion)}
-                [:div.suggestion
-                 {:class (when (= @*active-suggestion suggestion) "active")
-                  :on-click (fn []
-                              (swap! *chip-listing conj suggestion)
-                              (reset! *search-text "")
-                              (reset! *active-suggestion nil))}
-                 suggestion]))]])])})))
+         (let [suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
+           (when (or (not (empty? @*search-text)) (and display-listing-on-focus? @*input-focused?))
+             [:div.dropdown
+              [:div.suggestion-listing
+               (doall
+                (for [suggestion suggestions]
+                  ^{:key (str "suggestion-" suggestion)}
+                  [:div.suggestion
+                   {:class (when (= @*active-suggestion suggestion) "active")
+                    :on-click (fn []
+                                (swap! *chip-listing conj suggestion)
+                                (reset! *search-text "")
+                                (reset! *active-suggestion nil))}
+                   suggestion]))]]))])})))

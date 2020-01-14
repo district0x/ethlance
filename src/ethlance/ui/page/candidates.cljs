@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.candidates
   "General Candidate Listings on ethlance"
   (:require
+   [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
@@ -18,6 +19,12 @@
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+
+
+;;
+;; Page State
+;;
+(def *search-input-listing (r/atom #{}))
 
 
 (defn c-candidate-search-filter []
@@ -94,10 +101,12 @@
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
    [:div.price "$15 / Fixed Price"]
    [:div.tags
-    [c-tag {} [c-tag-label "System Administration"]]
-    [c-tag {} [c-tag-label "Game Design"]]
-    [c-tag {} [c-tag-label "C++ Programming"]]
-    [c-tag {} [c-tag-label "HopScotch Master"]]]
+    (doall
+     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+       ^{:key (str "tag-" tag-label)}
+       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
+               :title (str "Add '" tag-label "' to Search")}
+        [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating 3}]
     [:div.label "(4)"]]
@@ -119,5 +128,10 @@
        [c-candidate-search-filter]
        [c-candidate-mobile-search-filter]
        [:div.candidate-listing.listing {:key "listing"}
-        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+        [:div.search-container
+         [c-chip-search-input
+          {:*chip-listing *search-input-listing
+           :placeholder "Search Candidate Skills"
+           :allow-custom-chips? false
+           :auto-suggestion-listing constants/skills}]]
         [c-candidate-listing]]])))

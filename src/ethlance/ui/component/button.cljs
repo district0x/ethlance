@@ -33,18 +33,18 @@
         :or {color :primary disabled? false active? false size :normal}}
        & children]
     (let [props (dissoc props :disabled? :active? :color :size)]
-      [:a.button
-       (merge
-        {:class [(when (= color :secondary) " secondary ")
-                 (when disabled? " disabled ")
-                 (when active? " active ")
-                 (condp = size
-                   :small " small "
-                   :normal " "
-                   :large " large "
-                   :auto " auto ")]}
-        props)
-       children])))
+      (into [:a.button
+             (merge
+              {:class [(when (= color :secondary) " secondary ")
+                       (when disabled? " disabled ")
+                       (when active? " active ")
+                       (condp = size
+                         :small " small "
+                         :normal " "
+                         :large " large "
+                         :auto " auto ")]}
+              props)]
+            children))))
 
 
 (defn c-button-label
@@ -62,7 +62,7 @@
   "
   []
   (fn [props & children]
-    [:div.button-label props children]))
+    (into [:div.button-label props] children)))
 
 
 (defn c-button-icon-label
@@ -78,12 +78,16 @@
 
    :label-test - Label represented as a string.
 
+   :inline? - Passes on the icon inline property [default: true]
+
    # Notes
 
    - The list of icons can be found in the ethlance.ui.component.icon namespace."
   []
-  (fn [{:keys [icon-name label-text] :as opts}]
+  (fn [{:keys [icon-name label-text inline?]
+        :or {inline? true}
+        :as opts}]
     [:div.button-icon-label
      [:div.icon
-      [c-icon {:name icon-name}]]
+      [c-icon {:name icon-name :inline? inline? :color :white}]]
      [:span.label label-text]]))

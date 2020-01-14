@@ -99,6 +99,39 @@
         padding: 1em 0;
       }
     }
+
+    > .form-for-hire {
+      margin-top: 1em;
+    }
+
+    > .forms-of-payment {
+      margin-top: 1em;
+      > .ethlance-radio-select {
+        > .ethlance-radio-element {
+          margin-left: 0;
+        }
+      }
+
+      > .token-address-input {
+        display: flex;
+        margin-top: 1em;
+        > .input {
+          display: flex;
+          flex-direction: row;
+          flex-grow: 1;
+          align-items: center;
+
+          > .ethlance-text-input {
+            flex-grow: 1;
+            padding: 0.5em 0;
+          }
+          > .token-label {
+            flex-grow: 0;
+            padding: 0.5em 0;
+          }
+        }
+      }
+    }
   }
 
   > .arbiters {
@@ -162,5 +195,10 @@
     border-radius: 0;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+
+    > .label {
+      font-weight: 700;
+      padding-right: 0.5em;
+    }
   }
 }

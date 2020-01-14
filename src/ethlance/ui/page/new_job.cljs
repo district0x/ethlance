@@ -8,20 +8,22 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
+   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
+   [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+   [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element c-radio-secondary-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.table :refer [c-table]]
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
 
 
@@ -39,6 +41,7 @@
 
 (defmethod page :route.job/new []
   (let [*job-type (r/atom :job)
+        *with-token? (r/atom false)
         *with-arbiter? (r/atom true)]
     (fn []
       (let [is-bounty? (= @*job-type :bounty)]
@@ -57,7 +60,7 @@
           [:div.category-input
            [c-select-input
             {:label "Category"
-             :selections ["All Categories" "Programming"]}]]
+             :selections (sort constants/categories)}]]
           (when-not is-bounty?
             [:div.bid-for-radio-input.radio
              [:div.label "Candidates Should Bid For"]
@@ -117,7 +120,34 @@
           [:div.description-text.chip
            [:div.label "Description"]
            [c-textarea-input
-            {:placeholder "Enter Description"}]]]
+            {:placeholder "Enter Description"}]]
+          
+          [:div.form-for-hire.chip
+           [c-labeled-checkbox
+            {:label "I'm available for hire"
+             :on-change #(println (if % "Checked!" "Unchecked!"))}]]
+          
+          [:div.forms-of-payment.chip
+           [:div.label "Forms of Payment"]
+           
+           [c-radio-select
+            {:default-selection :ethereum
+             :on-selection
+             (fn [selection]
+               (case selection
+                 :ethereum (reset! *with-token? false)
+                 :erc20 (reset! *with-token? true)
+                 (reset! *with-token? false)))}
+            [:ethereum [c-radio-secondary-element "Ether"]]
+            [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
+           
+           (when @*with-token?
+             [:div.token-address-input
+              [:div.input
+               [c-text-input {:placeholder "Token Address"}]
+               [:div.token-label "SNT"]]
+              ;; TODO: retrieve token logo
+              [:div.token-logo]])]]
 
          (when @*with-arbiter?
            [:div.arbiters
@@ -127,4 +157,5 @@
 
          [:div.button
           {:on-click (fn [e])}
-          [:div.label "Create"]]]))))
+          [:div.label "Create"]
+          [c-icon {:name :ic-arrow-right :size :small}]]]))))

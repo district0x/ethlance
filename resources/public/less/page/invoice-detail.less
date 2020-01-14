@@ -4,21 +4,23 @@
   #mixin.paper-1();
   display: grid;
   grid-template-areas:
-    'title  status'
-      'left   right'
-      'button button';
+    'title     status'
+    'sub-title status'
+    'left      right'
+    'button    button';
   grid-template-columns: 3fr 4fr;
-  grid-template-rows: auto auto 40px;
+  grid-template-rows: auto auto auto 40px;
   grid-column-gap: 6em;
 
   @media #media[tablet-query] {
     grid-template-areas:
-      'title status'
-      'left  left'
-      'right right'
-      'button button';
+      'title     status'
+      'sub-title status'
+      'left      left'
+      'right     right'
+      'button    button';
     grid-template-columns: auto;
-    grid-template-rows: repeat(4, auto) 40px;
+    grid-template-rows: repeat(5, auto) 40px;
     margin-bottom: 4em;
   }
 
@@ -28,6 +30,20 @@
     font-weight: 500;
     padding: 0.5em 1.2em;
     padding-top: 1em;
+  }
+
+  > .sub-title {
+    grid-area: sub-title;
+    display: flex;
+    font-weight: 300;
+    text-decoration: underline;
+    padding: 0.5em 2.7em;
+
+    @media #media[tablet-query] {
+      font-size: 1.5em;
+      justify-content: center;
+      text-align: center;
+    }
   }
 
   > .invoice-status {
@@ -84,7 +100,7 @@
         grid-area: label;
         font-size: 1.2em;
         font-weight: 600;
-        border-bottom: 1px solid grey;
+        border-bottom: 1px solid fade(#color[dark-blue], 20%);
         padding: 0.5em 0;
         margin: 1em 0;
       }

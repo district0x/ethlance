@@ -5,28 +5,31 @@
 
 @keyframes fade-in {
   from {
-    opacity: 1.0;
+    opacity: 0.0;
   }
 
   to {
-    opacity: 0.0;
+    opacity: 1.0;
   }
 }
 
 
 .animation-fade-in {
+  animation-fill-mode: forward;
   animation-name: fade-in;
   animation-duration: 0.5s;
 }
 
 
 .animation-fade-in-fast {
+  animation-fill-mode: forward;
   animation-name: fade-in;
   animation-duration: 0.3s;
 }
 
 
 .animation-fade-in-slow {
+  animation-fill-mode: forward;
   animation-name: fade-in;
   animation-duration: 1.0s;
 }

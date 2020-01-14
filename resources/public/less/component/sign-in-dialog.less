@@ -1,0 +1,56 @@
+/// sign-in-dialog.less - Sign In Dialog Styling
+
+
+.ethlance-modal > .sign-in-dialog {
+  position: relative;
+  @dimension-attr: 80vh;
+  #mixin.paper-1();
+  height: @dimension-attr;
+  width: @dimension-attr / 1.6;
+  text-align: center;
+  line-height: 1.2em;
+
+  > .close-button {
+    position: absolute;
+    top: 1.5em;
+    right: 1.5em;
+    cursor: pointer;
+  }
+
+  > img {
+    margin-top: 1em;
+    padding: 4em;
+    padding-bottom: 0;
+  }
+
+  > h1 {
+    font-weight: 600;
+    font-size: 1.8em;
+    padding: 0.5em 0;
+    padding-bottom: 0.7em;
+  }
+
+  > p {
+    font-size: 1.0em;
+    padding: 0.5em 4em;
+    line-height: 1.2em;
+  }
+
+  > p + p {
+    padding-bottom: 2em;
+  }
+
+  > .button-listing {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1em;
+
+    > .button > .button-label {
+      span {
+        font-weight: 700;
+        font-size: 1.2em;
+      }
+    }
+  }
+}

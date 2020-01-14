@@ -7,18 +7,19 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
+   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.scrollable :refer [c-scrollable]]
    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.table :refer [c-table]]
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]))
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
 
 
 (defn c-candidate-profile []
@@ -51,7 +52,7 @@
       [:span "Skills"]
       [c-tag {} [c-tag-label "Javascript Programming"]]
       [c-tag {} [c-tag-label "HTML / CSS"]]]]
-      
+    
     [:div.button-listing
      [c-button
       {:size :normal}
@@ -62,28 +63,29 @@
 
    [:div.job-listing
     [:div.title "Job Activity"]
+    [c-scrollable
+     {:forceVisible true :autoHide false}
+     [c-table
+      {:headers ["Title" "Hired" "Created" "Status"]}
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-    [c-table
-     {:headers ["Title" "Hired" "Created" "Status"]}
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
-
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]]]
 
     [:div.button-listing
      [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
@@ -133,7 +135,7 @@
       [:span "Skills"]
       [c-tag {} [c-tag-label "Javascript Programming"]]
       [c-tag {} [c-tag-label "HTML / CSS"]]]]
-      
+    
     [:div.button-listing
      [c-button
       {:size :normal}
@@ -144,28 +146,29 @@
 
    [:div.job-listing
     [:div.title "Job Activity"]
+    [c-scrollable
+     {:forceVisible true :autoHide false}
+     [c-table
+      {:headers ["Title" "Hired" "Created" "Status"]}
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-    [c-table
-     {:headers ["Title" "Hired" "Created" "Status"]}
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
-
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]]]
 
     [:div.button-listing
      [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
@@ -214,7 +217,7 @@
       [:span "Skills"]
       [c-tag {} [c-tag-label "Javascript Programming"]]
       [c-tag {} [c-tag-label "HTML / CSS"]]]]
-      
+    
     [:div.button-listing
      [c-button
       {:size :normal}
@@ -225,28 +228,29 @@
 
    [:div.job-listing
     [:div.title "Job Activity"]
+    [c-scrollable
+     {:forceVisible true :autoHide false}
+     [c-table
+      {:headers ["Title" "Hired" "Created" "Status"]}
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-    [c-table
-     {:headers ["Title" "Hired" "Created" "Status"]}
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]
 
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]
-
-     [[:span "Cryptoeconomics Research Intern"]
-      [:span "1"]
-      [:span "5 Days Ago"]
-      [:span "Hiring"]]]
+      [[:span "Cryptoeconomics Research Intern"]
+       [:span "1"]
+       [:span "5 Days Ago"]
+       [:span "Hiring"]]]]
 
     [:div.button-listing
      [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]

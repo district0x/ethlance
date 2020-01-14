@@ -1,6 +1,8 @@
 (ns ethlance.ui.component.mobile-navigation-bar
   (:require
    [reagent.core :as r]
+   [re-frame.core :as re]
+   [district.ui.router.subs :as ui.router.subs]
 
    ;; Ethlance Components
    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
@@ -12,13 +14,17 @@
 
 
 (defn- c-menu-item
-  [{:keys [name label route active?]}]
-  [:a.nav-element
-   {:title label
-    :href (util.navigation/resolve-route {:route route})
-    :on-click (util.navigation/create-handler {:route route})}
-   [c-icon {:name name :color :primary :size :small}]
-   [:span.label label]])
+  [{:keys [name label route]}]
+  (fn []
+    (let [*active-page (re/subscribe [::ui.router.subs/active-page])
+          {active-route-name :name} @*active-page]
+      [:a.nav-element
+       {:title label
+        :class (when (= route active-route-name) "active")
+        :href (util.navigation/resolve-route {:route route})
+        :on-click (util.navigation/create-handler {:route route})}
+       [c-icon {:name name :color :primary :size :small}]
+       [:span.label label]])))
 
 
 (defn c-mobile-navigation-menu []

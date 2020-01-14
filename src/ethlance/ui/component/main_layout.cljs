@@ -7,7 +7,8 @@
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.main-navigation-bar :refer [c-main-navigation-bar]]
    [ethlance.ui.component.main-navigation-menu :refer [c-main-navigation-menu]]
-   [ethlance.ui.component.mobile-navigation-bar :refer [c-mobile-navigation-bar]]))
+   [ethlance.ui.component.mobile-navigation-bar :refer [c-mobile-navigation-bar]]
+   [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog]]))
 
 
 (defn c-main-layout
@@ -25,12 +26,13 @@
   [{:keys [container-opts] :as opts}
    & children]
   (let [opts (dissoc opts :container-opts)]
-    [:div.main-layout opts
+    [:div.main-layout
+     opts
      [c-main-navigation-bar]
      [c-mobile-navigation-bar]
      [:div.main-margin
       [c-main-navigation-menu]
-      [:div.main-container container-opts children]]
+      (into [:div.main-container container-opts] children)]
      [:div.footer
       [:div.copyright
        [:span "Copyright © 2019 Ethlance.com"]
@@ -44,4 +46,7 @@
        [c-circle-icon-button {:name :github :title "District0x Github"
                               :size :small :href "https://github.com/district0x"}]
        [c-circle-icon-button {:name :slack :title "District0x Slack"
-                              :size :small :href "https://district0x-slack.herokuapp.com/"}]]]]))
+                              :size :small :href "https://district0x-slack.herokuapp.com/"}]]]
+
+     [:div.modals
+      [c-sign-in-dialog]]]))

@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.arbiters
   "General Arbiter Listings on ethlance"
   (:require
+   [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
@@ -21,6 +22,12 @@
    [ethlance.ui.component.profile-image :refer [c-profile-image]]))
 
 
+;;
+;; Page State
+;;
+(def *search-input-listing (r/atom #{}))
+
+
 (defn c-arbiter-search-filter []
   [:div.search-filter
    [:div.category-selector
@@ -37,9 +44,12 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [c-currency-input {:placeholder "Min. Hourly Rate"}]
-   [c-currency-input {:placeholder "Max. Hourly Rate"}]
-   [c-text-input {:placeholder "Number of Feedbacks"}]
+   [c-currency-input {:placeholder "Min. Hourly Rate" :color :secondary}]
+   [c-currency-input {:placeholder "Max. Hourly Rate" :color :secondary}]
+   [:div.feedback-input
+    [c-text-input
+     {:placeholder "Number of Feedbacks"
+      :color :secondary}]]
 
    [:div.country-selector
     [c-select-input
@@ -67,9 +77,12 @@
    [c-rating {:rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
-   [c-currency-input {:placeholder "Min. Hourly Rate"}]
-   [c-currency-input {:placeholder "Max. Hourly Rate"}]
-   [c-text-input {:placeholder "Number of Feedbacks"}]
+   [c-currency-input {:placeholder "Min. Hourly Rate" :color :secondary}]
+   [c-currency-input {:placeholder "Max. Hourly Rate" :color :secondary}]
+   [:div.feedback-input
+    [c-text-input
+     {:placeholder "Number of Feedbacks"
+      :color :secondary}]]
 
    [:div.country-selector
     [c-select-input
@@ -89,10 +102,12 @@
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
    [:div.price "$15"]
    [:div.tags
-    [c-tag {} [c-tag-label "System Administration"]]
-    [c-tag {} [c-tag-label "Game Design"]]
-    [c-tag {} [c-tag-label "C++ Programming"]]
-    [c-tag {} [c-tag-label "HopScotch Master"]]]
+    (doall
+     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+       ^{:key (str "tag-" tag-label)}
+       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
+               :title (str "Add '" tag-label "' to Search")}
+        [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating 3}]
     [:div.label "(4)"]]
@@ -114,8 +129,10 @@
        [c-arbiter-search-filter]
        [c-arbiter-mobile-search-filter]
        [:div.arbiter-listing.listing {:key "listing"}
-        [c-chip-search-input
-         {:auto-suggestion-listing constants/skills
-          :allow-custom-chips? false
-          :placeholder "Search Tags"}]
+        [:div.search-container
+         [c-chip-search-input
+          {:*chip-listing *search-input-listing
+           :auto-suggestion-listing constants/skills
+           :allow-custom-chips? false
+           :placeholder "Search Arbiter Skills"}]]
         [c-arbiter-listing]]])))

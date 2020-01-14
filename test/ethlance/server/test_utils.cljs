@@ -120,4 +120,5 @@
         #'district.server.web3/web3
         #'district.server.smart-contracts/smart-contracts])
       mount/start)
-  (go (<! (prepare-testnet!))))
+  ;; commenting this out for now, we don't have snapshoting system in new cljs-web3-next
+  (go true #_(<! (prepare-testnet!))))

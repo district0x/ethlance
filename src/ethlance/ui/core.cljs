@@ -1,7 +1,7 @@
 (ns ethlance.ui.core
   (:require
    [mount.core :as mount :refer [defstate]]
-   [re-frame.core :as rf]
+   [re-frame.core :as re]
    [taoensso.timbre :as log]
 
    ;; District UI Components
@@ -14,13 +14,9 @@
    [ethlance.ui.config :as ui.config]
    [ethlance.ui.pages]
    [ethlance.ui.util.injection :as util.injection]
-
-   ;; Events
-   [ui.ethlance.ui.events]
-
-   ;; Fxs
-   [ui.ethlance.ui.fxs]
-   ))
+   [ethlance.ui.events]
+   [ethlance.ui.effects]
+   [ethlance.ui.subscriptions]))
 
 
 (enable-console-print!)

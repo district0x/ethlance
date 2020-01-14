@@ -88,7 +88,7 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
    {:label "Leave Feedback"}
    [:div.feedback-input-container
     [:div.rating-input
-     [c-rating {:rating 3}] [:span "(3)"]]
+     [c-rating {:rating 3 :on-change (fn [rating])}]]
     [:div.label "Feedback"]
     [c-textarea-input {:placeholder ""}]
     [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]

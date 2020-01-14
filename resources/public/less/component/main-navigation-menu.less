@@ -2,27 +2,55 @@
 
 
 .main-navigation-menu {
+  @transition-attr: background-color 0.7s;
+
+  display: flex;
+  flex-direction: column;
+  margin: 1em 1em;
+  transition: @transition-attr;
+
+  > .nav-element {
     display: flex;
-    flex-direction: column;
-    margin: 1em 1em;
+    flex-direction: row;
+    align-items: center;
+    transition: @transition-attr;
 
-    > .nav-element {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-
-        > .ethlance-icon {
-            border-radius: 100%;
-            padding: 0.5em;
-            margin: 0.7em;
-            background-color: #color[purple];
-        }
-
-        > .label {
-            font-weight: 500;
-            font-size: 1.2em;
-        }
-
+    > .ethlance-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 100%;
+      padding: 0.5em;
+      margin: 0.7em;
+      background-color: #color[purple];
+      transition: @transition-attr;
+      width: 35px;
+      height: 35px;
     }
-    
+
+    > .label {
+      font-weight: 500;
+      font-size: 1.2em;
+    }
+
+    &.active {
+      > .label {
+        color: black;
+      }
+
+      > .ethlance-icon {
+        background-color: darken(#color[dark-purple], 10%);
+      }
+    }
+
+    &:hover {
+      > .label {
+        text-decoration: underline;
+      }
+
+      > .ethlance-icon {
+        background-color: #color[dark-purple];
+      }
+    }
+  }
 }

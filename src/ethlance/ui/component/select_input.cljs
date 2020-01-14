@@ -58,14 +58,12 @@
         *search-text (r/atom "")
         color (or color :primary)
         color-class (case color
-                      :primary " primary "
-                      :secondary " secondary ")
-        icon-color (case color
-                     :primary :dark-blue
-                     :secondary :white)
+                      :primary "primary"
+                      :secondary "secondary")
+        icon-color color
         size (or size :default)
         size-class (case size
-                     :large " large "
+                     :large "large"
                      :default nil)]
     (fn [{:keys [label selections on-select default-selection color] :as opts}]
       (let [opts (dissoc opts
@@ -81,7 +79,8 @@
           [c-icon {:class "icon"
                    :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
-                   :size :small}]]
+                   :inline? false
+                   :size :smaller}]]
          (when @*open?
            [:div.dropdown
             (when search-bar?
@@ -93,7 +92,12 @@
                [c-icon {:name :close
                         :size :x-small
                         :title "Clear Search"
-                        :on-click #(reset! *search-text "")}]])
+                        :on-click #(reset! *search-text "")
+                        :color (case color
+                                 :primary :black
+                                 :secondary :white
+                                 :black)
+                        :inline? false}]])
             [:div.selection-listing
              (doall
               (for [selection (filter-selections @*search-text selections)]

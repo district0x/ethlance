@@ -27,7 +27,7 @@
 (defn- c-upload-image []
   []
   [:div.upload-image
-   [c-icon {:name :ic-upload :color :dark-blue}]
+   [c-icon {:name :ic-upload :color :dark-blue :inline? false}]
    [:span "Upload Image"]])
 
 
@@ -45,7 +45,7 @@
      [:div.form-professional-title
       [c-text-input {:placeholder "Professional Title"}]]
      [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Hourly Rate in US Dollars" :color :secondary}]]
+      [c-currency-input {:placeholder "Hourly Rate" :color :primary}]]
      [:div.form-country
       [c-select-input
        {:label "Select Country"
@@ -55,11 +55,11 @@
      [:div.form-connect-github
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
      [:div.form-connect-linkedin
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
      [c-chip-search-input
@@ -70,10 +70,18 @@
        :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
      
      [:div.label [:h2 "Categories You Are Interested In"]]
-     [c-chip-search-input {:search-icon? false :placeholder ""}]
+     [c-chip-search-input
+      {:search-icon? false
+       :placeholder ""
+       :auto-suggestion-listing (sort constants/categories)
+       :allow-custom-chips? false
+       :display-listing-on-focus? true}]
 
      [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-     [c-chip-search-input {:search-icon? false :placeholder ""}]
+     [c-chip-search-input
+      {:search-icon? false
+       :placeholder ""
+       :auto-suggestion-listing constants/skills}]
 
      [:div.label [:h2 "Your Biography"]]
      [c-textarea-input {:placeholder ""}]
@@ -107,11 +115,11 @@
      [:div.form-connect-github
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
      [:div.form-connect-linkedin
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]
@@ -148,15 +156,15 @@
         :search-bar? true
         :default-search-text "Search Countries"}]]
      [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Fixed Rate Per A Dispute" :color :secondary}]]
+      [c-currency-input {:placeholder "Fixed Rate Per A Dispute" :color :primary}]]
      [:div.form-connect-github
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github"}]]]
+       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
      [:div.form-connect-linkedin
       [c-button
        {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn"}]]]]
+       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
     [:div.second-forms
      [:div.label [:h2 "Languages You Speak"]]

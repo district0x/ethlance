@@ -41,7 +41,9 @@
     grid-template-columns: @sidebar-width 3fr;
     margin: auto;
     margin-top: 0;
-    width: #media[max-width];
+    min-width: #media[desktop-width] + 200px;
+    width: 100%;
+    max-width: #media[max-width];
 
     @media #media[desktop-query] {
       grid-template-areas: 'main-container';

@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.jobs
   "General Job Listings on ethlance"
   (:require
+   [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
@@ -20,12 +21,19 @@
    [ethlance.ui.component.text-input :refer [c-text-input]]))
 
 
+;;
+;; Page State
+;;
+(def *search-input-listing (r/atom #{}))
+
+
 (defn c-user-employer-detail
   [{:keys [] :as user}]
   [:div.user-detail.employer
    [:div.name "Brian Curran"]
-   [c-rating {:size :small :color :primary :rating 3}]
-   [:div.rating-label "(6)"]
+   [:div.rating-container
+    [c-rating {:size :small :color :primary :rating 3}]
+    [:div.rating-label "(6)"]]
    [:div.location "United States, New York"]])
 
    
@@ -34,8 +42,9 @@
   [:div.user-detail.arbiter
    [c-inline-svg {:class "arbiter-icon" :src "images/svg/hammer.svg"}]
    [:div.name "Brian Curran"]
-   [c-rating {:size :small :color :primary :rating 3}]
-   [:div.rating-label "(6)"]
+   [:div.rating-container
+    [c-rating {:size :small :color :primary :rating 3}]
+    [:div.rating-label "(6)"]]
    [:div.location "United States, New York"]])
 
 
@@ -59,8 +68,6 @@
   "Sidebar component for changing the search criteria."
   []
   [:div.job-search-filter.search-filter
-   {:key "search-filter"}
-   
    [:div.category-selector
     [c-select-input
      {:label "All Categories"
@@ -79,11 +86,13 @@
    [c-currency-input
     {:placeholder "Min. Hourly Rate"
      :currency-type ::enum.currency/usd
+     :color :secondary
      :on-change #(println "Currency Min Change: " %)}]
    
    [c-currency-input
     {:placeholder "Max. Hourly Rate"
      :currency-type ::enum.currency/usd
+     :color :secondary
      :on-change #(println "Currency Max Change: " %)}]
 
    [:div.feedback-input
@@ -182,10 +191,12 @@
    tincidunt vestibulum ante elementum pellentesque."]
    [:div.date "Posted 1 day ago | 5 Proposals"]
    [:div.tags
-    [c-tag {} [c-tag-label "System Administration"]]
-    [c-tag {} [c-tag-label "Game Design"]]
-    [c-tag {} [c-tag-label "C++ Programming"]]
-    [c-tag {} [c-tag-label "HopScotch Master"]]]
+    (doall
+     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+       ^{:key (str "tag-" tag-label)}
+       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
+               :title (str "Add '" tag-label "' to Search")}
+        [c-tag-label tag-label]]))]
 
    [:div.users
     [c-user-employer-detail {}]
@@ -210,6 +221,11 @@
        [c-job-search-filter]
        [c-job-mobile-search-filter]
        [:div.job-listing.listing {:key "listing"}
-        [c-chip-search-input {:default-chip-listing #{"C++" "Python"}}]
+        [:div.search-container
+         [c-chip-search-input 
+          {:*chip-listing *search-input-listing
+           :placeholder "Search Job Skill Requirements"
+           :allow-custom-chips? false
+           :auto-suggestion-listing constants/skills}]]
         [c-job-listing]]])))
 

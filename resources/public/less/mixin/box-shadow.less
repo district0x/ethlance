@@ -1,0 +1,20 @@
+/// box-shadow.less - Main Styling for box shadows within ethlance.
+
+#mixin() {
+  .box-shadow.main {
+    @color-attr: fade(#color[dark-blue], 5%);
+    box-shadow: 0 0 2rem 0.5rem @color-attr;
+    -webkit-box-shadow: 0 0 2rem 0.5rem @color-attr;
+  }
+  
+  .box-shadow.item-inset {
+    @color-attr: fade(#color[purple], 5%);
+    box-shadow: 0px 20px 1rem 0.25rem @color-attr inset;
+    -webkit-box-shadow: 0px 20px 1rem 0.25rem @color-attr inset;
+  }
+
+  .box-shadow.none {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+  }
+}

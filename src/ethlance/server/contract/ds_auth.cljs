@@ -1,7 +1,7 @@
 (ns ethlance.server.contract.ds-auth
   "Functions for manipulating a DSAuth contract."
   (:require
-   [cljs-web3.eth :as web3-eth]
+   [cljs-web3-next.eth :as web3-eth]
    [district.server.smart-contracts :as contracts]
    [ethlance.server.contract :refer [call]]))
 
@@ -20,7 +20,7 @@
   `contract-key`.
 
   Keyword Arguments:
-  
+
   new-owner - The address of the new owner
 
   Optional Arguments (opts)
@@ -30,7 +30,7 @@
   [contract-key new-owner & [opts]]
   (call
    :contract-key contract-key
-   :method-name :set-owner 
+   :method-name :set-owner
    :contract-options (merge {:gas 100000} opts)))
 
 
@@ -38,7 +38,7 @@
   "Get the authority address from the DSAuth contract defined by
   `contract-key`."
   [contract-key]
-  (call 
+  (call
    :contract-key contract-key
    :method-name :authority))
 
@@ -48,8 +48,8 @@
   `new-authority` to the DSAuth defined by the smart-contract key
   `contract-key`."
   [contract-key new-authority & [opts]]
-  (call 
-   :contract-key contract-key 
+  (call
+   :contract-key contract-key
    :method-name :set-authority
    :contract-arguments [new-authority]
    :contract-options (merge {:gas 100000} opts)))

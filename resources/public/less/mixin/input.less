@@ -1,19 +1,87 @@
 /// input.less -- general styling between input elements
 
+// Placeholder Styling for Primary Palette (light)
+#placeholder-light-style() {
+  font-weight: 400;
+  opacity: 0.8;
+  color: #color[dark-blue];
+}
+
+#placeholder-light-palette() {
+  &::-webkit-input-placeholder {
+    #placeholder-light-style();
+  }
+
+  &::-moz-placeholder {
+    #placeholder-light-style();
+  }
+
+  &::-ms-input-placeholder {
+    #placeholder-light-style();
+  }
+
+  &::placeholder {
+    #placeholder-light-style();
+  }
+}
+
+
+// Placeholder Styling for Secondary Palette (dark)
+#placeholder-dark-style() {
+  font-weight: 400;
+  opacity: 0.7;
+  color: white;
+}
+
+#placeholder-dark-palette() {
+  &::-webkit-input-placeholder {
+    #placeholder-dark-style();
+  }
+
+  &::-moz-placeholder {
+    #placeholder-dark-style();
+  }
+
+  &::-ms-input-placeholder {
+    #placeholder-dark-style();
+  }
+
+  &::placeholder {
+    #placeholder-dark-style();
+  }
+}
+
+
 #mixin() {
   .input.text {
+    #placeholder-light-palette();
     outline: none;
     border: none;
     color: #color[dark-blue];
     border-bottom: 1px solid #d6e1fd;
-
-    &::placeholder {
-      font-weight: 400;
-      opacity: 0.7;
-    }
     
     &.secondary {
+      #placeholder-dark-palette();
       color: white;
     }
+  }
+
+  // Primary styling for input field (light palette)
+  .input.text.primary {
+    #placeholder-light-palette();
+    outline: none;
+    border: none;
+    color: #color[dark-blue];
+    border-bottom: 1px solid #d6e1fd;
+  }
+
+  // Secondary styling for input field (dark palette)
+  .input.text.secondary {
+    #placeholder-dark-palette();
+    outline: none;
+    border: none;
+    color: white;
+    border-bottom: 1px solid #d6e1fd;
+    background-color: transparent;
   }
 }
