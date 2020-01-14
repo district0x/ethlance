@@ -6,7 +6,7 @@
                  ;; General
                  [akiroz.re-frame/storage "0.1.4"]
                  [camel-snake-kebab "0.4.0"]
-                 [cljs-web3 "0.19.0-0-11"]
+                 [cljs-web3-next "0.1.1"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
@@ -17,7 +17,7 @@
                  [com.taoensso/encore "2.116.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/bignumber "1.0.3"]
-                 [district0x/cljs-solidity-sha3 "1.0.0"]
+                 [cljsjs/bignumber "4.1.0-0"]
                  [district0x/error-handling "1.0.4"]
                  [expound "0.7.2"]
                  [funcool/cuerdas "2.2.0"]
@@ -48,10 +48,16 @@
                  [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.0.17"]
-                 [district0x/district-server-web3 "1.0.1"]
-                 [district0x/district-server-web3-watcher "1.0.3"]
-                 [district0x/district-server-web3-events "1.0.4"]
+                 [district0x/district-server-smart-contracts "1.2.2"]
+                 [district0x/district-server-web3 "1.2.0"]
+                 [district0x/district-server-web3-events "1.1.6"]
+
+                 ;; UI Components
+                 [cljs-web3 "0.19.0-0-10"]
+                 ;; this is now cljs-web3.utils/solidity-sha3
+                 [district0x/cljs-solidity-sha3 "1.0.0"]
+                 ;; this is now cljs-web3.helpers
+                 [district0x/district-web3-utils "1.0.3"]
 
                  ;; District UI Components
                  [day8.re-frame/http-fx "0.1.6"]
@@ -79,7 +85,6 @@
                  [district0x/district-ui-web3-tx-id "1.0.1"]
                  [district0x/district-ui-web3-tx-log "1.0.12"]
                  [district0x/district-ui-window-size "1.0.1"]
-                 [district0x/district-web3-utils "1.0.3"]
                  [district0x/re-frame-ipfs-fx "1.1.1"]]
 
   :plugins [[lein-ancient "0.6.15"]
@@ -201,7 +206,7 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "test-server"
-     :source-paths ["src/ethlance/server" "src/ethlance/shared" "test/ethlance"]
+     :source-paths ["src" "test" "dev/ui"]
      :compiler {:main ethlance.server.test-runner
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"
