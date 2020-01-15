@@ -1,6 +1,6 @@
 (ns ethlance.server.graphql.utils
   (:require [cljs.nodejs :as nodejs]
-            [ethlance.shared.graphql.utils :refer [kw->gql-name gql->clj]]
+            [district.graphql-utils :refer [kw->gql-name gql->clj]]
             [graphql-query.core :refer [graphql-query]]
             [taoensso.timbre :as log]))
 

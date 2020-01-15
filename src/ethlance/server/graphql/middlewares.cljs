@@ -1,8 +1,7 @@
 (ns ethlance.server.middlewares
-  (:require
-   [ethlance.shared.graphql.utils :as graphql-utils]
-   [district.shared.async-helpers :as async-helpers]
-   [taoensso.timbre :as log]))
+  (:require [district.shared.async-helpers :as async-helpers]
+            [district.graphql-utils :as graphql-utils]
+            [taoensso.timbre :as log]))
 
 ;; TODO : root-value->clj middleware
 

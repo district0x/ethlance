@@ -38,7 +38,7 @@
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.7"]
-                 [district0x/district-graphql-utils "1.0.9"]
+                 [district0x/district-graphql-utils "1.0.10-SNAPSHOT"]
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-time "1.0.1"]
                  [district0x/graphql-query "1.0.6"]

@@ -4,7 +4,7 @@
             [ethlance.server.graphql.authorization :as authorization]
             [district.shared.error-handling :refer [try-catch-throw]]
             [ethlance.server.db :as ethlance-db]
-            [ethlance.shared.graphql.utils :as graphql-utils]
+            [district.graphql-utils :as graphql-utils]
             [honeysql.core :as sql]
             [honeysql.helpers :as sql-helpers]
             [taoensso.timbre :as log :refer [spy]]))
