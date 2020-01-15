@@ -14,7 +14,6 @@
 /dist
 /.rebel_readline_history
 .node-xmlhttprequest-*
-package-lock.json
 .DS_Store
 smart_contracts_dev.cljs
 /designs/node_modules/
@@ -22,3 +21,7 @@ smart_contracts_dev.cljs
 !/designs/deploy/images
 !/designs/deploy/images/*
 /resources/public/js/deps_bundle.js
+/resources/libs/dist/
+/resources/libs/node_modules/
+/resources/libs/yarn-error.log
+/resources/libs/yarn.lock

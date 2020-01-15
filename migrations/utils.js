@@ -32,8 +32,8 @@ let linkBytecode = (contract, placeholder, replacement) => {
 let smartContractsTemplate = (map, env) => {
   return `(ns ethlance.shared.smart-contracts-${env})
 
-  (def smart-contracts
-    ${map})
+(def smart-contracts
+  ${map})
 `;
 };
 
@@ -42,7 +42,7 @@ let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) =
   const clj_contract_name = ":" + contract_key;
   const contract_address = contract_instance.address.toLowerCase();
   opts = opts || {};
-  
+
   let entry_value = [
     edn.kw(":name"), contract_name,
     edn.kw(":address"), contract_address,

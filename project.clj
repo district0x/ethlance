@@ -34,18 +34,19 @@
                  [reagent "0.9.0-rc2"]
 
                  ;; District General Libraries
+                 [district0x/async-helpers "0.1.3"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.7"]
-                 [district0x/district-graphql-utils "1.0.9"]
+                 [district0x/district-graphql-utils "1.0.10"]
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-time "1.0.1"]
+                 [district0x/graphql-query "1.0.6"]
 
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
-                 [district0x/district-server-graphql "1.0.18"]
-                 [district0x/district-server-logging "1.0.6"]
+                 [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.2.2"]
                  [district0x/district-server-web3 "1.2.0"]
@@ -58,6 +59,7 @@
                  ;; this is now cljs-web3.helpers
                  [district0x/district-web3-utils "1.0.3"]
 
+                 ;; District UI Components
                  [day8.re-frame/http-fx "0.1.6"]
                  [district0x/cljs-ipfs-native "1.0.2"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -83,8 +85,7 @@
                  [district0x/district-ui-web3-tx-id "1.0.1"]
                  [district0x/district-ui-web3-tx-log "1.0.12"]
                  [district0x/district-ui-window-size "1.0.1"]
-                 [district0x/re-frame-ipfs-fx "1.1.1"]
-                 ]
+                 [district0x/re-frame-ipfs-fx "1.1.1"]]
 
   :plugins [[lein-ancient "0.6.15"]
             [lein-cljsbuild "1.1.7"]
@@ -100,20 +101,21 @@
              :nrepl-port 9000
              :server-port 6500
              :ring-handler handler/figwheel-request-handler}
-  :aliases {}
-  :exclusions [cljsjs/react-with-addons]
+  :exclusions [cljsjs/react-with-addons
+               reagent]
   :npm {:dependencies
-        [[better-sqlite3 "5.4.0"]
+        [["@sentry/node" "4.2.1"]
+
+         [apollo-server "2.9.13"]
+         [graphql-middleware "4.0.1"]
+         [graphql-tools "4.0.5"]
+         [graphql "14.2.1"]
+
+         [better-sqlite3 "5.4.0"]
          [chalk "2.3.0"]
          [cors "2.8.4"]
-         [express "4.15.3"]
-         [express-graphql "0.7.1"]
-         [graphql "0.13.1"]
-         [graphql-fields "1.0.2"]
-         [graphql-tools "3.0.1"]
          [source-map-support "0.5.9"]
          [ws "4.0.0"]
-         ["@sentry/node" "4.2.1"]
 
          ;; Sign in functionality
          [eth-sig-util "2.4.4"]
@@ -123,20 +125,14 @@
          [ethereumjs-wallet "0.6.0"]
          [jsedn "0.4.1"]
 
-         ;; UI Component
-         [react "16.9.0"]
-         [react-dom "16.9.0"]
-         [simplebar-react "2.0.5"]
-
          ;; Development Dependencies
+         [axios "0.19.0"]
          [webpack "4.41.2"]
          [webpack-cli "3.3.9"]
          [less "3.10.3"]
          [less-watch-compiler "1.14.1"]
          [ganache-cli "6.7.0"]
-         [truffle "5.0.38"]
-
-         ["@sentry/node" "4.2.1"]]}
+         [truffle "5.0.38"]]}
 
   :profiles
   {:dev
@@ -152,10 +148,11 @@
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns user
                    :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}}
+
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src" "test" "dev/ui"]
+     :source-paths ["src/ethlance/ui" "src/ethlance/shared" "dev/ui"]
      :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
                 :infer-externs true
@@ -169,8 +166,8 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "dev-server"
-     :source-paths ["src" "test" "dev/server"]
-     :figwheel true
+     :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server/cljs"]
+     :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"
                 :output-dir "target/node/out-dev-server"
@@ -209,8 +206,8 @@
                 :closure-defines {goog.DEBUG true}}}
 
     {:id "test-server"
-     :source-paths ["src" "test" "dev/server"]
-     :compiler {:main ethlance.server.test-runner ;; ./test/server
+     :source-paths ["src" "test" "dev/ui"]
+     :compiler {:main ethlance.server.test-runner
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"
                 :target :nodejs

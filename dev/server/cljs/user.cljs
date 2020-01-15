@@ -1,44 +1,27 @@
 (ns cljs.user
   "Development Entrypoint for CLJS-Server."
-  (:require
-   [cljs-web3.eth :as web3-eth]
-   [clojure.pprint :refer [pprint]]
-   [cljs.tests :as tests]
-   [cljs.instrumentation :as instrumentation]
-   [mount.core :as mount]
-   [honeysql.core :as sql]
-   [taoensso.timbre :as log]
-
-   [district.graphql-utils :as graphql-utils]
-   [district.server.db]
-   [district.server.graphql :as graphql]
-   [district.server.logging]
-   [district.server.web3 :refer [web3]]
-   [district.server.web3-events]
-   [district.server.smart-contracts :as contracts]
-   [district.shared.error-handling :refer [try-catch try-catch-throw]]
-
-   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
-   [ethlance.server.core]
-   [ethlance.server.db]
-   [ethlance.server.syncer]
-   [ethlance.server.test-utils :as server.test-utils]
-   [ethlance.server.test-runner :as server.test-runner]))
-
-
-(def gql "Shorthand for district.server.graphql/run-query"
-  graphql/run-query)
-
+  (:require [cljs-web3.eth :as web3-eth]
+            [cljs.instrumentation :as instrumentation]
+            [district.server.db :as db]
+            [district.server.logging]
+            [district.server.smart-contracts :as contracts]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-events]
+            [district.shared.async-helpers :refer [promise->]]
+            [district.shared.error-handling :refer [try-catch try-catch-throw]]
+            [ethlance.server.core]
+            [ethlance.server.db :as ethlance-db]
+            [ethlance.server.syncer]
+            [ethlance.server.test-runner :as server.test-runner]
+            [ethlance.server.test-utils :as server.test-utils]
+            [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+            [honeysql.core :as sql]
+            [mount.core :as mount]
+            [taoensso.timbre :as log]))
 
 (def sql-format
   "Shorthand for honeysql.core/format"
   sql/format)
-
-
-;; More GraphQL Shortcuts
-(def gql-name->kw graphql-utils/gql-name->kw)
-(def kw->gql-name graphql-utils/kw->gql-name)
-
 
 (def help-message "
   CLJS-Server Repl Commands:
@@ -73,7 +56,7 @@
 
 (def dev-config
   "Default district development configuration for mount components."
-  (-> ethlance.server.core/main-config
+  (-> ethlance.server.core/default-config
       (merge {:logging {:level "debug" :console? true}})
       (merge {:db {:path "./resources/ethlance.db"
                    :opts {:memory false}}})
@@ -83,17 +66,23 @@
       (assoc :graphql dev-graphql-config)))
 
 
-(defn restart-graphql!
-  "Restart the GraphQL State Component with new schema and resolver."
-  []
-  (graphql/restart dev-graphql-config))
-
-
 (defn start-sync
   "Start the mount components."
   []
   (-> (mount/with-args dev-config)
       mount/start))
+
+
+;; (defn enable-instrumentation!
+;;   "Strict conforms function fspecs for all specs."
+;;   []
+;;   (instrumentation/enable!))
+
+
+;; (defn disable-instrumentation!
+;;   "Disables strict conformity of fspecs."
+;;   []
+;;   (instrumentation/disable!))
 
 
 (defn start
@@ -133,41 +122,28 @@
      (apply restart-sync opts))))
 
 
-(defn run-tests-sync
-  "Run server tests synchronously on the dev server.
+;; (defn run-tests-sync
+;;   "Run server tests synchronously on the dev server.
 
-  Optional Arguments
+;;   Optional Arguments
 
-  reset? - Reset the smart-contract deployment snapshot
+;;   reset? - Reset the smart-contract deployment snapshot
 
-   Note: This will perform several smart contract redeployments with
-  test defaults."
-  []
-  (log/info "Started Running Tests!")
-  (server.test-runner/run-all-tests)
-  (log/info "Finished Running Tests!"))
-
-
-(defn run-tests
-  "Runs the server tests asynchronously on the dev server.
-   Note: This will perform several smart contract redeployments with
-  test defaults."
-  []
-  (log/info "Running Server Tests Asynchronously...")
-  (.nextTick js/process run-tests-sync))
+;;    Note: This will perform several smart contract redeployments with
+;;   test defaults."
+;;   []
+;;   (log/info "Started Running Tests!")
+;;   (server.test-runner/run-all-tests)
+;;   (log/info "Finished Running Tests!"))
 
 
-(defn enable-instrumentation!
-  "Strict conforms function fspecs for all specs."
-  []
-  (instrumentation/enable!))
-
-
-(defn disable-instrumentation!
-  "Disables strict conformity of fspecs."
-  []
-  (instrumentation/disable!))
-
+;; (defn run-tests
+;;   "Runs the server tests asynchronously on the dev server.
+;;    Note: This will perform several smart contract redeployments with
+;;   test defaults."
+;;   []
+;;   (log/info "Running Server Tests Asynchronously...")
+;;   (.nextTick js/process run-tests-sync))
 
 (defn reset-testnet!
   "Resets the testnet deployment snapshot for server tests."
@@ -202,7 +178,6 @@
   "Display a help message on development commands."
   []
   (println help-message))
-
 
 (defn -dev-main
   "Commandline Entry-point for node dev_server.js"

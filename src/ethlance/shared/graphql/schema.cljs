@@ -1,6 +1,6 @@
 (ns ethlance.shared.graphql.schema)
 
-(def graphql-schema
+(def schema
   "The main GraphQL Schema"
   "
   #
@@ -21,35 +21,28 @@
   }
 
 
-  # 
+  #
   # Begin
   #
 
   type Query {
-    \"Retrieve the User ID for the given Ethereum Address, or null\"
-    userId(user_address : ID!): Int
 
-    \"Retrieve the User Data for the User defined by the given User ID\"
-    user(user_id : Int!): User
+    user(user_address : ID!): User
 
-    \"Search for and create User Listings\"
     userSearch(
       user_address: ID,
       user_fullName: String,
       user_userName: String,
       orderBy: UserListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): UserList
 
-    \"Retrieve the Candidate Data defined by the User ID\"
-    candidate(user_id : Int!): Candidate
+    candidate(user_address: ID!): Candidate
 
-    # TODO: Rating
-    \"Search for and create Candidate Listings\"
     candidateSearch(
-      user_id: Int,
+      user_address: ID,
       categoriesAnd: [String!],
       categoriesOr: [String!],
       skillsAnd: [String!],
@@ -57,74 +50,65 @@
       professionalTitle: String,
       orderBy: CandidateListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): CandidateList
 
-    \"Retrieve the Employer Data defined by the User ID\"
-    employer(user_id : Int!): Employer
+    employer(user_address : ID!): Employer
 
-    # TODO: Rating
-    \"Search for and create Employer Listings\"
     employerSearch(
-      user_id: Int,
+      user_address: ID,
       professionalTitle: String,
       orderBy: EmployerListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): EmployerList
 
-    \"Retrieve the Arbiter Data defined by the User ID\"
-    arbiter(user_id : Int!): Arbiter
+    arbiter(user_address : ID!): Arbiter
 
-    # TODO: Rating
-    \"Search for and create Arbiter Listings\"
     arbiterSearch(
-      user_id: Int,
+      user_address: ID,
       orderBy: ArbiterListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): ArbiterList
 
-    \"Retrieve the Job Data defined by the Job Index\"
-    job(job_index : Int!): Job
+    job(job_id : Int!): Job
 
-    \"Search for and create Job Listings\"
     jobSearch(
-      job_index: Int,
+      job_id: Int,
       orderBy: JobListOrderBy,
       orderDirection: OrderDirection,
-      first: Int,
-      after: String,
+      limit: Int,
+      offset: Int,
     ): JobList
 
-    \"Retrieve the Work Contract Data defined by the Work Contract Index\"
-    workContract(job_index: Int!, workContract_index: Int!): WorkContract
+    contract(job_id: Int!, contract_id: Int!): Contract
 
     \"Retrieve the Dispute Data defined by the dispute index\"
-    dispute(job_index: Int!,
-            workContract_index: Int!,
-            dispute_index: Int!): Dispute
+    dispute(job_id: Int!,
+            contract_id: Int!): Dispute
 
     \"Retrieve the Invoice Data defined by the invoice index\"
-    invoice(job_index: Int!,
-            workContract_index: Int!,
-            invoice_index: Int!): Invoice
+    invoice(job_id: Int!,
+            contract_id: Int!,
+            invoice_id: Int!): Invoice
   }
 
   type Mutation {
-    signIn(dataSignature: String!, data: String!): String
+    signIn(input: SignInInput!): String!
   }
 
-
+  input SignInInput {
+    dataSignature: String!,
+    data: String!
+  }
 
   # User Types
 
   type User {
-    \"User Identifier\"
-    user_id: Int
 
     \"Ethereum Address Corresponding to this Registered User.\"
     user_address: ID
@@ -140,12 +124,12 @@
 
     \"Email Address\"
     user_email: String
-   
+
     \"Profile Picture Assigned to the given User\"
     user_profileImage: String
 
     \"Date when the user was Registered\"
-    user_dateCreated: Date
+    user_dateRegistered: Date
 
     \"Date when the user was Last Updated\"
     user_dateUpdated: Date
@@ -162,13 +146,13 @@
   type UserList {
     items: [User!]
     totalCount: Int
-    endCursor: String
+    endCursor: Int
     hasNextPage: Boolean
   }
 
   enum UserListOrderBy {
     dateUpdated
-    dateCreated
+    dateRegistered
   }
 
 
@@ -176,10 +160,10 @@
 
   type Candidate {
     \"User ID for the given candidate\"
-    user_id: Int
+    user_address: ID
 
     \"Auto Biography written by the Candidate\"
-    candidate_biography: String
+    candidate_bio: String
 
     \"The date when the Candidate was registered\"
     candidate_dateRegistered: Date
@@ -193,11 +177,15 @@
     \"Skills of the Candidate\"
     candidate_skills: [String!]
 
+    candidate_rateCurrencyId: Keyword
+
+    candidate_rate: Int
+
     \"Feedback for the candidate\"
     candidate_feedback(
-      first: Int,
-      after: String
-    ): FeedbackList!
+      limit: Int,
+      offset: Int
+    ): FeedbackList
   }
 
   type CandidateList {
@@ -209,7 +197,6 @@
 
   enum CandidateListOrderBy {
     dateUpdated
-    dateCreated
     dateRegistered
   }
 
@@ -218,10 +205,10 @@
 
   type Employer {
     \"User ID for the given employer\"
-    user_id: Int
+    user_address: ID
 
     \"Auto Biography written by the Employer\"
-    employer_biography: String
+    employer_bio: String
 
     \"Date of Registration\"
     employer_dateRegistered: Date
@@ -231,9 +218,9 @@
 
     \"Feedback for the employer\"
     employer_feedback(
-      first: Int,
-      after: String
-    ): FeedbackList!
+      limit: Int,
+      offset: Int
+    ): FeedbackList
   }
 
   type EmployerList {
@@ -245,7 +232,6 @@
 
   enum EmployerListOrderBy {
     dateUpdated
-    dateCreated
     dateRegistered
   }
 
@@ -254,25 +240,22 @@
 
   type Arbiter {
     \"User ID for the given arbiter\"
-    user_id: Int
- 
+    user_address: ID
+
     \"Date the Arbiter was registered\"
     arbiter_dateRegistered: Date
 
-    \"Type of currency to get paid in\"
-    arbiter_currencyType: Keyword
+    arbiter_bio: String
 
-    \"The amount to be paid based on payment type\"
-    arbiter_paymentValue: Int
+    arbiter_feeCurrencyId: Keyword
 
-    \"The payment type\"
-    arbiter_paymentType: Keyword
+    arbiter_fee: Int
 
     \"Feedback for the arbiter\"
     arbiter_feedback(
-      first: Int,
-      after: String
-    ): FeedbackList!
+      limit: Int,
+      offset: Int
+    ): FeedbackList
   }
 
   type ArbiterList  {
@@ -293,22 +276,24 @@
 
   type Job {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
     job_title: String
-    job_acceptedArbiter: ID
-    job_availability: Keyword
+    job_acceptedArbiterAddress: ID
+    job_status: Keyword
     job_bidOption: Keyword
     job_category: String
     job_description: String
     job_dateCreated: Date
-    job_dateStarted: Date
-    job_dateFinished: Date
-    job_employerUid: ID
-    job_estimatedLengthSeconds: Int
-    job_includeEtherToken_: Boolean
-    job_isInvitationOnly_: Boolean
-    job_rewardValue: Int
-    job_workContracts(first: Int, after: String): WorkContractList
+    job_datePublished: Date
+    job_dateUpdated: Date
+    job_employerAddress: ID
+    job_estimatedLength: Int
+    job_isInvitationOnly: Boolean
+    job_reward: Int
+    job_contracts(
+      limit: Int,
+      offset: Int
+    ): ContractList
   }
 
   type JobList {
@@ -324,59 +309,48 @@
     dateFinished
   }
 
-  # WorkContract Types
-
-  type WorkContract {
+  type Contract {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
 
-    \"Identifier for the given Work Contract\"
-    workContract_index: Int
+    \"Identifier for the given Contract\"
+    contract_id: Int
 
-    \"Work Contract Status\"
-    workContract_contractStatus: Keyword
+    \"Contract Status\"
+    contract_status: Keyword
 
     \"Address of the Accepted Candidate\"
-    workContract_candidateAddress: ID
-
-    \"Date last updated\"
-    workContract_dateUpdated: Date
+    contract_candidateAddress: ID
 
     \"Date of creation\"
-    workContract_dateCreated: Date
-   
-    \"Date when the contract was finished\"
-    workContract_dateFinished: Date
+    contract_dateCreated: Date
 
-    \"Invoice Listing for Work Contract\"
-    workContract_invoices(
-      first: Int,
-      after: String
+    \"Date last updated\"
+    contract_dateUpdated: Date
+
+    contract_employerFeedback: Feedback
+    contract_candidateFeedback: Feedback
+
+    contract_invoices(
+      limit: Int,
+      offset: Int,
     ): InvoiceList
 
-    \"Dispute Listing for Work Contract\"
-    workContract_disputes(
-      first: Int,
-      after: String
+    contract_disputes(
+      limit: Int,
+      offset: Int,
     ): DisputeList
 
-    workContract_employerFeedback: Feedback
-    workContract_candidateFeedback: Feedback
-
-    workContract_comments(
-      first: Int,
-      after: String
-    ): CommentList
   }
 
-  type WorkContractList {
-    items: [WorkContract!]
+  type ContractList {
+    items: [Contract!]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
   }
 
-  enum WorkContractOrderBy {
+  enum ContractOrderBy {
     dateUpdated
     dateCreated
   }
@@ -386,19 +360,13 @@
 
   type Invoice {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
 
-    \"Identifier for the given Work Contract\"
-    workContract_index: Int
+    \"Identifier for the given Contract\"
+    contract_id: Int
 
     \"Identifier for the given Invoice\"
-    invoice_index: Int
-
-    \"Date of creation\"
-    invoice_dateCreated: Date
-
-    \"Date last updated\"
-    invoice_dateUpdated: Date
+    invoice_id: Int
 
     \"Date the invoice was paid\"
     invoice_datePaid: Date
@@ -409,10 +377,6 @@
     \"Amount of invoice actually paid\"
     invoice_amountPaid: Int
 
-    invoice_comments(
-      first: Int,
-      after: String
-    ): CommentList
   }
 
   type InvoiceList  {
@@ -422,18 +386,14 @@
     hasNextPage: Boolean
   }
 
-
   # Dispute Types
 
   type Dispute {
     \"Identifier for the given Job\"
-    job_index: Int
+    job_id: Int
 
-    \"Identifier for the given Work Contract\"
-    workContract_index: Int
-
-    \"Identifier for the given Dispute\"
-    dispute_index: Int
+    \"Identifier for the given Contract\"
+    contract_id: Int
 
     \"Reason for the Dispute\"
     dispute_reason: String
@@ -441,26 +401,9 @@
     \"Date of creation\"
     dispute_dateCreated: Date
 
-    \"Date last updated\"
-    dispute_dateUpdated: Date
-
     \"Date when the dispute was resolved\"
     dispute_dateResolved: Date
 
-    # TODO: incorporate resolution amounts for differing currencies (ERC20)
-    \"Amount paid out to employer\"
-    dispute_employerResolutionAmount: Int
-
-    \"Amount paid out to candidate\"
-    dispute_candidateResolutionAmount: Int
-
-    \"Amount paid out to arbiter\"
-    dispute_arbiterResolutionAmount: Int
-
-    dispute_comments(
-      first: Int,
-      after: String
-    ): CommentList
   }
 
   type DisputeList {
@@ -470,40 +413,18 @@
     hasNextPage: Boolean
   }
 
-  # Comment Types
-
-  type Comment {
-    job_index: Int!
-    workContract_index: Int!
-    dispute_index: Int
-    invoice_index: Int
-    comment_index: Int!
-    comment_revision: Int!
-    user_id: Int
-    comment_userType: Keyword
-    comment_dateCreated: Date
-    comment_text: String
-  }
-
-  type CommentList {
-    items: [Comment!]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
-
   # Feedback Types
-  
+
   type Feedback {
-    job_index: Int!
-    workContract_index: Int!
-    feedback_index: Int!
-    feedback_toUserType: Keyword!
-    feedback_toUserId: Int!
-    feedback_fromUserType: Keyword!
-    feedback_fromUserId: Int!
+    message_id: Int!
+    job_id: Int
+    contract_id: Int
+    feedback_toUserType: Keyword
+    feedback_toUserAddress: ID
+    feedback_fromUserType: Keyword
+    feedback_fromUserAddress: ID
     feedback_dateCreated: Date
-    feedback_rating: Int!
+    feedback_rating: Int
     feedback_text: String
   }
 

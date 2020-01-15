@@ -86,7 +86,7 @@
 
 (def test-config
   "Test configuration for districts."
-  (-> ethlance.server.core/main-config
+  (-> ethlance.server.core/default-config
       (merge {:logging {:level "debug" :console? true}})
       (update :smart-contracts merge {:contracts-var #'smart-contracts-dev/smart-contracts
                                       :print-gas-usage? true

@@ -1,0 +1,46 @@
+version: 2.1
+jobs:
+
+  test:
+    working_directory: ~/ethlance
+    docker:
+      # Primary container image where all steps run.
+      - image: district0x/cljs-dev
+      # Secondary container images on common network.
+      - image: trufflesuite/ganache-cli:latest
+        command: [-d, -m district0x, -p 8545, -l 8000000, --noVMErrorsOnRPCResponse]
+      - image: district0x/ipfs-daemon:latest
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore m2 package cache
+          keys:
+            - maven-dependencies-{{ checksum "project.clj" }}
+            # fallback to using the latest cache if no exact match is found
+            - maven-dependencies-
+      - run: lein deps
+      - save_cache:
+          name: Save m2 package cache
+          paths:
+            - ~/.m2
+          key: maven-dependencies-{{ checksum "project.clj" }}
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node modules
+          command: lein npm install
+      - save_cache:
+          name: Save npm package cache
+          key: npm-dependencies-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+      - run: env ETHLANCE_ENV=dev npx truffle migrate --network ganache --reset
+      - run: lein doo node "test-server" once
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - test
