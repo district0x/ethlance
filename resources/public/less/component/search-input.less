@@ -43,9 +43,15 @@
 
   > .search-button {
     display: flex;
+    transition: all 0.1s;
     justify-content: center;
     align-items: center;
     background-color: #color[purple];
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #color[dark-blue];
+    }
   }
 
   > .dropdown {

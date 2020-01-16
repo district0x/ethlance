@@ -9,7 +9,6 @@
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
    [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
-   [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
@@ -121,11 +120,6 @@
            [:div.label "Description"]
            [c-textarea-input
             {:placeholder "Enter Description"}]]
-          
-          [:div.form-for-hire.chip
-           [c-labeled-checkbox
-            {:label "I'm available for hire"
-             :on-change #(println (if % "Checked!" "Unchecked!"))}]]
           
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]

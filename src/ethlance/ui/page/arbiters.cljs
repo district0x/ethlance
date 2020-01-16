@@ -97,7 +97,7 @@
   [arbiter]
   [:div.arbiter-element
    [:div.profile
-    [c-profile-image {}]
+    [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
    [:div.price "$15"]

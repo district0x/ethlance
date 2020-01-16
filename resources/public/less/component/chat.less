@@ -45,13 +45,11 @@
       flex-basis: 40%;
       flex-shrink: 0;
       grid-template-areas:
-      'profile-image full-name'
-      'profile-image info-listing'
-      'profile-image date-updated';
+      'profile-image info-container';
       grid-template-columns: 1fr 3fr;
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto;
       color: white;
-      margin: 2em;
+      margin: 2.5em;
 
       > .profile-image {
         grid-area: profile-image;
@@ -61,30 +59,35 @@
         margin-right: 2em;
       }
 
-      > .full-name {
-        grid-area: full-name;
-        font-weight: 700;
-      }
-
-      > .info-listing {
+      > .info-container {
         display: flex;
-        grid-area: info-listing;
         flex-direction: column;
-        font-weight: 300;
-        
-        > .info {
-          margin: 0.5em 0;
+
+        > .full-name {
+          font-weight: 700;
+        }
+
+        > .info-listing {
+          display: flex;
+          flex-direction: column;
+          font-weight: 300;
+          line-height: 1.2em;
+          padding: 0.5em 0;
+
+          > .info {
+            margin: 0.5em 0;
+          }
+        }
+
+        > .date-updated {
+          font-size: 0.8em;
+          font-weight: 300;
+          opacity: 0.8;
+          margin-top: 0.5em;
         }
       }
-
-      > .date-updated {
-        grid-area: date-updated;
-        font-size: 0.8em;
-        font-weight: 300;
-        opacity: 0.8;
-      }
     }
-
+    
     > .text {
       display: flex;
       grid-area: right;
@@ -95,7 +98,7 @@
       background-color: #E8EEFE;
       overflow: hidden;
       padding: 3em;
-      color: darken(#color[purple], 20%);
+      color: #color[dark-purple];
       line-height: 1.5em;
       
       @media #media[tablet-query] {
@@ -152,11 +155,11 @@
     }
 
     &.candidate {
-      background-color: darken(desaturate(#color[teal], 50%), 10%);
+      // background-color: darken(desaturate(#color[teal], 50%), 10%);
     }
 
     &.arbiter {
-      background-color: darken(desaturate(#color[orange], 50%), 10%);
+      // background-color: darken(desaturate(#color[orange], 50%), 10%);
     }
 
   }

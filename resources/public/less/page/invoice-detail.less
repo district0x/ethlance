@@ -19,7 +19,7 @@
       'left      left'
       'right     right'
       'button    button';
-    grid-template-columns: auto;
+    grid-template-columns: auto auto;
     grid-template-rows: repeat(5, auto) 40px;
     margin-bottom: 4em;
   }
@@ -30,6 +30,7 @@
     font-weight: 500;
     padding: 0.5em 1.2em;
     padding-top: 1em;
+    padding-right: 0;
   }
 
   > .sub-title {
@@ -41,8 +42,8 @@
 
     @media #media[tablet-query] {
       font-size: 1.5em;
-      justify-content: center;
-      text-align: center;
+      padding-right: 0;
+      padding-left: 1.7em;
     }
   }
 
@@ -51,6 +52,7 @@
     justify-content: flex-end;
     align-items: center;
     grid-area: status;
+
     > .label {
       display: flex;
       align-items: center;
@@ -64,6 +66,10 @@
       padding: 0.5em 1.0em;
       font-weight: 300;
       font-size: 1.0em;
+
+      @media #media[tablet-query] {
+        padding: 0.5em;
+      }
     }
   }
 
@@ -74,7 +80,7 @@
     padding: 3em 0 3em 3em;
 
     @media #media[tablet-query] {
-      padding: 3em;
+      padding: 1.5em;
     }
 
     > .profile {
@@ -137,7 +143,7 @@
     padding: 3em 3em 3em 0;
 
     @media #media[tablet-query] {
-      padding: 3em;
+      padding: 1.5em;
       padding-top: 0;
     }
   }
@@ -145,14 +151,24 @@
   > .button {
     grid-area: button;
     display: flex;
+    transition: all 0.1s;
     justify-content: center;
     align-items: center;
     background-color: #color[purple];
     color: white;
     height: 50px;
     width: 100%;
+    font-weight: 700;
     border-radius: 0;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+
+    &:hover {
+      background-color: #color[dark-blue];
+    }
+
+    > .ethlance-icon {
+      padding-left: 0.5em;
+    }
   }
 }

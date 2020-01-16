@@ -52,7 +52,13 @@
     (fn []
       [:div.mobile-navigation-bar
        [:div.logo
-        [c-ethlance-logo {:color :white :size :small}]]
+        [c-ethlance-logo
+         {:color :white
+          :size :small
+          :title "Go to Home Page"
+          :on-click (util.navigation/create-handler {:route :route/home})
+          :href (util.navigation/resolve-route {:route :route/home})
+          :inline? false}]]
        [:div.menu-button
         [c-icon {:name (if @*open? :close :list-menu)
                  :color :white
