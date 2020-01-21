@@ -29,8 +29,20 @@
     }
 
     > .label {
+      position: relative;
       font-weight: 500;
       font-size: 1.2em;
+
+      &::after {
+        position: absolute;
+        content: '';
+        left: 0;
+        bottom: -0.5em;
+        width: 0;
+        height: 1px;
+        background-color: #color[purple];
+        transition: all 0.1s;
+      }
     }
 
     &.active {
@@ -45,7 +57,10 @@
 
     &:hover {
       > .label {
-        text-decoration: underline;
+        &::after {
+          width: 100%;
+          background-color: #color[dark-purple];
+        }
       }
 
       > .ethlance-icon {
