@@ -11,13 +11,14 @@
 
 
 (defn c-splash-navigation-link
-  [{:keys [name route *hover]}]
+  [{:keys [name route label *hover]}]
   [:div.splash-navigation-link
-   {:on-mouse-over #(swap! *hover name)}
+   {:on-mouse-enter #(reset! *hover name)
+    :on-mouse-leave #(reset! *hover nil)}
    [:a {:href (util.navigation/resolve-route {:route route})
         :title name
         :on-click (util.navigation/create-handler {:route route})
-        :class (when (= @*hover name) "hover")} name]])
+        :class [(when (or (not @*hover) (= @*hover name)) "show-underline")]} name]])
 
 
 (defn c-splash-navigation-bar []
@@ -27,6 +28,15 @@
        [:div.logo
         [c-ethlance-logo]]
        [:div.links
-        [c-splash-navigation-link {:*hover *hover :name "Find Work" :route :route.job/jobs}]
-        [c-splash-navigation-link {:*hover *hover :name "Find Candidates" :route :route.user/candidates}]
-        [c-splash-navigation-link {:*hover *hover :name "How it Works" :route :route.misc/how-it-works}]]])))
+        [c-splash-navigation-link
+         {:*hover *hover
+          :name "Find Work"
+          :route :route.job/jobs}]
+        [c-splash-navigation-link
+         {:*hover *hover
+          :name "Find Candidates"
+          :route :route.user/candidates}]
+        [c-splash-navigation-link
+         {:*hover *hover
+          :name "How it Works"
+          :route :route.misc/how-it-works}]]])))
