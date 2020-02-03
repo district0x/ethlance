@@ -25,3 +25,4 @@ smart_contracts_dev.cljs
 /resources/libs/node_modules/
 /resources/libs/yarn-error.log
 /resources/libs/yarn.lock
+package-lock.json
