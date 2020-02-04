@@ -3,7 +3,10 @@
 //
 // Splash Layout Mixins
 //
+
 #sl() {
+  max-desktop-width: 1200px;
+
   .section() {
     display: flex;
     flex-direction: column;
@@ -58,7 +61,7 @@
   > .main-content {
     min-height: 100%;
     width: 100%;
-    max-width: #media[desktop-width];
+    max-width: #sl[max-desktop-width];
     margin: 0 auto;
     padding: 0 50px;
 

@@ -71,56 +71,89 @@
     }
   }
 
-  &:hover {
-    @hover-color: darken(#ethlance-button[text-color-primary], 10%);
-    color: @hover-color;
+  &.primary {
+    background-color: #color[purple];
+    opacity: 0.7;
 
-    > .button-label {
-      color: @hover-color;
+    &:hover {
+      @hover-background-color: #color[dark-blue];
+      background-color: @hover-background-color;
+      color: white;
+
+      > .button-label {
+        color: white;
+        > span {
+          color: white;
+        }
+      }
+
+      > .button-icon-label {
+        color: white;
+        background-color: #color[dark-blue];
+        > .icon {
+          color: white;
+          background-color: #color[purple];
+        }
+
+        > .label {
+          color: white;
+          background-color: @hover-background-color;
+        }
+      }
     }
 
-    > .button-icon-label {
-      background-color: #color[dark-blue];
-      > .icon {
+    &.active {
+      opacity: 1.0;
+    }
+
+    &.disabled {
+      opacity: 0.7;
+      color: #color[purple];
+      background-color: rgba(0,0,0,0.0);
+
+      > .button-label {
+        color: #color[purple];
+      }
+
+      &:hover {
+        color: white;
         background-color: #color[purple];
       }
-
-      > .label {
-        color: @hover-color;
-      }
-    }
-  }
-
-  &:active {
-    @active-color: darken(#ethlance-button[text-color-primary], 20%);
-    color: @active-color;
-
-    > .button-label {
-      color: @active-color;
     }
   }
 
   &.secondary {
     background-color: #ethlance-button[background-secondary];
-  }
 
-  &.disabled {
-    opacity: 0.7;
-    color: #ethlance-button[text-color-disabled];
-    background-color: rgba(0,0,0,0.0);
-
-    > .button-label {
-      color: #ethlance-button[text-color-disabled];
-    }
-  }
-
-  &.active {
-    @background-color: lighten(#ethlance-button[background-primary], 20%);
-    background-color: @background-color;
-
-    &.secondary {
+    &.active {
       @background-color: lighten(#ethlance-button[background-secondary], 20%);
       background-color: @background-color;
+    }
+
+    &.disabled {
+      opacity: 0.7;
+      color: #ethlance-button[text-color-disabled];
+      background-color: rgba(0,0,0,0.0);
+
+      > .button-label {
+        color: #ethlance-button[text-color-disabled];
+      }
+    }
+
+    &:hover {
+      @hover-background-color: #color[dark-blue];
+      background-color: @hover-background-color;
+
+      > .button-icon-label {
+        background-color: #color[dark-blue];
+        > .icon {
+          background-color: #color[purple];
+        }
+
+        > .label {
+          background-color: @hover-background-color;
+        }
+      }
     }
   }
 

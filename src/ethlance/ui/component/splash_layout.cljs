@@ -105,7 +105,7 @@
       [:h2 "The Future of Work is Now"]
       [:span "Hire or Work for Ether cryptocurrency"]
       [:div.button-listing
-       [c-button       
+       [c-button
         {:color :primary
          :size :auto
          :title "Become a Freelancer"
