@@ -103,10 +103,12 @@
     }
 
     &.active {
+      #mixin.box-shadow.button();
       opacity: 1.0;
     }
 
     &.disabled {
+      #mixin.box-shadow.none();
       opacity: 0.7;
       color: #color[purple];
       background-color: rgba(0,0,0,0.0);
@@ -126,6 +128,7 @@
     background-color: #ethlance-button[background-secondary];
 
     &.active {
+      #mixin.box-shadow.button();
       @background-color: lighten(#ethlance-button[background-secondary], 20%);
       background-color: @background-color;
     }

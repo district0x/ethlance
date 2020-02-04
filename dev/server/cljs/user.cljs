@@ -1,7 +1,6 @@
 (ns cljs.user
   "Development Entrypoint for CLJS-Server."
   (:require [cljs-web3.eth :as web3-eth]
-            [cljs.instrumentation :as instrumentation]
             [district.server.db :as db]
             [district.server.logging]
             [district.server.smart-contracts :as contracts]
@@ -73,18 +72,6 @@
       mount/start))
 
 
-;; (defn enable-instrumentation!
-;;   "Strict conforms function fspecs for all specs."
-;;   []
-;;   (instrumentation/enable!))
-
-
-;; (defn disable-instrumentation!
-;;   "Disables strict conformity of fspecs."
-;;   []
-;;   (instrumentation/disable!))
-
-
 (defn start
   "Start the mount components asychronously."
   [& opts]
@@ -127,10 +114,7 @@
 
 ;;   Optional Arguments
 
-;;   reset? - Reset the smart-contract deployment snapshot
-
-;;    Note: This will perform several smart contract redeployments with
-;;   test defaults."
+;;   reset? - Reset the smart-contract deployment snapshot"
 ;;   []
 ;;   (log/info "Started Running Tests!")
 ;;   (server.test-runner/run-all-tests)

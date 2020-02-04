@@ -24,7 +24,7 @@
     (fn []
       [:div.splash-mobile-navigation-bar
        [:div.content
-        [c-ethlance-logo {:color :white}]
+        [c-ethlance-logo {:color :white :inline? false}]
         [c-icon {:name (if @*open? :close :list-menu)
                  :color :white
                  :on-click #(swap! *open? not)}]]

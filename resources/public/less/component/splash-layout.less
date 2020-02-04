@@ -544,7 +544,7 @@
         }
         
         > .active-page {
-          > .how-to-candidate {
+          > .how-to-candidate , > .how-to-employer , > .how-to-arbiter {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             grid-column-gap: 1.5em;
@@ -697,7 +697,7 @@
           'footer footer';
       grid-template-rows: 4fr 4fr 30px;
       grid-template-columns: 4fr 3fr;
-      max-width: #media[max-width];
+      max-width: #media[max-desktop-width];
       margin: 0 auto;
 
       @media #media[tablet-query] {
@@ -743,13 +743,15 @@
           overflow: hidden;
           max-width: 350px;
           padding: 0.3em;
+          margin-bottom: 2em;
 
           > .form-input {
             outline: none;
             border: none;
-            padding: 0.5em;
+            padding: 0.7em 0.5em;
             border-radius: 0;
             color: #color[dark-blue];
+            font-weight: 300;
             flex-grow: 1;
           }
           
