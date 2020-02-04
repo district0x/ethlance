@@ -137,7 +137,7 @@
   :profiles
   {:dev
    {:source-paths ["src" "test" "dev"]
-    :resource-paths ["dev/resources"]
+    :resource-paths ["resources" "dev/resources"]
     :dependencies [[cider/piggieback "0.4.1"]
                    [org.clojure/tools.nrepl "0.2.13"]
                    [figwheel "0.5.19"]

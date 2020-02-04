@@ -37,7 +37,7 @@
 
 (defn c-how-to-employer
   []
-  [:div.how-to-candidate
+  [:div.how-to-employer
    [c-how-to-card "Create A Job" "/images/icon-create.png"]
    [c-how-to-card "Invite Freelancers" "/images/icon-invite.png"]
    [c-how-to-card "Accept Job Proposals" "/images/icon-accept.png"]
@@ -48,7 +48,7 @@
 
 (defn c-how-to-arbiter
   []
-  [:div.how-to-candidate
+  [:div.how-to-arbiter
    [c-how-to-card "Complete Your Profile" "/images/icon-free-tasks.png"]
    [c-how-to-card "Receive Invite For Job" "/images/icon-invite.png"]
    [c-how-to-card "Investigate The Problem" "/images/icon-find.png"]
@@ -105,7 +105,7 @@
       [:h2 "The Future of Work is Now"]
       [:span "Hire or Work for Ether cryptocurrency"]
       [:div.button-listing
-       [c-button       
+       [c-button
         {:color :primary
          :size :auto
          :title "Become a Freelancer"
@@ -227,13 +227,13 @@
     [:div.footer-content
      [:div.header-section
       [:div.logo
-       [c-ethlance-logo {:color :white}]]
+       [c-ethlance-logo {:color :white :inline? false}]]
       [:h2 "The Future of Work is Now."]
       [:h2 "Stay up-to-date with Ethlance."]
       ;; TODO: email input component
       [:div.fancy-email
        [:input.form-input {:type "email" :placeholder "Enter Email"}]
-       [:span.form-button [c-icon {:name :ic-arrow-right :size :small :color :black}]]]]
+       [:span.form-button [c-icon {:name :ic-arrow-right :size :small :color :secondary}]]]]
 
      [:div.splash-section
       [:img {:src "/images/icon-coins.png"}]]

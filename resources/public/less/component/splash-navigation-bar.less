@@ -51,10 +51,15 @@
 // Use Injected Scroll Value to fade in the navigation bar
 #app:not([data-scroll='0']) > .splash-layout > .header {
   background-color: #color[dark-blue];
+  padding: 0;
 
   a {
     color: white;
     border-bottom: none;
+
+    &:hover {
+      border-bottom: 1px solid white;
+    }
   }
   
   .ethlance-logo {
