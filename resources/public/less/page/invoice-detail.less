@@ -5,7 +5,7 @@
   display: grid;
   grid-template-areas:
     'title     status'
-    'sub-title status'
+    'sub-title sub-title'
     'left      right'
     'button    button';
   grid-template-columns: 3fr 4fr;
@@ -15,13 +15,18 @@
   @media #media[tablet-query] {
     grid-template-areas:
       'title     status'
-      'sub-title status'
+      'sub-title sub-title'
       'left      left'
       'right     right'
       'button    button';
-    grid-template-columns: auto auto;
+    grid-template-columns: auto minmax(120px, auto);
     grid-template-rows: repeat(5, auto) 40px;
     margin-bottom: 4em;
+  }
+
+  @media #media[mobile-query] {
+    #mixin.box-shadow.none();
+    margin-top: 0 !important;
   }
 
   > .title {
@@ -31,6 +36,10 @@
     padding: 0.5em 1.2em;
     padding-top: 1em;
     padding-right: 0;
+
+    @media #media[mobile-query] {
+      padding-left: 0.5em;
+    }
   }
 
   > .sub-title {
@@ -43,32 +52,36 @@
     @media #media[tablet-query] {
       font-size: 1.5em;
       padding-right: 0;
-      padding-left: 1.7em;
+      padding-left: 1.0em;
+    }
+
+    @media #media[mobile-query] {
+      font-size: 1.2em;
+      padding-left: 1em;
     }
   }
 
   > .invoice-status {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
     grid-area: status;
+    align-items: flex-start;
+    justify-content: flex-end;
 
     > .label {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      align-self: flex-end;
-      background-color: #d6e1fd;
+      flex-grow: 0;
+      background-color: #color[offwhite3];
       border-radius: 5px;
-      min-width: 120px;
-      margin: 2em;
-      margin-right: 3em;
-      padding: 0.5em 1.0em;
       font-weight: 300;
-      font-size: 1.0em;
+      font-size: 0.8em;
+      padding: 1.2em 1.5em;
+      margin: 1em;
+      margin-top: 1.5em;
 
       @media #media[tablet-query] {
-        padding: 0.5em;
+        padding: 0.8em 1.0em;
       }
     }
   }
