@@ -41,15 +41,16 @@
         :as opts}]
     (let [opts (dissoc opts :name :color :size :disabled? :hide? :on-click)
           class-color (case color
-                        :primary " primary "
-                        :secondary " secondary "
+                        :primary "primary"
+                        :secondary "secondary"
                         :none "")
           class-size  (case size
-                        :small " small "
+                        :smaller "smaller"
+                        :small "small"
                         :normal ""
-                        :large " large ")
-          class-disabled (when disabled? " disabled ")
-          class-hide (when hide? " hide ")]
+                        :large "large")
+          class-disabled (when disabled? "disabled")
+          class-hide (when hide? "hide")]
       [:a.ethlance-circle-button.ethlance-circle-icon-button
        (merge
         opts
