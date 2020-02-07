@@ -40,6 +40,10 @@
       padding: 3em;
     }
 
+    @media #media[mobile-query] {
+      padding: 1.5em;
+    }
+
     > .input-stripe {
       display: flex;
       flex-direction: row;
@@ -103,12 +107,17 @@
       padding-top: 0;
     }
 
+    @media #media[mobile-query] {
+      padding: 1.5em;
+    }
+
     > .label {
       font-weight: 700;
     }
 
     > .ethlance-textarea-input {
       margin: 1em 0;
+      padding: 0.5em;
       border-radius: 5px;
     }
   }
@@ -133,14 +142,16 @@
     @media #media[tablet-query] {
       margin: 2em;
       margin-top: 0;
-      border-radius: @border-radius;
+      border-radius: 5px;
       font-size: 2em;
       height: 100px;
       width: unset;
     }
 
     @media #media[mobile-query] {
-
+      margin: 1em;
+      font-size: 1.2em;
+      height: 60px;
     }
 
     &:hover {
