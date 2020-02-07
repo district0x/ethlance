@@ -90,7 +90,9 @@
        :label "I'm available for hire"
        :on-change #(println (if % "Checked!" "Unchecked!"))}]]]
    
-   [:div.form-submit "Create"]])
+   [:div.form-submit
+    [:span "Create"]
+    [c-icon {:name :ic-arrow-right :size :smaller}]]])
 
 
 (defn c-employer-sign-up []
@@ -133,7 +135,9 @@
      [:div.label [:h2 "Your Biography"]]
      [c-textarea-input {:placeholder ""}]]]
 
-   [:div.form-submit "Create"]])
+   [:div.form-submit
+    [:span "Create"]
+    [c-icon {:name :ic-arrow-right :size :smaller}]]])
 
 
 (defn c-arbiter-sign-up []
@@ -178,7 +182,9 @@
      [:div.label [:h2 "Your Biography"]]
      [c-textarea-input {:placeholder ""}]]]
 
-   [:div.form-submit "Create"]])
+   [:div.form-submit
+    [:span "Create"]
+    [c-icon {:name :ic-arrow-right :size :smaller}]]])
 
 
 (defmethod page :route.me/sign-up []

@@ -13,6 +13,10 @@
         margin: 4em;
         border-top-right-radius: @border-radius;
 
+        @media #media[mobile-query] {
+          margin: 2em;
+        }
+
         > .label {
           color: @color-dark-blue;
           font-size: 2.0em;
@@ -204,11 +208,11 @@
         }
       }
       > .form-submit {
-        background-color: @color-purple;
-        color: white;
         display: flex;
         justify-content: center;
         align-items: center;
+        background-color: @color-purple;
+        color: white;
         font-weight: 700;
         height: 50px;
         border-bottom-left-radius: @border-radius;
@@ -219,17 +223,22 @@
         @media #media[tablet-query] {
           margin: 2em 10%;
           margin-top: 0;
-          border-radius: @border-radius;
+          border-radius: 5px;
           font-size: 2em;
           height: 100px;
         }
 
         @media #media[mobile-query] {
-
+          font-size: 1.5em;
+          height: 60px;
         }
 
         &:hover {
           background-color: @color-dark-blue;
+        }
+
+        > span {
+          padding-right: 0.5em;
         }
       }
     }
