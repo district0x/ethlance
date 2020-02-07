@@ -54,6 +54,7 @@
       justify-content: center;
       padding: 0 0.5em;
       transition: 0.07s all ease-in;
+
       &.active {
         #mixin.box-shadow.none();
         color: #color[secondary-accent];
@@ -81,11 +82,14 @@
 
     > .ethlance-select-input {
       width: 80%;
+
+      > .main > .label {
+        font-weight: 700;
+      }
     }
   }
 
   > .active-page {
-    #mixin.box-shadow.main();
     grid-area: active-page;
     background-color: white;
     border-bottom-left-radius: 0.7em;

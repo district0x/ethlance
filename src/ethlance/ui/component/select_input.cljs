@@ -80,7 +80,9 @@
                    :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
                    :inline? false
-                   :size :smaller}]]
+                   :size (case size
+                           :large :normal
+                           :default :smaller)}]]
          (when @*open?
            [:div.dropdown
             (when search-bar?
