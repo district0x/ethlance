@@ -81,8 +81,8 @@
           'date           details'
           'tags           details'
           'users          users';
-      grid-template-rows: auto 3fr auto auto 5fr;
-      grid-template-columns: minmax(3fr, 4fr) minmax(1fr, 4fr);
+      grid-template-rows: repeat(5, auto);
+      grid-template-columns: repeat(2, auto);
       padding: 2em;
 
       @media #media[mobile-query] {
@@ -93,7 +93,7 @@
             'tags'
             'users'
             'details';
-        grid-template-rows: auto 3fr auto auto 5fr auto;
+        grid-template-rows: repeat(6, auto);
         grid-template-columns: 100%;
         padding: 0.7em;
       }
@@ -108,8 +108,6 @@
         line-height: 1.2em;
 
         @media #media[mobile-query] {
-          text-align: center;
-          justify-content: center;
           font-size: 2.5em;
         }
       }
@@ -124,7 +122,6 @@
         }
 
         @media #media[mobile-query] {
-          text-align: center;
           margin: 1em 0.5em;
         }
       }
@@ -136,7 +133,6 @@
         margin: 1.0em 0;
 
         @media #media[mobile-query] {
-          text-align: center;
           margin-bottom: 2em;
         }
       }
@@ -147,10 +143,6 @@
         flex-direction: row;
         flex-wrap: wrap;
         margin: 0.3em 0;
-
-        @media #media[mobile-query] {
-          justify-content: center;
-        }
 
         > .ethlance-tag {
           cursor: pointer;
@@ -165,7 +157,8 @@
         margin: 2em 1em;
 
         @media #media[mobile-query] {
-          justify-content: space-around;
+          margin: 1em;
+          flex-direction: column;
         }
 
         > .user-detail {
@@ -180,6 +173,9 @@
 
           @media #media[mobile-query] {
             margin-right: 0;
+            &:first-child {
+              margin-bottom: 1.5em;
+            }
           }
 
           > .name {
@@ -214,7 +210,7 @@
 
           > .ethlance-inline-svg {
             position: absolute;
-            top: 1.5em;
+            top: 0em;
             left: -1.5em;
             width: 16px;
             height: 16px;
@@ -239,6 +235,7 @@
         
         > .job-detail-table {
           #mixin.detail-table();
+          width: 90%;
         }
       }
     }
