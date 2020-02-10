@@ -68,9 +68,9 @@
       display: grid;
       grid-template-areas:
       'profile  price'
-      'tags     .'
-      'rating   .'
-      'location .';
+      'tags     tags'
+      'rating   rating'
+      'location location';
       grid-template-columns: repeat(2, auto);
       grid-template-rows: repeat(4, auto);
       min-height: 100px;
@@ -83,34 +83,28 @@
         grid-template-areas:
         'profile-image name'
         'profile-image title';
-        grid-template-columns: repeat(2, auto);
+        grid-template-columns: auto 1fr;
         grid-template-rows: repeat(2, auto);
 
-        > .ethlance-profile-image {
+        > .profile-image {
           grid-area: profile-image;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         > .name {
           grid-area: name;
-          font-size: 1.3em;
-          font-weight: 600;
+          font-size: 1.8em;
+          font-weight: 400;
           padding: 0.5em;
         }
 
         > .title {
           grid-area: title;
           padding: 0.7em;
+          padding-left: 0.9em;
         }
-      }
-
-      > .price {
-        grid-area: price;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0.5em 0;
-        font-size: 1.4em;
-        border-bottom: 2px solid #color[orange];
       }
 
       > .tags {
