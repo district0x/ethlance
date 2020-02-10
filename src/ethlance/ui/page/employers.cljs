@@ -90,7 +90,7 @@
   [employer]
   [:div.employer-element
    [:div.profile
-    [c-profile-image {}]
+    [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
    #_[:div.price "$15 / Fixed Price"]

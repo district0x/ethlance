@@ -96,10 +96,10 @@
   [candidate]
   [:div.candidate-element
    [:div.profile
-    [c-profile-image {}]
+    [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
-   [:div.price "$15 / Fixed Price"]
+   [:div.price "$15"]
    [:div.tags
     (doall
      (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
