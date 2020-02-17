@@ -1,0 +1,14 @@
+@startuml
+
+skinparam BackgroundColor #F3F4F9
+skinparam RoundCorner 5
+skinparam class {
+        BackgroundColor White
+        ArrowColor #F1B440
+        ArrowThickness 2
+        BorderColor #292D83
+}
+
+title Ethlance Database Diagram
+
+@enduml
