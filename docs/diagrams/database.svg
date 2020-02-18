@@ -14,10 +14,10 @@ link Candidate to User--><path d="M1097.0405,353.025 C1165.8892,383.938 1248.658
 link Employer to User--><path d="M1369.4076,340.0312 C1386.2428,365.0305 1407.0237,395.8889 1427.0176,425.5786 " fill="none" id="Employer-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1429.9612,429.9497,1428.2515,420.2504,1427.1682,425.8026,1421.616,424.7192,1429.9612,429.9497" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1408" y="396.02">fk(:user/address)</text><!--MD5=[cdaf4d5d20b34ce9b47b5b642fbfc4a3]
 link Arbiter to User--><path d="M1659.133,353.1868 C1639.4688,375.5242 1616.9443,401.1109 1595.1495,425.8686 " fill="none" id="Arbiter-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1591.6583,429.8343,1600.6077,425.7224,1594.9623,426.0815,1594.6032,420.436,1591.6583,429.8343" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1628" y="396.02">fk(:user/address)</text><!--MD5=[9a54b529813822f68d5fbd5982558339]
 link UserLanguage to User--><path d="M1993.54,333.5287 C1905.1264,369.4331 1780.7093,419.9583 1678.9167,461.2958 " fill="none" id="UserLanguage-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1674.0867,463.2573,1683.9304,463.5768,1678.7192,461.3759,1680.9201,456.1648,1674.0867,463.2573" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1858" y="396.02">fk(:user/address)</text><!--MD5=[fd66f2363753caf1b6bc06d0d9c9c61b]
-link ArbiterCategory to Arbiter--><path d="M753.2323,153.1501 C759.2128,154.1684 765.1479,155.1082 771,155.9531 C1103.5551,203.9644 1200.5515,111.3993 1526,194.9531 C1550.802,201.3206 1576.2148,211.0484 1600.0786,221.8426 " fill="none" id="ArbiterCategory-Arbiter" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="760.7515" y="151.7184">*</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="1578.8528" y="210.9331">1</text><!--MD5=[f2e89000edc4b8b1cad31cf5527d97c7]
-link ArbiterCategory to Category--><path d="M546.9772,156.1357 C489.0099,239.7348 367.6252,414.7929 312.8591,493.7754 " fill="none" id="ArbiterCategory-Category" style="stroke: #5498C4; stroke-width: 3.0;"/><!--MD5=[a8e78d231ed1ea04dca41ab556efab4a]
-link EmployerCategory to Employer--><path d="M370.2323,153.1501 C376.2128,154.1684 382.1479,155.1082 388,155.9531 C720.5551,203.9644 817.5515,111.3993 1143,194.9531 C1177.4374,203.7943 1213.0521,219.1138 1244.0632,234.7712 " fill="none" id="EmployerCategory-Employer" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="377.7515" y="151.7184">*</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="1223.4404" y="223.7496">1</text><!--MD5=[54a45e59f224bf46f43f309053e191ef]
-link EmployerCategory to Category--><path d="M205.694,156.1357 C223.2419,239.7348 259.9876,414.7929 276.5665,493.7754 " fill="none" id="EmployerCategory-Category" style="stroke: #5498C4; stroke-width: 3.0;"/><!--MD5=[726c555a8d6713fc75b3b4cb8f4f5a89]
+link ArbiterCategory to Arbiter--><path d="M753.2323,153.1501 C759.2128,154.1684 765.1479,155.1082 771,155.9531 C1103.5551,203.9644 1200.5515,111.3993 1526,194.9531 C1550.802,201.3206 1576.2148,211.0484 1600.0786,221.8426 " fill="none" id="ArbiterCategory-Arbiter" style="stroke: #5498C4; stroke-width: 3.0;"/><!--MD5=[f2e89000edc4b8b1cad31cf5527d97c7]
+link ArbiterCategory to Category--><path d="M546.9772,156.1357 C489.0099,239.7348 367.6252,414.7929 312.8591,493.7754 " fill="none" id="ArbiterCategory-Category" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="533.4612" y="176.406">*</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="308.8108" y="482.9942">1</text><!--MD5=[a8e78d231ed1ea04dca41ab556efab4a]
+link EmployerCategory to Employer--><path d="M370.2323,153.1501 C376.2128,154.1684 382.1479,155.1082 388,155.9531 C720.5551,203.9644 817.5515,111.3993 1143,194.9531 C1177.4374,203.7943 1213.0521,219.1138 1244.0632,234.7712 " fill="none" id="EmployerCategory-Employer" style="stroke: #5498C4; stroke-width: 3.0;"/><!--MD5=[54a45e59f224bf46f43f309053e191ef]
+link EmployerCategory to Category--><path d="M205.694,156.1357 C223.2419,239.7348 259.9876,414.7929 276.5665,493.7754 " fill="none" id="EmployerCategory-Category" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="198.5659" y="176.406">*</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="266.5072" y="482.9942">1</text><!--MD5=[f8f582917909410bd0f656a106f59a42]
 @startuml
 
 skinparam BackgroundColor transparent
@@ -99,8 +99,8 @@ package "Categories" {
     primary key(:category/id)
   }
 
-  ArbiterCategory "*" - - "1" Arbiter
-  ArbiterCategory - - Category
+  ArbiterCategory - - Arbiter
+  ArbiterCategory "*" - - "1" Category
   class ArbiterCategory << (T, #05F5CA) Table >> {
     :user/address                 - varchar, not nil
     :category/id                  - varchar, not nil
@@ -108,8 +108,8 @@ package "Categories" {
     primary key(:user/address, :category/id)
   }
 
-  EmployerCategory "*" - - "1" Employer
-  EmployerCategory - - Category
+  EmployerCategory - - Employer
+  EmployerCategory "*" - - "1" Category
   class EmployerCategory << (T, #05F5CA) Table >> {
     :user/address                 - varchar, not nil
     :category/id                  - varchar, not nil

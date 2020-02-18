@@ -79,8 +79,8 @@ package "Categories" {
     primary key(:category/id)
   }
 
-  ArbiterCategory "*" -- "1" Arbiter
-  ArbiterCategory -- Category
+  ArbiterCategory -- Arbiter
+  ArbiterCategory "*" -- "1" Category
   class ArbiterCategory << (T, #05F5CA) Table >> {
     :user/address                 - varchar, not nil
     :category/id                  - varchar, not nil
@@ -88,8 +88,8 @@ package "Categories" {
     primary key(:user/address, :category/id)
   }
 
-  EmployerCategory "*" -- "1" Employer
-  EmployerCategory -- Category
+  EmployerCategory -- Employer
+  EmployerCategory "*" -- "1" Category
   class EmployerCategory << (T, #05F5CA) Table >> {
     :user/address                 - varchar, not nil
     :category/id                  - varchar, not nil
