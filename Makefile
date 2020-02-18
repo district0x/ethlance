@@ -5,8 +5,8 @@
 .PHONY: fig-dev-all fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build-css build
 .PHONY: watch-tests watch-css
-.PHONY: deploy testnet ipfs docs
-.PHONY: run
+.PHONY: deploy testnet ipfs
+.PHONY: run docs
 .PHONY: deps lein-deps test travis-test
 .PHONY: design-build design-deploy design-deps
 .PHONY: check clean clean-all
@@ -38,7 +38,7 @@ help:
 	@echo "  testnet                 :: Start the Testnet server."
 	@echo "  ipfs                    :: Start the IPFS daemon."
 	@echo "  --"
-	@echo "  docs                    :: Generate Documentation."
+	@echo "  docs                    :: Generate Requirement, Design, and Spec Documents"
 	@echo ""
 	@echo "Production Commands:"
 	@echo "  build                   :: Perform Production Build of Ethlance."
@@ -159,7 +159,7 @@ testnet:
 
 
 docs:
-	lein marg
+	make -C ./docs
 
 
 check:

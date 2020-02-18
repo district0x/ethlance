@@ -1,14 +1,107 @@
 @startuml
 
-skinparam BackgroundColor #F3F4F9
-skinparam RoundCorner 5
+skinparam BackgroundColor transparent
+skinparam DefaultFontName Monospaced
+skinparam RoundCorner     5
+skinparam shadowing       false
+
 skinparam class {
-        BackgroundColor White
-        ArrowColor #F1B440
-        ArrowThickness 2
-        BorderColor #292D83
+  ArrowColor              #5498C4
+  ArrowThickness          3
+  BackgroundColor         #F3F4F9
+  BorderColor             #2C82AB
+  BorderThickness         2
+  FontName                Ariel
 }
 
 title Ethlance Database Diagram
+class User << (T, #05F5CA) Table >> {
+  :user/address                 - address, not nil
+  :user/country-code            - varchar
+  :user/user-name               - varchar
+  :user/full-name               - varchar
+  :user/email                   - varchar, not nil
+  :user/profile-image           - varchar
+  :user/date-registered         - unsigned integer
+  :user/date-updated            - unsigned integer
+  :user/github-username         - varchar
+  :user/linkedin-username       - varchar
+  :user/status                  - varchar
+
+  primary key(:user/address)
+}
+
+package "User Roles" {
+  Candidate --> User : fk(:user/address)
+  class Candidate << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :candidate/bio                - varchar
+    :candidate/professional-title - varchar
+    :candidate/rate               - integer, not nil
+    :candidate/rate-currency-id   - varchar, not nil
+  
+    primary key(:user/address)
+  }
+  
+  Employer --> User : fk(:user/address)
+  class Employer << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :employer/bio                 - varchar
+    :employer/professional-title  - varchar
+  
+    primary key(:user/address)
+  }
+  
+  Arbiter --> User : fk(:user/address)
+  class Arbiter << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :arbiter/bio                  - varchar
+    :arbiter/professional-title   - varchar
+    :arbiter/fee                  - integer, not nil
+    :arbiter/fee-currency-id      - varchar, not nil
+  
+    primary key(:user/address)
+  }
+}
+
+UserLanguage --> User : fk(:user/address)
+class UserLanguage << (T, #05F5CA) Table >> {
+  :user/address                   - varchar, not nil
+  :language/id                    - varchar, not nil
+
+  primary key(:user/address)
+}
+
+package "Categories" {
+  class Category << (T, #05F5CA) Table >> {
+    :category/id                  - varchar, not nil
+  
+    primary key(:category/id)
+  }
+
+  ArbiterCategory "*" -- "1" Arbiter
+  ArbiterCategory -- Category
+  class ArbiterCategory << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :category/id                  - varchar, not nil
+    
+    primary key(:user/address, :category/id)
+  }
+
+  EmployerCategory "*" -- "1" Employer
+  EmployerCategory -- Category
+  class EmployerCategory << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :category/id                  - varchar, not nil
+    
+    primary key(:user/address, :category/id)
+  }
+}
+
+class Skill << (T, #05F5CA) Table >> {
+  :skill/id                       - varchar, not nil
+
+  primary key(:skill/id)
+}
 
 @enduml
