@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="648px" preserveAspectRatio="none" style="width:2299px;height:648px;" version="1.1" viewBox="0 0 2299 648" width="2299px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="monospace" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="275" x="1015.5" y="16.708">Ethlance Database Diagram</text><!--MD5=[bbd834acc6c1aa6802ccd5f98a998ae9]
+cluster User Roles--><polygon fill="#FFFFFF" points="769,194.9531,855,194.9531,862,217.25,1899,217.25,1899,360.9531,769,360.9531,769,194.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="769" x2="862" y1="217.25" y2="217.25"/><text fill="#000000" font-family="monospace" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="80" x="773" y="209.9482">User Roles</text><!--MD5=[2b31db541285bb63b62bcf58aaa217f2]
+cluster Categories--><polygon fill="#FFFFFF" points="14,36.9531,100,36.9531,107,59.25,761,59.25,761,581.9531,14,581.9531,14,36.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="14" x2="107" y1="59.25" y2="59.25"/><text fill="#000000" font-family="monospace" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="80" x="18" y="51.9482">Categories</text><!--MD5=[d1f051c962f93ac764d41377d96968df]
+class Candidate--><rect fill="#F3F4F9" height="130.7656" id="Candidate" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="777" y="221.9531"/><ellipse cx="914.75" cy="240.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M915.5938,247.6719 L913.1406,247.6719 L913.1406,237.4219 L910,237.4219 L910,235.2813 L918.7344,235.2813 L918.7344,237.4219 L915.5938,237.4219 L915.5938,247.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="942.75" y="238.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="64" x="935.25" y="252.0605">Candidate</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="778" x2="1124" y1="259.8906" y2="259.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="783" y="274.1011">:user/address                 - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="783" y="286.9058">:candidate/bio                - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="783" y="299.7104">:candidate/professional-title - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="783" y="312.5151">:candidate/rate               - integer, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="783" y="325.3198">:candidate/rate-currency-id   - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="778" x2="1124" y1="331.9141" y2="331.9141"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="182" x="783" y="346.1245">primary key(:user/address)</text><!--MD5=[77d4d0fc85239ad4599824270418e7ce]
+class Employer--><rect fill="#F3F4F9" height="105.1563" id="Employer" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="1160" y="234.9531"/><ellipse cx="1301.25" cy="253.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M1302.0938,260.6719 L1299.6406,260.6719 L1299.6406,250.4219 L1296.5,250.4219 L1296.5,248.2813 L1305.2344,248.2813 L1305.2344,250.4219 L1302.0938,250.4219 L1302.0938,260.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="1325.75" y="251.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="57" x="1321.75" y="265.0605">Employer</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1161" x2="1507" y1="272.8906" y2="272.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1166" y="287.1011">:user/address                 - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1166" y="299.9058">:employer/bio                 - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1166" y="312.7104">:employer/professional-title  - varchar</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1161" x2="1507" y1="319.3047" y2="319.3047"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="182" x="1166" y="333.5151">primary key(:user/address)</text><!--MD5=[27e5a4f50150cf5394596dfcc61a327f]
+class Arbiter--><rect fill="#F3F4F9" height="130.7656" id="Arbiter" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="1543" y="221.9531"/><ellipse cx="1690.25" cy="240.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M1691.0938,247.6719 L1688.6406,247.6719 L1688.6406,237.4219 L1685.5,237.4219 L1685.5,235.2813 L1694.2344,235.2813 L1694.2344,237.4219 L1691.0938,237.4219 L1691.0938,247.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="1708.75" y="238.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="42" x="1712.25" y="252.0605">Arbiter</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1544" x2="1890" y1="259.8906" y2="259.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1549" y="274.1011">:user/address                 - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1549" y="286.9058">:arbiter/bio                  - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1549" y="299.7104">:arbiter/professional-title   - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1549" y="312.5151">:arbiter/fee                  - integer, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1549" y="325.3198">:arbiter/fee-currency-id      - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1544" x2="1890" y1="331.9141" y2="331.9141"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="182" x="1549" y="346.1245">primary key(:user/address)</text><!--MD5=[a96594a83e2ecdc78cbf17c2ddf01934]
+class Category--><rect fill="#F3F4F9" height="79.5469" id="Category" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="111" y="493.9531"/><ellipse cx="252.75" cy="512.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M253.5938,519.6719 L251.1406,519.6719 L251.1406,509.4219 L248,509.4219 L248,507.2813 L256.7344,507.2813 L256.7344,509.4219 L253.5938,509.4219 L253.5938,519.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="276.75" y="510.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="56" x="273.25" y="524.0605">Category</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="112" x2="458" y1="531.8906" y2="531.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="117" y="546.1011">:category/id                  - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="112" x2="458" y1="552.6953" y2="552.6953"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="175" x="117" y="566.9058">primary key(:category/id)</text><!--MD5=[43c2581f775f23f8ffbde9d260790a11]
+class ArbiterCategory--><rect fill="#F3F4F9" height="92.3516" id="ArbiterCategory" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="405" y="63.9531"/><ellipse cx="525.75" cy="82.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M526.5938,89.6719 L524.1406,89.6719 L524.1406,79.4219 L521,79.4219 L521,77.2813 L529.7344,77.2813 L529.7344,79.4219 L526.5938,79.4219 L526.5938,89.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="570.75" y="80.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="98" x="546.25" y="94.0605">ArbiterCategory</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="406" x2="752" y1="101.8906" y2="101.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="411" y="116.1011">:user/address                 - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="411" y="128.9058">:category/id                  - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="406" x2="752" y1="135.5" y2="135.5"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="280" x="411" y="149.7104">primary key(:user/address, :category/id)</text><!--MD5=[b5b2dd5b3a13102c2c5bcc7e4b33c672]
+class EmployerCategory--><rect fill="#F3F4F9" height="92.3516" id="EmployerCategory" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="22" y="63.9531"/><ellipse cx="135.25" cy="82.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M136.0938,89.6719 L133.6406,89.6719 L133.6406,79.4219 L130.5,79.4219 L130.5,77.2813 L139.2344,77.2813 L139.2344,79.4219 L136.0938,79.4219 L136.0938,89.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="187.75" y="80.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="113" x="155.75" y="94.0605">EmployerCategory</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="23" x2="369" y1="101.8906" y2="101.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="28" y="116.1011">:user/address                 - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="28" y="128.9058">:category/id                  - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="23" x2="369" y1="135.5" y2="135.5"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="280" x="28" y="149.7104">primary key(:user/address, :category/id)</text><!--MD5=[3fd616f346a44cd59a91eb10b19e157c]
+class User--><rect fill="#F3F4F9" height="207.5938" id="User" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="348" x="1326" y="429.9531"/><ellipse cx="1473.25" cy="448.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M1474.0938,455.6719 L1471.6406,455.6719 L1471.6406,445.4219 L1468.5,445.4219 L1468.5,443.2813 L1477.2344,443.2813 L1477.2344,445.4219 L1474.0938,445.4219 L1474.0938,455.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="1491.75" y="446.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="29" x="1501.75" y="460.0605">User</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1327" x2="1673" y1="467.8906" y2="467.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1332" y="482.1011">:user/address                 - address, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="494.9058">:user/country-code            - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="507.7104">:user/user-name               - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="520.5151">:user/full-name               - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1332" y="533.3198">:user/email                   - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="546.1245">:user/profile-image           - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1332" y="558.9292">:user/date-registered         - unsigned integer</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="336" x="1332" y="571.7339">:user/date-updated            - unsigned integer</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="584.5386">:user/github-username         - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="597.3433">:user/linkedin-username       - varchar</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="273" x="1332" y="610.1479">:user/status                  - varchar</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1327" x2="1673" y1="616.7422" y2="616.7422"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="182" x="1332" y="630.9526">primary key(:user/address)</text><!--MD5=[ec3984a27d47c007eb06c90c4b29ba88]
+class UserLanguage--><rect fill="#F3F4F9" height="92.3516" id="UserLanguage" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="362" x="1926" y="241.4531"/><ellipse cx="2057.25" cy="260.4219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M2058.0938,267.1719 L2055.6406,267.1719 L2055.6406,256.9219 L2052.5,256.9219 L2052.5,254.7813 L2061.2344,254.7813 L2061.2344,256.9219 L2058.0938,256.9219 L2058.0938,267.1719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="2098.75" y="257.5918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="91" x="2077.75" y="271.5605">UserLanguage</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1927" x2="2287" y1="279.3906" y2="279.3906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="350" x="1932" y="293.6011">:user/address                   - varchar, not nil</text><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="350" x="1932" y="306.4058">:language/id                    - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="1927" x2="2287" y1="313" y2="313"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="182" x="1932" y="327.2104">primary key(:user/address)</text><!--MD5=[42e1add689e888dd7b55d3ee3f1dd6d7]
+class Skill--><rect fill="#F3F4F9" height="79.5469" id="Skill" rx="2.5" ry="2.5" style="stroke: #2C82AB; stroke-width: 2.0;" width="362" x="788" y="69.9531"/><ellipse cx="942.25" cy="88.9219" fill="#05F5CA" rx="11" ry="11" style="stroke: #2C82AB; stroke-width: 1.0;"/><path d="M943.0938,95.6719 L940.6406,95.6719 L940.6406,85.4219 L937.5,85.4219 L937.5,83.2813 L946.2344,83.2813 L946.2344,85.4219 L943.0938,85.4219 L943.0938,95.6719 Z "/><text fill="#000000" font-family="monospace" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="49" x="960.75" y="86.0918">«Table»</text><text fill="#000000" font-family="Ariel" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="24" x="973.25" y="100.0605">Skill</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="789" x2="1149" y1="107.8906" y2="107.8906"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="350" x="794" y="122.1011">:skill/id                       - varchar, not nil</text><line style="stroke: #2C82AB; stroke-width: 2.0;" x1="789" x2="1149" y1="128.6953" y2="128.6953"/><text fill="#000000" font-family="monospace" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="154" x="794" y="142.9058">primary key(:skill/id)</text><!--MD5=[b4ee36f267c9eaf7a41f02da131f72f3]
+link Candidate to User--><path d="M1097.0405,353.025 C1165.8892,383.938 1248.6587,421.1013 1321.2251,453.6835 " fill="none" id="Candidate-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1325.9899,455.8229,1319.4179,448.4874,1321.4286,453.7749,1316.1411,455.7856,1325.9899,455.8229" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1193" y="396.02">fk(:user/address)</text><!--MD5=[e968bcc5cc65b8501bb8769888ba248d]
+link Employer to User--><path d="M1369.4076,340.0312 C1386.2428,365.0305 1407.0237,395.8889 1427.0176,425.5786 " fill="none" id="Employer-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1429.9612,429.9497,1428.2515,420.2504,1427.1682,425.8026,1421.616,424.7192,1429.9612,429.9497" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1408" y="396.02">fk(:user/address)</text><!--MD5=[cdaf4d5d20b34ce9b47b5b642fbfc4a3]
+link Arbiter to User--><path d="M1659.133,353.1868 C1639.4688,375.5242 1616.9443,401.1109 1595.1495,425.8686 " fill="none" id="Arbiter-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1591.6583,429.8343,1600.6077,425.7224,1594.9623,426.0815,1594.6032,420.436,1591.6583,429.8343" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1628" y="396.02">fk(:user/address)</text><!--MD5=[9a54b529813822f68d5fbd5982558339]
+link UserLanguage to User--><path d="M1993.54,333.5287 C1905.1264,369.4331 1780.7093,419.9583 1678.9167,461.2958 " fill="none" id="UserLanguage-&gt;User" style="stroke: #5498C4; stroke-width: 3.0;"/><polygon fill="#5498C4" points="1674.0867,463.2573,1683.9304,463.5768,1678.7192,461.3759,1680.9201,456.1648,1674.0867,463.2573" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="1858" y="396.02">fk(:user/address)</text><!--MD5=[fd66f2363753caf1b6bc06d0d9c9c61b]
+link ArbiterCategory to Arbiter--><path d="M753.2323,153.1501 C759.2128,154.1684 765.1479,155.1082 771,155.9531 C1103.5551,203.9644 1200.5515,111.3993 1526,194.9531 C1550.802,201.3206 1576.2148,211.0484 1600.0786,221.8426 " fill="none" id="ArbiterCategory-Arbiter" style="stroke: #5498C4; stroke-width: 3.0;"/><!--MD5=[f2e89000edc4b8b1cad31cf5527d97c7]
+link ArbiterCategory to Category--><path d="M546.9772,156.1357 C489.0099,239.7348 367.6252,414.7929 312.8591,493.7754 " fill="none" id="ArbiterCategory-Category" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="533.4612" y="176.406">*</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="308.8108" y="482.9942">1</text><!--MD5=[a8e78d231ed1ea04dca41ab556efab4a]
+link EmployerCategory to Employer--><path d="M370.2323,153.1501 C376.2128,154.1684 382.1479,155.1082 388,155.9531 C720.5551,203.9644 817.5515,111.3993 1143,194.9531 C1177.4374,203.7943 1213.0521,219.1138 1244.0632,234.7712 " fill="none" id="EmployerCategory-Employer" style="stroke: #5498C4; stroke-width: 3.0;"/><!--MD5=[54a45e59f224bf46f43f309053e191ef]
+link EmployerCategory to Category--><path d="M205.694,156.1357 C223.2419,239.7348 259.9876,414.7929 276.5665,493.7754 " fill="none" id="EmployerCategory-Category" style="stroke: #5498C4; stroke-width: 3.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="198.5659" y="176.406">*</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="266.5072" y="482.9942">1</text><!--MD5=[f8f582917909410bd0f656a106f59a42]
+@startuml
+
+skinparam BackgroundColor transparent
+skinparam DefaultFontName Monospaced
+skinparam RoundCorner     5
+skinparam shadowing       false
+
+skinparam class {
+  ArrowColor              #5498C4
+  ArrowThickness          3
+  BackgroundColor         #F3F4F9
+  BorderColor             #2C82AB
+  BorderThickness         2
+  FontName                Ariel
+}
+
+title Ethlance Database Diagram
+class User << (T, #05F5CA) Table >> {
+  :user/address                 - address, not nil
+  :user/country-code            - varchar
+  :user/user-name               - varchar
+  :user/full-name               - varchar
+  :user/email                   - varchar, not nil
+  :user/profile-image           - varchar
+  :user/date-registered         - unsigned integer
+  :user/date-updated            - unsigned integer
+  :user/github-username         - varchar
+  :user/linkedin-username       - varchar
+  :user/status                  - varchar
+
+  primary key(:user/address)
+}
+
+package "User Roles" {
+  Candidate - -> User : fk(:user/address)
+  class Candidate << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :candidate/bio                - varchar
+    :candidate/professional-title - varchar
+    :candidate/rate               - integer, not nil
+    :candidate/rate-currency-id   - varchar, not nil
+  
+    primary key(:user/address)
+  }
+  
+  Employer - -> User : fk(:user/address)
+  class Employer << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :employer/bio                 - varchar
+    :employer/professional-title  - varchar
+  
+    primary key(:user/address)
+  }
+  
+  Arbiter - -> User : fk(:user/address)
+  class Arbiter << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :arbiter/bio                  - varchar
+    :arbiter/professional-title   - varchar
+    :arbiter/fee                  - integer, not nil
+    :arbiter/fee-currency-id      - varchar, not nil
+  
+    primary key(:user/address)
+  }
+}
+
+UserLanguage - -> User : fk(:user/address)
+class UserLanguage << (T, #05F5CA) Table >> {
+  :user/address                   - varchar, not nil
+  :language/id                    - varchar, not nil
+
+  primary key(:user/address)
+}
+
+package "Categories" {
+  class Category << (T, #05F5CA) Table >> {
+    :category/id                  - varchar, not nil
+  
+    primary key(:category/id)
+  }
+
+  ArbiterCategory - - Arbiter
+  ArbiterCategory "*" - - "1" Category
+  class ArbiterCategory << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :category/id                  - varchar, not nil
+    
+    primary key(:user/address, :category/id)
+  }
+
+  EmployerCategory - - Employer
+  EmployerCategory "*" - - "1" Category
+  class EmployerCategory << (T, #05F5CA) Table >> {
+    :user/address                 - varchar, not nil
+    :category/id                  - varchar, not nil
+    
+    primary key(:user/address, :category/id)
+  }
+}
+
+class Skill << (T, #05F5CA) Table >> {
+  :skill/id                       - varchar, not nil
+
+  primary key(:skill/id)
+}
+
+@enduml
+
+PlantUML version 1.2020.01(Sun Feb 16 12:40:32 EST 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 1.8.0_232-8u232-b09-0ubuntu1~19.04.1-b09
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: CA
+--></g></svg>

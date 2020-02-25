@@ -1,0 +1,16 @@
+#+TITLE: Ethlance Documentation
+#+LANGUAGE: en
+#+OPTIONS: H:3 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+#+SETUPFILE: ./district0x.setup
+
+* Introduction
+
+  #+INCLUDE: ./org/1_introduction.org
+
+* Requirements
+  
+  #+INCLUDE: ./org/2_requirements.org
+  
+* Design & Specification
+
+  #+INCLUDE: ./org/3_design.org

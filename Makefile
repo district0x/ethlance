@@ -94,6 +94,7 @@ clean:
 clean-all: clean
 	rm -rf node_modules
 	make -C ./designs clean
+	make -C ./docs clean
 
 
 lein-deps:

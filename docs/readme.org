@@ -1,0 +1,48 @@
+#+TITLE: District0x Documentation Generation Readme
+#+LANGUAGE: en
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+* Quickstart
+  While in this folder, run on the commandline:
+  ~make~
+
+  *Or*
+
+  From the main ethlance repository:
+  ~make docs~
+
+* Prerequisites
+ - java on commandline ~which java~
+ - emacs on commandline ~which emacs~
+ - graphviz on commandline ~which dot~
+   - Ubuntu:  ~sudo apt-get install graphviz~
+   - Mac:     ~brew install graphviz~
+   - Other:   [[https://graphviz.gitlab.io/download/][Download Page]]
+ - plantuml.jar
+   - *Note* already included in ./bin folder
+
+* Rationale 
+  This directory contains scripts to generate documentation with
+  ~make~. This folder is meant to serve as a drop-in tool to use with
+  District0x projects for managing High-level design and specification
+  documentation, with enough flexibility to include diagrams from
+  third-party tooling.
+
+* How it Works
+
+** Plant Files
+   *.plant files placed in the ~./plant~ folder are compiled and
+   placed in ./diagrams folder as *.png and *.svg files of the same
+   name.
+
+   For Example, ~./plant/test.plant~ would generate the files
+   - ~./diagrams/test.png~
+   - ~./diagrams/test.svg~
+
+** Org Files
+   *.org files placed in the ~./src~ folder are compiled and placed in
+   ~./public/html~ as compiled HTML    
+
+* References
+  - [[https://plantuml.com/][PlantUML Reference]]
+  - [[https://orgmode.org/manual/HTML-Export.html#HTML-Export][Org Mode Export]]
