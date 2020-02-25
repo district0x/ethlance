@@ -3,6 +3,5 @@
 #+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
 
 * Database Design
-  
-  [[img:../images/database.svg]]
+  [[../images/database.svg]]
 
