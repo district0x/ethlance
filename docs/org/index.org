@@ -5,12 +5,12 @@
 
 * Introduction
 
-  #+INCLUDE: ./org/1_introduction.org
+  #+INCLUDE: 1_introduction.org
 
 * Requirements
   
-  #+INCLUDE: ./org/2_requirements.org
+  #+INCLUDE: 2_requirements.org
   
 * Design & Specification
 
-  #+INCLUDE: ./org/3_design.org
+  #+INCLUDE: 3_design.org

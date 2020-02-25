@@ -36,12 +36,13 @@
    name.
 
    For Example, ~./plant/test.plant~ would generate the files
-   - ~./diagrams/test.png~
-   - ~./diagrams/test.svg~
+   - ~./org/images/test.png~
+   - ~./org/images/test.svg~
 
 ** Org Files
-   *.org files placed in the ~./src~ folder are compiled and placed in
-   ~./public/html~ as compiled HTML    
+   *.org files placed in the ~./org~ folder are compiled and placed in
+   ~./public/html~ as compiled HTML. Additionally, images are also
+   copied to ~./public/html/images~
 
 * References
   - [[https://plantuml.com/][PlantUML Reference]]

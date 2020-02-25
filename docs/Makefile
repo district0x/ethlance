@@ -4,7 +4,7 @@
 .PHONY: generate-svgs generate-pngs generate-html
 .DEFAULT_GOAL := all
 .SUFFIXES:
-.SUFFIXES: .plant .svg .png
+.SUFFIXES: .plant .svg .png .org .html
 
 
 #Current Working Directory
@@ -29,10 +29,10 @@ HTML_GEN_EXEC        := $(EMACS_CMD) --quick --script $(HTML_GEN_SCRIPT)
 
 # Location of initial source files
 PLANT_FOLDER         := ./plant
-ORG_FOLDER           := ./
+ORG_FOLDER           := ./org
 
 # Generated file locations
-IMAGE_FOLDER         := ./images
+IMAGE_FOLDER         := ./org/images
 HTML_FOLDER          := ./public/html
 HTML_IMAGE_FOLDER    := ./public/html/images
 
@@ -41,8 +41,7 @@ HTML_IMAGE_FOLDER    := ./public/html/images
 PLANT_FILES    := $(wildcard $(PLANT_FOLDER)/*.plant)
 
 # Retrieve the index org file
-#ORG_FILES      := $(wildcard $(ORG_FOLDER)/*.org)
-ORG_FILES      := $(wildcard $(ORG_FOLDER)/index.org)
+ORG_FILES      := $(wildcard $(ORG_FOLDER)/*.org)
 
 
 help:
@@ -84,13 +83,19 @@ $(IMAGE_FOLDER)/%.svg: $(PLANT_FOLDER)/%.plant
 HTML_FILES=$(notdir $(ORG_FILES:.org=.html))
 HTML_PATHS=$(addprefix $(HTML_FOLDER)/, $(HTML_FILES))
 generate-html: $(HTML_PATHS)
-	rsync -r $(IMAGE_FOLDER) $(HTML_IMAGE_FOLDER)
+	rsync -r $(IMAGE_FOLDER) $(HTML_FOLDER)
+
+
+# Make sure our index.html file is regenerated when the residual org files change
+$(HTML_FOLDER)/index.html: $(ORG_FILES)
+
 
 # Define how to create HTML files from org files
 $(HTML_FOLDER)/%.html: $(ORG_FOLDER)/%.org
 	mkdir -p $(HTML_FOLDER)
 	$(HTML_GEN_EXEC) -- $<
 	mv $(ORG_FOLDER)/$*.html $(HTML_FOLDER)/
+
 
 clean:
 	@echo "Nothing to clean..."

@@ -35,7 +35,6 @@ Generate HTML File from Org File
   (org-open-file-with-emacs
    (format "%s" path)))
 
-(file-name-directory "../images/database.svg")
 
 (defun org-custom-link-img-export (path desc format)
   "Files pulled from the /docs/images folder have their relative
@@ -57,6 +56,7 @@ links fixed for the public website."
  "img"
  :follow 'org-custom-link-img-follow
  :export 'org-custom-link-img-export)
+
 
 ;;
 ;; BEGIN EXPORT
