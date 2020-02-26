@@ -46,13 +46,13 @@ ORG_FILES      := $(wildcard $(ORG_FOLDER)/*.org)
 
 help:
 	@echo "Makefile for generating requirement, design, and spec documents"
-	@echo "all                                - Generate SVGs and PNGs from ./plant folder"
-	@echo "generate-pngs                      - Generate PNGs from Plant Files"
-	@echo "generate-svgs                      - Generate SVGs from Plant Files"
-	@echo "generate-html                      - Generate HTML from ORG Files"
-	@echo "clean                              - Does Nothing"
-	@echo "clean-all                          - Clean out public folder"
-	@echo "help                               - Show this help message"
+	@echo "  all                                - Generate SVGs and PNGs from ./plant folder"
+	@echo "  generate-pngs                      - Generate PNGs from Plant Files"
+	@echo "  generate-svgs                      - Generate SVGs from Plant Files"
+	@echo "  generate-html                      - Generate HTML from ORG Files"
+	@echo "  clean                              - Does Nothing"
+	@echo "  clean-all                          - Clean out public folder"
+	@echo "  help                               - Show this help message"
 
 all: generate-pngs generate-svgs generate-html
 
