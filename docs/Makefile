@@ -1,7 +1,7 @@
 # Makefile for generating Requirements, Designs, and Specifications
 # with emacs org-mode, and PlantUML
 .PHONY: help all clean clean-all
-.PHONY: generate-svgs generate-pngs generate-html
+.PHONY: generate-svgs generate-pngs generate-html publish-ipfs
 .DEFAULT_GOAL := all
 .SUFFIXES:
 .SUFFIXES: .plant .svg .png .org .html
@@ -52,6 +52,7 @@ help:
 	@echo "  generate-html                      - Generate HTML from ORG Files"
 	@echo "  clean                              - Does Nothing"
 	@echo "  clean-all                          - Clean out public folder"
+	@echo "  publish-ipfs                       - Publish an IPFS website"
 	@echo "  help                               - Show this help message"
 
 all: generate-pngs generate-svgs generate-html
@@ -83,7 +84,7 @@ $(IMAGE_FOLDER)/%.svg: $(PLANT_FOLDER)/%.plant
 HTML_FILES=$(notdir $(ORG_FILES:.org=.html))
 HTML_PATHS=$(addprefix $(HTML_FOLDER)/, $(HTML_FILES))
 generate-html: $(HTML_PATHS)
-	rsync -r $(IMAGE_FOLDER) $(HTML_FOLDER)
+	@rsync -r $(IMAGE_FOLDER) $(HTML_FOLDER)
 
 
 # Make sure our index.html file is regenerated when the residual org files change
@@ -99,6 +100,11 @@ $(HTML_FOLDER)/%.html: $(ORG_FOLDER)/%.org
 
 clean:
 	@echo "Nothing to clean..."
+
+
+IPFS_PUBLISH_SCRIPT=./bin/publish-ipfs.sh
+publish-ipfs: all
+	@bash $(IPFS_PUBLISH_SCRIPT) $(HTML_FOLDER)
 
 
 clean-all:
