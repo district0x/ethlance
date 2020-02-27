@@ -1,8 +1,10 @@
 @import url(https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700);
+@import url(https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700);
 @import url(https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css);
 
 h1,h2,h3,h4,h5,h6,legend{
-    font-family:"Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;
+    color: #2c398f;
+    font-family:"Merriweather","Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;
     font-weight:700;
     margin-top:0;
 }
@@ -36,7 +38,7 @@ h6{
 }
 
 h4,h5,h6{
-    color:#2980B9;
+    color:#7AF7F9;
     font-weight:300;
 }
 
@@ -49,9 +51,8 @@ html{
 }
 
 body{
-    background:#edf0f2;
-    color:#404040;
-    font-family:"Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+    color:#47608e;
+    font-family:"Open Sans","Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
     font-weight:normal;
     margin:0;
     min-height:100%;
@@ -66,6 +67,9 @@ body{
     max-width:800px;
     min-height:100%;
     padding:1.618em 3.236em;
+    -webkit-box-shadow: 5px 0px 5px -1px rgba(44,130,171,0.3);
+    -moz-box-shadow: 5px 0px 5px -1px rgba(44,130,171,0.3);
+    box-shadow: 5px 0px 5px -1px rgba(44,130,171,0.3);
 }
 
 p{
@@ -283,7 +287,7 @@ code{
     background:#fff;
     border:solid 1px #e1e4e5;
     /* color:#000;  for clickable code */
-    font-family:Consolas,"Andale Mono WT","Andale Mono","Lucida Console","Lucida Sans Typewriter","DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono","Nimbus Mono L",Monaco,"Courier New",Courier,monospace;
+    font-family:"Inconsolata",Consolas,"Andale Mono WT","Andale Mono","Lucida Console","Lucida Sans Typewriter","DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono","Nimbus Mono L",Monaco,"Courier New",Courier,monospace;
     font-size:75%;
     max-width:100%;
     overflow-x:auto;
@@ -650,10 +654,11 @@ label{
     color:#333;
     font-size:90%}
 
-a{
-    color:#2980B9;
-    text-decoration:none;
-    cursor:pointer}
+a {
+    color:#2c398f;
+    text-decoration:underline;
+    cursor:pointer;
+}
 
 
 a:hover,a:active{
@@ -759,6 +764,7 @@ hr{
     display:inline-block;
     line-height:18px;
     padding:0.4045em 1.618em;
+    text-decoration: none;
     display:block;
     position:relative;
     font-size:90%;
@@ -780,7 +786,7 @@ hr{
     left:0;
     width:300px;
     overflow-x:hidden;
-    overflow-y:scroll;
+    overflow-y:auto;
     height:100%;
     background:#343131;
     z-index:200;
@@ -792,11 +798,11 @@ hr{
 
 #table-of-contents h2{
     z-index:200;
-    background-color:#2980B9;
+    background-color:#2c398f;
     text-align:center;
     padding:0.809em;
     display:block;
-    color:#fcfcfc;
+    color: #7cf8fa;
     font-size: 100%;
     margin-bottom:0.809em}
 
@@ -884,10 +890,14 @@ footer p{
     color:#fcfcfc;
     background:#1f1d1d;
     border-top:solid 10px #343131;
-    font-family:"Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+    font-family:"Open Sans","Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
     font-size: 90%;
     z-index:400;
     padding:12px;
+}
+
+#postamble {
+    display: none;
 }
 
 #postamble .author {
@@ -931,6 +941,11 @@ footer p{
 
 #content .section>img,#content .section>a>img{
     margin-bottom:24px}
+
+.section-number-2 {
+    font-size: 150%;
+    padding-right: 0.2em;
+}
 
 .verse{
     border-left:5px solid #6AB0DE;
