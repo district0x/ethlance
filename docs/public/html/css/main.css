@@ -672,16 +672,17 @@ a {
 }
 
 
-a:hover,a:active{
+a:hover, a:active {
     outline:0;
 }
 
-a:hover{
+a:hover {
     text-decoration: none;
 }
 
-a:visited{
-    color:#9B59B6}
+a:visited {
+    text-decoration: none;
+}
 
 .left{
     text-align:left}
@@ -734,14 +735,13 @@ hr{
 }
 
 #table-of-contents li.current a{
-    color:gray;
+    color:white;
     border-right:solid 1px #c9c9c9;
     padding:0.4045em 2.427em
 }
 
 #table-of-contents li.current a:hover{
-    color: white;
-    background-color:#2C82AB;
+    opacity: 0.7;
 }
 
 #table-of-contents li a{
@@ -755,8 +755,8 @@ hr{
     padding-left:1.618em -4px}
 
 #table-of-contents li.on a:hover,#table-of-contents li.current>a:hover{
-    color: white;
-    background-color:#2C82AB;}
+    opacity: 0.7;
+}
 
 #table-of-contents li ul li a{
     /* background:#c9c9c9; */
@@ -793,8 +793,7 @@ hr{
 }
 
 #table-of-contents a:hover{
-    color: white;
-    background-color:#2C82AB;
+    opacity: 0.5;
     cursor:pointer}
 
 /* #text-table-of-contents { */
