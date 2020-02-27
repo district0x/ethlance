@@ -2,6 +2,15 @@
 @import url(https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700);
 @import url(https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css);
 
+::selection {
+    color: white;
+    background: #05F5CA; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+    color: white;
+    background: #05F5CA; /* Gecko Browsers */
+}
+
 h1,h2,h3,h4,h5,h6,legend{
     color: #2c398f;
     font-family:"Merriweather","Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;
@@ -463,10 +472,11 @@ table tr:nth-child(2n) td{
     }
 }
 
-*{
+* {
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
     box-sizing:border-box;
+    transition: all 0.1s;
 }
 
 figcaption,figure,footer,header,hgroup,nav{
@@ -666,7 +676,8 @@ a:hover,a:active{
 }
 
 a:hover{
-    color:#3091d1}
+    text-decoration: none;
+}
 
 a:visited{
     color:#9B59B6}
