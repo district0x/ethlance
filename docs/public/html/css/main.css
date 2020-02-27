@@ -20,6 +20,7 @@ h1,h2,h3,h4,h5,h6,legend{
 
 h1{
     font-size:175%;
+    color: #0a176d;
 }
 
 .subtitle{
@@ -76,9 +77,9 @@ body{
     max-width:800px;
     min-height:100%;
     padding:1.618em 3.236em;
-    -webkit-box-shadow: 5px 0px 5px -1px rgba(44,130,171,0.3);
-    -moz-box-shadow: 5px 0px 5px -1px rgba(44,130,171,0.3);
-    box-shadow: 5px 0px 5px -1px rgba(44,130,171,0.3);
+    -webkit-box-shadow: 0px 0px 5px -1px rgba(44,130,171,0.3);
+    -moz-box-shadow: 0px 0px 5px -1px rgba(44,130,171,0.3);
+    box-shadow: 0px 0px 5px -1px rgba(44,130,171,0.3);
 }
 
 p{
@@ -717,24 +718,31 @@ hr{
     white-space:nowrap}
 
 #table-of-contents ul{
-    margin-bottom:0}
+    margin-bottom:0
+}
 
 #table-of-contents li.divide-top{
-    border-top:solid 1px #404040}
+    border-top:solid 1px #404040
+}
 
 #table-of-contents li.divide-bottom{
-    border-bottom:solid 1px #404040}
+    border-bottom:solid 1px #404040
+}
 
 #table-of-contents li.current{
-    background:#e3e3e3}
+    background:#e3e3e3
+}
 
 #table-of-contents li.current a{
     color:gray;
     border-right:solid 1px #c9c9c9;
-    padding:0.4045em 2.427em}
+    padding:0.4045em 2.427em
+}
 
 #table-of-contents li.current a:hover{
-    background:#d6d6d6}
+    color: white;
+    background-color:#2C82AB;
+}
 
 #table-of-contents li a{
     /* color:#404040; */
@@ -747,7 +755,8 @@ hr{
     padding-left:1.618em -4px}
 
 #table-of-contents li.on a:hover,#table-of-contents li.current>a:hover{
-    background:#fcfcfc}
+    color: white;
+    background-color:#2C82AB;}
 
 #table-of-contents li ul li a{
     /* background:#c9c9c9; */
@@ -779,12 +788,13 @@ hr{
     display:block;
     position:relative;
     font-size:90%;
-    color:#b3b3b3;
+    color:#1d1d1d;
     direction: ltr;
 }
 
 #table-of-contents a:hover{
-    background-color:#4e4a4a;
+    color: white;
+    background-color:#2C82AB;
     cursor:pointer}
 
 /* #text-table-of-contents { */
@@ -799,7 +809,7 @@ hr{
     overflow-x:hidden;
     overflow-y:auto;
     height:100%;
-    background:#343131;
+    background: transparent;
     z-index:200;
     scrollbar-base-color: #1F1D1D;
     scrollbar-arrow-color: #b3b3b3;
