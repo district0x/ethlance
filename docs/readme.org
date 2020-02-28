@@ -44,7 +44,7 @@
 
 ** Plant Files
    *.plant files placed in the ~./plant~ folder are compiled and
-   placed in ./diagrams folder as *.png and *.svg files of the same
+   placed in ./org/images folder as *.png and *.svg files of the same
    name.
 
    For Example, ~./plant/test.plant~ would generate the files
@@ -55,6 +55,25 @@
    *.org files placed in the ~./org~ folder are compiled and placed in
    ~./public/html~ as compiled HTML. Additionally, images are also
    copied to ~./public/html/images~
+
+** Website Publication
+   Running ~make~ generates a fully interactable website at
+   ~./public/html~. This can be hosted on a static web server.
+
+*** CSS Print Media Styling
+    CSS Styling also includes media queries for handling a PDF
+    Export. Best results are seen in Chrome Browser
+
+    Example:
+
+    #+BEGIN_SRC sh
+
+    chromium-browser --headless --disable-gpu --print-to-pdf=EthlanceDocs.pdf https://ipfs.io/ipfs/QmVGP2jDouiWYB38cSsQsbBH4aHHVjBDKz2gatTtVvrMDT/index.html
+
+    #+END_SRC
+
+    This also works with ~google-chrome-stable~, ~google-chrome~, and
+    other web browser exports.
 
 * References
   - [[https://plantuml.com/][PlantUML Reference]]
