@@ -9,7 +9,16 @@
   *Or*
 
   From the main ethlance repository:
-  ~make docs~
+  ~make build-docs~
+
+* Publishing
+  Results can be published to IPFS as a static website:
+  ~make publish-ipfs~
+
+  *Or*
+
+  From the main ethlance repository:
+  ~make publish-docs~
 
 * Prerequisites
  - java on commandline ~which java~
@@ -20,6 +29,9 @@
    - Other:   [[https://graphviz.gitlab.io/download/][Download Page]]
  - plantuml.jar
    - *Note* already included in ./bin folder
+ - *Optional* ipfs on commandline ~which ipfs~
+   - While running an IPFS daemon
+   - Used for publishing results
 
 * Rationale 
   This directory contains scripts to generate documentation with
