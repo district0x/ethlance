@@ -49,3 +49,5 @@
 * Database Design
   [[./images/database.png]]
 
+  [[./images/database.svg][View SVG]]
+
