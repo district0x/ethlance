@@ -1,0 +1,12 @@
+#+TITLE: Color Palette
+#+AUTHOR: Benjamin Zaporzan
+#+DATE: 2020-02-16
+#+EMAIL: benzaporzan@gmail.com
+#+LANGUAGE: en
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+- Medium Spring Green :: #05F5CA
+- Light Sky Blue :: #7AF7F9
+- Dark Slate Blue :: #2C3C8C
+- Light Steel Blue :: #5498C4
+- Dark Steel Blue :: #2C82AB

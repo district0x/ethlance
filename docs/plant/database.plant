@@ -1,0 +1,325 @@
+@startuml
+
+skinparam BackgroundColor transparent
+skinparam DefaultFontName Monospaced
+skinparam RoundCorner     5
+skinparam shadowing       false
+
+skinparam class {
+  ArrowColor              #5498C4
+  ArrowThickness          3
+  BackgroundColor         #F3F4F9
+  BorderColor             #2C82AB
+  BorderThickness         2
+  FontName                Ariel
+}
+
+title Ethlance Database Diagram
+class User << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :user/country-code            - varchar
+  :user/user-name               - varchar
+  :user/full-name               - varchar
+  :user/email                   - varchar, not nil
+  :user/profile-image           - varchar
+  :user/date-registered         - unsigned integer
+  :user/date-updated            - unsigned integer
+  :user/github-username         - varchar
+  :user/linkedin-username       - varchar
+  :user/status                  - varchar
+
+  primary key(:user/address)
+}
+
+Job -- UserLanguage
+class Job << (T, #2C82AB) Table >> {
+  :job/id                         - integer
+  :job/bounty-id                  - integer
+  :job/title                      - varchar, not nil
+  :job/description                - varchar, not nil
+  :job/category                   - varchar
+  :job/status                     - varchar
+  :job/date-created               - unsigned integer
+  :job/date-published             - unsigned integer
+  :job/date-updated               - unsigned integer
+  :job/estimated-length           - unsigned integer
+  :job/required-availability      - integer
+  :job/bid-option                 - integer
+  :job/expertise-level            - integer
+  :job/number-of-candidates       - integer
+  :job/invitation-only?           - integer
+  :job/token                      - address, varchar, non-nil
+  :job/token-version              - integer
+  :job/reward                     - unsigned integer
+  :job/date-deadline              - unsigned integer
+  :job/platform                   - varchar
+  :job/web-reference-url          - varchar
+  :job/language-id                - varchar
+
+  primary key(:job/id)
+}
+
+JobCreator -- User : fk(:user/address)
+JobCreator -- Job : fk(:job/id)
+class JobCreator << (T, #2C82AB) Table >> {
+  :job/id                         - integer
+  :user/address                   - address
+  
+  primary key(:job/id, :user/address)
+}
+
+JobArbiter -- User : fk(:user/address)
+JobArbiter -- Job : fk(:job/id)
+class JobArbiter << (T, #2C82AB) Table >> {
+  :job/id                         - integer
+  :user/address                   - address
+  :job-arbiter/fee                - unsigned integer
+  :job-arbiter/fee-currency-id    - varchar
+  :job-arbiter/status             - varchar
+  
+  primary key(:job/id, :user/address)
+}
+
+JobFile -- Job : fk(:job/id)
+class JobFile << (T, #2C82AB) Table >> {
+  :job/id                         - integer
+  :job/file-id                    - integer
+}
+
+Contract -- Job : fk(:job/id)
+Contract -- Message : fk(:contract/invitation-message-id)
+Contract -- Message : fk(:contract/proposal-message-id)
+class Contract << (T, #2C82AB) Table >> {
+  :contract/id                        - integer
+  :job/id                             - integer
+  :contract/status                    - varchar
+  :contract/date-created              - unsigned integer
+  :contract/date-updated              - unsigned integer
+  :contract/invitation-message-id     - integer
+  :contract/proposal-message-id       - integer
+  :contract/proposal-rate             - integer
+  :contract/proposal-rate-currency-id - varchar
+  
+  primary key(:contract/id)
+}
+
+ContractCandidate -- Contract : fk(:contract/id)
+ContractCandidate -- User : fk(:user/address)
+class ContractCandidate << (T, #2C82AB) Table >> {
+  :contract/id                        - integer
+  :user/address                       - address
+  
+  primary key(:contract/id, :user/address)
+}
+
+ContractMessage -- Contract : fk(:contract/id)
+ContractMessage -- Message : fk(:message/id)
+class ContractMessage << (T, #2C82AB) Table >> {
+  :contract/id                        - integer
+  :message/id                         - integer
+  
+  primary key(:contract/id, :message/id)
+}
+
+Feedback -- Contract : fk(:contract/id)
+Feedback -- Message : fk(:message/id)
+class Feedback << (T, #2C82AB) Table >> {
+  :contract/id                        - integer
+  :message/id                         - integer
+  :feedback/rating                    - integer
+  
+  primary key(:contract/id :message/id)
+}
+
+Invoice -- Contract : fk(:contract/id)
+Invoice -- Message : fk(:message/id)
+class Invoice << (T, #2C82AB) Table >> {
+  :invoice/id                         - integer
+  :contract/id                        - integer
+  :message/id                         - integer
+  :invoice/status                     - varchar
+  :invoice/amount-registered          - unsigned integer
+  :invoice/amount-paid                - unsigned integer
+  :invoice/date-paid                  - unsigned integer
+  :invoice/date-work-started          - unsigned integer
+  :invoice/date-work-ended            - unsigned integer
+  :invoice/work-duration              - unsigned integer
+
+  primary key(:invoice/id :contract/id, :message/id)
+}
+
+Dispute -- Contract : fk(:contract/id)
+Dispute -- Job : fk(:job/id)
+Dispute -- Message : fk(:dispute/raised-message-id)
+Dispute -- Message : fk(:dispute/resolved-message-id)
+class Dispute << (T, #2C82AB) Table >> {
+  :job/id                             - integer
+  :contract/id                        - integer
+  :dispute/raised-message-id          - integer
+  :dispute/resolved-message-id        - integer
+  
+  primary key(:job/id, :contract/id)
+}
+
+
+Message -- User : fk(:user/address)
+class Message << (T, #2C82AB) Table >> {
+  :message/id                         - integer
+  :message/creator                    - address
+  :message/text                       - varchar
+  :message/date-created               - unsigned integer
+  :message/type                       - varchar, non-nil
+  
+  primary key(:message/id)
+}
+
+
+DirectMessage -- Message : fk(:message/id)
+class DirectMessage << (T, #2C82AB) Table >> {
+  :message/id                         - integer
+  :direct-message/receiver            - address
+  :direct-message/read?               - integer
+
+  primary key(:message/id)
+}
+
+MessageFile -- Message : fk(:message/id)
+class MessageFile << (T, #2C82AB) Table >> {
+  :message/id                         - integer
+  :file/id                            - integer
+  
+  primary key(:message/id, :file/id)
+}
+
+class File << (T, #2C82AB) Table >> {
+  :file/id                            - integer
+  :file/hash                          - varchar
+  :file/name                          - varchar
+  :file/directory-hash                - varchar
+
+  primary key(:file/id)
+}
+
+package "User Roles" {
+
+Candidate --> User : fk(:user/address)
+class Candidate << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :candidate/bio                - varchar
+  :candidate/professional-title - varchar
+  :candidate/rate               - integer, not nil
+  :candidate/rate-currency-id   - varchar, not nil
+
+  primary key(:user/address)
+}
+  
+Employer --> User : fk(:user/address)
+class Employer << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :employer/bio                 - varchar
+  :employer/professional-title  - varchar
+
+  primary key(:user/address)
+}
+  
+Arbiter --> User : fk(:user/address)
+class Arbiter << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :arbiter/bio                  - varchar
+  :arbiter/professional-title   - varchar
+  :arbiter/fee                  - integer, not nil
+  :arbiter/fee-currency-id      - varchar, not nil
+  
+  primary key(:user/address)
+}
+
+' END package User Roles
+}
+
+UserLanguage --> User : fk(:user/address)
+class UserLanguage << (T, #2C82AB) Table >> {
+  :user/address                   - address
+  :language/id                    - varchar, not nil
+
+  primary key(:user/address)
+}
+
+package "Categories" {
+
+class Category << (T, #2C82AB) Table >> {
+  :category/id                  - varchar, not nil
+
+  primary key(:category/id)
+}
+
+ArbiterCategory -- Arbiter
+ArbiterCategory "*" -- "1" Category
+class ArbiterCategory << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :category/id                  - varchar, not nil
+    
+  primary key(:user/address, :category/id)
+}
+
+EmployerCategory -- Employer
+EmployerCategory "*" -- "1" Category
+class EmployerCategory << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :category/id                  - varchar, not nil
+
+  primary key(:user/address, :category/id)
+}
+
+CandidateCategory -- Candidate
+CandidateCategory "*" -- "1" Category
+class CandidateCategory << (T, #2C82AB) Table >> {
+  :user/address                 - address
+  :category/id                  - varchar, not nil
+
+  primary key(:user/address, :category/id)
+}
+
+' END package Categories
+}
+
+package "Skills" {
+class Skill << (T, #2C82AB) Table >> {
+  :skill/id                       - varchar, not nil
+
+  primary key(:skill/id)
+}
+
+Skill -- ArbiterSkill
+ArbiterSkill -- Arbiter : fk(:user/address)
+class ArbiterSkill << (T, #2C82AB) Table >> {
+  :user/address                   - address
+  :skill/id                       - varchar, not nil
+  
+  primary key(:user/address, :skill/id)
+}
+
+Skill -- CandidateSkill
+CandidateSkill -- Candidate : fk(:user/address)
+class CandidateSkill << (T, #2C82AB) Table >> {
+  :user/address                   - address
+  :skill/id                       - varchar, not nil
+  
+  primary key(:user/address, :skill/id)
+}
+
+Skill -- JobSkill
+JobSkill -- Job : fk(:job/id)
+class JobSkill << (T, #2C82AB) Table >> {
+  :user/address                   - address
+  :skill/id                       - varchar, not nil
+  
+  primary key(:user/address, :skill/id)
+}
+
+
+' END package Skills
+}
+
+
+
+@enduml

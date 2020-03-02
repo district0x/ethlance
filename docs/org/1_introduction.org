@@ -1,0 +1,15 @@
+#+TITLE: Ethlance Introduction
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+Ethlance is a Freelancing dApp, which is used to orchestrate the use
+of smart contracts to make mutual agreements between employers,
+employees, and a median / an arbiter.
+
+* Rationale
+  [[https://ethlance.com][Ethlance]] is a tried and tested product, which needs a rejuvenation
+  for the adoption of scalable and more easy to use dApp concepts and
+  technologies. The replacement product, dubbed Ethlance 2.0, will
+  make efforts to make freelancing a safe, reliable, and secure
+  process between potential employers and employees. By also
+  supporting other freelancing listings, we also present the
+  opportunity to find work beyond ethlance within other dApp domains.

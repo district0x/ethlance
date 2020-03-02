@@ -1,0 +1,7 @@
+#+TITLE: Ethlance Requirements
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+- The app allows to sign up as 3 different types of users: Employers, Candidates, Arbiters.
+  - Employers :: post jobs, invite candidates and arbiters, pay invoices.
+  - Candidates :: apply for a job, receive payments.
+  - Arbiters :: resolve job disputes, receive payments.

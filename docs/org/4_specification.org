@@ -1,0 +1,58 @@
+#+TITLE: Ethlance Specification
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+* Integration of Standard Bounties
+
+Ethlance uses [[https://github.com/Bounties-Network/StandardBounties/blob/master/contracts/StandardBounties.sol][StandardBounties.sol]] smart-contract for almost all of
+its operations. In addition to StandardBounties, it uses
+EthlanceBountyIssuer smart-contract, which helps managing arbiters for
+a job.  Following list explains how StandardBounties and
+EthlanceBountyIssuer smart-contract functions integrate into Ethlance:
+
+- ~EthlanceBountyIssuer::issueAndContribute~ :: This function calls
+     ~StandardBounties::issueAndContribute~, passing as issuers
+     address of itself and sender's address, so later this contract
+     has priviledges to add a approver (arbiter) to StandardBounties
+     job. It also stores addresses of invited arbiters and arbiter's
+     fee.
+
+- ~EthlanceBountyIssuer::inviteArbiters~ :: This function is for
+     inviting more arbiters, in case nobody accepted in the initial
+     round of invites.
+
+- ~EthlanceBountyIssuer::acceptArbiterInvitation~ :: Arbiter calls
+     this function to accept an invitation. If he's first, who
+     accepted invitation for a particular job, it'll transfer fee to
+     him and add him as an arbiter for the job. This function calls
+     ~StandardBounties::addApprovers~.
+
+- ~StandardBounties::issueAndContribute~ :: This function will be
+     called only by ~EthlanceBountyIssuer::issueAndContribute~, so
+     that contract has priviledges to manage approvers in
+     StandardBounties contract.
+
+- ~StandardBounties::fulfillBounty~ :: This function is called by
+     candidate when he sends invoice for accomplished work in regular
+     job. It's also called for a bounty, when candidate sends work
+     submission. Note, in this function user cannot submit the amount
+     he claims for work into the smart-contract. The amount will be
+     saved into Ethlance database and this number will be later used
+     in ~StandardBounties::acceptFulfillment~ call.
+
+- ~StandardBounties::acceptFulfillment~ :: This function is either
+     called by an employer when he pays out the invoice or by an
+     arbiter (as an approver) when he resolves a dispute. It accepts
+     parameter ~_tokenAmounts~, where arbitrary amounts can be
+     specified.
+
+- ~StandardBounties::contribute~ :: This function is called by anyone
+     who'd like to sponsor particular job.
+
+- ~StandardBounties::refundContribution~ :: This function is called by
+     user who sponsored a job before and would like to get his
+     contribution back.
+
+- ~StandardBounties::addApprovers~ :: This function is called by
+     ~EthlanceBountyIssuer::acceptArbiterInvitation~, so an invited
+     arbiter gets added as an approver for a bounty in
+     StandardBounties.

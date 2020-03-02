@@ -1,0 +1,47 @@
+#+TITLE: Ethlance Documentation
+#+LANGUAGE: en
+#+OPTIONS: H:4 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+#+SETUPFILE: ./district0x.setup
+
+* Introduction
+
+  #+INCLUDE: "1_introduction.org" :lines "2-"
+
+* Requirements
+  
+  #+INCLUDE: "2_requirements.org" :lines "2-"
+  
+* Design
+
+  #+INCLUDE: "3_design.org" :lines "2-"
+
+* Specification
+
+  #+INCLUDE: "4_specification.org" :lines "2-"
+
+* API Reference
+** GraphQL Endpoints
+*** Sign-in Mutation
+
+    To obtain the JWT Token
+
+    #+BEGIN_SRC
+
+    mutation {
+      signIn(input: {
+                     dataSignature: "0xfed02f1045f42eebdeea9f63096387076b180ed8b32aaa39f994058023b55d6c4293bc25ffc2df58f839d2c067157f09bda04911e961485dfdae08b6361114911c"
+                     data: "0x48692074686572652120596f7572207370656369616c206e6f6e63653a2037343566366630382d613537362d343137632d393461632d373764666233363034353366"
+             })}
+
+    #+END_SRC
+
+    To authorize with ethlance services, any subsequent request should
+    include an ~access-token~ header with subsequent requests.
+
+    Example:
+
+    #+BEGIN_SRC
+
+    {"access-token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQWRkcmVzcyI6IjB4NGMzZjEzODk4OTEzZjE1ZjEyZjkwMmQ2NDgwMTc4NDg0MDYzYTZmYiIsImlhdCI6MTU3NjQ5MTg5NH0.4iLcXFcKctgDtp53RT5EmK24oF0l_CfrQLUvsVYMXMc"}
+
+    #+END_SRC

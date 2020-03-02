@@ -1,0 +1,80 @@
+#+TITLE: District0x Documentation Generation Readme
+#+LANGUAGE: en
+#+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
+
+* Quickstart
+  While in this folder, run on the commandline:
+  ~make~
+
+  *Or*
+
+  From the main ethlance repository:
+  ~make build-docs~
+
+* Publishing
+  Results can be published to IPFS as a static website:
+  ~make publish-ipfs~
+
+  *Or*
+
+  From the main ethlance repository:
+  ~make publish-docs~
+
+* Prerequisites
+ - java on commandline ~which java~
+ - emacs on commandline ~which emacs~
+ - graphviz on commandline ~which dot~
+   - Ubuntu:  ~sudo apt-get install graphviz~
+   - Mac:     ~brew install graphviz~
+   - Other:   [[https://graphviz.gitlab.io/download/][Download Page]]
+ - plantuml.jar
+   - *Note* already included in ./bin folder
+ - *Optional* ipfs on commandline ~which ipfs~
+   - While running an IPFS daemon
+   - Used for publishing results
+
+* Rationale 
+  This directory contains scripts to generate documentation with
+  ~make~. This folder is meant to serve as a drop-in tool to use with
+  District0x projects for managing High-level design and specification
+  documentation, with enough flexibility to include diagrams from
+  third-party tooling.
+
+* How it Works
+
+** Plant Files
+   *.plant files placed in the ~./plant~ folder are compiled and
+   placed in ./org/images folder as *.png and *.svg files of the same
+   name.
+
+   For Example, ~./plant/test.plant~ would generate the files
+   - ~./org/images/test.png~
+   - ~./org/images/test.svg~
+
+** Org Files
+   *.org files placed in the ~./org~ folder are compiled and placed in
+   ~./public/html~ as compiled HTML. Additionally, images are also
+   copied to ~./public/html/images~
+
+** Website Publication
+   Running ~make~ generates a fully interactable website at
+   ~./public/html~. This can be hosted on a static web server.
+
+*** CSS Print Media Styling
+    CSS Styling also includes media queries for handling a PDF
+    Export. Best results are seen in Chrome Browser
+
+    Example:
+
+    #+BEGIN_SRC sh
+
+    chromium-browser --headless --disable-gpu --print-to-pdf=EthlanceDocs.pdf https://ipfs.io/ipfs/QmVGP2jDouiWYB38cSsQsbBH4aHHVjBDKz2gatTtVvrMDT/index.html
+
+    #+END_SRC
+
+    This also works with ~google-chrome-stable~, ~google-chrome~, and
+    other web browser exports.
+
+* References
+  - [[https://plantuml.com/][PlantUML Reference]]
+  - [[https://orgmode.org/manual/HTML-Export.html#HTML-Export][Org Mode Export]]
