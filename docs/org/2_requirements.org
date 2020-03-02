@@ -5,3 +5,10 @@
   - Employers :: post jobs, invite candidates and arbiters, pay invoices.
   - Candidates :: apply for a job, receive payments.
   - Arbiters :: resolve job disputes, receive payments.
+
+* Overview
+
+  [[./images/ethlance-overview.png]]
+
+  [[./images/ethlance-overview.png][View Image]]
+

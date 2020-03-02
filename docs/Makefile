@@ -84,7 +84,7 @@ $(IMAGE_FOLDER)/%.svg: $(PLANT_FOLDER)/%.plant
 HTML_FILES=$(notdir $(ORG_FILES:.org=.html))
 HTML_PATHS=$(addprefix $(HTML_FOLDER)/, $(HTML_FILES))
 generate-html: $(HTML_PATHS)
-	@rsync -r $(IMAGE_FOLDER) $(HTML_FOLDER)
+	@cp -r $(IMAGE_FOLDER) $(HTML_FOLDER)
 
 
 # Make sure our index.html file is regenerated when the residual org files change
