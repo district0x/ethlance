@@ -258,60 +258,60 @@
     :id-keys [:job/id :job/file-id]
     :list-keys []}
 
-   {:table-name :Contract
+   {:table-name :JobStory
     :table-columns
-    [[:contract/id :integer]
+    [[:job-story/id :integer]
      [:job/id :integer]
-     [:contract/status :varchar]
-     [:contract/date-created :unsigned :integer]
-     [:contract/date-updated :unsigned :integer]
-     [:contract/invitation-message-id :integer]
-     [:contract/proposal-message-id :integer]
-     [:contract/proposal-rate :integer]
-     [:contract/proposal-rate-currency-id :varchar]
+     [:job-story/status :varchar]
+     [:job-story/date-created :unsigned :integer]
+     [:job-story/date-updated :unsigned :integer]
+     [:job-story/invitation-message-id :integer]
+     [:job-story/proposal-message-id :integer]
+     [:job-story/proposal-rate :integer]
+     [:job-story/proposal-rate-currency-id :varchar]
      ;; PK
-     [(sql/call :primary-key :contract/id)]
+     [(sql/call :primary-key :job-story/id)]
 
      ;; FKs
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :contract/invitation-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :contract/proposal-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :job-story/invitation-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/proposal-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
-   {:table-name :ContractCandidate
+   {:table-name :JobStoryCandidate
     :table-columns
-    [[:contract/id :integer]
+    [[:job-story/id :integer]
      [:user/address address]
      ;; PK
-     [(sql/call :primary-key :contract/id :user/address)]
+     [(sql/call :primary-key :job-story/id :user/address)]
      ;; FKs
-     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
-   {:table-name :ContractMessage
+   {:table-name :JobStoryMessage
     :table-columns
-    [[:contract/id :integer]
+    [[:job-story/id :integer]
      [:message/id :integer]
      ;; PK
-     [(sql/call :primary-key :contract/id :message/id)]
+     [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
-     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
 
    {:table-name :Feedback
     :table-columns
-    [[:contract/id :integer]
+    [[:job-story/id :integer]
      [:message/id :integer]
      [:feedback/rating :integer]
      ;; PK
-     [(sql/call :primary-key :contract/id :message/id)]
+     [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
-     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
 
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
@@ -319,8 +319,8 @@
 
    {:table-name :Invoice
     :table-columns
-    [[:invoice/id :integer]
-     [:contract/id :integer]
+    [
+     [:job-story/id :integer]
      [:message/id :integer]
      [:invoice/status :varchar]
      [:invoice/amount-requested :unsigned :integer]
@@ -330,9 +330,9 @@
      [:invoice/date-work-ended :unsigned :integer]
      [:invoice/work-duration :unsigned :integer]
      ;; PK
-     [(sql/call :primary-key :invoice/id :contract/id :message/id)]
+     [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
-     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :id-keys []
     :list-keys []}
@@ -345,10 +345,10 @@
      [:dispute/resolved-message-id :integer]
 
      ;; PK
-     [(sql/call :primary-key :job/id :contract/id)]
+     [(sql/call :primary-key :job/id :job-story/id)]
 
      ;; FKs
-     [(sql/call :foreign-key :contract/id) (sql/call :references :Contract :contract/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :dispute/raised-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :dispute/resolved-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]

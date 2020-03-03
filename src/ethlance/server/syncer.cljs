@@ -76,7 +76,11 @@
   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_data args)))
         job-id (:_bountyId args)
         block-timestamp 1]
-    ;; create a contract
+    ;; if JobStory/id exists on meta create an Invoice:
+    ;;   :job-story/id bountyId
+    ;;   :message/id from ipfs fullfilment meta (the ipfs hash is _data)
+    ;; else ??
+
     ;; create a candidate
     ;; create a contract candidate
     ))
