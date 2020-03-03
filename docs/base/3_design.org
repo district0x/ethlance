@@ -51,3 +51,7 @@
 
   [[./images/database.svg][View SVG]]
 
+* Another Design
+  [[./images/database_diagram.png]]
+
+  [[./images/database_diagram.svg][View SVG]]
