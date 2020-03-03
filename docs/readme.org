@@ -27,6 +27,10 @@
    - Ubuntu:  ~sudo apt-get install graphviz~
    - Mac:     ~brew install graphviz~
    - Other:   [[https://graphviz.gitlab.io/download/][Download Page]]
+ - dia on commandline ~which dia~
+   - Ubuntu:  ~sudo apt-get install dia~
+   ~ Mac:     ~brew cask install dia~ [[http://macappstore.org/dia/][?]]
+   - Other: [[http://dia-installer.de/]]
  - plantuml.jar
    - *Note* already included in ./bin folder
  - *Optional* ipfs on commandline ~which ipfs~
@@ -43,15 +47,41 @@
 * How it Works
 
 ** Plant Files
-   *.plant files placed in the ~./plant~ folder are compiled and
-   placed in ./org/images folder as *.png and *.svg files of the same
+   PlantUML is a tool to convert text into diagrams
+
+   *.plant files placed in the ~./diagrams~ folder are compiled and
+   placed in ./base/images folder as *.png and *.svg files of the same
    name.
 
-   For Example, ~./plant/test.plant~ would generate the files
-   - ~./org/images/test.png~
-   - ~./org/images/test.svg~
+   For Example, ~./diagrams/test.plant~ would generate the files
+   - ~./base/images/test.png~
+   - ~./base/images/test.svg~
+
+** Dia Files
+   Dia is a free gui tool for creating diagrams
+
+   *.dia files placed in the ~./diagrams~ folder are compiled and
+   placed in ./base/images folder as *.png and *.svg files of the same
+   name.
+
+   For Example, ~./diagrams/test.dia~ would generate the files
+   - ~./base/images/test.png~
+   - ~./base/images/test.svg~
+
+** Dot Files (Graphviz)
+   Graphviz is a tool to turn text into graphs and diagrams
+
+   *.dot files placed in the ~./diagrams~ folder are compiled and
+   placed in ./base/images folder as *.png and *.svg files of the same
+   name.
+
+   For Example, ~./diagrams/test.dot~ would generate the files
+   - ~./base/images/test.png~
+   - ~./base/images/test.svg~
 
 ** Org Files
+   Org-mode files are used to export into other formats
+
    *.org files placed in the ~./org~ folder are compiled and placed in
    ~./public/html~ as compiled HTML. Additionally, images are also
    copied to ~./public/html/images~
@@ -75,6 +105,14 @@
     This also works with ~google-chrome-stable~, ~google-chrome~, and
     other web browser exports.
 
+** Known Issues
+   - Unexpected behaviour can be seen if you have two files with the
+     same basename, but different extension. ie. test.dot -->
+     test.png, test.dia --> test.png. Naming things appropriately
+     should be of notice.
+
 * References
   - [[https://plantuml.com/][PlantUML Reference]]
   - [[https://orgmode.org/manual/HTML-Export.html#HTML-Export][Org Mode Export]]
+  - [[http://www.ffnn.nl/pages/articles/media/uml-diagrams-using-graphviz-dot.php][Graphviz UML Generation Example]]
+  - [[http://dia-installer.de/][Dia Diagram Editor Website]]

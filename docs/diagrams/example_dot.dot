@@ -1,0 +1,47 @@
+digraph G {
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+        ]
+
+        Animal [
+                label = "{Animal|+ name : string\l+ age : int\l|+ die() : void\l}"
+        ]
+
+        subgraph clusterAnimalImpl {
+                label = "Package animal.impl"
+
+                Dog [
+                        label = "{Dog||+ bark() : void\l}"
+                ]
+
+                Cat [
+                        label = "{Cat||+ meow() : void\l}"
+                ]
+        }
+
+        edge [
+                arrowhead = "empty"
+        ]
+
+        Dog -> Animal
+        Cat -> Animal
+
+        edge [
+                arrowhead = "none"
+
+                headlabel = "0..*"
+                taillabel = "0..*"
+        ]
+
+        Dog -> Cat
+}

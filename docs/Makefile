@@ -27,6 +27,9 @@ EMACS_CMD            := emacs
 # Dia Execution Command
 DIA_CMD              := dia
 
+# Dot (graphviz) Execution Command
+DOT_CMD              := dot
+
 # HTML Generation Command
 HTML_GEN_EXEC        := $(EMACS_CMD) --quick --script $(HTML_GEN_SCRIPT)
 
@@ -70,6 +73,9 @@ help:
 	@echo "  generate-dia-pngs                  - Generate PNGs from Dia Files (${DIA_FOLDER}/*.dia)"
 	@echo "  generate-dia-svgs                  - Generate SVGs from Dia Files (${DIA_FOLDER}/*.dia)"
 	@echo "  --"
+	@echo "  generate-dot-pngs                  - Generate PNGs from Dot Files (${DOT_FOLDER}/*.dot)"
+	@echo "  generate-dot-svgs                  - Generate SVGs from Dot Files (${DOT_FOLDER}/*.dot)"
+	@echo "  --"
 	@echo "  generate-org-html                  - Generate HTML from ORG Files (${ORG_FOLDER}/*.org)"
 	@echo "  publish-ipfs                       - Publish an IPFS website"
 	@echo "  --"
@@ -78,7 +84,7 @@ help:
 	@echo "  --"
 	@echo "  help                               - Show this help message"
 
-all: generate-plant-pngs generate-plant-svgs generate-org-html generate-dia-pngs generate-dia-svgs
+all: generate-plant-pngs generate-plant-svgs generate-org-html generate-dia-pngs generate-dia-svgs generate-dot-pngs generate-dot-svgs
 
 #
 # PLANT
@@ -132,6 +138,31 @@ $(IMAGE_FOLDER)/%.svg: $(DIA_FOLDER)/%.dia
 
 
 #
+# DOT (graphviz)
+#
+
+# Generate PNG files from dot files
+DOT_PNG_FILES=$(notdir $(DOT_FILES:.dot=.png))
+DOT_PNG_PATHS=$(addprefix $(IMAGE_FOLDER)/, $(DOT_PNG_FILES))
+generate-dot-pngs: $(DOT_PNG_PATHS)
+
+
+# Define how to create PNGs
+$(IMAGE_FOLDER)/%.png: $(DOT_FOLDER)/%.dot
+	$(DOT_CMD) $< -o "$(CWD)/$(IMAGE_FOLDER)/$*.png" -Tpng
+
+
+# Generate SVG files from dot files
+DOT_SVG_FILES=$(notdir $(DOT_FILES:.dot=.svg))
+DOT_SVG_PATHS=$(addprefix $(IMAGE_FOLDER)/, $(DOT_SVG_FILES))
+generate-dot-svgs: $(DOT_SVG_PATHS)
+
+
+# Define how to create SVGs
+$(IMAGE_FOLDER)/%.svg: $(DOT_FOLDER)/%.dot
+	$(DOT_CMD) $< -o "$(CWD)/$(IMAGE_FOLDER)/$*.svg" -Tsvg
+
+#
 # ORG
 #
 
@@ -164,6 +195,5 @@ publish-ipfs: all
 
 
 clean-all:
+	rm -rf $(HTML_FOLDER)/images
 	rm -rf $(HTML_FOLDER)/*.html
-	rm -rf ./org/images
-	rm -rf ./public/html/images

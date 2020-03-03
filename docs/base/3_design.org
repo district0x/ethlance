@@ -51,7 +51,12 @@
 
   [[./images/database.svg][View SVG]]
 
-* Another Design
+* Dia Diagram Example
   [[./images/database_diagram.png]]
 
   [[./images/database_diagram.svg][View SVG]]
+
+* Dot Diagram Example
+  [[./images/example_dot.png]]
+
+  [[./images/example_dot.svg][View SVG]]
