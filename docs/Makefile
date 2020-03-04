@@ -14,6 +14,7 @@ CWD := $(shell pwd)
 # Location of the plantuml jar file
 PLANTUML_JAR         := ./bin/plantuml.jar
 HTML_GEN_SCRIPT      := ./bin/generate-org-html.el
+HTML_HASH_FILE       := .site-hash
 
 # java executable to use (default)
 JAVA_CMD             := java
@@ -21,7 +22,7 @@ JAVA_CMD             := java
 # Plantuml Execution Command
 PLANTUML_EXEC        := $(JAVA_CMD) -jar $(PLANTUML_JAR)
 
-# emacs executable to use (default)
+# Emacs Executable to use (default)
 EMACS_CMD            := emacs
 
 # Dia Execution Command

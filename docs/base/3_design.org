@@ -47,16 +47,6 @@
   - My Invoices - Invoices with payments arbiter received for dispute resolution.
 
 * Database Design
-  [[./images/database.png]]
-
-  [[./images/database.svg][View SVG]]
-
-* Dia Diagram Example
   [[./images/database_diagram.png]]
 
   [[./images/database_diagram.svg][View SVG]]
-
-* Dot Diagram Example
-  [[./images/example_dot.png]]
-
-  [[./images/example_dot.svg][View SVG]]
