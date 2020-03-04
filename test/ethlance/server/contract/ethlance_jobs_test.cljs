@@ -18,6 +18,9 @@
 
 (def jobs-data-hash "hash")
 
+(def ethlance-job-invoice-meta-1 "Qma3LdbDxq9LoTC77Q717w93LnbTVYdoVDt2TLyoBCwYuK") ;; ethlance-job-invoice-meta-1.json
+(def ethlance-job-meta-1 "QmQDGjqaAULR4Rd1Ftt5vircHaWX7JxSmVWV4b1QRhjcT9") ;; ethlance-job-meta-1.json
+
 (defn gas-price
   [provider]
   (js-invoke (aget provider "eth") "getGasPrice"))
@@ -37,7 +40,7 @@
       (let [token-version (ethlance-issuer/token-version :eth)
             token-address "0x0000000000000000000000000000000000000000"
             tx-receipt (<? (ethlance-issuer/issue-job ethlance-issuer-address
-                                                      [jobs-data-hash
+                                                      [ethlance-job-meta-1
                                                        token-address
                                                        token-version
                                                        (hex deposit)]
@@ -49,7 +52,7 @@
         (is (= [(str/lower-case ethlance-issuer-address)]
                (mapv str/lower-case (:_issuers ev))) "EthalnceIssuer should be the only issuer")
         (is (empty? (:_approvers ev)) "It should not have approvers")
-        (is (= jobs-data-hash (:_ipfs-hash ev)) "It should have the correct bounty data hash")))))
+        (is (= ethlance-job-meta-1 (:_ipfs-hash ev)) "It should have the correct job data hash")))))
 
 
 (deftest-smart-contract-go candidates-test {}
@@ -61,7 +64,7 @@
         token-version (ethlance-issuer/token-version :eth)
         token-address "0x0000000000000000000000000000000000000000"
         tx-receipt (<? (ethlance-issuer/issue-job ethlance-issuer-address
-                                                  [jobs-data-hash
+                                                  [ethlance-job-meta-1
                                                    token-address
                                                    token-version
                                                    (hex deposit)]
@@ -90,7 +93,7 @@
                                                       [candidate1
                                                        job-id
                                                        candidate1
-                                                       jobs-data-hash
+                                                       ethlance-job-invoice-meta-1
                                                        (hex 10)]
                                                       {:from candidate1}))
 
@@ -100,7 +103,7 @@
                                                       [candidate2
                                                        job-id
                                                        [candidate2]
-                                                       jobs-data-hash
+                                                       ethlance-job-invoice-meta-1
                                                        (hex 10)]
                                                       {:from candidate2}))
         ]
@@ -118,7 +121,7 @@
       (let [ev (<! (ethlance-issuer/ethlance-jobs-event-in-tx :JobInvoice in1-tx-receipt))]
         (is (= (:_job-id ev) job-id))
         (is (= (js->clj (:_invoice-issuer ev)) candidate1))
-        (is (= (:_ipfs-hash ev) jobs-data-hash))
+        (is (= (:_ipfs-hash ev) ethlance-job-invoice-meta-1))
         (is (= (:_submitter ev) candidate1))
         (is (= (:_amount ev) "10")))
 
