@@ -1,16 +1,18 @@
 (ns ethlance.server.utils
   (:require [cljs-ipfs-api.files :as ipfs-files]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [clojure.string :as str]))
 
-(defn- parse-meta [{:keys [:content :on-success :on-error]}]
-  (try
-    (-> (re-find #".+?(\{.+\})" content)
-        second
-        js/JSON.parse
-        (js->clj :keywordize-keys true)
-        on-success)
-    (catch :default e
-      (on-error e))))
+(defn- parse-meta [{:keys [:content :on-success :on-error] :as data}]
+  (let [content (str/replace content "\n" "")
+        json-part (second (re-find #".+?(\{.+\}).*" content))]
+    (try
+      (-> json-part
+          js/JSON.parse
+          (js->clj :keywordize-keys true)
+          on-success)
+      (catch :default e
+        (on-error e)))))
 
 (defn get-ipfs-meta [conn meta-hash]
   (js/Promise.

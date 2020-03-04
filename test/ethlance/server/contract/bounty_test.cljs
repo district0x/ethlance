@@ -15,7 +15,9 @@
    [ethlance.server.test-utils :refer [test-config] :refer-macros [deftest-smart-contract-go]]
    [clojure.string :as str]))
 
-(def bounty-data-hash "hash")
+(def ethlance-standard-bounty-fulfillment-meta-1 "QmVDdxfDKyhqDk6uuiaL7LzG2RihPFo6FegQ1gLLugD34a") ;; ethlance-standard-bounty-fulfillment-meta-1.json
+(def ethlance-standard-bounty-meta-1 "QmRGpWTDJ6CfpJwnsL8wP939G9bKz7tGr6U2gvchvFeGx8") ;; ethlance-standard-bounty-meta-1.json
+(def gitcoin-standard-bounty-meta-1 "QmcjTwJeEpP4wFYRiZcv5w5vU5csafuJenp6aMggzHhQ29") ;; gitcoin-standard-bounty-meta-1.json
 
 (defn gas-price
   [provider]
@@ -31,7 +33,7 @@
       (let [token-version (ethlance-issuer/token-version :eth)
             token-address "0x0000000000000000000000000000000000000000"
             tx-receipt (<? (ethlance-issuer/issue-bounty ethlance-issuer-address
-                                                         [bounty-data-hash
+                                                         [ethlance-standard-bounty-meta-1
                                                           deadline
                                                           token-address
                                                           token-version
@@ -44,7 +46,7 @@
         (is (= [(str/lower-case ethlance-issuer-address)]
                (mapv str/lower-case (:_issuers ev))) "EthalnceBountyIssuer should be the only issuer")
         (is (empty? (:_approvers ev)) "It should not have approvers")
-        (is (= bounty-data-hash (:_data ev)) "It should have the correct bounty data hash")))
+        (is (= ethlance-standard-bounty-meta-1 (:_data ev)) "It should have the correct bounty data hash")))
 
     ;; TODO fix this, reverts with token
     ;; For some reason the token contracts shows ballance and allowance but when looking
@@ -59,7 +61,7 @@
     ;;           _ (prn "Balance of " ethlance-issuer-address " is " (<? (token/balance-of token-address ethlance-issuer-address)))
     ;;           _ (prn "Allowance deployer -> ethlance-issuer-address" (<? (token/allowance token-address deployer ethlance-issuer-address)))
     ;;           tx-receipt (<? (ethlance-issuer/issue-and-contribute ethlance-issuer-address
-    ;;                                                                [bounty-data-hash
+    ;;                                                                [ethlance-standard-bounty-meta-1
     ;;                                                                 deadline
     ;;                                                                 token-address
     ;;                                                                 token-version
@@ -71,11 +73,12 @@
     ;;       (is (= ethlance-issuer-address (:_creator ev)) "EthalnceBountyIssuer should be the creator")
     ;;       (is (= [ethlance-issuer-address] (:_issuers ev)) "EthalnceBountyIssuer should be the only issuer")
     ;;       (is (= [] (:_approvers ev)) "It should not have approvers")
-    ;;       (is (= bounty-data-hash (:_data ev)) "It should have the correct bounty data hash")
+    ;;       (is (= ethlance-standard-bounty-meta-1 (:_data ev)) "It should have the correct bounty data hash")
     ;;       (is (= token-address (:_token ev)))
     ;;       (is (= token-version (:_token-version ev)))))
 
     ))
+
 
 (deftest-smart-contract-go arbiters-test {}
   (let [bn #(js/BigNumber. %)
@@ -91,7 +94,7 @@
         arbiter-fee 1e18
         deposit 2e18
         tx-receipt (<? (ethlance-issuer/issue-bounty ethlance-issuer-address
-                                                     [bounty-data-hash
+                                                     [ethlance-standard-bounty-meta-1
                                                       deadline
                                                       token-address
                                                       token-version

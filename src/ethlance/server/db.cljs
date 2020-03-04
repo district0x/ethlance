@@ -182,7 +182,6 @@
    {:table-name :Job
     :table-columns
     [[:job/id :integer]
-     [:job/bounty-id :integer]
      [:job/title :varchar not-nil]
      [:job/description :varchar not-nil]
      [:job/category :varchar]
@@ -207,6 +206,37 @@
      [(sql/call :primary-key :job/id)]]
     :id-keys []
     :list-keys []}
+
+   {:table-name :EthlanceJob
+    :table-columns
+    [[:job/id :integer]
+     [:ethlance-job/id :integer]
+     [:ethlance-job/estimated-lenght :integer]
+     [:ethlance-job/max-number-of-candidates :integer]
+     [:ethlance-job/invitation-only? :integer]
+     [:ethlance-job/required-availability :integer]
+     [:ethlance-job/hire-address :varchar]
+     [:ethlance-job/bid-option :integer]
+
+     ;; PK
+     [(sql/call :primary-key :job/id)]
+
+     ;; FK
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     ]}
+
+   {:table-name :StandardBounty
+    :table-columns
+    [[:job/id :integer]
+     [:standard-bounty/id :integer]
+     [:standard-bounty/platform :varchar]
+     [:standard-bounty/deadline :integer]
+     ;; PK
+     [(sql/call :primary-key :job/id)]
+
+     ;; FK
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     ]}
 
    {:table-name :JobCreator
     :table-columns
@@ -317,18 +347,19 @@
     :id-keys []
     :list-keys []}
 
-   {:table-name :Invoice
+   {:table-name :JobStoryInvoice
     :table-columns
     [
      [:job-story/id :integer]
      [:message/id :integer]
-     [:invoice/status :varchar]
-     [:invoice/amount-requested :unsigned :integer]
-     [:invoice/amount-paid :unsigned :integer]
-     [:invoice/date-paid :unsigned :integer]
-     [:invoice/date-work-started :unsigned :integer]
-     [:invoice/date-work-ended :unsigned :integer]
-     [:invoice/work-duration :unsigned :integer]
+     [:job-story-invoice/status :varchar]
+     [:job-story-invoice/amount-requested :unsigned :integer]
+     [:job-story-invoice/amount-paid :unsigned :integer]
+     [:job-story-invoice/date-paid :unsigned :integer]
+     [:job-story-invoice/date-work-started :unsigned :integer]
+     [:job-story-invoice/date-work-ended :unsigned :integer]
+     [:job-story-invoice/work-duration :unsigned :integer]
+     [:invoice/ref-id :integer]
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
@@ -362,6 +393,7 @@
      [:message/creator address]
      [:message/text :varchar]
      [:message/date-created :unsigned :integer]
+     ;; proposal, invitation, raised dispute, resolved dispute, feedback, invoice, direct message, job story message
      [:message/type :varchar not-nil]
      ;; PK
      [(sql/call :primary-key :message/id)]
@@ -580,14 +612,98 @@
               :upsert {:on-conflict [:user/address]
                        :do-update-set (keys values)}})))
 
-(defn add-job [job creators]
-  (insert-row! :Job job)
-  (doseq [user-address creators]
-    (insert-row! :JobCreator {:job/id (:job/id job)
-                              :user/address user-address})))
+(defn get-last-insert-id []
+  (:id (db/get {:select [[(sql/call :last_insert_rowid) :id]] })))
 
-(defn update-job-data [job-data]
-  (update-row! :Job job))
+(defn add-bounty [bounty-job]
+  (insert-row! :Job bounty-job)
+  (let [job-id (get-last-insert-id)]
+    (insert-row! :StandardBounty (assoc bounty-job :job/id job-id))))
+
+(defn add-ethlance-job [ethlance-job]
+  (insert-row! :Job ethlance-job)
+  (let [job-id (get-last-insert-id)]
+    (insert-row! :EthlanceJob (assoc ethlance-job :job/id job-id))))
+
+(defn get-job-id-for-bounty [bounty-id]
+  (db/get {:select [:job/id]
+           :from [[:standard-bounty :sb]]
+           :where [:= :sb.standard-bounty/id bounty-id]}))
+
+(defn update-bounty [bounty-id job-data]
+  (let [job-id (get-job-id-for-bounty bounty-id)]
+    (update-row! :StandardBounty job-data)
+    (update-row! :Job (assoc job-data :job/id job-id))))
+
+(defn get-job-id-for-ethlance-job [ethlance-job-id]
+  (db/get {:select [:job/id]
+           :from [[:ethlance-job :ej]]
+           :where [:= :ej.ethlance-job/id ethlance-job-id]}))
+
+(defn update-ethlance-job [ethlance-job-id job-data]
+  (let [job-id (get-job-id-for-ethlance-job ethlance-job-id)]
+    (update-row! :EthlanceJob job-data)
+    (update-row! :Job (assoc job-data :job/id job-id))))
+
+(defn add-job-story-invoice [invoice]
+(prn "INVOICE " invoice)
+
+  (insert-row! :JobStoryInvoice invoice))
+
+(defn update-job-story-invoice [invoice]
+  (insert-row! :JobStoryInvoice invoice))
+
+(defn add-message
+  "Inserts a Message. Returns autoincrement id"
+  [message]
+  (insert-row! :Message message)
+  (get-last-insert-id))
+
+(defn add-job-story
+  "Inserts a JobStory. Returns autoincrement id"
+  [job-story]
+  (insert-row! :JobStory job-story)
+  (get-last-insert-id))
+
+(defn add-job-story-message [job-story-message]
+  (insert-row! :JobStoryMessage job-story-message))
+
+(defn add-message-file [message-id {:keys [:file/name :file/hash :file/directory-hash] :as file}]
+  (let [file-id (do
+                  (insert-row! :File file)
+                  (get-last-insert-id))]
+    (insert-row! :MessageFile {:message/id message-id
+                               :file/id file-id})))
+
+(defn get-job-story-id-by-standard-bounty-id [bounty-id]
+  (:id (db/get {:select [[:js.job-story/id :id]]
+                :from [[:job-story :js]]
+                :join [[:job :j] [:= :js.job/id :j.job/id]
+                       [:standard-bounty :sb] [:= :j.job/id :sb.job/id]]
+                :where [:= :sb.standard-bounty/id bounty-id]})))
+
+(defn set-job-story-invoice-status-for-bounties [bounty-id invoice-ref-id status]
+  (let [job-story-id (get-job-story-id-by-standard-bounty-id bounty-id)]
+    (db/run! {:update :JobStoryInvoice
+              :set {:invoice/status status}
+              :where [:and
+                      [:= :job-story/id job-story-id]
+                      [:= :invoice/ref-id invoice-ref-id]]})))
+
+(defn get-job-story-id-by-ethlance-job-id [ethlance-job-id]
+  (:id (db/get {:select [[:js.job-story/id :id]]
+                :from [[:job-story :js]]
+                :join [[:job :j] [:= :js.job/id :j.job/id]
+                       [:ethlance-job :ej] [:= :j.job/id :ej.job/id]]
+                :where [:= :ej.ethlance-job/id ethlance-job-id]})))
+
+(defn set-job-story-invoice-status-for-ethlance-job [ethlance-job-id invoice-id status]
+  (let [job-story-id (get-job-story-id-by-ethlance-job-id ethlance-job-id)]
+    (db/run! {:update :JobStoryInvoice
+              :set {:invoice/status status}
+              :where [:and
+                      [:= :job-story/id job-story-id]
+                      [:= :invoice/ref-id invoice-id]]})))
 
 (defn start
   "Start the ethlance-db mount component."

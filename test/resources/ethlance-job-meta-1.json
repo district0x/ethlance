@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "title": "The Job",
+    "description": "A good job",
+    "categories": ["crypto"],
+    "expertiseLevel": 10,
+    "ipfsFilename": "FILE_NAME",
+    "webReferenceURL": "http://job1",
+    "reward": 100,
+    "languageId": "english",
+    "estimatedLenght": 100,
+    "maxNumberOfCandidates": 10,
+    "invitationOnly": false,
+    "requiredAvailability": false,
+    "ethlanceJobStoryId": 2,
+    "ethlanceMessageId": 2
+  },
+  "meta": {
+    "schemaVersion": "1.0.0"
+  }}
