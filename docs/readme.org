@@ -20,6 +20,18 @@
   From the main ethlance repository:
   ~make publish-docs~
 
+  Note that this will also create the files:
+
+  *./docs/.site-hash*, which contains the IPFS hash of the published website
+  
+  *And*
+
+  *./docs/.site-url*, which contains a gateway to the published website
+
+** Additional Notes
+   - Publishing to IPFS requires that you have an IPFS daemon running
+     in order to distribute the content.
+
 * Prerequisites
  - java on commandline ~which java~
  - emacs on commandline ~which emacs~
@@ -84,7 +96,7 @@
 
    *.org files placed in the ~./org~ folder are compiled and placed in
    ~./public/html~ as compiled HTML. Additionally, images are also
-   copied to ~./public/html/images~
+   copied from ~./base/images~ to ~./public/html/images~
 
 ** Website Publication
    Running ~make~ generates a fully interactable website at
@@ -98,7 +110,7 @@
 
     #+BEGIN_SRC sh
 
-    chromium-browser --headless --disable-gpu --print-to-pdf=EthlanceDocs.pdf https://ipfs.io/ipfs/QmVGP2jDouiWYB38cSsQsbBH4aHHVjBDKz2gatTtVvrMDT/index.html
+    chromium-browser --headless --disable-gpu --print-to-pdf=EthlanceDocs.pdf ./public/html/index.html
 
     #+END_SRC
 
