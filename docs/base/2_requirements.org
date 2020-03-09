@@ -12,3 +12,25 @@
 
   [[./images/ethlance-overview.png][View Image]]
 
+* User Roles
+
+** Employer
+   An employer has the responsibilities
+   - WILL Post Jobs, with full ownership
+   - WILL Hire and Assign Candidates to JobStory(s)
+   - MIGHT Hire and Assign Arbiters to Job(s)
+   - MIGHT Pay Invoices
+   - MIGHT Pay Dispute Resolutions
+   - MIGHT Create Disputes
+
+** Candidate (Employee)
+   A candidate has the responsibiliities
+   - WILL Apply for Jobs
+   - MIGHT Receive payments
+   - MIGHT Leave feedback
+   - MIGHT Create disputes
+
+** Arbiter
+   An arbiter has the responsibilities
+   - WILL Resolve disputes
+   - WILL Receive payment
