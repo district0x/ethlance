@@ -340,7 +340,7 @@
    {:table-name :Dispute
     :table-columns
     [[:job/id :integer]
-     [:contract/id :integer]
+     [:job-story/id :integer]
      [:dispute/raised-message-id :integer]
      [:dispute/resolved-message-id :integer]
 
