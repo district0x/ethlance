@@ -7,6 +7,7 @@
 .PHONY: watch-tests watch-css
 .PHONY: deploy testnet ipfs
 .PHONY: run build-docs publish-docs
+.PHONY: publish-docs-ipfs publish-docs-ipns
 .PHONY: deps lein-deps test travis-test
 .PHONY: design-build design-deploy design-deps
 .PHONY: check clean clean-all
@@ -39,7 +40,9 @@ help:
 	@echo "  ipfs                    :: Start the IPFS daemon."
 	@echo "  --"
 	@echo "  build-docs              :: Generate Requirement, Design, and Spec Documents"
-	@echo "  publish-docs            :: Publish the documentation on IPFS"
+	@echo "  publish-docs            :: Publish the documentation to IPFS"
+	@echo "  publish-docs-ipfs       :: Publish the documentation to IPFS"
+	@echo "  publish-docs-ipns       :: Publish the documentation to IPNS"
 	@echo ""
 	@echo "Production Commands:"
 	@echo "  build                   :: Perform Production Build of Ethlance."
@@ -164,8 +167,15 @@ build-docs:
 	make -C ./docs
 
 
-publish-docs:
+publish-docs: publish-docs-ipfs
+
+
+publish-docs-ipfs:
 	make -C ./docs publish-ipfs
+
+
+publish-docs-ipns:
+	make -C ./docs publish-ipns
 
 
 check:

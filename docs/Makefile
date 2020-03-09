@@ -1,7 +1,8 @@
 # Makefile for generating Requirements, Designs, and Specifications
 # with emacs org-mode, and PlantUML
 .PHONY: help all clean clean-all
-.PHONY: generate-plant-svgs generate-plant-pngs generate-org-html publish-ipfs
+.PHONY: generate-plant-svgs generate-plant-pngs generate-org-html
+.PHONY: publish-ipfs publish-ipns
 .DEFAULT_GOAL := all
 .SUFFIXES:
 .SUFFIXES: .plant .svg .png .org .html .dot .dia
@@ -79,6 +80,7 @@ help:
 	@echo "  --"
 	@echo "  generate-org-html                  - Generate HTML from ORG Files (${ORG_FOLDER}/*.org)"
 	@echo "  publish-ipfs                       - Publish an IPFS website"
+	@echo "  publish-ipns                       - Publish an IPNS website"
 	@echo "  --"
 	@echo "  clean                              - Does Nothing"
 	@echo "  clean-all                          - Clean out public folder"
@@ -137,7 +139,6 @@ generate-dia-svgs: $(DIA_SVG_PATHS)
 $(IMAGE_FOLDER)/%.svg: $(DIA_FOLDER)/%.dia
 	$(DIA_CMD) --export="$(CWD)/$(IMAGE_FOLDER)/$*.svg" -t svg $<
 
-
 #
 # DOT (graphviz)
 #
@@ -193,6 +194,12 @@ clean:
 IPFS_PUBLISH_SCRIPT=./bin/publish-ipfs.sh
 publish-ipfs: all
 	@bash $(IPFS_PUBLISH_SCRIPT) $(HTML_FOLDER)
+
+
+IPNS_PUBLISH_SCRIPT=./bin/publish-ipns.sh
+IPFS_HASH_FILE=.site-hash
+publish-ipns: publish-ipfs
+	@bash $(IPNS_PUBLISH_SCRIPT) $(shell cat $(IPFS_HASH_FILE))
 
 
 clean-all:
