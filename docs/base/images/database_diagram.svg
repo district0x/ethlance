@@ -1,516 +1,378 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
-<svg width="131cm" height="125cm" viewBox="122 -1078 2606 2488" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <g id="Packages">
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1062.84" y="-247.27" width="928.815" height="560"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1062.84" y="-267.27" width="81" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1064.84" y="-252.47">User Roles</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="128.251" y="-569.47" width="855.427" height="393.722"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="128.251" y="-589.47" width="111.8" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="130.251" y="-574.67">Arbiter Tables</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="124.359" y="-1056.74" width="910.91" height="393.722"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="124.359" y="-1076.74" width="127.2" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="126.359" y="-1061.94">Candidate Tables</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="1127.07" y="-1053.45" width="1206.77" height="765.021"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="1127.07" y="-1073.45" width="81" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1129.07" y="-1058.65">Job Tables</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="125.59" y="-97.7038" width="855.427" height="393.722"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" x="125.59" y="-117.704" width="119.5" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="127.59" y="-102.904">Employer Tables</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1134.17" y="646.084" width="1592.95" height="763.075"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1134.17" y="626.084" width="119.5" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1136.17" y="640.884">Contract Tables</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="123.69" y="358.41" width="928.815" height="456.629"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="123.69" y="338.41" width="111.8" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="125.69" y="353.21">Message Tables</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="124.189" y="979.9" width="509.417" height="369.938"/>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="124.189" y="959.9" width="88.7" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="126.189" y="974.7">File Tables</text>
-    </g>
-  </g>
+<svg width="151cm" height="96cm" viewBox="-434 -296 3006 1904" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <g id="Content">
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1159.33" y="-173.753" width="318" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1318.33" y="-154.753">User</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1159.33" y="-145.753" width="318" height="180"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-131.753">+:user/address: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-115.753">+:user/country-code: varchar, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-99.753">+:user/user-name: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-83.753">+:user/full-name: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-67.753">+:user/email: varchar, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-51.753">+:user/profile-image: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-35.753">+:user/date-registered: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-19.753">+:user/date-updated: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="-3.753">+:user/github-username: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="12.247">+:user/linkedin-username: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1161.63" y="28.247">+:user/status: varchar</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="436.974" y="-292.452" width="318" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="595.974" y="-273.452">User</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="436.974" y="-264.452" width="318" height="180"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-250.452">+:user/address: address, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-234.452">+:user/country-code: varchar, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-218.452">+:user/user-name: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-202.452">+:user/full-name: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-186.452">+:user/email: varchar, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-170.452">+:user/profile-image: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-154.452">+:user/date-registered: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-138.452">+:user/date-updated: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-122.452">+:user/github-username: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-106.452">+:user/linkedin-username: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="439.274" y="-90.452">+:user/status: varchar</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1818.36" y="-37.8974" width="94.75" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1865.74" y="-18.8974">Employer</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="542.676" y="114.177" width="341.1" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="713.226" y="133.177">Arbiter</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="542.676" y="142.177" width="341.1" height="84"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="544.976" y="156.177">+:user/address: address, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="544.976" y="172.177">+:arbiter/bio: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="544.976" y="188.177">+:arbiter/professional-title: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="544.976" y="204.177">+:arbiter/fee: integer, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="544.976" y="220.177">+:arbiter/fee-currency-id: varchar, not nil</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="149.449" y="-549.62" width="341.1" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="319.999" y="-530.62">Arbiter</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="149.449" y="-521.62" width="341.1" height="84"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="151.749" y="-507.62">+:user/address: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="151.749" y="-491.62">+:arbiter/bio: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="151.749" y="-475.62">+:arbiter/professional-title: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="151.749" y="-459.62">+:arbiter/fee: integer, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="151.749" y="-443.62">+:arbiter/fee-currency-id: varchar, not nil</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="33.3494" y="-295.688" width="333.4" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="200.049" y="-276.688">UserLanguage</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="33.3494" y="-267.688" width="333.4" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="35.6494" y="-253.688">+:user/address: address, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="35.6494" y="-237.688">+:language/name: varchar, not nil</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="33.3494" y="-231.688" width="333.4" height="20"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="35.6494" y="-217.688">+primary key(:user/address,:language/name)</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1309.23" y="147.82" width="333.4" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1475.93" y="166.82">UserLanguage</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1309.23" y="175.82" width="333.4" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1311.53" y="189.82">+:user/address: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1311.53" y="205.82">+:language/name: varchar, not nil</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1309.23" y="211.82" width="333.4" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1311.53" y="225.82">+primary key(:user/address,:language/name)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="449.936" y="304.416" width="271.8" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="585.836" y="323.416">ArbiterSkill</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="449.936" y="332.416" width="271.8" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="452.236" y="346.416">+:user/address: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="452.236" y="362.416">+:skill/name: varchar, primary key</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="632.39" y="-381.976" width="271.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="768.29" y="-362.976">ArbiterSkill</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="632.39" y="-353.976" width="271.8" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="634.69" y="-339.976">+:user/address: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="634.69" y="-323.976">+:skill/name: varchar, primary key</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="-39.0986" y="578.744" width="287.2" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="104.501" y="597.744">JobSkill</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="-39.0986" y="606.744" width="287.2" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-36.7986" y="620.744">+:job/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-36.7986" y="636.744">+:skill/name: varchar</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="-39.0986" y="642.744" width="287.2" height="20"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-36.7986" y="656.744">+primary key(:job/id,:language/name)</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1726.61" y="-695.956" width="287.2" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1870.21" y="-676.956">JobSkill</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1726.61" y="-667.956" width="287.2" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.91" y="-653.956">+:job/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.91" y="-637.956">+:skill/name: varchar</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1726.61" y="-631.956" width="287.2" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.91" y="-617.956">+primary key(:job/id,:language/name)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1771.19" y="1413.2" width="318" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1930.19" y="1432.2">JobStoryFeedback</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1771.19" y="1441.2" width="318" height="68"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1773.49" y="1455.2">+:job-story/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1773.49" y="1471.2">+:message/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1773.49" y="1487.2">+:feedback/rating: integer, clamp(1, 5)</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1773.49" y="1503.2">+:user/address: address</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1771.19" y="1509.2" width="318" height="20"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1773.49" y="1523.2">+primary key(:contract/id,:user/address)</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1318.33,34.5505 1318.33,96.467 1475.93,96.467 1475.93,148.249 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1397.13" y="93.267">fk(:user/address)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1322.33" y="46.5505">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1479.93" y="144.249">*</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="744.28" y="303.774" width="294.9" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="891.73" y="322.774">ArbiterCategory</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="744.28" y="331.774" width="294.9" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="746.58" y="345.774">+:user/address: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="746.58" y="361.774">+:category/name: varchar, primary key</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1233.36" y="1039.43" width="318" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1392.36" y="1058.43">ContractFeedback</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1233.36" y="1067.43" width="318" height="68"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1235.66" y="1081.43">+:contract/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1235.66" y="1097.43">+:message/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1235.66" y="1113.43">+:feedback/rating: integer, clamp(1, 5)</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1235.66" y="1129.43">+:user/address: address</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1233.36" y="1135.43" width="318" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1235.66" y="1149.43">+primary key(:contract/id,:user/address)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="380.464" y="791.71" width="318" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="539.464" y="810.71">Job</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="380.464" y="819.71" width="318" height="356"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="833.71">+:job/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="849.71">+:job/bounty-id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="865.71">+:job/title: varchar, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="881.71">+:job/description: varchar, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="897.71">+:job/category: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="913.71">+:job/status: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="929.71">+:job/date-created: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="945.71">+:job/date-published: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="961.71">+:job/date-updated: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="977.71">+:job/estimated-length: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="993.71">+:job/required-availability: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1009.71">+:job/bid-option: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1025.71">+:job/expertise-level: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1041.71">+:job/max-number-of-candidates: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1057.71">+:job/invitation-only?: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1073.71">+:job/token: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1089.71">+:job/token-version: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1105.71">+:job/reward: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1121.71">+:job/date-deadline: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1137.71">+:job/platform: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1153.71">+:job/web-reference-url: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="382.764" y="1169.71">+:job/assigned-arbiter: address</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1105.42" y="380.966" width="348.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1279.82" y="399.966">DirectMessage</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1105.42" y="408.966" width="348.8" height="68"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1107.72" y="422.966">+:message/id: integer, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1107.72" y="438.966">+:direct-message/receiver: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1107.72" y="454.966">+:direct-message/read?: boolean = false</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1107.72" y="470.966">+:direct-message/archived?: boolean = false</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1105.42" y="476.966" width="348.8" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1107.72" y="490.966">+primary key(:direct-message/id,:message/id)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="197.326" y="113.49" width="302.6" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="348.626" y="132.49">Employer</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="197.326" y="141.49" width="302.6" height="52"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="199.626" y="155.49">+:user/address: address, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="199.626" y="171.49">+:employer/bio: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="199.626" y="187.49">+:employer/professional-title: varchar</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="647.516" y="552.878" width="271.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="783.416" y="571.878">MessageFile</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="647.516" y="580.878" width="271.8" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="649.816" y="594.878">+:message/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="649.816" y="610.878">+:file/id: integer</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="647.516" y="616.878" width="271.8" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="649.816" y="630.878">+primary key(:message/id,:file/id)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="420.126" y="569.052" width="241" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="540.626" y="588.052">JobFile</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="420.126" y="597.052" width="241" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="422.426" y="611.052">+:job/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="422.426" y="627.052">+:file/id: varchar, not nil</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="420.126" y="633.052" width="241" height="20"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="422.426" y="647.052">+primary key(:job/id,:file/id)</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="490.838,-493.62 532.03,-493.62 532.03,-349.976 632.092,-349.976 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="534.03" y="-424.998">fk(:user/address)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="494.838" y="-496.82">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="628.092" y="-353.176">*</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1042.73" y="810.376" width="364.2" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1224.83" y="829.376">JobStory</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1042.73" y="838.376" width="364.2" height="164"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="852.376">+:job-story/id: integer, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="868.376">+:job/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="884.376">+:job-story/status: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="900.376">+:job-story/date-created: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="916.376">+:job-story/date-updated: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="932.376">+:job-story/invitation-message-id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="948.376">+:job-story/proposal-message-id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="964.376">+:job-story/proposal-rate: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="980.376">+:job-story/proposal-rate-currency-id: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1045.03" y="996.376">+:job-story/assigned-candidate: address</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="634.19" y="-295.806" width="294.9" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="781.64" y="-276.806">ArbiterCategory</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="634.19" y="-267.806" width="294.9" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="636.49" y="-253.806">+:user/address: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="636.49" y="-237.806">+:category/name: varchar, primary key</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1565.82" y="1049.7" width="264.1" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1697.87" y="1068.7">JobStoryMessage</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1565.82" y="1077.7" width="264.1" height="52"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1568.12" y="1091.7">+:job-story/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1568.12" y="1107.7">+:message/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1568.12" y="1123.7">+:job-story-message/type: varchar</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="490.838,-493.62 532.014,-493.62 532.014,-263.806 633.897,-263.806 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="534.014" y="-381.913"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="494.838" y="-496.82">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="629.897" y="-267.006">*</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1310.21" y="1415.49" width="356.5" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1488.46" y="1434.49">JobStoryInvoice</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1310.21" y="1443.49" width="356.5" height="164"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1457.49">+:invoice/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1473.49">+:message/id : integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1489.49">+:job-story/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1505.49">+:invoice/status: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1521.49">+:invoice/amount-requested: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1537.49">+:invoice/amount-paid: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1553.49">+:invoice/date-paid: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1569.49">+:invoice/date-work-started: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1585.49">+:invoice/date-work-ended: unsigned integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1312.51" y="1601.49">+:invoice/work-duration: unsigned integer</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="155.714" y="-1033.52" width="310.3" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="310.864" y="-1014.52">Candidate</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="155.714" y="-1005.52" width="310.3" height="84"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.014" y="-991.524">+:user/address: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.014" y="-975.524">+:candidate/bio: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.014" y="-959.524">+:candidate/professional-title: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.014" y="-943.524">+:candidate/rate: integer, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.014" y="-927.524">+:candidate/rate-currency-id: varchar</text>
+      <polygon style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1919.18,830.76 1951.18,830.76 1935.18,786.76 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1935.18" y="823.76">
+        <tspan x="1935.18" y="823.76"></tspan>
+      </text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="685.342" y="-863.628" width="271.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="821.242" y="-844.628">CandidateSkill</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="685.342" y="-835.628" width="271.8" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="687.642" y="-821.628">+:user/address: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="687.642" y="-805.628">+:skill/name: varchar, primary key</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1776.9" y="568.93" width="318" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1935.9" y="587.93">Message</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1776.9" y="596.93" width="318" height="84"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1779.2" y="610.93">+:message/id: integer, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1779.2" y="626.93">+:message/type: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1779.2" y="642.93">+:message/creator: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1779.2" y="658.93">+:message/text: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1779.2" y="674.93">+:message/date-created: unsigned integer</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="466.312,-977.524 550.568,-977.524 550.568,-739.274 682.331,-739.274 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="552.568" y="-861.599"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="470.312" y="-980.724">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="678.331" y="-742.474">*</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2222.06" y="1050.58" width="348.8" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2396.46" y="1069.58">DirectMessage</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2222.06" y="1078.58" width="348.8" height="68"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2224.36" y="1092.58">+:message/id: integer, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2224.36" y="1108.58">+:direct-message/receiver: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2224.36" y="1124.58">+:direct-message/read?: boolean = false</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2224.36" y="1140.58">+:direct-message/archived?: boolean = false</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2222.06" y="1146.58" width="348.8" height="20"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2224.36" y="1160.58">+primary key(:direct-message/id,:message/id)</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="466.312,-977.524 550.568,-977.524 550.568,-831.628 685.038,-831.628 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="552.568" y="-907.776">fk(:user/address)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="470.312" y="-980.724">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="681.038" y="-834.828">*</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="832.414" y="567.996" width="271.8" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="968.314" y="586.996">File</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="832.414" y="595.996" width="271.8" height="52"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="834.714" y="609.996">+:file/id: integer, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="834.714" y="625.996">+:file/name: varchar, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="834.714" y="641.996">+:file/ipfs-hash: varchar, not nil</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="682.63" y="-771.274" width="294.9" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="830.08" y="-752.274">CandidateCategory</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="682.63" y="-743.274" width="294.9" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="684.93" y="-729.274">+:user/address: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="684.93" y="-713.274">+:category/name: varchar, primary key</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1397.56" y="568.106" width="271.8" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1533.46" y="587.106">MessageFile</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1397.56" y="596.106" width="271.8" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1399.86" y="610.106">+:message/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1399.86" y="626.106">+:file/id: integer</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1397.56" y="632.106" width="271.8" height="20"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1399.86" y="646.106">+primary key(:message/id,:file/id)</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1212.46" y="-1016.28" width="318" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1371.46" y="-997.284">Job</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1212.46" y="-988.284" width="318" height="356"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-974.284">+:job/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-958.284">+:job/bounty-id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-942.284">+:job/title: varchar, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-926.284">+:job/description: varchar, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-910.284">+:job/category: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-894.284">+:job/status: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-878.284">+:job/date-created: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-862.284">+:job/date-published: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-846.284">+:job/date-updated: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-830.284">+:job/estimated-length: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-814.284">+:job/required-availability: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-798.284">+:job/bid-option: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-782.284">+:job/expertise-level: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-766.284">+:job/max-number-of-candidates: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-750.284">+:job/invitation-only?: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-734.284">+:job/token: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-718.284">+:job/token-version: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-702.284">+:job/reward: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-686.284">+:job/date-deadline: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-670.284">+:job/platform: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-654.284">+:job/web-reference-url: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1214.76" y="-638.284">+:job/assigned-arbiter: address</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1178.48" y="114.643" width="310.3" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1333.63" y="133.643">Candidate</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1178.48" y="142.643" width="310.3" height="84"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1180.78" y="156.643">+:user/address: address, primary key</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1180.78" y="172.643">+:candidate/bio: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1180.78" y="188.643">+:candidate/professional-title: varchar</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1180.78" y="204.643">+:candidate/rate: integer, not nil</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1180.78" y="220.643">+:candidate/rate-currency-id: varchar</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1720.6" y="-1000.16" width="302.6" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1871.9" y="-981.16">JobArbiterRequest</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1720.6" y="-972.16" width="302.6" height="68"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1722.9" y="-958.16">+:job/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1722.9" y="-942.16">+:user/address: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1722.9" y="-926.16">+:job-arbiter/fee: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1722.9" y="-910.16">+:job-arbiter/fee-currency-id: varchar</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1720.6" y="-904.16" width="302.6" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1722.9" y="-890.16">+primary key(:job/id,:user/address)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1094.81" y="308.238" width="271.8" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1230.71" y="327.238">CandidateSkill</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1094.81" y="336.238" width="271.8" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1097.11" y="350.238">+:user/address: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1097.11" y="366.238">+:skill/name: varchar, primary key</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1727.04" y="-831.33" width="287.2" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1870.64" y="-812.33">JobLanguage</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1727.04" y="-803.33" width="287.2" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1729.34" y="-789.33">+:job/id: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1729.34" y="-773.33">+:language/name: varchar, not nil</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1727.04" y="-767.33" width="287.2" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1729.34" y="-753.33">+primary key(:job/id,:language/name)</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1401.29" y="307.834" width="294.9" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1548.74" y="326.834">CandidateCategory</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1401.29" y="335.834" width="294.9" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1403.59" y="349.834">+:user/address: address</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1403.59" y="365.834">+:category/name: varchar, primary key</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1530.77,-824.284 1585.25,-824.284 1585.25,-942.16 1720.3,-942.16 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1587.25" y="-886.422">fk(:job/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1534.77" y="-827.484">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1716.3" y="-945.36">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="380.464,973.71 104.501,973.71 104.501,662.744 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="242.483" y="970.51"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="376.464" y="970.51">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="108.501" y="674.744">1</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="2023.49,-942.16 2108.24,-942.16 2108.24,-848.928 2156.72,-848.928 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2110.24" y="-898.744">fk(:user/address)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2027.49" y="-945.36">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="2152.72" y="-852.128">1</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="539.464,791.71 539.464,722.381 540.626,722.381 540.626,653.052 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="540.045" y="719.181"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="543.464" y="787.71">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="544.626" y="665.052">*</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2157.02" y="-862.928" width="73.65" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2193.85" y="-843.928">Arbiter</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="661.126,607.052 743.374,607.052 743.374,607.996 832.113,607.996 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="745.374" y="604.324"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="665.126" y="603.852">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="828.113" y="604.796">1</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1530.74,-824.284 1585.19,-824.284 1585.19,-789.33 1726.77,-789.33 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1587.19" y="-810.007"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1534.74" y="-827.484">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1722.77" y="-792.53">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="698.464,925.71 870.596,925.71 870.596,928.376 1042.73,928.376 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="872.596" y="923.843"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="702.464" y="922.51">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1038.73" y="925.176">1</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1530.74,-824.284 1585.19,-824.284 1585.19,-653.956 1726.45,-653.956 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1587.19" y="-742.32"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1534.74" y="-827.484">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1722.45" y="-657.156">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1104.21,605.996 1192.87,605.996 1192.87,606.106 1397.56,606.106 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1194.87" y="602.851"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1108.21" y="602.796">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1393.56" y="602.906">1</text>
+    </g>
+    <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="1935.9" y1="680.93" x2="1935.18" y2="786.76"/>
+    <g>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1697.87,1049.7 1697.87,939.58 1935.18,939.58 1935.18,830.76 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1816.53" y="936.38"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1701.87" y="1045.7">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1939.18" y="842.76">1</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="151.668" y="-63.0566" width="302.6" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="302.968" y="-44.0566">Employer</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="151.668" y="-35.0566" width="302.6" height="52"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="153.968" y="-21.0566">+:user/address: address, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="153.968" y="-5.0566">+:employer/bio: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="153.968" y="10.9434">+:employer/professional-title: varchar</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="2396.46,1050.58 2396.46,940.669 1935.18,940.669 1935.18,830.76 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="2165.82" y="937.469"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2400.46" y="1046.58">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1939.18" y="842.76">1</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1690.6" y="-39.291" width="73.65" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1727.42" y="-20.291">Arbiter</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1406.93,912.376 1486.37,912.376 1486.37,1087.7 1565.82,1087.7 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1488.37" y="996.836"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1410.93" y="909.176">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1561.82" y="1084.5">*</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1551.69" y="-36.0002" width="101.65" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1602.51" y="-17.0002">Candidate</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="713.226,226.177 713.226,265.297 585.836,265.297 585.836,304.416 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="649.531" y="262.097"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="717.226" y="238.177">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="589.836" y="300.416">*</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1477.33,-103.753 1477.33,-103.494 1865.74,-103.494 1865.74,-37.889 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1671.53" y="-106.694">fk(:user/address)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1481.33" y="-91.753">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1869.74" y="-41.889">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="713.226,226.177 713.226,264.976 891.73,264.976 891.73,303.774 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="802.478" y="261.776"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="717.226" y="238.177">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="895.73" y="299.774">*</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1477.33,-103.623 1477.33,-103.494 1727.42,-103.494 1727.42,-39.5913 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1602.37" y="-106.694"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1481.33" y="-91.6234">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1731.42" y="-43.5913">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1333.63,226.643 1333.63,267.441 1230.71,267.441 1230.71,308.238 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1282.17" y="264.241"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1337.63" y="238.643">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1234.71" y="304.238">*</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1477.33,-103.559 1477.33,-102.924 1602.51,-102.924 1602.51,-36.2646 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1539.92" y="-106.124"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1481.33" y="-91.5586">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1606.51" y="-40.2646">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1333.63,226.643 1333.63,267.239 1548.74,267.239 1548.74,307.834 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1441.19" y="264.039"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1337.63" y="238.643">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1552.74" y="303.834">*</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1725.79" y="-593.272" width="241" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1846.29" y="-574.272">JobFile</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1725.79" y="-565.272" width="241" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.09" y="-551.272">+:job/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.09" y="-535.272">+:file/id: varchar, not nil</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1725.79" y="-529.272" width="241" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.09" y="-515.272">+primary key(:job/id,:file/id)</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="367.03,-253.688 402.014,-253.688 402.014,-254.452 436.974,-254.452 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="404.014" y="-257.27"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="371.03" y="-256.888">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="432.974" y="-257.652">*</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1530.77,-824.284 1585.15,-824.284 1585.15,-551.272 1725.51,-551.272 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1587.15" y="-690.978"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1534.77" y="-827.484">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1721.51" y="-554.472">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="754.974,-190.452 1935.9,-190.452 1935.9,568.93 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1345.43" y="-193.652"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke: none" fill-rule="evenodd" points="1347.43,-193.652 1347.43,-201.652 1355.43,-197.652 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="758.974" y="-193.652"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1939.9" y="564.93"/>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="169.757" y="394.752" width="318" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="328.757" y="413.752">Message</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="169.757" y="422.752" width="318" height="68"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="172.057" y="436.752">+:message/id: integer, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="172.057" y="452.752">+:message/creator: address</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="172.057" y="468.752">+:message/text: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="172.057" y="484.752">+:message/date-created: unsigned integer</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1669.36,606.106 1665.11,606.106 1665.11,606.93 1776.9,606.93 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1667.11" y="603.318"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1665.36" y="602.906">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1772.9" y="603.73">1</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1213.01" y="681.692" width="356.5" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1391.26" y="700.692">Contract</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1213.01" y="709.692" width="356.5" height="164"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="723.692">+:contract/id: integer, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="739.692">+:job/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="755.692">+:contract/status: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="771.692">+:contract/date-created: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="787.692">+:contract/date-updated: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="803.692">+:contract/invitation-message-id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="819.692">+:contract/proposal-message-id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="835.692">+:contract/proposal-rate: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="851.692">+:contract/proposal-rate-currency-id: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1215.31" y="867.692">+:contract/assigned-candidate: address</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="-433.592" y="336.078" width="187.1" height="28"/>
+      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="-340.042" y="355.078">JobCreator</text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="-433.592" y="364.078" width="187.1" height="36"/>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-431.292" y="378.078">+:job/id: integer</text>
+      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-431.292" y="394.078">+:user/address: varchar</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1652.39" y="724.56" width="179.4" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1742.09" y="743.56">ContractMessage</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1652.39" y="752.56" width="179.4" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1654.69" y="766.56">+:contract/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1654.69" y="782.56">+:message/id: integer</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="-340.042,400.078 -340.042,1085.71 380.464,1085.71 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="20.211" y="1082.51"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-336.042" y="412.078">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="376.464" y="1082.51">1</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1653.23" y="991.92" width="356.5" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1831.48" y="1010.92">ContractInvoice</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1653.23" y="1019.92" width="356.5" height="148"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1033.92">+:invoice/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1049.92">+:contract/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1065.92">+:invoice/status: varchar</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1081.92">+:invoice/amount-requested: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1097.92">+:invoice/amount-paid: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1113.92">+:invoice/date-paid: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1129.92">+:invoice/date-work-started: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1145.92">+:invoice/date-work-ended: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1655.53" y="1161.92">+:invoice/work-duration: unsigned integer</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="-343.23,327.92 46.872,327.92 46.872,-142.452 436.974,-142.452 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="48.872" y="89.534"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="-339.23" y="324.72">*</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="432.974" y="-145.652">1</text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1463.74" y="1251.1" width="325.7" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1626.59" y="1270.1">ContractDispute</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1463.74" y="1279.1" width="325.7" height="68"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1466.04" y="1293.1">+:dispute/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1466.04" y="1309.1">+:contract/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1466.04" y="1325.1">+:dispute/date-created: unsigned integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1466.04" y="1341.1">+:dispute/date-resolved: unsigned integer</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1463.74" y="1347.1" width="325.7" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1466.04" y="1361.1">+primary key(:dispute/id)</text>
+      <polygon style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1681.32,1263.86 1713.32,1263.86 1697.32,1219.86 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1697.32" y="1256.86">
+        <tspan x="1697.32" y="1256.86"></tspan>
+      </text>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="156.034" y="1021.28" width="271.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="291.934" y="1040.28">File</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="156.034" y="1049.28" width="271.8" height="52"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.334" y="1063.28">+:file/id: integer, primary key</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.334" y="1079.28">+:file/name: varchar, not nil</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="158.334" y="1095.28">+:file/ipfs-hash: varchar, not nil</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1697.87,1129.7 1697.87,1164.83 1697.32,1164.83 1697.32,1219.86 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1697.59" y="1161.63"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1701.87" y="1141.7"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1701.32" y="1215.86"/>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2169.38" y="-565.43" width="42.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2190.78" y="-546.43">File</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1697.32,1263.86 1697.32,1339.68 1488.46,1339.68 1488.46,1415.49 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1592.89" y="1336.48"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1701.32" y="1275.86"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1492.46" y="1411.49"/>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1967.09,-551.272 2007.22,-551.272 2007.22,-551.43 2169.08,-551.43 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2009.22" y="-554.551">fk(:file/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1971.09" y="-554.472">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="2165.08" y="-554.63">1</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1697.32,1263.86 1697.32,1337.88 1930.19,1337.88 1930.19,1413.2 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1813.75" y="1334.68"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1701.32" y="1275.86"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1934.19" y="1409.2"/>
     </g>
     <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="758.194" y="719.292" width="42.8" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="779.594" y="738.292">File</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="595.974,-84.452 595.974,14.8627 713.226,14.8627 713.226,114.177 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="654.6" y="11.6627"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="599.974" y="-72.452">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="717.226" y="110.177">1</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="919.578,594.878 947.984,594.878 947.984,733.292 800.972,733.292 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="949.984" y="660.885">fk(:file/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="923.578" y="591.678">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="804.972" y="730.092">1</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="595.974,-84.452 595.974,15.0956 1333.63,15.0956 1333.63,114.643 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="964.803" y="11.8956"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="599.974" y="-72.452">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1337.63" y="110.643">1</text>
     </g>
     <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="328.756,491.054 328.756,533.072 1279.82,533.072 1279.82,497.254 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="804.29" y="529.872">fk(:message/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="332.756" y="503.054">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1283.82" y="509.254">1</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="328.757,491.045 328.756,663.46 783.416,663.46 783.416,637.181 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="556.086" y="660.26">fk(:message/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="332.757" y="503.045">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="787.416" y="649.181">*</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1726.56" y="-480.676" width="287.2" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="1870.16" y="-461.676">JobCandidateRequest</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1726.56" y="-452.676" width="287.2" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.86" y="-438.676">+:job/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.86" y="-422.676">+:user/address: address, primary key</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="1726.56" y="-416.676" width="287.2" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1728.86" y="-402.676">+primary key(:job/id,:user/address)</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1530.75,-824.284 1585.07,-824.284 1585.07,-438.676 1726.27,-438.676 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1587.07" y="-634.68"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1534.75" y="-827.484">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="1722.27" y="-441.876">*</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="2014.06,-438.676 2113.86,-438.676 2113.86,-356.398 2162.64,-356.398 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2115.86" y="-400.737">fk(:user/address)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2018.06" y="-441.876">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:end;font-family:monospace;font-style:normal;font-weight:normal" x="2158.64" y="-359.598">1</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2162.64" y="-370.398" width="101.65" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2213.47" y="-351.398">Candidate</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2588.34" y="914.668" width="88.85" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2632.76" y="933.668">Message</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1391.26,873.997 1391.26,966.782 1742.09,966.782 1742.09,788.855 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1566.68" y="963.582">fk(:contract/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1395.26" y="885.997">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1746.09" y="800.855">*</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1831.79,788.56 1831.79,835.664 2632.76,835.664 2632.76,914.386 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="2232.28" y="832.464">fk(:message/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1835.79" y="800.56">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2636.76" y="910.386">1</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1391.26,873.813 1391.26,966.614 1392.36,966.614 1392.36,1039.14 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1391.81" y="963.414"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1395.26" y="885.813">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1396.36" y="1035.14">*</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1391.26,873.813 1391.26,966.614 1831.48,966.614 1831.48,991.614 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1611.37" y="963.414"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1395.26" y="885.813">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1835.48" y="987.614">*</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2178.88" y="1270.84" width="294.9" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2326.33" y="1289.84">ContractDisputeMessage</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2178.88" y="1298.84" width="294.9" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2181.18" y="1312.84">+:dispute/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2181.18" y="1328.84">+:message/id: integer</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2178.88" y="1334.84" width="294.9" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2181.18" y="1348.84">+primary key(:dispute/id,:message/id)</text>
-    </g>
-    <g>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2176.66" y="1066.77" width="294.9" height="28"/>
-      <text font-size="16" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:700" x="2324.11" y="1085.77">ContractInvoiceMessage</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2176.66" y="1094.77" width="294.9" height="36"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2178.96" y="1108.77">+:invoice/id: integer</text>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2178.96" y="1124.77">+:message/id: integer</text>
-      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 0.6; stroke: #2c398f" x="2176.66" y="1130.77" width="294.9" height="20"/>
-      <text font-size="12.8" style="fill: #2c398f; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2178.96" y="1144.77">+primary key(:invoice/id,:message/id)</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="2324.11,1066.55 2324.12,1025.14 2632.76,1025.14 2632.76,942.971 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="2478.44" y="1021.94">fk(:message/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2328.11" y="1062.55">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2636.76" y="954.971">1</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="2326.33,1270.58 2326.33,1205.33 2632.76,1205.33 2632.76,942.853 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="2479.55" y="1202.13">fk(:message/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2330.33" y="1266.58">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2636.76" y="954.853">1</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="2009.74,1141.92 2009.74,1184.71 2176.66,1184.71 2176.66,1150.77 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="2093.2" y="1181.51">fk(:invoice/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2013.74" y="1153.92">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2180.66" y="1162.77">*</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1789.44,1337.1 1789.44,1337.37 2178.88,1337.37 2178.88,1354.84 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1984.16" y="1334.17">fk(:dispute/id)</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1793.44" y="1349.1">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="2182.88" y="1350.84">*</text>
-    </g>
-    <g>
-      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #2c398f" points="1391.26,873.988 1391.26,967.276 1626.59,967.276 1626.59,1250.8 "/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="1508.92" y="964.076"/>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1395.26" y="885.988">1</text>
-      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="1630.59" y="1246.8">*</text>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="595.974,-84.452 595.974,14.5192 348.626,14.5192 348.626,113.49 "/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:monospace;font-style:normal;font-weight:normal" x="472.3" y="11.3192"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="599.974" y="-72.452">1</text>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:monospace;font-style:normal;font-weight:normal" x="352.626" y="109.49">1</text>
     </g>
   </g>
 </svg>
