@@ -22,6 +22,7 @@
 -/dev/resources/public/js/compiled/*
 -/dev/resources/public/js/test_runner.js
 -/dev/resources/public/js/out-ui-test-runner
--/docs
--/docs/*
--/docs/uberdoc.html
+-/docs/public
+-/docs/public/*
+-/docs/public/html
+-/docs/public/html/*

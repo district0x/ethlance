@@ -113,7 +113,7 @@
 ** Org Files
    Org-mode files are used to export into other formats
 
-   *.org files placed in the ~./org~ folder are compiled and placed in
+   *.org files placed in the ~./base~ folder are compiled and placed in
    ~./public/html~ as compiled HTML. Additionally, images are also
    copied from ~./base/images~ to ~./public/html/images~
 
@@ -121,7 +121,7 @@
    Running ~make~ generates a fully interactable website at
    ~./public/html~. This can be hosted on a static web server.
 
-*** CSS Print Media Styling
+*** Exporting to PDF
     CSS Styling also includes media queries for handling a PDF
     Export. Best results are seen in Chrome Browser
 
