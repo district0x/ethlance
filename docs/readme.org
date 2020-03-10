@@ -2,6 +2,8 @@
 #+LANGUAGE: en
 #+OPTIONS: H:2 num:t toc:t \n:nil ::t |:t ^:t f:t tex:t
 
+[[https://ipfs.io/ipns/QmY4djEk6L2jqGmcv9WspcpgYARgnVn1dBxcrHeKAvtaiA][Ethlance Documentation]]
+
 * Quickstart
   While in this folder, run on the commandline:
   ~make~
@@ -11,7 +13,7 @@
   From the main ethlance repository:
   ~make build-docs~
 
-* Publishing
+* Publishing to IPFS
   Results can be published to IPFS as a static website:
   ~make publish-ipfs~
 
@@ -19,6 +21,35 @@
 
   From the main ethlance repository:
   ~make publish-docs~
+
+  Note that this will also create the files:
+
+  *./docs/.site-hash*, which contains the IPFS hash of the published website
+  
+  *And*
+
+  *./docs/.site-url*, which contains a gateway to the published website
+
+** Additional Notes
+   - Publishing to IPFS requires that you have an IPFS daemon running
+     in order to distribute the content.
+
+* Publishing to IPNS
+  Results can be published to IPNS as a static website:
+  ~make publish-ipns~
+
+  *Or*
+
+  From the main ethlance repository:
+  ~make publish-docs-ipns~
+
+** Additional Notes
+   - Publishing to IPNS requires that you have an IPFS daemon running
+     in order to resolve IPNS hashes into their corresponding IPFS hashes.
+     
+   - Publishing to IPNS within this ecosystem requires a particular
+     key distributed among developers, which is stored in
+     *~/.ipfs/keystore*
 
 * Prerequisites
  - java on commandline ~which java~
@@ -35,7 +66,7 @@
    - *Note* already included in ./bin folder
  - *Optional* ipfs on commandline ~which ipfs~
    - While running an IPFS daemon
-   - Used for publishing results
+   - Used for publishing results to IPFS and IPNS
 
 * Rationale 
   This directory contains scripts to generate documentation with
@@ -84,7 +115,7 @@
 
    *.org files placed in the ~./org~ folder are compiled and placed in
    ~./public/html~ as compiled HTML. Additionally, images are also
-   copied to ~./public/html/images~
+   copied from ~./base/images~ to ~./public/html/images~
 
 ** Website Publication
    Running ~make~ generates a fully interactable website at
@@ -98,7 +129,7 @@
 
     #+BEGIN_SRC sh
 
-    chromium-browser --headless --disable-gpu --print-to-pdf=EthlanceDocs.pdf https://ipfs.io/ipfs/QmVGP2jDouiWYB38cSsQsbBH4aHHVjBDKz2gatTtVvrMDT/index.html
+    chromium-browser --headless --disable-gpu --print-to-pdf=EthlanceDocs.pdf ./public/html/index.html
 
     #+END_SRC
 

@@ -981,9 +981,8 @@ footer p {
     bottom:0;
     left:0;
     width:300px;
-    color:#fcfcfc;
-    background:#1f1d1d;
-    border-top:solid 10px #343131;
+    background: white;
+    border-top:solid 5px rgba(200, 200, 200, 0.5);
     font-family:"Open Sans","Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
     font-size: 90%;
     z-index:400;
@@ -991,21 +990,16 @@ footer p {
 }
 
 #postamble {
-    display: none;
-}
-
-#postamble .author {
-    font-size: 100%;
-    margin-bottom: 0px;
+    background-color: white;
 }
 
 #postamble .date {
     font-size: 90%;
     margin-bottom: 0px;
-    color: #27AE60;
+    color: #555;
 }
 
-#postamble .creator,#postamble .validation {
+#postamble .author,#postamble .creator,#postamble .validation {
     display:none;
 }
 
