@@ -99,6 +99,7 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
   :figwheel {:css-dirs ["resources/public/css"]
              :nrepl-port 9000
+             :server-ip "0.0.0.0"
              :server-port 6500
              :ring-handler handler/figwheel-request-handler}
   :exclusions [cljsjs/react-with-addons
@@ -153,7 +154,8 @@
   {:builds
    [{:id "dev-ui"
      :source-paths ["src/ethlance/ui" "src/ethlance/shared" "dev/ui"]
-     :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
+     :figwheel {:websocket-host :js-client-host
+                :on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
                 :infer-externs true
                 :npm-deps false

@@ -102,7 +102,9 @@ clean-all: clean
 
 
 lein-deps:
+	rm -rf ./node_modules/websocket/.git # Hotfix
 	lein deps
+	rm -rf ./node_modules/websocket/.git # Hotfix
 	npm install @sentry/node # Hotfix
 
 

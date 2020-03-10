@@ -118,7 +118,7 @@
    copied from ~./base/images~ to ~./public/html/images~
 
 ** Website Publication
-   Running ~make~ generates a fully interactable website at
+   Running ~make~ generates a self-contained website at
    ~./public/html~. This can be hosted on a static web server.
 
 *** Exporting to PDF
