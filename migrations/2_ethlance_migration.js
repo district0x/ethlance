@@ -24,13 +24,8 @@ function requireContract(contract_name, contract_copy_name) {
 // Placeholders
 //
 
-const forwarderTargetPlaceholder = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef";
-const secondForwarderTargetPlaceholder = "dabadabadabadabadabadabadabadabadabadaba";
-const thirdForwarderTargetPlaceholder = "dbdadbadbabdabdbadabdbafffd1234fdfadbccc";
-const fourthForwarderTargetPlaceholder = "beefabeefabeefabeefabeefabeefabeefabeefa";
-const districtConfigPlaceholder = "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd";
-const registryPlaceholder = "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb";
 const standardBountiesPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
+const ethlanceJobsPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 
 //
 // Contract Artifacts
@@ -39,8 +34,8 @@ const standardBountiesPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
 let DSGuard = requireContract("DSGuard");
 let TestToken = requireContract("TestToken");
 let StandardBounties = requireContract("StandardBounties");
-let EthlanceBountyIssuer = requireContract("EthlanceBountyIssuer");
-
+let EthlanceJobs = requireContract("EthlanceJobs");
+let EthlanceIssuer = requireContract("EthlanceIssuer");
 
 //
 // Deployment Functions
@@ -73,14 +68,19 @@ async function deploy_TestToken(deployer, opts) {
   assignContract(token, "TestToken", "token");
 }
 
-async function deploy_EthlanceBountyIssuer(deployer, opts){
+async function deploy_EthlanceIssuer(deployer, opts){
   let standardBounties = await deployer.deploy(StandardBounties, Object.assign(opts, {gas: 6.4e6}));
   assignContract(standardBounties, "StandardBounties", "standard-bounties");
 
-  linkBytecode(EthlanceBountyIssuer, standardBountiesPlaceholder, standardBounties.address);
-  var ethlanceBountyIssuer = await deployer.deploy(EthlanceBountyIssuer, Object.assign(opts, {gas: 6e6}));
+  let ethlanceJobs = await deployer.deploy(EthlanceJobs, Object.assign(opts, {gas: 7e6}));
+  assignContract(ethlanceJobs, "EthlanceJobs", "ethlance-jobs");
 
-  assignContract(ethlanceBountyIssuer, "EthlanceBountyIssuer", "ethlance-bounty-issuer");
+  linkBytecode(EthlanceIssuer, standardBountiesPlaceholder, standardBounties.address);
+  linkBytecode(EthlanceIssuer, ethlanceJobsPlaceholder, ethlanceJobs.address);
+
+  var ethlanceIssuer = await deployer.deploy(EthlanceIssuer, Object.assign(opts, {gas: 6e6}));
+
+  assignContract(ethlanceIssuer, "EthlanceIssuer", "ethlance-issuer");
 }
 
 /*
@@ -89,7 +89,7 @@ async function deploy_EthlanceBountyIssuer(deployer, opts){
 async function deploy_all(deployer, opts) {
   await deploy_DSGuard(deployer, opts);
   await deploy_TestToken(deployer, opts);
-  await deploy_EthlanceBountyIssuer(deployer, opts);
+  await deploy_EthlanceIssuer(deployer, opts);
   writeSmartContracts();
 }
 

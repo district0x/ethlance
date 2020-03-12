@@ -45,7 +45,7 @@
     "dev" #'smart-contracts-dev/smart-contracts))
 
 (def default-config
-  {;;:web3 {:port 8549}
+  {:web3 {:url "ws://127.0.0.1:8549"}
 
    ;; :web3-events {:events {:ethlance-registry/ethlance-event [:ethlance-registry :EthlanceEvent {} {:from-block 0 :to-block "latest"}]}
    ;;               :write-events-into-file? true
