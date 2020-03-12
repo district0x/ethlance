@@ -8,7 +8,7 @@ jobs:
       - image: district0x/cljs-dev
       # Secondary container images on common network.
       - image: trufflesuite/ganache-cli:latest
-        command: [-d, -m district0x, -p 8545, -l 8000000, --noVMErrorsOnRPCResponse]
+        command: [-d, -m district0x, -p 8549, -l 8000000, --noVMErrorsOnRPCResponse]
       - image: district0x/ipfs-daemon:latest
     steps:
       - checkout
