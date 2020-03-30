@@ -1,6 +1,6 @@
 # ethlance
 
-[![Build Status](https://travis-ci.org/district0x/ethlance.svg?branch=master)](https://travis-ci.org/district0x/ethlance)
+[![CircleCI](https://circleci.com/gh/district0x/ethlance/tree/master.svg?style=svg)](https://circleci.com/gh/district0x/ethlance/tree/master)
 
 Repository for [ethlance.com](http://ethlance.com)
 
@@ -49,7 +49,7 @@ Make sure in [ethlance.db/default-db](https://github.com/madvas/ethlance/blob/ma
 :load-node-addresses? true
 :node-url "http://localhost:8549"
 ```
-Visit [localhost:6229](http://localhost:6229/) in your browser without MetaMask. I use the Chrome Incognito window. 
+Visit [localhost:6229](http://localhost:6229/) in your browser without MetaMask. I use the Chrome Incognito window.
 
 To redeploy all smart contracts, run the following in REPL.
 ```clojure
