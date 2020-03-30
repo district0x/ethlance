@@ -492,7 +492,7 @@
   {:web3 nil
    :web3-read-only nil
    :load-node-addresses? false
-   :node-url "https://mainnet.infura.io" #_ "http://localhost:8545" #_ "http://localhost:8549"
+   :node-url "https://mainnet.infura.io/v3/fc19514210574bf580fbc13f58f65819"
    :active-page (u/match-current-location)
    :provides-web3? false
    :contracts-not-found? false
