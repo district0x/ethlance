@@ -1,0 +1,64 @@
+version: 2.1
+jobs:
+
+  test:
+    working_directory: ~/district_registry
+    docker:
+      - image: district0x/cljs-dev:e701583
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore m2 package cache
+          keys:
+            - -v1-maven-dependencies-{{ checksum "project.clj" }}
+            # fallback to using the latest cache if no exact match is found
+            - -v1-maven-dependencies-
+      - run: lein deps
+      - save_cache:
+          name: Save m2 package cache
+          paths:
+            - ~/.m2
+          key: -v1-maven-dependencies-{{ checksum "project.clj" }}
+      - run:
+         name: NO TESTS check if codebase compiles
+         command: |
+           lein cljsbuild once "min"
+
+  build_and_deploy:
+    docker:
+     - image: district0x/cljs-dev:e701583
+    steps:
+     - setup_remote_docker:
+         version: 18.06.0-ce
+     - run:
+         name: Install Docker client
+         command: |
+           set -x
+           VER="18.06.0-ce"
+           curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+           tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+           sudo mv /tmp/docker/* /usr/bin
+     - checkout
+     - run:
+         name: Build and deploy docker containers
+         command: |
+            if [ "$CIRCLE_BRANCH" == 'production' ]; then
+              /bin/bash docker-push.sh prod
+            else
+              echo "Wrong branch";
+              exit -1;
+            fi
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - test
+      - build_and_deploy:
+          context: district0x
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - production
