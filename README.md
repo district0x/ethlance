@@ -1,6 +1,6 @@
 # Ethlance V.2 (Newlance)
 
-![](https://travis-ci.org/district0x/ethlance.svg?branch=newlance)
+[![CircleCI](https://circleci.com/gh/district0x/ethlance/tree/newlance.svg?style=svg)](https://circleci.com/gh/district0x/ethlance/tree/newlance)
 
 *Ethlance Version 2 is Currently in Development and is subject to
 change before final release*
