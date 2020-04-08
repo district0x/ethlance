@@ -10,3 +10,7 @@
    [ethlance.ui.event.sign-in]))
 
 
+(defn initialize
+  [{:keys [db] :as cofx} _]
+  {:db (-> db)})
+

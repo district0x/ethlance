@@ -1,7 +1,12 @@
 (ns ethlance.ui.page.sign-up
   (:require
+   [re-frame.core :as re]
    [taoensso.timbre :as log]
+   [cuerdas.core :as str]
    [district.ui.component.page :refer [page]]
+
+   ;; Re-frame Subscriptions
+   [district.ui.router.subs :as router.subs]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
@@ -188,20 +193,24 @@
 
 
 (defmethod page :route.me/sign-up []
-  (let []
+  (let [*active-page-query (re/subscribe [::router.subs/active-page-query])]
     (fn []
-      [c-main-layout {:container-opts {:class :sign-up-main-container}}
-       [c-tabular-layout
-        {:key "sign-up-tabular-layout"
-         :default-tab 0}
-        
-        {:label "Candidate"}
-        [c-candidate-sign-up]
-        
-        {:label "Employer"}
-        [c-employer-sign-up]
-        
-        {:label "Arbiter"}
-        [c-arbiter-sign-up]]])))
-
-
+      (let [active-tab-index
+            (case (-> @*active-page-query :tab str/lower str/keyword)
+              :candidate 0
+              :employer 1
+              :arbiter 2
+              0)]
+        [c-main-layout {:container-opts {:class :sign-up-main-container}}
+         [c-tabular-layout
+          {:key "sign-up-tabular-layout"
+           :default-tab active-tab-index}
+          
+          {:label "Candidate"}
+          [c-candidate-sign-up]
+          
+          {:label "Employer"}
+          [c-employer-sign-up]
+          
+          {:label "Arbiter"}
+          [c-arbiter-sign-up]]]))))

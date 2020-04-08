@@ -17,7 +17,7 @@
       distrib)))
 
 
-(defn pick-rand-by-dist- [ds]
+(defn -pick-rand-by-dist [ds]
   (let [r (rand *dist-resolution*)]
     (->> ds
          (filter (fn [[[start end] value]]
@@ -55,7 +55,7 @@
                            (reduce +))
         norm-factor (/ *dist-resolution* total-percent)
         distrib (get-distribution norm-factor tupl)]
-    (pick-rand-by-dist- distrib)))
+    (-pick-rand-by-dist distrib)))
 
 
 (defn pluck!
