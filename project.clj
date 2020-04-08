@@ -32,6 +32,8 @@
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.11.0-rc2"]
                  [reagent "0.9.0-rc2"]
+                 ;; Hotfix: Fix until district-ui-graphql updates dependency
+                 [day8.re-frame/forward-events-fx "0.0.6"]
 
                  ;; District General Libraries
                  [district0x/async-helpers "0.1.3"]
@@ -73,7 +75,7 @@
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
                  [district0x/district-ui-reagent-render "1.0.1"]
-                 [district0x/district-ui-router "1.0.5"]
+                 [district0x/district-ui-router "1.0.7"]
                  [district0x/district-ui-router-google-analytics "1.0.1"]
                  [district0x/district-ui-smart-contracts "1.0.8"]
                  [district0x/district-ui-web3 "1.3.2"]
