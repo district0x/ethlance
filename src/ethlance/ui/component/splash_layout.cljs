@@ -305,4 +305,4 @@
         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :employer}})}
        [c-button-label [:span "Become an " [:b "Employer"]]]]]
      [:div.footer-section
-      [:span "Copyright © 2019 Ethlance.com. All rights reserved."]]]]])
+      [:span "Copyright © 2020 Ethlance.com. All rights reserved."]]]]])
