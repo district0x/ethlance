@@ -40,21 +40,27 @@
            [:div.label "Employer"]
            [c-profile-image {}]
            [:div.name "Brian Curran"]
-           [c-rating {:rating 3}]
+           [:div.rating
+            [c-rating {:rating 3}]
+            [:span.num-feedback (str "(" 5 ")")]]
            [:div.location "United States, New York"]]
 
           [:div.profile.candidate
            [:div.label "Candidate"]
            [c-profile-image {}]
            [:div.name "Brian Curran"]
-           [c-rating {:rating 3}]
+           [:div.rating
+            [c-rating {:rating 3}]
+            [:span.num-feedback (str "(" 5 ")")]]
            [:div.location "United States, New York"]]
 
           [:div.profile.arbiter
            [:div.label "Arbiter"]
            [c-profile-image {}]
            [:div.name "Brian Curran"]
-           [c-rating {:rating 3}]
+           [:div.rating
+            [c-rating {:rating 3}]
+            [:span.num-feedback (str "(" 5 ")")]]
            [:div.location "United States, New York"]]]
 
          [:div.right
