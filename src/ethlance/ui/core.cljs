@@ -27,8 +27,15 @@
     (.log js/console "Initializing...")
     (.log js/console (clj->js main-config))
     (util.injection/inject-data-scroll! {:injection-selector "#app"})
+
+    ;; Initialize our district re-mount components
     (-> (mount/with-args main-config)
-        (mount/start))))
+        (mount/start))
+
+    ;; Initialize our re-frame app state 
+    (re/dispatch-sync [:ethlance/initialize])
+
+    ::started))
 
 
 (defonce started? (init))
