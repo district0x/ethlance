@@ -130,8 +130,6 @@
 
          ;; Development Dependencies
          [axios "0.19.0"]
-         [webpack "4.41.2"]
-         [webpack-cli "3.3.9"]
          [less "3.10.3"]
          [less-watch-compiler "1.14.1"]
          [ganache-cli "6.7.0"]
@@ -141,7 +139,7 @@
   {:dev
    {:source-paths ["src" "test" "dev"]
     :resource-paths ["resources" "dev/resources"]
-    :dependencies [[cider/piggieback "0.4.1"]
+    :dependencies [[cider/piggieback "0.4.2"]
                    [org.clojure/tools.nrepl "0.2.13"]
                    [figwheel "0.5.19"]
                    [figwheel-sidecar "0.5.19"]
