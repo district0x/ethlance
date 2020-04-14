@@ -1,6 +1,8 @@
 (ns ethlance.ui.event.job-listing
   (:require
-   [re-frame.core :as re]))
+   [re-frame.core :as re]
+   
+   [ethlance.shared.mock :as mock]))
 
 
 (def state-key :ethlance.job-listing)
@@ -9,15 +11,15 @@
    :data []})
 
 
-(def mock-data
-  [:test :test2])
+(defonce mock-job-listing
+  (mapv #(mock/generate-mock-job) (range 1 10)))
 
 
-(defn query
+(defn mock-query
   "Event FX Handler. Perform Job Listing Query."
   [{:keys [db] :as cofxs} [_ {:keys [] :as opts}]]
   ;;TODO: mock up + production graphql
-  {:dispatch [:job-listing/-set-data mock-data]})
+  {:dispatch [:job-listing/-set-data mock-job-listing]})
 
 
 (defn set-data
@@ -30,7 +32,8 @@
 ;; Registered Events
 ;;
 
-(re/reg-event-fx :job-listing/query query)
+;; TODO: switch based on dev environment
+(re/reg-event-fx :job-listing/query mock-query)
 
 
 ;; Intermediates

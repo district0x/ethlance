@@ -10,9 +10,9 @@
    [ethlance.ui.component.modal.events]
 
    ;; Ethlance Main Event Handlers
-   [ethlance.ui.event.sign-in]
-   [ethlance.ui.event.job]
-   [ethlance.ui.event.job-listing]))
+   [ethlance.ui.event.sign-in]        ;; :user/*
+   [ethlance.ui.event.job]            ;; :job/*
+   [ethlance.ui.event.job-listing]))  ;; :job-listing/*
 
 
 (defn initialize
@@ -23,7 +23,7 @@
               ethlance.ui.event.job/state-default
               ethlance.ui.event.job-listing/state-key
               ethlance.ui.event.job-listing/state-default)
-   :log/info ["re-frame Initialized app state"]})
+   :log/info ["Initialized re-frame app state"]})
 
 ;;
 ;; Registered Events
