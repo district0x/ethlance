@@ -34,7 +34,10 @@
 
    ;; Ethlance Libraries
 
-   [ethlance.shared.utils :as shared-utils]))
+   [ethlance.shared.utils :as shared-utils]
+
+
+   [ethlance.server.workbench]))
 
 (def graphql-config
   {:port 4000})

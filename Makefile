@@ -162,7 +162,7 @@ build-contracts:
 TESTNET_SCRIPT_FILE := ./node_modules/ganache-cli/cli.js
 TESTNET_PORT := 8549
 testnet:
-	node $(TESTNET_SCRIPT_FILE) -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
+	node $(TESTNET_SCRIPT_FILE) -m district0x -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
 
 build-docs:
