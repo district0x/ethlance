@@ -139,12 +139,12 @@
   {:dev
    {:source-paths ["src" "test" "dev"]
     :resource-paths ["resources" "dev/resources"]
-    :dependencies [[cider/piggieback "0.4.2"]
-                   [org.clojure/tools.nrepl "0.2.13"]
+    :dependencies [[binaryage/devtools "0.9.10"]
+                   [cider/piggieback "0.4.2"]
+                   [doo "0.1.11"]
                    [figwheel "0.5.19"]
                    [figwheel-sidecar "0.5.19"]
-                   [binaryage/devtools "0.9.10"]
-                   [doo "0.1.11"]]
+                   [org.clojure/tools.nrepl "0.2.13"]]
     :plugins [[lein-figwheel "0.5.19"]
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns user

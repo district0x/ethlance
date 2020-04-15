@@ -32,7 +32,7 @@
     (-> (mount/with-args main-config)
         (mount/start))
 
-    ;; Initialize our re-frame app state 
+    ;; Initialize our re-frame app state
     (re/dispatch-sync [:ethlance/initialize])
 
     ::started))
