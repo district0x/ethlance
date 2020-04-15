@@ -10,6 +10,7 @@
    [cljs-time.core :as time]
    [cljs-time.coerce :as time-coerce]
 
+   [ethlance.server.contract.ethlance-issuer :as ethlance-issuer]
    ))
 
 (def lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis.")
@@ -127,56 +128,77 @@
          (log/error "Error" {:error e})
          (reject e))))))
 
-(defn generate-jobs [job-ids [employer & _]]
+(defn generate-jobs [jobs [employer & _]]
   (js/Promise.
    (fn [resolve reject]
      (try
-       (doall (for [job-id job-ids]
+       (doall (for [{:keys [job-id job-type]} jobs]
+
                 (let [title (str (-> ["marmot" "deer" "mammut" "tiger" "lion" "elephant" "bobcat"] shuffle first) " "
                                  (-> ["control" "design" "programming" "aministartion" "development"] shuffle first))
-                      from (rand-int 100)
-                      description (subs lorem from (+ 20 from))
+                      description (let [from (rand-int 100)] (subs lorem from (+ 20 from)))
                       category (get job-categories (rand-int 13))
-                      [status _] (shuffle ["Hiring" "Hiring Done"])
+                      status  (rand-nth ["hiring" "hiring done"])
                       date-created (time/minus (time/now) (time/days (rand-int 60)))
                       date-published (time/plus date-created (time/days (rand-int 5)))
                       date-updated (time/plus date-published (time/days (rand-int 7)))
-                      estimated-length (case (-> [:hours :days :weeks] shuffle first)
+                      expertise-level (rand-nth ["beginner" "intermediate" "expert"])
+                      token "0x8f389F672Ef0586628689f9227e1d0e09f9A3245"
+                      token-version (ethlance-issuer/token-version (rand-nth [:eth :erc20 :erc721]))
+                      reward (rand-int 300)
+                      web-reference-url (str "http://ethlance.com/" job-id)
+
+
+                      estimated-length (case (-> (rand-nth [:hours :days :weeks]))
                                          :hours (time/hours (rand-int 24))
                                          :days (time/days (rand-int 30))
                                          :weeks (time/weeks (rand-int 100)))
-                      [availability _] (shuffle ["Part Time" "Full Time"])
-                      [expertise-level _] (shuffle ["Beginner" "Intermediate" "Expert"])
-                      [bid-option _] (shuffle ["Hourly Rate" "Bounty"])
+                      availability (rand-nth ["Part Time" "Full Time"])
+
+                      bid-option (rand-nth ["Hourly Rate" "Bounty"])
                       number-of-candidates (rand-int 5)
-                      [invitation-only? _] (shuffle [true false])
-                      token "0x8f389F672Ef0586628689f9227e1d0e09f9A3245"
-                      reward (rand-int 300)
-                      date-deadline (time/plus date-updated estimated-length)
-                      [platform _] (shuffle ["mobile" "web" "embedded"])
-                      [language _] (shuffle languages)]
-                  (ethlance-db/insert-row! :Job {:job/id job-id
-                                                 :job/bounty-id job-id
-                                                 :job/title title
-                                                 :job/description description
-                                                 :job/category category
-                                                 :job/status status
-                                                 :job/date-created (time-coerce/to-long date-created)
-                                                 :job/date-published (time-coerce/to-long date-published)
-                                                 :job/date-updated (time-coerce/to-long date-updated)
-                                                 :job/estimated-length (time/in-millis estimated-length)
-                                                 :job/required-availability availability
-                                                 :job/bid-option bid-option
-                                                 :job/expertise-level expertise-level
-                                                 :job/number-of-candidates number-of-candidates
-                                                 :job/invitation-only? invitation-only?
-                                                 :job/token token
-                                                 :job/token-version 1
-                                                 :job/reward reward
-                                                 :job/date-deadline (time-coerce/to-long date-deadline)
-                                                 :job/platform platform
-                                                 :job/web-reference-url "http://this/that.com"
-                                                 :job/language-id language})
+                      invitation-only? (rand-nth [true false])
+
+
+
+
+                      language (rand-nth languages)
+                      job {:job/id job-id
+                           :job/title title
+                           :job/description description
+                           :job/category category
+                           :job/status status
+                           :job/date-created (time-coerce/to-long date-created)
+                           :job/date-published (time-coerce/to-long date-published)
+                           :job/date-updated (time-coerce/to-long date-updated)
+                           :job/expertise-level expertise-level
+                           :job/token token
+                           :job/token-version token-version
+                           :job/reward reward
+                           :job/web-reference-url web-reference-url
+                           :job/language-id language}]
+
+                  (case job-type
+                    :standard-bounties
+                    (let [bounty-id job-id ;; this is not real but will work for generator
+                          platform (rand-nth ["mobile" "web" "embedded"])
+                          date-deadline (time/plus date-updated estimated-length)
+                          bounty {:standard-bounty/id bounty-id
+                                  :standard-bounty/platform platform
+                                  :standard-bounty/deadline (time-coerce/to-long date-deadline)}]
+                      (ethlance-db/add-bounty (merge job bounty)))
+
+
+                    :ethlance-job
+                    (let [ethlance-job-id job-id
+                          ethlance-job {:ethlance-job/id ethlance-job-id
+                                        :ethlance-job/estimated-lenght (time/in-millis estimated-length)
+                                        :ethlance-job/max-number-of-candidates (rand-int 10)
+                                        :ethlance-job/invitation-only? (rand-nth [true false])
+                                        :ethlance-job/required-availability (rand-nth [true false])
+                                        :ethlance-job/hire-address nil
+                                        :ethlance-job/bid-option 1}]
+                      (ethlance-db/add-ethlance-job (merge job ethlance-job))))
 
                   (ethlance-db/insert-row! :JobCreator {:job/id job-id
                                                         :user/address employer}))))
@@ -190,184 +212,142 @@
    (fn [resolve reject]
      (try
        (doall (for [job-id job-ids]
-                (let [[status _] (shuffle ["invited" "accepted" ])
+                (let [status (rand-nth ["invited" "accepted" ])
                       fee (rand-int 200)
-                      [fee-currency-id _] (shuffle ["EUR" "USD"])]
-                  (ethlance-db/insert-row! :JobArbiter {:job/id job-id
-                                                        :user/address arbiter
-                                                        :job-arbiter/fee fee
-                                                        :job-arbiter/fee-currency-id fee-currency-id
-                                                        :job-arbiter/status status}))))
+                      fee-currency-id (rand-nth ["EUR" "USD"])
+                      arbiter {:job/id job-id
+                               :user/address arbiter
+                               :job-arbiter/fee fee
+                               :job-arbiter/fee-currency-id fee-currency-id
+                               :job-arbiter/status status}]
+                  (ethlance-db/insert-row! :JobArbiter arbiter))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
          (reject e))))))
 
-(defn generate-message [{:keys [:message/creator :message/id]}]
-  {:message/id id
-   :message/creator creator
-   :message/text (let [from (rand-int 200)]
-                   (subs lorem from (+ 20 from)))
-   :message/date-created (time-coerce/to-long (time/minus (time/now)
-                                                          (time/days (rand-int 60))))})
+(defn generate-message [{:keys [:message/creator :message/id :message/text] :as message}]
+  (-> message
+      (merge {:message/text (or text
+                                (let [from (rand-int 200)]
+                                  (subs lorem from (+ 20 from))))
+              :message/date-created (time-coerce/to-long (time/minus (time/now)
+                                                                     (time/days (rand-int 60))))})
+      (merge (case (:message/type message)
+               :job-story-message (case (:job-story-message/type message)
+                                    :raise-dispute {}
+                                    :resolve-dispute {}
+                                    :proposal {}
+                                    :invitation {}
+                                    :invoice {:invoice/status (rand-nth ["waiting" "paid"])
+                                              :invoice/amount-requested (rand-int 10)}
+                                    :feedback {:feedback/rating (rand-int 5)}
+                                    nil)
+               :direct-message {}))))
 
-(defn generate-contracts [contract-ids job-ids [employer candidate arbiter]]
+(defn generate-job-stories [stories-ids jobs [employer candidate arbiter]]
   (js/Promise.
    (fn [resolve reject]
      (try
-       (doall (for [contract-id contract-ids]
-                (let [[job-id _] (shuffle job-ids)
-                      [status _] (shuffle ["Proposal Pending" "Active" "Finished" "Cancelled"])
+       (doall (for [story-id stories-ids]
+                (let [_ (println "Generating story" story-id)
+                      {:keys [job-id job-type]} (rand-nth jobs)
+                      status  (rand-nth ["proposal pending" "active" "finished" "cancelled"])
                       date-created (time/minus (time/now) (time/days (rand-int 60)))
-                      last-message-index  (:count (db/get {:select [[:%count.* :count]]
-                                                           :from [:Message]}))
-                      invitation-message (generate-message {:message/creator employer
-                                                            :message/id (+ last-message-index 1)})
-                      proposal-message (generate-message {:message/creator candidate
-                                                          :message/id (+ last-message-index 2)})
-                      proposal-rate (rand-int 300)
-                      [currency _] (shuffle ["EUR" "USD"])]
+                      job-story {:job-story/id story-id
+                                 :job/id job-id
+                                 :job-story/status status
+                                 :job-story/date-created (time-coerce/to-long date-created)
+                                 :job-story/creator candidate}]
 
-                  (ethlance-db/insert-row! :Message (merge invitation-message
-                                                           {:message/type "INVITATION"}))
-                  (ethlance-db/insert-row! :Message (merge proposal-message
-                                                           {:message/type "PROPOSAL"}))
+                  (case job-type
+                    :standard-bounties
+                    (ethlance-db/add-job-story job-story)
 
-                  (ethlance-db/insert-row! :Contract {:contract/id contract-id
-                                                      :job/id job-id
-                                                      :contract/status status
-                                                      :contract/date-created (time-coerce/to-long date-created)
-                                                      :contract/date-updated (time-coerce/to-long date-created)
-                                                      :contract/invitation-message-id (:message/id invitation-message)
-                                                      :contract/proposal-message-id (:message/id proposal-message)
-                                                      :contract/proposal-rate proposal-rate
-                                                      :contract/proposal-rate-currency-id currency})
-
-                  (ethlance-db/insert-row! :ContractCandidate {:contract/id contract-id
-                                                               :user/address candidate}))))
+                    :ethlance-job
+                    (do
+                      (ethlance-db/add-ethlance-job-story job-story)
+                      (ethlance-db/add-message (generate-message {:message/creator employer
+                                                                  :message/text "Do you want to work with us?"
+                                                                  :message/type :job-story-message
+                                                                  :job-story-message/type :invitation
+                                                                  :job-story/id story-id})))))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
          (reject e))))))
 
-(defn generate-disputes [contract-ids job-ids [employer candidate arbiter]]
+(defn generate-disputes [stories-ids [employer candidate arbiter]]
   (js/Promise.
    (fn [resolve reject]
      (try
-       (doall (for [job-id job-ids
-                    contract-id contract-ids]
-                (when (-> [true false] shuffle first)
-                  (let [last-message-index (:count (db/get {:select [[:%count.* :count]]
-                                                            :from [:Message]}))
-                        raised-dispute-message (generate-message {:message/creator employer
-                                                                  :message/id (+ last-message-index 1)})
-                        resolved-dispute-message (generate-message {:message/creator candidate
-                                                                    :message/id (+ last-message-index 2)})]
-                    (ethlance-db/insert-row! :Message (merge raised-dispute-message
-                                                             {:message/type "RAISED-DISPUTE"}))
-                    (ethlance-db/insert-row! :Message (merge resolved-dispute-message
-                                                             {:message/type "RESOLVED-DISPUTE"}))
-                    (ethlance-db/insert-row! :Dispute {:job/id job-id
-                                                       :contract/id contract-id
-                                                       :dispute/raised-message-id (:message/id raised-dispute-message)
-                                                       :dispute/resolved-message-id (:message/id resolved-dispute-message)})))))
+       (doall (for [story-id stories-ids]
+                (when (rand-nth [true false])
+                  (prn "Generating dispute for story " story-id)
+                  (ethlance-db/add-message (generate-message {:message/creator employer
+                                                              :message/type :job-story-message
+                                                              :job-story-message/type :raise-dispute
+                                                              :job-story/id story-id}))
+                  (ethlance-db/add-message (generate-message {:message/creator employer
+                                                              :message/type :job-story-message
+                                                              :job-story-message/type :resolve-dispute
+                                                              :job-story/id story-id})))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
          (reject e))))))
 
-(defn generate-invoices [invoice-ids contract-ids [employer candidate arbiter]]
+(defn generate-invoices [stories-ids [employer candidate arbiter]]
   (js/Promise.
    (fn [resolve reject]
      (try
-       (doall (for [invoice-id invoice-ids]
-                (let [[contract-id _] (shuffle contract-ids)
-                      last-message-index  (:count (db/get {:select [[:%count.* :count]]
-                                                           :from [:Message]}))
-                      invoice-message (generate-message {:message/creator candidate
-                                                         :message/id (+ last-message-index 1)})
-                      [status _] (shuffle ["PAID" "PENDING"])
+       (doall (for [story-id stories-ids]
+                (let [[status _] (rand-nth ["paid" "pending"])
                       date-work-started (time/minus (time/now) (time/days (rand-int 60)))
                       work-duration (case (-> [:hours :days :weeks] shuffle first)
                                       :hours (time/hours (rand-int 24))
                                       :days (time/days (rand-int 30))
                                       :weeks (time/weeks (rand-int 100)))
                       date-work-ended (time/plus date-work-started work-duration)
-                      date-paid (when (= "PAID" status) (time-coerce/to-long (time/plus date-work-ended (time/days (rand-int 7)))))]
-                  (ethlance-db/insert-row! :Message (merge invoice-message
-                                                           {:message/type "INVOICE"}))
-                  (ethlance-db/insert-row! :Invoice {:invoice/id invoice-id
-                                                     :contract/id contract-id
-                                                     :message/id (:message/id invoice-message)
-                                                     :invoice/status status
-                                                     :invoice/amount-requested (rand-int 12000)
-                                                     :invoice/amount-paid (rand-int 12000)
-                                                     :invoice/date-work-started (time-coerce/to-long date-work-started)
-                                                     :invoice/work-duration (time/in-millis work-duration)
-                                                     :invoice/date-work-ended (time-coerce/to-long date-work-ended)
-                                                     :invoice/date-paid date-paid}))))
+                      date-paid (when (= "paid" status) (time-coerce/to-long (time/plus date-work-ended (time/days (rand-int 7)))))]
+                  (ethlance-db/add-message (generate-message {:message/creator candidate
+                                                              :message/type :job-story-message
+                                                              :job-story-message/type :invoice
+                                                              :job-story/id story-id
+                                                              :invoice/status status
+                                                              :invoice/amount-requested (rand-int 12000)
+                                                              :invoice/amount-paid (rand-int 12000)
+                                                              :invoice/date-work-started (time-coerce/to-long date-work-started)
+                                                              :invoice/work-duration (time/in-millis work-duration)
+                                                              :invoice/date-work-ended (time-coerce/to-long date-work-ended)
+                                                              :invoice/date-paid date-paid})))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
          (reject e))))))
 
-(defn generate-feedback [contract-ids [employer candidate arbiter]]
+(defn generate-feedback [stories-ids [employer candidate arbiter]]
   (js/Promise.
    (fn [resolve reject]
      (try
-       (doall (for [contract-id contract-ids]
-                (let [last-message-index (:count (db/get {:select [[:%count.* :count]]
-                                                          :from [:Message]}))
+       (doall (for [story-id stories-ids]
+                (do
 
-                      candidate-feedback-message-id (inc last-message-index)
-                      candidate-feedback (generate-message {:message/creator employer
-                                                            :message/id candidate-feedback-message-id})
-                      candidate-rating (rand-int 5)
+                  ;; feedback from the employer to the candidate
+                  (ethlance-db/add-message (generate-message {:message/creator employer
+                                                              :message/type :job-story-message
+                                                              :job-story-message/type :feedback
+                                                              :job-story/id story-id
+                                                              :feedback/rating (rand-int 5)
+                                                              :user/address candidate}))
 
-                      employer-feedback-message-id (+ last-message-index 2)
-                      employer-feedback (generate-message {:message/creator candidate
-                                                           :message/id employer-feedback-message-id})
-                      employer-rating (rand-int 5)
-
-                      arbiter-feedback-from-candidate-message-id (+ last-message-index 3)
-                      arbiter-feedback-from-candidate (generate-message {:message/creator candidate
-                                                                         :message/id arbiter-feedback-from-candidate-message-id})
-                      arbiter-from-candidate-rating (rand-int 5)
-
-                      arbiter-feedback-from-employer-message-id (+ last-message-index 4)
-                      arbiter-feedback-from-employer (generate-message {:message/creator employer
-                                                                        :message/id arbiter-feedback-from-employer-message-id})
-                      arbiter-from-employer-rating (rand-int 5)                      ]
-                  ;; feedback for the candidate
-                  (ethlance-db/insert-row! :Message (merge candidate-feedback
-                                                           {:message/type "CANDIDATE FEEDBACK"}))
-
-                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
-                                                      :message/id candidate-feedback-message-id
-                                                      :feedback/rating candidate-rating})
-                  ;; feedback for the employer
-                  (ethlance-db/insert-row! :Message (merge employer-feedback
-                                                           {:message/type "EMPLOYER FEEDBACK"}))
-
-                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
-                                                      :message/id employer-feedback-message-id
-                                                      :feedback/rating employer-rating})
-
-                  ;; feedback for the arbiter from candidate
-                  (ethlance-db/insert-row! :Message (merge arbiter-feedback-from-candidate
-                                                           {:message/type "ARBITER FEEDBACK"}))
-
-                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
-                                                      :message/id arbiter-feedback-from-candidate-message-id
-                                                      :feedback/rating arbiter-from-candidate-rating})
-
-                  ;; feedback for the arbiter from employer
-                  (ethlance-db/insert-row! :Message (merge arbiter-feedback-from-employer
-                                                           {:message/type "ARBITER FEEDBACK"}))
-
-                  (ethlance-db/insert-row! :Feedback {:contract/id contract-id
-                                                      :message/id arbiter-feedback-from-employer-message-id
-                                                      :feedback/rating arbiter-from-employer-rating}))))
+                  ;; feedback from the candidate to the employer
+                  (ethlance-db/add-message (generate-message {:message/creator candidate
+                                                              :message/type :job-story-message
+                                                              :job-story-message/type :feedback
+                                                              :job-story/id story-id
+                                                              :feedback/rating (rand-int 5)
+                                                              :user/address employer})))))
        (resolve true)
        (catch :default e
          (log/error "Error" {:error e})
@@ -377,18 +357,20 @@
   (let [user-addresses ["EMPLOYER" "CANDIDATE" "ARBITER"]
         categories ["Web" "Mobile" "Embedded"]
         skills ["Solidity" "Clojure"]
-        job-ids (map str (range 0 3))
-        contract-ids (map str (range 0 5))
-        invoice-ids (map str (range 0 10))]
+        jobs (map (fn [jid jtype] {:job-id jid :job-type jtype})
+                 (range 0 3)
+                 (cycle [:standard-bounties :ethlance-job]))
+        stories-ids (range 0 5)
+        invoice-ids (range 0 10)]
     (promise->
      (generate-users user-addresses)
      #(generate-categories categories user-addresses)
      #(generate-skills skills user-addresses)
      #(generate-user-languages user-addresses)
-     #(generate-jobs job-ids user-addresses)
-     #(generate-job-arbiters job-ids user-addresses)
-     #(generate-contracts contract-ids job-ids user-addresses)
-     #(generate-disputes contract-ids job-ids user-addresses)
-     #(generate-invoices invoice-ids contract-ids user-addresses)
-     #(generate-feedback contract-ids user-addresses)
+     #(generate-jobs jobs user-addresses)
+     #(generate-job-arbiters (map :job-id jobs) user-addresses)
+     #(generate-job-stories stories-ids jobs user-addresses)
+     #(generate-disputes stories-ids user-addresses)
+     #(generate-invoices stories-ids user-addresses)
+     #(generate-feedback stories-ids user-addresses)
      #(log/debug "Done"))))

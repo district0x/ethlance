@@ -141,24 +141,23 @@
 (defn handle-bounty-fulfilled [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-bounty-fulfilled" args))
   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_data args)))
-        bounty-id (:_bountyId args)]
-    (if-let [job-story-id (-> ipfs-data :payload :ethlanceJobStoryId)]
-      ;; if JobStory/id exists on meta means that is our  bounty
-      (ethlance-db/add-job-story-invoice {:job-story/id job-story-id
-                                          :message/id (-> ipfs-data :payload :ethlanceMessageId)})
-
-      ;; else it is a bounty from other systems like gitcoin
-      (let [message-id (ethlance-db/add-message {:message/creator (first (:_fulfillers args))
-                                                 :message/text (str "Palease send money to "
-                                                                    (-> ipfs-data :payload :fulfillers)
-                                                                    "in this amounts"
-                                                                    (-> ipfs-data :payload :payoutAmounts))})
-            job-story-id (ethlance-db/add-job-story {:job/id (ethlance-db/get-job-id-for-bounty (:_bountyId args))})]
-        (ethlance-db/add-job-story-message {:job-story/id job-story-id
-                                            :message/id message-id})
-        (ethlance-db/add-job-story-invoice {:job-story/id job-story-id
-                                            :message/id message-id
-                                            :invoice/ref-id (:_fulfillmentId args)})))))
+        bounty-id (:_bountyId args)
+        job-id (ethlance-db/get-job-id-for-bounty (:_bountyId args))
+        creator (first (:_fulfillers args))]
+    (when-not (-> ipfs-data :payload :ethlanceJobStoryId)
+      ;; it is a bounty from other systems like gitcoin
+      (let [job-story-id (ethlance-db/add-job-story {:job/id job-id
+                                                     :job-story/creator creator})]
+        (ethlance-db/add-message {:message/creator creator
+                                  :message/text (str "Palease send money to "
+                                                     (-> ipfs-data :payload :fulfillers)
+                                                     "in this amounts"
+                                                     (-> ipfs-data :payload :payoutAmounts))
+                                  :message/type :job-story-message
+                                  :job-story-message/type :invoice
+                                  :invoice/ref-id (:_fulfillmentId args)
+                                  :job-story/id job-story-id
+                                  :job/id job-id})))))
 
 ;; event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable[] _fulfillers, string _data);
 (defn handle-fulfillment-updated [_ {:keys [args] :as event}]
@@ -261,9 +260,9 @@
   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))
         ethlance-job-id (:_jobId args)]
     (let [job-story-id (-> ipfs-data :payload :ethlanceJobStoryId)]
-      (ethlance-db/add-job-story-invoice {:job-story/id job-story-id
-                                          :message/id (-> ipfs-data :payload :ethlanceMessageId)
-                                          :invoice/ref-id (:_invoiceId args)}))))
+      (ethlance-db/update-job-story-invoice-message {:job-story/id job-story-id
+                                                     :message/id (-> ipfs-data :payload :ethlanceMessageId)
+                                                     :invoice/ref-id (:_invoiceId args)}))))
 
 ;; event InvoiceAccepted(uint _jobId, uint  _invoiceId, address _approver, uint _amount);
 (defn handle-invoice-accepted [_ {:keys [args] :as event}]

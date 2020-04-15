@@ -1,7 +1,7 @@
 (defproject district0x/ethlance "2.0.0-SNAPSHOT"
   :url "https://github.com/district0x/ethlance"
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [org.clojure/clojurescript "1.10.520"]
+                 [org.clojure/clojurescript "1.10.597"]
 
                  ;; General
                  [akiroz.re-frame/storage "0.1.4"]
