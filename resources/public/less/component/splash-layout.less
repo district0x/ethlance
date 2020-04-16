@@ -85,6 +85,7 @@
       padding-bottom: 4.5em;
 
       @media #media[tablet-query] {
+        padding-top: 6em;
         grid-template-areas:
         'banner-header'
           'banner-figure'
@@ -109,7 +110,7 @@
           font-size: 5rem;
           font-weight: 700;
           color: #color[dark-blue];
-          margin-bottom: 1.7rem;
+          padding-bottom: 0.7em;
           line-height: 6rem;
 
           @media #media[tablet-query] {
@@ -118,7 +119,7 @@
           }
 
           @media #media[mobile-query] {
-            font-size: 4em;
+            font-size: 3em;
           }
         }
 
@@ -129,11 +130,11 @@
           padding-bottom: 2.5em;
 
           @media #media[tablet-query] {
-            text-align: left;
+            font-size: 1.4em;
           }
 
           @media #media[mobile-query] {
-            text-align: center;
+            font-size: 1.3em;
           }
         }
 
@@ -142,6 +143,15 @@
           flex-direction: row;
           font-size: 0.9rem;
           justify-content: space-around;
+
+          @media #media[tablet-query] {
+
+          }
+
+          @media #media[mobile-query] {
+            justify-content: space-between;
+          }
+
           > .button {
             display: flex;
             flex-direction: column;
