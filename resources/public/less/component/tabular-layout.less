@@ -5,7 +5,6 @@
   tab-height: 80px;
 }
 
-
 .tabular-layout {
   display: grid;
   grid-template-areas:
@@ -39,7 +38,7 @@
 
     > .tab {
       #mixin.noselect();
-      #mixin.box-shadow.main();
+      #mixin.box-shadow.main-light();
       align-items: center;
       background-color: #color[offwhite2];
       border-top-left-radius: 0.7em;
@@ -90,6 +89,7 @@
   }
 
   > .active-page {
+    #mixin.box-shadow.main();
     grid-area: active-page;
     background-color: white;
     border-bottom-left-radius: 0.7em;
