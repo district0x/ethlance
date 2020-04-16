@@ -98,7 +98,7 @@
         'profile-image name'
         'profile-image rating'
         'profile-image location';
-      grid-template-columns: 2fr 3fr;
+      grid-template-columns: auto 1fr;
       grid-template-rows: repeat(4, auto);
       margin: 1em 0;
 
@@ -123,7 +123,8 @@
         grid-area: profile-image;
         display: flex;
         align-items: center;
-        margin: 2em 0.5em;
+        margin: 2em;
+        margin-left: 1.5em;
       }
 
       > .name {
@@ -132,9 +133,15 @@
         font-weight: 600;
       }
 
-      > .ethlance-component-rating {
+      > .rating {
+        display: flex;
+        align-items: center;
         grid-area: rating;
         padding: 0.5em 0;
+        
+        > .num-feedback {
+          font-size: 1.2em;
+        }
       }
 
       > .location {
