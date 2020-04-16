@@ -12,7 +12,7 @@
 
 
 (defonce mock-job-listing
-  (mapv #(mock/generate-mock-job) (range 1 10)))
+  (mapv mock/generate-mock-job (range 1 10)))
 
 
 (defn mock-query

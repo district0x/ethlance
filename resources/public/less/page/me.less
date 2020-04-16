@@ -16,22 +16,46 @@
         padding: 1em 0;
       }
 
-      > .link {
-        color: white;
-        font-weight: 300;
+      > .nav-element {
+        position: relative;
+        line-height: 0.5em;
         padding: 0.5em 0;
-        line-height: 1.1em;
-        cursor: pointer;
+        margin: 1em 0;
 
-        &:hover {
-          text-decoration: underline;
-        }
+        > .link {
+          position: relative;
+          color: white;
+          font-weight: 300;
+          cursor: pointer;
 
-        &.active {
-          @attr-color: #00e4ff;
+          &::after {
+            position: absolute;
+            content: '';
+            left: 0;
+            bottom: -0.5em;
+            width: 0;
+            height: 1px;
+            background-color: white;
+            transition: all 0.3s;
+            width: 0;
+          }
+          
+          &:hover {
+            &::after {
+              width: 100%;
+            }
+          }
 
-          color: @attr-color;
-          text-decoration: underline;
+          &.active {
+            @attr-color: #00e4ff;
+
+            color: @attr-color;
+
+            &::after {
+              background-color: @attr-color;
+              width: 100%;
+            }
+          }
         }
       }
     }

@@ -11,9 +11,12 @@
 
   :route - key of the given route
 
-  :params - Query Parameters for the generated url
+  :params - Bide Query Parameters
 
-  :query - I have no idea.
+  :query - URL Query Parameters
+
+  :replace? - If true, will update the web browser URL without
+  dispatching the event. [default: nil]
 
   # Notes
 
@@ -21,7 +24,8 @@
 
   - This is used primarily for creating handlers for the :on-click
   event in reagent components."
-  [{:keys [route params query]}]
+  [{:keys [route params query replace?]}]
+  (let [event-name (if replace? ::router.events/navigate ::router.events/replace)])
   (fn [event]
     (.preventDefault event)
     (re/dispatch [::router.events/navigate route params query])))

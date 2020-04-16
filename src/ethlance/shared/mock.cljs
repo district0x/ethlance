@@ -49,9 +49,9 @@
 
 (defn generate-job-title
   []
-  (str (rand-nth first-title-category)
+  (str (rand-nth (vec first-title-category))
        " "
-       (rand-nth second-title-category)
+       (rand-nth (vec second-title-category))
        (when (random/pick-rand-by-dist [[25 true] [75 false]])
          " Assistant")))
 
