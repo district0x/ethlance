@@ -11,11 +11,10 @@
 
    ;; Ethlance Page Event Handlers
    [ethlance.ui.page.me.events]       ;; :page.me/*
+   [ethlance.ui.page.jobs.events]     ;; :page.jobs/*
 
    ;; Ethlance Main Event Handlers
-   [ethlance.ui.event.sign-in]        ;; :user/*
-   [ethlance.ui.event.job]            ;; :job/*
-   [ethlance.ui.event.job-listing]))  ;; :job-listing/*
+   [ethlance.ui.event.sign-in]))      ;; :user/*
 
 
 (defn initialize
@@ -29,12 +28,10 @@
                ;; Page Events
                ethlance.ui.page.me.events/state-key
                ethlance.ui.page.me.events/state-default
-
+               ethlance.ui.page.jobs.events/state-key
+               ethlance.ui.page.jobs.events/state-default)]
                ;; Main Events
-               ethlance.ui.event.job/state-key
-               ethlance.ui.event.job/state-default
-               ethlance.ui.event.job-listing/state-key
-               ethlance.ui.event.job-listing/state-default)]
+               ;; /Nothing here, yet/
     {:db new-db
      :log/info ["Initialized re-frame app state" (clj->js new-db)]}))
 

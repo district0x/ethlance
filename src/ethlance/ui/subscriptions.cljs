@@ -8,8 +8,8 @@
 
    ;; Ethlance Local Page Subscriptions
    [ethlance.ui.page.me.subscriptions]            ;; :page.me/*
+   [ethlance.ui.page.jobs.subscriptions]))        ;; :page.jobs/*
 
    ;; Ethlance Global Subscriptions
-   [ethlance.ui.subscription.job-listing]))       ;; :job-listing/*
-
+   ;; /Nothing here, yet/
 
