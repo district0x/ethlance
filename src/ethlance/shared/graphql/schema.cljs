@@ -85,15 +85,15 @@
       offset: Int,
     ): JobList
 
-    contract(job_id: Int!, contract_id: Int!): Contract
+    jobStory(job_id: Int!, jobStory_id: Int!): JobStory
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(job_id: Int!,
-            contract_id: Int!): Dispute
+            jobStory_id: Int!): Dispute
 
     \"Retrieve the Invoice Data defined by the invoice index\"
     invoice(job_id: Int!,
-            contract_id: Int!,
+            jobStory_id: Int!,
             invoice_id: Int!): Invoice
   }
 
@@ -274,26 +274,85 @@
 
   # Job Types
 
-  type Job {
-    \"Identifier for the given Job\"
+  interface Job {
     job_id: Int
+    job_type: Keyword
     job_title: String
-    job_acceptedArbiterAddress: ID
-    job_status: Keyword
-    job_bidOption: Keyword
-    job_category: String
     job_description: String
+    job_category: String
+    job_status: Keyword
     job_dateCreated: Date
     job_datePublished: Date
     job_dateUpdated: Date
+    job_token: String
+    job_tokenVersion: Int
+    job_reward: Int
+
+    job_acceptedArbiterAddress: ID
+    job_bidOption: Keyword
     job_employerAddress: ID
     job_estimatedLength: Int
     job_isInvitationOnly: Boolean
+
+    job_stories(limit: Int, offset: Int): JobStoriesList
+  }
+
+  type StandardBounty implements Job {
+    job_id: Int
+    job_type: Keyword
+    job_title: String
+    job_description: String
+    job_category: String
+    job_status: Keyword
+    job_dateCreated: Date
+    job_datePublished: Date
+    job_dateUpdated: Date
+    job_token: String
+    job_tokenVersion: Int
     job_reward: Int
-    job_contracts(
-      limit: Int,
-      offset: Int
-    ): ContractList
+
+    job_acceptedArbiterAddress: ID
+    job_bidOption: Keyword
+    job_employerAddress: ID
+    job_estimatedLength: Int
+    job_isInvitationOnly: Boolean
+
+    job_stories(limit: Int, offset: Int): JobStoriesList
+
+    standardBounty_id: Int
+    standardBounty_platform: String
+    standardBounty_deadline: Date
+  }
+
+  type EthlanceJob implements Job {
+    job_id: Int
+    job_type: Keyword
+    job_title: String
+    job_description: String
+    job_category: String
+    job_status: Keyword
+    job_dateCreated: Date
+    job_datePublished: Date
+    job_dateUpdated: Date
+    job_token: String
+    job_tokenVersion: Int
+    job_reward: Int
+
+    job_acceptedArbiterAddress: ID
+    job_bidOption: Keyword
+    job_employerAddress: ID
+    job_estimatedLength: Int
+    job_isInvitationOnly: Boolean
+
+    job_stories(limit: Int, offset: Int): JobStoriesList
+
+    ethlanceJob_id: Int
+    ethlanceJob_estimatedLenght: Int
+    ethlanceJob_maxNumberOfCandidates: Int
+    ethlanceJob_invitationOnly: Boolean
+    ethlanceJob_requiredAvailability: Boolean
+    ethlanceJob_hireAddress: String
+    ethlanceJob_bidOption: Int
   }
 
   type JobList {
@@ -309,48 +368,52 @@
     dateFinished
   }
 
-  type Contract {
-    \"Identifier for the given Job\"
+  interface JobStory {
     job_id: Int
+    jobStory_id: Int
+    jobStory_status: Keyword
+    jobStory_candidateAddress: ID
+    jobStory_dateCreated: Date
+    jobStory_dateUpdated: Date
 
-    \"Identifier for the given Contract\"
-    contract_id: Int
+    jobStory_employerFeedback: Feedback
+    jobStory_candidateFeedback: Feedback
 
-    \"Contract Status\"
-    contract_status: Keyword
+    jobStory_dispute: Dispute
 
-    \"Address of the Accepted Candidate\"
-    contract_candidateAddress: ID
-
-    \"Date of creation\"
-    contract_dateCreated: Date
-
-    \"Date last updated\"
-    contract_dateUpdated: Date
-
-    contract_employerFeedback: Feedback
-    contract_candidateFeedback: Feedback
-
-    contract_invoices(
-      limit: Int,
-      offset: Int,
-    ): InvoiceList
-
-    contract_disputes(
-      limit: Int,
-      offset: Int,
-    ): DisputeList
+    jobStory_invoices(limit: Int, offset: Int,): InvoiceList
 
   }
 
-  type ContractList {
-    items: [Contract!]
+  type EthlanceJobStory implements JobStory{
+    job_id: Int
+    jobStory_id: Int
+    jobStory_status: Keyword
+    jobStory_candidateAddress: ID
+    jobStory_dateCreated: Date
+    jobStory_dateUpdated: Date
+
+    jobStory_employerFeedback: Feedback
+    jobStory_candidateFeedback: Feedback
+
+    jobStory_dispute: Dispute
+
+    jobStory_invoices(limit: Int, offset: Int,): InvoiceList
+
+    ethlanceJobStory_invitationMessage: Message
+    ethlanceJobStory_proposalMessage: Message
+    ethlanceJobStory_proposalRate: Int
+    ethlanceJobStory_proposalRateCurrencyId: Int
+  }
+
+  type JobStoryList {
+    items: [JobStory!]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
   }
 
-  enum ContractOrderBy {
+  enum JobStoryOrderBy {
     dateUpdated
     dateCreated
   }
@@ -362,8 +425,8 @@
     \"Identifier for the given Job\"
     job_id: Int
 
-    \"Identifier for the given Contract\"
-    contract_id: Int
+    \"Identifier for the given JobStory\"
+    jobStory_id: Int
 
     \"Identifier for the given Invoice\"
     invoice_id: Int
@@ -392,8 +455,8 @@
     \"Identifier for the given Job\"
     job_id: Int
 
-    \"Identifier for the given Contract\"
-    contract_id: Int
+    \"Identifier for the given JobStory\"
+    jobStory_id: Int
 
     \"Reason for the Dispute\"
     dispute_reason: String
@@ -406,19 +469,14 @@
 
   }
 
-  type DisputeList {
-    items: [Dispute!]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
+
 
   # Feedback Types
 
   type Feedback {
     message_id: Int!
     job_id: Int
-    contract_id: Int
+    jobStory_id: Int
     feedback_toUserType: Keyword
     feedback_toUserAddress: ID
     feedback_fromUserType: Keyword
@@ -433,6 +491,21 @@
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
+  }
+
+  interface Message {
+    message_id: Int
+    message_text: String
+    message_type: String
+    message_creator: String
+  }
+
+  type JobStoryMessage implements Message {
+    message_id: Int
+    message_text: String
+    message_type: String
+    message_creator: String
+    jobStoryMessageType: String
   }
 
   ")
