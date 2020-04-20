@@ -51,7 +51,7 @@
                                                           [:candidate/feedback [:total-count
                                                                                 [:items
                                                                                  [:job/id
-                                                                                  :contract/id
+                                                                                  :job-story/id
                                                                                   :feedback/to-user-type
                                                                                   :feedback/from-user-type
                                                                                   :feedback/rating]]]]]]}))
@@ -74,7 +74,7 @@
                                                          [:employer/feedback [:total-count
                                                                               [:items
                                                                                [:job/id
-                                                                                :contract/id
+                                                                                :job-story/id
                                                                                 :feedback/to-user-type
                                                                                 :feedback/from-user-type
                                                                                 :feedback/rating]]]]]]}))
@@ -85,7 +85,7 @@
                                                         [:arbiter/feedback [:total-count
                                                                             [:items
                                                                              [:job/id
-                                                                              :contract/id
+                                                                              :job-story/id
                                                                               :feedback/to-user-type
                                                                               :feedback/from-user-type
                                                                               :feedback/rating]]]]]]}))
@@ -96,50 +96,51 @@
                                                    [:job/id
                                                     :job/accepted-arbiter-address
                                                     :job/employer-address
-                                                    [:job/contracts [:total-count
-                                                                     [:items
-                                                                      [:job/id
-                                                                       :contract/id
-                                                                       [:contract/employer-feedback [:job/id
-                                                                                                     :contract/id
-                                                                                                     :feedback/rating
-                                                                                                     :feedback/to-user-type
-                                                                                                     :feedback/from-user-type]]
-                                                                       [:contract/candidate-feedback [:job/id
-                                                                                                      :contract/id
-                                                                                                      :feedback/rating
-                                                                                                      :feedback/to-user-type
-                                                                                                      :feedback/from-user-type]]]]]]]]}))
+                                                    [:job/stories [:total-count
+                                                                   [:items
+                                                                    [:job/id
+                                                                     :job-story/id
+                                                                     [:job-story/employer-feedback [:job/id
+                                                                                                   :job-story/id
+                                                                                                   :feedback/rating
+                                                                                                   :feedback/to-user-type
+                                                                                                   :feedback/from-user-type]]
+                                                                     [:job-story/candidate-feedback [:job/id
+                                                                                                    :job-story/id
+                                                                                                    :feedback/rating
+                                                                                                    :feedback/to-user-type
+                                                                                                    :feedback/from-user-type]]]]]]]]}))
 
-                 contract-query (<! (run-query {:url api-endpoint
-                                                :query [:contract {:contract/id 0 :job/id job-id}
-                                                        [:job/id
-                                                         :contract/id
-                                                         [:contract/disputes [:total-count
-                                                                              [:items
-                                                                               [:job/id
-                                                                                :contract/id
-                                                                                :dispute/reason]]]]
-                                                         [:contract/invoices [:total-count
-                                                                              [:items
-                                                                               [:job/id
-                                                                                :contract/id
-                                                                                :invoice/id
-                                                                                :invoice/amount-paid]]]]]]}))
+                 job-story-query (<! (run-query {:url api-endpoint
+                                                 :query [:job-story {:job-story/id 0 :job/id job-id}
+                                                         [:job/id
+                                                          :job-story/id
+                                                          [:job-story/dispute [:total-count
+                                                                               [:items
+                                                                                [:job/id
+                                                                                 :job-story/id
+                                                                                 :dispute/reason]]]]
+                                                          [:job-story/invoices [:total-count
+                                                                                [:items
+                                                                                 [:job/id
+                                                                                  :job-story/id
+                                                                                  :invoice/id
+                                                                                  :invoice/amount-paid]]]]]]}))
 
                  dispute-query (<! (run-query {:url api-endpoint
-                                                :query [:dispute {:contract/id 0 :job/id job-id}
-                                                        [:job/id
-                                                         :contract/id
-                                                         :dispute/reason]]}))
-
-                 invoice-id (-> contract-query :data :contract :contract/invoices :items first :invoice/id)
-                 invoice-query (<! (run-query {:url api-endpoint
-                                               :query [:invoice {:contract/id 0 :job/id job-id :invoice/id (or invoice-id 0)}
+                                               :query [:dispute {:job-story/id 0 :job/id job-id}
                                                        [:job/id
-                                                        :contract/id
+                                                        :job-story/id
+                                                        :dispute/reason]]}))
+
+                 invoice-id (-> job-story-query :data :job-story :job-story/invoices :items first :invoice/id)
+                 invoice-query (<! (run-query {:url api-endpoint
+                                               :query [:invoice {:job-story/id 0 :job/id job-id :invoice/id (or invoice-id 0)}
+                                                       [:job/id
+                                                        :job-story/id
                                                         :invoice/id
-                                                        :invoice/amount-paid]]}))]
+                                                        :invoice/amount-paid]]}))
+                 ]
 
              (is (= "EMPLOYER" (-> user-query :data :user :user/address)))
 
@@ -160,33 +161,33 @@
              (is (every? #(= "Arbiter" %) (-> arbiter-query :data :employer :arbiter/feedback :items (#(map :feedback/to-user-type %)) )))
 
              (let [employer-feedbacks (-> employer-query :data :employer :employer/feedback :items)
-                   employer-feedback (-> job-query :data :job :job/contracts :items first :contract/employer-feedback)
+                   employer-feedback (-> job-query :data :job :job/stories :items first :job-story/employer-feedback)
                    candidate-feedbacks (-> candidate-query :data :candidate :candidate/feedback :items)
-                   candidate-feedback (-> job-query :data :job :job/contracts :items first :contract/candidate-feedback)]
+                   candidate-feedback (-> job-query :data :job :job/stories :items first :job-story/candidate-feedback)]
 
                (is (= (-> (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                  (= (:contract/id employer-feedback) (:contract/id elem))))
+                                                  (= (:job-story/id employer-feedback) (:job-story/id elem))))
                                   employer-feedbacks) first)
-                      (-> job-query :data :job :job/contracts :items first :contract/employer-feedback)))
+                      (-> job-query :data :job :job/stories :items first :job-story/employer-feedback)))
 
-               (is (= (-> job-query :data :job :job/contracts :items first :contract/candidate-feedback)
+               (is (= (-> job-query :data :job :job/stories :items first :job-story/candidate-feedback)
                       (-> (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                  (= (:contract/id candidate-feedback) (:contract/id elem))))
+                                                  (= (:job-story/id candidate-feedback) (:job-story/id elem))))
                                   candidate-feedbacks) first))))
 
-             (let [contract-invoices (-> contract-query :data :contract :contract/invoices :items)
-                   contract-disputes (-> contract-query :data :contract :contract/disputes :items)]
+             (let [job-story-invoices (-> job-story-query :data :job-story :job-story/invoices :items)
+                   job-story-dispute (-> job-story-query :data :job-story :job-story/dispute :items)]
 
                (is (= (-> invoice-query :data :invoice)
                       (first (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                     (= 0 (:contract/id elem))
+                                                     (= 0 (:job-story/id elem))
                                                      (= invoice-id (:invoice/id elem))))
-                                     contract-invoices))))
+                                     job-story-invoices))))
 
-               (when-not (empty? contract-disputes)
+               (when-not (empty? job-story-dispute)
                  (is (= (-> dispute-query :data :dispute)
                         (first (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                       (= 0 (:contract/id elem))))
-                                       contract-disputes))))))
+                                                       (= 0 (:job-story/id elem))))
+                                       job-story-dispute))))))
 
              (done)))))

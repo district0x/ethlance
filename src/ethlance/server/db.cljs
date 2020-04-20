@@ -49,6 +49,7 @@
   [{:table-name :User
     :table-columns
     [[:user/address address]
+     [:user/type :varchar not-nil]
      [:user/country-code :varchar #_not-nil]
      [:user/user-name :varchar]
      [:user/full-name :varchar]
@@ -171,6 +172,7 @@
    {:table-name :Job
     :table-columns
     [[:job/id :integer]
+     [:job/type :varchar not-nil]
      [:job/title :varchar not-nil]
      [:job/description :varchar not-nil]
      [:job/category :varchar]
@@ -331,13 +333,13 @@
     [
      [:job-story/id :integer]
      [:message/id :integer]
-     [:job-story-invoice/status :varchar]
-     [:job-story-invoice/amount-requested :unsigned :integer]
-     [:job-story-invoice/amount-paid :unsigned :integer]
-     [:job-story-invoice/date-paid :unsigned :integer]
-     [:job-story-invoice/date-work-started :unsigned :integer]
-     [:job-story-invoice/date-work-ended :unsigned :integer]
-     [:job-story-invoice/work-duration :unsigned :integer]
+     [:invoice/status :varchar]
+     [:invoice/amount-requested :unsigned :integer]
+     [:invoice/amount-paid :unsigned :integer]
+     [:invoice/date-paid :unsigned :integer]
+     [:invoice/date-work-started :unsigned :integer]
+     [:invoice/date-work-ended :unsigned :integer]
+     [:invoice/work-duration :unsigned :integer]
      [:invoice/ref-id :integer]
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
@@ -348,10 +350,10 @@
 
    {:table-name :JobStoryFeedbackMessage
     :table-columns
-    [[:job-story/id :integer]
-     [:message/id :integer]
-     [:feedback/rating :integer]
-     [:user/address :varchar]
+    [[:job-story/id :integer not-nil]
+     [:message/id :integer not-nil]
+     [:feedback/rating :integer not-nil]
+     [:user/address :varchar not-nil]
 
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
@@ -606,12 +608,14 @@
   (:id (db/get {:select [[(sql/call :last_insert_rowid) :id]] })))
 
 (defn add-bounty [bounty-job]
-  (insert-row! :Job bounty-job)
+  (insert-row! :Job (assoc bounty-job
+                           :job/type "standard-bounty"))
   (let [job-id (get-last-insert-id)]
     (insert-row! :StandardBounty (assoc bounty-job :job/id job-id))))
 
 (defn add-ethlance-job [ethlance-job]
-  (insert-row! :Job ethlance-job)
+  (insert-row! :Job (assoc ethlance-job
+                           :job/type "ethlance-job"))
   (let [job-id (get-last-insert-id)]
     (insert-row! :EthlanceJob (assoc ethlance-job :job/id job-id))))
 
@@ -643,21 +647,26 @@
   [message]
   (println "Inserting message " message)
   (insert-row! :Message message)
-  (let [msg-id (get-last-insert-id)]
+  (let [msg-id (get-last-insert-id)
+        message (assoc message :message/id msg-id)]
     (case (:message/type message)
       :job-story-message
       (do
         (insert-row! :JobStoryMessage (assoc message
                                              :message/id msg-id))
         (case (:job-story-message/type message)
-          :raise-dispute (update-row! :JobStory {:job-story/id (:job-story/id message)
-                                                 :job-story/raised-dispute-message-id msg-id})
-          :resolve-dispute (update-row! :JobStory {:job-story/id (:job-story/id message)
-                                                   :job-story/resolved-dispute-message-id msg-id})
-          :proposal (update-row! :EthlanceJobStory {:job-story/id (:job-story/id message)
-                                                    :ethlance-job-story/proposal-message-id msg-id})
-          :invitation (update-row! :EthlanceJobStory {:job-story/id (:job-story/id message)
-                                                      :ethlance-job-story/invitation-message-id msg-id})
+          :raise-dispute (update-row! :JobStory (assoc message
+                                                       :job-story/id (:job-story/id message)
+                                                       :job-story/raised-dispute-message-id msg-id))
+          :resolve-dispute (update-row! :JobStory (assoc message
+                                                         :job-story/id (:job-story/id message)
+                                                         :job-story/resolved-dispute-message-id msg-id))
+          :proposal (update-row! :EthlanceJobStory (assoc message
+                                                          :job-story/id (:job-story/id message)
+                                                          :ethlance-job-story/proposal-message-id msg-id))
+          :invitation (update-row! :EthlanceJobStory (assoc message
+                                                            :job-story/id (:job-story/id message)
+                                                            :ethlance-job-story/invitation-message-id msg-id))
           :invoice (insert-row! :JobStoryInvoiceMessage message)
           :feedback  (insert-row! :JobStoryFeedbackMessage message)
           nil))

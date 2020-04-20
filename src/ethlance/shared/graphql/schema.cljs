@@ -85,16 +85,13 @@
       offset: Int,
     ): JobList
 
-    jobStory(job_id: Int!, jobStory_id: Int!): JobStory
+    jobStory(jobStory_id: Int!): JobStory
 
     \"Retrieve the Dispute Data defined by the dispute index\"
-    dispute(job_id: Int!,
-            jobStory_id: Int!): Dispute
+    dispute(jobStory_id: Int!): Dispute
 
-    \"Retrieve the Invoice Data defined by the invoice index\"
-    invoice(job_id: Int!,
-            jobStory_id: Int!,
-            invoice_id: Int!): Invoice
+    \"Retrieve the Invoice Data defined by the invoice message id\"
+    invoice(message_id: Int!): Invoice
   }
 
   type Mutation {
@@ -287,14 +284,10 @@
     job_token: String
     job_tokenVersion: Int
     job_reward: Int
-
     job_acceptedArbiterAddress: ID
-    job_bidOption: Keyword
     job_employerAddress: ID
-    job_estimatedLength: Int
-    job_isInvitationOnly: Boolean
 
-    job_stories(limit: Int, offset: Int): JobStoriesList
+    job_stories(limit: Int, offset: Int): JobStoryList
   }
 
   type StandardBounty implements Job {
@@ -310,14 +303,10 @@
     job_token: String
     job_tokenVersion: Int
     job_reward: Int
-
     job_acceptedArbiterAddress: ID
-    job_bidOption: Keyword
     job_employerAddress: ID
-    job_estimatedLength: Int
-    job_isInvitationOnly: Boolean
 
-    job_stories(limit: Int, offset: Int): JobStoriesList
+    job_stories(limit: Int, offset: Int): JobStoryList
 
     standardBounty_id: Int
     standardBounty_platform: String
@@ -337,14 +326,13 @@
     job_token: String
     job_tokenVersion: Int
     job_reward: Int
-
     job_acceptedArbiterAddress: ID
-    job_bidOption: Keyword
     job_employerAddress: ID
-    job_estimatedLength: Int
-    job_isInvitationOnly: Boolean
 
-    job_stories(limit: Int, offset: Int): JobStoriesList
+    job_stories(limit: Int, offset: Int): JobStoryList
+
+
+
 
     ethlanceJob_id: Int
     ethlanceJob_estimatedLenght: Int
