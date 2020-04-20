@@ -98,6 +98,10 @@
                       bio (subs lorem from (+ 100 from))
                       [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
                   (ethlance-db/insert-row! :User {:user/address address
+                                                  :user/type (case address
+                                                               "EMPLOYER"  :employer
+                                                               "CANDIDATE" :candidate
+                                                               "ARBITER"   :arbiter)
                                                   :user/country-code country-code
                                                   :user/user-name (str "@" first-name)
                                                   :user/full-name (str first-name " " second-name)
