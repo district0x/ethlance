@@ -2,6 +2,7 @@
   "General Job Listings on ethlance"
   (:require
    [reagent.core :as r]
+   [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
@@ -11,6 +12,7 @@
    ;; Ethlance Components
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
@@ -36,7 +38,7 @@
     [:div.rating-label "(6)"]]
    [:div.location "United States, New York"]])
 
-   
+
 (defn c-user-arbiter-detail
   [{:keys [] :as user}]
   [:div.user-detail.arbiter
@@ -209,15 +211,32 @@
 
 
 (defn c-job-listing []
-  [:<>
-   (doall
-    (for [job (range 10)]
-      ^{:key (str "job-" job)}
-      [c-job-element job]))])
+  (let [*job-listing (re/subscribe [:page.jobs/job-listing])
+        *job-listing-state (re/subscribe [:page.jobs/job-listing-state])]
+    (fn []
+      (let [job-listing @*job-listing
+            job-listing-state @*job-listing-state
+            loading? (contains? #{:start :loading} job-listing-state)]
+                         
+        [:<>
+         (cond
+           ;; Is the job listing loading?
+           loading?
+           [c-loading-spinner]
+           
+           ;; Is the job listing empty?
+           (empty? job-listing)
+           [:div.empty-listing "No Jobs"]
+
+           :else
+           (doall
+            (for [job job-listing]
+              ^{:key (str "job-" (:index job))}
+              [c-job-element job])))]))))
 
 
 (defmethod page :route.job/jobs []
-  (let []
+  (let [*job-listing (re/subscribe [:page.jobs/job-listing])]
     (fn []
       [c-main-layout {:container-opts {:class :jobs-main-container}}
        [c-job-search-filter]

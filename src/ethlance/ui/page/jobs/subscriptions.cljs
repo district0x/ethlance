@@ -6,10 +6,15 @@
 
 
 (defn job-listing [db _]
-  ;; FIXME: base on query loading data
-  (empty? (get-in db [jobs.events/state-key :job-listing])))
+  (get-in db [jobs.events/state-key :job-listing]))
+
+
+(defn job-listing-state [db _]
+  (get-in db [jobs.events/state-key :job-listing/state]))
+
 
 
 ;; Registered Subscriptions
 
 (re/reg-sub :page.jobs/job-listing job-listing)
+(re/reg-sub :page.jobs/job-listing-state job-listing-state)

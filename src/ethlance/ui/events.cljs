@@ -17,6 +17,17 @@
    [ethlance.ui.event.sign-in]))      ;; :user/*
 
 
+(def forwarded-events
+  "Forwarded Events.
+
+   Notes:
+
+   - district.ui.router/watch-active-page effect handler uses forwarded events
+   - Additional info: https://github.com/day8/re-frame-forward-events-fx"
+  (list
+   [:page.jobs/initialize-page]))
+
+
 (defn initialize
   "Sets initial db state for local components, local pages, and site-wide events."
   [{:keys [db] :as cofx} _]
@@ -33,6 +44,8 @@
                ;; Main Events
                ;; /Nothing here, yet/
     {:db new-db
+     ;; Initialize Forwarded FX Events
+     :dispatch-n forwarded-events
      :log/info ["Initialized re-frame app state" (clj->js new-db)]}))
 
 ;;
