@@ -1,5 +1,5 @@
 (ns ethlance.ui.subscriptions
-  "Ethlance re-frame Subscriptions"
+  "Main entry point for all registered subscriptions within re-frame for ethlance."
   (:require
    [re-frame.core :as re]
 

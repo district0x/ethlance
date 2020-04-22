@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.jobs
   "General Job Listings on ethlance"
   (:require
+   [cuerdas.core :as str]
    [reagent.core :as r]
    [re-frame.core :as re]
    [taoensso.timbre :as log]
@@ -30,7 +31,7 @@
 
 
 (defn c-user-employer-detail
-  [{:keys [] :as user}]
+  [{:keys [] :as employer}]
   [:div.user-detail.employer
    [:div.name "Brian Curran"]
    [:div.rating-container
@@ -40,7 +41,7 @@
 
 
 (defn c-user-arbiter-detail
-  [{:keys [] :as user}]
+  [{:keys [] :as arbiter}]
   [:div.user-detail.arbiter
    [c-inline-svg {:class "arbiter-icon" :src "images/svg/hammer.svg"}]
    [:div.name "Brian Curran"]
@@ -51,19 +52,23 @@
 
 
 (defn c-job-detail-table
-  [{:keys [] :as job}]
-  [:div.job-detail-table
-   [:div.name "Payment Type"]
-   [:div.value "Hourly Rate"]
+  [{:keys [payment-type experience-level project-length availability] :as job}]
+  (let [formatted-experience-level (case experience-level
+                                     :novice "Novice ($)"
+                                     :professional "Professional ($$)"
+                                     :expert "Expert ($$$)")]
+    [:div.job-detail-table
+     [:div.name "Payment Type"]
+     [:div.value (str/title payment-type)]
 
-   [:div.name "Experience Level"]
-   [:div.value "Expert ($$$)"]
+     [:div.name "Experience Level"]
+     [:div.value formatted-experience-level]
 
-   [:div.name "Project Length"]
-   [:div.value "Months"]
-   
-   [:div.name "Availability"]
-   [:div.value "Full Time"]])
+     [:div.name "Project Length"]
+     [:div.value (str/title project-length)]
+
+     [:div.name "Availability"]
+     [:div.value (str/title availability)]]))
 
 
 (defn c-job-search-filter
@@ -186,25 +191,22 @@
 
 (defn c-job-element
   "A single job element component composed from the job data."
-  [job]
+  [{:keys [title description date-created skills arbiter employer] :as job}]
   [:div.job-element
-   [:div.title "Ethereum Contract Implementation"]
-   [:div.description "Lorem ipsum dolor sit amet, consectetur
-   adipiscing elit. Morbi ac ex non ipsum laoreet fringilla quis vel
-   nibh. Praesent sed condimentum ex, consectetur gravida felis. Sed
-   tincidunt vestibulum ante elementum pellentesque."]
-   [:div.date "Posted 1 day ago | 5 Proposals"]
+   [:div.title title]
+   [:div.description description]
+   [:div.date (or date-created "Posted 1 day ago | 5 Proposals")]
    [:div.tags
     (doall
-     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
-       ^{:key (str "tag-" tag-label)}
-       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
-               :title (str "Add '" tag-label "' to Search")}
-        [c-tag-label tag-label]]))]
+     (for [skill-label skills]
+       ^{:key (str "tag-" skill-label)}
+       [c-tag {:on-click #(swap! *search-input-listing conj skill-label)
+               :title (str "Add '" skill-label "' to Search")}
+        [c-tag-label skill-label]]))]
 
    [:div.users
-    [c-user-employer-detail {}]
-    [c-user-arbiter-detail {}]]
+    [c-user-employer-detail employer]
+    [c-user-arbiter-detail arbiter]]
 
    [:div.details
     [c-job-detail-table job]]])

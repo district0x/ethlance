@@ -1,5 +1,5 @@
 (ns ethlance.ui.events
-  "Includes the list of all registered events within re-frame."
+  "Main entry point for all registered events within re-frame for ethlance."
   (:require 
    [re-frame.core :as re]
 
@@ -34,13 +34,14 @@
   (let [new-db
         (assoc db
                ;; Component Events
-               ;; ...
+               ;; /Nothing here, yet/
 
                ;; Page Events
                ethlance.ui.page.me.events/state-key
                ethlance.ui.page.me.events/state-default
                ethlance.ui.page.jobs.events/state-key
                ethlance.ui.page.jobs.events/state-default)]
+
                ;; Main Events
                ;; /Nothing here, yet/
     {:db new-db
