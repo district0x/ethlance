@@ -1,10 +1,12 @@
 #!/bin/bash
 
+solc --version
+
 mkdir -p resources/public/contracts/build
 cd resources/public/contracts/src
 
 function solc-err-only {
-  solc "$@" 2>&1 #| grep -A 2 -i "Error"
+  solc "$@" 2>&1 | grep -A 2 -i "Error"
 }
 
 {
