@@ -16,11 +16,18 @@ jobs:
             - maven-cache-{{ checksum "project.clj" }}
             - maven-cache-
       - run:
+          name: Install solidity compiler
+          command: |
+            sudo wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.4.24/solc-static-linux
+            sudo chmod a+x /bin/solc-static-linux
+            sudo ln -s /bin/solc-static-linux /usr/bin/solc
+      - run:
           name: Install dependencies
           command: lein deps
       - run:
           name: Compile contracts
-          command: /bin/bash compile-solidity.sh
+          command: |
+            /bin/bash compile-solidity.sh
       - run:
           name: Compile css
           command: lein less4j once
