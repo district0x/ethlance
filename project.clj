@@ -1,7 +1,7 @@
 (defproject ethlance "0.1.0-SNAPSHOT"
   :dependencies [[akiroz.re-frame/storage "0.1.2"]
                  [bidi "2.0.14"]
-                 [cljs-ajax "0.5.8"]
+                 [cljs-ajax "0.8.0"]
                  [cljs-react-material-ui "0.2.46"]
                  [cljsjs/bignumber "2.1.4-1"]
                  [cljsjs/linkify "2.1.4-0" :exclusions [cljsjs/react]]

@@ -769,7 +769,7 @@
                                            :data {:message/text ""}
                                            :errors #{}}
 
-   :form/search-jobs {:search/category 0
+   :form/search-jobs {:search/category 1
                       :search/skills []
                       :search/skills-or []
                       :search/payment-types [1 2 3]
@@ -787,7 +787,7 @@
                       :search/offset 0
                       :search/limit 10}
 
-   :form/search-freelancers {:search/category 0
+   :form/search-freelancers {:search/category 2
                              :search/skills []
                              :search/skills-or []
                              :search/min-avg-rating 0

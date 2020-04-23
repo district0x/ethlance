@@ -514,7 +514,7 @@
                 :src "/images/coinbase-logo.png"}]]])))
 
 
-(defn- link [href text]
+(defn link [href text]
   [:a {:href href
        :target :_blank}
    text])
