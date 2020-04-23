@@ -20,7 +20,9 @@ jobs:
           command: lein deps
       - run:
           name: Compile contracts
-          command: /bin/bash compile-solidity.sh
+          command: |
+            solc --version
+            /bin/bash compile-solidity.sh
       - run:
           name: Compile css
           command: lein less4j once
@@ -51,6 +53,7 @@ jobs:
          name: Deploy docker image
          command: |
            cd ~/ci
+           ls resources/public/contracts/build/
            /bin/bash docker-push.sh
      - slack/status:
          channel: travis-ci
