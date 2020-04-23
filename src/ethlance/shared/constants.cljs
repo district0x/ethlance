@@ -5114,3 +5114,10 @@
    "Accounting & Consulting"
    "Other"
    ])
+
+
+(def category-default "All Categories")
+
+
+(def categories-with-default
+  (concat [category-default] categories))

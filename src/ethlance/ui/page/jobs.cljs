@@ -74,17 +74,18 @@
 (defn c-job-search-filter
   "Sidebar component for changing the search criteria."
   []
-  (let [*feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
+  (let [*category (re/subscribe [:page.jobs/category])
+        *feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.jobs/feedback-min-rating])]
     (fn []
       (let []
         [:div.job-search-filter.search-filter
          [:div.category-selector
           [c-select-input
-           {:label "All Categories"
-            :default-selection "All Categories"
+           {:selection @*category
             :color :secondary
-            :selections ["All Categories" "Software Development" "Web Design"]}]]
+            :selections constants/categories-with-default
+            :on-select #(re/dispatch [:page.jobs/set-category %])}]]
 
          [:span.rating-label "Min. Rating"]
          [c-rating {:rating @*feedback-min-rating :color :white :size :small

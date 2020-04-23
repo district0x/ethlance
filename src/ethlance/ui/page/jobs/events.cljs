@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as re]
    [district.ui.router.effects :as router.effects]
+   [ethlance.shared.constants :as constants]
    [ethlance.shared.mock :as mock]))
 
 
@@ -14,6 +15,7 @@
 
    ;; Job Listing Query Parameters
    :skills #{}
+   :category constants/category-default
    :feedback-min-rating 1
    :feedback-max-rating 5
    :min-hourly-rate nil
@@ -55,6 +57,12 @@
            (assoc-in [state-key :job-listing] job-listing))})
 
 
+(defn set-category
+  "Event FX Handler. Set the current feedback min rating."
+  [{:keys [db]} [_ new-category]]
+  {:db (assoc-in db [state-key :category] new-category)})
+
+
 (defn set-feedback-min-rating
   "Event FX Handler. Set the current feedback min rating.
 
@@ -87,11 +95,14 @@
 ;; Registered Events
 ;;
 
+
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
 (re/reg-event-fx :page.jobs/query-job-listing mock-query-job-listing)
+(re/reg-event-fx :page.jobs/set-category set-category)
 (re/reg-event-fx :page.jobs/set-feedback-max-rating set-feedback-max-rating)
 (re/reg-event-fx :page.jobs/set-feedback-min-rating set-feedback-min-rating)
+
 
 ;; Intermediates
 (re/reg-event-fx :page.jobs/-set-job-listing set-job-listing)

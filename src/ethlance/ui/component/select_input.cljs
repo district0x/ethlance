@@ -30,7 +30,9 @@
 
   :on-select - Callback function called when the selection is changed. (fn [selection]).
 
-  :default-selection - Default selection to make on initial load. [default: nil]
+  :default-selection - Uncontrolled component selection.
+
+  :selection - Controlled component selection.
 
   :color - Component Color Styling. `:primary`,
   `:secondary`. [default: `:primary`].
@@ -43,18 +45,19 @@
 
   :size - Component Size Styling. `:large`, `:default`. [default:
   `:default`]"
-  [{:keys [label 
-           selections 
-           on-select 
-           default-selection 
-           color 
-           search-bar? 
-           default-search-text 
+  [{:keys [label
+           selections
+           on-select
+           default-selection
+           selection
+           color
+           search-bar?
+           default-search-text
            size]
     :or {default-search-text "Search"}
     :as opts}]
   (let [*open? (r/atom false)
-        *current-selection (r/atom default-selection)
+        *current-default-selection (r/atom default-selection)
         *search-text (r/atom "")
         color (or color :primary)
         color-class (case color
@@ -65,17 +68,22 @@
         size-class (case size
                      :large "large"
                      :default nil)]
-    (fn [{:keys [label selections on-select default-selection color] :as opts}]
+    (fn [{:keys [label selections on-select default-selection selection color] :as opts}]
+      (assert (not (and selection default-selection))
+              "Component has both controlled `selection` and uncontrolled `default-selection` attributes set.")
       (let [opts (dissoc opts
                          :label :selections
                          :on-select :default-selection
+                         :selection
                          :color :search-bar?
                          :default-search-text
-                         :size)]
+                         :size)
+            current-selection (if default-selection @*current-default-selection selection)]
         [:div.ethlance-select-input (merge {:class [color-class size-class]} opts)
          [:div.main
-          {:on-click #(swap! *open? not)}
-          [:span.label (or @*current-selection label)]
+          {:title (or current-selection label)
+           :on-click #(swap! *open? not)}
+          [:span.label (or current-selection label)]
           [c-icon {:class "icon"
                    :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
@@ -107,7 +115,7 @@
                 [:div.selection
                  {:on-click
                   (fn []
-                    (reset! *current-selection selection)
+                    (reset! *current-default-selection selection)
                     (reset! *search-text "")
                     (reset! *open? false)
                     (when on-select (on-select selection)))}
