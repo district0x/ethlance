@@ -7,7 +7,7 @@ jobs:
   build:
     working_directory: ~/ci
     docker:
-      - image: district0x/cljs-dev:85d4876
+      - image: district0x/cljs-dev:e701583
     steps:
       - checkout
       - restore_cache:
