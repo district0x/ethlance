@@ -256,13 +256,14 @@
 
 ;; event JobInvoice(uint _jobId, uint _invoiceId, address payable _invoiceIssuer, string _ipfsHash, address _submitter, uint _amount);
 (defn handle-job-invoice [_ {:keys [args] :as event}]
-  (log/info (str "Handling event handle-job-invoice" args))
-  (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))
-        ethlance-job-id (:_jobId args)]
-    (let [job-story-id (-> ipfs-data :payload :ethlanceJobStoryId)]
-      (ethlance-db/update-job-story-invoice-message {:job-story/id job-story-id
-                                                     :message/id (-> ipfs-data :payload :ethlanceMessageId)
-                                                     :invoice/ref-id (:_invoiceId args)}))))
+  (safe-go
+   (log/info (str "Handling event handle-job-invoice" args))
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))
+         ethlance-job-id (:_jobId args)]
+     (let [job-story-id (-> ipfs-data :payload :ethlanceJobStoryId)]
+       (ethlance-db/update-job-story-invoice-message {:job-story/id job-story-id
+                                                      :message/id (-> ipfs-data :payload :ethlanceMessageId)
+                                                      :invoice/ref-id (:_invoiceId args)})))))
 
 ;; event InvoiceAccepted(uint _jobId, uint  _invoiceId, address _approver, uint _amount);
 (defn handle-invoice-accepted [_ {:keys [args] :as event}]
@@ -284,8 +285,9 @@
 ;; event JobDataChanged(uint _jobId, address _changer, string _ipfsHash);
 (defn handle-job-data-changed [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-job-data-changed" args))
-  (let [job-ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfsHash args)))]
-    (ethlance-db/update-ethlance-job (:_jobId args) (build-ethlance-job-data-from-ipfs-object job-ipfs-data))))
+  (safe-go
+   (let [job-ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfsHash args)))]
+     (ethlance-db/update-ethlance-job (:_jobId args) (build-ethlance-job-data-from-ipfs-object job-ipfs-data)))))
 
 ;; event CandidateAccepted(uint jobId, address candidate);
 (defn handle-candidate-accepted [_ {:keys [args] :as event}]
@@ -319,6 +321,12 @@
 (defn handle-job-approvers-updated [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-job-approvers-updated" args)))
 
+(defn wrap-save-event [handler]
+  (fn [err event]
+    ;; TODO: how should we handle errors?
+    (ethlance-db/save-ethereum-log-event event)
+    (handler err event)))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Syncer Start ;;
 ;;;;;;;;;;;;;;;;;;
@@ -327,36 +335,36 @@
   (log/debug "Starting Syncer...")
 
   ;; StandardBounties
-  (register-callback! :standard-bounties/bounty-issued handle-bounty-issued :BountyIssued)
-  (register-callback! :standard-bounties/bounty-approvers-updated handle-bounty-approvers-updated :BountyApproversUpdated)
-  (register-callback! :standard-bounties/bounty-issued handle-bounty-issued :BountyIssued)
-  (register-callback! :standard-bounties/contribution-added handle-bounty-contribution-added :ContributionAdded)
-  (register-callback! :standard-bounties/contribution-refunded handle-bounty-contribution-refunded :ContributionRefunded)
-  (register-callback! :standard-bounties/contributions-refunded handle-bounty-contributions-refunded :ContributionsRefunded)
-  (register-callback! :standard-bounties/bounty-drained handle-bounty-drained :BountyDrained)
-  (register-callback! :standard-bounties/action-performed handle-bounty-action-performed :ActionPerformed)
-  (register-callback! :standard-bounties/bounty-fulfilled handle-bounty-fulfilled :BountyFulfilled)
-  (register-callback! :standard-bounties/fulfillment-updated handle-fulfillment-updated :FulfillmentUpdated)
-  (register-callback! :standard-bounties/fulfillment-accepted handle-fulfillment-accepted :FulfillmentAccepted)
-  (register-callback! :standard-bounties/bounty-changed handle-bounty-changed :BountyChanged)
-  (register-callback! :standard-bounties/bounty-issuers-updated handle-bounty-issuers-updated :BountyIssuersUpdated)
-  (register-callback! :standard-bounties/bounty-data-changed handle-bounty-datachanged :BountyDataChanged)
-  (register-callback! :standard-bounties/bounty-deadline-changed handle-bounty-deadline-changed :BountyDeadlineChanged)
+  (register-callback! :standard-bounties/bounty-issued (wrap-save-event handle-bounty-issued) :BountyIssued)
+  (register-callback! :standard-bounties/bounty-approvers-updated (wrap-save-event handle-bounty-approvers-updated) :BountyApproversUpdated)
+  (register-callback! :standard-bounties/bounty-issued (wrap-save-event handle-bounty-issued) :BountyIssued)
+  (register-callback! :standard-bounties/contribution-added (wrap-save-event handle-bounty-contribution-added) :ContributionAdded)
+  (register-callback! :standard-bounties/contribution-refunded (wrap-save-event handle-bounty-contribution-refunded) :ContributionRefunded)
+  (register-callback! :standard-bounties/contributions-refunded (wrap-save-event handle-bounty-contributions-refunded) :ContributionsRefunded)
+  (register-callback! :standard-bounties/bounty-drained (wrap-save-event handle-bounty-drained) :BountyDrained)
+  (register-callback! :standard-bounties/action-performed (wrap-save-event handle-bounty-action-performed) :ActionPerformed)
+  (register-callback! :standard-bounties/bounty-fulfilled (wrap-save-event handle-bounty-fulfilled) :BountyFulfilled)
+  (register-callback! :standard-bounties/fulfillment-updated (wrap-save-event handle-fulfillment-updated) :FulfillmentUpdated)
+  (register-callback! :standard-bounties/fulfillment-accepted (wrap-save-event handle-fulfillment-accepted) :FulfillmentAccepted)
+  (register-callback! :standard-bounties/bounty-changed (wrap-save-event handle-bounty-changed) :BountyChanged)
+  (register-callback! :standard-bounties/bounty-issuers-updated (wrap-save-event handle-bounty-issuers-updated) :BountyIssuersUpdated)
+  (register-callback! :standard-bounties/bounty-data-changed (wrap-save-event handle-bounty-datachanged) :BountyDataChanged)
+  (register-callback! :standard-bounties/bounty-deadline-changed (wrap-save-event handle-bounty-deadline-changed) :BountyDeadlineChanged)
 
   ;; EthlanceJobs
-  (register-callback! :ethlance-jobs/job-issued handle-job-issued :JobIssued)
-  (register-callback! :ethlance-jobs/contribution-added handle-job-contribution-added :ContributionAdded)
-  (register-callback! :ethlance-jobs/contribution-refunded handle-job-contribution-refunded :ContributionRefunded)
-  (register-callback! :ethlance-jobs/contributions-refunded handle-job-contributions-refunded :ContributionsRefunded)
-  (register-callback! :ethlance-jobs/job-drained handle-job-drained :JobDrained)
-  (register-callback! :ethlance-jobs/job-invoice handle-job-invoice :JobInvoice)
-  (register-callback! :ethlance-jobs/invoice-accepted handle-invoice-accepted :InvoiceAccepted)
-  (register-callback! :ethlance-jobs/job-changed handle-job-changed :JobChanged)
-  (register-callback! :ethlance-jobs/job-issuers-updated handle-job-issuers-updated :JobIssuersUpdated)
-  (register-callback! :ethlance-jobs/job-approvers-updated handle-job-approvers-updated :JobApproversUpdated)
-  (register-callback! :ethlance-jobs/job-data-changed handle-job-data-changed :JobDataChanged)
-  (register-callback! :ethlance-jobs/candidate-accepted handle-candidate-accepted :CandidateAccepted)
-  (register-callback! :ethlance-jobs/candidate-applied handle-candidate-applied :CandidateApplied)
+  (register-callback! :ethlance-jobs/job-issued (wrap-save-event handle-job-issued) :JobIssued)
+  (register-callback! :ethlance-jobs/contribution-added (wrap-save-event handle-job-contribution-added) :ContributionAdded)
+  (register-callback! :ethlance-jobs/contribution-refunded (wrap-save-event handle-job-contribution-refunded) :ContributionRefunded)
+  (register-callback! :ethlance-jobs/contributions-refunded (wrap-save-event handle-job-contributions-refunded) :ContributionsRefunded)
+  (register-callback! :ethlance-jobs/job-drained (wrap-save-event handle-job-drained) :JobDrained)
+  (register-callback! :ethlance-jobs/job-invoice (wrap-save-event handle-job-invoice) :JobInvoice)
+  (register-callback! :ethlance-jobs/invoice-accepted (wrap-save-event handle-invoice-accepted) :InvoiceAccepted)
+  (register-callback! :ethlance-jobs/job-changed (wrap-save-event handle-job-changed) :JobChanged)
+  (register-callback! :ethlance-jobs/job-issuers-updated (wrap-save-event handle-job-issuers-updated) :JobIssuersUpdated)
+  (register-callback! :ethlance-jobs/job-approvers-updated (wrap-save-event handle-job-approvers-updated) :JobApproversUpdated)
+  (register-callback! :ethlance-jobs/job-data-changed (wrap-save-event handle-job-data-changed) :JobDataChanged)
+  (register-callback! :ethlance-jobs/candidate-accepted (wrap-save-event handle-candidate-accepted) :CandidateAccepted)
+  (register-callback! :ethlance-jobs/candidate-applied (wrap-save-event handle-candidate-applied) :CandidateApplied)
   )
 
 

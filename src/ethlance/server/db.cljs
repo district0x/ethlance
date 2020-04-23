@@ -411,7 +411,19 @@
      ;; PK
      [(sql/call :primary-key :file/id)]
      ]
-    :list-keys []}])
+    :list-keys []}
+
+   {:table-name :ReplaySystemEvents
+    :table-columns
+    [[:event/id :integer not-nil]
+     [:event/timestamp :integer not-nil]
+     [:event/type :integer not-nil]
+     [:event/body :varchar not-nil]
+
+     ;; PK
+     [(sql/call :primary-key :event/id)]]
+    :list-keys []}
+   ])
 
 
 (defn list-tables
@@ -731,6 +743,26 @@
               :where [:and
                       [:= :job-story/id job-story-id]
                       [:= :invoice/ref-id invoice-id]]})))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Events replay system ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(def event-type {:ethereum-log 0
+                 :graphql-mutation 1})
+
+(defn save-ethereum-log-event [event-body-map]
+  (log/debug "Saving ethereum log event " {:event event-body-map})
+  (insert-row! :ReplaySystemEvents {:event/timestamp (.getTime (js/Date.))
+                                    :event/type (event-type :ethereum-log)
+                                    :event/body (pr-str event-body-map)}))
+
+(defn save-graphql-mutation-event [mutation-body-map]
+  (insert-row! :ReplaySystemEvents {:event/timestamp nil
+                                    :event/type (event-type :graphql-mutation)
+                                    :event/body (pr-str mutation-body-map)}))
+
 
 (defn start
   "Start the ethlance-db mount component."
