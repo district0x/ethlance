@@ -6,13 +6,13 @@ RUN apt-get update -y \
     -q wget nginx
 
 # replace nginx config
-COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
+COPY docker-builds/nginx.conf /etc/nginx/nginx.conf
 
 # replace default server
-COPY docker-builds/ui/default /etc/nginx/sites-available/default
+COPY docker-builds/default /etc/nginx/sites-available/default
 
 # nginx config
-COPY docker-builds/ui/ethlance.com /etc/nginx/sites-available/ethlance.com
+COPY docker-builds/ethlance.com /etc/nginx/sites-available/ethlance.com
 
 # setup error page
 RUN wget --no-check-certificate -O X0X.html https://raw.githubusercontent.com/district0x/X0X/master/X0X.html \
