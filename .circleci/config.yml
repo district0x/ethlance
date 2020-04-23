@@ -7,7 +7,7 @@ jobs:
   build:
     working_directory: ~/ci
     docker:
-      - image: district0x/cljs-dev:e701583
+      - image: district0x/cljs-dev:85d4876
     steps:
       - checkout
       - restore_cache:
@@ -15,6 +15,12 @@ jobs:
           keys:
             - maven-cache-{{ checksum "project.clj" }}
             - maven-cache-
+      - run:
+          name: Install solidity compiler
+          command: |
+            wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.4.24/solc-static-linux
+            chmod a+x /bin/solc-static-linux
+            ln -s /bin/solc-static-linux /usr/bin/solc
       - run:
           name: Install dependencies
           command: lein deps
