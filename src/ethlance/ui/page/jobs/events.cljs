@@ -55,6 +55,34 @@
            (assoc-in [state-key :job-listing] job-listing))})
 
 
+(defn set-feedback-min-rating
+  "Event FX Handler. Set the current feedback min rating.
+
+   # Notes
+
+   - If the min rating is higher than the max rating, the max rating will also be adjusted appropriately."
+  [{:keys [db]} [_ new-min-rating]]
+  (let [current-max-rating (get-in db [state-key :feedback-max-rating])
+        max-rating (max new-min-rating current-max-rating)]
+    {:db (-> db
+             (assoc-in [state-key :feedback-min-rating] new-min-rating)
+             (assoc-in [state-key :feedback-max-rating] max-rating))}))
+
+
+(defn set-feedback-max-rating
+  "Event FX Handler. Set the current feedback max rating.
+
+   # Notes
+
+   - If the max rating is lower than the min rating, the min rating will also be adjusted appropriately."
+  [{:keys [db]} [_ new-max-rating]]
+  (let [current-min-rating (get-in db [state-key :feedback-min-rating])
+        min-rating (min new-max-rating current-min-rating)]
+    {:db (-> db
+             (assoc-in [state-key :feedback-max-rating] new-max-rating)
+             (assoc-in [state-key :feedback-min-rating] min-rating))}))
+
+
 ;;
 ;; Registered Events
 ;;
@@ -62,7 +90,8 @@
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
 (re/reg-event-fx :page.jobs/query-job-listing mock-query-job-listing)
-
+(re/reg-event-fx :page.jobs/set-feedback-max-rating set-feedback-max-rating)
+(re/reg-event-fx :page.jobs/set-feedback-min-rating set-feedback-min-rating)
 
 ;; Intermediates
 (re/reg-event-fx :page.jobs/-set-job-listing set-job-listing)

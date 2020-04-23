@@ -74,61 +74,65 @@
 (defn c-job-search-filter
   "Sidebar component for changing the search criteria."
   []
-  [:div.job-search-filter.search-filter
-   [:div.category-selector
-    [c-select-input
-     {:label "All Categories"
-      :default-selection "All Categories"
-      :color :secondary
-      :selections ["All Categories" "Software Development" "Web Design"]}]]
+  (let [*feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
+        *feedback-min-rating (re/subscribe [:page.jobs/feedback-min-rating])]
+    (fn []
+      (let []
+        [:div.job-search-filter.search-filter
+         [:div.category-selector
+          [c-select-input
+           {:label "All Categories"
+            :default-selection "All Categories"
+            :color :secondary
+            :selections ["All Categories" "Software Development" "Web Design"]}]]
 
-   [:span.rating-label "Min. Rating"]
-   [c-rating {:rating 1 :color :white :size :small
-              :on-change (fn [index] (log/debug "Min. Rating: " index))}]
+         [:span.rating-label "Min. Rating"]
+         [c-rating {:rating @*feedback-min-rating :color :white :size :small
+                    :on-change #(re/dispatch [:page.jobs/set-feedback-min-rating %])}]
 
-   [:span.rating-label "Max. Rating"]
-   [c-rating {:rating 5 :color :white :size :small
-              :on-change (fn [index] (log/debug "Max. Rating: " index))}]
+         [:span.rating-label "Max. Rating"]
+         [c-rating {:rating @*feedback-max-rating :color :white :size :small
+                    :on-change #(re/dispatch [:page.jobs/set-feedback-max-rating %])}]
 
-   [c-currency-input
-    {:placeholder "Min. Hourly Rate"
-     :currency-type ::enum.currency/usd
-     :color :secondary
-     :on-change #(println "Currency Min Change: " %)}]
-   
-   [c-currency-input
-    {:placeholder "Max. Hourly Rate"
-     :currency-type ::enum.currency/usd
-     :color :secondary
-     :on-change #(println "Currency Max Change: " %)}]
+         [c-currency-input
+          {:placeholder "Min. Hourly Rate"
+           :currency-type ::enum.currency/usd
+           :color :secondary
+           :on-change #(println "Currency Min Change: " %)}]
+         
+         [c-currency-input
+          {:placeholder "Max. Hourly Rate"
+           :currency-type ::enum.currency/usd
+           :color :secondary
+           :on-change #(println "Currency Max Change: " %)}]
 
-   [:div.feedback-input
-    [c-text-input
-     {:placeholder "Number of Feedbacks"
-      :color :secondary}]]
+         [:div.feedback-input
+          [c-text-input
+           {:placeholder "Number of Feedbacks"
+            :color :secondary}]]
 
-   [:span.selection-label "Payment Type"]
-   [c-radio-select 
-    {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
-     :default-selection :hourly-rate}
-    [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
-    [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
-    [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
+         [:span.selection-label "Payment Type"]
+         [c-radio-select 
+          {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
+           :default-selection :hourly-rate}
+          [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
+          [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
+          [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
 
-   [:span.selection-label "Experience Level"]
-   [c-radio-select 
-    {:on-selection (fn [selection] (log/debug (str "Experience Selection: " selection)))
-     :default-selection :novice}
-    [:novice [c-radio-search-filter-element "Novice ($)"]]
-    [:professional [c-radio-search-filter-element "Professional ($$)"]]
-    [:expert [c-radio-search-filter-element "Expert ($$$)"]]]
+         [:span.selection-label "Experience Level"]
+         [c-radio-select 
+          {:on-selection (fn [selection] (log/debug (str "Experience Selection: " selection)))
+           :default-selection :novice}
+          [:novice [c-radio-search-filter-element "Novice ($)"]]
+          [:professional [c-radio-search-filter-element "Professional ($$)"]]
+          [:expert [c-radio-search-filter-element "Expert ($$$)"]]]
 
-   [c-select-input
-    {:label "Country"
-     :selections constants/countries
-     :search-bar? true
-     :color :secondary
-     :default-search-text "Search Countries"}]])
+         [c-select-input
+          {:label "Country"
+           :selections constants/countries
+           :search-bar? true
+           :color :secondary
+           :default-search-text "Search Countries"}]]))))
 
 (defn c-job-mobile-search-filter
   []
