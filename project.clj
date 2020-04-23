@@ -108,8 +108,9 @@
                reagent]
   :npm {:dependencies
         [["@sentry/node" "4.2.1"]
-
-         [apollo-server "2.9.13"]
+         [express "4.17.1"]
+         [body-parser "1.19.0"]
+         [apollo-server-express "2.12.0"]
          [graphql-middleware "4.0.1"]
          [graphql-tools "4.0.5"]
          [graphql "14.2.1"]

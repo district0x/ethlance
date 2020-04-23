@@ -1,7 +1,9 @@
 (ns ethlance.server.middlewares
   (:require [district.shared.async-helpers :as async-helpers]
             [district.graphql-utils :as graphql-utils]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [clojure.string :as str]
+            [ethlance.server.db :as ethlance-db]))
 
 ;; TODO : root-value->clj middleware
 
@@ -26,3 +28,12 @@
                                          :context context
                                          :info info})
   (resolve root args context info))
+
+(defn save-mutation-express-middleware [req res next]
+  (let [headers (.-headers req)
+        body (.-body req)
+        query (.-query body)]
+    (when (str/starts-with? query "mutation")
+      (ethlance-db/save-graphql-mutation-event {:headers (js->clj headers)
+                                                :body (js->clj body)})))
+  (next))

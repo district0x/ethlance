@@ -759,7 +759,7 @@
                                     :event/body (pr-str event-body-map)}))
 
 (defn save-graphql-mutation-event [mutation-body-map]
-  (insert-row! :ReplaySystemEvents {:event/timestamp nil
+  (insert-row! :ReplaySystemEvents {:event/timestamp (.getTime (js/Date.))
                                     :event/type (event-type :graphql-mutation)
                                     :event/body (pr-str mutation-body-map)}))
 
