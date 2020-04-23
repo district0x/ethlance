@@ -40,7 +40,7 @@
      sunt in culpa qui officia deserunt mollit anim id est
      laborum."]
     [:div.rating
-     [c-rating {:rating 3 :color :primary}]
+     [c-rating {:default-rating 3 :color :primary}]
      [:span "(8)"]]
     [:div.location "United States, New York"]
     [:div.detail-listing

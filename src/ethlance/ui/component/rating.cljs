@@ -18,15 +18,15 @@
                       :white   rating-star-src-white
                       :black   rating-star-src-black)
           size-class (case size
-                       :normal ""
+                       :normal  ""
                        :default ""
-                       :large "large"
-                       :small "small")
+                       :large   "large"
+                       :small   "small")
           size-value (case size
-                       :normal 24
+                       :normal  24
                        :default 24
-                       :large 36
-                       :small 18)
+                       :large   36
+                       :small   18)
           active-class (when active? "active")]
       [:img.star
        {:key (str "c-star-" index)
@@ -46,7 +46,9 @@
 
   # Optional Arguments (opts)
 
-  :rating - An initial rating between 1 and 5
+  :rating - Controlled component value for the rating. A value between 1 and 5
+
+  :default-rating - Uncontrolled component value for the rating. A value between 1 and 5
 
   :color - The color styling of the rating component. `:primary`,
   `:white`, `:black`. [default: `:primary`]
@@ -58,32 +60,36 @@
   :size - The size styling of the rating component. `:normal`,
   `:default`, `:large`, `:small`. [default: `:default`].
   "
-  [{:keys [rating color on-change size]
-    :or {color :primary rating 0 size :default}
+  [{:keys [rating default-rating color on-change size]
+    :or {color :primary size :default}
     :as opts}]
-  (let [*current-rating (r/atom rating)
+  (let [*current-default-rating (r/atom default-rating)
         color-class (case color
                       :primary "primary"
-                      :white "white"
-                      :black "black")
+                      :white   "white"
+                      :black   "black")
         size-class (case size
-                     :default ""
-                     :small "small"
-                     :large "large")]
-    (fn [{:keys [rating color on-change size]
-          :or {color :primary rating 0 size :default}}]
-      [:div.ethlance-component-rating
-       {:class [color-class size-class]}
-       (doall
-        (for [i (range 1 6)]
-          ^{:key i}
-          [c-star {:active? (<= i @*current-rating)
-                   :color color
-                   :size size
-                   :index i
-                   :on-change
-                   (when on-change
-                     (fn [index]
-                       (reset! *current-rating index)
-                       (on-change index)))}]))])))
+                     :default  ""
+                     :small    "small"
+                     :large    "large")]
+    (fn [{:keys [rating default-rating color on-change size]
+          :or {color :primary size :default}}]
+      (assert (or rating default-rating) "No `rating` or `default-rating` specified.")
+      (assert (not (and rating default-rating))
+              "Component has both controlled `rating` and uncontrolled `default-rating` attributes set.")
+      (let [current-rating (if default-rating @*current-default-rating rating)]
+        [:div.ethlance-component-rating
+         {:class [color-class size-class]}
+         (doall
+          (for [i (range 1 6)]
+            ^{:key i}
+            [c-star {:active? (<= i current-rating)
+                     :color color
+                     :size size
+                     :index i
+                     :on-change
+                     (when on-change
+                       (fn [index]
+                         (reset! *current-default-rating index)
+                         (on-change index)))}]))]))))
          

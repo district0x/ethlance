@@ -41,7 +41,7 @@
            [c-profile-image {}]
            [:div.name "Brian Curran"]
            [:div.rating
-            [c-rating {:rating 3}]
+            [c-rating {:default-rating 3}]
             [:span.num-feedback (str "(" 5 ")")]]
            [:div.location "United States, New York"]]
 
@@ -50,7 +50,7 @@
            [c-profile-image {}]
            [:div.name "Brian Curran"]
            [:div.rating
-            [c-rating {:rating 3}]
+            [c-rating {:default-rating 3}]
             [:span.num-feedback (str "(" 5 ")")]]
            [:div.location "United States, New York"]]
 
@@ -59,7 +59,7 @@
            [c-profile-image {}]
            [:div.name "Brian Curran"]
            [:div.rating
-            [c-rating {:rating 3}]
+            [c-rating {:default-rating 3}]
             [:span.num-feedback (str "(" 5 ")")]]
            [:div.location "United States, New York"]]]
 

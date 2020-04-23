@@ -35,7 +35,7 @@
   [:div.user-detail.employer
    [:div.name "Brian Curran"]
    [:div.rating-container
-    [c-rating {:size :small :color :primary :rating 3}]
+    [c-rating {:size :small :color :primary :default-rating 3}]
     [:div.rating-label "(6)"]]
    [:div.location "United States, New York"]])
 
@@ -46,7 +46,7 @@
    [c-inline-svg {:class "arbiter-icon" :src "images/svg/hammer.svg"}]
    [:div.name "Brian Curran"]
    [:div.rating-container
-    [c-rating {:size :small :color :primary :rating 3}]
+    [c-rating {:size :small :color :primary :default-rating 3}]
     [:div.rating-label "(6)"]]
    [:div.location "United States, New York"]])
 
@@ -141,11 +141,11 @@
       :selections ["All Categories" "Software Development" "Web Design"]}]]
 
    [:span.rating-label "Min. Rating"]
-   [c-rating {:rating 1 :color :white :size :small
+   [c-rating {:default-rating 1 :color :white :size :small
               :on-change (fn [index] (log/debug "Min. Rating: " index))}]
 
    [:span.rating-label "Max. Rating"]
-   [c-rating {:rating 5 :color :white :size :small
+   [c-rating {:default-rating 5 :color :white :size :small
               :on-change (fn [index] (log/debug "Max. Rating: " index))}]
 
    [c-currency-input

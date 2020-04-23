@@ -102,7 +102,7 @@
                :title (str "Add '" tag-label "' to Search")}
         [c-tag-label tag-label]]))]
    [:div.rating
-    [c-rating {:rating 3}]
+    [c-rating {:default-rating 3}]
     [:div.label "(4)"]]
    [:div.location "New York, United States"]])
 

@@ -147,9 +147,9 @@
         [:div.grouping
          [:div.title "Ethlance Rating"]
          [:div.body
-          [c-rating {:rating 3 :on-change (fn [index] (println (str "Rating: " index)))}]
-          [c-rating {:color :white :rating 1}]
-          [c-rating {:color :black :rating 2}]]]
+          [c-rating {:default-rating 3 :on-change (fn [index] (println (str "Rating: " index)))}]
+          [c-rating {:color :white :default-rating 1}]
+          [c-rating {:color :black :default-rating 2}]]]
 
         [:div.grouping
          [:div.title "Ethlance Icons"]
