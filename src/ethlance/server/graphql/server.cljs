@@ -7,17 +7,22 @@
             [ethlance.server.middlewares :as middlewares]
             [ethlance.shared.graphql.schema :as schema]
             [mount.core :as mount :refer [defstate]]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [clojure.string :as str]))
 
 (nodejs/enable-util-print!)
 
-(def apollo-server (nodejs/require "apollo-server"))
+(def body-parser (nodejs/require "body-parser"))
+(def express (nodejs/require "express"))
+(def apollo-server (nodejs/require "apollo-server-express"))
 (def ApolloServer (aget apollo-server "ApolloServer"))
 (def gql (aget apollo-server "gql"))
 (def makeExecutableSchema (aget (nodejs/require "graphql-tools") "makeExecutableSchema"))
 (def applyMiddleware (aget (nodejs/require "graphql-middleware") "applyMiddleware"))
 
 (declare start stop)
+
+
 
 (defstate ^{:on-reload :noop} graphql
   :start (start (merge (:graphql @config/config)
@@ -31,13 +36,18 @@
                                                 middlewares/args->clj-middleware
                                                 ;; middlewares/logging-middleware
                                                 middlewares/response->gql-middleware)
+        app (doto (express)
+              (.use (.json body-parser))
+              (.use middlewares/save-mutation-express-middleware))
         server (new ApolloServer (clj->js {:schema schema-with-middleware
                                            :context (fn [event]
                                                       {:config @config/config
                                                        :current-user (authorization/token->user event @config/config)})}))]
-    (promise-> (js-invoke server "listen" (clj->js opts))
+
+    (js-invoke server "applyMiddleware" (clj->js {:app app}))
+    (js-invoke app "listen" (clj->js opts)
                (fn [url]
-                 (log/info "Graphql server started...")
+                 (log/info "Graphql with express middleware server started...")
                  (js->clj url :keywordize-keys true)))))
 
 (defn stop []
