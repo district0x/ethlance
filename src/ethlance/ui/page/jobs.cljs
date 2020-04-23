@@ -76,7 +76,9 @@
   []
   (let [*category (re/subscribe [:page.jobs/category])
         *feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
-        *feedback-min-rating (re/subscribe [:page.jobs/feedback-min-rating])]
+        *feedback-min-rating (re/subscribe [:page.jobs/feedback-min-rating])
+        *min-hourly-rate (re/subscribe [:page.jobs/min-hourly-rate])
+        *max-hourly-rate (re/subscribe [:page.jobs/max-hourly-rate])]
     (fn []
       (let []
         [:div.job-search-filter.search-filter
@@ -99,13 +101,15 @@
           {:placeholder "Min. Hourly Rate"
            :currency-type ::enum.currency/usd
            :color :secondary
-           :on-change #(println "Currency Min Change: " %)}]
+           :value @*min-hourly-rate
+           :on-change #(re/dispatch [:page.jobs/set-min-hourly-rate %])}]
          
          [c-currency-input
           {:placeholder "Max. Hourly Rate"
            :currency-type ::enum.currency/usd
            :color :secondary
-           :on-change #(println "Currency Max Change: " %)}]
+           :value @*max-hourly-rate
+           :on-change #(re/dispatch [:page.jobs/set-max-hourly-rate %])}]
 
          [:div.feedback-input
           [c-text-input

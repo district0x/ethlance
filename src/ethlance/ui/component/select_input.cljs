@@ -78,7 +78,7 @@
                          :color :search-bar?
                          :default-search-text
                          :size)
-            current-selection (if default-selection @*current-default-selection selection)]
+            current-selection (if (contains? opts :default-selection) @*current-default-selection selection)]
         [:div.ethlance-select-input (merge {:class [color-class size-class]} opts)
          [:div.main
           {:title (or current-selection label)

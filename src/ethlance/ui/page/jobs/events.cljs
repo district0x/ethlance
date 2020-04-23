@@ -91,6 +91,33 @@
              (assoc-in [state-key :feedback-min-rating] min-rating))}))
 
 
+(defn set-min-hourly-rate
+  "Event FX Handler. Set the current mininum hourly rate
+
+   # Notes
+
+   - If the min hourly rate is higher than the max hourly rate, the max hourly rate will also be adjusted appropriately."
+  [{:keys [db]} [_ new-min-hourly-rate]]
+  (let [current-max-hourly-rate (get-in db [state-key :max-hourly-rate])
+        max-hourly-rate (max new-min-hourly-rate current-max-hourly-rate)]
+    {:db (-> db
+             (assoc-in [state-key :min-hourly-rate] new-min-hourly-rate)
+             (assoc-in [state-key :max-hourly-rate] max-hourly-rate))}))
+
+
+(defn set-max-hourly-rate
+  "Event FX Handler. Set the current maximum hourly rate
+
+   # Notes
+
+   - If the max hourly rate is lower than the min hourly rate, the min hourly rate will also be adjusted appropriately."
+  [{:keys [db]} [_ new-max-hourly-rate]]
+  (let [current-min-hourly-rate (get-in db [state-key :min-hourly-rate])
+        min-hourly-rate (min new-max-hourly-rate current-min-hourly-rate)]
+    {:db (-> db
+             (assoc-in [state-key :min-hourly-rate] min-hourly-rate)
+             (assoc-in [state-key :max-hourly-rate] new-max-hourly-rate))}))
+
 ;;
 ;; Registered Events
 ;;
@@ -102,6 +129,8 @@
 (re/reg-event-fx :page.jobs/set-category set-category)
 (re/reg-event-fx :page.jobs/set-feedback-max-rating set-feedback-max-rating)
 (re/reg-event-fx :page.jobs/set-feedback-min-rating set-feedback-min-rating)
+(re/reg-event-fx :page.jobs/set-min-hourly-rate set-min-hourly-rate)
+(re/reg-event-fx :page.jobs/set-max-hourly-rate set-max-hourly-rate)
 
 
 ;; Intermediates
