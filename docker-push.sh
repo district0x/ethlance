@@ -2,6 +2,7 @@
 
 NAME=district0x/ethlance-ui
 VERSION=$CIRCLE_SHA1
+#VERSION=$(git log -1 --pretty=%h)
 IMG=$NAME:$VERSION
 TAG=latest
 
