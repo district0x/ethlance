@@ -41,7 +41,17 @@
   (get-in db [jobs.events/state-key :payment-type]))
 
 
+(defn experience-level [db _]
+  (get-in db [jobs.events/state-key :experience-level]))
+
+
+(defn country [db _]
+  (get-in db [jobs.events/state-key :country]))
+
+
+;;
 ;; Registered Subscriptions
+;;
 
 (re/reg-sub :page.jobs/job-listing job-listing)
 (re/reg-sub :page.jobs/job-listing-state job-listing-state)
@@ -52,3 +62,5 @@
 (re/reg-sub :page.jobs/max-hourly-rate max-hourly-rate)
 (re/reg-sub :page.jobs/min-num-feedbacks min-num-feedbacks)
 (re/reg-sub :page.jobs/payment-type payment-type)
+(re/reg-sub :page.jobs/experience-level experience-level)
+(re/reg-sub :page.jobs/country country)

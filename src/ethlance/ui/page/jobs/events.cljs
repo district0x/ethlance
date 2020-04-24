@@ -131,6 +131,18 @@
   {:db (assoc-in db [state-key :payment-type] new-payment-type)})
 
 
+(defn set-experience-level
+  "Event FX Handler. Set the experience level"
+  [{:keys [db]} [_ new-experience-level]]
+  {:db (assoc-in db [state-key :experience-level] new-experience-level)})
+
+
+(defn set-country
+  "Event FX Handler. Set the country"
+  [{:keys [db]} [_ new-country]]
+  {:db (assoc-in db [state-key :country] new-country)})
+
+
 ;;
 ;; Registered Events
 ;;
@@ -146,6 +158,8 @@
 (re/reg-event-fx :page.jobs/set-max-hourly-rate set-max-hourly-rate)
 (re/reg-event-fx :page.jobs/set-min-num-feedbacks set-min-num-feedbacks)
 (re/reg-event-fx :page.jobs/set-payment-type set-payment-type)
+(re/reg-event-fx :page.jobs/set-experience-level set-experience-level)
+(re/reg-event-fx :page.jobs/set-country set-country)
 
 
 ;; Intermediates

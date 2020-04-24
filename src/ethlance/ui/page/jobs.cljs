@@ -80,7 +80,9 @@
         *min-hourly-rate (re/subscribe [:page.jobs/min-hourly-rate])
         *max-hourly-rate (re/subscribe [:page.jobs/max-hourly-rate])
         *min-num-feedbacks (re/subscribe [:page.jobs/min-num-feedbacks])
-        *payment-type (re/subscribe [:page.jobs/payment-type])]
+        *payment-type (re/subscribe [:page.jobs/payment-type])
+        *experience-level (re/subscribe [:page.jobs/experience-level])
+        *country (re/subscribe [:page.jobs/country])]
     (fn []
       (let []
         [:div.job-search-filter.search-filter
@@ -131,14 +133,16 @@
 
          [:span.selection-label "Experience Level"]
          [c-radio-select 
-          {:on-selection (fn [selection] (log/debug (str "Experience Selection: " selection)))
-           :default-selection :novice}
+          {:selection @*experience-level
+           :on-selection #(re/dispatch [:page.jobs/set-experience-level %])}
           [:novice [c-radio-search-filter-element "Novice ($)"]]
           [:professional [c-radio-search-filter-element "Professional ($$)"]]
           [:expert [c-radio-search-filter-element "Expert ($$$)"]]]
 
          [c-select-input
           {:label "Country"
+           :selection @*country
+           :on-select #(re/dispatch [:page.jobs/set-country %])
            :selections constants/countries
            :search-bar? true
            :color :secondary
