@@ -33,6 +33,10 @@
   (get-in db [jobs.events/state-key :max-hourly-rate]))
 
 
+(defn min-num-feedbacks [db _]
+  (get-in db [jobs.events/state-key :min-num-feedbacks]))
+
+
 ;; Registered Subscriptions
 
 (re/reg-sub :page.jobs/job-listing job-listing)
@@ -42,3 +46,4 @@
 (re/reg-sub :page.jobs/feedback-min-rating feedback-min-rating)
 (re/reg-sub :page.jobs/min-hourly-rate min-hourly-rate)
 (re/reg-sub :page.jobs/max-hourly-rate max-hourly-rate)
+(re/reg-sub :page.jobs/min-num-feedbacks min-num-feedbacks)

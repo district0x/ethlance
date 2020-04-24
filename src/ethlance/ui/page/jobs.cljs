@@ -78,7 +78,8 @@
         *feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.jobs/feedback-min-rating])
         *min-hourly-rate (re/subscribe [:page.jobs/min-hourly-rate])
-        *max-hourly-rate (re/subscribe [:page.jobs/max-hourly-rate])]
+        *max-hourly-rate (re/subscribe [:page.jobs/max-hourly-rate])
+        *min-num-feedbacks (re/subscribe [:page.jobs/min-num-feedbacks])]
     (fn []
       (let []
         [:div.job-search-filter.search-filter
@@ -114,7 +115,10 @@
          [:div.feedback-input
           [c-text-input
            {:placeholder "Number of Feedbacks"
-            :color :secondary}]]
+            :color :secondary
+            :type :number :min "0"
+            :value @*min-num-feedbacks
+            :on-change #(re/dispatch [:page.jobs/set-min-num-feedbacks %])}]]
 
          [:span.selection-label "Payment Type"]
          [c-radio-select 

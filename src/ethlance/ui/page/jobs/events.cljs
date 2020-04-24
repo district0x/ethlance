@@ -118,6 +118,13 @@
              (assoc-in [state-key :min-hourly-rate] min-hourly-rate)
              (assoc-in [state-key :max-hourly-rate] new-max-hourly-rate))}))
 
+
+(defn set-min-num-feedbacks
+  "Event FX Handler. Set the minimum number of feedbacks"
+  [{:keys [db]} [_ new-min-num-feedbacks]]
+  {:db (assoc-in db [state-key :min-num-feedbacks] new-min-num-feedbacks)})
+
+
 ;;
 ;; Registered Events
 ;;
@@ -131,6 +138,7 @@
 (re/reg-event-fx :page.jobs/set-feedback-min-rating set-feedback-min-rating)
 (re/reg-event-fx :page.jobs/set-min-hourly-rate set-min-hourly-rate)
 (re/reg-event-fx :page.jobs/set-max-hourly-rate set-max-hourly-rate)
+(re/reg-event-fx :page.jobs/set-min-num-feedbacks set-min-num-feedbacks)
 
 
 ;; Intermediates
