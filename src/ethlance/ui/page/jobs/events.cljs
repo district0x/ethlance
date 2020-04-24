@@ -125,6 +125,12 @@
   {:db (assoc-in db [state-key :min-num-feedbacks] new-min-num-feedbacks)})
 
 
+(defn set-payment-type
+  "Event FX Handler. Set the payment type"
+  [{:keys [db]} [_ new-payment-type]]
+  {:db (assoc-in db [state-key :payment-type] new-payment-type)})
+
+
 ;;
 ;; Registered Events
 ;;
@@ -139,6 +145,7 @@
 (re/reg-event-fx :page.jobs/set-min-hourly-rate set-min-hourly-rate)
 (re/reg-event-fx :page.jobs/set-max-hourly-rate set-max-hourly-rate)
 (re/reg-event-fx :page.jobs/set-min-num-feedbacks set-min-num-feedbacks)
+(re/reg-event-fx :page.jobs/set-payment-type set-payment-type)
 
 
 ;; Intermediates

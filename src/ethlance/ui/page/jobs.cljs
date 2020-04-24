@@ -79,7 +79,8 @@
         *feedback-min-rating (re/subscribe [:page.jobs/feedback-min-rating])
         *min-hourly-rate (re/subscribe [:page.jobs/min-hourly-rate])
         *max-hourly-rate (re/subscribe [:page.jobs/max-hourly-rate])
-        *min-num-feedbacks (re/subscribe [:page.jobs/min-num-feedbacks])]
+        *min-num-feedbacks (re/subscribe [:page.jobs/min-num-feedbacks])
+        *payment-type (re/subscribe [:page.jobs/payment-type])]
     (fn []
       (let []
         [:div.job-search-filter.search-filter
@@ -121,9 +122,9 @@
             :on-change #(re/dispatch [:page.jobs/set-min-num-feedbacks %])}]]
 
          [:span.selection-label "Payment Type"]
-         [c-radio-select 
-          {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
-           :default-selection :hourly-rate}
+         [c-radio-select
+          {:selection @*payment-type
+           :on-selection #(re/dispatch [:page.jobs/set-payment-type %])}
           [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
           [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
           [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]

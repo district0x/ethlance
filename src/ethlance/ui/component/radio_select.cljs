@@ -28,7 +28,9 @@
 
   # Optional Arguments
 
-  :default-selection - The default 'key' of the radio element to be selected on initial load.
+  :default-selection - Uncontrolled component selection. The 'key' of the radio element to be selected.
+
+  :selection - Controlled component selection. The 'key' of the radio element to be selected.
 
   :on-selection - event callback function supplied to handle changes
   in the radio selection. Function has one parameter, consisting of
@@ -46,8 +48,8 @@
    [:job [c-radio-secondary-element \"Job\"]]
    [:bounty [c-radio-secondary-element \"Bounty\"]]]
   "
-  [{:keys [default-selection on-selection flex?] :as opts} & children]
-  (let [*currently-active (r/atom default-selection)
+  [{:keys [default-selection selection on-selection flex?] :as opts} & children]
+  (let [*current-selection (r/atom default-selection)
         select-channel (chan 1)]
     (r/create-class
      {:display-name "ethlance-radio-select"
@@ -56,7 +58,7 @@
       (fn [this]
         (go-loop []
           (when-let [selection (<! select-channel)]
-            (reset! *currently-active selection)
+            (reset! *current-selection selection)
             (if on-selection
               (on-selection selection)
               (log/warn "No Selection Callback set for c-radio-select component"))
@@ -68,7 +70,10 @@
       
       :reagent-render
       (fn [opts & children]
-        (let [opts (dissoc opts :default-selection :on-selection :flex?)]
+        (assert (not (and selection default-selection))
+                "Component has both controlled `selection` and uncontrolled `default-selection` attributes set.")
+        (let [current-selection (if (contains? opts :default-selection) @*current-selection (:selection opts))
+              opts (dissoc opts :default-selection :selection :on-selection :flex?)]
           [:div.ethlance-radio-select
            (merge opts {:class (when flex? "flex")})
            (doall
@@ -78,7 +83,7 @@
                {:selection-key selection-key
                 :select-channel select-channel
                 :child-element child-element
-                :currently-active @*currently-active}]))]))})))
+                :currently-active current-selection}]))]))})))
 
 
 (defn c-radio-search-filter-element [label]

@@ -37,6 +37,10 @@
   (get-in db [jobs.events/state-key :min-num-feedbacks]))
 
 
+(defn payment-type [db _]
+  (get-in db [jobs.events/state-key :payment-type]))
+
+
 ;; Registered Subscriptions
 
 (re/reg-sub :page.jobs/job-listing job-listing)
@@ -47,3 +51,4 @@
 (re/reg-sub :page.jobs/min-hourly-rate min-hourly-rate)
 (re/reg-sub :page.jobs/max-hourly-rate max-hourly-rate)
 (re/reg-sub :page.jobs/min-num-feedbacks min-num-feedbacks)
+(re/reg-sub :page.jobs/payment-type payment-type)
