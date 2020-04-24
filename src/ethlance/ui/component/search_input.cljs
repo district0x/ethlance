@@ -61,8 +61,9 @@
 
   # Optional Arguments (opts)
 
-  :default-chip-listing - A collection of chip searches to use by
-  default on initial load.
+  :default-chip-listing - Uncontrolled component. A collection of chip searches for initial load.
+
+  :chip-listing - Controlled component. The collection of chip searches.
 
   :auto-suggestion-listing - A collection of string elements, which is
   displayed as a dropdown menu to choose from while searching for new
@@ -84,7 +85,7 @@
 
   :display-listing-on-focus? - If true, the listing of search results
   will show upon focusing the main input."
-  [{:keys [*chip-listing
+  [{:keys [chip-listing
            default-chip-listing
            auto-suggestion-listing
            on-chip-listing-change
@@ -92,26 +93,17 @@
            search-icon?
            placeholder
            display-listing-on-focus?]
-    :or {*chip-listing (r/atom #{})
-         search-icon? true
+    :or {search-icon? true
          placeholder "Search Tags"}
     :as opts}]
-  (let [*active-suggestion (r/atom nil)
+  (let [*current-chip-listing (r/atom (or default-chip-listing #{}))
+        *active-suggestion (r/atom nil)
         *search-text (r/atom "")
         *input-focused? (r/atom false)]
-
-    (when default-chip-listing
-      (reset! *chip-listing (set default-chip-listing)))
-
     (r/create-class
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
       (fn [this]
-        (add-watch *chip-listing :watcher
-                   (fn [_ _ _ new-state]
-                     (when on-chip-listing-change
-                       (on-chip-listing-change new-state))))
-
         (let [root-dom (r/dom-node this)
               search-input (.querySelector root-dom ".search-input")]
           (.addEventListener
@@ -137,84 +129,95 @@
                 (reset! *input-focused? true))
               0))
            true)))
-      
-
-      :component-will-unmount
-      (fn [this]
-        ;; Probably not necessary
-        (remove-watch *chip-listing :watcher))
-      
 
       :reagent-render
-      (fn []
-        [:div.ethlance-chip-search-input
-         {:key "chip-search-input"
-          :class (when-not search-icon? "no-search-icon")}
-         [:div.search-container
-          [:div.chip-listing
-           (doall
-            (for [chip-label @*chip-listing]
-              ^{:key (str "chip-" chip-label)}
-              [c-chip 
-               {:on-close #(swap! *chip-listing disj chip-label)}
-               chip-label]))]
-          [:input.search-input
-           {:type "text"
-            :value @*search-text
-            :on-change #(reset! *search-text (-> % .-target .-value))
-            :on-key-down
-            (fn [event]
-              (let [key (some-> (aget event "key") string/lower)]
-                (case key
-                  "enter"
-                  (cond 
-                    @*active-suggestion
+      (fn [{:keys [chip-listing
+                   default-chip-listing
+                   auto-suggestion-listing
+                   on-chip-listing-change
+                   allow-custom-chips?
+                   search-icon?
+                   placeholder
+                   display-listing-on-focus?]
+            :or {search-icon? true
+                 placeholder "Search Tags"}
+            :as opts}]
+        (let [;; Local Function for handling updates
+              -update-chip-listing
+              (fn [new-chip-listing]
+                (reset! *current-chip-listing new-chip-listing)
+                (when on-chip-listing-change
+                  (on-chip-listing-change new-chip-listing)))
+
+              current-chip-listing (if (contains? opts :default-chip-listing) @*current-chip-listing chip-listing)]
+          [:div.ethlance-chip-search-input
+           {:key "chip-search-input"
+            :class (when-not search-icon? "no-search-icon")}
+           [:div.search-container
+            [:div.chip-listing
+             (doall
+              (for [chip-label current-chip-listing]
+                ^{:key (str "chip-" chip-label)}
+                [c-chip 
+                 {:on-close #(-update-chip-listing (disj current-chip-listing chip-label))}
+                 chip-label]))]
+            [:input.search-input
+             {:type "text"
+              :value @*search-text
+              :on-change #(reset! *search-text (-> % .-target .-value))
+              :on-key-down
+              (fn [event]
+                (let [key (some-> (aget event "key") string/lower)]
+                  (case key
+                    "enter"
+                    (cond 
+                      @*active-suggestion
+                      (do
+                        (-update-chip-listing (conj current-chip-listing @*active-suggestion))
+                        (reset! *search-text "")
+                        (reset! *active-suggestion nil))
+                      (and (> (count @*search-text) 0) allow-custom-chips?)
+                      (do
+                        (-update-chip-listing (conj current-chip-listing @*search-text))
+                        (reset! *search-text "")
+                        (reset! *active-suggestion nil)))
+                    
+                    "arrowdown"
+                    (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+                      (if @*active-suggestion
+                        (let [next-active (next-element suggestions @*active-suggestion)]
+                          (reset! *active-suggestion next-active))
+                        (reset! *active-suggestion (first suggestions))))
+
+                    "arrowup"
+                    (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+                      (if @*active-suggestion
+                        (let [previous-active (previous-element suggestions @*active-suggestion)]
+                          (reset! *active-suggestion previous-active))
+                        (reset! *active-suggestion (last suggestions))))
+
+                    "escape"
                     (do
-                      (swap! *chip-listing conj @*active-suggestion)
-                      (reset! *search-text "")
-                      (reset! *active-suggestion nil))
-                    (and (> (count @*search-text) 0) allow-custom-chips?)
-                    (do
-                      (swap! *chip-listing conj @*search-text)
-                      (reset! *search-text "")
-                      (reset! *active-suggestion nil)))
-                  
-                  "arrowdown"
-                  (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
-                    (if @*active-suggestion
-                      (let [next-active (next-element suggestions @*active-suggestion)]
-                        (reset! *active-suggestion next-active))
-                      (reset! *active-suggestion (first suggestions))))
+                      (reset! *active-suggestion nil)
+                      (reset! *search-text ""))
+                    
+                    nil)))
+              :placeholder (when (empty? current-chip-listing) placeholder)}]]
 
-                  "arrowup"
-                  (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
-                    (if @*active-suggestion
-                      (let [previous-active (previous-element suggestions @*active-suggestion)]
-                        (reset! *active-suggestion previous-active))
-                      (reset! *active-suggestion (last suggestions))))
+           (when search-icon?
+             [:div.search-button [c-icon {:name :search :size :normal :inline? false}]])
 
-                  "escape"
-                  (do
-                    (reset! *active-suggestion nil)
-                    (reset! *search-text ""))
-                  
-                  nil)))
-            :placeholder (when (empty? @*chip-listing) placeholder)}]]
-
-         (when search-icon?
-           [:div.search-button [c-icon {:name :search :size :normal :inline? false}]])
-
-         (let [suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
-           (when (or (not (empty? @*search-text)) (and display-listing-on-focus? @*input-focused?))
-             [:div.dropdown
-              [:div.suggestion-listing
-               (doall
-                (for [suggestion suggestions]
-                  ^{:key (str "suggestion-" suggestion)}
-                  [:div.suggestion
-                   {:class (when (= @*active-suggestion suggestion) "active")
-                    :on-click (fn []
-                                (swap! *chip-listing conj suggestion)
-                                (reset! *search-text "")
-                                (reset! *active-suggestion nil))}
-                   suggestion]))]]))])})))
+           (let [suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
+             (when (or (not (empty? @*search-text)) (and display-listing-on-focus? @*input-focused?))
+               [:div.dropdown
+                [:div.suggestion-listing
+                 (doall
+                  (for [suggestion suggestions]
+                    ^{:key (str "suggestion-" suggestion)}
+                    [:div.suggestion
+                     {:class (when (= @*active-suggestion suggestion) "active")
+                      :on-click (fn [e]
+                                  (-update-chip-listing (conj current-chip-listing suggestion))
+                                  (reset! *search-text "")
+                                  (reset! *active-suggestion nil))}
+                     suggestion]))]]))]))})))

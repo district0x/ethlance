@@ -57,6 +57,18 @@
            (assoc-in [state-key :job-listing] job-listing))})
 
 
+(defn set-skills
+  "Event FX Handler. Set the skills"
+  [{:keys [db]} [_ new-skill-listing]]
+  {:db (assoc-in db [state-key :skills] new-skill-listing)})
+
+
+(defn add-skill
+  "Event FX Handler. Append skill to skill listing."
+  [{:keys [db]} [_ new-skill]]
+  {:db (update-in db [state-key :skills] conj new-skill)})
+
+
 (defn set-category
   "Event FX Handler. Set the current feedback min rating."
   [{:keys [db]} [_ new-category]]
@@ -151,6 +163,8 @@
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
 (re/reg-event-fx :page.jobs/query-job-listing mock-query-job-listing)
+(re/reg-event-fx :page.jobs/set-skills set-skills)
+(re/reg-event-fx :page.jobs/add-skill add-skill)
 (re/reg-event-fx :page.jobs/set-category set-category)
 (re/reg-event-fx :page.jobs/set-feedback-max-rating set-feedback-max-rating)
 (re/reg-event-fx :page.jobs/set-feedback-min-rating set-feedback-min-rating)
@@ -164,5 +178,3 @@
 
 ;; Intermediates
 (re/reg-event-fx :page.jobs/-set-job-listing set-job-listing)
-
-

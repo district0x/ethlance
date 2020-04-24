@@ -24,12 +24,6 @@
    [ethlance.ui.component.text-input :refer [c-text-input]]))
 
 
-;;
-;; Page State
-;;
-(def *search-input-listing (r/atom #{}))
-
-
 (defn c-user-employer-detail
   [{:keys [] :as employer}]
   [:div.user-detail.employer
@@ -218,7 +212,7 @@
     (doall
      (for [skill-label skills]
        ^{:key (str "tag-" skill-label)}
-       [c-tag {:on-click #(swap! *search-input-listing conj skill-label)
+       [c-tag {:on-click #(re/dispatch [:page.jobs/add-skill skill-label])
                :title (str "Add '" skill-label "' to Search")}
         [c-tag-label skill-label]]))]
 
@@ -256,7 +250,8 @@
 
 
 (defmethod page :route.job/jobs []
-  (let [*job-listing (re/subscribe [:page.jobs/job-listing])]
+  (let [*skills (re/subscribe [:page.jobs/skills])
+        *job-listing (re/subscribe [:page.jobs/job-listing])]
     (fn []
       [c-main-layout {:container-opts {:class :jobs-main-container}}
        [c-job-search-filter]
@@ -264,9 +259,9 @@
        [:div.job-listing.listing {:key "listing"}
         [:div.search-container
          [c-chip-search-input 
-          {:*chip-listing *search-input-listing
+          {:chip-listing @*skills
+           :on-chip-listing-change #(re/dispatch [:page.jobs/set-skills %])
            :placeholder "Search Job Skill Requirements"
            :allow-custom-chips? false
            :auto-suggestion-listing constants/skills}]]
         [c-job-listing]]])))
-

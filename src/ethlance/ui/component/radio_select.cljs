@@ -70,7 +70,7 @@
       
       :reagent-render
       (fn [opts & children]
-        (assert (not (and selection default-selection))
+        (assert (not (and (:selection opts) (:default-selection opts)))
                 "Component has both controlled `selection` and uncontrolled `default-selection` attributes set.")
         (let [current-selection (if (contains? opts :default-selection) @*current-selection (:selection opts))
               opts (dissoc opts :default-selection :selection :on-selection :flex?)]
