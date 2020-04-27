@@ -53,7 +53,7 @@
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.2.5"]
                  [district0x/district-server-web3 "1.2.3"]
-                 [district0x/district-server-web3-events "1.1.10"]
+                 [district0x/district-server-web3-events "1.1.11-SNAPSHOT"]
 
                  ;; UI Components
                  [cljs-web3 "0.19.0-0-10"]
@@ -110,6 +110,7 @@
   :npm {:dependencies
         [["@sentry/node" "4.2.1"]
          [express "4.17.1"]
+         [axios "0.19.2"]
          [body-parser "1.19.0"]
          [apollo-server-express "2.12.0"]
          [graphql-middleware "4.0.1"]

@@ -10,7 +10,7 @@
    [ethlance.server.ipfs :refer [ipfs]]
 
    ;; Mount Components
-   [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
+   [district.server.web3-events :refer [register-callback! unregister-callbacks!] :as web3-events]
    [ethlance.server.syncer.processor :as processor]
    [ethlance.server.ipfs :as ipfs]))
 
@@ -324,7 +324,8 @@
 (defn wrap-save-event [handler]
   (fn [err event]
     ;; TODO: how should we handle errors?
-    (ethlance-db/save-ethereum-log-event event)
+    (when-not (:replay event)
+      (ethlance-db/save-ethereum-log-event event))
     (handler err event)))
 
 ;;;;;;;;;;;;;;;;;;
@@ -365,6 +366,7 @@
   (register-callback! :ethlance-jobs/job-data-changed (wrap-save-event handle-job-data-changed) :JobDataChanged)
   (register-callback! :ethlance-jobs/candidate-accepted (wrap-save-event handle-candidate-accepted) :CandidateAccepted)
   (register-callback! :ethlance-jobs/candidate-applied (wrap-save-event handle-candidate-applied) :CandidateApplied)
+
   )
 
 

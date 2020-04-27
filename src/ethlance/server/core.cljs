@@ -25,6 +25,7 @@
    ;; Ethlance Mount Components
    [ethlance.server.graphql.server]
    [ethlance.server.syncer]
+   [ethlance.server.events-replay-system]
    [district.server.db]
    [ethlance.server.db]
    [ethlance.server.ipfs]
@@ -82,6 +83,7 @@
                           :ethlance-jobs/candidate-applied [:ethlance-jobs :CandidateApplied {} {:from-block 0 :to-block "latest"}]
                           }
                  :crash-on-event-fail? true
+                 :skip-past-events-replay? true
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
 
@@ -91,7 +93,10 @@
 
    :graphql graphql-config
 
-   :ethlance/db {:resync? false}
+   :db {:path "./ethlance.db"
+        :opts {:memory false}}
+
+   :ethlance/db {:resync? true}
 
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"

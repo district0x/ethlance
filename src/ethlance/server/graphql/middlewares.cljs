@@ -30,10 +30,12 @@
   (resolve root args context info))
 
 (defn save-mutation-express-middleware [req res next]
-  (let [headers (.-headers req)
-        body (.-body req)
-        query (.-query body)]
-    (when (str/starts-with? query "mutation")
-      (ethlance-db/save-graphql-mutation-event {:headers (js->clj headers)
-                                                :body (js->clj body)})))
+  (let [headers (js->clj (.-headers req) :keywordize-keys true)
+        body (js->clj (.-body req) :keywordize-keys true)
+        query (:query body)]
+    (when (and (not (:replay headers))
+               query
+               (str/starts-with? query "mutation"))
+      (ethlance-db/save-graphql-mutation-event {:headers headers
+                                                :body body})))
   (next))

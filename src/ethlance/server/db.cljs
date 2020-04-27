@@ -493,8 +493,9 @@
   []
   (log/info "Dropping Sqlite Database...")
   (doseq [{:keys [table-name]} (reverse database-schema)]
-    (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
-    (db/run! {:drop-table [:if-exists table-name]})))
+    (when-not (= table-name :ReplaySystemEvents)
+      (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
+      (db/run! {:drop-table [:if-exists table-name]}))))
 
 (defn insert-row!
   "Inserts into the given `table-name` with the given `item`. The
@@ -751,26 +752,35 @@
 
 (def event-type {:ethereum-log 0
                  :graphql-mutation 1})
+(def event-type-key (->> event-type
+                         (map (fn [[k v]] [v k]))
+                         (into {})))
+
+(defn save-log-event [event-t data]
+  (insert-row! :ReplaySystemEvents {:event/timestamp (.getTime (js/Date.))
+                                    :event/type (event-type event-t)
+                                    :event/body (pr-str data)}))
 
 (defn save-ethereum-log-event [event-body-map]
-  (log/debug "Saving ethereum log event " {:event event-body-map})
-  (insert-row! :ReplaySystemEvents {:event/timestamp (.getTime (js/Date.))
-                                    :event/type (event-type :ethereum-log)
-                                    :event/body (pr-str event-body-map)}))
+  (save-log-event :ethereum-log event-body-map))
 
 (defn save-graphql-mutation-event [mutation-body-map]
-  (insert-row! :ReplaySystemEvents {:event/timestamp (.getTime (js/Date.))
-                                    :event/type (event-type :graphql-mutation)
-                                    :event/body (pr-str mutation-body-map)}))
+  (save-log-event :graphql-mutation mutation-body-map))
 
+(defn load-replay-system-events []
+  (db/all {:select [:*]
+           :from [:ReplaySystemEvents]
+           :order-by [[:ReplaySystemEvents.event/timestamp :asc]]}))
 
 (defn start
   "Start the ethlance-db mount component."
   [{:keys [:resync?] :as opts}]
+  (log/info "Starting Ethlance DB component" {})
   (when resync?
     (log/info "Database module called with a resync flag.")
     (drop-db!))
-  (create-db!))
+  (create-db!)
+  (log/info "Ethlance DB component started" {}))
 
 (defn stop
   "Stop the ethlance-db mount component."
