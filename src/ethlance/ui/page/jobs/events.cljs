@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.jobs.events
   (:require
    [re-frame.core :as re]
+   [district.parsers]
    [district.ui.router.effects :as router.effects]
    [ethlance.shared.constants :as constants]
    [ethlance.shared.mock :as mock]))
@@ -58,7 +59,7 @@
 
 
 (defn set-skills
-  "Event FX Handler. Set the skills"
+  "Event FX Handler. Set the skills in the skill listing."
   [{:keys [db]} [_ new-skill-listing]]
   {:db (assoc-in db [state-key :skills] new-skill-listing)})
 
@@ -82,11 +83,12 @@
 
    - If the min rating is higher than the max rating, the max rating will also be adjusted appropriately."
   [{:keys [db]} [_ new-min-rating]]
-  (let [current-max-rating (get-in db [state-key :feedback-max-rating])
-        max-rating (max new-min-rating current-max-rating)]
+  (let [new-min-rating (district.parsers/parse-int new-min-rating)
+        current-max-rating (-> db (get-in [state-key :feedback-max-rating]) district.parsers/parse-int)
+        new-max-rating (max new-min-rating current-max-rating)]
     {:db (-> db
              (assoc-in [state-key :feedback-min-rating] new-min-rating)
-             (assoc-in [state-key :feedback-max-rating] max-rating))}))
+             (assoc-in [state-key :feedback-max-rating] new-max-rating))}))
 
 
 (defn set-feedback-max-rating
@@ -96,7 +98,8 @@
 
    - If the max rating is lower than the min rating, the min rating will also be adjusted appropriately."
   [{:keys [db]} [_ new-max-rating]]
-  (let [current-min-rating (get-in db [state-key :feedback-min-rating])
+  (let [new-max-rating (district.parsers/parse-int new-max-rating)
+        current-min-rating (-> db (get-in [state-key :feedback-min-rating]) district.parsers/parse-int)
         min-rating (min new-max-rating current-min-rating)]
     {:db (-> db
              (assoc-in [state-key :feedback-max-rating] new-max-rating)
@@ -110,11 +113,12 @@
 
    - If the min hourly rate is higher than the max hourly rate, the max hourly rate will also be adjusted appropriately."
   [{:keys [db]} [_ new-min-hourly-rate]]
-  (let [current-max-hourly-rate (get-in db [state-key :max-hourly-rate])
-        max-hourly-rate (max new-min-hourly-rate current-max-hourly-rate)]
+  (let [new-min-hourly-rate (district.parsers/parse-float new-min-hourly-rate)
+        current-max-hourly-rate (-> db (get-in [state-key :max-hourly-rate]) district.parsers/parse-float)
+        new-max-hourly-rate (when current-max-hourly-rate (max new-min-hourly-rate current-max-hourly-rate))]
     {:db (-> db
              (assoc-in [state-key :min-hourly-rate] new-min-hourly-rate)
-             (assoc-in [state-key :max-hourly-rate] max-hourly-rate))}))
+             (assoc-in [state-key :max-hourly-rate] new-max-hourly-rate))}))
 
 
 (defn set-max-hourly-rate
@@ -124,17 +128,18 @@
 
    - If the max hourly rate is lower than the min hourly rate, the min hourly rate will also be adjusted appropriately."
   [{:keys [db]} [_ new-max-hourly-rate]]
-  (let [current-min-hourly-rate (get-in db [state-key :min-hourly-rate])
-        min-hourly-rate (min new-max-hourly-rate current-min-hourly-rate)]
+  (let [new-max-hourly-rate (district.parsers/parse-float new-max-hourly-rate)
+        current-min-hourly-rate (-> db (get-in [state-key :min-hourly-rate]) district.parsers/parse-float)
+        new-min-hourly-rate (when current-min-hourly-rate (min new-max-hourly-rate current-min-hourly-rate))]
     {:db (-> db
-             (assoc-in [state-key :min-hourly-rate] min-hourly-rate)
+             (assoc-in [state-key :min-hourly-rate] new-min-hourly-rate)
              (assoc-in [state-key :max-hourly-rate] new-max-hourly-rate))}))
 
 
 (defn set-min-num-feedbacks
   "Event FX Handler. Set the minimum number of feedbacks"
   [{:keys [db]} [_ new-min-num-feedbacks]]
-  {:db (assoc-in db [state-key :min-num-feedbacks] new-min-num-feedbacks)})
+  {:db (assoc-in db [state-key :min-num-feedbacks] (district.parsers/parse-int new-min-num-feedbacks))})
 
 
 (defn set-payment-type
