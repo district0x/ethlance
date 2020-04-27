@@ -66,11 +66,7 @@
 
 
 (defn cf-job-search-filter
-  "Component Fragment for the job search filter.
-
-  # Notes
-
-  - The cf-* prefix stands for Component Fragment."
+  "Component Fragment for the job search filter."
   []
   (let [*category (re/subscribe [:page.jobs/category])
         *feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
