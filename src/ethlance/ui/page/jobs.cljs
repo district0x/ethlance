@@ -65,8 +65,12 @@
      [:div.value (str/title availability)]]))
 
 
-(defn c-job-search-filter
-  "Sidebar component for changing the search criteria."
+(defn cf-job-search-filter
+  "Component Fragment for the job search filter.
+
+  # Notes
+
+  - The cf-* prefix stands for Component Fragment."
   []
   (let [*category (re/subscribe [:page.jobs/category])
         *feedback-max-rating (re/subscribe [:page.jobs/feedback-max-rating])
@@ -79,7 +83,7 @@
         *country (re/subscribe [:page.jobs/country])]
     (fn []
       (let []
-        [:div.job-search-filter.search-filter
+        [:<>
          [:div.category-selector
           [c-select-input
            {:selection @*category
@@ -142,63 +146,18 @@
            :color :secondary
            :default-search-text "Search Countries"}]]))))
 
+
+(defn c-job-search-filter
+  "Sidebar component for changing the search criteria."
+  []
+  [:div.job-search-filter.search-filter
+   [cf-job-search-filter]])
+
+
 (defn c-job-mobile-search-filter
   []
   [c-mobile-search-filter
-   [:div.category-selector
-    [c-select-input
-     {:label "All Categories"
-      :default-selection "All Categories"
-      :color :secondary
-      :selections ["All Categories" "Software Development" "Web Design"]}]]
-
-   [:span.rating-label "Min. Rating"]
-   [c-rating {:default-rating 1 :color :white :size :small
-              :on-change (fn [index] (log/debug "Min. Rating: " index))}]
-
-   [:span.rating-label "Max. Rating"]
-   [c-rating {:default-rating 5 :color :white :size :small
-              :on-change (fn [index] (log/debug "Max. Rating: " index))}]
-
-   [c-currency-input
-    {:placeholder "Min. Hourly Rate"
-     :currency-type ::enum.currency/usd
-     :color :secondary
-     :on-change #(println "Currency Min Change: " %)}]
-   
-   [c-currency-input
-    {:placeholder "Max. Hourly Rate"
-     :currency-type ::enum.currency/usd
-     :color :secondary
-     :on-change #(println "Currency Max Change: " %)}]
-
-   [:div.feedback-input
-    [c-text-input
-     {:placeholder "Number of Feedbacks"
-      :color :secondary}]]
-
-   [:span.selection-label "Payment Type"]
-   [c-radio-select 
-    {:on-selection (fn [selection] (log/debug (str "Payment Selection: " selection)))
-     :default-selection :hourly-rate}
-    [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
-    [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
-    [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
-
-   [:span.selection-label "Experience Level"]
-   [c-radio-select 
-    {:on-selection (fn [selection] (log/debug (str "Experience Selection: " selection)))
-     :default-selection :novice}
-    [:novice [c-radio-search-filter-element "Novice ($)"]]
-    [:professional [c-radio-search-filter-element "Professional ($$)"]]
-    [:expert [c-radio-search-filter-element "Expert ($$$)"]]]
-   
-   [c-select-input
-    {:label "Country"
-     :selections constants/countries
-     :search-bar? true
-     :color :secondary
-     :default-search-text "Search Countries"}]])
+   [cf-job-search-filter]])
 
 
 (defn c-job-element
