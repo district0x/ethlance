@@ -41,7 +41,8 @@
    ))
 
 (def graphql-config
-  {:port 4000})
+  {:port 4000
+   :sign-in-secret "SECRET"})
 
 (def contracts-var
   (condp = (shared-utils/get-environment)

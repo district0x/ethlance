@@ -15,17 +15,14 @@
 (defn parse-jwt [token secret]
   (js-invoke JsonWebToken "verify" token secret))
 
-(defn token->user [event {{:keys [:sign-in-secret]} :graphql}]
+(defn token->user [access-token sign-in-secret]
   (try-catch
-   (let [{:keys [:access-token] :as headers} (js->clj (aget event "req" "headers") :keywordize-keys true)]
-     (log/debug "token->user" headers)
-     (cond
-       (nil? access-token)
-       (log/info "No access-token header present in request")
+   (cond
+     (nil? access-token)
+     nil #_(log/info "No access-token header present in request")
 
-       access-token
-       (let [user {:user/address (aget (parse-jwt access-token sign-in-secret) "userAddress")}]
-         (log/debug "returning user" user)
-         user)
+     access-token
+     (let [user {:user/address (aget (parse-jwt access-token sign-in-secret) "userAddress")}]
+       user)
 
-       :else (log/info "Invalid access-token header")))))
+     :else (log/info "Invalid access-token header"))))
