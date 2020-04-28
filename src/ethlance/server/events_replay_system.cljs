@@ -12,7 +12,7 @@
 
             [ethlance.server.db :as ethlance-db]
             [cljs.reader :refer [read-string]]
-
+            [ethlance.server.event-store :as event-store]
             [district.shared.async-helpers :refer [safe-go <?]]))
 
 (declare start stop)
@@ -26,10 +26,10 @@
 (defn start []
   (log/debug "Starting Events replay system...")
   (safe-go
-   (let [all-events (ethlance-db/load-replay-system-events)]
+   (let [all-events (event-store/load-replay-system-events)]
      (log/info "[ERS] about to relpalay " {:events-count (count all-events)})
      (doseq [e all-events]
-       (case (ethlance-db/event-type-key (:event/type e))
+       (case (event-store/event-type-key (:event/type e))
          :ethereum-log (let [evt (read-string (:event/body e))]
                          (doseq [res (web3-events/dispatch nil (assoc evt :replay true) )]
                            (when res

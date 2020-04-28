@@ -88,6 +88,8 @@
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
 
+   :event-store {:store-file "event-store.log"}
+
    :smart-contracts {:contracts-var contracts-var
                      :print-gas-usage? false
                      :auto-mining? false}
