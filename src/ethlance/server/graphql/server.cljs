@@ -7,6 +7,7 @@
             [ethlance.server.middlewares :as middlewares]
             [ethlance.shared.graphql.schema :as schema]
             [mount.core :as mount :refer [defstate]]
+            [cljs.reader :refer [read-string]]
             [taoensso.timbre :as log]
             [clojure.string :as str]))
 
@@ -36,13 +37,19 @@
                                                 middlewares/args->clj-middleware
                                                 ;; middlewares/logging-middleware
                                                 middlewares/response->gql-middleware)
+
+        ;; NOTE: the order off how we are applying middlewares matter
         app (doto (express)
               (.use (.json body-parser))
+              (.use middlewares/current-user-express-middleware)
               (.use middlewares/save-mutation-express-middleware))
-        server (new ApolloServer (clj->js {:schema schema-with-middleware
-                                           :context (fn [event]
-                                                      {:config @config/config
-                                                       :current-user (authorization/token->user event @config/config)})}))]
+
+        server (new ApolloServer
+                    (clj->js {:schema schema-with-middleware
+                              :context (fn [event]
+                                         (let [user (read-string (aget event "req" "headers" "current-user"))]
+                                           {:config @config/config
+                                            :current-user user}))}))]
 
     (js-invoke server "applyMiddleware" (clj->js {:app app}))
     (js-invoke app "listen" (clj->js opts)

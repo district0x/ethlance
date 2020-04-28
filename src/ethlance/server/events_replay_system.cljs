@@ -3,6 +3,7 @@
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]
             [cljs.nodejs :as nodejs]
+            [district.shared.async-helpers :as async-helpers]
 
             ;; it needs to depend syncer and graphql server so
             ;; we know those are already started when we run our start
@@ -10,7 +11,9 @@
             [ethlance.server.graphql.server]
 
             [ethlance.server.db :as ethlance-db]
-            [cljs.reader :refer [read-string]]))
+            [cljs.reader :refer [read-string]]
+
+            [district.shared.async-helpers :refer [safe-go <?]]))
 
 (declare start stop)
 
@@ -22,21 +25,26 @@
 
 (defn start []
   (log/debug "Starting Events replay system...")
-  (let [all-events (ethlance-db/load-replay-system-events)]
-    (log/info "[ERS] about to relpalay " {:events-count (count all-events)})
-    (doseq [e all-events]
-      ;; TODO: synchronize this, web3-events/dispatch and axios returns a promise
-      ;; so don't continue until the promise is resolved
-      (case (ethlance-db/event-type-key (:event/type e))
-        :ethereum-log (let [evt (read-string (:event/body e))]
-                        (web3-events/dispatch nil (assoc evt :replay true) ))
-        :graphql-mutation (let [{:keys [headers body]} (read-string (:event/body e))]
-                            (.then (axios (clj->js {:method "post"
-                                                    :url "http://localhost:4000/graphql"
-                                                    :headers (assoc headers :replay true)
-                                                    :data body}))
-                                   (fn [response]
-                                     (log/info "Responded with " {:response response}))))))))
+  (safe-go
+   (let [all-events (ethlance-db/load-replay-system-events)]
+     (log/info "[ERS] about to relpalay " {:events-count (count all-events)})
+     (doseq [e all-events]
+       (case (ethlance-db/event-type-key (:event/type e))
+         :ethereum-log (let [evt (read-string (:event/body e))]
+                         (doseq [res (web3-events/dispatch nil (assoc evt :replay true) )]
+                           (when res
+                             (cond
+                               (satisfies? cljs.core.async.impl.protocols/ReadPort res)
+                               (<! res)
+
+                               (async-helpers/promise? res)
+                               (<! (async-helpers/promise->chan res))))))
+         :graphql-mutation (let [{:keys [headers body]} (read-string (:event/body e))]
+                             (<? (axios (clj->js {:method "post"
+                                                  ;; TODO: take this from config
+                                                  :url "http://localhost:4000/graphql"
+                                                  :headers (assoc headers :replay true)
+                                                  :data body})))))))))
 
 (defn stop []
   (log/debug "Stopping Events replay system...")

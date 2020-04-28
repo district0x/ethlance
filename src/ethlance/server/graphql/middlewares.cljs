@@ -3,7 +3,9 @@
             [district.graphql-utils :as graphql-utils]
             [taoensso.timbre :as log]
             [clojure.string :as str]
-            [ethlance.server.db :as ethlance-db]))
+            [ethlance.server.db :as ethlance-db]
+            [district.server.config :as config]
+            [ethlance.server.graphql.authorization :as authorization]))
 
 ;; TODO : root-value->clj middleware
 
@@ -30,12 +32,22 @@
   (resolve root args context info))
 
 (defn save-mutation-express-middleware [req res next]
-  (let [headers (js->clj (.-headers req) :keywordize-keys true)
+  (let [current-user (aget req "headers" "current-user")
+        headers (js->clj (.-headers req) :keywordize-keys true)
         body (js->clj (.-body req) :keywordize-keys true)
         query (:query body)]
     (when (and (not (:replay headers))
+               current-user
                query
                (str/starts-with? query "mutation"))
       (ethlance-db/save-graphql-mutation-event {:headers headers
                                                 :body body})))
+  (next))
+
+(defn current-user-express-middleware [req res next]
+  (let [secret (-> @config/config :graphql :sign-in-secret)
+        headers (js->clj (.-headers req) :keywordize-keys true)
+        current-user (authorization/token->user (:access-token headers) secret)]
+    (when current-user
+      (aset (.-headers req) "current-user" (pr-str current-user))))
   (next))
