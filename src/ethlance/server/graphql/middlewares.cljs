@@ -5,7 +5,8 @@
             [clojure.string :as str]
             [ethlance.server.db :as ethlance-db]
             [district.server.config :as config]
-            [ethlance.server.graphql.authorization :as authorization]))
+            [ethlance.server.graphql.authorization :as authorization]
+            [ethlance.server.event-store :as event-store]))
 
 ;; TODO : root-value->clj middleware
 
@@ -40,7 +41,7 @@
                current-user
                query
                (str/starts-with? query "mutation"))
-      (ethlance-db/save-graphql-mutation-event {:headers headers
+      (event-store/save-graphql-mutation-event {:headers headers
                                                 :body body})))
   (next))
 

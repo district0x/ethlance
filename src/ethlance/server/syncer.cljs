@@ -8,6 +8,7 @@
    [ethlance.server.utils :as server-utils]
    [ethlance.server.db :as ethlance-db]
    [ethlance.server.ipfs :refer [ipfs]]
+   [ethlance.server.event-store :as event-store]
 
    ;; Mount Components
    [district.server.web3-events :refer [register-callback! unregister-callbacks!] :as web3-events]
@@ -325,7 +326,7 @@
   (fn [err event]
     ;; TODO: how should we handle errors?
     (when-not (:replay event)
-      (ethlance-db/save-ethereum-log-event event))
+      (event-store/save-ethereum-log-event event))
     (handler err event)))
 
 ;;;;;;;;;;;;;;;;;;

@@ -19,7 +19,7 @@
   (try-catch
    (cond
      (nil? access-token)
-     nil #_(log/info "No access-token header present in request")
+     (log/info "No access-token header present in request")
 
      access-token
      (let [user {:user/address (aget (parse-jwt access-token sign-in-secret) "userAddress")}]

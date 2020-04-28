@@ -412,17 +412,6 @@
      [(sql/call :primary-key :file/id)]
      ]
     :list-keys []}
-
-   {:table-name :ReplaySystemEvents
-    :table-columns
-    [[:event/id :integer not-nil]
-     [:event/timestamp :integer not-nil]
-     [:event/type :integer not-nil]
-     [:event/body :varchar not-nil]
-
-     ;; PK
-     [(sql/call :primary-key :event/id)]]
-    :list-keys []}
    ])
 
 
@@ -493,9 +482,8 @@
   []
   (log/info "Dropping Sqlite Database...")
   (doseq [{:keys [table-name]} (reverse database-schema)]
-    (when-not (= table-name :ReplaySystemEvents)
-      (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
-      (db/run! {:drop-table [:if-exists table-name]}))))
+    (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name))
+    (db/run! {:drop-table [:if-exists table-name]})))
 
 (defn insert-row!
   "Inserts into the given `table-name` with the given `item`. The
@@ -745,32 +733,6 @@
                       [:= :job-story/id job-story-id]
                       [:= :invoice/ref-id invoice-id]]})))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Events replay system ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(def event-type {:ethereum-log 0
-                 :graphql-mutation 1})
-(def event-type-key (->> event-type
-                         (map (fn [[k v]] [v k]))
-                         (into {})))
-
-(defn save-log-event [event-t data]
-  (insert-row! :ReplaySystemEvents {:event/timestamp (.getTime (js/Date.))
-                                    :event/type (event-type event-t)
-                                    :event/body (pr-str data)}))
-
-(defn save-ethereum-log-event [event-body-map]
-  (save-log-event :ethereum-log event-body-map))
-
-(defn save-graphql-mutation-event [mutation-body-map]
-  (save-log-event :graphql-mutation mutation-body-map))
-
-(defn load-replay-system-events []
-  (db/all {:select [:*]
-           :from [:ReplaySystemEvents]
-           :order-by [[:ReplaySystemEvents.event/timestamp :asc]]}))
 
 (defn start
   "Start the ethlance-db mount component."
