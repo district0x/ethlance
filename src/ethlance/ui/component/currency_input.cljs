@@ -1,25 +1,36 @@
 (ns ethlance.ui.component.currency-input
   "Currency Component, for handling correct currency inputs"
   (:require
+   [reagent.core :as r]
    [ethlance.shared.enumeration.currency-type :as enum.currency]))
 
 
 (defn c-currency-input
-  "Currency Component based on the 'text' input component.
+  "Currency Component based on the react 'number' input component.
 
    # Notes
 
    - TODO: ensure the values are numeric"
-  [{:keys [placeholder on-change currency-type color] :as opts}]
-  (let [currency-symbol (case currency-type
+  [{:keys [default-value value placeholder on-change currency-type color] :as opts}]
+  (let [*current-value (r/atom default-value)
+        currency-symbol (case currency-type
                           ::enum.currency/eth "ETH"
                           ::enum.currency/usd "$"
                           "$")
         color-class (case color
-                     :primary "primary"
-                     :secondary "secondary"
-                     "primary")]
-    [:div.currency-input
-     {:class color-class}
-     [:input {:type "number" :placeholder placeholder}]
-     [:span currency-symbol]]))
+                      :primary "primary"
+                      :secondary "secondary"
+                      "primary")]
+    (fn [{:keys [default-value value placeholder on-change currency-type color] :as opts}]
+      (assert (not (and value default-value))
+              "Component has both controlled `value` and uncontrolled `default-value` attributes set.")
+      (let [current-value (if (contains? opts :default-value) @*current-value value)]
+        [:div.currency-input
+         {:class color-class}
+         [:input {:type "number"
+                  :placeholder placeholder
+                  :value current-value
+                  :on-change (fn [e] 
+                               (reset! *current-value (-> e .-target .-value))
+                               (when on-change (on-change (-> e .-target .-value))))}]
+         [:span currency-symbol]]))))

@@ -31,7 +31,7 @@
   [:div.arbiter-for-hire
    [c-profile-image {}]
    [:div.name "Brian Curran"]
-   [c-rating {:rating 3}]
+   [c-rating {:default-rating 3}]
    [:div.price "$10"]
    [c-button
     {:size :small}

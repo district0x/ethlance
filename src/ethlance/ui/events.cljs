@@ -1,5 +1,5 @@
 (ns ethlance.ui.events
-  "Includes the list of all registered events within re-frame."
+  "Main entry point for all registered events within re-frame for ethlance."
   (:require 
    [re-frame.core :as re]
 
@@ -11,11 +11,21 @@
 
    ;; Ethlance Page Event Handlers
    [ethlance.ui.page.me.events]       ;; :page.me/*
+   [ethlance.ui.page.jobs.events]     ;; :page.jobs/*
 
    ;; Ethlance Main Event Handlers
-   [ethlance.ui.event.sign-in]        ;; :user/*
-   [ethlance.ui.event.job]            ;; :job/*
-   [ethlance.ui.event.job-listing]))  ;; :job-listing/*
+   [ethlance.ui.event.sign-in]))      ;; :user/*
+
+
+(def forwarded-events
+  "Forwarded Events.
+
+   Notes:
+
+   - district.ui.router/watch-active-page effect handler uses forwarded events
+   - Additional info: https://github.com/day8/re-frame-forward-events-fx"
+  (list
+   [:page.jobs/initialize-page]))
 
 
 (defn initialize
@@ -24,18 +34,19 @@
   (let [new-db
         (assoc db
                ;; Component Events
-               ;; ...
+               ;; /Nothing here, yet/
 
                ;; Page Events
                ethlance.ui.page.me.events/state-key
                ethlance.ui.page.me.events/state-default
+               ethlance.ui.page.jobs.events/state-key
+               ethlance.ui.page.jobs.events/state-default)]
 
                ;; Main Events
-               ethlance.ui.event.job/state-key
-               ethlance.ui.event.job/state-default
-               ethlance.ui.event.job-listing/state-key
-               ethlance.ui.event.job-listing/state-default)]
+               ;; /Nothing here, yet/
     {:db new-db
+     ;; Initialize Forwarded FX Events
+     :dispatch-n forwarded-events
      :log/info ["Initialized re-frame app state" (clj->js new-db)]}))
 
 ;;

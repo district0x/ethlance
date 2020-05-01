@@ -56,14 +56,14 @@ Please contact us if this sounds interesting.")
            [:div.header "Employer"]
            [:div.profile-image [c-profile-image {}]]
            [:div.name "Brian Curran"]
-           [:div.rating [c-rating {:rating 3}]]
+           [:div.rating [c-rating {:default-rating 3}]]
            [:div.location "New York, United States"]
            [:div.fee ""]]
           [:div.arbiter-detail
            [:div.header "Arbiter"]
            [:div.profile-image [c-profile-image {}]]
            [:div.name "Brian Curran"]
-           [:div.rating [c-rating {:rating 3}]]
+           [:div.rating [c-rating {:default-rating 3}]]
            [:div.location "New York, United States"]
            [:div.fee "Fee: 0.12 ETH"]]]]
         [:div.side
@@ -123,9 +123,9 @@ Please contact us if this sounds interesting.")
        [:div.feedback-listing
         [:div.label "Feedback"]
         [c-carousel {}
-         [c-feedback-slide {:rating 1}]
-         [c-feedback-slide {:rating 2}]
-         [c-feedback-slide {:rating 3}]
-         [c-feedback-slide {:rating 4}]
-         [c-feedback-slide {:rating 5}]]]])))
+         [c-feedback-slide {:default-rating 1}]
+         [c-feedback-slide {:default-rating 2}]
+         [c-feedback-slide {:default-rating 3}]
+         [c-feedback-slide {:default-rating 4}]
+         [c-feedback-slide {:default-rating 5}]]]])))
          

@@ -1,5 +1,5 @@
 (ns ethlance.ui.subscriptions
-  "Ethlance re-frame Subscriptions"
+  "Main entry point for all registered subscriptions within re-frame for ethlance."
   (:require
    [re-frame.core :as re]
 
@@ -8,8 +8,8 @@
 
    ;; Ethlance Local Page Subscriptions
    [ethlance.ui.page.me.subscriptions]            ;; :page.me/*
+   [ethlance.ui.page.jobs.subscriptions]))        ;; :page.jobs/*
 
    ;; Ethlance Global Subscriptions
-   [ethlance.ui.subscription.job-listing]))       ;; :job-listing/*
-
+   ;; /Nothing here, yet/
 
