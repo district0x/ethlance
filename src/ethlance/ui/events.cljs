@@ -12,6 +12,7 @@
    ;; Ethlance Page Event Handlers
    [ethlance.ui.page.me.events]       ;; :page.me/*
    [ethlance.ui.page.jobs.events]     ;; :page.jobs/*
+   [ethlance.ui.page.sign-up.events]  ;; :page.sign-up/*
 
    ;; Ethlance Main Event Handlers
    [ethlance.ui.event.sign-in]))      ;; :user/*
