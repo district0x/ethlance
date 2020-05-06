@@ -47,9 +47,11 @@
         server (new ApolloServer
                     (clj->js {:schema schema-with-middleware
                               :context (fn [event]
-                                         (let [user (read-string (aget event "req" "headers" "current-user"))]
+                                         (let [user (read-string (aget event "req" "headers" "current-user"))
+                                               timestamp (read-string (aget event "req" "headers" "timestamp"))]
                                            {:config @config/config
-                                            :current-user user}))}))]
+                                            :current-user user
+                                            :timestamp timestamp}))}))]
 
     (js-invoke server "applyMiddleware" (clj->js {:app app}))
     (js-invoke app "listen" (clj->js opts)

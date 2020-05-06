@@ -20,6 +20,7 @@
 
 (def ethlance-job-invoice-meta-1 "Qma3LdbDxq9LoTC77Q717w93LnbTVYdoVDt2TLyoBCwYuK") ;; ethlance-job-invoice-meta-1.json
 (def ethlance-job-meta-1 "QmQDGjqaAULR4Rd1Ftt5vircHaWX7JxSmVWV4b1QRhjcT9") ;; ethlance-job-meta-1.json
+(def proposal-meta "Qm...")
 
 (defn gas-price
   [provider]
@@ -61,6 +62,7 @@
         ethlance-issuer-address (ethlance-issuer/test-ethlance-issuer-address)
         ethlance-jobs-address (ethlance-issuer/test-ethlance-jobs-address)
         deposit 2e18
+        rate 1e18
         token-version (ethlance-issuer/token-version :eth)
         token-address "0x0000000000000000000000000000000000000000"
         tx-receipt (<? (ethlance-issuer/issue-job ethlance-issuer-address
@@ -73,20 +75,17 @@
         ev (<! (ethlance-issuer/ethlance-jobs-event-in-tx :JobIssued tx-receipt))
         job-id (:_job-id ev)
 
-        ;; Both apply as candidate
-        aac1-tx-receipt (<? (ethlance-jobs/apply-as-candidate ethlance-jobs-address
-                                                              [job-id
-                                                               candidate1]
-                                                              {:from candidate1}))
-        aac2-tx-receipt (<? (ethlance-jobs/apply-as-candidate ethlance-jobs-address
-                                                              [job-id
-                                                               candidate2]
-                                                              {:from candidate1}))
-        ;; but only candidate1 gets accepted
+        ;; only candidate1 gets accepted
         accept-tx-receipt (<? (ethlance-jobs/accept-candidate ethlance-jobs-address
                                                               [job-id
                                                                candidate1]
                                                               {:from issuer}))
+
+        ;; only candidate1 can get accepted, second should fail
+        accept2-tx-receipt (<? (ethlance-jobs/accept-candidate ethlance-jobs-address
+                                                               [job-id
+                                                                candidate2]
+                                                               {:from issuer}))
 
         ;; since candidate1 was accepted should be able to invoice the job
         in1-tx-receipt (<? (ethlance-jobs/invoice-job ethlance-jobs-address
@@ -107,15 +106,11 @@
                                                        (hex 10)]
                                                       {:from candidate2}))
         ]
-    (testing "Candidates can apply to the job"
-      (let [ev (<! (ethlance-issuer/ethlance-jobs-event-in-tx :CandidateApplied aac1-tx-receipt))]
-        (is (= (:job-id ev) job-id))
-        (is (= (:candidate ev) candidate1))))
 
     (testing "Accept candidate for the job"
       (let [ev (<! (ethlance-issuer/ethlance-jobs-event-in-tx :CandidateAccepted accept-tx-receipt))]
-        (is (= (:job-id ev) job-id))
-        (is (= (:candidate ev) candidate1))))
+        (is (= (:_job-id ev) job-id))
+        (is (= (:_candidate ev) candidate1))))
 
     (testing "Only accepted candidates can invoice a job"
       (let [ev (<! (ethlance-issuer/ethlance-jobs-event-in-tx :JobInvoice in1-tx-receipt))]

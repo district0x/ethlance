@@ -5,7 +5,7 @@
             [district.server.db :as db]
             [district.server.logging]
             [district.shared.async-helpers :as async-helpers :refer [promise->]]
-            [ethlance.server.db]
+            [ethlance.server.db :as ethlance-db]
             [ethlance.server.graphql.generator :as generator]
             [ethlance.server.graphql.server]
             [ethlance.server.graphql.utils :refer [run-query]]
@@ -14,16 +14,23 @@
 
 (async-helpers/extend-promises-as-channels!)
 
+;; Contains {"userAddress": "0x4c3f13898913f15f12f902d6480178484063a6fb"} signed with secret-token
+(def access-token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQWRkcmVzcyI6IjB4NGMzZjEzODk4OTEzZjE1ZjEyZjkwMmQ2NDgwMTc4NDg0MDYzYTZmYiIsImlhdCI6MTU4ODA5NTQxNn0.qGvidhMxes5rjXWvQf32n1vNSepGr3F3-voItByYBpU")
+(def secret-token "SECRET")
+
 (use-fixtures :once
   {:before (fn []
              (log/debug "Running before fixture")
-             (-> (mount/with-args {:db {:opts {:memory true}}
+             (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
+                                   :db {:opts {:memory true}}
                                    :ethlance/db {:resync? false}
-                                   :graphql {:port 4000}
+                                   :graphql {:port 4000
+                                             :sign-in-secret secret-token}
                                    :logging {:level :debug
                                              :console? true}})
                  (mount/only [#'district.server.logging/logging
                               #'district.server.db/db
+                              #'district.server.config/config
                               #'ethlance.server.db/ethlance-db
                               #'ethlance.server.graphql.server/graphql])
                  (mount/start)
@@ -101,15 +108,15 @@
                                                                     [:job/id
                                                                      :job-story/id
                                                                      [:job-story/employer-feedback [:job/id
-                                                                                                   :job-story/id
-                                                                                                   :feedback/rating
-                                                                                                   :feedback/to-user-type
-                                                                                                   :feedback/from-user-type]]
-                                                                     [:job-story/candidate-feedback [:job/id
                                                                                                     :job-story/id
                                                                                                     :feedback/rating
                                                                                                     :feedback/to-user-type
-                                                                                                    :feedback/from-user-type]]]]]]]]}))
+                                                                                                    :feedback/from-user-type]]
+                                                                     [:job-story/candidate-feedback [:job/id
+                                                                                                     :job-story/id
+                                                                                                     :feedback/rating
+                                                                                                     :feedback/to-user-type
+                                                                                                     :feedback/from-user-type]]]]]]]]}))
 
                  job-story-query (<! (run-query {:url api-endpoint
                                                  :query [:job-story {:job-story/id 0 :job/id job-id}
@@ -191,3 +198,13 @@
                                        job-story-dispute))))))
 
              (done)))))
+
+(deftest test-mutations
+  (async done
+         (go
+           (let [api-endpoint "http://localhost:4000/graphql"
+                 m1 (<! (run-query {:url api-endpoint
+                                    :access-token access-token
+                                    :type "mutation"
+                                    :query [:send-message {:to "EMPLOYER" :text "Some message text"}]}))])
+           (done))))

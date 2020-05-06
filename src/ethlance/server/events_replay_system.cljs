@@ -43,7 +43,9 @@
                              (<? (axios (clj->js {:method "post"
                                                   ;; TODO: take this from config
                                                   :url "http://localhost:4000/graphql"
-                                                  :headers (assoc headers :replay true)
+                                                  :headers (assoc headers
+                                                                  :replay true
+                                                                  :timestamp (:event/timestamp e))
                                                   :data body})))))))))
 
 (defn stop []

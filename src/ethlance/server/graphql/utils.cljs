@@ -18,11 +18,12 @@
       {:query-str query-str
        :query (parse-graphql query-str)})))
 
-(defn run-query [{:keys [:url :type :query]
+(defn run-query [{:keys [:url :type :query :access-token]
                   :or {type "query"}}]
   (let [{:keys [:query-str]} (parse-query {:queries [query]})]
-    (-> (axios (clj->js {:url url
-                         :method :post
-                         :data {type query-str}}))
+    (-> (axios (clj->js (cond-> {:url url
+                                 :method :post
+                                 :data {"query" (str (name type) " " query-str)}}
+                          access-token (assoc :headers {:access-token access-token}))))
         (.then (fn [response]
                  (gql->clj (aget response "data")))))))

@@ -94,8 +94,42 @@
     invoice(message_id: Int!): Invoice
   }
 
+  input EmployerInput{
+    user_address: ID
+    employer_bio: String
+    employer_dateRegistered: Date
+    employer_professionalTitle: String
+  }
+
+  input CandidateInput{
+    user_address: ID
+    candidate_bio: String
+    candidate_dateRegistered: Date
+    candidate_professionalTitle: String
+    candidate_categories: [String!]
+    candidate_skills: [String!]
+    candidate_rateCurrencyId: Keyword
+    candidate_rate: Int
+  }
+
+  input ArbiterInput{
+    user_address: ID
+    arbiter_dateRegistered: Date
+    arbiter_bio: String
+    arbiter_feeCurrencyId: Keyword
+    arbiter_fee: Int
+  }
+
   type Mutation {
-    signIn(input: SignInInput!): String!
+    signIn(input: SignInInput!): String!,
+    sendMessage(to: ID, text: String): Boolean!,
+    raiseDispute(jobStory_id: Int!, text: String): Boolean!,
+    resolveDispute(jobStory_id: Int!): Boolean!,
+    leaveFeedback(jobStory_id: Int!, rating: Int!, to: ID!): Boolean!,
+    updateEmployer(employer: EmployerInput!): Boolean!,
+    updateCandidate(candidate: CandidateInput!): Boolean!,
+    updateArbiter(arbiter: ArbiterInput!): Boolean!,
+    createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!
   }
 
   input SignInInput {

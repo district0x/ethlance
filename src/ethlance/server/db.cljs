@@ -206,6 +206,7 @@
 
      ;; FK
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     ;; TODO: add to  candidate table
      ]}
 
    {:table-name :StandardBounty
@@ -231,6 +232,20 @@
      [(sql/call :foreign-key :user/address) (sql/call :references :User :user/address) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
+
+   {:table-name :JobContribution
+    :table-columns
+    [[:job/id :integer]
+     [:user/address address]
+     [:job-contribution/amount :integer]
+     [:job-contribution/id :integer]
+
+     ;; PK
+     [(sql/call :primary-key :job/id :user/address)]
+
+     ;; FKs
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     ]}
 
    {:table-name :JobSkill
     :table-columns
@@ -297,7 +312,7 @@
      [:ethlance-job-story/proposal-message-id :integer]
      [:ethlance-job-story/proposal-rate :integer]
      [:ethlance-job-story/proposal-rate-currency-id :varchar]
-     [:ethlance-job-story/assigned-candidate :varchar]
+     [:ethlance-job-story/candidate :varchar]
 
      ;; PK
      [(sql/call :primary-key :job-story/id)]
@@ -305,17 +320,6 @@
      ;; FKs
      [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]]
     }
-
-   {:table-name :EthlanceJobCandidate
-    :table-columns
-    [[:ethlance-job-story/id :integer]
-     [:user/address address]
-     ;; PK
-     [(sql/call :primary-key :ethlance-job-story/id :user/address)]
-     ;; FKs
-     [(sql/call :foreign-key :ethlance-job-story/id) (sql/call :references :EthlanceJob :ethlance-job-story/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :user/address) (sql/call :references :Candidate :user/address) (sql/raw "ON DELETE CASCADE")]]
-    :list-keys []}
 
    {:table-name :JobStoryMessage
     :table-columns
@@ -598,12 +602,28 @@
                             :where where-clause}))))
     (log/error (str/format "Unable to find table schema for '%s'" table-name))))
 
-(defn upsert-user! [args]
-  (let [values (select-keys args (get-table-column-names :User))]
+(defn upsert-user! [user]
+  (let [values (select-keys user (get-table-column-names :User))]
     (db/run! {:insert-into :User
               :values [values]
               :upsert {:on-conflict [:user/address]
-                       :do-update-set (keys values)}})))
+                       :do-update-set (keys values)}})
+    (case (:user/type user)
+      :arbiter   (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
+                   (db/run! {:insert-into :Arbiter
+                             :values [arbiter]
+                             :upsert {:on-conflict [:user/address]
+                                      :do-update-set (keys arbiter)}}))
+      :employer  (let [employer (select-keys user (get-table-column-names :Employer))]
+                   (db/run! {:insert-into :Employer
+                             :values [employer]
+                             :upsert {:on-conflict [:user/address]
+                                      :do-update-set (keys employer)}}))
+      :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
+                   (db/run! {:insert-into :Candidate
+                             :values [candidate]
+                             :upsert {:on-conflict [:user/address]
+                                      :do-update-set (keys candidate)}})))))
 
 (defn get-last-insert-id []
   (:id (db/get {:select [[(sql/call :last_insert_rowid) :id]] })))
@@ -699,9 +719,9 @@
     (insert-row! :MessageFile {:message/id message-id
                                :file/id file-id})))
 
-(defn add-ethlance-job-candidate [ethlance-job-id user-address]
-  (insert-row! :EthlanceJobCandidate {:ethlance-job/id ethlance-job-id
-                                      :user/address user-address}))
+(defn update-ethlance-job-candidate [ethlance-job-id user-address]
+  (update-row! :EthlanceJob {:ethlance-job/id ethlance-job-id
+                             :ethlance-job/candidate user-address}))
 
 (defn get-job-story-id-by-standard-bounty-id [bounty-id]
   (:id (db/get {:select [[:js.job-story/id :id]]
@@ -733,6 +753,26 @@
                       [:= :job-story/id job-story-id]
                       [:= :invoice/ref-id invoice-id]]})))
 
+(defn add-job-arbiter [job-id user-address]
+  (insert-row! :JobArbiter {:job/id job-id
+                            :user/address user-address}))
+
+(defn add-contribution [job-id contributor-address contribution-id amount]
+  (insert-row! :JobContributor {:job/id job-id
+                                :user/address contributor-address
+                                :job-contributor/amount amount
+                                :job-contributor/id contribution-id}))
+
+(defn refund-job-contribution [job-id contribution-id]
+  ;; TODO: implement this, delete from the table
+  )
+
+(defn update-job-approvers [job-id approvers-addresses]
+  ;; TODO: implement this
+  ;; we can grab the current ones, remove the ones that shouldn't be there
+  ;; delete all from db and insert the calculated ones again
+  ;; NOTE: the problem with implementing this is we don't have fee and fee-currency-id for the new ones
+  )
 
 (defn start
   "Start the ethlance-db mount component."

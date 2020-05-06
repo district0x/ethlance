@@ -20,18 +20,19 @@
                          (map (fn [[k v]] [v k]))
                          (into {})))
 
-(defn save-log-event [event-t data]
-  (let [str-ev (pr-str {:event/timestamp (.getTime (js/Date.))
-                        :event/type (event-type event-t)
-                        :event/body (pr-str data)})]
-    (.write (:event-store-file-stream @event-store)
-            (str str-ev "\n"))))
+(defn save-log-event [timestamp event-t data]
+  (when-let [esfs (:event-store-file-stream @event-store)]
+    (let [str-ev (pr-str {:event/timestamp timestamp
+                          :event/type (event-type event-t)
+                          :event/body (pr-str data)})]
+      (.write esfs
+              (str str-ev "\n")))))
 
-(defn save-ethereum-log-event [event-body-map]
-  (save-log-event :ethereum-log event-body-map))
+(defn save-ethereum-log-event [timestamp event-body-map]
+  (save-log-event timestamp :ethereum-log event-body-map))
 
-(defn save-graphql-mutation-event [mutation-body-map]
-  (save-log-event :graphql-mutation mutation-body-map))
+(defn save-graphql-mutation-event [timestamp mutation-body-map]
+  (save-log-event timestamp :graphql-mutation mutation-body-map))
 
 (defn load-replay-system-events []
   (let [store-file (-> @config :event-store :store-file)
@@ -43,7 +44,7 @@
 (defn start []
   (log/debug "Starting Events store...")
   (let [file-name (-> @config :event-store :store-file)]
-    {:event-store-file-stream (.createWriteStream fs file-name #js {:flags "a"})})
+    {:event-store-file-stream (when file-name (.createWriteStream fs file-name #js {:flags "a"}))})
   )
 
 (defn stop []
