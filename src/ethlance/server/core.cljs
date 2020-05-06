@@ -53,7 +53,8 @@
 (def default-config
   {:web3 {:url "ws://127.0.0.1:8549"}
 
-   :web3-events {:events {
+   :web3-events {:events {:ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited {} {:from-block 0 :to-block "latest"}]
+
                           :standard-bounties/bounty-issued [:standard-bounties :BountyIssued {} {:from-block 0 :to-block "latest"}]
                           :standard-bounties/bounty-approvers-updated [:standard-bounties :BountyApproversUpdated {} {:from-block 0 :to-block "latest"}]
                           :standard-bounties/contribution-added [:standard-bounties :ContributionAdded {} {:from-block 0 :to-block "latest"}]
@@ -81,7 +82,7 @@
                           :ethlance-jobs/job-approvers-updated [:ethlance-jobs :JobApproversUpdated {} {:from-block 0 :to-block "latest"}]
                           :ethlance-jobs/job-data-changed [:ethlance-jobs :JobDataChanged {} {:from-block 0 :to-block "latest"}]
                           :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted {} {:from-block 0 :to-block "latest"}]
-                          :ethlance-jobs/candidate-applied [:ethlance-jobs :CandidateApplied {} {:from-block 0 :to-block "latest"}]
+
                           }
                  :crash-on-event-fail? true
                  :skip-past-events-replay? true

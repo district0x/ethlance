@@ -92,6 +92,7 @@
         token-version (ethlance-issuer/token-version :eth)
         deadline 123123
         arbiter-fee 1e18
+        currency-id 1
         deposit 2e18
         tx-receipt (<? (ethlance-issuer/issue-bounty ethlance-issuer-address
                                                      [ethlance-standard-bounty-meta-1
@@ -108,6 +109,7 @@
       (let [invite-rec (<? (ethlance-issuer/invite-arbiters ethlance-issuer-address
                                                             [[arbiter1 arbiter2]
                                                              (hex arbiter-fee)
+                                                             currency-id
                                                              issued-bounty-id
                                                              (ethlance-issuer/job-type :standard-bounty)]
                                                             {:from deployer

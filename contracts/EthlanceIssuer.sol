@@ -17,8 +17,14 @@ contract EthlanceIssuer {
     uint tokenVersion;
   }
 
+  // Track invited arbiters and their fees
   mapping(address => mapping(uint => uint)) public jobsArbitersFees;
   mapping(address => mapping(uint => uint)) public bountiesArbitersFees;
+
+  // Track accepted (payed) arbiters per job
+  mapping(uint => address) public jobsAcceptedArbiters;
+  mapping(uint => address) public bountiesAcceptedArbiters;
+
   mapping(uint => TokenParams) public bounties;
   mapping(uint => TokenParams) public jobs;
 
@@ -50,17 +56,20 @@ contract EthlanceIssuer {
       This function is for inviting more arbiters, in case nobody
       accepted in the first round of invites.
   */
-  function inviteArbiters(address[] memory arbiters, uint fee, uint jobId, JobType jobType) public payable {
+  function inviteArbiters(address[] memory arbiters, uint fee, uint feeCurrencyId, uint jobId, JobType jobType) public payable {
     address token = bounties[jobId].token;
     uint tokenVersion = bounties[jobId].tokenVersion;
 
     // If paying in eth make sure you send enough funds for paying all arbiters
     if(tokenVersion == 0) require(msg.value == fee*arbiters.length,"Insuficien funds");
 
+    // Transfer the fee that is going to be payed to the first arbiter who accepts
+    transfer(msg.sender,address(this), token, tokenVersion, fee);
+
     for(uint i = 0; i < arbiters.length; i ++){
       // transfer fee to this contract so we can transfer it to arbiter when
       // invitation gets accepted
-      transfer(msg.sender,address(this), token, tokenVersion, fee);
+
 
       if(jobType == JobType.StandardBounty){
         bountiesArbitersFees[arbiters[i]][jobId] = fee;
@@ -68,6 +77,8 @@ contract EthlanceIssuer {
         jobsArbitersFees[arbiters[i]][jobId] = fee;
       }
     }
+
+    emit ArbitersInvited(arbiters, fee, feeCurrencyId, jobId, jobType);
   }
 
   /**
@@ -144,7 +155,13 @@ contract EthlanceIssuer {
     uint tokenVersion;
     uint fee;
 
+
     if(jobType == JobType.StandardBounty){
+
+      if(bountiesAcceptedArbiters[jobId] != address(0)){
+        revert("This position is close.");
+      }
+
       fee=bountiesArbitersFees[msg.sender][jobId];
       standardBounties.addApprovers(address(this),
                                     jobId,
@@ -153,6 +170,11 @@ contract EthlanceIssuer {
       token = bounties[jobId].token;
       tokenVersion = bounties[jobId].tokenVersion;
     } else if (jobType == JobType.EthlanceJob){
+
+      if(jobsAcceptedArbiters[jobId] != address(0)){
+        revert("This position is close.");
+      }
+
       fee=jobsArbitersFees[msg.sender][jobId];
 
       ethlanceJobs.addApprovers(address(this),
@@ -167,6 +189,10 @@ contract EthlanceIssuer {
 
     transfer(address(this), msg.sender, token, tokenVersion, fee);
 
+    emit ArbiterAccepted(msg.sender, jobId);
   }
+
+  event ArbitersInvited(address[] _arbiters, uint _fee, uint _feeCurrencyId, uint _jobId, JobType _jobType);
+  event ArbiterAccepted(address _arbiter, uint _jobId);
 
 }

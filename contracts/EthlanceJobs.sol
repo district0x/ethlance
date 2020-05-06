@@ -32,6 +32,7 @@ contract EthlanceJobs {
     address payable issuer; // Address who should receive payouts for a given submission
     address submitter;
     uint amount;
+    bool cancelled;
   }
 
   struct Contribution {
@@ -47,7 +48,7 @@ contract EthlanceJobs {
   uint public numJobs; // An integer storing the total number of jobs in the contract
   mapping(uint => Job) public jobs; // A mapping of jobIDs to jobs
   mapping (uint => mapping (uint => bool)) public tokenBalances; // A mapping of jobIds to tokenIds to booleans, storing whether a given job has a given ERC721 token in its balance
-  mapping (uint => address[]) public candidates; // A mapping of jobIds to candidates that have applied for the job
+
 
   address public owner; // The address of the individual who's allowed to set the metaTxRelayer address
   address public metaTxRelayer; // The address of the meta transaction relayer whose _sender is automatically trusted for all contract calls
@@ -190,23 +191,10 @@ contract EthlanceJobs {
   function acceptCandidate(uint jobId, address candidate)
     public
   {
-    // Validate that candidate is inside candidates that applied for this job
-    require(contains(candidates[jobId], candidate));
-
     // Add the candidate as selected for the job
     jobs[jobId].hiredCandidates.push(candidate);
 
     emit CandidateAccepted(jobId, candidate);
-  }
-
-  function applyAsCandidate(uint jobId, address candidate) public {
-    // Check it didn't already apply
-    require(!contains(candidates[jobId], candidate));
-
-    // Add it as a candidate
-    candidates[jobId].push(candidate);
-
-    emit CandidateApplied(jobId, candidate);
   }
 
   /// @dev issueJob(): creates a new job
@@ -458,7 +446,7 @@ contract EthlanceJobs {
   {
     require(contains(jobs[_jobId].hiredCandidates, _sender));
 
-    jobs[_jobId].invoices.push(Invoice(_invoiceIssuer, _sender, _amount));
+    jobs[_jobId].invoices.push(Invoice(_invoiceIssuer, _sender, _amount, false));
 
     emit JobInvoice(_jobId,
                     (jobs[_jobId].invoices.length - 1),
@@ -466,6 +454,30 @@ contract EthlanceJobs {
                     _ipfsHash, // The _ipfsHash string is emitted in an event for easy off-chain consumption
                     _sender,
                     _amount);
+  }
+
+  /// @dev cancelInvoice(): Allows the sender of the invoice to cancel it
+  /// @param _sender the sender of the transaction issuing the job (should be the same as msg.sender unless the txn is called by the meta tx relayer)
+  /// @param _jobId the index of the job
+  /// @param _invoiceId the index of the invoice to be accepted
+  function cancelInvoice(
+                         address _sender,
+                         uint _jobId,
+                         uint _invoiceId
+                         )
+    public
+    senderIsValid(_sender)
+    validateJobArrayIndex(_jobId)
+    validateInvoiceArrayIndex(_jobId, _invoiceId)
+  {
+    Invoice storage invoice=jobs[_jobId].invoices[_invoiceId];
+
+    if(invoice.submitter != _sender){
+      revert("Only the original invoice sender can cancel it.");
+    }
+
+    invoice.cancelled=true;
+    emit InvoiceCancelled(_sender, _jobId, _invoiceId);
   }
 
   /// @dev acceptInvoice(): Allows any of the approvers to accept a given submission
@@ -488,6 +500,10 @@ contract EthlanceJobs {
     callNotStarted
   {
     Invoice storage invoice = jobs[_jobId].invoices[_invoiceId];
+
+    if(invoice.cancelled){
+      revert("Can't accept a cancelled input");
+    }
 
     transferTokens(_jobId, invoice.issuer,invoice.amount);
 
@@ -776,6 +792,6 @@ contract EthlanceJobs {
   event JobApproversUpdated(uint _jobId, address _changer, address[] _approvers);
   event JobDataChanged(uint _jobId, address _changer, string _ipfsHash);
 
-  event CandidateAccepted(uint jobId, address candidate);
-  event CandidateApplied(uint jobId, address candidate);
+  event CandidateAccepted(uint _jobId, address _candidate);
+  event InvoiceCancelled(address _sender, uint _jobId, uint _invoiceId);
 }

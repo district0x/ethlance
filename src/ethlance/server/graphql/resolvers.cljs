@@ -406,6 +406,89 @@
      (log/debug "sign-in-mutation" {:input input})
      jwt)))
 
+(defn send-message-mutation [_ {:keys [:to :text]} {:keys [:config :current-user :timestamp]}]
+  (if-not current-user
+
+    (throw (js/Error. "Authentication required."))
+
+    (ethlance-db/add-message {:message/type :direct-message
+                              :message/date-created timestamp
+                              :message/creator (:user/address current-user)
+                              :message/text text
+                              :direct-message/receiver to})))
+
+(defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [:config :current-user :timestamp]}]
+  (if-not current-user
+
+    (throw (js/Error. "Authentication required."))
+
+    (ethlance-db/add-message {:message/type :job-story-message
+                              :job-story-message/type :raise-dispute
+                              :job-story/id id
+                              :message/date-created timestamp
+                              :message/creator (:user/address current-user)
+                              :message/text text})))
+
+(defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [:config :current-user :timestamp]}]
+  (if-not current-user
+
+    (throw (js/Error. "Authentication required."))
+
+    (ethlance-db/add-message {:message/type :job-story-message
+                              :job-story-message/type :resolve-dispute
+                              :job-story/id id
+                              :message/date-created timestamp
+                              :message/creator (:user/address current-user)
+                              :message/text "Dispute resolved"})))
+
+(defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [:config :current-user :timestamp]}]
+  (if-not current-user
+
+    (throw (js/Error. "Authentication required."))
+
+    (ethlance-db/add-message {:message/type :job-story-message
+                              :job-story-message/type :feedback
+                              :job-story/id id
+                              :message/date-created timestamp
+                              :message/creator (:user/address current-user)
+                              :message/text "Feedback"
+                              :feedback/rating rating
+                              :user/address to})))
+
+(defn update-employer-mutation [_ employer {:keys [:config :current-user :timestamp]}]
+  (if (= (:user/address current-user) (:user/address employer))
+    (ethlance-db/upsert-user! (-> employer
+                                  (assoc :user/type :employer)))
+
+    (throw (js/Erorr. "Unauthorized"))))
+
+(defn update-candidate-mutation [_ candidate {:keys [:config :current-user :timestamp]}]
+  (if (= (:user/address current-user) (:user/address candidate))
+   (ethlance-db/upsert-user! (-> candidate
+                                 (assoc :user/type :candidate)))
+
+   (throw (js/Erorr. "Unauthorized"))))
+
+(defn update-arbiter-mutation [_ arbiter {:keys [:config :current-user :timestamp]}]
+  (if (= (:user/address current-user) (:user/address arbiter))
+    (ethlance-db/upsert-user! (-> arbiter
+                                  (assoc :user/type :arbiter)))
+
+    (throw (js/Erorr. "Unauthorized"))))
+
+(defn create-job-proposal-mutation [_ {:keys [:job/id :text :rate :rate-currency-id]} {:keys [:config :current-user :timestamp]}]
+  (if (:user/address current-user)
+
+    (ethlance-db/add-message {:message/type :job-story-message
+                              :job-story-message/type :proposal
+                              :message/date-created timestamp
+                              :message/creator (:user/address current-user)
+                              :message/text text
+                              :ethlance-job-story/proposal-rate rate
+                              :ethlance-job-story/proposal-rate-currency-id rate-currency-id})
+
+    (throw (js/Erorr. "Unauthorized"))))
+
 (defn require-auth [next]
   "Given a `resolver` fn returns a wrapped resolver.
   It will call the given `resolver` if the request contains currentUser,
@@ -442,5 +525,13 @@
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver}
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
-                    :Mutation {:signIn sign-in-mutation}}
-  )
+                    :Mutation {:signIn sign-in-mutation
+                               :sendMessage send-message-mutation,
+                               :raiseDispute raise-dispute-mutation,
+                               :resolveDispute resolve-dispute-mutation,
+                               :leaveFeedback leave-feedback-mutation,
+                               :updateEmployer update-employer-mutation,
+                               :updateCandidate update-candidate-mutation,
+                               :updateArbiter update-arbiter-mutation
+                               :createJobProposal create-job-proposal-mutation
+                               }})

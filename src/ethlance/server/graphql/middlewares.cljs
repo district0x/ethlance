@@ -41,8 +41,11 @@
                current-user
                query
                (str/starts-with? query "mutation"))
-      (event-store/save-graphql-mutation-event {:headers headers
-                                                :body body})))
+      (let [timestamp (.getTime (js/Date.))]
+       (aset (.-headers req) "timestamp" (pr-str timestamp))
+       (event-store/save-graphql-mutation-event timestamp
+                                                {:headers headers
+                                                 :body body}))))
   (next))
 
 (defn current-user-express-middleware [req res next]

@@ -7,7 +7,7 @@
 
 (nodejs/enable-util-print!)
 
-(doo-tests #_'ethlance.server.graphql.resolvers-test
+(doo-tests 'ethlance.server.graphql.resolvers-test
            'ethlance.server.contract.bounty-test
            'ethlance.server.contract.ethlance-jobs-test
            )
