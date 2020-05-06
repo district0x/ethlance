@@ -11,7 +11,7 @@
    # Notes
 
    - TODO: ensure the values are numeric"
-  [{:keys [default-value value placeholder on-change currency-type color] :as opts}]
+  [{:keys [default-value value placeholder on-change currency-type color min] :as opts}]
   (let [*current-value (r/atom default-value)
         currency-symbol (case currency-type
                           ::enum.currency/eth "ETH"
@@ -21,13 +21,14 @@
                       :primary "primary"
                       :secondary "secondary"
                       "primary")]
-    (fn [{:keys [default-value value placeholder on-change currency-type color] :as opts}]
+    (fn [{:keys [default-value value placeholder on-change currency-type color min] :as opts}]
       (assert (not (and value default-value))
               "Component has both controlled `value` and uncontrolled `default-value` attributes set.")
       (let [current-value (if (contains? opts :default-value) @*current-value value)]
         [:div.currency-input
          {:class color-class}
          [:input {:type "number"
+                  :min min
                   :placeholder placeholder
                   :value current-value
                   :on-change (fn [e] 

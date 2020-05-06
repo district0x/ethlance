@@ -26,7 +26,8 @@
    - district.ui.router/watch-active-page effect handler uses forwarded events
    - Additional info: https://github.com/day8/re-frame-forward-events-fx"
   (list
-   [:page.jobs/initialize-page]))
+   [:page.jobs/initialize-page
+    :page.sign-up/initialize-page]))
 
 
 (defn initialize

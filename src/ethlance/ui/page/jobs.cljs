@@ -99,6 +99,7 @@
           {:placeholder "Min. Hourly Rate"
            :currency-type ::enum.currency/usd
            :color :secondary
+           :min 0
            :value @*min-hourly-rate
            :on-change #(re/dispatch [:page.jobs/set-min-hourly-rate %])}]
          
@@ -106,6 +107,7 @@
           {:placeholder "Max. Hourly Rate"
            :currency-type ::enum.currency/usd
            :color :secondary
+           :min 0
            :value @*max-hourly-rate
            :on-change #(re/dispatch [:page.jobs/set-max-hourly-rate %])}]
 
@@ -113,7 +115,7 @@
           [c-text-input
            {:placeholder "Number of Feedbacks"
             :color :secondary
-            :type :number :min "0"
+            :type :number :min 0
             :value @*min-num-feedbacks
             :on-change #(re/dispatch [:page.jobs/set-min-num-feedbacks %])}]]
 

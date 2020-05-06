@@ -36,160 +36,248 @@
    [:span "Upload Image"]])
 
 
-(defn c-candidate-sign-up []
-  [:div.candidate-sign-up
-   [:div.form-container
-    [:div.label "Sign Up"]
-    [:div.first-forms
-     [:div.form-image
-      [c-upload-image]]
-     [:div.form-name
-      [c-text-input {:placeholder "Name"}]]
-     [:div.form-email
-      [c-email-input {:placeholder "Email"}]]
-     [:div.form-professional-title
-      [c-text-input {:placeholder "Professional Title"}]]
-     [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Hourly Rate" :color :primary}]]
-     [:div.form-country
-      [c-select-input
-       {:label "Select Country"
-        :selections constants/countries
-        :search-bar? true
-        :default-search-text "Search Countries"}]]
-     [:div.form-connect-github
-      [c-button
-       {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
-     [:div.form-connect-linkedin
-      [c-button
-       {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
-    [:div.second-forms
-     [:div.label [:h2 "Languages You Speak"]]
-     [c-chip-search-input
-      {:search-icon? false
-       :placeholder ""
-       :auto-suggestion-listing constants/languages
-       :allow-custom-chips? false
-       :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
-     
-     [:div.label [:h2 "Categories You Are Interested In"]]
-     [c-chip-search-input
-      {:search-icon? false
-       :placeholder ""
-       :auto-suggestion-listing (sort constants/categories)
-       :allow-custom-chips? false
-       :display-listing-on-focus? true}]
+(defn c-candidate-sign-up
+  []
+  (let [*full-name (re/subscribe [:page.sign-up/candidate-full-name])
+        *professional-title (re/subscribe [:page.sign-up/candidate-professional-title])
+        *email (re/subscribe [:page.sign-up/candidate-email])
+        *hourly-rate (re/subscribe [:page.sign-up/candidate-hourly-rate])
+        *github-key (re/subscribe [:page.sign-up/candidate-github-key])
+        *linkedin-key (re/subscribe [:page.sign-up/candidate-linkedin-key])
+        *languages (re/subscribe [:page.sign-up/candidate-languages])
+        *categories (re/subscribe [:page.sign-up/candidate-categories])
+        *skills (re/subscribe [:page.sign-up/candidate-skills])
+        *biography (re/subscribe [:page.sign-up/candidate-biography])
+        *country (re/subscribe [:page.sign-up/candidate-country])
+        *ready-for-hire? (re/subscribe [:page.sign-up/candidate-ready-for-hire?])]
+    (fn []
+      [:div.candidate-sign-up
+       [:div.form-container
+        [:div.label "Sign Up"]
+        [:div.first-forms
+         [:div.form-image
+          [c-upload-image]]
+         [:div.form-name
+          [c-text-input
+           {:placeholder "Name"
+            :value @*full-name
+            :on-change #(re/dispatch [:page.sign-up/set-candidate-full-name %])}]]
+         [:div.form-email
+          [c-email-input
+           {:placeholder "Email"
+            :value @*email
+            :on-change #(re/dispatch [:page.sign-up/set-candidate-email %])}]]
+         [:div.form-professional-title
+          [c-text-input
+           {:placeholder "Professional Title"
+            :value @*professional-title
+            :on-change #(re/dispatch [:page.sign-up/set-candidate-professional-title %])}]]
+         [:div.form-hourly-rate
+          [c-currency-input
+           {:placeholder "Hourly Rate"
+            :color :primary
+            :min 0
+            :value @*hourly-rate
+            :on-change #(re/dispatch [:page.sign-up/set-candidate-hourly-rate %])}]]
+         [:div.form-country
+          [c-select-input
+           {:label "Select Country"
+            :selections constants/countries
+            :selection @*country
+            :on-select #(re/dispatch [:page.sign-up/set-candidate-country %])
+            :search-bar? true
+            :default-search-text "Search Countries"}]]
+         [:div.form-connect-github
+          [c-button
+           {:size :large}
+           [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
+         [:div.form-connect-linkedin
+          [c-button
+           {:size :large}
+           [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
+        [:div.second-forms
+         [:div.label [:h2 "Languages You Speak"]]
+         [c-chip-search-input
+          {:search-icon? false
+           :placeholder ""
+           :auto-suggestion-listing constants/languages
+           :allow-custom-chips? false
+           :chip-listing @*languages
+           :on-chip-listing-change #(re/dispatch [:page.sign-up/set-candidate-languages %])}]
+         
+         [:div.label [:h2 "Categories You Are Interested In"]]
+         [c-chip-search-input
+          {:search-icon? false
+           :placeholder ""
+           :auto-suggestion-listing (sort constants/categories)
+           :allow-custom-chips? false
+           :chip-listing @*categories
+           :on-chip-listing-change #(re/dispatch [:page.sign-up/set-candidate-categories %])
+           :display-listing-on-focus? true}]
 
-     [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-     [c-chip-search-input
-      {:search-icon? false
-       :placeholder ""
-       :auto-suggestion-listing constants/skills}]
+         [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
+         [c-chip-search-input
+          {:search-icon? false
+           :placeholder ""
+           :allow-custom-chips? false
+           :auto-suggestion-listing constants/skills
+           :chip-listing @*skills
+           :on-chip-listing-change #(re/dispatch [:page.sign-up/set-candidate-skills %])}]
 
-     [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder ""}]
-     [c-labeled-checkbox
-      {:id "form-for-hire"
-       :label "I'm available for hire"
-       :on-change #(println (if % "Checked!" "Unchecked!"))}]]]
-   
-   [:div.form-submit
-    [:span "Create"]
-    [c-icon {:name :ic-arrow-right :size :smaller}]]])
+         [:div.label [:h2 "Your Biography"]]
+         [c-textarea-input
+          {:placeholder ""
+           :value @*biography
+           :on-change #(re/dispatch [:page.sign-up/set-candidate-biography %])}]
+         [c-labeled-checkbox
+          {:id "form-for-hire"
+           :label "I'm available for hire"
+           :checked? @*ready-for-hire?
+           :on-change #(re/dispatch [:page.sign-up/set-candidate-ready-for-hire? %])}]]]
+       
+       [:div.form-submit
+        [:span "Create"]
+        [c-icon {:name :ic-arrow-right :size :smaller}]]])))
 
 
 (defn c-employer-sign-up []
-  [:div.employer-sign-up
-   [:div.form-container
-    [:div.label "Sign Up"]
-    [:div.first-forms
-     [:div.form-image
-      [c-upload-image]]
-     [:div.form-name
-      [c-text-input {:placeholder "Name"}]]
-     [:div.form-email
-      [c-email-input {:placeholder "Email"}]]
-     [:div.form-professional-title
-      [c-text-input {:placeholder "Professional Title"}]]
-     [:div.form-country
-      [c-select-input
-       {:label "Select Country"
-        :selections constants/countries
-        :search-bar? true
-        :default-search-text "Search Countries"}]]
-     [:div.form-connect-github
-      [c-button
-       {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
-     [:div.form-connect-linkedin
-      [c-button
-       {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
+  (let [*full-name (re/subscribe [:page.sign-up/employer-full-name])
+        *professional-title (re/subscribe [:page.sign-up/employer-professional-title])
+        *email (re/subscribe [:page.sign-up/employer-email])
+        *github-key (re/subscribe [:page.sign-up/employer-github-key])
+        *linkedin-key (re/subscribe [:page.sign-up/employer-linkedin-key])
+        *languages (re/subscribe [:page.sign-up/employer-languages])
+        *biography (re/subscribe [:page.sign-up/employer-biography])
+        *country (re/subscribe [:page.sign-up/employer-country])]
+    (fn []
+      [:div.employer-sign-up
+       [:div.form-container
+        [:div.label "Sign Up"]
+        [:div.first-forms
+         [:div.form-image
+          [c-upload-image]]
+         [:div.form-name
+          [c-text-input
+           {:placeholder "Name"
+            :value @*full-name
+            :on-change #(re/dispatch [:page.sign-up/set-employer-full-name %])}]]
+         [:div.form-email
+          [c-email-input
+           {:placeholder "Email"
+            :value @*email
+            :on-change #(re/dispatch [:page.sign-up/set-employer-email %])}]]
+         [:div.form-professional-title
+          [c-text-input
+           {:placeholder "Professional Title"
+            :value @*professional-title
+            :on-change #(re/dispatch [:page.sign-up/set-employer-professional-title %])}]]
+         [:div.form-country
+          [c-select-input
+           {:label "Select Country"
+            :selections constants/countries
+            :selection @*country
+            :on-select #(re/dispatch [:page.sign-up/set-employer-country %])
+            :search-bar? true
+            :default-search-text "Search Countries"}]]
+         [:div.form-connect-github
+          [c-button
+           {:size :large}
+           [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
+         [:div.form-connect-linkedin
+          [c-button
+           {:size :large}
+           [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
-    [:div.second-forms
-     [:div.label [:h2 "Languages You Speak"]]
-     [c-chip-search-input
-      {:search-icon? false
-       :placeholder ""
-       :auto-suggestion-listing constants/languages
-       :allow-custom-chips? false
-       :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
+        [:div.second-forms
+         [:div.label [:h2 "Languages You Speak"]]
+         [c-chip-search-input
+          {:search-icon? false
+           :placeholder ""
+           :auto-suggestion-listing constants/languages
+           :allow-custom-chips? false
+           :chip-listing @*languages
+           :on-chip-listing-change #(re/dispatch [:page.sign-up/set-employer-languages %])}]
 
-     [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder ""}]]]
+         [:div.label [:h2 "Your Biography"]]
+         [c-textarea-input
+          {:placeholder ""
+           :value @*biography
+           :on-change #(re/dispatch [:page.sign-up/set-employer-biography %])}]]]
 
-   [:div.form-submit
-    [:span "Create"]
-    [c-icon {:name :ic-arrow-right :size :smaller}]]])
+       [:div.form-submit
+        [:span "Create"]
+        [c-icon {:name :ic-arrow-right :size :smaller}]]])))
 
 
 (defn c-arbiter-sign-up []
-  [:div.arbiter-sign-up
-   [:div.form-container
-    [:div.label "Sign Up"]
-    [:div.first-forms
-     [:div.form-image
-      [c-upload-image]]
-     [:div.form-name
-      [c-text-input {:placeholder "Name"}]]
-     [:div.form-email
-      [c-email-input {:placeholder "Email"}]]
-     [:div.form-professional-title
-      [c-text-input {:placeholder "Professional Title"}]]
-     [:div.form-country
-      [c-select-input
-       {:label "Select Country"
-        :selections constants/countries
-        :search-bar? true
-        :default-search-text "Search Countries"}]]
-     [:div.form-hourly-rate
-      [c-currency-input {:placeholder "Fixed Rate Per A Dispute" :color :primary}]]
-     [:div.form-connect-github
-      [c-button
-       {:size :large}
-       [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
-     [:div.form-connect-linkedin
-      [c-button
-       {:size :large}
-       [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
+  (let [*full-name (re/subscribe [:page.sign-up/arbiter-full-name])
+        *professional-title (re/subscribe [:page.sign-up/arbiter-professional-title])
+        *fixed-rate-per-dispute (re/subscribe [:page.sign-up/arbiter-fixed-rate-per-dispute])
+        *email (re/subscribe [:page.sign-up/arbiter-email])
+        *github-key (re/subscribe [:page.sign-up/arbiter-github-key])
+        *linkedin-key (re/subscribe [:page.sign-up/arbiter-linkedin-key])
+        *languages (re/subscribe [:page.sign-up/arbiter-languages])
+        *biography (re/subscribe [:page.sign-up/arbiter-biography])
+        *country (re/subscribe [:page.sign-up/arbiter-country])]
+    (fn []
+      [:div.arbiter-sign-up
+       [:div.form-container
+        [:div.label "Sign Up"]
+        [:div.first-forms
+         [:div.form-image
+          [c-upload-image]]
+         [:div.form-name
+          [c-text-input
+           {:placeholder "Name"
+            :value @*full-name
+            :on-change #(re/dispatch [:page.sign-up/set-arbiter-full-name %])}]]
+         [:div.form-email
+          [c-email-input
+           {:placeholder "Email"
+            :value @*email
+            :on-change #(re/dispatch [:page.sign-up/set-arbiter-email %])}]]
+         [:div.form-professional-title
+          [c-text-input
+           {:placeholder "Professional Title"
+            :value @*professional-title
+            :on-change #(re/dispatch [:page.sign-up/set-arbiter-professional-title %])}]]
+         [:div.form-country
+          [c-select-input
+           {:label "Select Country"
+            :selections constants/countries
+            :selection @*country
+            :on-select #(re/dispatch [:page.sign-up/set-arbiter-country %])
+            :search-bar? true
+            :default-search-text "Search Countries"}]]
+         [:div.form-hourly-rate
+          [c-currency-input
+           {:placeholder "Fixed Rate Per A Dispute" :color :primary
+            :value @*fixed-rate-per-dispute
+            :on-change #(re/dispatch [:page.sign-up/set-arbiter-fixed-rate-per-dispute %])}]]
+         [:div.form-connect-github
+          [c-button
+           {:size :large}
+           [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
+         [:div.form-connect-linkedin
+          [c-button
+           {:size :large}
+           [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
-    [:div.second-forms
-     [:div.label [:h2 "Languages You Speak"]]
-     [c-chip-search-input
-      {:search-icon? false
-       :placeholder ""
-       :auto-suggestion-listing constants/languages
-       :allow-custom-chips? false
-       :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
+        [:div.second-forms
+         [:div.label [:h2 "Languages You Speak"]]
+         [c-chip-search-input
+          {:search-icon? false
+           :placeholder ""
+           :auto-suggestion-listing constants/languages
+           :allow-custom-chips? false
+           :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
 
-     [:div.label [:h2 "Your Biography"]]
-     [c-textarea-input {:placeholder ""}]]]
+         [:div.label [:h2 "Your Biography"]]
+         [c-textarea-input {:placeholder ""}]]]
 
-   [:div.form-submit
-    [:span "Create"]
-    [c-icon {:name :ic-arrow-right :size :smaller}]]])
+       [:div.form-submit
+        [:span "Create"]
+        [c-icon {:name :ic-arrow-right :size :smaller}]]])))
 
 
 (defmethod page :route.me/sign-up []
