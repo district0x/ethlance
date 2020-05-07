@@ -69,22 +69,23 @@
 ;;
 ;; Registered Events
 ;;
+(def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
 (re/reg-event-fx :page.jobs/query-job-listing mock-query-job-listing)
-(re/reg-event-fx :page.jobs/set-skills (event.utils/create-assoc-handler state-key :skills))
+(re/reg-event-fx :page.jobs/set-skills (create-assoc-handler :skills))
 (re/reg-event-fx :page.jobs/add-skill add-skill)
-(re/reg-event-fx :page.jobs/set-category (event.utils/create-assoc-handler state-key :category))
+(re/reg-event-fx :page.jobs/set-category (create-assoc-handler :category))
 (re/reg-event-fx :page.jobs/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
 (re/reg-event-fx :page.jobs/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
 (re/reg-event-fx :page.jobs/set-min-hourly-rate (event.templates/create-set-min-hourly-rate state-key))
 (re/reg-event-fx :page.jobs/set-max-hourly-rate (event.templates/create-set-max-hourly-rate state-key))
-(re/reg-event-fx :page.jobs/set-min-num-feedbacks (event.utils/create-assoc-handler state-key :min-num-feedbacks parse-int))
-(re/reg-event-fx :page.jobs/set-payment-type (event.utils/create-assoc-handler state-key :payment-type))
-(re/reg-event-fx :page.jobs/set-experience-level (event.utils/create-assoc-handler state-key :experience-level))
-(re/reg-event-fx :page.jobs/set-country (event.utils/create-assoc-handler state-key :country))
+(re/reg-event-fx :page.jobs/set-min-num-feedbacks (create-assoc-handler :min-num-feedbacks parse-int))
+(re/reg-event-fx :page.jobs/set-payment-type (create-assoc-handler :payment-type))
+(re/reg-event-fx :page.jobs/set-experience-level (create-assoc-handler :experience-level))
+(re/reg-event-fx :page.jobs/set-country (create-assoc-handler :country))
 
 
 ;; Intermediates

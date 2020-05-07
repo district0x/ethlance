@@ -83,7 +83,6 @@
 (re/reg-event-fx :page.sign-up/set-employer-biography (create-assoc-handler :employer/biography))
 (re/reg-event-fx :page.sign-up/set-employer-country (create-assoc-handler :employer/country))
 
-
 (re/reg-event-fx :page.sign-up/set-arbiter-full-name (create-assoc-handler :arbiter/full-name))
 (re/reg-event-fx :page.sign-up/set-arbiter-professional-title (create-assoc-handler :arbiter/professional-title))
 (re/reg-event-fx :page.sign-up/set-arbiter-fixed-rate-per-dispute (create-assoc-handler :arbiter/fixed-rate-per-dispute parse-float))

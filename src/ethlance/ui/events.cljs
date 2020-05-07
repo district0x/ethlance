@@ -10,12 +10,13 @@
    [ethlance.ui.component.modal.events]
 
    ;; Ethlance Page Event Handlers
-   [ethlance.ui.page.me.events]       ;; :page.me/*
-   [ethlance.ui.page.jobs.events]     ;; :page.jobs/*
-   [ethlance.ui.page.sign-up.events]  ;; :page.sign-up/*
+   [ethlance.ui.page.me.events]           ;; :page.me/*
+   [ethlance.ui.page.jobs.events]         ;; :page.jobs/*
+   [ethlance.ui.page.sign-up.events]      ;; :page.sign-up/*
+   [ethlance.ui.page.candidates.events]   ;; :page.candidates/*
 
    ;; Ethlance Main Event Handlers
-   [ethlance.ui.event.sign-in]))      ;; :user/*
+   [ethlance.ui.event.sign-in]))          ;; :user/*
 
 
 (def forwarded-events
@@ -27,7 +28,8 @@
    - Additional info: https://github.com/day8/re-frame-forward-events-fx"
   (list
    [:page.jobs/initialize-page
-    :page.sign-up/initialize-page]))
+    :page.sign-up/initialize-page
+    :page.candidates/initialize-page]))
 
 
 (defn initialize
@@ -42,7 +44,9 @@
                ethlance.ui.page.me.events/state-key
                ethlance.ui.page.me.events/state-default
                ethlance.ui.page.jobs.events/state-key
-               ethlance.ui.page.jobs.events/state-default)]
+               ethlance.ui.page.jobs.events/state-default
+               ethlance.ui.page.candidates.events/state-key
+               ethlance.ui.page.candidates.events/state-default)]
 
                ;; Main Events
                ;; /Nothing here, yet/
