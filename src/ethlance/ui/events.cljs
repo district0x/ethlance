@@ -14,6 +14,7 @@
    [ethlance.ui.page.jobs.events]         ;; :page.jobs/*
    [ethlance.ui.page.sign-up.events]      ;; :page.sign-up/*
    [ethlance.ui.page.candidates.events]   ;; :page.candidates/*
+   [ethlance.ui.page.arbiters.events]     ;; :page.arbiters/*
 
    ;; Ethlance Main Event Handlers
    [ethlance.ui.event.sign-in]))          ;; :user/*
@@ -29,7 +30,8 @@
   (list
    [:page.jobs/initialize-page
     :page.sign-up/initialize-page
-    :page.candidates/initialize-page]))
+    :page.candidates/initialize-page
+    :page.arbiters/initialize-page]))
 
 
 (defn initialize
@@ -46,7 +48,9 @@
                ethlance.ui.page.jobs.events/state-key
                ethlance.ui.page.jobs.events/state-default
                ethlance.ui.page.candidates.events/state-key
-               ethlance.ui.page.candidates.events/state-default)]
+               ethlance.ui.page.candidates.events/state-default
+               ethlance.ui.page.arbiters.events/state-key
+               ethlance.ui.page.arbiters.events/state-default)]
 
                ;; Main Events
                ;; /Nothing here, yet/

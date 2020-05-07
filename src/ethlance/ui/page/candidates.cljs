@@ -22,12 +22,6 @@
    [ethlance.ui.component.profile-image :refer [c-profile-image]]))
 
 
-;;
-;; Page State
-;;
-(def *search-input-listing (r/atom #{}))
-
-
 (defn cf-candidate-search-filter 
   "Component Fragment for the candidate search filter."
   []
@@ -94,7 +88,7 @@
     (doall
      (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
        ^{:key (str "tag-" tag-label)}
-       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
+       [c-tag {:on-click #(re/dispatch  [:page.candidates/add-skill tag-label])
                :title (str "Add '" tag-label "' to Search")}
         [c-tag-label tag-label]]))]
    [:div.rating
