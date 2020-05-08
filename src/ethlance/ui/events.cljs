@@ -7,19 +7,21 @@
    [district.ui.logging.events]
 
    ;; Ethlance Component Event Handlers
-   [ethlance.ui.component.modal.events]
+   [ethlance.ui.component.modal.events]    ;; :modal/*
 
    ;; Ethlance Page Event Handlers
-   [ethlance.ui.page.me.events]           ;; :page.me/*
-   [ethlance.ui.page.jobs.events]         ;; :page.jobs/*
-   [ethlance.ui.page.sign-up.events]      ;; :page.sign-up/*
-   [ethlance.ui.page.candidates.events]   ;; :page.candidates/*
-   [ethlance.ui.page.arbiters.events]     ;; :page.arbiters/*
-   [ethlance.ui.page.employers.events]    ;; :page.employers/*
-   [ethlance.ui.page.profile.events]      ;; :page.profile/*
+   [ethlance.ui.page.me.events]            ;; :page.me/*
+   [ethlance.ui.page.jobs.events]          ;; :page.jobs/*
+   [ethlance.ui.page.sign-up.events]       ;; :page.sign-up/*
+   [ethlance.ui.page.candidates.events]    ;; :page.candidates/*
+   [ethlance.ui.page.arbiters.events]      ;; :page.arbiters/*
+   [ethlance.ui.page.employers.events]     ;; :page.employers/*
+   [ethlance.ui.page.profile.events]       ;; :page.profile/*
+   [ethlance.ui.page.job-contract.events]  ;; :page.job-contract/*
+   [ethlance.ui.page.job-detail.events]    ;; :page.job-detail/*
 
    ;; Ethlance Main Event Handlers
-   [ethlance.ui.event.sign-in]))          ;; :user/*
+   [ethlance.ui.event.sign-in]))           ;; :user/*
 
 
 (def forwarded-events
@@ -34,7 +36,10 @@
     :page.sign-up/initialize-page
     :page.candidates/initialize-page
     :page.arbiters/initialize-page
-    :page.employers/initialize-page]))
+    :page.employers/initialize-page
+    :page.profile/initialize-page
+    :page.job-contract/initialize-page
+    :page.job-detail/initialize-page]))
 
 
 (defn initialize
@@ -55,10 +60,16 @@
                ethlance.ui.page.arbiters.events/state-key
                ethlance.ui.page.arbiters.events/state-default
                ethlance.ui.page.employers.events/state-key
-               ethlance.ui.page.employers.events/state-default)]
+               ethlance.ui.page.employers.events/state-default
+               ethlance.ui.page.profile.events/state-key
+               ethlance.ui.page.profile.events/state-default
+               ethlance.ui.page.job-contract.events/state-key
+               ethlance.ui.page.job-contract.events/state-default
+               ethlance.ui.page.job-detail.events/state-key
+               ethlance.ui.page.job-detail.events/state-default)]
 
-               ;; Main Events
-               ;; /Nothing here, yet/
+    ;; Main Events
+    ;; /Nothing here, yet/
     {:db new-db
      ;; Initialize Forwarded FX Events
      :dispatch-n forwarded-events
