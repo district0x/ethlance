@@ -19,6 +19,9 @@
    [ethlance.ui.page.profile.events]       ;; :page.profile/*
    [ethlance.ui.page.job-contract.events]  ;; :page.job-contract/*
    [ethlance.ui.page.job-detail.events]    ;; :page.job-detail/*
+   [ethlance.ui.page.new-job.events]       ;; :page.new-job/*
+   [ethlance.ui.page.invoices.events]      ;; :page.invoices/*
+   [ethlance.ui.page.new-invoice.events]   ;; :page.new-invoice/*
 
    ;; Ethlance Main Event Handlers
    [ethlance.ui.event.sign-in]))           ;; :user/*
@@ -39,7 +42,10 @@
     :page.employers/initialize-page
     :page.profile/initialize-page
     :page.job-contract/initialize-page
-    :page.job-detail/initialize-page]))
+    :page.job-detail/initialize-page
+    :page.new-job/initialize-page
+    :page.invoices/initialize-page
+    :page.new-invoice/initialize-page]))
 
 
 (defn initialize
@@ -66,7 +72,13 @@
                ethlance.ui.page.job-contract.events/state-key
                ethlance.ui.page.job-contract.events/state-default
                ethlance.ui.page.job-detail.events/state-key
-               ethlance.ui.page.job-detail.events/state-default)]
+               ethlance.ui.page.job-detail.events/state-default
+               ethlance.ui.page.new-job.events/state-key
+               ethlance.ui.page.new-job.events/state-default
+               ethlance.ui.page.invoices.events/state-key
+               ethlance.ui.page.invoices.events/state-default
+               ethlance.ui.page.new-invoice.events/state-key
+               ethlance.ui.page.new-invoice.events/state-default)]
 
     ;; Main Events
     ;; /Nothing here, yet/
