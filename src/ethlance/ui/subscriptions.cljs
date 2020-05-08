@@ -12,7 +12,8 @@
    [ethlance.ui.page.sign-up.subscriptions]       ;; :page.sign-up/*
    [ethlance.ui.page.candidates.subscriptions]    ;; :page.candidates/*
    [ethlance.ui.page.arbiters.subscriptions]      ;; :page.arbiters/*
-   [ethlance.ui.page.employers.subscriptions]))   ;; :page.employers/*
+   [ethlance.ui.page.employers.subscriptions]     ;; :page.employers/*
+   [ethlance.ui.page.profile.subscriptions]))     ;; :page.profile/*
 
    ;; Ethlance Global Subscriptions
    ;; /Nothing here, yet/

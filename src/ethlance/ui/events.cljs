@@ -16,6 +16,7 @@
    [ethlance.ui.page.candidates.events]   ;; :page.candidates/*
    [ethlance.ui.page.arbiters.events]     ;; :page.arbiters/*
    [ethlance.ui.page.employers.events]    ;; :page.employers/*
+   [ethlance.ui.page.profile.events]      ;; :page.profile/*
 
    ;; Ethlance Main Event Handlers
    [ethlance.ui.event.sign-in]))          ;; :user/*
