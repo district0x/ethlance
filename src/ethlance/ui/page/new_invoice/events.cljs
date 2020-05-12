@@ -11,7 +11,12 @@
 ;; Page State
 (def state-key :page.new-invoice)
 (def state-default
-  {})
+  {:job-name-listing ["Smart Contract" "USD" "ETH"]
+   :job-name nil
+   :hours-worked nil
+   :hourly-rate nil
+   :invoice-amount nil
+   :message nil})
 
 
 (defn initialize-page
@@ -32,3 +37,9 @@
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.new-invoice/initialize-page initialize-page)
+(re/reg-event-fx :page.new-invoice/set-job-name-listing (create-assoc-handler :job-name-listing))
+(re/reg-event-fx :page.new-invoice/set-job-name (create-assoc-handler :job-name))
+(re/reg-event-fx :page.new-invoice/set-hours-worked (create-assoc-handler :hours-worked parse-int))
+(re/reg-event-fx :page.new-invoice/set-hourly-rate (create-assoc-handler :hourly-rate parse-float))
+(re/reg-event-fx :page.new-invoice/set-invoice-amount (create-assoc-handler :invoice-amount parse-float))
+(re/reg-event-fx :page.new-invoice/set-message (create-assoc-handler :message))
