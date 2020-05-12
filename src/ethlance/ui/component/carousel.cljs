@@ -70,9 +70,9 @@
    [:div.profile-image
     [c-profile-image {}]]
    [:div.rating
-    [c-rating {:default-rating rating :color :white}]]
+    [c-rating {:rating rating :color :white}]]
    [:div.message
     "\"Everything about this is wonderful!\""]
    [:div.name
     "Brian Curran"]])
-   
+

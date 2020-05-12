@@ -123,9 +123,8 @@ Please contact us if this sounds interesting.")
        [:div.feedback-listing
         [:div.label "Feedback"]
         [c-carousel {}
-         [c-feedback-slide {:default-rating 1}]
-         [c-feedback-slide {:default-rating 2}]
-         [c-feedback-slide {:default-rating 3}]
-         [c-feedback-slide {:default-rating 4}]
-         [c-feedback-slide {:default-rating 5}]]]])))
-         
+         [c-feedback-slide {:rating 1}]
+         [c-feedback-slide {:rating 2}]
+         [c-feedback-slide {:rating 3}]
+         [c-feedback-slide {:rating 4}]
+         [c-feedback-slide {:rating 5}]]]])))

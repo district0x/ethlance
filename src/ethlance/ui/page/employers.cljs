@@ -2,6 +2,7 @@
   "General Employer Listings on ethlance"
   (:require
    [reagent.core :as r]
+   [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
 
@@ -22,68 +23,57 @@
    [ethlance.ui.component.profile-image :refer [c-profile-image]]))
 
 
-;;
-;; Page State
-;;
-(def *search-input-listing (r/atom #{}))
+(defn cf-employer-search-filter []
+  (let [*category (re/subscribe [:page.employers/category])
+        *feedback-max-rating (re/subscribe [:page.employers/feedback-max-rating])
+        *feedback-min-rating (re/subscribe [:page.employers/feedback-min-rating])
+        *min-num-feedbacks (re/subscribe [:page.employers/min-num-feedbacks])
+        *country (re/subscribe [:page.employers/country])]
+    (fn []
+      [:<>
+       [:div.category-selector
+        [c-select-input
+         {:selection @*category
+          :color :secondary
+          :selections constants/categories-with-default
+          :on-select #(re/dispatch [:page.employers/set-category %])}]]
+
+       [:span.rating-label "Min. Rating"]
+       [c-rating {:rating @*feedback-min-rating :color :white :size :small
+                  :on-change #(re/dispatch [:page.employers/set-feedback-min-rating %])}]
+
+       [:span.rating-label "Max. Rating"]
+       [c-rating {:rating @*feedback-max-rating :color :white :size :small
+                  :on-change #(re/dispatch [:page.employers/set-feedback-max-rating %])}]
+
+       [:div.feedback-input
+        [c-text-input
+         {:placeholder "Number of Feedbacks"
+          :color :secondary
+          :type :number :min 0
+          :value @*min-num-feedbacks
+          :on-change #(re/dispatch [:page.employers/set-min-num-feedbacks %])}]]
+
+       [:div.country-selector
+        [c-select-input
+         {:label "Country"
+          :selection @*country
+          :on-select #(re/dispatch [:page.employers/set-country %])
+          :selections constants/countries
+          :search-bar? true
+          :color :secondary
+          :default-search-text "Search Countries"}]]])))
 
 
 (defn c-employer-search-filter []
   [:div.search-filter
-   [:div.category-selector
-    [c-select-input
-     {:label "All Categories"
-      :default-selection "All Categories"
-      :color :secondary
-      :selections ["All Categories" "Software Development" "Web Design"]}]]
-   [:span.rating-label "Min. Rating"]
-   [c-rating {:rating 1 :color :white :size :small
-              :on-change (fn [index] (log/debug "Min. Rating: " index))}]
-
-   [:span.rating-label "Max. Rating"]
-   [c-rating {:rating 5 :color :white :size :small
-              :on-change (fn [index] (log/debug "Max. Rating: " index))}]
-
-   [:div.feedback-input
-    [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]]
-
-   [:div.country-selector
-    [c-select-input
-     {:label "Select Country"
-      :selections constants/countries
-      :search-bar? true
-      :color :secondary
-      :default-search-text "Search Countries"}]]])
+   [cf-employer-search-filter]])
 
 
 (defn c-employer-mobile-search-filter
   []
   [c-mobile-search-filter
-   [:div.category-selector
-    [c-select-input
-     {:label "All Categories"
-      :default-selection "All Categories"
-      :color :secondary
-      :selections ["All Categories" "Software Development" "Web Design"]}]]
-
-   [:span.rating-label "Min. Rating"]
-   [c-rating {:rating 1 :color :white :size :small
-              :on-change (fn [index] (log/debug "Min. Rating: " index))}]
-
-   [:span.rating-label "Max. Rating"]
-   [c-rating {:rating 5 :color :white :size :small
-              :on-change (fn [index] (log/debug "Max. Rating: " index))}]
-
-   [:div.feedback-input
-    [c-text-input {:placeholder "Number of Feedbacks" :color :secondary}]]
-
-   [:div.country-selector
-    [c-select-input
-     {:label "Select Country"
-      :selections constants/countries
-      :search-bar? true
-      :color :secondary
-      :default-search-text "Search Countries"}]]])
+   [cf-employer-search-filter]])
 
 
 (defn c-employer-element
@@ -93,12 +83,11 @@
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
     [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
-   #_[:div.price "$15 / Fixed Price"]
    [:div.tags
     (doall
      (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
        ^{:key (str "tag-" tag-label)}
-       [c-tag {:on-click #(swap! *search-input-listing conj tag-label)
+       [c-tag {:on-click #(re/dispatch [:page.employers/add-skill tag-label])
                :title (str "Add '" tag-label "' to Search")}
         [c-tag-label tag-label]]))]
    [:div.rating
@@ -116,16 +105,17 @@
 
 
 (defmethod page :route.user/employers []
-  (let []
+  (let [*skills (re/subscribe [:page.employers/skills])]
     (fn []
       [c-main-layout {:container-opts {:class :employers-main-container}}
        [c-employer-search-filter]
        [c-employer-mobile-search-filter]
        [:div.employer-listing.listing {:key "listing"}
         [:div.search-container
-         [c-chip-search-input
-          {:*chip-listing *search-input-listing
-           :auto-suggestion-listing constants/skills
+         [c-chip-search-input 
+          {:chip-listing @*skills
+           :on-chip-listing-change #(re/dispatch [:page.employers/set-skills %])
+           :placeholder "Search Job Skill Requirements"
            :allow-custom-chips? false
-           :placeholder "Search Employer Skills"}]]
+           :auto-suggestion-listing constants/skills}]]
         [c-employer-listing]]])))

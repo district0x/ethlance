@@ -3,7 +3,8 @@
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
    [reagent.core :as r]
-   
+   [re-frame.core :as re]
+
    [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
@@ -39,33 +40,48 @@
 
 
 (defmethod page :route.job/new []
-  (let [*job-type (r/atom :job)
-        *with-token? (r/atom false)
-        *with-arbiter? (r/atom true)]
+  (let [*type (re/subscribe [:page.new-job/type])
+        *name (re/subscribe [:page.new-job/name])
+        *category (re/subscribe [:page.new-job/category])
+        *bid-option (re/subscribe [:page.new-job/bid-option])
+        *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
+        *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
+        *required-availability (re/subscribe [:page.new-job/required-availability])
+        *required-skills (re/subscribe [:page.new-job/required-skills])
+        *description (re/subscribe [:page.new-job/description])
+        *form-of-payment (re/subscribe [:page.new-job/form-of-payment])
+        *token-address (re/subscribe [:page.new-job/token-address])
+        *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])]
     (fn []
-      (let [is-bounty? (= @*job-type :bounty)]
+      (let [is-bounty? (= @*type :bounty)
+            with-token? (= @*form-of-payment :erc20)]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
           [:div.title (if is-bounty? "New Bounty" "New Job")]
           [:div.job-type-input
            [c-radio-select
-            {:default-selection :job
-             :on-selection (fn [selection] (reset! *job-type selection))
+            {:selection @*type
+             :on-selection #(re/dispatch [:page.new-job/set-type %])
              :flex? true}
             [:job [c-radio-secondary-element "Job"]]
             [:bounty [c-radio-secondary-element "Bounty"]]]]
           [:div.name-input
-           [c-text-input {:placeholder "Name"}]]
+           [c-text-input
+            {:placeholder "Name"
+             :value @*name
+             :on-change #(re/dispatch [:page.new-job/set-name %])}]]
           [:div.category-input
            [c-select-input
             {:label "Category"
-             :selections (sort constants/categories)}]]
+             :selections (sort constants/categories)
+             :selection @*category
+             :on-select #(re/dispatch [:page.new-job/set-category %])}]]
           (when-not is-bounty?
             [:div.bid-for-radio-input.radio
              [:div.label "Candidates Should Bid For"]
              [c-radio-select
-              {:default-selection :hourly-rate
-               :on-selection (fn [selection])}
+              {:selection @*bid-option
+               :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
               [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
               [:fixed-price [c-radio-secondary-element "Fixed Price"]]]])
 
@@ -73,8 +89,8 @@
             [:div.experience-radio-input.radio
              [:div.label "Required Experience Level"]
              [c-radio-select
-              {:default-selection :intermediate
-               :on-selection (fn [selection])}
+              {:selection @*required-experience-level
+               :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}
               [:beginner [c-radio-secondary-element "Beginner ($)"]]
               [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
               [:expert [c-radio-secondary-element "Expert ($$$)"]]]])
@@ -83,8 +99,8 @@
             [:div.project-length-radio-input.radio
              [:div.label "Estimated Project Length"]
              [c-radio-select
-              {:default-selection :day
-               :on-selection (fn [selection])}
+              {:selection @*estimated-project-length
+               :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}
               [:day [c-radio-secondary-element "Hours or Days"]]
               [:week [c-radio-secondary-element "Weeks"]]
               [:month [c-radio-secondary-element "Months"]]
@@ -94,16 +110,16 @@
             [:div.availability-radio-input.radio
              [:div.label "Required Availability"]
              [c-radio-select
-              {:default-selection :full-time
-               :on-selection (fn [selection])}
+              {:selection @*required-availability
+               :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}
               [:full-time [c-radio-secondary-element "Full-Time"]]
               [:part-time [c-radio-secondary-element "Part-Time"]]]])
 
           [:div.with-arbiter-radio-input.radio
            [:div.label "Arbiter"]
            [c-radio-select
-            {:default-selection :with-arbiter
-             :on-selection (fn [selection] (reset! *with-arbiter? (= :with-arbiter selection)))}
+            {:selection (if @*with-arbiter? :with-arbiter :no-arbiter)
+             :on-selection #(re/dispatch [:page.new-job/set-with-arbiter? (= :with-arbiter %)])}
             [:with-arbiter [c-radio-secondary-element "With Arbiter"]]
             [:no-arbiter [c-radio-secondary-element "Without Arbiter"]]]]]
 
@@ -113,32 +129,33 @@
            [c-chip-search-input
             {:search-icon? false
              :auto-suggestion-listing constants/skills
+             :chip-listing @*required-skills
+             :on-chip-listing-change #(re/dispatch [:page.new-job/set-required-skills %])
              :placeholder "Search Skills"
              :allow-custom-chips? false}]]
 
           [:div.description-text.chip
            [:div.label "Description"]
            [c-textarea-input
-            {:placeholder "Enter Description"}]]
+            {:placeholder "Enter Description"
+             :value @*description
+             :on-change #(re/dispatch [:page.new-job/set-description %])}]]
           
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]
-           
            [c-radio-select
-            {:default-selection :ethereum
-             :on-selection
-             (fn [selection]
-               (case selection
-                 :ethereum (reset! *with-token? false)
-                 :erc20 (reset! *with-token? true)
-                 (reset! *with-token? false)))}
+            {:selection @*form-of-payment
+             :on-selection #(re/dispatch [:page.new-job/set-form-of-payment %])}
             [:ethereum [c-radio-secondary-element "Ether"]]
             [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
            
-           (when @*with-token?
+           (when with-token?
              [:div.token-address-input
               [:div.input
-               [c-text-input {:placeholder "Token Address"}]
+               [c-text-input
+                {:value @*token-address
+                 :on-change #(re/dispatch [:page.new-job/set-token-address %])
+                 :placeholder "Token Address"}]
                [:div.token-label "SNT"]]
               ;; TODO: retrieve token logo
               [:div.token-logo]])]]

@@ -1,4 +1,4 @@
-(ns ethlance.ui.page.invoice-detail
+(ns ethlance.ui.page.invoices
   (:require
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]

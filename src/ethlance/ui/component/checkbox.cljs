@@ -27,22 +27,25 @@
   [c-labeled-checkbox {:label \"I Agree to the Terms and Services.\"}]
   ```
   "
-  [{:keys [label on-change default-checked?] :as opts}]
-  (let [opts (dissoc opts :label :on-change :default-checked?)
-        *checked? (r/atom default-checked?)]
-    (fn [opts]
-      [:div.ethlance-checkbox
-       (merge
-        opts
-        {:on-click
-         (fn []
-           (when on-change
-             (on-change @*checked?))
-           (swap! *checked? not))
+  [{:keys [label on-change default-checked? checked?] :as opts}]
+  (let [*checked? (r/atom default-checked?)]
+    (fn [{:keys [label on-change default-checked? checked?] :as opts}]
+      (assert (not (and checked? default-checked?))
+              "Component has both controlled `checked?` and uncontrolled `default-checked?` attributes set.")
+      (let [checked? (if (contains? opts :default-checked?) @*checked? checked?)
+            opts (dissoc opts :label :on-change :default-checked? :checked?)]
+        [:div.ethlance-checkbox
+         (merge
+          opts
+          {:on-click
+           (fn []
+             (when on-change
+               (on-change (not checked?)))
+             (swap! *checked? not))
 
-         :class (when @*checked? "checked")})
-       [c-inline-svg {:src "/images/svg/checkbox.svg"
-                      :width 24
-                      :height 24}]
-       [:span.label label]])))
-       
+           :class (when checked? "checked")})
+         [c-inline-svg {:src "/images/svg/checkbox.svg"
+                        :width 24
+                        :height 24}]
+         [:span.label label]]))))
+
