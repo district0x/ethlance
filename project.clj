@@ -71,7 +71,7 @@
                  [district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
-                 [district0x/district-ui-graphql "1.0.10"]
+                 [district0x/district-ui-graphql "1.0.11"]
                  [district0x/district-ui-logging "1.1.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
@@ -151,7 +151,17 @@
     :plugins [[lein-figwheel "0.5.19"]
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns user
-                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}}
+                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}
+
+   :dev-ui
+   {:figwheel {:nrepl-port 9000
+               :server-ip "0.0.0.0"
+               :server-port 6500}}
+
+   :dev-server
+   {:figwheel {:nrepl-port 9001
+               :server-ip "localhost"
+               :server-port 6501}}}
 
   :cljsbuild
   {:builds

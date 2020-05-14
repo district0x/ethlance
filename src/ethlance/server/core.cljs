@@ -34,27 +34,32 @@
 
    ;; Ethlance Libraries
 
-   [ethlance.shared.utils :as shared-utils]
+   [ethlance.shared.utils :as shared-utils]))
 
 
-   ))
+(def environment (shared-utils/get-environment))
+
 
 (def graphql-config
   {:port 4000
-   :sign-in-secret "SECRET"})
+   :sign-in-secret "SECRET"
+   :graphiql (= environment "dev")})
+
 
 (def contracts-var
-  (condp = (shared-utils/get-environment)
+  (condp = environment
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
     "dev" #'smart-contracts-dev/smart-contracts))
 
+
 (def default-config
   {:web3 {:url "ws://127.0.0.1:8549"}
 
-   :web3-events {:events {:ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited {} {:from-block 0 :to-block "latest"}]
 
+   :web3-events {:events {:ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited {} {:from-block 0 :to-block "latest"}]
                           :standard-bounties/bounty-issued [:standard-bounties :BountyIssued {} {:from-block 0 :to-block "latest"}]
+
                           :standard-bounties/bounty-approvers-updated [:standard-bounties :BountyApproversUpdated {} {:from-block 0 :to-block "latest"}]
                           :standard-bounties/contribution-added [:standard-bounties :ContributionAdded {} {:from-block 0 :to-block "latest"}]
                           :standard-bounties/contribution-refunded [:standard-bounties :ContributionRefunded {} {:from-block 0 :to-block "latest"}]
@@ -83,6 +88,7 @@
                           :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted {} {:from-block 0 :to-block "latest"}]
 
                           }
+
                  :crash-on-event-fail? true
                  :skip-past-events-replay? true
                  :write-events-into-file? true

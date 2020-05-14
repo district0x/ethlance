@@ -4,7 +4,7 @@
             [district.shared.async-helpers :refer [promise->]]
             [ethlance.server.graphql.authorization :as authorization]
             [ethlance.server.graphql.resolvers :as resolvers]
-            [ethlance.server.middlewares :as middlewares]
+            [ethlance.server.graphql.middlewares :as middlewares]
             [ethlance.shared.graphql.schema :as schema]
             [mount.core :as mount :refer [defstate]]
             [cljs.reader :refer [read-string]]

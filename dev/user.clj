@@ -36,8 +36,8 @@ CLJ Repl Commands:
 
 (defn start-server! []
   (let [;; Ports are +1 of default figwheel config values
-        server-port (+ (server-port) 1)
-        nrepl-port (+ (nrepl-port) 1)
+        server-port (inc (server-port))
+        nrepl-port (inc (nrepl-port))
 
         config (-> (fig-config/fetch-config)
                    (set-server-port server-port)
