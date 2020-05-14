@@ -5,21 +5,23 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+   [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
+   [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
 
 
 (defn cf-candidate-search-filter 
@@ -98,11 +100,30 @@
 
 
 (defn c-candidate-listing []
-  [:<>
-   (doall
-    (for [candidate (range 10)]
-      ^{:key (str "candidate-" candidate)}
-      [c-candidate-element candidate]))])
+  (let [*candidate-listing-query
+        (re/subscribe
+         [::gql/query
+          {:queries
+           [[:candidate-search
+             [[:items [:user/address :candidate/skills]]
+              :total-count
+              :end-cursor
+              :has-next-page]]]}])]
+    (fn []
+      (let [{candidate-search :candidate-search
+             preprocessing?   :graphql/preprocessing?
+             loading?         :graphql/loading?} @*candidate-listing-query]
+        (println @*candidate-listing-query)
+        [:<>
+         (cond
+           (or preprocessing? loading?)
+           [c-loading-spinner]
+           
+           :else
+           (doall
+            (for [candidate (range 10)]
+              ^{:key (str "candidate-" candidate)}
+              [c-candidate-element candidate])))]))))
 
 
 (defmethod page :route.user/candidates []

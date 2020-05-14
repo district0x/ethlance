@@ -21,8 +21,8 @@
 (def makeExecutableSchema (aget (nodejs/require "graphql-tools") "makeExecutableSchema"))
 (def applyMiddleware (aget (nodejs/require "graphql-middleware") "applyMiddleware"))
 
-(declare start stop)
 
+(declare start stop)
 
 
 (defstate ^{:on-reload :noop} graphql

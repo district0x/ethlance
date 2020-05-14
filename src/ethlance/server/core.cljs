@@ -1,11 +1,5 @@
 (ns ethlance.server.core
-  "Main entrypoint for an ethlance production server.
-
-  Notes:
-
-  - For Development, ./dev/server/ethlance/server/user.cljs is the main entrypoint.
-
-  "
+  "Main entrypoint for the ethlance server."
   (:require
    [mount.core :as mount]
    [taoensso.timbre :as log]

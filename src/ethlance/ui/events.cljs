@@ -80,8 +80,8 @@
                ethlance.ui.page.new-invoice.events/state-key
                ethlance.ui.page.new-invoice.events/state-default)]
 
-    ;; Main Events
-    ;; /Nothing here, yet/
+               ;; Main Events
+               ;; /Nothing here, yet/
     {:db new-db
      ;; Initialize Forwarded FX Events
      :dispatch-n forwarded-events
