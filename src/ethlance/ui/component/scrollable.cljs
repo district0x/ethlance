@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.scrollable
   (:require
    [reagent.core :as r]
+   [reagent.dom :as rdom]
    [flib.simplebar]))
 
 
@@ -21,7 +22,7 @@
       
       :component-did-mount
       (fn [this]
-        (let [elnode (r/dom-node this)
+        (let [elnode (rdom/dom-node this)
               simplebar (js/SimpleBar. elnode (clj->js opts))]
           (reset! *instance simplebar)))
 

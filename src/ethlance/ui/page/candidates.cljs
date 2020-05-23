@@ -12,6 +12,7 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+   [ethlance.ui.component.error-message :refer [c-error-message]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -105,6 +106,7 @@
          [::gql/query
           {:queries
            [[:candidate-search
+             {:limit 10}
              [[:items [:user/address :candidate/skills]]
               :total-count
               :end-cursor
@@ -112,10 +114,14 @@
     (fn []
       (let [{candidate-search :candidate-search
              preprocessing?   :graphql/preprocessing?
-             loading?         :graphql/loading?} @*candidate-listing-query]
+             loading?         :graphql/loading?
+             errors           :graphql/errors} @*candidate-listing-query]
         (println @*candidate-listing-query)
         [:<>
          (cond
+           (seq errors)
+           [c-error-message "Failed to process GraphQL" errors]
+
            (or preprocessing? loading?)
            [c-loading-spinner]
            

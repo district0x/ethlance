@@ -8,7 +8,8 @@
   - https://stackoverflow.com/questions/24933430/img-src-svg-changing-the-fill-color
   "
   (:require
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [reagent.dom :as rdom]))
 
 
 (def *cached-svg-listing (atom {}))
@@ -150,7 +151,7 @@
 
           (when @*inline-svg
             (let [inline-svg @*inline-svg
-                  elnode (r/dom-node this)]
+                  elnode (rdom/dom-node this)]
               (when id (.setAttribute inline-svg "id" id))
               (when class (.setAttribute inline-svg "class" class))
               (when width (.setAttribute inline-svg "width" width))
