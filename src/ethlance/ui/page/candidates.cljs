@@ -4,6 +4,7 @@
    [reagent.core :as r]
    [re-frame.core :as re]
    [taoensso.timbre :as log]
+   [cuerdas.core :as str]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
 
@@ -13,6 +14,7 @@
    ;; Ethlance Components
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.error-message :refer [c-error-message]]
+   [ethlance.ui.component.info-message :refer [c-info-message]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -80,16 +82,21 @@
 
 
 (defn c-candidate-element
-  [candidate]
+  [{:keys [:user/address
+           :candidate/rate
+           :candidate/professional-title
+           :candidate/categories
+           :candidate/skills]
+    :as candidate}]
   [:div.candidate-element
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
-    [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
+    [:div.title (str/title professional-title)]]
    [:div.price "$15"]
    [:div.tags
     (doall
-     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+     (for [tag-label skills]
        ^{:key (str "tag-" tag-label)}
        [c-tag {:on-click #(re/dispatch  [:page.candidates/add-skill tag-label])
                :title (str "Add '" tag-label "' to Search")}
@@ -107,7 +114,11 @@
           {:queries
            [[:candidate-search
              {:limit 10}
-             [[:items [:user/address :candidate/skills]]
+             [[:items [:user/address
+                       :candidate/rate
+                       :candidate/professional-title
+                       :candidate/categories
+                       :candidate/skills]]
               :total-count
               :end-cursor
               :has-next-page]]]}])]
@@ -119,16 +130,22 @@
         (println @*candidate-listing-query)
         [:<>
          (cond
+           ;; Errors?
            (seq errors)
-           [c-error-message "Failed to process GraphQL" errors]
+           [c-error-message "Failed to process GraphQL" (pr-str errors)]
 
+           ;; Loading?
            (or preprocessing? loading?)
            [c-loading-spinner]
-           
+
+           ;; Empty?
+           (empty? (-> @*candidate-listing-query :candidate-search :items))
+           [c-info-message "No Candidates"]
+
            :else
            (doall
-            (for [candidate (range 10)]
-              ^{:key (str "candidate-" candidate)}
+            (for [candidate (-> @*candidate-listing-query :candidate-search :items)]
+              ^{:key (str "candidate-" (-> candidate hash str))}
               [c-candidate-element candidate])))]))))
 
 

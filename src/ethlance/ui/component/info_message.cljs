@@ -1,17 +1,17 @@
-(ns ethlance.ui.component.error-message
+(ns ethlance.ui.component.info-message
   (:require
    [reagent.core :as r]
    [taoensso.timbre :as log]))
 
 
-(defn c-error-message
-  "An error message component, displaying a error logo, along with an
-  error message and a 'show details' dropdown for additional info."
+(defn c-info-message
+  "An info message component, displaying a info logo, along with an
+  info message and a 'show details' dropdown for additional info."
   [message details]
   (let [*open? (r/atom false)]
-    (log/error (str message " : " details))
+    (log/info (str message " : " details))
     (fn []
-      [:div.error-message
+      [:div.info-message
        [:div.logo
         [:img {:src "/images/svg/ethlance_spinner.svg"}]] ;; FIXME
        [:div.message message]
@@ -20,4 +20,4 @@
           {:on-click #(swap! *open? not)}
           (if @*open? "Hide Details" "Show Details")])
        (when @*open?
-         [:div.details (str details)])])))
+         [:div.details details])])))

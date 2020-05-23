@@ -130,9 +130,9 @@
    (let [{:keys [:job-story/id] :as job-story} (graphql-utils/gql->clj root)]
      (log/debug "job-story->employer-feedback-resolver" {:job-story job-story})
      (db/get (-> user-feedback-query
-                 (sql-helpers/merge-where [:= id :JobStory.job-story/id]))))))
+                 (sql-helpers/merge-where [:= id :JobStory.job-story/id])
                  ;; TODO: add to-user-type is employer when user-feedback-query is fixed
-                 
+                 )))))
 
 (def ^:private arbiter-query {:select [:Arbiter.user/address
                                        :Arbiter.arbiter/bio
@@ -184,7 +184,7 @@
      (log/debug "feedback->to-user-type-resolver" feedback)
      (-> (sql-helpers/merge-where user-type-query [:= from-user-address :user/address])
          db/get
-         :type))))
+         :type ))))
 
 (def ^:private candidate-query
   {:select [[:User.user/address :user/address]
@@ -397,7 +397,7 @@
      (log/debug "job-story->invoices-resolver" {:job-story job-story :args args})
      (paged-query query limit offset))))
 
-(defn sign-in-mutation [_ input {:keys [:config]}]
+(defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
   recovers user address. If successful returns a JWT containing the user address."
   (try-catch-throw
@@ -512,18 +512,18 @@
 (def resolvers-map {:Query {:user user-resolver
                             :userSearch user-search-resolver
                             :candidate candidate-resolver
-                            :candidateSearch candidate-search-resolver}
-                    :employer employer-resolver
-                    :employerSearch employer-search-resolver
-                    :arbiter arbiter-resolver
-                    :arbiterSearch arbiter-search-resolver
-                    :job job-resolver
-                    :jobStory job-story-resolver
-                    :invoice invoice-resolver
+                            :candidateSearch candidate-search-resolver
+                            :employer employer-resolver
+                            :employerSearch employer-search-resolver
+                            :arbiter arbiter-resolver
+                            :arbiterSearch arbiter-search-resolver
+                            :job job-resolver
+                            :jobStory job-story-resolver
+                            :invoice invoice-resolver}
                     :Job {:job_stories job->job-stories-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
-                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
-                                :jobStory_invoices job-story->invoices-resolver}
+                               :jobStory_candidateFeedback job-story->candidate-feedback-resolver
+                               :jobStory_invoices job-story->invoices-resolver}
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
