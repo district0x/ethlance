@@ -12,6 +12,7 @@
    [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
+   [ethlance.ui.component.button :refer [c-button c-button-label]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.error-message :refer [c-error-message]]
    [ethlance.ui.component.info-message :refer [c-info-message]]
@@ -19,6 +20,7 @@
    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
+   [ethlance.ui.component.pagination :refer [c-pagination]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
@@ -121,13 +123,17 @@
                        :candidate/skills]]
               :total-count
               :end-cursor
-              :has-next-page]]]}])]
+              :has-next-page]]]}])
+        *limit (re/subscribe [:page.candidates/limit])
+        *offset (re/subscribe [:page.candidates/offset])]
     (fn []
       (let [{candidate-search :candidate-search
              preprocessing?   :graphql/preprocessing?
              loading?         :graphql/loading?
-             errors           :graphql/errors} @*candidate-listing-query]
-        (println @*candidate-listing-query)
+             errors           :graphql/errors
+             total-count      :total-count
+             has-next-page?   :has-next-page} @*candidate-listing-query
+            candidate-listing (-> candidate-search :items)]
         [:<>
          (cond
            ;; Errors?
@@ -139,14 +145,23 @@
            [c-loading-spinner]
 
            ;; Empty?
-           (empty? (-> @*candidate-listing-query :candidate-search :items))
+           (empty? candidate-listing)
            [c-info-message "No Candidates"]
 
            :else
            (doall
-            (for [candidate (-> @*candidate-listing-query :candidate-search :items)]
-              ^{:key (str "candidate-" (-> candidate hash str))}
-              [c-candidate-element candidate])))]))))
+            (for [candidate candidate-listing]
+              ^{:key (str "candidate-" (hash candidate))}
+              [c-candidate-element candidate])))
+
+         ;; Pagination
+         (when (seq candidate-listing)
+           [c-pagination
+            {:total-count total-count
+             :has-next-page? has-next-page?
+             :limit @*limit
+             :offset @*offset
+             :set-offset-event :page.candidates/set-offset}])]))))
 
 
 (defmethod page :route.user/candidates []
