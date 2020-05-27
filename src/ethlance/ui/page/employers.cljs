@@ -104,28 +104,27 @@
 
 
 (defn c-employer-listing []
-  (let [*employer-listing-query
+  (let [*limit (re/subscribe [:page.employers/limit])
+        *offset (re/subscribe [:page.employers/offset])
+        *employer-listing-query
         (re/subscribe
          [::gql/query
           {:queries
            [[:employer-search
-             {:limit 10}
+             {:limit @*limit
+              :offset @*offset}
              [[:items [:user/address
                        :employer/bio
                        :employer/professional-title]]
               :total-count
-              :end-cursor
-              :has-next-page]]]}])
-        *limit (re/subscribe [:page.employers/limit])
-        *offset (re/subscribe [:page.employers/offset])]
+              :end-cursor]]]}])]
     (fn []
       (let [{employer-search  :employer-search
              preprocessing?   :graphql/preprocessing?
              loading?         :graphql/loading?
-             errors           :graphql/errors
-             total-count      :total-count
-             has-next-page?   :has-next-page} @*employer-listing-query
-            employer-listing (-> employer-search :items)]
+             errors           :graphql/errors} @*employer-listing-query
+            {employer-listing :items
+             total-count      :total-count} employer-search]
         [:<>
          (cond
            ;; Errors?
@@ -150,7 +149,6 @@
          (when (seq employer-listing)
            [c-pagination
             {:total-count total-count
-             :has-next-page? has-next-page?
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.employers/set-offset}])]))))

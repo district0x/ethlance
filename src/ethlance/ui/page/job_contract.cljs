@@ -1,9 +1,12 @@
 (ns ethlance.ui.page.job-contract
   "For viewing individual job contracts"
   (:require
+   [re-frame.core :as re]
    [taoensso.timbre :as log]
+   [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
-
+   [district.ui.graphql.subs :as gql]
+   [district.ui.router.subs :as router.subs]
    [ethlance.shared.enumeration.currency-type :as enum.currency]
 
    ;; Ethlance Components
@@ -51,21 +54,22 @@
     [c-job-detail-table {}]]])
     
 
-(defn c-chat []
-  [c-chat-log
-   [{:user-type :candidate
-     :text "Hi Johan. I’ve read the white paper and I can do the STEPS smart contract for 14 ETH and the ICO smart contract for 5 ETH.
+(defn c-chat [job-story]
+  (let []
+    [c-chat-log
+     [{:user-type :candidate
+       :text "Hi Johan. I’ve read the white paper and I can do the STEPS smart contract for 14 ETH and the ICO smart contract for 5 ETH.
 
 I am a NY based senior blockchain developer who has done work for Consensys, Status, Gitcoin, Market Protocol, and several others. I am also a smart contract auditor at solidified.io. Please feel free to reach out directly at email@gmail.com"
-     :details ["has sent job proposal" "($25/hr)"]
-     :full-name "Brian Curran"
-     :date-updated "3 Days Ago"}
-    
-    {:user-type :employer
-     :text "Hi Cyrus, welcome on board!"
-     :details ["Has hired Brian Curran"]
-     :full-name "Clement Lesaege"
-     :date-updated "2 Days Ago"}]])
+       :details ["has sent job proposal" "($25/hr)"]
+       :full-name "Brian Curran"
+       :date-updated "3 Days Ago"}
+      
+      {:user-type :employer
+       :text "Hi Cyrus, welcome on board!"
+       :details ["Has hired Brian Curran"]
+       :full-name "Clement Lesaege"
+       :date-updated "2 Days Ago"}]]))
 
 
 (defn c-employer-options []
@@ -94,23 +98,85 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
     [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
     [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
 
-(defn c-candidate-options [])
+
+(defn c-candidate-options []
+  [c-tabular-layout
+   {:key "employer-tabular-layout"
+    :default-tab 0}
+
+   {:label "Send Message"}
+   [:div.message-input-container
+    [:div.label "Message"]
+    [c-textarea-input {:placeholder ""}]
+    [c-button {:color :primary} [c-button-label "Send Message"]]]
+
+   {:label "Raise Dispute"}
+   [:div.dispute-input-container
+    [:div.label "Dispute"]
+    [c-textarea-input {:placeholder ""}]
+    [c-button {:color :primary} [c-button-label "Raise Dispute"]]]
+
+   {:label "Leave Feedback"}
+   [:div.feedback-input-container
+    [:div.rating-input
+     [c-rating {:rating 3 :on-change (fn [rating])}]]
+    [:div.label "Feedback"]
+    [c-textarea-input {:placeholder ""}]
+    [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
+    [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
 
 
-(defn c-arbiter-options [])
+(defn c-arbiter-options []
+  [c-tabular-layout
+   {:key "employer-tabular-layout"
+    :default-tab 0}
+
+   {:label "Send Message"}
+   [:div.message-input-container
+    [:div.label "Message"]
+    [c-textarea-input {:placeholder ""}]
+    [c-button {:color :primary} [c-button-label "Send Message"]]]
+
+   {:label "Resolve Dispute"
+    :active? true} ;; TODO: conditionally show
+   [:div.dispute-input-container
+    [:div.label "Dispute"]
+    [c-textarea-input {:placeholder ""}]
+    [c-button {:color :primary} [c-button-label "Resolve Dispute"]]]
+
+   {:label "Leave Feedback"}
+   [:div.feedback-input-container
+    [:div.rating-input
+     [c-rating {:rating 3 :on-change (fn [rating])}]]
+    [:div.label "Feedback"]
+    [c-textarea-input {:placeholder ""}]
+    [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
+    [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
 
 
-(defn c-guest-options [])
+(defn c-guest-options []) ;; Empty.
 
 
 (defmethod page :route.job/contract []
-  (let []
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
     (fn []
-      [c-main-layout {:container-opts {:class :job-contract-main-container}}
-       [:div.header-container
-        [c-header-profile {}]
-        [c-chat]]
-       
-       ;; TODO: switch between options based on whether it's the employer, candidate, arbiter, or guest
-       [:div.options-container
-        [c-employer-options]]])))
+      (let [job-id (-> @*active-page-params :id parse-int)
+            job-story-query
+            @(re/subscribe
+              [::gql/query
+               {:queries
+                [[:job-story
+                  {:job/id job-id}
+                  [:job/id]]]}])
+            {job-story      :job-story
+             preprocessing? :graphql/preprocessing?
+             loading?       :graphql/loading?
+             errors         :graphql/errors} job-story-query]
+        [c-main-layout {:container-opts {:class :job-contract-main-container}}
+         [:div.header-container
+          [c-header-profile job-story]
+          [c-chat job-story]]
+         
+         ;; TODO: query for signed-in user's relation to the contract (guest, candidate, employer, arbiter)
+         [:div.options-container
+          [c-employer-options]]]))))

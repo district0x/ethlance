@@ -17,15 +17,24 @@
 (defn c-pagination
   "Component for handling pagination wrt a given listing.
 
+  Keyword Arguments:
+
+  total-count - Total count of the listing
+
+  limit - The current limit of the listing
+
+  offset - The current offset of the listing
+
+  set-offset-event - Event to dispatch to change the offset value.
   "
   []
   (fn [{:keys [total-count
-               has-next-page?
                limit
                offset
                set-offset-event]}]
-    (let [current-page (-> offset (/ limit) ceil inc)
-          num-pages (-> total-count (/ limit) ceil inc)
+    (let [total-count (or total-count 0)
+          current-page (-> offset (/ limit) ceil inc)
+          num-pages (-> total-count (/ limit) ceil)
           prev-offset (- offset limit)
           prev-offset (if (< prev-offset 0) 0 prev-offset)
           next-offset (+ offset limit)

@@ -111,30 +111,31 @@
 
 
 (defn c-candidate-listing []
-  (let [*candidate-listing-query
+  (let [*limit (re/subscribe [:page.candidates/limit])
+        *offset (re/subscribe [:page.candidates/offset])
+        *candidate-listing-query
         (re/subscribe
          [::gql/query
           {:queries
            [[:candidate-search
-             {:limit 10}
+             {:limit @*limit
+              :offset @*offset}
              [[:items [:user/address
                        :candidate/rate
                        :candidate/professional-title
                        :candidate/categories
                        :candidate/skills]]
               :total-count
-              :end-cursor
-              :has-next-page]]]}])
-        *limit (re/subscribe [:page.candidates/limit])
-        *offset (re/subscribe [:page.candidates/offset])]
+              :end-cursor]]]}])]
     (fn []
-      (let [{candidate-search :candidate-search
-             preprocessing?   :graphql/preprocessing?
-             loading?         :graphql/loading?
-             errors           :graphql/errors
-             total-count      :total-count
-             has-next-page?   :has-next-page} @*candidate-listing-query
-            candidate-listing (-> candidate-search :items)]
+      (let [{candidate-search  :candidate-search
+             preprocessing?    :graphql/preprocessing?
+             loading?          :graphql/loading?
+             errors            :graphql/errors
+             total-count       :total-count
+             has-next-page?    :has-next-page} @*candidate-listing-query
+            {candidate-listing :items
+             total-count       :total-count} candidate-search]
         [:<>
          (cond
            ;; Errors?
@@ -159,7 +160,6 @@
          (when (seq candidate-listing)
            [c-pagination
             {:total-count total-count
-             :has-next-page? has-next-page?
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.candidates/set-offset}])]))))

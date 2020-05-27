@@ -132,18 +132,16 @@
                        :arbiter/bio
                        :arbiter/fee]]
               :total-count
-              :end-cursor
-              :has-next-page]]]}])
+              :end-cursor]]]}])
         *limit (re/subscribe [:page.arbiters/limit])
         *offset (re/subscribe [:page.arbiters/offset])]
     (fn []
       (let [{arbiter-search   :arbiter-search
              preprocessing?   :graphql/preprocessing?
              loading?         :graphql/loading?
-             errors           :graphql/errors
-             total-count      :total-count
-             has-next-page?   :has-next-page} @*arbiter-listing-query
-            arbiter-listing (-> arbiter-search :items)]
+             errors           :graphql/errors} @*arbiter-listing-query
+            {arbiter-listing  :items
+             total-count      :total-count} arbiter-search]
         [:<>
          (cond
            ;; Errors?
@@ -168,7 +166,6 @@
          (when (seq arbiter-listing)
            [c-pagination
             {:total-count total-count
-             :has-next-page? has-next-page?
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.arbiters/set-offset}])]))))
