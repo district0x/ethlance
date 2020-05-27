@@ -11,7 +11,9 @@
 ;; Page State
 (def state-key :page.employers)
 (def state-default
-  {:skills #{}
+  {:offset 0
+   :limit 10
+   :skills #{}
    :category constants/category-default
    :feedback-min-rating 1
    :feedback-max-rating 5
@@ -43,6 +45,8 @@
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.employers/initialize-page initialize-page)
+(re/reg-event-fx :page.employers/set-offset (create-assoc-handler :offset))
+(re/reg-event-fx :page.employers/set-limit (create-assoc-handler :limit))
 (re/reg-event-fx :page.employers/set-skills (create-assoc-handler :skills))
 (re/reg-event-fx :page.employers/add-skill add-skill)
 (re/reg-event-fx :page.employers/set-category (create-assoc-handler :category))

@@ -72,7 +72,8 @@
           :default-search-text "Search Countries"}]]])))
 
 
-(defn c-candidate-search-filter []
+(defn c-candidate-search-filter
+  []
   [:div.search-filter
    [cf-candidate-search-filter]])
 

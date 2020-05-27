@@ -24,7 +24,6 @@
                limit
                offset
                set-offset-event]}]
-    (println (str limit " Of " offset))
     (let [current-page (-> offset (/ limit) ceil inc)
           num-pages (-> total-count (/ limit) ceil inc)
           prev-offset (- offset limit)

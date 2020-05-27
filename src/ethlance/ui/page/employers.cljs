@@ -5,22 +5,27 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.text-input :refer [c-text-input]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+   [ethlance.ui.component.error-message :refer [c-error-message]]
+   [ethlance.ui.component.info-message :refer [c-info-message]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+   [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+   [ethlance.ui.component.pagination :refer [c-pagination]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
+   [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+   [ethlance.ui.component.text-input :refer [c-text-input]]))
 
 
 (defn cf-employer-search-filter []
@@ -77,12 +82,14 @@
 
 
 (defn c-employer-element
-  [employer]
+  [{:keys [:user/address
+           :employer/bio
+           :employer/professional-title]}]
   [:div.employer-element
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
-    [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
+    [:div.title professional-title]]
    [:div.tags
     (doall
      (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
@@ -97,11 +104,56 @@
 
 
 (defn c-employer-listing []
-  [:<>
-   (doall
-    (for [employer (range 10)]
-      ^{:key (str "employer-" employer)}
-      [c-employer-element employer]))])
+  (let [*employer-listing-query
+        (re/subscribe
+         [::gql/query
+          {:queries
+           [[:employer-search
+             {:limit 10}
+             [[:items [:user/address
+                       :employer/bio
+                       :employer/professional-title]]
+              :total-count
+              :end-cursor
+              :has-next-page]]]}])
+        *limit (re/subscribe [:page.employers/limit])
+        *offset (re/subscribe [:page.employers/offset])]
+    (fn []
+      (let [{employer-search  :employer-search
+             preprocessing?   :graphql/preprocessing?
+             loading?         :graphql/loading?
+             errors           :graphql/errors
+             total-count      :total-count
+             has-next-page?   :has-next-page} @*employer-listing-query
+            employer-listing (-> employer-search :items)]
+        [:<>
+         (cond
+           ;; Errors?
+           (seq errors)
+           [c-error-message "Failed to process GraphQL" (pr-str errors)]
+
+           ;; Loading?
+           (or preprocessing? loading?)
+           [c-loading-spinner]
+
+           ;; Empty?
+           (empty? employer-listing)
+           [c-info-message "No Employers"]
+
+           :else
+           (doall
+            (for [employer employer-listing]
+              ^{:key (str "employer-" (hash employer))}
+              [c-employer-element employer])))
+
+         ;; Pagination
+         (when (seq employer-listing)
+           [c-pagination
+            {:total-count total-count
+             :has-next-page? has-next-page?
+             :limit @*limit
+             :offset @*offset
+             :set-offset-event :page.employers/set-offset}])]))))
 
 
 (defmethod page :route.user/employers []

@@ -11,7 +11,9 @@
 
 (def state-key :page.arbiters)
 (def state-default
-  {:skills #{}
+  {:offset 0
+   :limit 10
+   :skills #{}
    :category constants/category-default
    :feedback-min-rating 1
    :feedback-max-rating 5
@@ -44,6 +46,8 @@
 
 
 (re/reg-event-fx :page.arbiters/initialize-page initialize-page)
+(re/reg-event-fx :page.arbiters/set-offset (create-assoc-handler :offset))
+(re/reg-event-fx :page.arbiters/set-limit (create-assoc-handler :limit))
 (re/reg-event-fx :page.arbiters/set-skills (create-assoc-handler :skills))
 (re/reg-event-fx :page.arbiters/add-skill add-skill)
 (re/reg-event-fx :page.arbiters/set-category (create-assoc-handler :category))
