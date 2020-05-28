@@ -1,23 +1,23 @@
 (ns ethlance.ui.page.job-detail
   (:require
-   [taoensso.timbre :as log]
+   [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.router.subs :as router.subs]
+   [re-frame.core :as re]
+   [reagent.core :as r]
+   [taoensso.timbre :as log]
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
    [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
    [ethlance.ui.component.scrollable :refer [c-scrollable]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
    [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.table :refer [c-table]]
-   [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.text-input :refer [c-text-input]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
@@ -33,98 +33,110 @@ Please contact us if this sounds interesting.")
 
 
 (defmethod page :route.job/detail []
-  (let []
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
     (fn []
-      [c-main-layout {:container-opts {:class :job-detail-main-container}}
-       [:div.header
-        [:div.main
-         [:div.title "Finality Labs Full-Stack dApp Dev"]
-         [:div.sub-title "Web, Mobile, and Software Development"]
-         [:div.description fake-description]
-         [:div.label "Required Skills"]
-         [:div.skill-listing
-          [c-tag {} [c-tag-label "System Administration"]]
-          [c-tag {} [c-tag-label "Game Design"]]
-          [c-tag {} [c-tag-label "Game Development"]]
-          [c-tag {} [c-tag-label "Web Programming"]]]
-         [:div.ticket-listing
-          [:div.ticket
-           [:div.label "Available Funds"]
-           [:div.amount "14,000 SNT"]]]
-         [:div.profiles
-          [:div.employer-detail
-           [:div.header "Employer"]
-           [:div.profile-image [c-profile-image {}]]
-           [:div.name "Brian Curran"]
-           [:div.rating [c-rating {:default-rating 3}]]
-           [:div.location "New York, United States"]
-           [:div.fee ""]]
-          [:div.arbiter-detail
-           [:div.header "Arbiter"]
-           [:div.profile-image [c-profile-image {}]]
-           [:div.name "Brian Curran"]
-           [:div.rating [c-rating {:default-rating 3}]]
-           [:div.location "New York, United States"]
-           [:div.fee "Fee: 0.12 ETH"]]]]
-        [:div.side
-         [:div.label "Posted 7 Days Ago"]
-         [c-tag {} [c-tag-label "Hiring"]]
-         [c-tag {} [c-tag-label "Hourly Rate"]]
-         [c-tag {} [c-tag-label "For Months"]]
-         [c-tag {} [c-tag-label "For Expert ($$$)"]]
-         [c-tag {} [c-tag-label "Full Time"]]
-         [c-tag {} [c-tag-label "Needs 3 Freelancers"]]]]
+      (let [job-id (-> @*active-page-params :id parse-int)
+            job-query
+            @(re/subscribe
+              [::gql/query
+               {:queries
+                [[:job
+                  {:job/id job-id}
+                  [:job/id]]]}])
+            {job            :job
+             preprocessing? :graphql/preprocessing?
+             loading?       :graphql/loading?
+             errors         :graphql/errors} job-query]
+        [c-main-layout {:container-opts {:class :job-detail-main-container}}
+         [:div.header
+          [:div.main
+           [:div.title "Finality Labs Full-Stack dApp Dev"]
+           [:div.sub-title "Web, Mobile, and Software Development"]
+           [:div.description fake-description]
+           [:div.label "Required Skills"]
+           [:div.skill-listing
+            [c-tag {} [c-tag-label "System Administration"]]
+            [c-tag {} [c-tag-label "Game Design"]]
+            [c-tag {} [c-tag-label "Game Development"]]
+            [c-tag {} [c-tag-label "Web Programming"]]]
+           [:div.ticket-listing
+            [:div.ticket
+             [:div.label "Available Funds"]
+             [:div.amount "14,000 SNT"]]]
+           [:div.profiles
+            [:div.employer-detail
+             [:div.header "Employer"]
+             [:div.profile-image [c-profile-image {}]]
+             [:div.name "Brian Curran"]
+             [:div.rating [c-rating {:default-rating 3}]]
+             [:div.location "New York, United States"]
+             [:div.fee ""]]
+            [:div.arbiter-detail
+             [:div.header "Arbiter"]
+             [:div.profile-image [c-profile-image {}]]
+             [:div.name "Brian Curran"]
+             [:div.rating [c-rating {:default-rating 3}]]
+             [:div.location "New York, United States"]
+             [:div.fee "Fee: 0.12 ETH"]]]]
+          [:div.side
+           [:div.label "Posted 7 Days Ago"]
+           [c-tag {} [c-tag-label "Hiring"]]
+           [c-tag {} [c-tag-label "Hourly Rate"]]
+           [c-tag {} [c-tag-label "For Months"]]
+           [c-tag {} [c-tag-label "For Expert ($$$)"]]
+           [c-tag {} [c-tag-label "Full Time"]]
+           [c-tag {} [c-tag-label "Needs 3 Freelancers"]]]]
 
-       [:div.proposal-listing
-        [:div.label "Proposals"]
-        [c-scrollable
-         {:forceVisible true :autoHide false}
-         [c-table
-          {:headers ["Candidate" "Rate" "Created" "Status"]}
-          [[:span "Cyrus Keegan"]
-           [:span "$25"]
-           [:span "5 Days Ago"]
-           [:span "Pending"]]]]
-        [:div.button-listing
-         [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
-        [:div.proposal-form
-         [:div.label "Send Proposal"]
-         [:div.amount-input
-          [c-text-input
-           {:placeholder "0"}]
-          [c-select-input
-           {:label "Token"
-            :selections #{"ETH" "SNT" "DAI"}
-            :default-selection "ETH"}]]
-         [:div.description-input
-          [c-textarea-input
-           {:placeholder "Proposal Description"}]]
-         [c-button {:size :small} [c-button-label "Send"]]]]
+         [:div.proposal-listing
+          [:div.label "Proposals"]
+          [c-scrollable
+           {:forceVisible true :autoHide false}
+           [c-table
+            {:headers ["Candidate" "Rate" "Created" "Status"]}
+            [[:span "Cyrus Keegan"]
+             [:span "$25"]
+             [:span "5 Days Ago"]
+             [:span "Pending"]]]]
+          [:div.button-listing
+           [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+           [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+           [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+           [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
+          [:div.proposal-form
+           [:div.label "Send Proposal"]
+           [:div.amount-input
+            [c-text-input
+             {:placeholder "0"}]
+            [c-select-input
+             {:label "Token"
+              :selections #{"ETH" "SNT" "DAI"}
+              :default-selection "ETH"}]]
+           [:div.description-input
+            [c-textarea-input
+             {:placeholder "Proposal Description"}]]
+           [c-button {:size :small} [c-button-label "Send"]]]]
 
-       [:div.invoice-listing
-        [:div.label "Invoices"]
-        [c-scrollable
-         {:forceVisible true :autoHide false}
-         [c-table
-          {:headers ["Candidate" "Amount" "Created" "Status"]}
-          [[:span "Giacomo Guilizzoni"]
-           [:span "120 SNT"]
-           [:span "5 Days Ago"]
-           [:span "Full Payment"]]]]
-        [:div.button-listing
-         [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
+         [:div.invoice-listing
+          [:div.label "Invoices"]
+          [c-scrollable
+           {:forceVisible true :autoHide false}
+           [c-table
+            {:headers ["Candidate" "Amount" "Created" "Status"]}
+            [[:span "Giacomo Guilizzoni"]
+             [:span "120 SNT"]
+             [:span "5 Days Ago"]
+             [:span "Full Payment"]]]]
+          [:div.button-listing
+           [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+           [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+           [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+           [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
 
-       [:div.feedback-listing
-        [:div.label "Feedback"]
-        [c-carousel {}
-         [c-feedback-slide {:rating 1}]
-         [c-feedback-slide {:rating 2}]
-         [c-feedback-slide {:rating 3}]
-         [c-feedback-slide {:rating 4}]
-         [c-feedback-slide {:rating 5}]]]])))
+         [:div.feedback-listing
+          [:div.label "Feedback"]
+          [c-carousel {}
+           [c-feedback-slide {:rating 1}]
+           [c-feedback-slide {:rating 2}]
+           [c-feedback-slide {:rating 3}]
+           [c-feedback-slide {:rating 4}]
+           [c-feedback-slide {:rating 5}]]]]))))

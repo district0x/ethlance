@@ -1,25 +1,20 @@
 (ns ethlance.ui.page.job-contract
   "For viewing individual job contracts"
   (:require
-   [re-frame.core :as re]
-   [taoensso.timbre :as log]
    [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router.subs]
    [ethlance.shared.enumeration.currency-type :as enum.currency]
+   [re-frame.core :as re]
+   [taoensso.timbre :as log]
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-label]]
    [ethlance.ui.component.chat :refer [c-chat-log]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))

@@ -2,7 +2,11 @@
   (:require
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.parsers :refer [parse-int]]
    [reagent.core :as r]
+   [re-frame.core :as re]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.router.subs :as router.subs]
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
@@ -25,9 +29,20 @@
 
 
 (defmethod page :route.invoice/index []
-  (let []
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
     (fn []
-      (let []
+      (let [invoice-id (-> @*active-page-params :id parse-int)
+            invoice-query
+            @(re/subscribe
+              [::gql/query
+               {:queries
+                [[:invoice
+                  {:invoice/id invoice-id}
+                  [:invoice/id]]]}])
+            {invoice           :invoice
+             preprocessing?    :graphql/preprocessing?
+             loading?          :graphql/loading?
+             errors            :graphql/errors} invoice-query]
         [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
          [:div.title "Invoice"]
          [:a.sub-title
