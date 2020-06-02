@@ -416,7 +416,13 @@
      [(sql/call :primary-key :file/id)]
      ]
     :list-keys []}
-   ])
+
+   {:table-name :ReplayEventQueue
+    :table-columns
+    [[:event/comparable-id :integer]
+     [:event/string :varchar]
+
+     [(sql/call :primary-key :event/comparable-id)]]}])
 
 
 (defn list-tables
