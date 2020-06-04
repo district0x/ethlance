@@ -33,7 +33,7 @@
       user_address: ID,
       user_fullName: String,
       user_userName: String,
-      orderBy: UserListOrderBy,
+      orderBy: UserListOrderBy
       orderDirection: OrderDirection,
       limit: Int,
       offset: Int,
@@ -129,7 +129,8 @@
     updateEmployer(employer: EmployerInput!): Boolean!,
     updateCandidate(candidate: CandidateInput!): Boolean!,
     updateArbiter(arbiter: ArbiterInput!): Boolean!,
-    createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!
+    createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
+    replayEvents(): Boolean!
   }
 
   input SignInInput {

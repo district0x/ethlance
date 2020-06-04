@@ -8,7 +8,7 @@
 (def deserialize-event read-string)
 
 (defn push-event
-  "Push a event into the events FIFO queue"
+  "Push a event into the events priority queue"
   [evt]
 
   (let [comparable-id (js/parseInt (str (:block-number evt) (:transaction-index evt) (:log-index evt)))]
@@ -29,13 +29,13 @@
       deserialize-event))
 
 (defn peek-event
-  "Returns the oldest event from the events FIFO queue.
+  "Returns the event with highest priority from the priority events queue.
   Returns nil is the queue is empty"
   []
   (get-event (oldest-event-id)))
 
 (defn pop-event
-  "Returns and remove the oldest event from the events FIFO queue.
+  "Returns and remove the event with highest priority from the priority events queue.
   Returns nil is the queue is empty"
   []
   (let [ev-id (oldest-event-id)

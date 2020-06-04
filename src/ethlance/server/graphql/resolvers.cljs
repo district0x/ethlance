@@ -7,7 +7,9 @@
             [district.graphql-utils :as graphql-utils]
             [honeysql.core :as sql]
             [honeysql.helpers :as sql-helpers]
-            [taoensso.timbre :as log :refer [spy]]))
+            [taoensso.timbre :as log :refer [spy]]
+            [ethlance.server.event-replay-queue :as replay-queue]
+            [ethlance.server.syncer :as syncer]))
 
 (defn- paged-query
   [query limit offset]
@@ -489,6 +491,14 @@
 
     (throw (js/Erorr. "Unauthorized"))))
 
+(defn replay-events [_ _ _]
+  (let [dispatch-event (:dispatcher @syncer/syncer)]
+    (loop [ev (replay-queue/pop-event)]
+      (when ev
+        ;; NOTE: if something goes wrong inside dispatch-event it will
+        ;; push the event into the queue again and throw, so this loop will stop
+        (dispatch-event nil ev)))))
+
 (defn require-auth [next]
   "Given a `resolver` fn returns a wrapped resolver.
   It will call the given `resolver` if the request contains currentUser,
@@ -534,4 +544,5 @@
                                :updateCandidate update-candidate-mutation,
                                :updateArbiter update-arbiter-mutation
                                :createJobProposal create-job-proposal-mutation
+                               :replayEvents replay-events
                                }})
