@@ -399,9 +399,12 @@
              ;; In either cases push the event to the queue, so it can be replayed later
              (when (and (satisfies? cljs.core.async.impl.protocols/ReadPort res)
                         (instance? js/Error res))
-               (throw res)))
+               (throw res))
+
+             res)
            (catch js/Error error
-             (replay-queue/push-event event))))))))
+             (replay-queue/push-event event)
+             (throw error))))))))
 
 (defn start []
   (log/debug "Starting Syncer...")
