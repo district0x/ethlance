@@ -130,7 +130,7 @@
     updateCandidate(candidate: CandidateInput!): Boolean!,
     updateArbiter(arbiter: ArbiterInput!): Boolean!,
     createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
-    replayEvents(): Boolean!
+    replayEvents: Boolean!
   }
 
   input SignInInput {
