@@ -25,7 +25,6 @@
    ;; Ethlance Mount Components
    [ethlance.server.graphql.server]
    [ethlance.server.syncer]
-   [ethlance.server.events-replay-system]
    [district.server.db]
    [ethlance.server.db]
    [ethlance.server.ipfs]
@@ -88,8 +87,6 @@
                  :skip-past-events-replay? true
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
-
-   :event-store {:store-file "event-store.log"}
 
    :smart-contracts {:contracts-var contracts-var
                      :print-gas-usage? false
