@@ -41,8 +41,7 @@
         ;; NOTE: the order off how we are applying middlewares matter
         app (doto (express)
               (.use (.json body-parser))
-              (.use middlewares/current-user-express-middleware)
-              (.use middlewares/save-mutation-express-middleware))
+              (.use middlewares/current-user-express-middleware))
 
         server (new ApolloServer
                     (clj->js {:schema schema-with-middleware

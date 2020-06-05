@@ -5,8 +5,7 @@
             [clojure.string :as str]
             [ethlance.server.db :as ethlance-db]
             [district.server.config :as config]
-            [ethlance.server.graphql.authorization :as authorization]
-            [ethlance.server.event-store :as event-store]))
+            [ethlance.server.graphql.authorization :as authorization]))
 
 ;; TODO : root-value->clj middleware
 
@@ -31,22 +30,6 @@
                                          :context context
                                          :info info})
   (resolve root args context info))
-
-(defn save-mutation-express-middleware [req res next]
-  (let [current-user (aget req "headers" "current-user")
-        headers (js->clj (.-headers req) :keywordize-keys true)
-        body (js->clj (.-body req) :keywordize-keys true)
-        query (:query body)]
-    (when (and (not (:replay headers))
-               current-user
-               query
-               (str/starts-with? query "mutation"))
-      (let [timestamp (.getTime (js/Date.))]
-       (aset (.-headers req) "timestamp" (pr-str timestamp))
-       (event-store/save-graphql-mutation-event timestamp
-                                                {:headers headers
-                                                 :body body}))))
-  (next))
 
 (defn current-user-express-middleware [req res next]
   (let [secret (-> @config/config :graphql :sign-in-secret)
