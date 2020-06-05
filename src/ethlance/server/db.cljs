@@ -647,9 +647,10 @@
     (insert-row! :EthlanceJob (assoc ethlance-job :job/id job-id))))
 
 (defn get-job-id-for-bounty [bounty-id]
-  (db/get {:select [:job/id]
-           :from [[:standard-bounty :sb]]
-           :where [:= :sb.standard-bounty/id bounty-id]}))
+  (-> (db/get {:select [:job/id]
+               :from [[:StandardBounty :sb]]
+               :where [:= :sb.standard-bounty/id bounty-id]})
+      :job/id))
 
 (defn update-bounty [bounty-id job-data]
   (let [job-id (get-job-id-for-bounty bounty-id)]
@@ -657,9 +658,10 @@
     (update-row! :Job (assoc job-data :job/id job-id))))
 
 (defn get-job-id-for-ethlance-job [ethlance-job-id]
-  (db/get {:select [:job/id]
-           :from [[:ethlance-job :ej]]
-           :where [:= :ej.ethlance-job/id ethlance-job-id]}))
+  (-> (db/get {:select [:job/id]
+               :from [[:EthlanceJob :ej]]
+               :where [:= :ej.ethlance-job/id ethlance-job-id]})
+      :job/id))
 
 (defn update-ethlance-job [ethlance-job-id job-data]
   (let [job-id (get-job-id-for-ethlance-job ethlance-job-id)]
@@ -731,9 +733,9 @@
 
 (defn get-job-story-id-by-standard-bounty-id [bounty-id]
   (:id (db/get {:select [[:js.job-story/id :id]]
-                :from [[:job-story :js]]
-                :join [[:job :j] [:= :js.job/id :j.job/id]
-                       [:standard-bounty :sb] [:= :j.job/id :sb.job/id]]
+                :from [[:JobStory :js]]
+                :join [[:Job :j] [:= :js.job/id :j.job/id]
+                       [:StandardBounty :sb] [:= :j.job/id :sb.job/id]]
                 :where [:= :sb.standard-bounty/id bounty-id]})))
 
 (defn set-job-story-invoice-status-for-bounties [bounty-id invoice-ref-id status]
@@ -746,9 +748,9 @@
 
 (defn get-job-story-id-by-ethlance-job-id [ethlance-job-id]
   (:id (db/get {:select [[:js.job-story/id :id]]
-                :from [[:job-story :js]]
-                :join [[:job :j] [:= :js.job/id :j.job/id]
-                       [:ethlance-job :ej] [:= :j.job/id :ej.job/id]]
+                :from [[:JobStory :js]]
+                :join [[:Job :j] [:= :js.job/id :j.job/id]
+                       [:EthlanceJob :ej] [:= :j.job/id :ej.job/id]]
                 :where [:= :ej.ethlance-job/id ethlance-job-id]})))
 
 (defn set-job-story-invoice-status-for-ethlance-job [ethlance-job-id invoice-id status]
@@ -764,10 +766,10 @@
                             :user/address user-address}))
 
 (defn add-contribution [job-id contributor-address contribution-id amount]
-  (insert-row! :JobContributor {:job/id job-id
-                                :user/address contributor-address
-                                :job-contributor/amount amount
-                                :job-contributor/id contribution-id}))
+  (insert-row! :JobContribution {:job/id job-id
+                                 :user/address contributor-address
+                                 :job-contribution/amount amount
+                                 :job-contribution/id contribution-id}))
 
 (defn refund-job-contribution [job-id contribution-id]
   ;; TODO: implement this, delete from the table

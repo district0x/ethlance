@@ -141,8 +141,8 @@
                                      :job/date-published (:timestamp event)
                                      :job/date-updated (:timestamp event)
                                      :job/token (:_token args)
-                                     :job/token-version (:_tokenVersion args)
-                                     :standard-bounty/id (:_bountyId args)
+                                     :job/token-version (:_token-version args)
+                                     :standard-bounty/id (:_bounty-id args)
                                      :standard-bounty/deadline (:_deadline args)}
                                     (build-bounty-data-from-ipfs-object ipfs-data))))))
 
@@ -150,14 +150,14 @@
 (defn handle-bounty-datachanged [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-bounty-datachanged" args))
   (let [job-ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_data args)))]
-    (ethlance-db/update-bounty (:_bountyId args) (build-bounty-data-from-ipfs-object job-ipfs-data))))
+    (ethlance-db/update-bounty (:_bounty-id args) (build-bounty-data-from-ipfs-object job-ipfs-data))))
 
 ;; event BountyFulfilled(uint _bountyId, uint _fulfillmentId, address payable[] _fulfillers, string _data, address _submitter);
 (defn handle-bounty-fulfilled [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-bounty-fulfilled" args))
   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_data args)))
-        bounty-id (:_bountyId args)
-        job-id (ethlance-db/get-job-id-for-bounty (:_bountyId args))
+        bounty-id (:_bounty-id args)
+        job-id (ethlance-db/get-job-id-for-bounty (:_bounty-id args))
         creator (first (:_fulfillers args))]
     (when-not (-> ipfs-data :payload :ethlanceJobStoryId)
       ;; it is a bounty from other systems like gitcoin
@@ -170,39 +170,39 @@
                                                      (-> ipfs-data :payload :payoutAmounts))
                                   :message/type :job-story-message
                                   :job-story-message/type :invoice
-                                  :invoice/ref-id (:_fulfillmentId args)
+                                  :invoice/ref-id (:_fulfillment-id args)
                                   :job-story/id job-story-id
                                   :job/id job-id})))))
 
 ;; event FulfillmentUpdated(uint _bountyId, uint _fulfillmentId, address payable[] _fulfillers, string _data);
 (defn handle-fulfillment-updated [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-fulfillment-updated" args))
-  (ethlance-db/set-job-story-invoice-status-for-bounties (:_bountyId args) (:_fulfillmentId args) "cancel")
+  (ethlance-db/set-job-story-invoice-status-for-bounties (:_bounty-id args) (:_fulfillment-id args) "cancel")
   (handle-bounty-fulfilled nil event))
 
 ;; event FulfillmentAccepted(uint _bountyId, uint  _fulfillmentId, address _approver, uint[] _tokenAmounts);
 (defn handle-fulfillment-accepted [_ {:keys [args] :as event}]
   ;; This means that one approver accepted the fulfillment. In our terms that a invoice was payed
   (log/info (str "Handling event handle-fulfillment-accepted" args))
-  (ethlance-db/set-job-story-invoice-status-for-bounties (:_bountyId args) (:_fulfillmentId args) "payed"))
+  (ethlance-db/set-job-story-invoice-status-for-bounties (:_bounty-id args) (:_fulfillment-id args) "payed"))
 
 ;; event BountyChanged(uint _bountyId, address _changer, address payable[] _issuers, address payable[] _approvers, string _data, uint _deadline);
 (defn handle-bounty-changed [_ {:keys [args] :as event}]
   (safe-go
    (log/info (str "Handling event handle-bounty-changed" args))
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_data args)))]
-     (ethlance-db/update-bounty (:_bountyId args)
+     (ethlance-db/update-bounty (:_bounty-id args)
                                 (merge {:job/date-updated (:timestamp event)
                                         :job/token (:_token args)
-                                        :job/token-version (:_tokenVersion args)
-                                        :standard-bounty/id (:_bountyId args)
+                                        :job/token-version (:_token-version args)
+                                        :standard-bounty/id (:_bounty-id args)
                                         :standard-bounty/deadline (:_deadline args)}
                                        (build-bounty-data-from-ipfs-object ipfs-data))))))
 
 ;; event BountyDeadlineChanged(uint _bountyId, address _changer, uint _deadline);
 (defn handle-bounty-deadline-changed [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-bounty-deadline-changed" args))
-  (ethlance-db/update-bounty (:_bountyId args)
+  (ethlance-db/update-bounty (:_bounty-id args)
                              {:job/date-updated (:timestamp event)
                               :standard-bounty/deadline (:_deadline args)}))
 
@@ -213,28 +213,28 @@
 ;; event BountyApproversUpdated(uint _bountyId, address _changer, address[] _approvers);
 (defn handle-bounty-approvers-updated [_ {:keys [args] :as event}]
   (log/info (str "Handling event  handle-bounty-approvers-updated" args))
-  (ethlance-db/update-job-approvers (ethlance-db/get-job-id-for-bounty (:_bountyId args))
+  (ethlance-db/update-job-approvers (ethlance-db/get-job-id-for-bounty (:_bounty-id args))
                                     (:_approvers args)))
 
 ;; event ContributionAdded(uint _bountyId, uint _contributionId, address payable _contributor, uint _amount);
 (defn handle-bounty-contribution-added [_ {:keys [args] :as event}]
   (log/warn (str "Handling event handle-contribution-added." args))
-  (ethlance-db/add-contribution (ethlance-db/get-job-id-for-bounty (:_bountyId args))
+  (ethlance-db/add-contribution (ethlance-db/get-job-id-for-bounty (:_bounty-id args))
                                 (:_contributor args)
-                                (:_contributionId args)
+                                (:_contribution-id args)
                                 (:_amount args)))
 
 ;; event ContributionRefunded(uint _bountyId, uint _contributionId);
 (defn handle-bounty-contribution-refunded [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-contribution-refunded." args))
-  (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-bounty (:_bountyId args))
-                                       (:_contributionId args)))
+  (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-bounty (:_bounty-id args))
+                                       (:_contribution-id args)))
 
 ;; event ContributionsRefunded(uint _bountyId, address _issuer, uint[] _contributionIds);
 (defn handle-bounty-contributions-refunded [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-contributions-refunded. Not handling it." args))
-  (doseq [contribution-id (:_contributionsIds args)]
-    (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-bounty (:_bountyId args))
+  (doseq [contribution-id (:_contributions-ids args)]
+    (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-bounty (:_bounty-id args))
                                          contribution-id)))
 
 ;; event BountyDrained(uint _bountyId, address _issuer, uint[] _amounts);
@@ -273,8 +273,8 @@
                                   :job/date-published (:timestamp event)
                                   :job/date-updated (:timestamp event)
                                   :job/token (:_token args)
-                                  :job/token-version (:_tokenVersion args)
-                                  :ethlance-job/id (:_jobId args)}
+                                  :job/token-version (:_token-version args)
+                                  :ethlance-job/id (:_job-id args)}
                                  (build-ethlance-job-data-from-ipfs-object ipfs-data))))))
 
 
@@ -288,56 +288,56 @@
      (let [job-story-id (-> ipfs-data :payload :ethlanceJobStoryId)]
        (ethlance-db/update-job-story-invoice-message {:job-story/id job-story-id
                                                       :message/id (-> ipfs-data :payload :ethlanceMessageId)
-                                                      :invoice/ref-id (:_invoiceId args)})))))
+                                                      :invoice/ref-id (:_invoice-id args)})))))
 
 ;; event InvoiceAccepted(uint _jobId, uint  _invoiceId, address _approver, uint _amount);
 (defn handle-invoice-accepted [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-invoice-accepted" args))
-  (ethlance-db/set-job-story-invoice-status-for-ethlance-job (:_jobId args) (:_invoiceId args) "payed"))
+  (ethlance-db/set-job-story-invoice-status-for-ethlance-job (:_job-id args) (:_invoice-id args) "payed"))
 
 ;; event JobChanged(uint _jobId, address _changer, address payable[] _issuers, address payable[] _approvers, string _ipfsHash);
 (defn handle-job-changed [_ {:keys [args] :as event}]
   (safe-go
    (log/info (str "Handling event handle-job-changed" args))
-   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfsHash args)))]
-     (ethlance-db/update-ethlance-job (:_jobId args)
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
+     (ethlance-db/update-ethlance-job (:_job-id args)
                                       (merge {:job/date-updated (:timestamp event)
                                               :job/token (:_token args)
-                                              :job/token-version (:_tokenVersion args)
-                                              :ethlance-job/id (:_jobId args)}
+                                              :job/token-version (:_token-version args)
+                                              :ethlance-job/id (:_job-id args)}
                                              (build-ethlance-job-data-from-ipfs-object ipfs-data))))))
 
 ;; event JobDataChanged(uint _jobId, address _changer, string _ipfsHash);
 (defn handle-job-data-changed [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-job-data-changed" args))
   (safe-go
-   (let [job-ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfsHash args)))]
+   (let [job-ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
      (ethlance-db/update-ethlance-job (:_jobId args) (build-ethlance-job-data-from-ipfs-object job-ipfs-data)))))
 
 ;; event CandidateAccepted(uint _jobId, address _candidate);
 (defn handle-candidate-accepted [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-candidate-accepted" args))
-  (ethlance-db/update-ethlance-job-candidate (:_jobId args) (:_candidate args)))
+  (ethlance-db/update-ethlance-job-candidate (:_job-id args) (:_candidate args)))
 
 ;; event ContributionAdded(uint _jobId, uint _contributionId, address payable _contributor, uint _amount);
 (defn handle-job-contribution-added [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-contribution-added" args))
-  (ethlance-db/add-contribution (ethlance-db/get-job-id-for-ethlance-job (:_jobId args))
+  (ethlance-db/add-contribution (ethlance-db/get-job-id-for-ethlance-job (:_job-id args))
                                 (:_contributor args)
-                                (:_contributionId args)
+                                (:_contribution-id args)
                                 (:_amount args)))
 
 ;; event ContributionRefunded(uint _jobId, uint _contributionId);
 (defn handle-job-contribution-refunded [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-contribution-refunded" args))
-  (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-ethlance-job (:_jobId args))
-                                       (:_contributionId args)))
+  (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-ethlance-job (:_job-id args))
+                                       (:_contribution-id args)))
 
 ;; event ContributionsRefunded(uint _jobId, address _issuer, uint[] _contributionIds);
 (defn handle-job-contributions-refunded [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-contributions-refunded" args))
-  (doseq [contribution-id (:_contributionsIds args)]
-    (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-ethlance-job (:_jobId args))
+  (doseq [contribution-id (:_contributions-ids args)]
+    (ethlance-db/refund-job-contribution (ethlance-db/get-job-id-for-ethlance-job (:_job-id args))
                                          contribution-id)))
 
 ;; event JobDrained(uint _jobId, address _issuer, uint[] _amounts);
@@ -351,7 +351,7 @@
 ;; event JobApproversUpdated(uint _jobId, address _changer, address[] _approvers);
 (defn handle-job-approvers-updated [_ {:keys [args] :as event}]
   (log/info (str "Handling event handle-job-approvers-updated" args))
-  (ethlance-db/update-job-approvers (ethlance-db/get-job-id-for-ethlance-job (:_jobId args))
+  (ethlance-db/update-job-approvers (ethlance-db/get-job-id-for-ethlance-job (:_job-id args))
                                     (:_approvers args)))
 
 ;;;;;;;;;;;;;;;;;;
@@ -397,10 +397,10 @@
              ;; Calling a handler can throw or return a go block (when using safe-go)
              ;; in the case of async ones, the go block will return the js/Error.
              ;; In either cases push the event to the queue, so it can be replayed later
-             (when (and (satisfies? cljs.core.async.impl.protocols/ReadPort res)
-                        (instance? js/Error res))
-               (throw res))
-
+             (when (satisfies? cljs.core.async.impl.protocols/ReadPort res)
+               (let [r (<! res)]
+                 (when (instance? js/Error r)
+                   (throw r))))
              res)
            (catch js/Error error
              (replay-queue/push-event event)
