@@ -393,7 +393,11 @@
                                                            (if timestamp
                                                              (bn/number timestamp)
                                                              block-timestamp))))
-                 res (handler err event)]
+                 ;; TODO: get db conn
+                 ;; TODO: begin-tx
+                 res (handler err event)
+                 ;; TODO: commit-tx
+                 ]
              ;; Calling a handler can throw or return a go block (when using safe-go)
              ;; in the case of async ones, the go block will return the js/Error.
              ;; In either cases push the event to the queue, so it can be replayed later
@@ -404,7 +408,9 @@
              res)
            (catch js/Error error
              (replay-queue/push-event event)
-             (throw error))))))))
+             ;; TODO: rollback-tx
+             (throw error))
+           ))))))
 
 (defn start []
   (log/debug "Starting Syncer...")
