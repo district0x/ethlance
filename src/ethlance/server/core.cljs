@@ -20,6 +20,7 @@
    [ethlance.server.graphql.server]
    [ethlance.server.syncer]
    [district.server.db]
+   [district.server.async-db]
    [ethlance.server.db]
    [ethlance.server.ipfs]
    [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -96,6 +97,12 @@
 
    :db {:path "./ethlance.db"
         :opts {:memory false}}
+
+   :district/db {:user "user"
+                 :host "localhost"
+                 :database "ethlance"
+                 :password "pass"
+                 :port 5432}
 
    :ethlance/db {:resync? true}
 

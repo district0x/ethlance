@@ -160,6 +160,8 @@ TESTNET_PORT := 8549
 testnet:
 	npx ganache-cli -m district0x -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
+postgres:
+	docker run --name ethlance-postgre -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=pass -e POSTGRES_USER=user -e POSTGRES_DB=ethlance postgres
 
 build-docs:
 	make -C ./docs

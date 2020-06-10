@@ -118,7 +118,8 @@
          [graphql-tools "4.0.5"]
          [graphql "14.2.1"]
 
-         [better-sqlite3 "5.4.0"]
+         [better-sqlite3 "5.4.0"] ;; TODO: remove this
+         [pg "8.2.1"]
          [chalk "2.3.0"]
          [cors "2.8.4"]
          [source-map-support "0.5.9"]
