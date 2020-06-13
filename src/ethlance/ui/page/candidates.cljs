@@ -4,22 +4,29 @@
    [reagent.core :as r]
    [re-frame.core :as re]
    [taoensso.timbre :as log]
+   [cuerdas.core :as str]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.button :refer [c-button c-button-label]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+   [ethlance.ui.component.error-message :refer [c-error-message]]
+   [ethlance.ui.component.info-message :refer [c-info-message]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+   [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+   [ethlance.ui.component.pagination :refer [c-pagination]]
+   [ethlance.ui.component.profile-image :refer [c-profile-image]]
+   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
+   [ethlance.ui.component.rating :refer [c-rating]]
+   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+   [ethlance.ui.component.select-input :refer [c-select-input]]
+   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
 
 
 (defn cf-candidate-search-filter 
@@ -65,7 +72,8 @@
           :default-search-text "Search Countries"}]]])))
 
 
-(defn c-candidate-search-filter []
+(defn c-candidate-search-filter
+  []
   [:div.search-filter
    [cf-candidate-search-filter]])
 
@@ -77,16 +85,21 @@
 
 
 (defn c-candidate-element
-  [candidate]
+  [{:keys [:user/address
+           :candidate/rate
+           :candidate/professional-title
+           :candidate/categories
+           :candidate/skills]
+    :as candidate}]
   [:div.candidate-element
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
-    [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
+    [:div.title (str/title professional-title)]]
    [:div.price "$15"]
    [:div.tags
     (doall
-     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+     (for [tag-label skills]
        ^{:key (str "tag-" tag-label)}
        [c-tag {:on-click #(re/dispatch  [:page.candidates/add-skill tag-label])
                :title (str "Add '" tag-label "' to Search")}
@@ -98,11 +111,58 @@
 
 
 (defn c-candidate-listing []
-  [:<>
-   (doall
-    (for [candidate (range 10)]
-      ^{:key (str "candidate-" candidate)}
-      [c-candidate-element candidate]))])
+  (let [*limit (re/subscribe [:page.candidates/limit])
+        *offset (re/subscribe [:page.candidates/offset])
+        *candidate-listing-query
+        (re/subscribe
+         [::gql/query
+          {:queries
+           [[:candidate-search
+             {:limit @*limit
+              :offset @*offset}
+             [[:items [:user/address
+                       :candidate/rate
+                       :candidate/professional-title
+                       :candidate/categories
+                       :candidate/skills]]
+              :total-count
+              :end-cursor]]]}])]
+    (fn []
+      (let [{candidate-search  :candidate-search
+             preprocessing?    :graphql/preprocessing?
+             loading?          :graphql/loading?
+             errors            :graphql/errors
+             total-count       :total-count
+             has-next-page?    :has-next-page} @*candidate-listing-query
+            {candidate-listing :items
+             total-count       :total-count} candidate-search]
+        [:<>
+         (cond
+           ;; Errors?
+           (seq errors)
+           [c-error-message "Failed to process GraphQL" (pr-str errors)]
+
+           ;; Loading?
+           (or preprocessing? loading?)
+           [c-loading-spinner]
+
+           ;; Empty?
+           (empty? candidate-listing)
+           [c-info-message "No Candidates"]
+
+           :else
+           (doall
+            (for [candidate candidate-listing]
+              ^{:key (str "candidate-" (hash candidate))}
+              [c-candidate-element candidate])))
+
+         ;; Pagination
+         (when (seq candidate-listing)
+           [c-pagination
+            {:total-count total-count
+             :limit @*limit
+             :offset @*offset
+             :set-offset-event :page.candidates/set-offset}])]))))
 
 
 (defmethod page :route.user/candidates []

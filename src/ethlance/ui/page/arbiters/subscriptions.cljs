@@ -11,7 +11,8 @@
 ;;
 ;; Registered Subscriptions
 ;;
-
+(re/reg-sub :page.arbiters/offset (create-get-handler :offset))
+(re/reg-sub :page.arbiters/limit (create-get-handler :limit))
 (re/reg-sub :page.arbiters/skills (create-get-handler :skills))
 (re/reg-sub :page.arbiters/category (create-get-handler :category))
 (re/reg-sub :page.arbiters/feedback-max-rating (create-get-handler :feedback-max-rating))

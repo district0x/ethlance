@@ -14,14 +14,14 @@
              ["/jobs" :route.job/jobs]
              ["/jobs/new" :route.job/new] ;; general & bounty
              ["/jobs/contract/" :route.job/contract]
-             ["/jobs/contract/:index" :route.job/contract]
+             ["/jobs/contract/:id" :route.job/contract]
              ["/jobs/detail/" :route.job/detail]
-             ["/jobs/detail/:index" :route.job/detail]
+             ["/jobs/detail/:id" :route.job/detail]
              
              ;; Invoices
              ["/invoices/new" :route.invoice/new]
              ["/invoices/" :route.invoice/index]
-             ["/invoices/:index" :route.invoice/index]
+             ["/invoices/:id" :route.invoice/index]
 
              ;; Me
              ["/me" :route.me/index]

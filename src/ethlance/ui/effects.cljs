@@ -13,5 +13,5 @@
                           :from from})
                 (fn [err result]
                   (if err
-                    (re-frame/dispatch (conj on-error err))
-                    (re-frame/dispatch (conj on-success (.-result result)))))))))
+                    (re/dispatch (conj on-error err))
+                    (re/dispatch (conj on-success (.-result result)))))))))

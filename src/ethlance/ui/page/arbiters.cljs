@@ -5,15 +5,20 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
 
    ;; Ethlance Components
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+   [ethlance.ui.component.error-message :refer [c-error-message]]
+   [ethlance.ui.component.info-message :refer [c-info-message]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
+   [ethlance.ui.component.pagination :refer [c-pagination]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
    [ethlance.ui.component.rating :refer [c-rating]]
@@ -95,7 +100,8 @@
 
 
 (defn c-arbiter-element
-  [arbiter]
+  [{:keys [:user/address
+           :arbiter/bio]}]
   [:div.arbiter-element
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
@@ -116,11 +122,53 @@
 
 
 (defn c-arbiter-listing []
-  [:<>
-   (doall
-    (for [arbiter (range 10)]
-      ^{:key (str "arbiter-" arbiter)}
-      [c-arbiter-element arbiter]))])
+  (let [*arbiter-listing-query
+        (re/subscribe
+         [::gql/query
+          {:queries
+           [[:arbiter-search
+             {:limit 10}
+             [[:items [:user/address
+                       :arbiter/bio
+                       :arbiter/fee]]
+              :total-count
+              :end-cursor]]]}])
+        *limit (re/subscribe [:page.arbiters/limit])
+        *offset (re/subscribe [:page.arbiters/offset])]
+    (fn []
+      (let [{arbiter-search   :arbiter-search
+             preprocessing?   :graphql/preprocessing?
+             loading?         :graphql/loading?
+             errors           :graphql/errors} @*arbiter-listing-query
+            {arbiter-listing  :items
+             total-count      :total-count} arbiter-search]
+        [:<>
+         (cond
+           ;; Errors?
+           (seq errors)
+           [c-error-message "Failed to process GraphQL" (pr-str errors)]
+
+           ;; Loading?
+           (or preprocessing? loading?)
+           [c-loading-spinner]
+
+           ;; Empty?
+           (empty? arbiter-listing)
+           [c-info-message "No Arbiters"]
+
+           :else
+           (doall
+            (for [arbiter arbiter-listing]
+              ^{:key (str "arbiter-" (hash arbiter))}
+              [c-arbiter-element arbiter])))
+
+         ;; Pagination
+         (when (seq arbiter-listing)
+           [c-pagination
+            {:total-count total-count
+             :limit @*limit
+             :offset @*offset
+             :set-offset-event :page.arbiters/set-offset}])]))))
 
 
 (defmethod page :route.user/arbiters []

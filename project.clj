@@ -1,28 +1,28 @@
 (defproject district0x/ethlance "2.0.0-SNAPSHOT"
   :url "https://github.com/district0x/ethlance"
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [org.clojure/clojurescript "1.10.597"]
+                 [org.clojure/clojurescript "1.10.439"]
 
                  ;; General
                  [akiroz.re-frame/storage "0.1.4"]
-                 [camel-snake-kebab "0.4.0"]
-                 [cljs-web3-next "0.1.1"]
+                 [camel-snake-kebab "0.4.1"]
+                 [cljs-web3-next "0.1.3"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
                  [flib/simplebar "5.0.7-SNAPSHOT"]
 
                  [com.andrewmcveigh/cljs-time "0.5.2"]
-                 [com.rpl/specter "1.1.2"]
-                 [com.taoensso/encore "2.116.0"]
+                 [com.rpl/specter "1.1.3"]
+                 [com.taoensso/encore "2.120.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/bignumber "1.0.3"]
                  [cljsjs/bignumber "4.1.0-0"]
                  [district0x/error-handling "1.0.4"]
-                 [expound "0.7.2"]
+                 [expound "0.8.4"]
                  [funcool/cuerdas "2.2.0"]
-                 [garden "1.3.9"]
-                 [medley "1.2.0"]
+                 [garden "1.3.10"]
+                 [medley "1.3.0"]
                  [mount "0.1.16"]
                  [orchestra "2019.02.06-1"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
@@ -30,8 +30,8 @@
                  [org.clojure/core.match "0.3.0"]
                  [org.clojure/tools.reader "1.3.2"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.11.0-rc2"]
-                 [reagent "0.9.0-rc2"]
+                 [re-frame "0.12.0"]
+                 [reagent "0.10.0"]
                  ;; Hotfix: Fix until district-ui-graphql updates dependency
                  [day8.re-frame/forward-events-fx "0.0.6"]
 
@@ -39,7 +39,7 @@
                  [district0x/async-helpers "0.1.3"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
-                 [district0x/district-format "1.0.7"]
+                 [district0x/district-format "1.0.8"]
                  [district0x/district-graphql-utils "1.0.10"]
                  [district0x/district-parsers "1.0.0"]
                  [district0x/district-sendgrid "1.0.1"]
@@ -49,10 +49,10 @@
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
-                 [district0x/district-server-logging "1.0.5"]
+                 [district0x/district-server-logging "1.0.6"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.2.5"]
-                 [district0x/district-server-web3 "1.2.3"]
+                 [district0x/district-server-web3 "1.2.5"]
                  [district0x/district-server-web3-events "1.1.10"]
 
                  ;; UI Components
@@ -71,7 +71,7 @@
                  [district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
-                 [district0x/district-ui-graphql "1.0.10"]
+                 [district0x/district-ui-graphql "1.0.12"]
                  [district0x/district-ui-logging "1.1.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
@@ -81,12 +81,12 @@
                  [district0x/district-ui-smart-contracts "1.0.8"]
                  [district0x/district-ui-web3 "1.3.2"]
                  [district0x/district-ui-web3-account-balances "1.0.2"]
-                 [district0x/district-ui-web3-accounts "1.0.6"]
+                 [district0x/district-ui-web3-accounts "1.0.7"]
                  [district0x/district-ui-web3-balances "1.0.2"]
                  [district0x/district-ui-web3-sync-now "1.0.3-2"]
-                 [district0x/district-ui-web3-tx "1.0.11"]
+                 [district0x/district-ui-web3-tx "1.0.12"]
                  [district0x/district-ui-web3-tx-id "1.0.1"]
-                 [district0x/district-ui-web3-tx-log "1.0.12"]
+                 [district0x/district-ui-web3-tx-log "1.0.13"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/re-frame-ipfs-fx "1.1.1"]]
 
@@ -142,16 +142,27 @@
   {:dev
    {:source-paths ["src" "test" "dev"]
     :resource-paths ["resources" "dev/resources"]
-    :dependencies [[binaryage/devtools "0.9.10"]
-                   [cider/piggieback "0.4.2"]
+    :dependencies [[binaryage/devtools "1.0.1"]
+                   [cider/piggieback "0.5.0"]
                    [doo "0.1.11"]
-                   [figwheel "0.5.19"]
-                   [figwheel-sidecar "0.5.19"]
-                   [org.clojure/tools.nrepl "0.2.13"]]
-    :plugins [[lein-figwheel "0.5.19"]
+                   [figwheel "0.5.20"]
+                   [figwheel-sidecar "0.5.20"]
+                   [org.clojure/tools.nrepl "0.2.13"]
+                   [day8.re-frame/re-frame-10x "0.6.5"]]
+    :plugins [[lein-figwheel "0.5.20"]
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns user
-                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}}
+                   :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}
+
+   :dev-ui
+   {:figwheel {:nrepl-port 9000
+               :server-ip "0.0.0.0"
+               :server-port 6500}}
+
+   :dev-server
+   {:figwheel {:nrepl-port 9001
+               :server-ip "localhost"
+               :server-port 6501}}}
 
   :cljsbuild
   {:builds
@@ -168,7 +179,9 @@
                 :optimizations :none
                 :source-map true
                 :source-map-timestamp true
-                :closure-defines {goog.DEBUG true}}}
+                :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
+                                  goog.DEBUG true}
+                :preloads [day8.re-frame-10x.preload]}}
 
     {:id "dev-server"
      :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server/cljs"]

@@ -6,6 +6,7 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
@@ -188,7 +189,7 @@
       (let [job-listing @*job-listing
             job-listing-state @*job-listing-state
             loading? (contains? #{:start :loading} job-listing-state)]
-                         
+        
         [:<>
          (cond
            ;; Is the job listing loading?

@@ -2,6 +2,7 @@
   (:require
    [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! timeout] :include-macros true]
    [reagent.core :as r]
+   [reagent.dom :as rdom]
    [taoensso.timbre :as log]
    [cuerdas.core :as string]
    
@@ -104,7 +105,7 @@
      {:display-name "ethlance-chip-search-input"
       :component-did-mount
       (fn [this]
-        (let [root-dom (r/dom-node this)
+        (let [root-dom (rdom/dom-node this)
               search-input (.querySelector root-dom ".search-input")]
           (.addEventListener
            search-input "blur"

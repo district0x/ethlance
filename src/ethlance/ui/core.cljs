@@ -5,18 +5,19 @@
    [taoensso.timbre :as log]
 
    ;; District UI Components
+   [district.ui.component.router]
+   [district.ui.graphql]
+   [district.ui.logging]
    [district.ui.reagent-render]
    [district.ui.router]
-   [district.ui.component.router]
-   [district.ui.logging]
 
    ;; Ethlance
    [ethlance.ui.config :as ui.config]
-   [ethlance.ui.pages]
-   [ethlance.ui.util.injection :as util.injection]
-   [ethlance.ui.events]
    [ethlance.ui.effects]
-   [ethlance.ui.subscriptions]))
+   [ethlance.ui.events]
+   [ethlance.ui.pages]
+   [ethlance.ui.subscriptions]
+   [ethlance.ui.util.injection :as util.injection]))
 
 
 (enable-console-print!)

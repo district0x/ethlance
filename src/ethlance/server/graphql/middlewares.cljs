@@ -1,4 +1,4 @@
-(ns ethlance.server.middlewares
+(ns ethlance.server.graphql.middlewares
   (:require [district.shared.async-helpers :as async-helpers]
             [district.graphql-utils :as graphql-utils]
             [taoensso.timbre :as log]

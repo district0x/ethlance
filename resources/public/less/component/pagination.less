@@ -1,0 +1,27 @@
+/// pagination.less -- Styling for the Pagination Component
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  > .ethlance-icon {
+    cursor: pointer;
+    
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+  }
+
+  > .range-label {
+    > .current-page , .num-pages {
+      padding: 0 0.5em;
+    }
+
+    > .of {
+
+    }
+  }
+}

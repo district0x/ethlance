@@ -43,10 +43,10 @@
 
     candidateSearch(
       user_address: ID,
-      categoriesAnd: [String!],
-      categoriesOr: [String!],
-      skillsAnd: [String!],
-      skillsOr: [String!],
+      categoriesAnd: [String],
+      categoriesOr: [String],
+      skillsAnd: [String],
+      skillsOr: [String],
       professionalTitle: String,
       orderBy: CandidateListOrderBy,
       orderDirection: OrderDirection,
@@ -121,7 +121,8 @@
   }
 
   type Mutation {
-    signIn(input: SignInInput!): String!,
+
+    signIn(dataSignature: String!, data: String!): String!
     sendMessage(to: ID, text: String): Boolean!,
     raiseDispute(jobStory_id: Int!, text: String): Boolean!,
     resolveDispute(jobStory_id: Int!): Boolean!,
@@ -131,12 +132,9 @@
     updateArbiter(arbiter: ArbiterInput!): Boolean!,
     createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
     replayEvents: Boolean!
+
   }
 
-  input SignInInput {
-    dataSignature: String!,
-    data: String!
-  }
 
   # User Types
 
@@ -167,7 +165,7 @@
     user_dateUpdated: Date
 
     \"List of languages the user speaks\"
-    user_languages: [String!]
+    user_languages: [String]
 
     \"Registration Checks\"
     user_isRegisteredCandidate: Boolean!
@@ -176,7 +174,7 @@
   }
 
   type UserList {
-    items: [User!]
+    items: [User]
     totalCount: Int
     endCursor: Int
     hasNextPage: Boolean
@@ -204,10 +202,10 @@
     candidate_professionalTitle: String
 
     \"Categories of Focused Work\"
-    candidate_categories: [String!]
+    candidate_categories: [String]
 
     \"Skills of the Candidate\"
-    candidate_skills: [String!]
+    candidate_skills: [String]
 
     candidate_rateCurrencyId: Keyword
 
@@ -221,7 +219,7 @@
   }
 
   type CandidateList {
-    items: [Candidate!]
+    items: [Candidate]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
@@ -256,7 +254,7 @@
   }
 
   type EmployerList {
-    items: [Employer!]
+    items: [Employer]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
@@ -291,7 +289,7 @@
   }
 
   type ArbiterList  {
-    items: [Arbiter!]
+    items: [Arbiter]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
@@ -363,11 +361,7 @@
     job_reward: Int
     job_acceptedArbiterAddress: ID
     job_employerAddress: ID
-
     job_stories(limit: Int, offset: Int): JobStoryList
-
-
-
 
     ethlanceJob_id: Int
     ethlanceJob_estimatedLenght: Int
@@ -379,7 +373,7 @@
   }
 
   type JobList {
-    items: [Job!]
+    items: [Job]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
@@ -421,7 +415,7 @@
 
     jobStory_dispute: Dispute
 
-    jobStory_invoices(limit: Int, offset: Int,): InvoiceList
+    jobStory_invoices(limit: Int, offset: Int): InvoiceList
 
     ethlanceJobStory_invitationMessage: Message
     ethlanceJobStory_proposalMessage: Message
@@ -430,7 +424,7 @@
   }
 
   type JobStoryList {
-    items: [JobStory!]
+    items: [JobStory]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
@@ -466,11 +460,12 @@
   }
 
   type InvoiceList  {
-    items: [Invoice!]
+    items: [Invoice]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean
   }
+
 
   # Dispute Types
 
@@ -493,7 +488,6 @@
   }
 
 
-
   # Feedback Types
 
   type Feedback {
@@ -510,7 +504,7 @@
   }
 
   type FeedbackList {
-    items: [Feedback!]
+    items: [Feedback]
     totalCount: Int
     endCursor: String
     hasNextPage: Boolean

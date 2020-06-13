@@ -12,7 +12,8 @@
 ;;
 ;; Registered Subscriptions
 ;;
-
+(re/reg-sub :page.employers/offset (create-get-handler :offset))
+(re/reg-sub :page.employers/limit (create-get-handler :limit))
 (re/reg-sub :page.employers/skills (create-get-handler :skills))
 (re/reg-sub :page.employers/category (create-get-handler :category))
 (re/reg-sub :page.employers/feedback-max-rating (create-get-handler :feedback-max-rating))

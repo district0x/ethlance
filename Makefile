@@ -28,7 +28,6 @@ help:
 	@echo "  dev-server              :: Run Development Node Server for Figwheel Server Build"
 	@echo "  repl                    :: Start CLJ Repl."
 	@echo "  --"
-	@echo "  fig-dev-all             :: Start and Watch Server and UI Builds."
 	@echo "  fig-dev-server          :: Start and watch Figwheel Server Build."
 	@echo "  fig-dev-ui              :: Start and watch Figwheel UI Build."
 	@echo "  --"
@@ -75,16 +74,12 @@ dev-server:
 	node target/node/ethlance_server.js
 
 
-fig-dev-all:
-	lein figwheel dev-server dev-ui
-
-
 fig-dev-server:
-	lein figwheel dev-server
+	lein with-profile +dev-server figwheel dev-server
 
 
 fig-dev-ui:
-	lein figwheel dev-ui
+	lein with-profile +dev-ui figwheel dev-ui
 
 
 clean:
@@ -141,7 +136,7 @@ test:
 
 
 travis-test:
-	sh ./scripts/run_test_runner.sh # Produces Correct Error Codes
+	sh ./scripts/run_test_runner.sh # Produces Correct Exit Codes
 
 
 run:
@@ -152,21 +147,18 @@ ipfs:
 	ipfs daemon
 
 
-# Environment setup for truffle
-TRUFFLE_SCRIPT_FILE := ./node_modules/truffle/build/cli.bundled.js
 deploy:
-	node $(TRUFFLE_SCRIPT_FILE) migrate --network $(ETHEREUM_NETWORK) --reset
+	npx truffle migrate --network $(ETHEREUM_NETWORK) --reset
 
 
 build-contracts:
-	node $(TRUFFLE_SCRIPT_FILE) compile
+	npx truffle compile
 
 
 # Environment setup for ganache-cli
-TESTNET_SCRIPT_FILE := ./node_modules/ganache-cli/cli.js
 TESTNET_PORT := 8549
 testnet:
-	node $(TESTNET_SCRIPT_FILE) -m district0x -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
+	npx ganache-cli -m district0x -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
 
 build-docs:
@@ -189,13 +181,10 @@ check:
 
 
 # Environment Setup for lessc, and less-watch-compiler
-LESS_WATCH_SCRIPT := ./node_modules/less-watch-compiler/dist/less-watch-compiler.js
 LESS_BIN_PATH := ./node_modules/less/bin
 PATH := $(LESS_BIN_PATH):$(PATH)
-
-
 watch-css:
-	node $(LESS_WATCH_SCRIPT) resources/public/less resources/public/css main.less
+	npx less-watch-compiler resources/public/less resources/public/css main.less
 
 
 build-css:
