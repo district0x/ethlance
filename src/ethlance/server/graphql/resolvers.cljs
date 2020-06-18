@@ -1,6 +1,7 @@
 (ns ethlance.server.graphql.resolvers
   (:require [cljs.nodejs :as nodejs]
-            [district.server.db :as db]
+            [district.server.async-db :as db :include-macros true]
+            [district.shared.async-helpers :refer [safe-go <?]]
             [ethlance.server.graphql.authorization :as authorization]
             [district.shared.error-handling :refer [try-catch-throw]]
             [ethlance.server.db :as ethlance-db]
@@ -12,98 +13,103 @@
             [ethlance.server.syncer :as syncer]))
 
 (defn- paged-query
-  [query limit offset]
-  (let [paged-query (cond-> query
-                      limit (assoc :limit limit)
-                      offset (assoc :offset offset))
-        total-count (count (db/all query))
-        result (db/all paged-query)
-        end-cursor (cond-> (count result)
-                     offset (+ offset))]
-    {:items result
-     :total-count total-count
-     :end-cursor end-cursor
-     :has-next-page (< end-cursor total-count)}))
+  [conn query limit offset]
+  (safe-go
+   (let [paged-query (cond-> query
+                       limit (assoc :limit limit)
+                       offset (assoc :offset offset))
+         total-count (count (<? (db/all conn query)))
+         result (<? (db/all conn paged-query))
+         end-cursor (cond-> (count result)
+                      offset (+ offset))]
+     {:items result
+      :total-count total-count
+      :end-cursor end-cursor
+      :has-next-page (< end-cursor total-count)})))
 
 (defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/full-name :user/user-name :order-by :order-direction]
                                :as args} _]
-  (try-catch-throw
+
+  (db/with-async-resolver-conn
+   conn
+
    (log/debug "user-search-resolver" args)
    (let [query (cond-> {:select [:*]
-                        :from [:User]}
+                        :from [:Users]}
 
-                 address (sql-helpers/merge-where [:= :User.user/address address])
+                 address (sql-helpers/merge-where [:= :Users.user/address address])
 
-                 full-name (sql-helpers/merge-where [:= :User.user/full-name full-name])
+                 full-name (sql-helpers/merge-where [:= :Users.user/full-name full-name])
 
-                 user-name (sql-helpers/merge-where [:= :User.user/user-name user-name])
+                 user-name (sql-helpers/merge-where [:= :Users.user/user-name user-name])
 
                  order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
                                                               :date-updated :user/date-updated}
                                                              (graphql-utils/gql-name->kw order-by))
                                                         (or (keyword order-direction) :asc)]]))]
-     (paged-query query limit offset))))
+     (<? (paged-query conn query limit offset)))))
 
 (defn user-resolver [_ {:keys [:user/address] :as args} _]
-  (try-catch-throw
-   (log/debug "user-resolver" args)
-   (db/get {:select [:*]
-            :from [:User]
-            :where [:= address :User.user/address]})))
+  (db/with-async-resolver-conn
+    conn
+    (log/debug "user-resolver" args)
+    (<? (db/get conn {:select [:*]
+                      :from [:Users]
+                      :where [:= address :Users.user/address]}))))
 
 (defn user->is-registered-candidate-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
      (log/debug "user->is-registered-candidate-resolver" user)
-     (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
-                                :from [:Candidate]
-                                :where [:= address :Candidate.user/address]})))))))
+     (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
+                                         :from [:Candidate]
+                                         :where [:= address :Candidate.user/address]}))))))))
 
 (defn user->is-registered-employer-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
      (log/debug "user->is-registered-employer-resolver" user)
-     (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
-                                :from [:Employer]
-                                :where [:= address :Employer.user/address]})))))))
+     (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
+                                         :from [:Employer]
+                                         :where [:= address :Employer.user/address]}))))))))
 
 (defn user->is-registered-arbiter-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
      (log/debug "user->is-registered-arbiter-resolver" user)
-     (not (= 0 (:count (db/get {:select [[(sql/call :count :*) :count]]
-                                :from [:Arbiter]
-                                :where [:= address :Arbiter.user/address]})))))))
+     (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
+                                         :from [:Arbiter]
+                                         :where [:= address :Arbiter.user/address]}))))))))
 
 (defn user->languages-resolvers [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
      (log/debug "user->languages-resolvers" user)
      (map :language/id
-          (db/all {:select [:*]
-                   :from [:UserLanguage]
-                   :where [:= address :UserLanguage.user/address]})))))
+          (<? (db/all conn {:select [:*]
+                            :from [:UserLanguage]
+                            :where [:= address :UserLanguage.user/address]}))))))
 
 (def ^:private user-type-query
   {:select [:type]
-   :from [{:union [{:select [:Candidate.user/address ["Candidate" :type]]
-                    :from [:Candidate]}
-                   {:select [:Employer.user/address ["Employer" :type]]
-                    :from [:Employer]}
-                   {:select [:Arbiter.user/address ["Arbiter" :type]]
-                    :from [:Arbiter]}]}]})
+   :from [[{:union [{:select [:Candidate.user/address ["Candidate" :type]]
+                     :from [:Candidate]}
+                    {:select [:Employer.user/address ["Employer" :type]]
+                     :from [:Employer]}
+                    {:select [:Arbiter.user/address ["Arbiter" :type]]
+                     :from [:Arbiter]}]} :a]]})
 
 (def ^:private employer-query {:select [[:Employer.user/address :user/address]
                                         [:Employer.employer/professional-title :employer/professional-title]
                                         [:Employer.employer/bio :employer/bio]
-                                        [:User.user/date-registered :employer/date-registered]]
+                                        [:Users.user/date-registered :employer/date-registered]]
                                :from [:Employer]
-                               :join [:User [:= :User.user/address :Employer.user/address]]})
+                               :join [:Users [:= :Users.user/address :Employer.user/address]]})
 
 (defn employer-resolver [_ {:keys [:user/address] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "employer-resolver" args)
-   (db/get (sql-helpers/merge-where employer-query [:= address :Employer.user/address]))))
+    (<? (db/get conn (sql-helpers/merge-where employer-query [:= address :Employer.user/address])))))
 
 (def ^:private user-feedback-query {:select [:Message.message/id
                                              :Job.job/id
@@ -119,85 +125,83 @@
                                            :Message [:= :Message.message/id :JobStoryFeedbackMessage.message/id]]})
 
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as employer} (graphql-utils/gql->clj root)
          query (sql-helpers/merge-where user-feedback-query [:= address :JobStoryFeedbackMessage.user/address])]
      (log/debug "employer->feedback-resolver" {:employer employer :args args})
-     (paged-query query limit offset))))
+     (<? (paged-query conn query limit offset)))))
 
 (defn job-story->employer-feedback-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:job-story/id] :as job-story} (graphql-utils/gql->clj root)]
      (log/debug "job-story->employer-feedback-resolver" {:job-story job-story})
-     (db/get (-> user-feedback-query
-                 (sql-helpers/merge-where [:= id :JobStory.job-story/id])
-                 ;; TODO: add to-user-type is employer when user-feedback-query is fixed
-                 )))))
+     (<? (db/get conn (-> user-feedback-query
+                          (sql-helpers/merge-where [:= id :JobStory.job-story/id])
+                          ;; TODO: add to-user-type is employer when user-feedback-query is fixed
+                          ))))))
 
 (def ^:private arbiter-query {:select [:Arbiter.user/address
                                        :Arbiter.arbiter/bio
                                        :Arbiter.arbiter/fee
                                        :Arbiter.arbiter/fee-currency-id
-                                       [:User.user/date-registered :arbiter/date-registered]]
+                                       [:Users.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
-                              :join [:User [:= :User.user/address :Arbiter.user/address]]})
+                              :join [:Users [:= :Users.user/address :Arbiter.user/address]]})
 
 (defn arbiter-resolver [_ {:keys [:user/address] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "arbiter-resolver" args)
-   (db/get (sql-helpers/merge-where arbiter-query [:= address :Arbiter.user/address]))))
+    (<? (db/get conn (sql-helpers/merge-where arbiter-query [:= address :Arbiter.user/address])))))
 
 (defn arbiter-search-resolver [_ {:keys [:limit :offset
                                          :user/address
                                          :order-by :order-direction]
                                   :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "arbtier-search-resolver" args)
-   (let [query (cond-> arbiter-query
-                 address (sql-helpers/merge-where [:= address :Arbiter.user/address])
+    (let [query (cond-> arbiter-query
+                  address (sql-helpers/merge-where [:= address :Arbiter.user/address])
 
-                 order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
-                                                              :date-updated :user/date-updated}
-                                                             (graphql-utils/gql-name->kw order-by))
-                                                        (or (keyword order-direction) :asc)]]))]
-     (paged-query query limit offset))))
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
+                                                               :date-updated :user/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :asc)]]))]
+      (<? (paged-query conn query limit offset)))))
 
-(defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} _]
-  (try-catch-throw
+(defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} {:keys [conn]}]
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as arbiter} (graphql-utils/gql->clj root)
          query (sql-helpers/merge-where user-feedback-query [:= address :JobStoryFeedbackMessage.user/address])]
      (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
-     (paged-query query limit offset))))
+     (<? (paged-query conn query limit offset)))))
 
 
 (defn feedback->to-user-type-resolver [root _ _]
-  (try-catch-throw
-   (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)]
+  (db/with-async-resolver-conn conn
+   (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)
+         q (sql-helpers/merge-where user-type-query [:= to-user-address :user/address])]
      (log/debug "feedback->to-user-type-resolver" feedback)
-     (-> (sql-helpers/merge-where user-type-query [:= to-user-address :user/address])
-         db/get
-         :type))))
+     (:type (<? (db/get conn q))))))
 
 (defn feedback->from-user-type-resolver [root _ _]
-  (try-catch-throw
-   (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)]
+  (db/with-async-resolver-conn conn
+   (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)
+         q (sql-helpers/merge-where user-type-query [:= from-user-address :user/address])]
      (log/debug "feedback->to-user-type-resolver" feedback)
-     (-> (sql-helpers/merge-where user-type-query [:= from-user-address :user/address])
-         db/get
-         :type ))))
+     (:type (<? (db/get conn q))))))
 
 (def ^:private candidate-query
-  {:select [[:User.user/address :user/address]
+  {:select [[:Users.user/address :user/address]
             [:Candidate.candidate/professional-title :candidate/professional-title]
             [:Candidate.candidate/bio :candidate/bio]
-            [:User.user/date-registered :candidate/date-registered]]
+            [:Users.user/date-registered :candidate/date-registered]]
    :from [:Candidate]
-   :join [:User [:= :User.user/address :Candidate.user/address]]})
+   :join [:Users [:= :Users.user/address :Candidate.user/address]]})
 
 (defn candidate-resolver [_ {:keys [:user/address] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "candidate-resolver" args)
-   (db/get (sql-helpers/merge-where candidate-query [:= address :Candidate.user/address]))))
+    (<? (db/get conn (sql-helpers/merge-where candidate-query [:= address :Candidate.user/address])))))
 
 (defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
   (reduce-kv (fn [result index value]
@@ -225,92 +229,92 @@
                                            :professional-title
                                            :order-by :order-direction]
                                     :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "candidate-search-resolver" {:args args})
-   (let [query (cond-> (merge candidate-query
-                              {:modifiers [:distinct]})
+    (let [query (cond-> (merge candidate-query
+                               {:modifiers [:distinct]})
 
-                 address (sql-helpers/merge-where [:= :Candidate.user/address address])
+                  address (sql-helpers/merge-where [:= :Candidate.user/address address])
 
-                 professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
+                  professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
 
-                 categories-or (sql-helpers/merge-left-join :CandidateCategory
-                                                            [:= :CandidateCategory.user/address :Candidate.user/address])
+                  categories-or (sql-helpers/merge-left-join :CandidateCategory
+                                                             [:= :CandidateCategory.user/address :Candidate.user/address])
 
-                 categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
+                  categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
 
-                 categories-and (match-all {:join-table :CandidateCategory
-                                            :on-column :user/address
-                                            :column :category/id
-                                            :all-values categories-and})
+                  categories-and (match-all {:join-table :CandidateCategory
+                                             :on-column :user/address
+                                             :column :category/id
+                                             :all-values categories-and})
 
-                 skills-or (sql-helpers/merge-left-join :CandidateSkill
-                                                        [:= :CandidateSkill.user/address :Candidate.user/address])
+                  skills-or (sql-helpers/merge-left-join :CandidateSkill
+                                                         [:= :CandidateSkill.user/address :Candidate.user/address])
 
-                 skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
+                  skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
 
-                 skills-and (match-all {:join-table :CandidateSkill
-                                        :on-column :user/address
-                                        :column :skill/id
-                                        :all-values skills-and})
+                  skills-and (match-all {:join-table :CandidateSkill
+                                         :on-column :user/address
+                                         :column :skill/id
+                                         :all-values skills-and})
 
-                 order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
-                                                              :date-updated :user/date-updated}
-                                                             (graphql-utils/gql-name->kw order-by))
-                                                        (or (keyword order-direction) :asc)]]))]
-     (paged-query query limit offset))))
+                  order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
+                                                               :date-updated :user/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :asc)]]))]
+      (<? (paged-query conn query limit offset)))))
 
 (defn candidate->candidate-categories-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
      (log/debug "candidate->candidate-categories-resolver" candidate)
-     (map :category/id (db/all {:select [:*]
-                                :from [:CandidateCategory]
-                                :where [:= address :CandidateCategory.user/address]})))))
+     (map :category/id (<? (db/all conn {:select [:*]
+                                         :from [:CandidateCategory]
+                                         :where [:= address :CandidateCategory.user/address]}))))))
 
 (defn candidate->candidate-skills-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
      (log/debug "candidate->candidate-skills-resolver" candidate)
-     (map :skill/id (db/all {:select [:*]
-                             :from [:CandidateSkill]
-                             :where [:= address :CandidateSkill.user/address]})))))
+     (map :skill/id (<? (db/all conn {:select [:*]
+                                      :from [:CandidateSkill]
+                                      :where [:= address :CandidateSkill.user/address]}))))))
 
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)
          query (-> user-feedback-query
                    (sql-helpers/merge-where  [:= address :JobStoryFeedbackMessage.user/address]))]
      (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
-     (paged-query query limit offset))))
+     (<? (paged-query conn query limit offset)))))
 
 (defn job-story->candidate-feedback-resolver [root _ _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:job-story/id :contract/candidate-address] :as contract} (graphql-utils/gql->clj root)]
      (log/debug "job-story->candidate-feedback-resolver" {:contract contract})
-     (db/get (-> user-feedback-query
-                 (sql-helpers/merge-where [:= id :JobStory.job-story/id])
-                 (sql-helpers/merge-where  [:= candidate-address :JobStoryFeedbackMessage.user/address]))))))
+     (<? (db/get conn (-> user-feedback-query
+                          (sql-helpers/merge-where [:= id :JobStory.job-story/id])
+                          (sql-helpers/merge-where  [:= candidate-address :JobStoryFeedbackMessage.user/address])))))))
 
 (defn employer-search-resolver [_ {:keys [:limit :offset
                                           :user/address
                                           :professional-title
                                           :order-by :order-direction]
                                    :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "employer-search-resolver" args)
-   (let [query (cond-> employer-query
+    (let [query (cond-> employer-query
 
-                 address (sql-helpers/merge-where [:= address :Employer.user/address])
+                  address (sql-helpers/merge-where [:= address :Employer.user/address])
 
-                 professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title])
+                  professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title])
 
-                 order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
-                                                              :date-updated :user/date-updated}
-                                                             (graphql-utils/gql-name->kw order-by))
-                                                        (or (keyword order-direction) :asc)]]))]
-     (paged-query query limit offset))))
+                  order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
+                                                               :date-updated :user/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :asc)]]))]
+      (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-query {:select [:Job.job/id
                                    :Job.job/type
@@ -345,14 +349,14 @@
                                    :from [:EthlanceJob]})
 
 (defn job-resolver [_ {:keys [:job/id] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "job-resolver" args)
-   (let [job (db/get (sql-helpers/merge-where job-query [:= id :Job.job/id]))
-         job-type-query (-> (case (keyword (:job/type job))
-                              :standard-bounty (sql-helpers/merge-where standard-bounty-query [:= id :StandardBounty.job/id])
-                              :ethlance-job (sql-helpers/merge-where ethlance-job-query [:= id :EthlanceJob.job/id])))]
-     (log/debug "Sub " job-type-query)
-     (merge job (db/get job-type-query)))))
+    (let [job (<? (db/get conn (sql-helpers/merge-where job-query [:= id :Job.job/id])))
+          job-type-query (-> (case (keyword (:job/type job))
+                               :standard-bounty (sql-helpers/merge-where standard-bounty-query [:= id :StandardBounty.job/id])
+                               :ethlance-job (sql-helpers/merge-where ethlance-job-query [:= id :EthlanceJob.job/id])))]
+      (log/debug "Sub " job-type-query)
+      (merge job (<? (db/get conn job-type-query))))))
 
 (def ^:private job-story-query {:select [:JobStory.job-story/id
                                          :Job.job/id
@@ -364,17 +368,17 @@
                                 :join [:Job [:= :Job.job/id :JobStory.job/id]]})
 
 (defn job->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{:keys [:job/id] :as job} (graphql-utils/gql->clj root)]
      (log/debug "job->job-stories-resolver" {:job job :args args})
-     (paged-query (sql-helpers/merge-where job-story-query [:= id :Contract.job/id]) limit offset))))
+     (<? (paged-query conn (sql-helpers/merge-where job-story-query [:= id :Contract.job/id]) limit offset)))))
 
 (defn job-story-resolver [_ {job-id :job/id job-story-id :contract/id :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "job-story-resolver" args)
-   (db/get (-> job-story-query
-               (sql-helpers/merge-where [:= job-id :Job.job/id])
-               (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])))))
+    (<? (db/get conn (-> job-story-query
+                         (sql-helpers/merge-where [:= job-id :Job.job/id])
+                         (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))))))
 
 
 (def ^:private invoice-query {:select [:JobStoryInvoiceMessage.invoice/id :JobStoryInvoiceMessage.invoice/date-paid :JobStoryInvoiceMessage.invoice/amount-requested :JobStoryInvoiceMessage.invoice/amount-paid
@@ -384,20 +388,20 @@
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
 (defn invoice-resolver [_ {message-id :message/id :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (log/debug "invoice-resolver" {:args args})
-   (db/get (-> invoice-query
-               (sql-helpers/merge-where [:= message-id :JobStoryInvoiceMessage.message/id])))))
+    (<? (db/get conn (-> invoice-query
+                         (sql-helpers/merge-where [:= message-id :JobStoryInvoiceMessage.message/id]))))))
 
 (defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]
-  (try-catch-throw
+  (db/with-async-resolver-conn conn
    (let [{job-story-id :job-story/id :as job-story} (graphql-utils/gql->clj root)
          query (-> invoice-query
                    (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))]
      (log/debug "job-story->invoices-resolver" {:job-story job-story :args args})
-     (paged-query query limit offset))))
+     (<? (paged-query conn query limit offset)))))
 
-(defn sign-in-mutation [_ {:keys [:input]} {:keys [:config]}]
+(defn sign-in-mutation [_ {:keys [:input]} {:keys [config]}]
   "Graphql sign-in mutation. Given `data` and `data-signature`
   recovers user address. If successful returns a JWT containing the user address."
   (try-catch-throw
@@ -409,95 +413,104 @@
      jwt)))
 
 (defn send-message-mutation [_ {:keys [:to :text]} {:keys [:config :current-user :timestamp]}]
-  (if-not current-user
+  (db/with-async-resolver-tx conn
+   (if-not current-user
 
-    (throw (js/Error. "Authentication required."))
+     (throw (js/Error. "Authentication required."))
 
-    (ethlance-db/add-message {:message/type :direct-message
-                              :message/date-created timestamp
-                              :message/creator (:user/address current-user)
-                              :message/text text
-                              :direct-message/receiver to})))
+     (<? (ethlance-db/add-message conn {:message/type :direct-message
+                                        :message/date-created timestamp
+                                        :message/creator (:user/address current-user)
+                                        :message/text text
+                                        :direct-message/receiver to})))))
 
 (defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [:config :current-user :timestamp]}]
-  (if-not current-user
+  (db/with-async-resolver-tx conn
+   (if-not current-user
 
-    (throw (js/Error. "Authentication required."))
+     (throw (js/Error. "Authentication required."))
 
-    (ethlance-db/add-message {:message/type :job-story-message
-                              :job-story-message/type :raise-dispute
-                              :job-story/id id
-                              :message/date-created timestamp
-                              :message/creator (:user/address current-user)
-                              :message/text text})))
+     (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                        :job-story-message/type :raise-dispute
+                                        :job-story/id id
+                                        :message/date-created timestamp
+                                        :message/creator (:user/address current-user)
+                                        :message/text text})))))
 
 (defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [:config :current-user :timestamp]}]
-  (if-not current-user
+  (db/with-async-resolver-tx conn
+   (if-not current-user
 
-    (throw (js/Error. "Authentication required."))
+     (throw (js/Error. "Authentication required."))
 
-    (ethlance-db/add-message {:message/type :job-story-message
-                              :job-story-message/type :resolve-dispute
-                              :job-story/id id
-                              :message/date-created timestamp
-                              :message/creator (:user/address current-user)
-                              :message/text "Dispute resolved"})))
+     (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                        :job-story-message/type :resolve-dispute
+                                        :job-story/id id
+                                        :message/date-created timestamp
+                                        :message/creator (:user/address current-user)
+                                        :message/text "Dispute resolved"})))))
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [:config :current-user :timestamp]}]
-  (if-not current-user
+  (db/with-async-resolver-tx conn
+   (if-not current-user
 
-    (throw (js/Error. "Authentication required."))
+     (throw (js/Error. "Authentication required."))
 
-    (ethlance-db/add-message {:message/type :job-story-message
-                              :job-story-message/type :feedback
-                              :job-story/id id
-                              :message/date-created timestamp
-                              :message/creator (:user/address current-user)
-                              :message/text "Feedback"
-                              :feedback/rating rating
-                              :user/address to})))
+     (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                        :job-story-message/type :feedback
+                                        :job-story/id id
+                                        :message/date-created timestamp
+                                        :message/creator (:user/address current-user)
+                                        :message/text "Feedback"
+                                        :feedback/rating rating
+                                        :user/address to})))))
 
 (defn update-employer-mutation [_ employer {:keys [:config :current-user :timestamp]}]
-  (if (= (:user/address current-user) (:user/address employer))
-    (ethlance-db/upsert-user! (-> employer
-                                  (assoc :user/type :employer)))
+  (db/with-async-resolver-tx conn
+   (if (= (:user/address current-user) (:user/address employer))
+     (<? (ethlance-db/upsert-user! conn (-> employer
+                                            (assoc :user/type :employer))))
 
-    (throw (js/Erorr. "Unauthorized"))))
+     (throw (js/Erorr. "Unauthorized")))))
 
 (defn update-candidate-mutation [_ candidate {:keys [:config :current-user :timestamp]}]
-  (if (= (:user/address current-user) (:user/address candidate))
-   (ethlance-db/upsert-user! (-> candidate
-                                 (assoc :user/type :candidate)))
+  (db/with-async-resolver-tx conn
+   (if (= (:user/address current-user) (:user/address candidate))
+     (<? (ethlance-db/upsert-user! conn (-> candidate
+                                            (assoc :user/type :candidate))))
 
-   (throw (js/Erorr. "Unauthorized"))))
+     (throw (js/Erorr. "Unauthorized")))))
 
 (defn update-arbiter-mutation [_ arbiter {:keys [:config :current-user :timestamp]}]
-  (if (= (:user/address current-user) (:user/address arbiter))
-    (ethlance-db/upsert-user! (-> arbiter
-                                  (assoc :user/type :arbiter)))
+  (db/with-async-resolver-tx conn
+   (if (= (:user/address current-user) (:user/address arbiter))
+     (<? (ethlance-db/upsert-user! conn (-> arbiter
+                                            (assoc :user/type :arbiter))))
 
-    (throw (js/Erorr. "Unauthorized"))))
+     (throw (js/Erorr. "Unauthorized")))))
 
 (defn create-job-proposal-mutation [_ {:keys [:job/id :text :rate :rate-currency-id]} {:keys [:config :current-user :timestamp]}]
-  (if (:user/address current-user)
+  (db/with-async-resolver-tx conn
+   (if (:user/address current-user)
 
-    (ethlance-db/add-message {:message/type :job-story-message
-                              :job-story-message/type :proposal
-                              :message/date-created timestamp
-                              :message/creator (:user/address current-user)
-                              :message/text text
-                              :ethlance-job-story/proposal-rate rate
-                              :ethlance-job-story/proposal-rate-currency-id rate-currency-id})
+     (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                        :job-story-message/type :proposal
+                                        :message/date-created timestamp
+                                        :message/creator (:user/address current-user)
+                                        :message/text text
+                                        :ethlance-job-story/proposal-rate rate
+                                        :ethlance-job-story/proposal-rate-currency-id rate-currency-id}))
 
-    (throw (js/Erorr. "Unauthorized"))))
+     (throw (js/Erorr. "Unauthorized")))))
 
 (defn replay-events [_ _ _]
-  (let [dispatch-event (:dispatcher @syncer/syncer)]
-    (loop [ev (replay-queue/pop-event)]
-      (when ev
-        ;; NOTE: if something goes wrong inside dispatch-event it will
-        ;; push the event into the queue again and throw, so this loop will stop
-        (dispatch-event nil ev)))))
+  (db/with-async-resolver-tx conn
+    (let [dispatch-event (:dispatcher @syncer/syncer)]
+      (loop [ev (<? (replay-queue/pop-event conn))]
+        (when ev
+          ;; NOTE: if something goes wrong inside dispatch-event it will
+          ;; push the event into the queue again and throw, so this loop will stop
+          (<? (dispatch-event nil ev)))))))
 
 (defn require-auth [next]
   "Given a `resolver` fn returns a wrapped resolver.

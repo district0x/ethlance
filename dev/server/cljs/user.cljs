@@ -1,9 +1,8 @@
 (ns cljs.user
-  (:require 
+  (:require
    [honeysql.core :as sql]
    [mount.core :as mount]
    [taoensso.timbre :as log]))
-
 
 (def sql-format
   "Shorthand for honeysql.core/format"

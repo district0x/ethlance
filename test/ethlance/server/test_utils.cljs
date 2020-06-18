@@ -4,6 +4,7 @@
   (:require
    [clojure.test :refer [deftest is are testing use-fixtures]]
    [clojure.core.async :as async :refer [go go-loop <! >! chan close! put!] :include-macros true]
+   [district.shared.async-helpers :refer [safe-go <?]]
 
    [taoensso.timbre :as log]
    [cljs-web3.eth :as web3-eth]
@@ -113,12 +114,11 @@
 (defn fixture-start
   "Test Fixture Setup."
   [{:keys [deployer-options force-deployment?]}]
-  (-> (mount/with-args test-config)
-      (mount/only
-       [#'district.server.logging/logging
-        #'ethlance.server.test-utils/testnet-fixture
-        #'district.server.web3/web3
-        #'district.server.smart-contracts/smart-contracts])
-      mount/start)
-  ;; commenting this out for now, we don't have snapshoting system in new cljs-web3-next
-  (go true #_(<! (prepare-testnet!))))
+  (safe-go
+   (<? (-> (mount/with-args test-config)
+           (mount/only
+            [#'district.server.logging/logging
+             #'ethlance.server.test-utils/testnet-fixture
+             #'district.server.web3/web3
+             #'district.server.smart-contracts/smart-contracts])
+           mount/start))))

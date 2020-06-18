@@ -2,15 +2,16 @@
   (:require [cljs.core.async :refer [go <!]]
             [cljs.nodejs :as nodejs]
             [cljs.test :refer-macros [deftest is testing async use-fixtures]]
-            [district.server.db :as db]
+            [district.server.async-db :as db]
             [district.server.logging]
-            [district.shared.async-helpers :as async-helpers :refer [promise->]]
+            [district.shared.async-helpers :as async-helpers :refer [promise-> safe-go <?]]
             [ethlance.server.db :as ethlance-db]
             [ethlance.server.graphql.generator :as generator]
             [ethlance.server.graphql.server]
             [ethlance.server.graphql.utils :refer [run-query]]
             [mount.core :as mount]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [clojure.string :as str]))
 
 (async-helpers/extend-promises-as-channels!)
 
@@ -20,21 +21,28 @@
 
 (use-fixtures :once
   {:before (fn []
-             (log/debug "Running before fixture")
-             (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
-                                   :db {:opts {:memory true}}
-                                   :ethlance/db {:resync? false}
-                                   :graphql {:port 4000
-                                             :sign-in-secret secret-token}
-                                   :logging {:level :debug
-                                             :console? true}})
-                 (mount/only [#'district.server.logging/logging
-                              #'district.server.db/db
-                              #'district.server.config/config
-                              #'ethlance.server.db/ethlance-db
-                              #'ethlance.server.graphql.server/graphql])
-                 (mount/start)
-                 (as-> $ (log/warn "Started" $))))
+             (async done
+                    (safe-go
+                     (log/debug "Running before fixture")
+                     (let [comps (<? (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
+                                                           :district/db {:user "user"
+                                                                         :host "localhost"
+                                                                         :database "ethlance"
+                                                                         :password "pass"
+                                                                         :port 5432}
+                                                           :ethlance/db {:resync? true}
+                                                          :graphql {:port 4000
+                                                                    :sign-in-secret secret-token}
+                                                          :logging {:level :debug
+                                                                    :console? true}})
+                                        (mount/only [#'district.server.logging/logging
+                                                     #'district.server.async-db/db
+                                                     #'district.server.config/config
+                                                     #'ethlance.server.db/ethlance-db
+                                                     #'ethlance.server.graphql.server/graphql])
+                                        (mount/start)))]
+                       (log/info "Started" comps))
+                     (done))))
    :after (fn [] (log/debug "Running after fixture"))})
 
 (deftest test-resolvers
@@ -44,15 +52,17 @@
                  _ (<! (generator/generate-dev-data))
                  {{{:keys [:user/address]} :user} :data
                   :as user-query} (<! (run-query {:url api-endpoint
+                                                  :access-token access-token
                                                   :query [:user {:user/address "EMPLOYER"}
                                                           [:user/address]]}))
 
                  user-search-query (<! (run-query {:url api-endpoint
+                                                   :access-token access-token
                                                    :query [:user-search {:offset 0 :limit 3}
                                                            [:total-count
                                                             [:items [:user/address]]]]}))
-
                  candidate-query (<! (run-query {:url api-endpoint
+                                                 :access-token access-token
                                                  :query [:candidate {:user/address "CANDIDATE"}
                                                          [:user/address
                                                           [:candidate/feedback [:total-count
@@ -64,18 +74,21 @@
                                                                                   :feedback/rating]]]]]]}))
 
                  candidate-search-query-or (<! (run-query {:url api-endpoint
+                                                           :access-token access-token
                                                            :query [:candidate-search {:skills-or ["Clojure" "Travis"]}
                                                                    [:total-count
                                                                     [:items [:user/address
                                                                              :candidate/skills]]]]}))
 
                  candidate-search-query-and (<! (run-query {:url api-endpoint
+                                                            :access-token access-token
                                                             :query [:candidate-search {:skills-and ["Clojure" "Java"]}
                                                                     [:total-count
                                                                      [:items [:user/address
                                                                               :candidate/skills]]]]}))
 
                  employer-query (<! (run-query {:url api-endpoint
+                                                :access-token access-token
                                                 :query [:employer {:user/address "EMPLOYER"}
                                                         [:user/address
                                                          [:employer/feedback [:total-count
@@ -87,6 +100,7 @@
                                                                                 :feedback/rating]]]]]]}))
 
                  arbiter-query (<! (run-query {:url api-endpoint
+                                               :access-token access-token
                                                :query [:arbiter {:user/address "ARBITER"}
                                                        [:user/address
                                                         [:arbiter/feedback [:total-count
@@ -99,6 +113,7 @@
 
                  job-id (-> candidate-query :data :candidate :candidate/feedback :items first :job/id)
                  job-query (<! (run-query {:url api-endpoint
+                                           :access-token access-token
                                            :query [:job {:job/id job-id}
                                                    [:job/id
                                                     :job/accepted-arbiter-address
@@ -119,6 +134,7 @@
                                                                                                      :feedback/from-user-type]]]]]]]]}))
 
                  job-story-query (<! (run-query {:url api-endpoint
+                                                 :access-token access-token
                                                  :query [:job-story {:job-story/id 0 :job/id job-id}
                                                          [:job/id
                                                           :job-story/id
@@ -135,6 +151,7 @@
                                                                                   :invoice/amount-paid]]]]]]}))
 
                  dispute-query (<! (run-query {:url api-endpoint
+                                               :access-token access-token
                                                :query [:dispute {:job-story/id 0 :job/id job-id}
                                                        [:job/id
                                                         :job-story/id
@@ -142,6 +159,7 @@
 
                  invoice-id (-> job-story-query :data :job-story :job-story/invoices :items first :invoice/id)
                  invoice-query (<! (run-query {:url api-endpoint
+                                               :access-token access-token
                                                :query [:invoice {:job-story/id 0 :job/id job-id :invoice/id (or invoice-id 0)}
                                                        [:job/id
                                                         :job-story/id
@@ -149,18 +167,18 @@
                                                         :invoice/amount-paid]]}))
                  ]
 
-             (is (= "EMPLOYER" (-> user-query :data :user :user/address)))
+             (is (= "EMPLOYER" (-> user-query :data :user :user/address str/trim)))
 
              (is (= 3 (-> user-search-query :data :user-search :total-count)))
              (is (= 3 (-> user-search-query :data :user-search :items count)))
 
-             (is (= "CANDIDATE" (-> candidate-query :data :candidate :user/address)))
+             (is (= "CANDIDATE" (-> candidate-query :data :candidate :user/address str/trim)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :total-count)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :items count)))
              (is (= "Employer" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/from-user-type)))
              (is (= "Candidate" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/to-user-type)))
 
-             (is (= ["Clojure" "Solidity"] (-> candidate-search-query-or :data :candidate-search :items first :candidate/skills)))
+             (is (= #{"Clojure" "Solidity"} (-> candidate-search-query-or :data :candidate-search :items first :candidate/skills set)))
              (is (= 0 (-> candidate-search-query-and :data :candidate-search :total-count)))
 
              (is (every? #(= "Employer" %) (-> employer-query :data :employer :employer/feedback :items (#(map :feedback/to-user-type %)) )))

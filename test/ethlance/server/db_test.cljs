@@ -7,7 +7,7 @@
    [mount.core :as mount]
 
    [district.server.config :refer [config]]
-   [district.server.db]
+   [district.server.async-db]
 
    [ethlance.server.test-utils.db :refer [deftest-database] :include-macros true]
    [ethlance.server.db :as db]

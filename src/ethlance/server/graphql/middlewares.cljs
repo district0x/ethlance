@@ -4,6 +4,7 @@
             [taoensso.timbre :as log]
             [clojure.string :as str]
             [ethlance.server.db :as ethlance-db]
+            [district.server.async-db :as db]
             [district.server.config :as config]
             [ethlance.server.graphql.authorization :as authorization]))
 
