@@ -1,7 +1,7 @@
 (defproject district0x/ethlance "2.0.0-SNAPSHOT"
   :url "https://github.com/district0x/ethlance"
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [org.clojure/clojurescript "1.10.439"]
+                 [org.clojure/clojurescript "1.10.773"]
 
                  ;; General
                  [akiroz.re-frame/storage "0.1.4"]
@@ -22,12 +22,16 @@
                  [expound "0.8.4"]
                  [funcool/cuerdas "2.2.0"]
                  [garden "1.3.10"]
+                 [district0x/honeysql "1.0.444"]
                  [medley "1.3.0"]
-                 [mount "0.1.16"]
+
+                 ;; this has mount async support added
+                 [district0x/mount "0.1.17"]
+
                  [orchestra "2019.02.06-1"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
-                 [org.clojure/core.async "0.4.500"]
-                 [org.clojure/core.match "0.3.0"]
+                 [org.clojure/core.async "1.2.603"]
+                 [org.clojure/core.match "1.0.0"]
                  [org.clojure/tools.reader "1.3.2"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.12.0"]
@@ -48,11 +52,13 @@
 
                  ;; District Server Components
                  [district0x/district-server-config "1.0.1"]
+
                  [district0x/district-server-db "1.0.4"]
+
                  [district0x/district-server-logging "1.0.6"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.2.5"]
-                 [district0x/district-server-web3 "1.2.5"]
+                 [district0x/district-server-web3 "1.2.6"]
                  [district0x/district-server-web3-events "1.1.10"]
 
                  ;; UI Components
@@ -91,7 +97,7 @@
                  [district0x/re-frame-ipfs-fx "1.1.1"]]
 
   :plugins [[lein-ancient "0.6.15"]
-            [lein-cljsbuild "1.1.7"]
+            [lein-cljsbuild "1.1.8"]
             [lein-npm "0.6.2"]
             [lein-shell "0.5.0"]
             [lein-marginalia "0.9.1"]]
@@ -106,7 +112,9 @@
              :server-port 6500
              :ring-handler handler/figwheel-request-handler}
   :exclusions [cljsjs/react-with-addons
-               reagent]
+               honeysql
+               reagent
+               mount]
   :npm {:dependencies
         [["@sentry/node" "4.2.1"]
          [express "4.17.1"]
@@ -117,7 +125,6 @@
          [graphql-tools "4.0.5"]
          [graphql "14.2.1"]
 
-         [better-sqlite3 "5.4.0"] ;; TODO: remove this
          [pg "8.2.1"]
          [chalk "2.3.0"]
          [cors "2.8.4"]

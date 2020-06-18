@@ -4,7 +4,7 @@
    [mount.core :as mount]
 
    [district.server.config :refer [config]]
-   [district.server.db]
+   [district.server.async-db]
 
    [ethlance.server.db :as db]
    [ethlance.server.core]))
@@ -24,7 +24,7 @@
   [& [opts]]
   (-> (mount/with-args test-config)
       (mount/only
-       [#'district.server.db/db
+       [#'district.server.async-db/db
         #'ethlance.server.db/ethlance-db])
       mount/start))
 
