@@ -11,7 +11,8 @@
 .PHONY: help build deploy clean clean-all deps
 
 
-SERVER_PORT := 8080
+PHP_SERVER_URL := 0.0.0.0
+PHP_SERVER_PORT := 8080
 
 
 help:
@@ -27,13 +28,14 @@ help:
 	@echo "  help               :: Displays this help message."
 
 
-GULP_SCRIPT := ./node_modules/gulp/bin/gulp.js
+
 build:
-	node $(GULP_SCRIPT) build
+	npx gulp build
 
 
 deploy:
-	cd ./deploy && php -S localhost:$(SERVER_PORT)
+	php --server $(PHP_SERVER_URL):$(PHP_SERVER_PORT) \
+      --docroot ./deploy
 
 
 deps:
