@@ -246,12 +246,12 @@
         {:title "About Us"
          :on-click (util.navigation/create-handler {:route :route.misc/about})
          :href (util.navigation/resolve-route {:route :route.misc/about})}
-        "About Us"]
+        [:span "About Us"]]
        [:a 
         {:title "How it Works"
          :on-click (util.navigation/create-handler {:route :route.misc/how-it-works})
          :href (util.navigation/resolve-route {:route :route.misc/how-it-works})}
-        "How it Works"]
+        [:span "How it Works"]]
        [:a {:href "https://blog.district0x.io/"} "Blog"]]
       [:div.listing
        [:span.title "Get Started"]
@@ -259,22 +259,22 @@
         {:title "Become a Freelancer"
          :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :candidate}})
          :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :candidate}})}
-        "Become a Freelancer"]
+        [:span "Become a Freelancer"]]
        [:a
         {:title "Become an Employer"
          :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :employer}})
          :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :employer}})}
-        "Become an Employer"]
+        [:span "Become an Employer"]]
        [:a
         {:title "Find Work"
          :on-click (util.navigation/create-handler {:route :route.job/jobs})
          :href (util.navigation/resolve-route {:route :route.job/jobs})}
-        "Find Work"]
+        [:span "Find Work"]]
        [:a
         {:title "Find Candidates"
          :on-click (util.navigation/create-handler {:route :route.user/candidates})
          :href (util.navigation/resolve-route {:route :route.user/candidates})}
-        "Find Candidates"]]
+        [:span "Find Candidates"]]]
       [:div.listing
        [:span.title "Connect With Us"]
        [:div.button-listing
@@ -295,15 +295,15 @@
        [c-button-label [:span "Become a " [:b "Freelancer"]]]]
       [c-button
        {:color :primary :size :auto
-        :title "Become an Arbiter"
-        :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :arbiter}})
-        :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :arbiter}})}
-       [c-button-label [:span "Become an " [:b "Arbiter"]]]]
-      [c-button
-       {:color :primary :size :auto
         :title "Become an Employer"
         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :employer}})
         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :employer}})}
-       [c-button-label [:span "Become an " [:b "Employer"]]]]]
+       [c-button-label [:span "Become an " [:b "Employer"]]]]
+      [c-button
+       {:color :primary :size :auto
+        :title "Become an Arbiter"
+        :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :arbiter}})
+        :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :arbiter}})}
+       [c-button-label [:span "Become an " [:b "Arbiter"]]]]]
      [:div.footer-section
       [:span "Copyright © 2020 Ethlance.com. All rights reserved."]]]]])

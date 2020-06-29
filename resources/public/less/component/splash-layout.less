@@ -161,6 +161,7 @@
             height: 75px;
             max-width: 150px;
             margin: 0 0.7em;
+            transition: 0.3s all ease-out;
 
             @media #media[tablet-query] {
               height: 60px;
@@ -848,10 +849,36 @@
 	        }
 
 	        > a {
+            position: relative;
 	          color: white;
 	          font-weight: 200;
 	          text-decoration: none;
 	          padding: 1em 0;
+            transition: all 0.3s;
+
+            > span {
+              transition: border-bottom-color 0.3s;
+              &::after {
+                position: absolute;
+                content: '';
+                left: 0;
+                bottom: 0em;
+                width: 50%;
+                height: 1px;
+                border-radius: 100%;
+                opacity: 0.0;
+                background-color: white;
+                transition: all 0.3s;
+              }
+            }
+
+            &:hover {
+              > span {
+                &::after {
+                  opacity: 1.0;
+                }
+              }
+            }
 	        }
 
 	        > .button-listing {
@@ -882,15 +909,24 @@
         > .button {
 	        margin: 0.5em 0.5em;
           max-width: 120px;
+
 	        > .button-label {
 	          padding: 0.5rem;
 	          line-height: 1.5em;
 	          font-size: 0.8em;
 	          text-align: center;
-	          > b {
-	            font-weight: bold;
+	          > span > b {
+	            font-weight: 700;
 	          }
 	        }
+
+          &:hover {
+            background-color: white;
+
+            > .button-label > * {
+              color: #color[dark-purple];
+            }
+          }
         }
       }
 

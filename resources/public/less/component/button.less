@@ -9,7 +9,7 @@
   width: 200px;
   height: 50px;
   border-radius: 7px;
-  fade-duration: 0.1s;
+  fade-duration: 0.3s;
 }
 
 
@@ -35,6 +35,10 @@
     justify-content: center;
     color: #ethlance-button[text-color-primary];
     transition: color @fade-duration, background-color @fade-duration;
+    
+    > * {
+      transition: color @fade-duration, background-color @fade-duration;
+    }
   }
 
   > .button-icon-label {
