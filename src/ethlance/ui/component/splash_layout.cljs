@@ -2,6 +2,7 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
+   [react-transition-group :refer [CSSTransition TransitionGroup]]
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-label]]
@@ -61,34 +62,46 @@
   []
   (let [*current-selection (r/atom :candidate)]
     (fn []
-     [:div.how-it-works-layout
-      [:div.button-listing
-       [c-button
-        {:color :primary
-         :disabled? (not= @*current-selection :candidate)
-         :on-click #(reset! *current-selection :candidate)}
-        [c-button-label [:span "Freelancer"]]]
-       [c-button
-        {:color :primary
-         :disabled? (not= @*current-selection :employer)
-         :on-click #(reset! *current-selection :employer)}
-        [c-button-label [:span "Employer"]]]
-       [c-button
-        {:color :primary
-         :disabled? (not= @*current-selection :arbiter)
-         :on-click #(reset! *current-selection :arbiter)}
-        [c-button-label [:span "Arbiter"]]]]
+      [:div.how-it-works-layout
+       [:div.button-listing
+        [c-button
+         {:color :primary
+          :disabled? (not= @*current-selection :candidate)
+          :on-click #(reset! *current-selection :candidate)}
+         [c-button-label [:span "Freelancer"]]]
+        [c-button
+         {:color :primary
+          :disabled? (not= @*current-selection :employer)
+          :on-click #(reset! *current-selection :employer)}
+         [c-button-label [:span "Employer"]]]
+        [c-button
+         {:color :primary
+          :disabled? (not= @*current-selection :arbiter)
+          :on-click #(reset! *current-selection :arbiter)}
+         [c-button-label [:span "Arbiter"]]]]
+       [:> TransitionGroup
+        {:className "card-transitions"}
+        
+        (when (= @*current-selection :candidate)
+          [:> CSSTransition
+           {:className "active-page"
+            :classNames "how-card"
+            :timeout 200}
+           (r/as-element [c-how-to-candidate])])
 
-      (case @*current-selection
-       :candidate
-       [:div.active-page.candidate-page
-        [c-how-to-candidate]]
-       :employer
-       [:div.active-page.employer-page
-        [c-how-to-employer]]
-       :arbiter
-       [:div.active-page.arbiter-page
-        [c-how-to-arbiter]])])))
+        (when (= @*current-selection :employer)
+          [:> CSSTransition
+           {:className "active-page"
+            :classNames "how-card"
+            :timeout 200}
+           (r/as-element [c-how-to-employer])])
+        
+        (when (= @*current-selection :arbiter)
+          [:> CSSTransition
+           {:className "active-page"
+            :classNames "how-card"
+            :timeout 200}
+           (r/as-element [c-how-to-arbiter])])]])))
 
 
 (defn c-splash-layout
