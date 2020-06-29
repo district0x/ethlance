@@ -10,6 +10,7 @@
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
+                 [cljsjs/react-transition-group "4.3.0-0"]
                  [flib/simplebar "5.0.7-SNAPSHOT"]
 
                  [com.andrewmcveigh/cljs-time "0.5.2"]
