@@ -10,6 +10,12 @@ jobs:
       - image: trufflesuite/ganache-cli:v6.9.1
         command: [-d, -m district0x, -p 8549, -l 8000000, --noVMErrorsOnRPCResponse]
       - image: district0x/ipfs-daemon:latest
+      - image: postgres
+        environment:
+          POSTGRES_PASSWORD: pass
+          POSTGRES_USER: user
+          POSTGRES_DB: ethlance
+
     steps:
       - checkout
       - restore_cache:
