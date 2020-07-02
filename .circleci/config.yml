@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+  slack: circleci/slack@3.4.2
+
 jobs:
 
   test:
@@ -10,12 +14,11 @@ jobs:
       - image: trufflesuite/ganache-cli:v6.9.1
         command: [-d, -m district0x, -p 8549, -l 8000000, --noVMErrorsOnRPCResponse]
       - image: district0x/ipfs-daemon:latest
-      - image: postgres
+      - image: postgres:latest
         environment:
           POSTGRES_PASSWORD: pass
           POSTGRES_USER: user
           POSTGRES_DB: ethlance
-
     steps:
       - checkout
       - restore_cache:
@@ -44,9 +47,13 @@ jobs:
             - ./node_modules
       - run: env ETHLANCE_ENV=dev npx truffle migrate --network ganache --reset
       - run: lein doo node "test-server" once
+      - slack/status:
+          channel: travis-ci
+          mentions: $CIRCLE_USERNAME
 
 workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - test
+      - test:
+          context: district0x
