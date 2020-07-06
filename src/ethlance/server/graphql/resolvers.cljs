@@ -343,7 +343,7 @@
 (def ^:private ethlance-job-query {:select [:EthlanceJob.ethlance-job/id
                                             :EthlanceJob.ethlance-job/estimated-length
                                             :EthlanceJob.ethlance-job/max-number-of-candidates
-                                            :EthlanceJob.ethlance-job/invitation-only
+                                            :EthlanceJob.ethlance-job/invitation-only?
                                             :EthlanceJob.ethlance-job/hire-address
                                             :EthlanceJob.ethlance-job/bid-option]
                                    :from [:EthlanceJob]})
