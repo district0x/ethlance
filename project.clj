@@ -126,6 +126,7 @@
          [graphql "14.2.1"]
 
          [pg "8.2.1"]
+         [better-sqlite3 "5.4.0"]
          [chalk "2.3.0"]
          [cors "2.8.4"]
          [source-map-support "0.5.9"]
