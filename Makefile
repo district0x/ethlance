@@ -5,7 +5,7 @@
 .PHONY: fig-dev-all fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build-css build
 .PHONY: watch-tests watch-css
-.PHONY: deploy testnet ipfs
+.PHONY: deploy testnet ipfs docker-db
 .PHONY: run build-docs publish-docs
 .PHONY: publish-docs-ipfs publish-docs-ipns
 .PHONY: deps lein-deps test travis-test
@@ -37,6 +37,7 @@ help:
 	@echo "  deploy                  :: Deploy Smart Contracts using truffle."
 	@echo "  testnet                 :: Start the Testnet server."
 	@echo "  ipfs                    :: Start the IPFS daemon."
+	@echo "  docker-db               :: Start the postgresql database as a docker container 'dev-ethlance-psql'"
 	@echo "  --"
 	@echo "  build-docs              :: Generate Requirement, Design, and Spec Documents"
 	@echo "  publish-docs            :: Publish the documentation to IPFS"
@@ -147,6 +148,19 @@ ipfs:
 	ipfs daemon
 
 
+ETHLANCE_DB_PORT := 5432
+docker-db:
+	docker run                                                       \
+               --name    dev-ethlance-psql                               \
+               --volume  dev-ethlance-psql-data:/var/lib/postgresql/data \
+               --publish $(ETHLANCE_DB_PORT):5432                        \
+               --env     POSTGRES_DB=ethlance                            \
+               --env     POSTGRES_USER=user                              \
+               --env     POSTGRES_PASSWORD=pass                          \
+               --rm                                                      \
+               postgres:11
+
+
 deploy:
 	npx truffle migrate --network $(ETHEREUM_NETWORK) --reset
 
@@ -160,8 +174,6 @@ TESTNET_PORT := 8549
 testnet:
 	npx ganache-cli -m district0x -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
-postgres:
-	docker run --name ethlance-postgre -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=pass -e POSTGRES_USER=user -e POSTGRES_DB=ethlance postgres
 
 build-docs:
 	make -C ./docs
@@ -185,12 +197,12 @@ check:
 # Environment Setup for lessc, and less-watch-compiler
 LESS_BIN_PATH := ./node_modules/less/bin
 PATH := $(LESS_BIN_PATH):$(PATH)
-watch-css:
-	npx less-watch-compiler resources/public/less resources/public/css main.less
-
-
 build-css:
 	$(LESS_BIN_PATH)/lessc resources/public/less/main.less resources/public/css/main.css
+
+
+watch-css: build-css
+	npx less-watch-compiler resources/public/less resources/public/css main.less
 
 
 design-deps:
