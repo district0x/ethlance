@@ -5,7 +5,7 @@
 .PHONY: fig-dev-all fig-dev-server fig-dev-ui
 .PHONY: build-server build-ui build-contracts build-dist build-css build
 .PHONY: watch-tests watch-css
-.PHONY: deploy testnet ipfs docker-db
+.PHONY: deploy testnet ipfs postgres
 .PHONY: run build-docs publish-docs
 .PHONY: publish-docs-ipfs publish-docs-ipns
 .PHONY: deps lein-deps test travis-test
@@ -37,7 +37,7 @@ help:
 	@echo "  deploy                  :: Deploy Smart Contracts using truffle."
 	@echo "  testnet                 :: Start the Testnet server."
 	@echo "  ipfs                    :: Start the IPFS daemon."
-	@echo "  docker-db               :: Start the postgresql database as a docker container 'dev-ethlance-psql'"
+	@echo "  postgres                :: Start the postgresql database as a docker container 'dev-ethlance-psql'"
 	@echo "  --"
 	@echo "  build-docs              :: Generate Requirement, Design, and Spec Documents"
 	@echo "  publish-docs            :: Publish the documentation to IPFS"
@@ -149,7 +149,7 @@ ipfs:
 
 
 ETHLANCE_DB_PORT := 5432
-docker-db:
+postgres:
 	docker run                                                       \
                --name    dev-ethlance-psql                               \
                --volume  dev-ethlance-psql-data:/var/lib/postgresql/data \
