@@ -155,13 +155,12 @@
            {:key "chip-search-input"
             :class (when-not search-icon? "no-search-icon")}
            [:div.search-container
-            [:div.chip-listing
-             (doall
-              (for [chip-label current-chip-listing]
-                ^{:key (str "chip-" chip-label)}
-                [c-chip 
-                 {:on-close #(-update-chip-listing (disj current-chip-listing chip-label))}
-                 chip-label]))]
+            (doall
+             (for [chip-label current-chip-listing]
+               ^{:key (str "chip-" chip-label)}
+               [c-chip
+                {:on-close #(-update-chip-listing (disj current-chip-listing chip-label))}
+                chip-label]))
             [:input.search-input
              {:type "text"
               :value @*search-text
