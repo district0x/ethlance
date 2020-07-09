@@ -6,6 +6,7 @@
 
    ;; District UI Components
    [district.ui.component.router]
+   [district.ui.ipfs]
    [district.ui.graphql]
    [district.ui.logging]
    [district.ui.reagent-render]

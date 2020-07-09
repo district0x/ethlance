@@ -12,7 +12,7 @@
       > .form-container {
         margin: 4em;
         border-top-right-radius: @border-radius;
-        
+
         @media #media[mobile-query] {
           margin: 2em;
         }
@@ -21,7 +21,7 @@
           color: @color-dark-blue;
           font-size: 2.0em;
         }
-        
+
         > .first-forms {
           display: grid;
           grid-template-areas:
@@ -77,9 +77,9 @@
           }
 
           > .form-image {
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
             grid-area: form-image;
             .default-form();
 
@@ -88,21 +88,46 @@
               margin: 4em 0;
             }
 
-	    > .upload-image {
-	      @bg-color: #E8EEFE;
-	      @logo-size: 150px;
+        > .upload-image {
+          @bg-color: #E8EEFE;
+          @logo-size: 150px;
 
-	      display: flex;
-	      flex-direction: column;
-	      justify-content: center;
-	      align-items: center;
-	      background-color: @bg-color;
-	      height: @logo-size;
-	      width: @logo-size;
-	      border-radius: 100%;
-	      cursor: pointer;
-	      transition: background-color 0.1s ease-in;
-              
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          background-color: @bg-color;
+          height: @logo-size;
+          width: @logo-size;
+          border-radius: 100%;
+          cursor: pointer;
+          transition: background-color 0.1s ease-in;
+          overflow: hidden;
+
+          > .dropzone {
+              width: 100%;
+              position: relative;
+
+              .file-input-label {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  position: absolute;
+
+                  // TODO: find a way of centering this diferently while still floating
+                  top: 37%;
+                  left: 30%;
+
+                  .ethlance-icon {
+                      margin-bottom: 5px;
+                  }
+              }
+
+              > input {
+                  display: none
+              }
+          }
+
               @media #media[tablet-query] {
                 border-radius: 5px;
                 width: 100%;
@@ -119,10 +144,10 @@
                 padding: 0.5em 0;
               }
 
-	      &:hover {
-		background-color: darken(@bg-color, 10%);
-	      }
-	    }
+          &:hover {
+        background-color: darken(@bg-color, 10%);
+          }
+        }
           }
 
           > .form-name {
@@ -182,7 +207,7 @@
             }
           }
         }
-        
+
         > .second-forms {
           > .label {
             h2 {
@@ -191,7 +216,7 @@
               padding: 0.7em 0;
               padding-right: 0.5em;
             }
-            
+
             i {
               font-style: italic;
               font-weight: 300;
@@ -244,7 +269,7 @@
     }
 
     > .employer-sign-up {
-      .candidate-sign-up(); 
+      .candidate-sign-up();
     }
 
     > .arbiter-sign-up {

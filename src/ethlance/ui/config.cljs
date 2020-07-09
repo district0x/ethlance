@@ -23,10 +23,16 @@
     :scroll-top? true
     :html5? true}
 
-   :graphql {:schema graphql.schema/schema
-             ;; :url "http://localhost:4000/graphql"
-             :url "http://192.168.0.111:4000/graphql"
-             :jwt-sign-secret "SECRET"}})
+   :ipfs
+   {:endpoint "/api/v0"
+    :host "http://127.0.0.1:5001"
+    :gateway "http://127.0.0.1:8080/ipfs"}
+
+   :graphql
+   {:schema graphql.schema/schema
+    ;; :url "http://localhost:4000/graphql"
+    :url "http://192.168.0.111:4000/graphql"
+    :jwt-sign-secret "SECRET"}})
 
 
 (def development-config

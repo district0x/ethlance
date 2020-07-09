@@ -4,6 +4,7 @@
    [taoensso.timbre :as log]
    [cuerdas.core :as str]
    [district.ui.component.page :refer [page]]
+   [reagent.core :as r]
 
    ;; Re-frame Subscriptions
    [district.ui.router.subs :as router.subs]
@@ -11,7 +12,10 @@
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
 
+   ;; Ethlance Events
+   [ethlance.ui.event.sign-up :as event.sign-up]
    ;; Ethlance Components
+   [ethlance.ui.component.file-drag-input :refer [c-file-drag-input]]
    [ethlance.ui.component.currency-input :refer [c-currency-input]]
    [ethlance.ui.component.email-input :refer [c-email-input]]
    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
@@ -30,10 +34,26 @@
 
 
 (defn- c-upload-image []
-  []
-  [:div.upload-image
-   [c-icon {:name :ic-upload :color :dark-blue :inline? false}]
-   [:span "Upload Image"]])
+  ;; TODO: move form-data to parent when user create functionality gets implemented
+  (let [form-data (r/atom {})]
+    (fn []
+      [:div.upload-image
+       [c-file-drag-input {:form-data form-data
+                           :id :file-info
+                           :label "Upload file"
+
+                           :file-accept-pred (fn [{:keys [name type size] :as props}]
+                                               (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
+                                               (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
+                                                    (< size 1500000)))
+                           :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
+                                               (swap! form-data update-in [:file-info] dissoc :error)
+                                               (log/info "Accepted file" {:name name :type type :size size} ::file-accepted)
+                                               ;; TODO: this needs to be done when user is created
+                                               (re/dispatch [::event.sign-up/upload-user-image @form-data]))
+                           :on-file-rejected (fn [{:keys [name type size] :as props}]
+                                               (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif .svg or .mp4 file selected with size less than 1.5 Mb"})
+                                               (log/warn "Rejected file" {:name name :type type :size size} ::file-rejected))}]])))
 
 
 (defn c-candidate-sign-up
@@ -104,7 +124,7 @@
            :allow-custom-chips? false
            :chip-listing @*languages
            :on-chip-listing-change #(re/dispatch [:page.sign-up/set-candidate-languages %])}]
-         
+
          [:div.label [:h2 "Categories You Are Interested In"]]
          [c-chip-search-input
           {:search-icon? false
@@ -134,7 +154,7 @@
            :label "I'm available for hire"
            :checked? @*ready-for-hire?
            :on-change #(re/dispatch [:page.sign-up/set-candidate-ready-for-hire? %])}]]]
-       
+
        [:div.form-submit
         [:span "Create"]
         [c-icon {:name :ic-arrow-right :size :smaller}]]])))
@@ -293,12 +313,12 @@
          [c-tabular-layout
           {:key "sign-up-tabular-layout"
            :default-tab active-tab-index}
-          
+
           {:label "Candidate"}
           [c-candidate-sign-up]
-          
+
           {:label "Employer"}
           [c-employer-sign-up]
-          
+
           {:label "Arbiter"}
           [c-arbiter-sign-up]]]))))
