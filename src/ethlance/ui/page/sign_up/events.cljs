@@ -1,78 +1,79 @@
 (ns ethlance.ui.page.sign-up.events
-  (:require
-   [re-frame.core :as re]
-   [district.parsers :refer [parse-int parse-float]]
-   [district.ui.router.effects :as router.effects]
-   [ethlance.shared.constants :as constants]
-   [ethlance.shared.mock :as mock]
-   [ethlance.ui.event.utils :as event.utils]
-   [ethlance.ui.event.templates :as event.templates]))
-
+  (:require [district.parsers :refer [parse-float]]
+            [ethlance.ui.util.component :refer [>evt]]
+            [district.ui.web3-accounts.events :as accounts-events]
+            [district.ui.web3-accounts.queries :as accounts-queries]
+            [district.ui.router.effects :as router.effects]
+            [ethlance.ui.event.utils :as event.utils]
+            [ethlance.ui.graphql :as graphql]
+            [re-frame.core :as re]
+            [taoensso.timbre :as log]))
 
 (def state-key :page.sign-up)
-(def state-default
-  {:candidate/full-name nil
-   :candidate/professional-title nil
-   :candidate/email nil
-   :candidate/hourly-rate nil
-   :candidate/github-key nil
-   :candidate/linkedin-key nil
-   :candidate/languages []
-   :candidate/categories []
-   :candidate/skills []
-   :candidate/biography nil
-   :candidate/country nil
-   :candidate/ready-for-hire? false
 
-   :employer/full-name nil
-   :employer/professional-title nil
-   :employer/email nil
-   :employer/github-key nil
-   :employer/linkedin-key nil
-   :employer/languages []
-   :employer/biography nil
-   :employer/country nil
-
-   :arbiter/full-name nil
-   :arbiter/professional-title nil
-   :arbiter/fixed-rate-per-dispute nil
-   :arbiter/email nil
-   :arbiter/github-key nil
-   :arbiter/linkedin-key nil
-   :arbiter/languages []
-   :arbiter/biography nil
-   :arbiter/country nil})
-
-
-(defn initialize-page
-  "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  [{:keys [db]} _]
-  (let [page-state (get db state-key)]
-    {::router.effects/watch-active-page
-     [{:id :page.sign-up/initialize-page
-       :name :route.me/sign-up
-       :dispatch []}]}))
-
-
-;;
-;; Registered Events
-;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
+(re/reg-event-fx
+ :page.sign-up/set-user-name
+ (fn [{:keys [db]} [_ name]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:users address :user/user-name] name))})))
 
-(re/reg-event-fx :page.sign-up/initialize-page initialize-page)
-(re/reg-event-fx :page.sign-up/set-candidate-full-name (create-assoc-handler :candidate/full-name))
-(re/reg-event-fx :page.sign-up/set-candidate-professional-title (create-assoc-handler :candidate/professional-title))
-(re/reg-event-fx :page.sign-up/set-candidate-email (create-assoc-handler :candidate/email))
-(re/reg-event-fx :page.sign-up/set-candidate-hourly-rate (create-assoc-handler :candidate/hourly-rate parse-float))
-(re/reg-event-fx :page.sign-up/set-candidate-github-key (create-assoc-handler :candidate/github-key))
-(re/reg-event-fx :page.sign-up/set-candidate-linkedin-key (create-assoc-handler :candidate/linkedin-key))
-(re/reg-event-fx :page.sign-up/set-candidate-languages (create-assoc-handler :candidate/languages))
-(re/reg-event-fx :page.sign-up/set-candidate-categories (create-assoc-handler :candidate/categories))
-(re/reg-event-fx :page.sign-up/set-candidate-skills (create-assoc-handler :candidate/skills))
-(re/reg-event-fx :page.sign-up/set-candidate-biography (create-assoc-handler :candidate/biography))
-(re/reg-event-fx :page.sign-up/set-candidate-country (create-assoc-handler :candidate/country))
+(re/reg-event-fx
+ :page.sign-up/set-user-email
+ (fn [{:keys [db]} [_ email]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:users address :user/email] email))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/professional-title] professional-title))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-hourly-rate
+ (fn [{:keys [db]} [_ rate]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/rate] rate))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-user-country-code
+ (fn [{:keys [db]} [_ country-code]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:users address :user/country-code] country-code))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-user-languages
+ (fn [{:keys [db]} [_ languages]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:users address :user/languages] languages))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-categories
+ (fn [{:keys [db]} [_ categories]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/categories] categories))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-skills
+ (fn [{:keys [db]} [_ skills]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/skills] skills))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-bio
+ (fn [{:keys [db]} [_ bio]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/bio] bio))})))
+
 (re/reg-event-fx :page.sign-up/set-candidate-ready-for-hire? (create-assoc-handler :candidate/ready-for-hire? boolean))
+
+(re/reg-event-fx
+ :page.sign-up/set-user-is-registered-candidate
+ (fn [{:keys [db]} [_ is-registered-candidate]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :user/is-registered-candidate] is-registered-candidate))})))
 
 (re/reg-event-fx :page.sign-up/set-employer-full-name (create-assoc-handler :employer/full-name))
 (re/reg-event-fx :page.sign-up/set-employer-professional-title (create-assoc-handler :employer/professional-title))
@@ -92,3 +93,109 @@
 (re/reg-event-fx :page.sign-up/set-arbiter-languages (create-assoc-handler :arbiter/languages))
 (re/reg-event-fx :page.sign-up/set-arbiter-biography (create-assoc-handler :arbiter/biography))
 (re/reg-event-fx :page.sign-up/set-arbiter-country (create-assoc-handler :arbiter/country))
+
+(re/reg-event-fx
+ :page.sign-up/initialize-page
+ (fn []
+   {:forward-events
+    {:register ::accounts-loaded?
+     :events #{::accounts-events/accounts-changed}
+     :dispatch-to [:page.sign-up/initial-query]}}))
+
+(re/reg-event-fx
+ :page.sign-up/initial-query
+ (fn [{:keys [db]}]
+   (let [user-address (accounts-queries/active-account db)]
+     {:dispatch [::graphql/query {:query
+                                  "query InitialQuery($address: ID!) {
+                                     user(user_address: $address) {
+                                       user_address
+                                       user_userName
+                                       user_userName
+                                       user_email
+                                       user_githubUsername
+                                       user_countryCode
+                                       user_isRegisteredCandidate
+                                       user_languages
+                                     }
+                                     candidate(user_address: $address) {
+                                       user_address
+                                       candidate_professionalTitle
+                                       candidate_rate
+                                       candidate_rateCurrencyId
+                                       candidate_skills
+                                       candidate_bio
+                                       candidate_categories
+                                     }
+                                     employer(user_address: $address) {
+                                       user_address
+                                       employer_professionalTitle
+                                     }
+                                     arbiter(user_address: $address) {
+                                       user_address
+                                       arbiter_bio
+                                     }
+                                   }"
+                                  :variables {:address user-address}}]})))
+
+(re/reg-event-fx
+ :page.sign-up/send-github-verification-code
+ (fn [_ [_ code]]
+   {:forward-events
+    {:register ::initial-query?
+     :events #{:page.sign-up/initial-query}
+     :dispatch-to [:page.sign-up/github-sign-up code]}}))
+
+(re/reg-event-fx
+ :page.sign-up/github-sign-up
+ (fn [{:keys [db]} [_  code]]
+   (let [user-address (accounts-queries/active-account db)]
+     {:dispatch [::graphql/query {:query
+                                  "mutation GithubSignUp($githubSignUpInput: githubSignUpInput!) {
+                                     githubSignUp(input: $githubSignUpInput) {
+                                       user_address
+                                       user_fullName
+                                       user_githubUsername
+                                       user_email
+                                       user_countryCode
+                                   }
+                                 }"
+                                  :variables {:githubSignUpInput {:code code :user_address user-address}}
+                                  :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
+
+(re/reg-event-fx
+ ::unregister-initial-query-forwarder
+ (fn []
+   {:forward-events {:unregister ::initial-query?}}))
+
+(re/reg-event-fx
+ :page.sign-up/update-candidate
+ (fn [{:keys [db]}]
+   (let [user-address (accounts-queries/active-account db)
+         {:user/keys [user-name github-username country-code email]} (get-in db [:users user-address])
+         {:candidate/keys [rate
+                           professional-title
+                           categories
+                           skills
+                           bio]}
+         (get-in db [:candidates user-address])]
+     {:dispatch [::graphql/query {:query
+                                  "mutation UpdateCandidate($candidateInput: CandidateInput!) {
+                                     updateCandidate(input: $candidateInput) {
+                                       user_address
+                                       user_dateRegistered
+                                       candidate_dateRegistered
+                                   }
+                                 }"
+                                  :variables {:candidateInput {:user_address user-address
+                                                               :user_email email
+                                                               :user_userName user-name
+                                                               :user_githubUsername github-username
+                                                               :user_countryCode country-code
+                                                               :candidate_bio bio
+                                                               :candidate_professionalTitle professional-title
+                                                               :candidate_categories categories
+                                                               :candidate_skills skills
+                                                               :candidate_rate (js/parseInt rate)
+                                                               ;; NOTE: hardcoded since UI does not allow for a different currency
+                                                               :candidate_rateCurrencyId :USD}}}]})))

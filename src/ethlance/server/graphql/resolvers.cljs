@@ -1,16 +1,19 @@
 (ns ethlance.server.graphql.resolvers
   (:require [cljs.nodejs :as nodejs]
+            [clojure.string :as string]
             [district.server.async-db :as db :include-macros true]
-            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.shared.async-helpers :refer [safe-go <? promise->]]
             [ethlance.server.graphql.authorization :as authorization]
             [district.shared.error-handling :refer [try-catch-throw]]
             [ethlance.server.db :as ethlance-db]
             [district.graphql-utils :as graphql-utils]
             [honeysql.core :as sql]
             [honeysql.helpers :as sql-helpers]
-            [taoensso.timbre :as log :refer [spy]]
+            [taoensso.timbre :as log]
             [ethlance.server.event-replay-queue :as replay-queue]
             [ethlance.server.syncer :as syncer]))
+
+(def axios (js/require "axios"))
 
 (defn- paged-query
   [conn query limit offset]
@@ -194,6 +197,8 @@
   {:select [[:Users.user/address :user/address]
             [:Candidate.candidate/professional-title :candidate/professional-title]
             [:Candidate.candidate/bio :candidate/bio]
+            [:Candidate.candidate/rate :candidate/rate]
+            [:Candidate.candidate/rate-currency-id :candidate/rate-currency-id]
             [:Users.user/date-registered :candidate/date-registered]]
    :from [:Candidate]
    :join [:Users [:= :Users.user/address :Candidate.user/address]]})
@@ -414,94 +419,103 @@
 
 (defn send-message-mutation [_ {:keys [:to :text]} {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if-not current-user
-
-     (throw (js/Error. "Authentication required."))
-
-     (<? (ethlance-db/add-message conn {:message/type :direct-message
-                                        :message/date-created timestamp
-                                        :message/creator (:user/address current-user)
-                                        :message/text text
-                                        :direct-message/receiver to})))))
+   (<? (ethlance-db/add-message conn {:message/type :direct-message
+                                      :message/date-created timestamp
+                                      :message/creator (:user/address current-user)
+                                      :message/text text
+                                      :direct-message/receiver to}))))
 
 (defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if-not current-user
-
-     (throw (js/Error. "Authentication required."))
-
-     (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                        :job-story-message/type :raise-dispute
-                                        :job-story/id id
-                                        :message/date-created timestamp
-                                        :message/creator (:user/address current-user)
-                                        :message/text text})))))
+   (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                      :job-story-message/type :raise-dispute
+                                      :job-story/id id
+                                      :message/date-created timestamp
+                                      :message/creator (:user/address current-user)
+                                      :message/text text}))))
 
 (defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if-not current-user
-
-     (throw (js/Error. "Authentication required."))
-
-     (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                        :job-story-message/type :resolve-dispute
-                                        :job-story/id id
-                                        :message/date-created timestamp
-                                        :message/creator (:user/address current-user)
-                                        :message/text "Dispute resolved"})))))
+   (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                      :job-story-message/type :resolve-dispute
+                                      :job-story/id id
+                                      :message/date-created timestamp
+                                      :message/creator (:user/address current-user)
+                                      :message/text "Dispute resolved"}))))
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if-not current-user
-
-     (throw (js/Error. "Authentication required."))
-
-     (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                        :job-story-message/type :feedback
-                                        :job-story/id id
-                                        :message/date-created timestamp
-                                        :message/creator (:user/address current-user)
-                                        :message/text "Feedback"
-                                        :feedback/rating rating
-                                        :user/address to})))))
+   (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                      :job-story-message/type :feedback
+                                      :job-story/id id
+                                      :message/date-created timestamp
+                                      :message/creator (:user/address current-user)
+                                      :message/text "Feedback"
+                                      :feedback/rating rating
+                                      :user/address to}))))
 
 (defn update-employer-mutation [_ employer {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if (= (:user/address current-user) (:user/address employer))
-     (<? (ethlance-db/upsert-user! conn (-> employer
-                                            (assoc :user/type :employer))))
+   (<? (ethlance-db/upsert-user! conn (-> employer
+                                          (assoc :user/type :employer))))))
 
-     (throw (js/Erorr. "Unauthorized")))))
-
-(defn update-candidate-mutation [_ candidate {:keys [:config :current-user :timestamp]}]
+(defn update-candidate-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
   (db/with-async-resolver-tx conn
-   (if (= (:user/address current-user) (:user/address candidate))
-     (<? (ethlance-db/upsert-user! conn (-> candidate
-                                            (assoc :user/type :candidate))))
-
-     (throw (js/Erorr. "Unauthorized")))))
+    (let [{:user/keys [address]} input
+          response {:user/address address
+                    :user/date-registered timestamp
+                    :candidate/date-registered timestamp}]
+      (log/debug "update-candidate-mutation" {:input input :response response})
+      (<? (ethlance-db/upsert-user! conn (-> input
+                                             (assoc :user/type :candidate)
+                                             (merge response))))
+      response)))
 
 (defn update-arbiter-mutation [_ arbiter {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if (= (:user/address current-user) (:user/address arbiter))
-     (<? (ethlance-db/upsert-user! conn (-> arbiter
-                                            (assoc :user/type :arbiter))))
-
-     (throw (js/Erorr. "Unauthorized")))))
+   (<? (ethlance-db/upsert-user! conn (-> arbiter
+                                          (assoc :user/type :arbiter))))))
 
 (defn create-job-proposal-mutation [_ {:keys [:job/id :text :rate :rate-currency-id]} {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-   (if (:user/address current-user)
+   (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                      :job-story-message/type :proposal
+                                      :message/date-created timestamp
+                                      :message/creator (:user/address current-user)
+                                      :message/text text
+                                      :ethlance-job-story/proposal-rate rate
+                                      :ethlance-job-story/proposal-rate-currency-id rate-currency-id}))))
 
-     (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                        :job-story-message/type :proposal
-                                        :message/date-created timestamp
-                                        :message/creator (:user/address current-user)
-                                        :message/text text
-                                        :ethlance-job-story/proposal-rate rate
-                                        :ethlance-job-story/proposal-rate-currency-id rate-currency-id}))
-
-     (throw (js/Erorr. "Unauthorized")))))
+(defn github-signup-mutation [_ {:keys [input]} {:keys [config]}]
+  (db/with-async-resolver-conn conn
+    (let [{:keys [code]
+           :user/keys [address]} input
+          {:keys [client-id client-secret]} (:github config)
+          response
+          (<? (axios (clj->js {:url "https://github.com/login/oauth/access_token"
+                               :method :post
+                               :headers {"Content-Type" "application/json"
+                                         "Accept" "application/json"}
+                               :data (js/JSON.stringify (clj->js {:client_id client-id
+                                                                  :client_secret client-secret
+                                                                  :scope "user"
+                                                                  :code code}))})))
+          {:keys [data]} (js->clj response :keywordize-keys true)
+          access-token (-> data (string/split "&") first (string/split "=") second)
+          response
+          (<? (axios (clj->js {:url "https://api.github.com/user"
+                               :method :get
+                               :headers {"Authorization" (str "token " access-token)
+                                         "Content-Type" "application/json"
+                                         "Accept" "application/json"}})))
+          {:keys [name login email location] :as gh-resp} (:data (js->clj response :keywordize-keys true))
+          _ (log/debug "github response" gh-resp)
+          user {:user/address address
+                :user/full-name name
+                :user/github-username login
+                :user/email email
+                :user/country-code location}]
+      user)))
 
 (defn replay-events [_ _ _]
   (db/with-async-resolver-tx conn
@@ -549,13 +563,15 @@
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :Mutation {:signIn sign-in-mutation
-                               :sendMessage send-message-mutation,
-                               :raiseDispute raise-dispute-mutation,
-                               :resolveDispute resolve-dispute-mutation,
-                               :leaveFeedback leave-feedback-mutation,
-                               :updateEmployer update-employer-mutation,
-                               :updateCandidate update-candidate-mutation,
-                               :updateArbiter update-arbiter-mutation
-                               :createJobProposal create-job-proposal-mutation
+                               :sendMessage (require-auth send-message-mutation)
+                               :raiseDispute (require-auth raise-dispute-mutation)
+                               :resolveDispute (require-auth resolve-dispute-mutation)
+                               :leaveFeedback (require-auth leave-feedback-mutation)
+                               :updateEmployer (require-auth update-employer-mutation)
+                               :updateCandidate #_require-auth update-candidate-mutation
+                               :updateArbiter (require-auth update-arbiter-mutation)
+                               :createJobProposal (require-auth create-job-proposal-mutation)
                                :replayEvents replay-events
+                               :githubSignUp github-signup-mutation
+
                                }})

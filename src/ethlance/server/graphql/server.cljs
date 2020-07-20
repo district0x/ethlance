@@ -2,6 +2,7 @@
   (:require [cljs.nodejs :as nodejs]
             [district.server.config :as config]
             [district.shared.async-helpers :refer [promise->]]
+            [ethlance.shared.utils :as shared-utils]
             [ethlance.server.graphql.authorization :as authorization]
             [ethlance.server.graphql.resolvers :as resolvers]
             [ethlance.server.graphql.middlewares :as middlewares]
@@ -47,7 +48,8 @@
                     (clj->js {:schema schema-with-middleware
                               :context (fn [event]
                                          (let [user (read-string (aget event "req" "headers" "current-user"))
-                                               timestamp (read-string (aget event "req" "headers" "timestamp"))]
+                                               timestamp (or (read-string (aget event "req" "headers" "timestamp"))
+                                                             (shared-utils/now))]
                                            {:config @config/config
                                             :current-user user
                                             :timestamp timestamp}))}))]

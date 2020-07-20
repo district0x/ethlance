@@ -7,6 +7,7 @@
                  [akiroz.re-frame/storage "0.1.4"]
                  [camel-snake-kebab "0.4.1"]
                  [cljs-web3-next "0.1.3"]
+                 [cljsjs/axios "0.19.0-0"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "5.12.0-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
@@ -84,7 +85,13 @@
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
                  [district0x/district-ui-reagent-render "1.0.1"]
-                 [district0x/district-ui-router "1.0.7"]
+
+                 ;; [district0x/district-ui-router "1.0.7"]
+                 [funcool/cuerdas "2.2.0"]
+                 [district0x/bide "1.6.1"]
+                 ;; [day8.re-frame/async-flow-fx "0.1.0"]
+                 [district0x/re-frame-window-fx "1.0.2"]
+
                  [district0x/district-ui-router-google-analytics "1.0.1"]
                  [district0x/district-ui-smart-contracts "1.0.8"]
                  [district0x/district-ui-web3 "1.3.2"]
@@ -100,7 +107,6 @@
 
   :plugins [[lein-ancient "0.6.15"]
             [lein-cljsbuild "1.1.8"]
-            [lein-npm "0.6.2"]
             [lein-shell "0.5.0"]
             [lein-marginalia "0.9.1"]]
 
@@ -110,45 +116,14 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
   :figwheel {:css-dirs ["resources/public/css"]
              :nrepl-port 9000
-             :server-ip "0.0.0.0"
+             :server-ip "127.0.0.1"
              :server-port 6500
              :ring-handler handler/figwheel-request-handler}
   :exclusions [cljsjs/react-with-addons
                honeysql
                reagent
-               mount]
-  :npm {:dependencies
-        [["@sentry/node" "4.2.1"]
-         [express "4.17.1"]
-         [axios "0.19.2"]
-         [body-parser "1.19.0"]
-         [apollo-server-express "2.12.0"]
-         [graphql-middleware "4.0.1"]
-         [graphql-tools "4.0.5"]
-         [graphql "14.2.1"]
-
-         [pg "8.2.1"]
-         [better-sqlite3 "5.4.0"]
-         [chalk "2.3.0"]
-         [cors "2.8.4"]
-         [source-map-support "0.5.9"]
-         [ws "4.0.0"]
-
-         ;; Sign in functionality
-         [eth-sig-util "2.4.4"]
-         [jsonwebtoken "8.5.1"]
-         ;; Note: district0x/district-server-web3 uses ganache-core@2.0.2, which depends on 0.6.0
-         ;; Note: https://github.com/ethereumjs/ethereumjs-wallet/issues/64
-         [ethereumjs-wallet "0.6.0"]
-         [jsedn "0.4.1"]
-
-         ;; Development Dependencies
-         [axios "0.19.0"]
-         [less "3.10.3"]
-         [less-watch-compiler "1.14.1"]
-         [ganache-cli "6.7.0"]
-         [truffle "5.0.38"]]}
-
+               mount
+               district0x/district-ui-router]
   :profiles
   {:dev
    {:source-paths ["src" "test" "dev"]
@@ -159,7 +134,7 @@
                    [figwheel "0.5.20"]
                    [figwheel-sidecar "0.5.20"]
                    [org.clojure/tools.nrepl "0.2.13"]
-                   [day8.re-frame/re-frame-10x "0.6.5"]]
+                   [re-frisk "1.3.4"]]
     :plugins [[lein-figwheel "0.5.20"]
               [lein-doo "0.1.10"]]
     :repl-options {:init-ns user
@@ -167,7 +142,7 @@
 
    :dev-ui
    {:figwheel {:nrepl-port 9000
-               :server-ip "0.0.0.0"
+               :server-ip "127.0.0.1"
                :server-port 6500}}
 
    :dev-server
@@ -178,7 +153,7 @@
   :cljsbuild
   {:builds
    [{:id "dev-ui"
-     :source-paths ["src/ethlance/ui" "src/ethlance/shared" "dev/ui"]
+     :source-paths ["src/ethlance/ui" "src/ethlance/shared" "dev/ui" "src/district/ui"]
      :figwheel {:websocket-host :js-client-host
                 :on-jsload "district.ui.reagent-render/rerender"}
      :compiler {:main ethlance.ui.core
@@ -192,10 +167,13 @@
                 :source-map-timestamp true
                 :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
                                   goog.DEBUG true}
-                :preloads [day8.re-frame-10x.preload]}}
+                :preloads [re-frisk.preload]
+                :external-config {:devtools/config {:features-to-install [:formatters :hints]
+                                                    :fn-symbol "F"
+                                                    :print-config-overrides true}}}}
 
     {:id "dev-server"
-     :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server/cljs"]
+     :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server/cljs" "src/district/server"]
      :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
      :compiler {:main ethlance.server.core
                 :output-to "target/node/ethlance_server.js"

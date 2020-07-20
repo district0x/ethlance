@@ -96,8 +96,8 @@
 
    :graphql graphql-config
 
-   :db {:path "./ethlance.db"
-        :opts {:memory false}}
+   ;; :db {:path "./ethlance.db"
+   ;;      :opts {:memory false}}
 
    :district/db {:user "user"
                  :host "localhost"
@@ -127,7 +127,7 @@
        (log/warn "Started" {:components start-result
                             :config @config}))
      (catch js/Error e
-       (log/error "Something went wrong when startnig the application" {:error e})))))
+       (log/error "Something went wrong when starting the application" {:error e})))))
 
 
 (set! *main-cli-fn* -main)

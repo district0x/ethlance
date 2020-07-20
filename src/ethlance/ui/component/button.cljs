@@ -6,7 +6,7 @@
 
 (defn c-button
   "Ethlance Button Component.
-  
+
   # Keyword Arguments
 
   props - A keyword map of additional properties. Also accepts React DOM Properties.
@@ -14,7 +14,7 @@
   children - React Components making up the button component.
 
   # Custom Properties
-  
+
   :disabled? - If true, button is placed in the 'disabled' visual
   state [default: false]
 
@@ -56,7 +56,7 @@
   "Button Child Component used within the `c-button` component
 
   # Keyword Arguments
-  
+
   props - React DOM Properties
 
   children - Child Components that make up button label
@@ -74,7 +74,7 @@
   "Button Child Component for displaying an Icon and a Label.
 
    # Keyword Arguments:
-   
+
    opts - Optional Arguments
 
    # Optional Arguments
