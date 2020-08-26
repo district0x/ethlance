@@ -6,6 +6,7 @@
    [taoensso.timbre :as log]
    [cuerdas.core :as str]
    [district.ui.component.page :refer [page]]
+   [district.ui.router.events :as router-events]
    [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
@@ -91,7 +92,7 @@
            :candidate/categories
            :candidate/skills]
     :as candidate}]
-  [:div.candidate-element
+  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address address} {}])}
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]

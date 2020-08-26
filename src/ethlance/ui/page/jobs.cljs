@@ -6,6 +6,7 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.ui.router.events :as router-events]
    [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
@@ -161,8 +162,8 @@
 
 (defn c-job-element
   "A single job element component composed from the job data."
-  [{:keys [title description date-created skills arbiter employer] :as job}]
-  [:div.job-element
+  [{:keys [title description date-created skills arbiter employer id] :as job}]
+  [:div.job-element {:on-click #(re/dispatch [::router-events/navigate :route.job/detail {:id id} {}])}
    [:div.title title]
    [:div.description description]
    [:div.date (or date-created "Posted 1 day ago | 5 Proposals")]

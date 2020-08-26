@@ -5,6 +5,7 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
+   [district.ui.router.events :as router-events]
    [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
@@ -102,7 +103,7 @@
 (defn c-arbiter-element
   [{:keys [:user/address
            :arbiter/bio]}]
-  [:div.arbiter-element
+  [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address address} {}])}
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]
