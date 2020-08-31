@@ -15,12 +15,12 @@
 
    ;; Ethlance Utils
    [ethlance.ui.util.navigation :as util.navigation]))
-   
+
 
 
 (defn c-how-to-card [label src]
   [:div.how-to-card
-   [:div.image 
+   [:div.image
     [:img {:src src}]]
    [:span.label label]])
 
@@ -81,7 +81,7 @@
          [c-button-label [:span "Arbiter"]]]]
        [:> TransitionGroup
         {:className "card-transitions"}
-        
+
         (when (= @*current-selection :candidate)
           [:> CSSTransition
            {:className "active-page"
@@ -95,7 +95,7 @@
             :classNames "how-card"
             :timeout 200}
            (r/as-element [c-how-to-employer])])
-        
+
         (when (= @*current-selection :arbiter)
           [:> CSSTransition
            {:className "active-page"
@@ -113,7 +113,7 @@
     [c-splash-navigation-bar]]
    [:div.main-content
     ;; BEGIN BANNER
-    [:div.banner
+    [:div.banner.content-center
      [:div.banner-header
       [:h2 "The Future of Work is Now"]
       [:span "Hire or Work for Ether cryptocurrency"]
@@ -156,7 +156,7 @@
        "Introducing the district0x Network"]]]
 
     ;; BEGIN WELCOME TO
-    [:div.welcome
+    [:div.welcome.content-center
      [:h3 "Welcome to"]
      [:h2 "A Smarter Way to Work"]
      [:div.box-listing
@@ -187,56 +187,57 @@
          [:img.ic-free-ring.animation-ring-rotate {:src "/images/svg/ring.svg"}]
          [:img.ic-free.animation-tag-rotate {:src "/images/ic-free.png"}]]
         [:div.text "No restrictions and free membership."]]]]]
-    
+
     [:div.created
-     [:h3 "We Created"]
-     [:h2 "Ethlance for Everyone!"]
-     [:div.flex-box-listing
-      [:div.horizontal-box
-       [:figure
-        [:img {:src "/images/take-no-cut.png"}]]
-       [:div.text
-        [:h3 "We take no cut"]
-        [:p "Ethlance doesn't take a percentage of your earned
+     [:div.content-center
+      [:h3 "We Created"]
+      [:h2 "Ethlance for Everyone!"]
+      [:div.flex-box-listing
+       [:div.horizontal-box
+        [:figure
+         [:img {:src "/images/take-no-cut.png"}]]
+        [:div.text
+         [:h3 "We take no cut"]
+         [:p "Ethlance doesn't take a percentage of your earned
         Ether. The amount of Ether the employer pays is the amount the
         freelancer gets."]]]
 
-      [:div.horizontal-box
-       [:figure
-        [:img {:src "/images/blockchain.png"}]]
-       [:div.text
-        [:h3 "It's all on blockchain"]
-        [:p "The Ethlance database is distributed on the Ethereum
+       [:div.horizontal-box
+        [:figure
+         [:img {:src "/images/blockchain.png"}]]
+        [:div.text
+         [:h3 "It's all on blockchain"]
+         [:p "The Ethlance database is distributed on the Ethereum
         public blockchain and the sources files are on IPFS. Ethlance
         is accessible to everyone forever, without any central
         authority having control over it."]]]
 
-      [:div.horizontal-box
-       [:figure
-        [:img {:src "/images/costs.png"}]]
-       [:div.text
-        [:h3 "No artificial costs or restrictions"]
-        [:p "Everybody can apply for, or create, an unlimited number
+       [:div.horizontal-box
+        [:figure
+         [:img {:src "/images/costs.png"}]]
+        [:div.text
+         [:h3 "No artificial costs or restrictions"]
+         [:p "Everybody can apply for, or create, an unlimited number
         of jobs. All that is needed is to pay Ethereum gas fees
         associated with these operations."]]]
 
-      [:div.horizontal-box
-       [:figure
-        [:img {:src "/images/network.png"}]]
-       [:div.text
-        [:h3 "Part of the district0x Network"]
-        [:p "Ethlance is the first district on the "
-         [:a {:href "http://district0x.io"} "district0x Network"]
-         ", a collective of decentralized marketplaces and
-         communities."]]]]]
+       [:div.horizontal-box
+        [:figure
+         [:img {:src "/images/network.png"}]]
+        [:div.text
+         [:h3 "Part of the district0x Network"]
+         [:p "Ethlance is the first district on the "
+          [:a {:href "http://district0x.io"} "district0x Network"]
+          ", a collective of decentralized marketplaces and
+         communities."]]]]]]
 
-    [:div.checkout
+    [:div.checkout.content-center
      [:h3 "Check Out"]
      [:h2 "How Ethlance Works"]
      ;; TODO: owl listing component
      [c-how-it-works-layout]]]
-   
-   
+
+
    [:div.footer
     [:div.footer-content
      [:div.header-section
@@ -260,7 +261,7 @@
          :on-click (util.navigation/create-handler {:route :route.misc/about})
          :href (util.navigation/resolve-route {:route :route.misc/about})}
         [:span "About Us"]]
-       [:a 
+       [:a
         {:title "How it Works"
          :on-click (util.navigation/create-handler {:route :route.misc/how-it-works})
          :href (util.navigation/resolve-route {:route :route.misc/how-it-works})}
@@ -268,7 +269,7 @@
        [:a {:href "https://blog.district0x.io/"} "Blog"]]
       [:div.listing
        [:span.title "Get Started"]
-       [:a 
+       [:a
         {:title "Become a Freelancer"
          :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :candidate}})
          :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :candidate}})}
@@ -300,7 +301,7 @@
         [c-circle-icon-button {:name :slack :title "District0x Slack"
                                :size :small :href "https://district0x-slack.herokuapp.com/"}]]]]
      [:div.buttons-section
-      [c-button       
+      [c-button
        {:color :primary :size :auto
         :title "Become a Freelancer"
         :on-click (util.navigation/create-handler {:route :route.me/sign-up :query {:tab :candidate}})
