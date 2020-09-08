@@ -204,7 +204,7 @@
            :else
            (doall
             (for [job job-listing]
-              ^{:key (str "job-" (:index job))}
+              ^{:key (str "job-" (:id job))}
               [c-job-element job])))]))))
 
 
