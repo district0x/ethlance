@@ -1,7 +1,7 @@
 (ns ethlance.ui.page.new-job.subscriptions
   (:require
    [re-frame.core :as re]
-   
+
    [ethlance.ui.page.new-job.events :as new-job.events]
    [ethlance.ui.subscription.utils :as subscription.utils]))
 
@@ -24,4 +24,5 @@
 (re/reg-sub :page.new-job/description (create-get-handler :description))
 (re/reg-sub :page.new-job/form-of-payment (create-get-handler :form-of-payment))
 (re/reg-sub :page.new-job/token-address (create-get-handler :token-address))
+(re/reg-sub :page.new-job/token-symbol (create-get-handler :token-symbol))
 (re/reg-sub :page.new-job/with-arbiter? (create-get-handler :with-arbiter?))

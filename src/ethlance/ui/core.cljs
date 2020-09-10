@@ -11,6 +11,7 @@
    [district.ui.logging]
    [district.ui.reagent-render]
    [district.ui.router]
+   [district.ui.web3]
 
    ;; Ethlance
    [ethlance.ui.config :as ui.config]

@@ -3,6 +3,7 @@
    [re-frame.core :as re]
    [district.parsers :refer [parse-int parse-float]]
    [district.ui.router.effects :as router.effects]
+   [district.ui.web3.queries :as web3-queries]
    [ethlance.shared.constants :as constants]
    [ethlance.shared.mock :as mock]
    [ethlance.ui.event.utils :as event.utils]
@@ -53,5 +54,10 @@
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :required-skills))
 (re/reg-event-fx :page.new-job/set-description (create-assoc-handler :description))
 (re/reg-event-fx :page.new-job/set-form-of-payment (create-assoc-handler :form-of-payment))
-(re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :token-address))
+(re/reg-event-fx :page.new-job/set-token-address (fn [{:keys [db]} [_ token-address]]
+                                                   {:db (assoc-in db [state-key :token-address] token-address)
+                                                    :web3.erc20/fetch-token-symbol {:token-address token-address
+                                                                                    :web3 (web3-queries/web3 db)}}))
+(re/reg-event-fx :page.new-job/set-token-symbol (create-assoc-handler :token-symbol))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :with-arbiter?))
+;; w

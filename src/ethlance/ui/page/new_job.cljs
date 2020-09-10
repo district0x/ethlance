@@ -54,6 +54,7 @@
         *description (re/subscribe [:page.new-job/description])
         *form-of-payment (re/subscribe [:page.new-job/form-of-payment])
         *token-address (re/subscribe [:page.new-job/token-address])
+        *token-symbol (re/subscribe [:page.new-job/token-symbol])
         *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])]
     (fn []
       (let [is-bounty? (= @*type :bounty)
@@ -143,7 +144,7 @@
             {:placeholder "Enter Description"
              :value @*description
              :on-change #(re/dispatch [:page.new-job/set-description %])}]]
-          
+
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]
            [c-radio-select
@@ -151,7 +152,7 @@
              :on-selection #(re/dispatch [:page.new-job/set-form-of-payment %])}
             [:ethereum [c-radio-secondary-element "Ether"]]
             [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
-           
+
            (when with-token?
              [:div.token-address-input
               [:div.input
@@ -159,7 +160,7 @@
                 {:value @*token-address
                  :on-change #(re/dispatch [:page.new-job/set-token-address %])
                  :placeholder "Token Address"}]
-               [:div.token-label "SNT"]]
+               [:div.token-label @*token-symbol]]
               ;; TODO: retrieve token logo
               [:div.token-logo]])]]
 
