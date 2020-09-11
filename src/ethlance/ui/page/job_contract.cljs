@@ -3,7 +3,6 @@
   (:require
    [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router.subs]
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [re-frame.core :as re]
@@ -35,7 +34,7 @@
 
    [:div.name "Candidate"]
    [:div.value "Clement Lesaege"]
-   
+
    [:div.name "Arbiter"]
    [:div.value "Keegan Quigley"]])
 
@@ -47,7 +46,7 @@
    [:div.job-name "Finality Labs Full Stack Developer"]
    [:div.job-details
     [c-job-detail-table {}]]])
-    
+
 
 (defn c-chat [job-story]
   (let []
@@ -59,7 +58,7 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
        :details ["has sent job proposal" "($25/hr)"]
        :full-name "Brian Curran"
        :date-updated "3 Days Ago"}
-      
+
       {:user-type :employer
        :text "Hi Cyrus, welcome on board!"
        :details ["Has hired Brian Curran"]
@@ -158,7 +157,7 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
       (let [job-id (-> @*active-page-params :id parse-int)
             job-story-query
             @(re/subscribe
-              [::gql/query
+              [:gql/query
                {:queries
                 [[:job-story
                   {:job/id job-id}
@@ -171,7 +170,7 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
          [:div.header-container
           [c-header-profile job-story]
           [c-chat job-story]]
-         
+
          ;; TODO: query for signed-in user's relation to the contract (guest, candidate, employer, arbiter)
          [:div.options-container
           [c-employer-options]]]))))

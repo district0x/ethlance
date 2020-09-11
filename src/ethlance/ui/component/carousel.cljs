@@ -1,9 +1,9 @@
 (ns ethlance.ui.component.carousel
   (:require
    [reagent.core :as r]
-   
+
    ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
+   #_[ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.rating :refer [c-rating]]))
@@ -75,4 +75,3 @@
     "\"Everything about this is wonderful!\""]
    [:div.name
     "Brian Curran"]])
-

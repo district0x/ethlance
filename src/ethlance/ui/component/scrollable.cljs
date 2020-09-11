@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    [reagent.dom :as rdom]
-   [flib.simplebar]))
+   ["simplebar" :as simplebar]))
 
 
 (defn c-scrollable [opts child]
@@ -19,11 +19,11 @@
   (let [*instance (r/atom nil)]
     (r/create-class
      {:display-name "c-scrollable"
-      
+
       :component-did-mount
       (fn [this]
         (let [elnode (rdom/dom-node this)
-              simplebar (js/SimpleBar. elnode (clj->js opts))]
+              simplebar (simplebar elnode (clj->js opts))]
           (reset! *instance simplebar)))
 
       :component-will-unmount

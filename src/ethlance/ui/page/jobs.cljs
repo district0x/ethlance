@@ -7,7 +7,6 @@
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
    [district.ui.router.events :as router-events]
-   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
@@ -104,7 +103,7 @@
            :min 0
            :value @*min-hourly-rate
            :on-change #(re/dispatch [:page.jobs/set-min-hourly-rate %])}]
-         
+
          [c-currency-input
           {:placeholder "Max. Hourly Rate"
            :currency-type ::enum.currency/usd
@@ -130,7 +129,7 @@
           [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
 
          [:span.selection-label "Experience Level"]
-         [c-radio-select 
+         [c-radio-select
           {:selection @*experience-level
            :on-selection #(re/dispatch [:page.jobs/set-experience-level %])}
           [:novice [c-radio-search-filter-element "Novice ($)"]]
@@ -190,13 +189,13 @@
       (let [job-listing @*job-listing
             job-listing-state @*job-listing-state
             loading? (contains? #{:start :loading} job-listing-state)]
-        
+
         [:<>
          (cond
            ;; Is the job listing loading?
            loading?
            [c-loading-spinner]
-           
+
            ;; Is the job listing empty?
            (empty? job-listing)
            [:div.empty-listing "No Jobs"]
@@ -217,7 +216,7 @@
        [c-job-mobile-search-filter]
        [:div.job-listing.listing {:key "listing"}
         [:div.search-container
-         [c-chip-search-input 
+         [c-chip-search-input
           {:chip-listing @*skills
            :on-chip-listing-change #(re/dispatch [:page.jobs/set-skills %])
            :placeholder "Search Job Skill Requirements"

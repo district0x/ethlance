@@ -2,7 +2,6 @@
   (:require
    [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router.subs]
    [re-frame.core :as re]
    [reagent.core :as r]
@@ -36,9 +35,9 @@ Please contact us if this sounds interesting.")
   (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
     (fn []
       (let [job-id (-> @*active-page-params :id parse-int)
-            job-query
-            @(re/subscribe
-              [::gql/query
+            job-query (atom nil)
+            #_@(re/subscribe
+              [:gql/query
                {:queries
                 [[:job
                   {:job/id job-id}
@@ -89,7 +88,7 @@ Please contact us if this sounds interesting.")
 
          [:div.proposal-listing
           [:div.label "Proposals"]
-          [c-scrollable
+          [:div #_c-scrollable
            {:forceVisible true :autoHide false}
            [c-table
             {:headers ["Candidate" "Rate" "Created" "Status"]}
@@ -118,7 +117,7 @@ Please contact us if this sounds interesting.")
 
          [:div.invoice-listing
           [:div.label "Invoices"]
-          [c-scrollable
+          [:div #_c-scrollable
            {:forceVisible true :autoHide false}
            [c-table
             {:headers ["Candidate" "Amount" "Created" "Status"]}
