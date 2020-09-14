@@ -65,9 +65,7 @@
   ::navigate
   interceptors
   (fn [{:keys [:db]} [name params query]]
-    (cond-> {::effects/navigate [(queries/bide-router db) name params query]
-             ;; ::active-page-changed [name params query]
-             }
+    (cond-> {::effects/navigate [(queries/bide-router db) name params query]}
       (queries/scroll-top? db) (assoc :window/scroll-to [0 0]))))
 
 

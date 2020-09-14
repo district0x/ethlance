@@ -644,7 +644,6 @@
 ;; Application level db access ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO : handle missing but required columns
 (defn upsert-user! [conn {:user/keys [type] :as user}]
   (safe-go
    (let [values (-> (select-keys user (get-table-column-names :Users))
@@ -653,14 +652,8 @@
                         {:insert-into :Users,
                          :values [values]
                          :upsert
-                         ;; TODO : how does psql upsert work
                          (array-map :on-conflict [:user/address]
-                                    :do-update-set
-                                    #_(get-table-column-names :Users)
-                                    (keys values)
-                                    #_[:user/email :user/type :user/github-username])}))
-         _ (log/debug "@@@ upsert-user!" {:_ _
-                                          :user user})]
+                                    :do-update-set (keys values))}))]
      (case type
        :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
                   (<? (db/run! conn {:insert-into :Arbiter

@@ -572,6 +572,4 @@
                                :updateArbiter (require-auth update-arbiter-mutation)
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :replayEvents replay-events
-                               :githubSignUp github-signup-mutation
-
-                               }})
+                               :githubSignUp github-signup-mutation}})

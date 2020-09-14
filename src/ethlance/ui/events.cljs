@@ -38,35 +38,7 @@
 (defn initialize
   "Sets initial db state for local components, local pages, and site-wide events."
   [{:keys [db] :as cofx} [_ config]]
-  (let [new-db
-        (assoc db
-               :ethlance/config config
-
-               ;; Page Events
-               ;; ethlance.ui.page.me.events/state-key
-               ;; ethlance.ui.page.me.events/state-default
-               ;; ethlance.ui.page.jobs.events/state-key
-               ;; ethlance.ui.page.jobs.events/state-default
-               ;; ethlance.ui.page.candidates.events/state-key
-               ;; ethlance.ui.page.candidates.events/state-default
-               ;; ethlance.ui.page.arbiters.events/state-key
-               ;; ethlance.ui.page.arbiters.events/state-default
-               ;; ethlance.ui.page.employers.events/state-key
-               ;; ethlance.ui.page.employers.events/state-default
-               ;; ethlance.ui.page.profile.events/state-key
-               ;; ethlance.ui.page.profile.events/state-default
-               ;; ethlance.ui.page.job-contract.events/state-key
-               ;; ethlance.ui.page.job-contract.events/state-default
-               ;; ethlance.ui.page.job-detail.events/state-key
-               ;; ethlance.ui.page.job-detail.events/state-default
-               ;; ethlance.ui.page.new-job.events/state-key
-               ;; ethlance.ui.page.new-job.events/state-default
-               ;; ethlance.ui.page.invoices.events/state-key
-               ;; ethlance.ui.page.invoices.events/state-default
-               ;; ethlance.ui.page.new-invoice.events/state-key
-               ;; ethlance.ui.page.new-invoice.events/state-default
-               )]
-    {:db new-db
-     :dispatch-n forwarded-events}))
+  {:db (assoc db :ethlance/config config)
+   :dispatch-n forwarded-events})
 
 (re/reg-event-fx :ethlance/initialize initialize)
