@@ -94,6 +94,8 @@
     invoice(message_id: Int!): Invoice
   }
 
+  # Input types
+
   input EmployerInput{
     user_address: ID
     employer_bio: String
@@ -101,23 +103,31 @@
     employer_professionalTitle: String
   }
 
-  input CandidateInput{
-    user_address: ID
+  input CandidateInput {
+    user_address: ID!
+    user_email: String
+    user_userName: String
+    user_githubUsername: String
+    user_countryCode: String!
     candidate_bio: String
-    candidate_dateRegistered: Date
     candidate_professionalTitle: String
     candidate_categories: [String!]
     candidate_skills: [String!]
     candidate_rateCurrencyId: Keyword
-    candidate_rate: Int
+    candidate_rate: Int!
   }
 
-  input ArbiterInput{
+  input ArbiterInput {
     user_address: ID
     arbiter_dateRegistered: Date
     arbiter_bio: String
     arbiter_feeCurrencyId: Keyword
     arbiter_fee: Int
+  }
+
+  input githubSignUpInput {
+   user_address: ID!
+   code: String!
   }
 
   type Mutation {
@@ -128,13 +138,29 @@
     resolveDispute(jobStory_id: Int!): Boolean!,
     leaveFeedback(jobStory_id: Int!, rating: Int!, to: ID!): Boolean!,
     updateEmployer(employer: EmployerInput!): Boolean!,
-    updateCandidate(candidate: CandidateInput!): Boolean!,
+    updateCandidate(input: CandidateInput!): updateCandidatePayload!,
     updateArbiter(arbiter: ArbiterInput!): Boolean!,
     createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
-    replayEvents: Boolean!
+    replayEvents: Boolean!,
+    githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
 
   }
 
+  # mutation result types
+
+  type updateCandidatePayload {
+    user_address: ID!
+    user_dateRegistered: Date!
+    candidate_dateRegistered: Date!
+  }
+
+  type githubSignUpPayload {
+    user_address: ID!
+    user_fullName: String
+    user_githubUsername: String
+    user_email: String
+    user_countryCode: String
+  }
 
   # User Types
 
@@ -148,6 +174,8 @@
 
     \"Full Name of the Given User\"
     user_fullName: String
+
+    user_githubUsername: String
 
     \"The short-form username of the User\"
     user_userName: String
@@ -487,7 +515,6 @@
 
   }
 
-
   # Feedback Types
 
   type Feedback {
@@ -524,5 +551,6 @@
     message_creator: String
     jobStoryMessageType: String
   }
+
 
   ")

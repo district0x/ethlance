@@ -10,7 +10,6 @@
    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
    [district.server.db.honeysql-extensions]
    [honeysql.core :as sql]
-   [honeysql.helpers :as sqlh :refer [merge-where merge-order-by merge-left-join defhelper]]
    [medley.core :as medley]
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
@@ -54,7 +53,7 @@
     :table-columns
     [[:user/address :varchar]
      [:user/type :varchar not-nil]
-     [:user/country-code :varchar #_not-nil]
+     [:user/country-code :varchar not-nil]
      [:user/user-name :varchar]
      [:user/full-name :varchar]
      [:user/email :varchar not-nil]
@@ -431,17 +430,6 @@
 
      [(sql/call :primary-key :event/comparable-id)]]}])
 
-
-;; TODO: fix this
-#_(defn list-tables
-  "Lists all of the tables currently in the sqlite3 database."
-  [conn]
-  (safe-go
-   (let [results (<? (db/all conn {:select [:name]
-                                   :from [:sqlite_master]
-                                   :where [:= :type "table"]}))]
-     (mapv :name results))))
-
 (defn print-db
   "(print-db) prints all db tables to the repl
    (print-db :users) prints only users table"
@@ -652,33 +640,36 @@
                                       :where where-clause})))))
      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Application leve db access ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Application level db access ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn upsert-user! [conn user]
+(defn upsert-user! [conn {:user/keys [type] :as user}]
   (safe-go
-   (let [values (select-keys user (get-table-column-names :Users))]
-     (<? (db/run! conn {:insert-into :Users
-                        :values [values]
-                        :upsert {:on-conflict [:user/address]
-                                 :do-update-set (keys values)}}))
-     (case (:user/type user)
-       :arbiter   (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
-                    (<? (db/run! conn {:insert-into :Arbiter
-                                       :values [arbiter]
-                                       :upsert {:on-conflict [:user/address]
-                                                :do-update-set (keys arbiter)}})))
-       :employer  (let [employer (select-keys user (get-table-column-names :Employer))]
-                    (<? (db/run! conn {:insert-into :Employer
-                                       :values [employer]
-                                       :upsert {:on-conflict [:user/address]
-                                                :do-update-set (keys employer)}})))
+   (let [values (-> (select-keys user (get-table-column-names :Users))
+                    (update :user/type name))
+         _ (<? (db/run! conn
+                        {:insert-into :Users,
+                         :values [values]
+                         :upsert
+                         (array-map :on-conflict [:user/address]
+                                    :do-update-set (keys values))}))]
+     (case type
+       :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
+                  (<? (db/run! conn {:insert-into :Arbiter
+                                     :values [arbiter]
+                                     :upsert (array-map :on-conflict [:user/address]
+                                                        :do-update-set (keys arbiter))})))
+       :employer (let [employer (select-keys user (get-table-column-names :Employer))]
+                   (<? (db/run! conn {:insert-into :Employer
+                                      :values [employer]
+                                      :upsert (array-map :on-conflict [:user/address]
+                                                         :do-update-set (keys employer))})))
        :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
                     (<? (db/run! conn {:insert-into :Candidate
                                        :values [candidate]
-                                       :upsert {:on-conflict [:user/address]
-                                                :do-update-set (keys candidate)}})))))))
+                                       :upsert (array-map :on-conflict [:user/address]
+                                                          :do-update-set (keys candidate))})))))))
 
 (defn add-bounty [conn bounty-job]
   (safe-go

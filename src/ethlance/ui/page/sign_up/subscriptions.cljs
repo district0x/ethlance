@@ -1,30 +1,10 @@
 (ns ethlance.ui.page.sign-up.subscriptions
   (:require
    [re-frame.core :as re]
-
    [ethlance.ui.page.sign-up.events :as sign-up.events]
    [ethlance.ui.subscription.utils :as subscription.utils]))
 
-
 (def create-get-handler #(subscription.utils/create-get-handler sign-up.events/state-key %))
-
-
-;;
-;; Registered Subscriptions
-;;
-
-(re/reg-sub :page.sign-up/candidate-full-name (create-get-handler :candidate/full-name))
-(re/reg-sub :page.sign-up/candidate-professional-title (create-get-handler :candidate/professional-title))
-(re/reg-sub :page.sign-up/candidate-email (create-get-handler :candidate/email))
-(re/reg-sub :page.sign-up/candidate-hourly-rate (create-get-handler :candidate/hourly-rate))
-(re/reg-sub :page.sign-up/candidate-github-key (create-get-handler :candidate/github-key))
-(re/reg-sub :page.sign-up/candidate-linkedin-key (create-get-handler :candidate/linkedin-key))
-(re/reg-sub :page.sign-up/candidate-languages (create-get-handler :candidate/languages))
-(re/reg-sub :page.sign-up/candidate-categories (create-get-handler :candidate/categories))
-(re/reg-sub :page.sign-up/candidate-skills (create-get-handler :candidate/skills))
-(re/reg-sub :page.sign-up/candidate-biography (create-get-handler :candidate/biography))
-(re/reg-sub :page.sign-up/candidate-country (create-get-handler :candidate/country))
-(re/reg-sub :page.sign-up/candidate-ready-for-hire? (create-get-handler :candidate/ready-for-hire?))
 
 (re/reg-sub :page.sign-up/employer-full-name (create-get-handler :employer/full-name))
 (re/reg-sub :page.sign-up/employer-professional-title (create-get-handler :employer/professional-title))
