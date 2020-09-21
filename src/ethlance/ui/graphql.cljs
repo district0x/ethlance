@@ -95,18 +95,24 @@
   (reduce-handlers cofx values))
 
 (defmethod handler :user
-  [{:keys [db] :as cofx} _ {:user/keys [address email]
-                            :as user}]
+  [{:keys [db] :as cofx} _ {:user/keys [address email] :as user}]
   (log/debug "user handler" user)
   {:db (assoc-in db [:users address] user)})
 
 (defmethod handler :candidate
-  [{:keys [db] :as cofx} _ {:user/keys [address]
-                            :candidate/keys [rate rate-currency-id]
-                            :as candidate}]
+  [{:keys [db] :as cofx} _ {:user/keys [address] :as candidate}]
   (log/debug "candidate handler" candidate)
-  {:db (assoc-in db [:candidates address]
-                 candidate)})
+  {:db (assoc-in db [:candidates address] candidate)})
+
+(defmethod handler :employer
+  [{:keys [db] :as cofx} _ {:user/keys [address] :as employer}]
+  (log/debug "employer handler" employer)
+  {:db (assoc-in db [:employers address] employer)})
+
+(defmethod handler :arbiter
+  [{:keys [db] :as cofx} _ {:user/keys [address] :as arbiter}]
+  (log/debug "arbiter handler" arbiter)
+  {:db (assoc-in db [:arbiters address] arbiter)})
 
 (defmethod handler :github-sign-up
   [{:keys [db] :as cofx} _ {:user/keys [address github-username] :as user}]
@@ -115,14 +121,34 @@
                                             {:user/user-name github-username}))})
 
 (defmethod handler :update-candidate
-  [{:keys [db] :as cofx} _ {user-date-registered :user/date-registered
-                            candidate-date-registered :candidate/date-registered
+  [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated
+                            candidate-date-updated :candidate/date-updated
                             address :user/address
                             :as candidate}]
   (log/debug "update-candidate handler" candidate)
   {:db (-> db
-           (assoc-in [:users address :user/date-registered] user-date-registered)
-           (assoc-in [:candidates address :candidate/date-registered] candidate-date-registered))})
+           (assoc-in [:users address :user/date-updated] user-date-updated)
+           (assoc-in [:candidates address :candidate/date-updated] candidate-date-updated))})
+
+(defmethod handler :update-employer
+  [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated
+                            employer-date-updated :employer/date-updated
+                            address :user/address
+                            :as employer}]
+  (log/debug "update-employer handler" employer)
+  {:db (-> db
+           (assoc-in [:users address :user/date-updated] user-date-updated)
+           (assoc-in [:employers address :employer/date-updated] employer-date-updated))})
+
+(defmethod handler :update-arbiter
+  [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated
+                            arbiter-date-updated :arbiter/date-updated
+                            address :user/address
+                            :as arbiter}]
+  (log/debug "update-arbiter handler" arbiter)
+  {:db (-> db
+           (assoc-in [:users address :user/date-updated] user-date-updated)
+           (assoc-in [:arbiters address :arbiter/date-updated] arbiter-date-updated))})
 
 (defmethod handler :api/error
   [_ _ _]

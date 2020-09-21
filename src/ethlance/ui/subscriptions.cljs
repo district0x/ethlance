@@ -5,7 +5,6 @@
    [ethlance.ui.component.modal.subscriptions]
    [ethlance.ui.page.me.subscriptions]
    [ethlance.ui.page.jobs.subscriptions]
-   [ethlance.ui.page.sign-up.subscriptions]
    [ethlance.ui.page.candidates.subscriptions]
    [ethlance.ui.page.arbiters.subscriptions]
    [ethlance.ui.page.employers.subscriptions]
@@ -44,3 +43,27 @@
  :<- [::accounts-subs/active-account]
  (fn [[candidates address]]
    (get candidates address)))
+
+(re-frame/reg-sub
+ ::employers
+ (fn [db _]
+   (get db :employers)))
+
+(re-frame/reg-sub
+ ::employer
+ :<- [::employers]
+ :<- [::accounts-subs/active-account]
+ (fn [[employers address]]
+   (get employers address)))
+
+(re-frame/reg-sub
+ ::arbiters
+ (fn [db _]
+   (get db :arbiters)))
+
+(re-frame/reg-sub
+ ::arbiter
+ :<- [::arbiters]
+ :<- [::accounts-subs/active-account]
+ (fn [[arbiters address]]
+   (get arbiters address)))

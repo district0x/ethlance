@@ -1,11 +1,6 @@
 (ns ethlance.ui.component.tabular-layout
-  (:require
-   [reagent.core :as r]
-   [medley.core :refer [deep-merge]]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.select-input :refer [c-select-input]]))
-
+  (:require [ethlance.ui.component.select-input :refer [c-select-input]]
+            [reagent.core :as r]))
 
 (defn c-tabular-layout
   "Tabular Layout used within several pages on Ethlance.
@@ -21,7 +16,7 @@
   # Rest Arguments (opts-children)
 
   Consists of two parts. The options for the tab, and the tab element
-  
+
   ## Options for the tab
 
   :label - The text label to display for the given tab
@@ -62,11 +57,14 @@
          [:div.tab-listing
           {:class tab-count-class}
           (doall
-           (for [{:keys [index label]} tab-options]
+           (for [{:keys [index label on-click]} tab-options]
              ^{:key (str "tab-" index)}
              [:div.tab
               {:class (when (= @*active-tab-index index) "active")
-               :on-click #(reset! *active-tab-index index)}
+               :on-click (fn []
+                           (reset! *active-tab-index index)
+                           (when on-click
+                             (on-click)))}
               [:span.label label]]))]
 
          [:div.mobile-tab-listing
@@ -80,6 +78,6 @@
               (let [selections (map :label tab-options)
                     new-index (.indexOf selections selection)]
                 (reset! *active-tab-index new-index)))}]]
-         
+
          [:div.active-page {:key "active-page"}
           (get tab-children @*active-tab-index)]]))))

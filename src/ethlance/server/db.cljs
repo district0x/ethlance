@@ -53,10 +53,10 @@
     :table-columns
     [[:user/address :varchar]
      [:user/type :varchar not-nil]
-     [:user/country-code :varchar not-nil]
-     [:user/user-name :varchar]
-     [:user/full-name :varchar]
      [:user/email :varchar not-nil]
+     [:user/user-name :varchar not-nil]
+     [:user/country-code :varchar]
+     [:user/full-name :varchar]
      [:user/profile-image :varchar]
      [:user/date-registered :bigint]
      [:user/date-updated :bigint]
