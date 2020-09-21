@@ -57,7 +57,7 @@
       :reagent-render
       (fn []
         (let [{:user/keys [user-name github-username email country-code languages is-registered-candidate]} @user
-              {:candidate/keys [rate professional-title categories skills bio]} @candidate]
+              {:candidate/keys [rate professional-title categories skills bio for-hire?]} @candidate]
           [:div.candidate-sign-up
            [:div.form-container
             [:div.label "Sign Up"]
@@ -143,8 +143,8 @@
              [c-labeled-checkbox
               {:id "form-for-hire"
                :label "I'm available for hire"
-               :checked? is-registered-candidate
-               :on-change #(>evt [:page.sign-up/set-user-is-registered-candidate %])}]]]
+               :checked? for-hire?
+               :on-change #(>evt [:page.sign-up/set-candidate-for-hire? %])}]]]
            ;; TODO : active / inactive (based on required fields)
            [:div.form-submit {:on-click #(>evt [:page.sign-up/update-candidate])}
             [:span "Create"]
@@ -152,19 +152,7 @@
 
 ;; TODO
 (defn c-employer-sign-up []
-  (let [
-        *full-name (atom nil) #_(re/subscribe [:page.sign-up/employer-full-name])
-        *professional-title (atom nil) #_(re/subscribe [:page.sign-up/employer-professional-title])
-        *email (atom nil) #_(re/subscribe [:page.sign-up/employer-email])
-        *github-key (atom nil) #_(re/subscribe [:page.sign-up/employer-github-key])
-        *linkedin-key (atom nil) #_(re/subscribe [:page.sign-up/employer-linkedin-key])
-        *languages (atom nil) #_(re/subscribe [:page.sign-up/employer-languages])
-        *biography (atom nil) #_(re/subscribe [:page.sign-up/employer-biography])
-        *country (atom nil) #_(re/subscribe [:page.sign-up/employer-country])
-
-
-
-        config (<sub [::subs/config])
+  (let [config (<sub [::subs/config])
         user (re/subscribe [::subs/user])
         employer (re/subscribe [::subs/employer])
         gh-client-id (-> config :github :client-id)
@@ -172,14 +160,16 @@
 
         ]
     (r/create-class
-     {:display-name "c-candidate-sign-up"
+     {:display-name "c-employer-sign-up"
       :component-did-mount (fn []
                              (when-let [code (-> active-page :query :code)]
                                (>evt [:page.sign-up/send-github-verification-code code])))
-
       :reagent-render
       (fn []
-        (let []
+        ;; TODO
+        (let [{:user/keys [user-name github-username email country-code languages is-registered-candidate]} @user
+              {:employer/keys [bio professional-title]} @employer
+              ]
           [:div.employer-sign-up
            [:div.form-container
             [:div.label "Sign Up"]
@@ -189,33 +179,45 @@
              [:div.form-name
               [c-text-input
                {:placeholder "Name"
-                :value @*full-name
-                :on-change #(re/dispatch [:page.sign-up/set-employer-full-name %])}]]
+                :value (or user-name github-username)
+
+                :on-change #(>evt [:page.sign-up/set-user-name %])
+
+                }]]
              [:div.form-email
               [c-email-input
                {:placeholder "Email"
-                :value @*email
-                :on-change #(re/dispatch [:page.sign-up/set-employer-email %])}]]
+                :value email
+                :on-change #(>evt [:page.sign-up/set-user-email %])}]]
+
              [:div.form-professional-title
               [c-text-input
                {:placeholder "Professional Title"
-                :value @*professional-title
-                :on-change #(re/dispatch [:page.sign-up/set-employer-professional-title %])}]]
+                :value professional-title
+                :on-change #(>evt [:page.sign-up/set-employer-professional-title %])}]]
+
              [:div.form-country
               [c-select-input
                {:label "Select Country"
                 :selections constants/countries
-                :selection @*country
-                :on-select #(re/dispatch [:page.sign-up/set-employer-country %])
+                :selection country-code
+                :on-select #(>evt [:page.sign-up/set-user-country-code %])
                 :search-bar? true
                 :default-search-text "Search Countries"}]]
+
              [:div.form-connect-github
               [c-button
                {:size :large}
                [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
+
              [:div.form-connect-linkedin
               [c-button
-               {:size :large}
+               {:size :large
+                :disabled? (not (nil? github-username))
+                :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
+                           ;; "&redirect_uri=" root-url
+                           active-page)
+                }
                [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
 
             [:div.second-forms
@@ -225,14 +227,14 @@
                :placeholder ""
                :auto-suggestion-listing constants/languages
                :allow-custom-chips? false
-               :chip-listing @*languages
-               :on-chip-listing-change #(re/dispatch [:page.sign-up/set-employer-languages %])}]
+               :chip-listing languages
+               :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]
 
              [:div.label [:h2 "Your Biography"]]
              [c-textarea-input
               {:placeholder ""
-               :value @*biography
-               :on-change #(re/dispatch [:page.sign-up/set-employer-biography %])}]]]
+               :value bio
+               :on-change #(>evt [:page.sign-up/set-employer-bio %])}]]]
 
            [:div.form-submit
             [:span "Create"]

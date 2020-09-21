@@ -26,18 +26,6 @@
      {:db (-> db (assoc-in [:users address :user/email] email))})))
 
 (re/reg-event-fx
- :page.sign-up/set-candidate-professional-title
- (fn [{:keys [db]} [_ professional-title]]
-   (let [address (accounts-queries/active-account db)]
-     {:db (-> db (assoc-in [:candidates address :candidate/professional-title] professional-title))})))
-
-(re/reg-event-fx
- :page.sign-up/set-candidate-hourly-rate
- (fn [{:keys [db]} [_ rate]]
-   (let [address (accounts-queries/active-account db)]
-     {:db (-> db (assoc-in [:candidates address :candidate/rate] rate))})))
-
-(re/reg-event-fx
  :page.sign-up/set-user-country-code
  (fn [{:keys [db]} [_ country-code]]
    (let [address (accounts-queries/active-account db)]
@@ -48,6 +36,18 @@
  (fn [{:keys [db]} [_ languages]]
    (let [address (accounts-queries/active-account db)]
      {:db (-> db (assoc-in [:users address :user/languages] languages))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/professional-title] professional-title))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-hourly-rate
+ (fn [{:keys [db]} [_ rate]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/rate] rate))})))
 
 (re/reg-event-fx
  :page.sign-up/set-candidate-categories
@@ -67,22 +67,23 @@
    (let [address (accounts-queries/active-account db)]
      {:db (-> db (assoc-in [:candidates address :candidate/bio] bio))})))
 
-(re/reg-event-fx :page.sign-up/set-candidate-ready-for-hire? (create-assoc-handler :candidate/ready-for-hire? boolean))
+(re/reg-event-fx
+ :page.sign-up/set-candidate-for-hire?
+ (fn [{:keys [db]} [_ for-hire?]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/for-hire?] for-hire?))})))
 
 (re/reg-event-fx
- :page.sign-up/set-user-is-registered-candidate
- (fn [{:keys [db]} [_ is-registered-candidate]]
+ :page.sign-up/set-employer-bio
+ (fn [{:keys [db]} [_ bio]]
    (let [address (accounts-queries/active-account db)]
-     {:db (-> db (assoc-in [:candidates address :user/is-registered-candidate] is-registered-candidate))})))
+     {:db (-> db (assoc-in [:employers address :employer/bio] bio))})))
 
-(re/reg-event-fx :page.sign-up/set-employer-full-name (create-assoc-handler :employer/full-name))
-(re/reg-event-fx :page.sign-up/set-employer-professional-title (create-assoc-handler :employer/professional-title))
-(re/reg-event-fx :page.sign-up/set-employer-email (create-assoc-handler :employer/email))
-(re/reg-event-fx :page.sign-up/set-employer-github-key (create-assoc-handler :employer/github-key))
-(re/reg-event-fx :page.sign-up/set-employer-linkedin-key (create-assoc-handler :employer/linkedin-key))
-(re/reg-event-fx :page.sign-up/set-employer-languages (create-assoc-handler :employer/languages))
-(re/reg-event-fx :page.sign-up/set-employer-biography (create-assoc-handler :employer/biography))
-(re/reg-event-fx :page.sign-up/set-employer-country (create-assoc-handler :employer/country))
+(re/reg-event-fx
+ :page.sign-up/set-employer-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:employers address :employer/professional-title] professional-title))})))
 
 (re/reg-event-fx :page.sign-up/set-arbiter-full-name (create-assoc-handler :arbiter/full-name))
 (re/reg-event-fx :page.sign-up/set-arbiter-professional-title (create-assoc-handler :arbiter/professional-title))
