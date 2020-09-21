@@ -16,9 +16,7 @@
             [re-frame.core :as re]
             [taoensso.timbre :as log]))
 
-
 (enable-console-print!)
-
 
 (defn ^:export init []
   (let [main-config (ui.config/get-config)]
@@ -33,6 +31,5 @@
     (re/dispatch-sync [:ethlance/initialize main-config])
 
     ::started))
-
 
 (defonce started? (init))

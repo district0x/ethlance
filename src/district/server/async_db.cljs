@@ -96,7 +96,7 @@
 (defn start
   "Start the ethlance-db mount component."
   [{:keys [user host database password port] :as opts}]
-  (log/info "Starting DB component" {})
+  (log/info "Starting DB component" opts)
   (let [pool (Pool. #js {:user user
                          :host host
                          :database database

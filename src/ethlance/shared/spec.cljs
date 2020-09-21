@@ -27,7 +27,7 @@
 
 (s/def ::currency-type (set (keys enum-currency)))
 (s/def ::bid-option (set (keys enum-bid)))
-(s/def ::contract-status (set (keys enum-status)))
+;; (s/def ::contract-status (set (keys enum-status)))
 (s/def ::payment-type (set (keys enum-payment)))
 (s/def ::availability (set (keys enum-availability)))
 (s/def ::user-type (set (keys enum-user-type)))

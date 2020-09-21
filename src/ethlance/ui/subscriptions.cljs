@@ -44,3 +44,15 @@
  :<- [::accounts-subs/active-account]
  (fn [[candidates address]]
    (get candidates address)))
+
+(re-frame/reg-sub
+ ::employers
+ (fn [db _]
+   (get db :employers)))
+
+(re-frame/reg-sub
+ ::employer
+ :<- [::employers]
+ :<- [::accounts-subs/active-account]
+ (fn [[employers address]]
+   (get employers address)))
