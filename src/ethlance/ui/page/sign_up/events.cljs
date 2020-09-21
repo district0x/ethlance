@@ -131,6 +131,7 @@
                                      employer(user_address: $address) {
                                        user_address
                                        employer_professionalTitle
+                                       employer_bio
                                      }
                                      arbiter(user_address: $address) {
                                        user_address
