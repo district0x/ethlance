@@ -145,6 +145,7 @@
 
 (def ^:private arbiter-query {:select [:Arbiter.user/address
                                        :Arbiter.arbiter/bio
+                                       :Arbiter.arbiter/professional-title
                                        :Arbiter.arbiter/fee
                                        :Arbiter.arbiter/fee-currency-id
                                        [:Users.user/date-registered :arbiter/date-registered]]

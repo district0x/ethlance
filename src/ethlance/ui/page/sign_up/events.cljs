@@ -9,10 +9,6 @@
             [re-frame.core :as re]
             [taoensso.timbre :as log]))
 
-(def state-key :page.sign-up)
-
-(def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
-
 (re/reg-event-fx
  :page.sign-up/set-user-name
  (fn [{:keys [db]} [_ name]]
@@ -85,15 +81,23 @@
    (let [address (accounts-queries/active-account db)]
      {:db (-> db (assoc-in [:employers address :employer/professional-title] professional-title))})))
 
-(re/reg-event-fx :page.sign-up/set-arbiter-full-name (create-assoc-handler :arbiter/full-name))
-(re/reg-event-fx :page.sign-up/set-arbiter-professional-title (create-assoc-handler :arbiter/professional-title))
-(re/reg-event-fx :page.sign-up/set-arbiter-fixed-rate-per-dispute (create-assoc-handler :arbiter/fixed-rate-per-dispute parse-float))
-(re/reg-event-fx :page.sign-up/set-arbiter-email (create-assoc-handler :arbiter/email))
-(re/reg-event-fx :page.sign-up/set-arbiter-github-key (create-assoc-handler :arbiter/github-key))
-(re/reg-event-fx :page.sign-up/set-arbiter-linkedin-key (create-assoc-handler :arbiter/linkedin-key))
-(re/reg-event-fx :page.sign-up/set-arbiter-languages (create-assoc-handler :arbiter/languages))
-(re/reg-event-fx :page.sign-up/set-arbiter-biography (create-assoc-handler :arbiter/biography))
-(re/reg-event-fx :page.sign-up/set-arbiter-country (create-assoc-handler :arbiter/country))
+(re/reg-event-fx
+ :page.sign-up/set-arbiter-fee
+ (fn [{:keys [db]} [_ fee]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:arbiters address :arbiter/fee] fee))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-arbiter-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:arbiters address :arbiter/professional-title] professional-title))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-arbiter-bio
+ (fn [{:keys [db]} [_ bio]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:arbiters address :arbiter/bio] bio))})))
 
 (re/reg-event-fx
  :page.sign-up/initialize-page
@@ -226,7 +230,7 @@
                                                               :employer_bio bio
                                                               :employer_professionalTitle professional-title}}}]})))
 
-;; TODO
+;; TODO : tests
 (re/reg-event-fx
  :page.sign-up/update-arbiter
  (fn [{:keys [db]}]
@@ -249,6 +253,5 @@
                                                              :arbiter_bio bio
                                                              :arbiter_professionalTitle professional-title
                                                              :arbiter_fee (js/parseInt fee)
-                                                               ;; NOTE: hardcoded since UI does not allow for a different currency
-                                                             :arbiter_feeCurrencyId :USD
-                                                             }}}]})))
+                                                             ;; NOTE: hardcoded since UI does not allow for a different currency
+                                                             :arbiter_feeCurrencyId :USD}}}]})))

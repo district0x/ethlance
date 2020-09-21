@@ -56,7 +56,7 @@
                                (>evt [:page.sign-up/send-github-verification-code code])))
       :reagent-render
       (fn []
-        (let [{:user/keys [user-name github-username email country-code languages is-registered-candidate]} @user
+        (let [{:user/keys [user-name github-username email country-code languages]} @user
               {:candidate/keys [rate professional-title categories skills bio for-hire?]} @candidate]
           [:div.candidate-sign-up
            [:div.form-container
@@ -146,7 +146,6 @@
             [:span "Create"]
             [c-icon {:name :ic-arrow-right :size :smaller}]]]))})))
 
-;; TODO
 (defn c-employer-sign-up []
   (let [{:keys [root-url github]} (<sub [::subs/config])
         user (re/subscribe [::subs/user])
@@ -160,7 +159,7 @@
                                (>evt [:page.sign-up/send-github-verification-code code])))
       :reagent-render
       (fn []
-        (let [{:user/keys [user-name github-username email country-code languages is-registered-candidate]} @user
+        (let [{:user/keys [user-name github-username email country-code languages]} @user
               {:employer/keys [bio professional-title]} @employer]
           [:div.employer-sign-up
            [:div.form-container
@@ -216,79 +215,88 @@
               {:placeholder ""
                :value bio
                :on-change #(>evt [:page.sign-up/set-employer-bio %])}]]]
+           ;; TODO : active / inactive (based on required fields)
            [:div.form-submit {:on-click #(>evt [:page.sign-up/update-employer])}
             [:span "Create"]
             [c-icon {:name :ic-arrow-right :size :smaller}]]]))})))
 
 (defn c-arbiter-sign-up []
-  (let [*full-name (re/subscribe [:page.sign-up/arbiter-full-name])
-        *professional-title (re/subscribe [:page.sign-up/arbiter-professional-title])
-        *fixed-rate-per-dispute (re/subscribe [:page.sign-up/arbiter-fixed-rate-per-dispute])
-        *email (re/subscribe [:page.sign-up/arbiter-email])
-        *github-key (re/subscribe [:page.sign-up/arbiter-github-key])
-        *linkedin-key (re/subscribe [:page.sign-up/arbiter-linkedin-key])
-        *languages (re/subscribe [:page.sign-up/arbiter-languages])
-        *biography (re/subscribe [:page.sign-up/arbiter-biography])
-        *country (re/subscribe [:page.sign-up/arbiter-country])]
-    (fn []
-      [:div.arbiter-sign-up
-       [:div.form-container
-        [:div.label "Sign Up"]
-        [:div.first-forms
-         [:div.form-image
-          [c-upload-image]]
-         [:div.form-name
-          [c-text-input
-           {:placeholder "Name"
-            :value @*full-name
-            :on-change #(re/dispatch [:page.sign-up/set-arbiter-full-name %])}]]
-         [:div.form-email
-          [c-email-input
-           {:placeholder "Email"
-            :value @*email
-            :on-change #(re/dispatch [:page.sign-up/set-arbiter-email %])}]]
-         [:div.form-professional-title
-          [c-text-input
-           {:placeholder "Professional Title"
-            :value @*professional-title
-            :on-change #(re/dispatch [:page.sign-up/set-arbiter-professional-title %])}]]
-         [:div.form-country
-          [c-select-input
-           {:label "Select Country"
-            :selections constants/countries
-            :selection @*country
-            :on-select #(re/dispatch [:page.sign-up/set-arbiter-country %])
-            :search-bar? true
-            :default-search-text "Search Countries"}]]
-         [:div.form-hourly-rate
-          [c-currency-input
-           {:placeholder "Fixed Rate Per A Dispute" :color :primary
-            :value @*fixed-rate-per-dispute
-            :on-change #(re/dispatch [:page.sign-up/set-arbiter-fixed-rate-per-dispute %])}]]
-         [:div.form-connect-github
-          [c-button
-           {:size :large}
-           [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
-         [:div.form-connect-linkedin
-          [c-button
-           {:size :large}
-           [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
-
-        [:div.second-forms
-         [:div.label [:h2 "Languages You Speak"]]
-         [c-chip-search-input
-          {:search-icon? false
-           :placeholder ""
-           :auto-suggestion-listing constants/languages
-           :allow-custom-chips? false
-           :on-chip-listing-change (fn [languages] (log/info "Languages: " languages))}]
-
-         [:div.label [:h2 "Your Biography"]]
-         [c-textarea-input {:placeholder ""}]]]
-
-       [:div.form-submit
-        [:span "Create"]
-        [c-icon {:name :ic-arrow-right :size :smaller}]]])))
+  (let [{:keys [root-url github]} (<sub [::subs/config])
+        user (re/subscribe [::subs/user])
+        arbiter (re/subscribe [::subs/arbiter])
+        gh-client-id (-> github :client-id)
+        {:keys [query]} (<sub [::router.subs/active-page])]
+    (r/create-class
+     {:display-name "c-arbiter-sign-up"
+      :component-did-mount (fn []
+                             (when-let [code (:code query)]
+                               (>evt [:page.sign-up/send-github-verification-code code])))
+      :reagent-render
+      (fn []
+        (let [{:user/keys [user-name github-username email country-code languages ]} @user
+              {:arbiter/keys [bio professional-title fee]} @arbiter]
+          [:div.arbiter-sign-up
+           [:div.form-container
+            [:div.label "Sign Up"]
+            [:div.first-forms
+             [:div.form-image
+              [c-upload-image]]
+             [:div.form-name
+              [c-text-input
+               {:placeholder "Name"
+                :value (or user-name github-username)
+                :on-change #(>evt [:page.sign-up/set-user-name %])}]]
+             [:div.form-email
+              [c-email-input
+               {:placeholder "Email"
+                :value email
+                :on-change #(>evt [:page.sign-up/set-user-email %])}]]
+             [:div.form-professional-title
+              [c-text-input
+               {:placeholder "Professional Title"
+                :value professional-title
+                :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
+             [:div.form-country
+              [c-select-input
+               {:label "Select Country"
+                :selections constants/countries
+                :selection country-code
+                :on-select #(>evt [:page.sign-up/set-user-country-code %])
+                :search-bar? true
+                :default-search-text "Search Countries"}]]
+             [:div.form-hourly-rate
+              [c-currency-input
+               {:placeholder "Fixed Rate Per A Dispute" :color :primary
+                :value fee
+                :on-change #(>evt [:page.sign-up/set-arbiter-fee %])}]]
+             [:div.form-connect-github
+              [c-button
+               {:size :large
+                :disabled? (not (nil? github-username))
+                :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
+                           "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query))}
+               [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
+             [:div.form-connect-linkedin
+              [c-button
+               {:size :large}
+               [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
+            [:div.second-forms
+             [:div.label [:h2 "Languages You Speak"]]
+             [c-chip-search-input
+              {:search-icon? false
+               :placeholder ""
+               :allow-custom-chips? false
+               :auto-suggestion-listing constants/languages
+               :chip-listing languages
+               :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]
+             [:div.label [:h2 "Your Biography"]]
+             [c-textarea-input {:placeholder ""
+                                :value bio
+                                :on-change #(>evt [:page.sign-up/set-arbiter-bio %])}]]]
+           ;; TODO : active / inactive (based on required fields)
+           [:div.form-submit {:on-click #(>evt [:page.sign-up/update-arbiter])}
+            [:span "Create"]
+            [c-icon {:name :ic-arrow-right :size :smaller}]]]))})))
 
 (defmethod page :route.me/sign-up []
   (let [active-page (re/subscribe [::router.subs/active-page])]

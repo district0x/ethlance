@@ -95,18 +95,24 @@
   (reduce-handlers cofx values))
 
 (defmethod handler :user
-  [{:keys [db] :as cofx} _ {:user/keys [address email]
-                            :as user}]
+  [{:keys [db] :as cofx} _ {:user/keys [address email] :as user}]
   (log/debug "user handler" user)
   {:db (assoc-in db [:users address] user)})
 
 (defmethod handler :candidate
-  [{:keys [db] :as cofx} _ {:user/keys [address]
-                            :candidate/keys [rate rate-currency-id]
-                            :as candidate}]
+  [{:keys [db] :as cofx} _ {:user/keys [address] :as candidate}]
   (log/debug "candidate handler" candidate)
-  {:db (assoc-in db [:candidates address]
-                 candidate)})
+  {:db (assoc-in db [:candidates address] candidate)})
+
+(defmethod handler :employer
+  [{:keys [db] :as cofx} _ {:user/keys [address] :as employer}]
+  (log/debug "employer handler" employer)
+  {:db (assoc-in db [:employers address] employer)})
+
+(defmethod handler :arbiter
+  [{:keys [db] :as cofx} _ {:user/keys [address] :as arbiter}]
+  (log/debug "arbiter handler" arbiter)
+  {:db (assoc-in db [:arbiters address] arbiter)})
 
 (defmethod handler :github-sign-up
   [{:keys [db] :as cofx} _ {:user/keys [address github-username] :as user}]
