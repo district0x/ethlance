@@ -79,8 +79,8 @@ fig-dev-server:
 	lein with-profile +dev-server figwheel dev-server
 
 
-fig-dev-ui:
-	lein with-profile +dev-ui figwheel dev-ui
+watch-ui:
+	npx shadow-cljs watch dev-ui
 
 
 clean:
@@ -152,14 +152,14 @@ ipfs:
 ETHLANCE_DB_PORT := 5432
 postgres:
 	docker run                                                       \
-	       --name    dev-ethlance-psql                               \
-	       --volume  dev-ethlance-psql-data:/var/lib/postgresql/data \
-	       --publish $(ETHLANCE_DB_PORT):5432                        \
-	       --env     POSTGRES_DB=ethlance                            \
-	       --env     POSTGRES_USER=user                              \
-	       --env     POSTGRES_PASSWORD=pass                          \
-	       --rm                                                      \
-	       postgres:11
+		   --name    dev-ethlance-psql                               \
+		   --volume  dev-ethlance-psql-data:/var/lib/postgresql/data \
+		   --publish $(ETHLANCE_DB_PORT):5432                        \
+		   --env     POSTGRES_DB=ethlance                            \
+		   --env     POSTGRES_USER=user                              \
+		   --env     POSTGRES_PASSWORD=pass                          \
+		   --rm                                                      \
+		   postgres:11
 
 
 deploy:

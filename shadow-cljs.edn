@@ -1,4 +1,4 @@
-{:source-paths ["src" "resources"]
+{:source-paths ["src" "resources" "src-cljsjs"]
  :dev-http {9501 "resources/public/"}
  :dependencies [[org.clojure/clojure "1.10.1"]
                 [org.clojure/clojurescript "1.10.773"]
@@ -97,6 +97,7 @@
                    :modules {:main {:init-fn ethlance.ui.core/init}}
                    :main ethlance.ui.core
                    :infer-externs true
+                   :js-options {:js-package-dirs ["./ui/node_modules"]}
                    :npm-deps false
                    :output-dir "resources/public/js/"
                    :optimizations :none

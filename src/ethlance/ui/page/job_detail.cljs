@@ -9,7 +9,7 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
-   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
+   [ethlance.ui.component.carousel :refer [c-carousel c-carousel-old c-feedback-slide]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -133,9 +133,18 @@ Please contact us if this sounds interesting.")
 
          [:div.feedback-listing
           [:div.label "Feedback"]
+
+          [c-carousel-old {}
+           [c-feedback-slide {:rating 1}]
+           [c-feedback-slide {:rating 2}]
+           [c-feedback-slide {:rating 3}]
+           [c-feedback-slide {:rating 4}]
+           [c-feedback-slide {:rating 5}]]
+
           [c-carousel {}
            [c-feedback-slide {:rating 1}]
            [c-feedback-slide {:rating 2}]
            [c-feedback-slide {:rating 3}]
            [c-feedback-slide {:rating 4}]
-           [c-feedback-slide {:rating 5}]]]]))))
+           [c-feedback-slide {:rating 5}]
+           ]]]))))
