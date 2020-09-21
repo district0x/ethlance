@@ -136,6 +136,8 @@
                                      arbiter(user_address: $address) {
                                        user_address
                                        arbiter_bio
+                                       arbiter_professionalTitle
+                                       arbiter_fee
                                      }
                                    }"
                                   :variables {:address user-address}}]})))
@@ -185,8 +187,8 @@
                                   "mutation UpdateCandidate($candidateInput: CandidateInput!) {
                                      updateCandidate(input: $candidateInput) {
                                        user_address
-                                       user_dateRegistered
-                                       candidate_dateRegistered
+                                       user_dateUpdated
+                                       candidate_dateUpdated
                                    }
                                  }"
                                   :variables {:candidateInput {:user_address user-address
@@ -201,3 +203,52 @@
                                                                :candidate_rate (js/parseInt rate)
                                                                ;; NOTE: hardcoded since UI does not allow for a different currency
                                                                :candidate_rateCurrencyId :USD}}}]})))
+
+(re/reg-event-fx
+ :page.sign-up/update-employer
+ (fn [{:keys [db]}]
+   (let [user-address (accounts-queries/active-account db)
+         {:user/keys [user-name github-username country-code email]} (get-in db [:users user-address])
+         {:employer/keys [professional-title bio]} (get-in db [:employers user-address])]
+     {:dispatch [::graphql/query {:query
+                                  "mutation UpdateEmployer($employerInput: EmployerInput!) {
+                                     updateEmployer(input: $employerInput) {
+                                       user_address
+                                       user_dateUpdated
+                                       employer_dateUpdated
+                                   }
+                                 }"
+                                  :variables {:employerInput {:user_address user-address
+                                                              :user_email email
+                                                              :user_userName user-name
+                                                              :user_githubUsername github-username
+                                                              :user_countryCode country-code
+                                                              :employer_bio bio
+                                                              :employer_professionalTitle professional-title}}}]})))
+
+;; TODO
+(re/reg-event-fx
+ :page.sign-up/update-arbiter
+ (fn [{:keys [db]}]
+   (let [user-address (accounts-queries/active-account db)
+         {:user/keys [user-name github-username country-code email]} (get-in db [:users user-address])
+         {:arbiter/keys [professional-title bio fee]} (get-in db [:arbiters user-address])]
+     {:dispatch [::graphql/query {:query
+                                  "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
+                                     updateArbiter(input: $arbiterInput) {
+                                       user_address
+                                       user_dateUpdated
+                                       arbiter_dateUpdated
+                                   }
+                                 }"
+                                  :variables {:arbiterInput {:user_address user-address
+                                                             :user_email email
+                                                             :user_userName user-name
+                                                             :user_githubUsername github-username
+                                                             :user_countryCode country-code
+                                                             :arbiter_bio bio
+                                                             :arbiter_professionalTitle professional-title
+                                                             :arbiter_fee (js/parseInt fee)
+                                                               ;; NOTE: hardcoded since UI does not allow for a different currency
+                                                             :arbiter_feeCurrencyId :USD
+                                                             }}}]})))

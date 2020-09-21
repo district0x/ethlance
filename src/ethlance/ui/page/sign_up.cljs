@@ -98,11 +98,8 @@
               [c-button
                {:size :large
                 :disabled? (not (nil? github-username))
-                ;; TODO : redirect to the same tab
                 :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
-                           "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query)
-                           ;; "&redirect_uri=" "http://127.0.0.1:6500/me/sign-up?tab=employer"
-                           )}
+                           "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query))}
                [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
              [:div.form-connect-linkedin
               [c-button
@@ -117,7 +114,6 @@
                :allow-custom-chips? false
                :chip-listing languages
                :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]
-
              [:div.label [:h2 "Categories You Are Interested In"]]
              [c-chip-search-input
               {:search-icon? false
@@ -127,7 +123,6 @@
                :chip-listing categories
                :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-categories %])
                :display-listing-on-focus? true}]
-
              [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
              [c-chip-search-input
               {:search-icon? false
@@ -136,7 +131,6 @@
                :auto-suggestion-listing constants/skills
                :chip-listing skills
                :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-skills %])}]
-
              [:div.label [:h2 "Your Biography"]]
              [c-textarea-input
               {:placeholder ""
@@ -204,12 +198,10 @@
                 :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
                            "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query))}
                [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
-
              [:div.form-connect-linkedin
               [c-button
                {:size :large}
                [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
-
             [:div.second-forms
              [:div.label [:h2 "Languages You Speak"]]
              [c-chip-search-input
@@ -219,14 +211,12 @@
                :allow-custom-chips? false
                :chip-listing languages
                :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]
-
              [:div.label [:h2 "Your Biography"]]
              [c-textarea-input
               {:placeholder ""
                :value bio
                :on-change #(>evt [:page.sign-up/set-employer-bio %])}]]]
-
-           [:div.form-submit
+           [:div.form-submit {:on-click #(>evt [:page.sign-up/update-employer])}
             [:span "Create"]
             [c-icon {:name :ic-arrow-right :size :smaller}]]]))})))
 

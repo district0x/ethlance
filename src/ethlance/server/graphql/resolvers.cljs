@@ -454,27 +454,41 @@
                                       :feedback/rating rating
                                       :user/address to}))))
 
-(defn update-employer-mutation [_ employer {:keys [:config :current-user :timestamp]}]
-  (db/with-async-resolver-tx conn
-   (<? (ethlance-db/upsert-user! conn (-> employer
-                                          (assoc :user/type :employer))))))
+(defn update-employer-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
+(db/with-async-resolver-tx conn
+    (let [{:user/keys [address]} input
+          response {:user/address address
+                    :user/date-updated timestamp
+                    :employer/date-updated timestamp}]
+      (log/debug "update-employer-mutation" {:input input :response response})
+      (<? (ethlance-db/upsert-user! conn (-> input
+                                             (assoc :user/type :employer)
+                                             (merge response))))
+      response)))
 
 (defn update-candidate-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
   (db/with-async-resolver-tx conn
     (let [{:user/keys [address]} input
           response {:user/address address
-                    :user/date-registered timestamp
-                    :candidate/date-registered timestamp}]
+                    :user/date-updated timestamp
+                    :candidate/date-updated timestamp}]
       (log/debug "update-candidate-mutation" {:input input :response response})
       (<? (ethlance-db/upsert-user! conn (-> input
                                              (assoc :user/type :candidate)
                                              (merge response))))
       response)))
 
-(defn update-arbiter-mutation [_ arbiter {:keys [:config :current-user :timestamp]}]
+(defn update-arbiter-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
   (db/with-async-resolver-tx conn
-   (<? (ethlance-db/upsert-user! conn (-> arbiter
-                                          (assoc :user/type :arbiter))))))
+    (let [{:user/keys [address]} input
+          response {:user/address address
+                    :user/date-updated timestamp
+                    :arbiter/date-updated timestamp}]
+      (log/debug "arbiter-candidate-mutation" {:input input :response response})
+      (<? (ethlance-db/upsert-user! conn (-> input
+                                             (assoc :user/type :arbiter)
+                                             (merge response))))
+      response)))
 
 (defn create-job-proposal-mutation [_ {:keys [:job/id :text :rate :rate-currency-id]} {:keys [:config :current-user :timestamp]}]
   (db/with-async-resolver-tx conn
@@ -567,9 +581,10 @@
                                :raiseDispute (require-auth raise-dispute-mutation)
                                :resolveDispute (require-auth resolve-dispute-mutation)
                                :leaveFeedback (require-auth leave-feedback-mutation)
-                               :updateEmployer (require-auth update-employer-mutation)
+                               ;; TODO : do require auth
+                               :updateEmployer #_require-auth update-employer-mutation
                                :updateCandidate #_require-auth update-candidate-mutation
-                               :updateArbiter (require-auth update-arbiter-mutation)
+                               :updateArbiter #_require-auth update-arbiter-mutation
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :replayEvents replay-events
                                :githubSignUp github-signup-mutation}})
