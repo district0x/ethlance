@@ -158,9 +158,6 @@
  :page.sign-up/github-sign-up
  (fn [{:keys [db]} [_  code]]
    (let [user-address (accounts-queries/active-account db)]
-
-     (log/debug "@@@@" {:c code :user/addredd user-address})
-
      {:dispatch [::graphql/query {:query
                                   "mutation GithubSignUp($githubSignUpInput: githubSignUpInput!) {
                                      githubSignUp(input: $githubSignUpInput) {
@@ -172,6 +169,32 @@
                                    }
                                  }"
                                   :variables {:githubSignUpInput {:code code :user_address user-address}}
+                                  :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
+
+
+(re/reg-event-fx
+ :page.sign-up/send-linkedin-verification-code
+ (fn [_ [_ code redirect-uri]]
+   {:forward-events
+    {:register ::initial-query?
+     :events #{:page.sign-up/initial-query}
+     :dispatch-to [:page.sign-up/linkedin-sign-up code redirect-uri]}}))
+
+(re/reg-event-fx
+ :page.sign-up/linkedin-sign-up
+ (fn [{:keys [db]} [_  code redirect-uri]]
+   (let [user-address (accounts-queries/active-account db)]
+     {:dispatch [::graphql/query {:query
+                                  "mutation LinkedinSignUp($linkedinSignUpInput: linkedinSignUpInput!) {
+                                     linkedinSignUp(input: $linkedinSignUpInput) {
+                                       user_address
+                                       user_fullName
+                                       user_linkedinUsername
+                                       user_email
+                                       user_countryCode
+                                   }
+                                 }"
+                                  :variables {:linkedinSignUpInput {:code code :user_address user-address :redirectUri redirect-uri}}
                                   :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
 
 (re/reg-event-fx
@@ -233,7 +256,6 @@
                                                               :employer_bio bio
                                                               :employer_professionalTitle professional-title}}}]})))
 
-;; TODO : tests
 (re/reg-event-fx
  :page.sign-up/update-arbiter
  (fn [{:keys [db]}]

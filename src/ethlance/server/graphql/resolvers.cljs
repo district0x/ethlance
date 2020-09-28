@@ -14,6 +14,7 @@
             [ethlance.server.syncer :as syncer]))
 
 (def axios (js/require "axios"))
+(def querystring (js/require "querystring"))
 
 (defn- paged-query
   [conn query limit offset]
@@ -532,6 +533,50 @@
                 :user/country-code location}]
       user)))
 
+(defn linkedin-signup-mutation [_ {:keys [input]} {:keys [config]}]
+  (js/Promise.
+   (fn [resolve reject]
+     (safe-go
+      (try
+        (let [{:keys [code redirect-uri]
+               :user/keys [address]} input
+              {:keys [client-id client-secret]} (:linkedin config)
+              response
+              (<? (axios (clj->js {:url "https://www.linkedin.com/oauth/v2/accessToken"
+                                   :method :post
+                                   :headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                   :data
+                                   (.stringify querystring (clj->js {:grant_type "authorization_code"
+                                                                     :code code
+                                                                     :redirect_uri redirect-uri
+                                                                     :client_id client-id
+                                                                     :client_secret client-secret}))})))
+              {:keys [data]} (js->clj response :keywordize-keys true)
+              access-token (:access_token data)
+              {:keys [id localizedLastName localizedFirstName] :as resp1} (-> (<? (axios (clj->js {:url "https://api.linkedin.com/v2/me"
+                                                                                                   :method :get
+                                                                                                   :headers {"Authorization" (str "Bearer " access-token)
+                                                                                                             "Accept" "application/json"}})))
+                                                                              (js->clj :keywordize-keys true)
+                                                                              :data)
+              {email "emailAddress" :as resp2} (-> (<? (axios (clj->js {:url "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))"
+                                                                 :method :get
+                                                                 :headers {"Authorization" (str "Bearer " access-token)
+                                                                           "Accept" "application/json"}})))
+                                            js->clj
+                                            (get-in ["data" "elements"])
+                                            first
+                                            (get "handle~"))
+              _ (log/debug "linkedin response" (merge resp1 resp2))
+              user {:user/address address
+                    :user/full-name (str localizedFirstName " " localizedLastName)
+                    :user/linkedin-username id
+                    :user/email email}]
+          (resolve user))
+        (catch :default e
+          (log/error "Linkedin signup error" {:error e})
+          (reject e)))))))
+
 (defn replay-events [_ _ _]
   (db/with-async-resolver-tx conn
     (let [dispatch-event (:dispatcher @syncer/syncer)]
@@ -588,4 +633,5 @@
                                :updateArbiter #_require-auth update-arbiter-mutation
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :replayEvents replay-events
-                               :githubSignUp github-signup-mutation}})
+                               :githubSignUp github-signup-mutation
+                               :linkedinSignUp linkedin-signup-mutation}})

@@ -5,7 +5,6 @@
                  [cljsjs/bignumber "4.1.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.rpl/specter "1.1.3"]
-                 [com.taoensso/encore "2.120.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/async-helpers "0.1.3"]
                  [district0x/bignumber "1.0.3"]

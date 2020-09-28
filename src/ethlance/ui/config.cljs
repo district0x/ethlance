@@ -25,7 +25,10 @@
     :jwt-sign-secret "SECRET"}
    :root-url "http://127.0.0.1:6500"
    :github
-   {:client-id "83e6a6043ca4ae50f8b0"}})
+   {:client-id "83e6a6043ca4ae50f8b0"}
+   :linkedin
+   {:client-id "86csctqngadad5"}
+   })
 
 (def development-config
   (-> general-config

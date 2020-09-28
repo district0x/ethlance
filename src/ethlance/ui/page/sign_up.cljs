@@ -12,6 +12,7 @@
             [ethlance.ui.component.email-input :refer [c-email-input]]
             [ethlance.ui.component.file-drag-input :refer [c-file-drag-input]]
             [ethlance.ui.component.icon :refer [c-icon]]
+            [ethlance.ui.util.navigation :as navigation-utils]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.search-input :refer [c-chip-search-input]]
             [ethlance.ui.component.select-input :refer [c-select-input]]
@@ -44,19 +45,25 @@
                                                (log/warn "Rejected file" {:name name :type type :size size} ::file-rejected))}]])))
 
 (defn c-candidate-sign-up []
-  (let [{:keys [root-url github]} (<sub [::subs/config])
+  (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
         user (re/subscribe [::subs/user])
         candidate (re/subscribe [::subs/candidate])
-        gh-client-id (-> github :client-id)
+        gh-client-id (:client-id github)
+        linkedin-client-id (:client-id linkedin)
         {:keys [query]} (<sub [::router.subs/active-page])]
     (r/create-class
      {:display-name "c-candidate-sign-up"
       :component-did-mount (fn []
-                             (when-let [code (-> query :code)]
-                               (>evt [:page.sign-up/send-github-verification-code code])))
+                             (when-let [code (:code query)]
+                               (case (-> query :social keyword)
+                                 :github
+                                 (>evt [:page.sign-up/send-github-verification-code code])
+                                 :linkedin
+                                 (>evt [:page.sign-up/send-linkedin-verification-code code (str root-url "/me/sign-up?tab=candidate&social=linkedin")])
+                                 nil)))
       :reagent-render
       (fn []
-        (let [{:user/keys [user-name github-username email country-code languages]} @user
+        (let [{:user/keys [user-name github-username linkedin-username email country-code languages]} @user
               {:candidate/keys [rate professional-title categories skills bio for-hire?]} @candidate]
           [:div.candidate-sign-up
            [:div.form-container
@@ -67,7 +74,7 @@
              [:div.form-name
               [c-text-input
                {:placeholder "Name"
-                :value (or user-name github-username)
+                :value user-name
                 :on-change #(>evt [:page.sign-up/set-user-name %])}]]
              [:div.form-email
               [c-email-input
@@ -98,12 +105,22 @@
               [c-button
                {:size :large
                 :disabled? (not (nil? github-username))
-                :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
-                           "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query))}
+                :href (str "https://github.com/login/oauth/authorize?"
+                           "client_id=" gh-client-id
+                           "&scope=user"
+                           "&redirect_uri="
+                           (navigation-utils/url-encode (str root-url "/me/sign-up?tab=candidate&social=github")))}
                [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
              [:div.form-connect-linkedin
               [c-button
-               {:size :large}
+               {:size :large
+                :disabled? (not (nil? linkedin-username))
+                :href (str "https://www.linkedin.com/oauth/v2/authorization?"
+                           "client_id=" linkedin-client-id
+                           "&scope=r_liteprofile%20r_emailaddress"
+                           "&response_type=code"
+                           "&redirect_uri="
+                           (navigation-utils/url-encode (str root-url "/me/sign-up?tab=candidate&social=linkedin")))}
                [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
             [:div.second-forms
              [:div.label [:h2 "Languages You Speak"]]
@@ -147,19 +164,25 @@
             [c-icon {:name :ic-arrow-right :size :smaller}]]]))})))
 
 (defn c-employer-sign-up []
-  (let [{:keys [root-url github]} (<sub [::subs/config])
+  (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
         user (re/subscribe [::subs/user])
         employer (re/subscribe [::subs/employer])
         gh-client-id (-> github :client-id)
+        linkedin-client-id (:client-id linkedin)
         {:keys [query]} (<sub [::router.subs/active-page])]
     (r/create-class
      {:display-name "c-employer-sign-up"
       :component-did-mount (fn []
-                             (when-let [code (:code query)]
-                               (>evt [:page.sign-up/send-github-verification-code code])))
+                             (when-let [code (-> query :code)]
+                               (case (-> query :social keyword)
+                                 :github
+                                 (>evt [:page.sign-up/send-github-verification-code code])
+                                 :linkedin
+                                 (>evt [:page.sign-up/send-linkedin-verification-code code (str root-url "/me/sign-up?tab=employer&social=linkedin")])
+                                 nil)))
       :reagent-render
       (fn []
-        (let [{:user/keys [user-name github-username email country-code languages]} @user
+        (let [{:user/keys [user-name github-username linkedin-username email country-code languages]} @user
               {:employer/keys [bio professional-title]} @employer]
           [:div.employer-sign-up
            [:div.form-container
@@ -170,7 +193,7 @@
              [:div.form-name
               [c-text-input
                {:placeholder "Name"
-                :value (or user-name github-username)
+                :value (or user-name github-username linkedin-username)
                 :on-change #(>evt [:page.sign-up/set-user-name %])}]]
              [:div.form-email
               [c-email-input
@@ -195,11 +218,20 @@
                {:size :large
                 :disabled? (not (nil? github-username))
                 :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
-                           "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query))}
+                           "&redirect_uri="
+                           (navigation-utils/url-encode (str root-url "/me/sign-up?tab=employer&social=github")))}
                [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
              [:div.form-connect-linkedin
               [c-button
-               {:size :large}
+               {:size :large
+                :disabled? (not (nil? linkedin-username))
+                :href (str "https://www.linkedin.com/oauth/v2/authorization?"
+                           "client_id=" linkedin-client-id
+                           "&scope=r_liteprofile%20r_emailaddress"
+                           "&response_type=code"
+                           "&state=" (random-uuid)
+                           "&redirect_uri="
+                           (navigation-utils/url-encode (str root-url "/me/sign-up?tab=employer&social=linkedin")))}
                [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
             [:div.second-forms
              [:div.label [:h2 "Languages You Speak"]]
@@ -221,19 +253,25 @@
             [c-icon {:name :ic-arrow-right :size :smaller}]]]))})))
 
 (defn c-arbiter-sign-up []
-  (let [{:keys [root-url github]} (<sub [::subs/config])
+  (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
         user (re/subscribe [::subs/user])
         arbiter (re/subscribe [::subs/arbiter])
         gh-client-id (-> github :client-id)
+        linkedin-client-id (:client-id linkedin)
         {:keys [query]} (<sub [::router.subs/active-page])]
     (r/create-class
      {:display-name "c-arbiter-sign-up"
       :component-did-mount (fn []
                              (when-let [code (:code query)]
-                               (>evt [:page.sign-up/send-github-verification-code code])))
+                               (case (-> query :social keyword)
+                                 :github
+                                 (>evt [:page.sign-up/send-github-verification-code code])
+                                 :linkedin
+                                 (>evt [:page.sign-up/send-linkedin-verification-code code (str root-url "/me/sign-up?tab=arbiter&social=linkedin")])
+                                 nil)))
       :reagent-render
       (fn []
-        (let [{:user/keys [user-name github-username email country-code languages ]} @user
+        (let [{:user/keys [user-name github-username linkedin-username email country-code languages]} @user
               {:arbiter/keys [bio professional-title fee]} @arbiter]
           [:div.arbiter-sign-up
            [:div.form-container
@@ -244,7 +282,7 @@
              [:div.form-name
               [c-text-input
                {:placeholder "Name"
-                :value (or user-name github-username)
+                :value (or user-name github-username linkedin-username)
                 :on-change #(>evt [:page.sign-up/set-user-name %])}]]
              [:div.form-email
               [c-email-input
@@ -274,11 +312,19 @@
                {:size :large
                 :disabled? (not (nil? github-username))
                 :href (str "https://github.com/login/oauth/authorize?client_id=" gh-client-id "&scope=user"
-                           "&redirect_uri=" root-url "/me/sign-up?tab=" (:tab query))}
+                           "&redirect_uri="
+                           (navigation-utils/url-encode (str root-url "/me/sign-up?tab=arbiter&social=github")))}
                [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]]
              [:div.form-connect-linkedin
               [c-button
-               {:size :large}
+               {:size :large
+                :disabled? (not (nil? linkedin-username))
+                :href (str "https://www.linkedin.com/oauth/v2/authorization?"
+                           "client_id=" linkedin-client-id
+                           "&scope=r_liteprofile%20r_emailaddress"
+                           "&response_type=code"
+                           "&redirect_uri="
+                           (navigation-utils/url-encode (str root-url "/me/sign-up?tab=arbiter&social=linkedin")))}
                [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]]]
             [:div.second-forms
              [:div.label [:h2 "Languages You Speak"]]
