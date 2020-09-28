@@ -1,71 +1,32 @@
 {:source-paths ["src" "resources" "src-cljsjs"]
- :dev-http {9501 "resources/public/"}
- :dependencies [
-                ;; [org.clojure/clojure "1.10.1"]
-                ;; [org.clojure/clojurescript "1.10.773"]
-
-                ;; General
-                [akiroz.re-frame/storage "0.1.4"]
+ :dev-http {6500 "resources/public/"}
+ :dependencies [[akiroz.re-frame/storage "0.1.4"]
+                [binaryage/devtools "0.9.10"]
                 [camel-snake-kebab "0.4.1"]
-                [cljs-web3-next "0.1.3"]
+                [cider/cider-nrepl "0.24.0"]
+                [cider/piggieback "0.4.1"]
+                [cljs-web3 "0.19.0-0-10"]
+                [cljsjs/bignumber "4.1.0-0"]
                 [cljsjs/buffer "5.1.0-1"]
                 [cljsjs/d3 "5.12.0-0"]
                 [cljsjs/react-infinite "0.13.0-0"]
                 [cljsjs/react-transition-group "4.3.0-0"]
-                [flib/simplebar "5.0.7-SNAPSHOT"]
-
                 [com.andrewmcveigh/cljs-time "0.5.2"]
                 [com.rpl/specter "1.1.3"]
                 [com.taoensso/encore "2.120.0"]
                 [com.taoensso/timbre "4.10.0"]
-                [district0x/bignumber "1.0.3"]
-                [cljsjs/bignumber "4.1.0-0"]
-                [district0x/error-handling "1.0.4"]
-                [expound "0.8.4"]
-                [funcool/cuerdas "2.2.0"]
-                [medley "1.3.0"]
-
-                [mount "0.1.16"]
-                [orchestra "2019.02.06-1"]
-                [org.clojars.mmb90/cljs-cache "0.1.4"]
-                [org.clojure/core.async "1.2.603"]
-                [org.clojure/core.match "1.0.0"]
-                [org.clojure/tools.reader "1.3.2"]
-                [print-foo-cljs "2.0.3"]
-                [re-frame "0.12.0"]
-
-                [reagent "0.10.0"]
-
-                #_[reagent "0.10.0"
-                 :exclusions
-                 [cljsjs/react
-                  cljsjs/react-dom
-                  cljsjs/react-dom-server]
-                 ]
-                ;; Hotfix: Fix until district-ui-graphql updates dependency
                 [day8.re-frame/forward-events-fx "0.0.6"]
-
-                ;; District General Libraries
+                [day8.re-frame/http-fx "0.1.6"]
                 [district0x/async-helpers "0.1.3"]
+                [district0x/bignumber "1.0.3"]
+                [district0x/cljs-ipfs-http-client "1.0.5"]
+                [district0x/cljs-solidity-sha3 "1.0.0"]
                 [district0x/district-cljs-utils "1.0.4"]
                 [district0x/district-encryption "1.0.1"]
                 [district0x/district-format "1.0.8"]
-                [district0x/district-graphql-utils "1.0.10"]
                 [district0x/district-parsers "1.0.0"]
                 [district0x/district-sendgrid "1.0.1"]
                 [district0x/district-time "1.0.1"]
-                [district0x/graphql-query "1.0.6"]
-
-                ;; UI Components
-                [cljs-web3 "0.19.0-0-10"]
-                ;; this is now cljs-web3.utils/solidity-sha3
-                [district0x/cljs-solidity-sha3 "1.0.0"]
-                ;; this is now cljs-web3.helpers
-                [district0x/district-web3-utils "1.0.3"]
-
-                ;; District UI Components
-                [day8.re-frame/http-fx "0.1.6"]
-                [district0x/cljs-ipfs-http-client "1.0.5"]
                 [district0x/district-ui-component-active-account "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-component-active-account-balance "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-component-form "0.2.13" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
@@ -89,11 +50,24 @@
                 [district0x/district-ui-web3-tx-id "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-web3-tx-log "1.0.13" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-window-size "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
+                [district0x/district-web3-utils "1.0.3"]
+                [district0x/error-handling "1.0.4"]
+                [district0x/graphql-query "1.0.6"]
                 [district0x/re-frame-ipfs-fx "1.1.1"]
-
-                [refactor-nrepl "2.5.0"]
-                [cider/cider-nrepl "0.24.0"]
-                [cider/piggieback "0.4.1"]]
+                [expound "0.8.4"]
+                [flib/simplebar "5.0.7-SNAPSHOT"]
+                [funcool/cuerdas "2.2.0"]
+                [medley "1.3.0"]
+                [mount "0.1.16"]
+                [orchestra "2019.02.06-1"]
+                [org.clojars.mmb90/cljs-cache "0.1.4"]
+                [org.clojure/core.match "1.0.0"]
+                [org.clojure/tools.reader "1.3.2"]
+                [print-foo-cljs "2.0.3"]
+                [re-frame "0.12.0"]
+                [re-frisk "1.3.4"]
+                [reagent "0.10.0"]
+                [refactor-nrepl "2.5.0"]]
 
  :nrepl {:middleware [cider.piggieback/wrap-cljs-repl
                       refactor-nrepl.middleware/wrap-refactor]}
@@ -111,6 +85,8 @@
                    :optimizations :none
                    :source-map true
                    :source-map-timestamp true
+                   :preloads [devtools.preload
+                              re-frisk.preload]
                    :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
                                      goog.DEBUG true}}
           ;; :dev-server {:target :node-script
