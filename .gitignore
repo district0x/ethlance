@@ -28,3 +28,4 @@ smart_contracts_dev.cljs
 /resources/libs/yarn.lock
 ethlance.db
 .shadow-cljs
+ui/node_modules/
