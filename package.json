@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "deps": "yarn install --frozen-lockfile",
-    "watch": "shadow-cljs watch dev-ui",
+    "deploy" : "yarn truffle migrate --network ganache --reset",
+    "watch": "lein cljsbuild auto dev-server",
     "clean": "git clean -fdx"
   },
   "dependencies": {
