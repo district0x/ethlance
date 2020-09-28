@@ -1,7 +1,8 @@
 {:source-paths ["src" "resources" "src-cljsjs"]
  :dev-http {9501 "resources/public/"}
- :dependencies [[org.clojure/clojure "1.10.1"]
-                [org.clojure/clojurescript "1.10.773"]
+ :dependencies [
+                ;; [org.clojure/clojure "1.10.1"]
+                ;; [org.clojure/clojurescript "1.10.773"]
 
                 ;; General
                 [akiroz.re-frame/storage "0.1.4"]
@@ -32,7 +33,15 @@
                 [org.clojure/tools.reader "1.3.2"]
                 [print-foo-cljs "2.0.3"]
                 [re-frame "0.12.0"]
+
                 [reagent "0.10.0"]
+
+                #_[reagent "0.10.0"
+                 :exclusions
+                 [cljsjs/react
+                  cljsjs/react-dom
+                  cljsjs/react-dom-server]
+                 ]
                 ;; Hotfix: Fix until district-ui-graphql updates dependency
                 [day8.re-frame/forward-events-fx "0.0.6"]
 
@@ -91,7 +100,6 @@
 
  :http {:port 3449
         :host "0.0.0.0"}
-
 
  :builds {:dev-ui {:target :browser
                    :modules {:main {:init-fn ethlance.ui.core/init}}
