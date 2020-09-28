@@ -4,8 +4,11 @@
             [taoensso.timbre :as log]
             [cljs.nodejs :as nodejs]
             [honeysql.core :as sql]
-            [district.server.logging];; TODO: remove
+            [district.server.logging]
             [honeysql.format :as sql-format]
+            [honeysql-postgres.format]
+            [honeysql-postgres.helpers :as psqlh]
+            [honeysql.helpers]
             [district.server.config :refer [config]]
             [district.shared.async-helpers :refer [safe-go <?]]
             [clojure.string :as str]))
@@ -55,9 +58,9 @@
                                         (sql/format statement
                                                     :parameterizer :postgresql
                                                     :allow-namespaced-names? true))
-         ;; _ (log/debug "Running QUERY " {:q query-str :vals (or values [])})
+         _ (log/debug "Running QUERY " {:q query-str
+                                        :statement statement})
          res (<? (.query conn query-str (clj->js (or values []))))]
-
      (->> (js->clj (.-rows res))
           (map #(map-keys transform-result-keys-fn %))))))
 
@@ -93,7 +96,7 @@
 (defn start
   "Start the ethlance-db mount component."
   [{:keys [user host database password port] :as opts}]
-  (log/info "Starting DB component" {})
+  (log/info "Starting DB component" opts)
   (let [pool (Pool. #js {:user user
                          :host host
                          :database database

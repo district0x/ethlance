@@ -57,7 +57,8 @@
 
 (defn generate-mock-job
   []
-  {:title (generate-job-title)
+  {:id 1
+   :title (generate-job-title)
    :description "lorem ipsum"
    :category (rand-nth constants/categories)
    :skills (into #{} (random/rand-nth-n constants/skills (inc (rand-int 5))))

@@ -9,7 +9,7 @@ jobs:
     working_directory: ~/ethlance
     docker:
       # Primary container image where all steps run.
-      - image: district0x/cljs-dev:e701583
+      - image: district0x/cljs-dev
       # Secondary container images on common network.
       - image: trufflesuite/ganache-cli:v6.9.1
         command: [-d, -m district0x, -p 8549, -l 8000000, --noVMErrorsOnRPCResponse]
@@ -36,13 +36,13 @@ jobs:
       - restore_cache:
           name: Restore npm package cache
           keys:
-            - npm-dependencies-{{ checksum "package-lock.json" }}
+            - npm-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Install node modules
-          command: lein npm install
+          command: yarn deps
       - save_cache:
           name: Save npm package cache
-          key: npm-dependencies-{{ checksum "package-lock.json" }}
+          key: npm-dependencies-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
       - run: env ETHLANCE_ENV=dev npx truffle migrate --network ganache --reset

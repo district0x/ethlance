@@ -94,30 +94,47 @@
     invoice(message_id: Int!): Invoice
   }
 
-  input EmployerInput{
-    user_address: ID
+  # Input types
+
+  input EmployerInput {
+    user_address: ID!
+    user_email: String!
+    user_userName: String!
+    user_githubUsername: String
+    user_countryCode: String
     employer_bio: String
-    employer_dateRegistered: Date
     employer_professionalTitle: String
   }
 
-  input CandidateInput{
-    user_address: ID
+  input CandidateInput {
+    user_address: ID!
+    user_email: String!
+    user_userName: String!
+    user_githubUsername: String
+    user_countryCode: String
     candidate_bio: String
-    candidate_dateRegistered: Date
     candidate_professionalTitle: String
     candidate_categories: [String!]
     candidate_skills: [String!]
     candidate_rateCurrencyId: Keyword
-    candidate_rate: Int
+    candidate_rate: Int!
   }
 
-  input ArbiterInput{
-    user_address: ID
-    arbiter_dateRegistered: Date
+  input ArbiterInput {
+    user_address: ID!
+    user_email: String!
+    user_userName: String!
+    user_githubUsername: String
+    user_countryCode: String
     arbiter_bio: String
+    arbiter_professionalTitle: String
     arbiter_feeCurrencyId: Keyword
-    arbiter_fee: Int
+    arbiter_fee: Int!
+  }
+
+  input githubSignUpInput {
+   user_address: ID!
+   code: String!
   }
 
   type Mutation {
@@ -127,14 +144,42 @@
     raiseDispute(jobStory_id: Int!, text: String): Boolean!,
     resolveDispute(jobStory_id: Int!): Boolean!,
     leaveFeedback(jobStory_id: Int!, rating: Int!, to: ID!): Boolean!,
-    updateEmployer(employer: EmployerInput!): Boolean!,
-    updateCandidate(candidate: CandidateInput!): Boolean!,
-    updateArbiter(arbiter: ArbiterInput!): Boolean!,
+    updateEmployer(input: EmployerInput!): updateEmployerPayload!,
+    updateCandidate(input: CandidateInput!): updateCandidatePayload!,
+    updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
     createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
-    replayEvents: Boolean!
+    replayEvents: Boolean!,
+    githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
 
   }
 
+  # mutation result types
+
+  type updateCandidatePayload {
+    user_address: ID!
+    user_dateUpdated: Date!
+    candidate_dateUpdated: Date!
+  }
+
+  type updateEmployerPayload {
+    user_address: ID!
+    user_dateUpdated: Date!
+    employer_dateUpdated: Date!
+  }
+
+  type updateArbiterPayload {
+    user_address: ID!
+    user_dateUpdated: Date!
+    arbiter_dateUpdated: Date!
+  }
+
+  type githubSignUpPayload {
+    user_address: ID!
+    user_fullName: String
+    user_githubUsername: String
+    user_email: String
+    user_countryCode: String
+  }
 
   # User Types
 
@@ -148,6 +193,8 @@
 
     \"Full Name of the Given User\"
     user_fullName: String
+
+    user_githubUsername: String
 
     \"The short-form username of the User\"
     user_userName: String
@@ -269,11 +316,11 @@
   # Arbiter Types
 
   type Arbiter {
-    \"User ID for the given arbiter\"
     user_address: ID
 
-    \"Date the Arbiter was registered\"
     arbiter_dateRegistered: Date
+
+    arbiter_professionalTitle: String
 
     arbiter_bio: String
 
@@ -281,7 +328,6 @@
 
     arbiter_fee: Int
 
-    \"Feedback for the arbiter\"
     arbiter_feedback(
       limit: Int,
       offset: Int
@@ -487,7 +533,6 @@
 
   }
 
-
   # Feedback Types
 
   type Feedback {
@@ -524,5 +569,6 @@
     message_creator: String
     jobStoryMessageType: String
   }
+
 
   ")

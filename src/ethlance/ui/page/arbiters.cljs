@@ -6,7 +6,6 @@
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
    [district.ui.router.events :as router-events]
-   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
@@ -62,7 +61,7 @@
          :min 0
          :value @*min-hourly-rate
          :on-change #(re/dispatch [:page.arbiters/set-min-hourly-rate %])}]
-       
+
        [c-currency-input
         {:placeholder "Max. Hourly Rate"
          :currency-type ::enum.currency/usd
@@ -123,9 +122,9 @@
 
 
 (defn c-arbiter-listing []
-  (let [*arbiter-listing-query
-        (re/subscribe
-         [::gql/query
+  (let [*arbiter-listing-query (atom nil)
+        #_(re/subscribe
+         [:gql/query
           {:queries
            [[:arbiter-search
              {:limit 10}

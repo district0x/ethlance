@@ -3,7 +3,8 @@
 /ethlance.iml
 /resources/public/contracts
 /resources/public/contracts/build/*.bin
-/resources/public/js/compiled
+/resources/public/js
+/resources/public/js/cljs-runtime
 /resources/public/css
 /resources/ethlance.db
 /.idea
@@ -26,3 +27,5 @@ smart_contracts_dev.cljs
 /resources/libs/yarn-error.log
 /resources/libs/yarn.lock
 ethlance.db
+.shadow-cljs
+ui/node_modules/

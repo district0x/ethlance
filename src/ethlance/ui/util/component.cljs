@@ -1,6 +1,10 @@
 (ns ethlance.ui.util.component
-  "Includes utilities for working with re-frame components")
+  "Includes utilities for working with re-frame components"
+  (:require [re-frame.core :as re-frame]
+            [clojure.string :as string]))
 
+(def <sub (comp deref re-frame/subscribe))
+(def >evt re-frame/dispatch)
 
 (defn unwrap-seq
   "Unwraps a sequence argument if it contains one element.
