@@ -5,7 +5,6 @@
    [district.parsers :refer [parse-int]]
    [reagent.core :as r]
    [re-frame.core :as re]
-   [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router.subs]
 
    ;; Ethlance Components
@@ -34,7 +33,7 @@
       (let [invoice-id (-> @*active-page-params :id parse-int)
             invoice-query
             @(re/subscribe
-              [::gql/query
+              [:gql/query
                {:queries
                 [[:invoice
                   {:invoice/id invoice-id}
@@ -108,4 +107,3 @@
          [:div.button
           [:span "Pay Invoice"]
           [c-icon {:name :ic-arrow-right :size :small :color :white}]]]))))
-         

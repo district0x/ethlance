@@ -13,6 +13,7 @@
    ethlance.ui.page.new-job.events
    ethlance.ui.page.profile.events
    ethlance.ui.page.sign-up.events
+   day8.re-frame.forward-events-fx
    [taoensso.timbre :as log]
    [re-frame.core :as re]))
 

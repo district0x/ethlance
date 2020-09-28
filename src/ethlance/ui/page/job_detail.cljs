@@ -2,7 +2,6 @@
   (:require
    [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router.subs]
    [re-frame.core :as re]
    [reagent.core :as r]
@@ -10,7 +9,7 @@
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
-   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
+   [ethlance.ui.component.carousel :refer [c-carousel c-carousel-old c-feedback-slide]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.main-layout :refer [c-main-layout]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -36,9 +35,9 @@ Please contact us if this sounds interesting.")
   (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
     (fn []
       (let [job-id (-> @*active-page-params :id parse-int)
-            job-query
-            @(re/subscribe
-              [::gql/query
+            job-query (atom nil)
+            #_@(re/subscribe
+              [:gql/query
                {:queries
                 [[:job
                   {:job/id job-id}
@@ -89,7 +88,7 @@ Please contact us if this sounds interesting.")
 
          [:div.proposal-listing
           [:div.label "Proposals"]
-          [c-scrollable
+          [:div #_c-scrollable
            {:forceVisible true :autoHide false}
            [c-table
             {:headers ["Candidate" "Rate" "Created" "Status"]}
@@ -118,7 +117,7 @@ Please contact us if this sounds interesting.")
 
          [:div.invoice-listing
           [:div.label "Invoices"]
-          [c-scrollable
+          [:div #_c-scrollable
            {:forceVisible true :autoHide false}
            [c-table
             {:headers ["Candidate" "Amount" "Created" "Status"]}
@@ -134,9 +133,18 @@ Please contact us if this sounds interesting.")
 
          [:div.feedback-listing
           [:div.label "Feedback"]
+
+          [c-carousel-old {}
+           [c-feedback-slide {:rating 1}]
+           [c-feedback-slide {:rating 2}]
+           [c-feedback-slide {:rating 3}]
+           [c-feedback-slide {:rating 4}]
+           [c-feedback-slide {:rating 5}]]
+
           [c-carousel {}
            [c-feedback-slide {:rating 1}]
            [c-feedback-slide {:rating 2}]
            [c-feedback-slide {:rating 3}]
            [c-feedback-slide {:rating 4}]
-           [c-feedback-slide {:rating 5}]]]]))))
+           [c-feedback-slide {:rating 5}]
+           ]]]))))

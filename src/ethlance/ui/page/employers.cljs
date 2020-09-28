@@ -5,7 +5,6 @@
    [re-frame.core :as re]
    [taoensso.timbre :as log]
    [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
@@ -108,7 +107,7 @@
         *offset (re/subscribe [:page.employers/offset])
         *employer-listing-query
         (re/subscribe
-         [::gql/query
+         [:gql/query
           {:queries
            [[:employer-search
              {:limit @*limit
@@ -162,7 +161,7 @@
        [c-employer-mobile-search-filter]
        [:div.employer-listing.listing {:key "listing"}
         [:div.search-container
-         [c-chip-search-input 
+         [c-chip-search-input
           {:chip-listing @*skills
            :on-chip-listing-change #(re/dispatch [:page.employers/set-skills %])
            :placeholder "Search Job Skill Requirements"

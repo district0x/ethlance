@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [react-transition-group :refer [CSSTransition TransitionGroup]]
+   ["react-transition-group" :refer [CSSTransition TransitionGroup]]
 
    ;; Ethlance Components
    [ethlance.ui.component.button :refer [c-button c-button-label]]

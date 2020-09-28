@@ -84,7 +84,7 @@ Terminal 1 (server repl):
 Terminal 1 (cljs repl):
 
 ```bash
-make fig-dev-ui
+make dev-ui
 ```
 
 Terminal 2 (LESS Compiler):
@@ -93,7 +93,7 @@ Terminal 2 (LESS Compiler):
 make build-css watch-css
 ```
 
-Open Browser to http://localhost:6500
+Open Browser to http://localhost:9501
 
 ### Initial Setup
 

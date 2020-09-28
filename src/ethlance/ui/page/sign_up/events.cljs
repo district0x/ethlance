@@ -158,6 +158,9 @@
  :page.sign-up/github-sign-up
  (fn [{:keys [db]} [_  code]]
    (let [user-address (accounts-queries/active-account db)]
+
+     (log/debug "@@@@" {:c code :user/addredd user-address})
+
      {:dispatch [::graphql/query {:query
                                   "mutation GithubSignUp($githubSignUpInput: githubSignUpInput!) {
                                      githubSignUp(input: $githubSignUpInput) {

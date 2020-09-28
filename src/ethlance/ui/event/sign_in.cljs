@@ -1,13 +1,11 @@
 (ns ethlance.ui.event.sign-in
   "Event Handlers for signing in a user with an active ethereum account."
-  (:require 
+  (:require
    [re-frame.core :as re]
    [ajax.core :as ajax]
    [day8.re-frame.http-fx]
-   
-   [district.ui.graphql.utils :as graphql-ui-utils]
+
    [district.graphql-utils :as graphql-utils]
-   [district.ui.graphql.events :as graphql.events]
    [district.ui.logging.events :as logging.events]
    [district.ui.web3-accounts.queries :as account-queries]
 
@@ -34,11 +32,11 @@
       :on-error [::logging.events/error "Error Signing with Active Ethereum Account."]}}))
 
 
-(defn- parse-query 
+(defn- parse-query
   "Helper function for performing a graphql query. Returns the generated
   graphql query string."
   [query]
-  (-> (graphql-ui-utils/parse-query
+  #_(-> (graphql-ui-utils/parse-query
        {:queries [query]}
        {:kw->gql-name graphql-utils/kw->gql-name})
       :query-str))
@@ -52,7 +50,7 @@
                                       {:data-signature data-signature
                                        :data data-str}]))
         graphql-url (get-in (config/get-config) [:graphql :url])]
-    {:http-xhrio 
+    {:http-xhrio
      {:method          :post
       :uri             graphql-url
       :params          {:query mutation-query}
@@ -68,7 +66,7 @@
   authorities and associate the active account as 'signed in'."
   [{:keys [db]} [_ active-account token]]
   {:db (assoc db :user/active-account active-account)
-   :dispatch [::graphql.events/set-authorization-token token]})
+   :dispatch [:graphql.events/set-authorization-token token]})
 
 
 (defn sign-out

@@ -7,7 +7,6 @@
    [cuerdas.core :as str]
    [district.ui.component.page :refer [page]]
    [district.ui.router.events :as router-events]
-   [district.ui.graphql.subs :as gql]
 
    [ethlance.shared.enumeration.currency-type :as enum.currency]
    [ethlance.shared.constants :as constants]
@@ -30,7 +29,7 @@
    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
 
 
-(defn cf-candidate-search-filter 
+(defn cf-candidate-search-filter
   "Component Fragment for the candidate search filter."
   []
   (let [*category (re/subscribe [:page.candidates/category])
@@ -56,7 +55,7 @@
                   :on-change #(re/dispatch [:page.candidates/set-feedback-max-rating %])}]
 
        [:span.selection-label "Payment Type"]
-       [c-radio-select 
+       [c-radio-select
         {:selection @*payment-type
          :on-selection #(re/dispatch [:page.candidates/set-payment-type %])}
         [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
@@ -114,9 +113,9 @@
 (defn c-candidate-listing []
   (let [*limit (re/subscribe [:page.candidates/limit])
         *offset (re/subscribe [:page.candidates/offset])
-        *candidate-listing-query
-        (re/subscribe
-         [::gql/query
+        *candidate-listing-query (atom nil)
+        #_(re/subscribe
+         [:gql/query
           {:queries
            [[:candidate-search
              {:limit @*limit

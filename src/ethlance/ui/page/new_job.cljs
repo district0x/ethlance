@@ -2,7 +2,6 @@
   (:require
    [district.parsers :refer [parse-int]]
    [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router.subs]
    [re-frame.core :as re]
    [reagent.core :as r]
@@ -143,7 +142,7 @@
             {:placeholder "Enter Description"
              :value @*description
              :on-change #(re/dispatch [:page.new-job/set-description %])}]]
-          
+
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]
            [c-radio-select
@@ -151,7 +150,7 @@
              :on-selection #(re/dispatch [:page.new-job/set-form-of-payment %])}
             [:ethereum [c-radio-secondary-element "Ether"]]
             [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
-           
+
            (when with-token?
              [:div.token-address-input
               [:div.input

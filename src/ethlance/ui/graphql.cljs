@@ -3,18 +3,35 @@
    [district.shared.async-helpers :refer [promise->]]
    [re-frame.core :as re-frame]
    [taoensso.timbre :as log]
-   [cljsjs.axios :as axios]
+   ;; [cljsjs.axios :as axios]
+   [camel-snake-kebab.core :as camel-snake]
+   [clojure.string :as string]
+   ["axios" :as axios]
    [camel-snake-kebab.extras :as camel-snake-extras]
    [ethlance.ui.util.component :refer [>evt]]
 
-   [district.graphql-utils :as graphql-utils]))
+   #_[district.graphql-utils :as graphql-utils]))
 
-(defonce axios js/axios)
+;; (defonce axios js/axios)
+
+(defn gql-name->kw [gql-name]
+  (when gql-name
+    (let [k (name gql-name)]
+      (if (string/starts-with? k "__")
+        (keyword k)
+        (let [k (if (string/ends-with? k "_")
+                  (str (.slice k 0 -1) "?")
+                  k)
+              parts (string/split k "_")
+              parts (if (< 2 (count parts))
+                      [(string/join "." (butlast parts)) (last parts)]
+                      parts)]
+          (apply keyword (map camel-snake/->kebab-case parts)))))))
 
 (defn gql->clj [m]
   (->> m
        (js->clj)
-       (camel-snake-extras/transform-keys graphql-utils/gql-name->kw )))
+       (camel-snake-extras/transform-keys gql-name->kw )))
 
 (defmulti handler
   (fn [_ key value]

@@ -41,7 +41,7 @@
   "Rating Component, for displaying feedback within ethlance.
 
   # Keyword Arguments
-  
+
   opts - Optional Arguments
 
   # Optional Arguments (opts)
@@ -74,8 +74,8 @@
                      :large    "large")]
     (fn [{:keys [rating default-rating color on-change size]
           :or {color :primary size :default}}]
-      (assert (or rating default-rating) "No `rating` or `default-rating` specified.")
-      (assert (not (and rating default-rating))
+      #_(assert (or rating default-rating) "No `rating` or `default-rating` specified.")
+      #_(assert (not (and rating default-rating))
               "Component has both controlled `rating` and uncontrolled `default-rating` attributes set.")
       (let [current-rating (if default-rating @*current-default-rating rating)]
         [:div.ethlance-component-rating
@@ -92,4 +92,3 @@
                        (fn [index]
                          (reset! *current-default-rating index)
                          (on-change index)))}]))]))))
-         

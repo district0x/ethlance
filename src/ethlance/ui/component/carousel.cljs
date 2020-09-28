@@ -1,15 +1,15 @@
 (ns ethlance.ui.component.carousel
   (:require
    [reagent.core :as r]
-   
+   ["pure-react-carousel" :as react-carousel]
    ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
+   #_[ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
    [ethlance.ui.component.profile-image :refer [c-profile-image]]
    [ethlance.ui.component.rating :refer [c-rating]]))
 
 
-(defn c-carousel
+(defn c-carousel-old
   "Carousel Component for displaying multiple 'slides' of content
 
   # Keyword Arguments
@@ -61,12 +61,11 @@
                :hide? last-slide?
                :on-click #(swap! *current-index inc)}]]]]))})))
 
-
 (defn c-feedback-slide
-  [{:keys [id rating] :as feedback}]
+  [{:keys [id rating class] :as feedback}]
   [:div.feedback-slide
    ;; FIXME: use better unique key
-   {:key (str "feedback-" id "-" rating)}
+   {:key (str "feedback-" id "-" rating) :class class}
    [:div.profile-image
     [c-profile-image {}]]
    [:div.rating
@@ -76,3 +75,25 @@
    [:div.name
     "Brian Curran"]])
 
+(defn c-carousel [{:keys [default-index]
+                   :or {default-index 0}
+                   :as opts} & children]
+  [:div.ethlance-new-carousel
+   [:> react-carousel/CarouselProvider {:natural-slide-width 388
+                                        :natural-slide-height 300
+                                        :total-slides 5
+                                        :visible-slides 1}
+    [:div.slider-outer
+     [:> react-carousel/Slider
+      (for [[idx c] (map-indexed vector children)]
+        [:> react-carousel/Slide {:index idx} [c-feedback-slide {:rating 3 :class ""}]])]]
+
+    [:div.back-button
+     [:> react-carousel/ButtonBack {:className "ethlance-circle-button ethlance-circle-icon-button primary"}
+      [c-circle-icon-button
+       {:name :ic-arrow-left}]]]
+    [:div.forward-button
+     [:> react-carousel/ButtonNext {:className "ethlance-circle-button ethlance-circle-icon-button primary"}
+      [c-circle-icon-button
+       {:name :ic-arrow-right}]]]
+    ]])
