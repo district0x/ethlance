@@ -9,10 +9,6 @@
             [re-frame.core :as re]
             [taoensso.timbre :as log]))
 
-(def state-key :page.sign-up)
-
-(def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
-
 (re/reg-event-fx
  :page.sign-up/set-user-name
  (fn [{:keys [db]} [_ name]]
@@ -26,18 +22,6 @@
      {:db (-> db (assoc-in [:users address :user/email] email))})))
 
 (re/reg-event-fx
- :page.sign-up/set-candidate-professional-title
- (fn [{:keys [db]} [_ professional-title]]
-   (let [address (accounts-queries/active-account db)]
-     {:db (-> db (assoc-in [:candidates address :candidate/professional-title] professional-title))})))
-
-(re/reg-event-fx
- :page.sign-up/set-candidate-hourly-rate
- (fn [{:keys [db]} [_ rate]]
-   (let [address (accounts-queries/active-account db)]
-     {:db (-> db (assoc-in [:candidates address :candidate/rate] rate))})))
-
-(re/reg-event-fx
  :page.sign-up/set-user-country-code
  (fn [{:keys [db]} [_ country-code]]
    (let [address (accounts-queries/active-account db)]
@@ -48,6 +32,18 @@
  (fn [{:keys [db]} [_ languages]]
    (let [address (accounts-queries/active-account db)]
      {:db (-> db (assoc-in [:users address :user/languages] languages))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/professional-title] professional-title))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-candidate-hourly-rate
+ (fn [{:keys [db]} [_ rate]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/rate] rate))})))
 
 (re/reg-event-fx
  :page.sign-up/set-candidate-categories
@@ -67,32 +63,41 @@
    (let [address (accounts-queries/active-account db)]
      {:db (-> db (assoc-in [:candidates address :candidate/bio] bio))})))
 
-(re/reg-event-fx :page.sign-up/set-candidate-ready-for-hire? (create-assoc-handler :candidate/ready-for-hire? boolean))
+(re/reg-event-fx
+ :page.sign-up/set-candidate-for-hire?
+ (fn [{:keys [db]} [_ for-hire?]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:candidates address :candidate/for-hire?] for-hire?))})))
 
 (re/reg-event-fx
- :page.sign-up/set-user-is-registered-candidate
- (fn [{:keys [db]} [_ is-registered-candidate]]
+ :page.sign-up/set-employer-bio
+ (fn [{:keys [db]} [_ bio]]
    (let [address (accounts-queries/active-account db)]
-     {:db (-> db (assoc-in [:candidates address :user/is-registered-candidate] is-registered-candidate))})))
+     {:db (-> db (assoc-in [:employers address :employer/bio] bio))})))
 
-(re/reg-event-fx :page.sign-up/set-employer-full-name (create-assoc-handler :employer/full-name))
-(re/reg-event-fx :page.sign-up/set-employer-professional-title (create-assoc-handler :employer/professional-title))
-(re/reg-event-fx :page.sign-up/set-employer-email (create-assoc-handler :employer/email))
-(re/reg-event-fx :page.sign-up/set-employer-github-key (create-assoc-handler :employer/github-key))
-(re/reg-event-fx :page.sign-up/set-employer-linkedin-key (create-assoc-handler :employer/linkedin-key))
-(re/reg-event-fx :page.sign-up/set-employer-languages (create-assoc-handler :employer/languages))
-(re/reg-event-fx :page.sign-up/set-employer-biography (create-assoc-handler :employer/biography))
-(re/reg-event-fx :page.sign-up/set-employer-country (create-assoc-handler :employer/country))
+(re/reg-event-fx
+ :page.sign-up/set-employer-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:employers address :employer/professional-title] professional-title))})))
 
-(re/reg-event-fx :page.sign-up/set-arbiter-full-name (create-assoc-handler :arbiter/full-name))
-(re/reg-event-fx :page.sign-up/set-arbiter-professional-title (create-assoc-handler :arbiter/professional-title))
-(re/reg-event-fx :page.sign-up/set-arbiter-fixed-rate-per-dispute (create-assoc-handler :arbiter/fixed-rate-per-dispute parse-float))
-(re/reg-event-fx :page.sign-up/set-arbiter-email (create-assoc-handler :arbiter/email))
-(re/reg-event-fx :page.sign-up/set-arbiter-github-key (create-assoc-handler :arbiter/github-key))
-(re/reg-event-fx :page.sign-up/set-arbiter-linkedin-key (create-assoc-handler :arbiter/linkedin-key))
-(re/reg-event-fx :page.sign-up/set-arbiter-languages (create-assoc-handler :arbiter/languages))
-(re/reg-event-fx :page.sign-up/set-arbiter-biography (create-assoc-handler :arbiter/biography))
-(re/reg-event-fx :page.sign-up/set-arbiter-country (create-assoc-handler :arbiter/country))
+(re/reg-event-fx
+ :page.sign-up/set-arbiter-fee
+ (fn [{:keys [db]} [_ fee]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:arbiters address :arbiter/fee] fee))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-arbiter-professional-title
+ (fn [{:keys [db]} [_ professional-title]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:arbiters address :arbiter/professional-title] professional-title))})))
+
+(re/reg-event-fx
+ :page.sign-up/set-arbiter-bio
+ (fn [{:keys [db]} [_ bio]]
+   (let [address (accounts-queries/active-account db)]
+     {:db (-> db (assoc-in [:arbiters address :arbiter/bio] bio))})))
 
 (re/reg-event-fx
  :page.sign-up/initialize-page
@@ -130,10 +135,13 @@
                                      employer(user_address: $address) {
                                        user_address
                                        employer_professionalTitle
+                                       employer_bio
                                      }
                                      arbiter(user_address: $address) {
                                        user_address
                                        arbiter_bio
+                                       arbiter_professionalTitle
+                                       arbiter_fee
                                      }
                                    }"
                                   :variables {:address user-address}}]})))
@@ -186,8 +194,8 @@
                                   "mutation UpdateCandidate($candidateInput: CandidateInput!) {
                                      updateCandidate(input: $candidateInput) {
                                        user_address
-                                       user_dateRegistered
-                                       candidate_dateRegistered
+                                       user_dateUpdated
+                                       candidate_dateUpdated
                                    }
                                  }"
                                   :variables {:candidateInput {:user_address user-address
@@ -202,3 +210,51 @@
                                                                :candidate_rate (js/parseInt rate)
                                                                ;; NOTE: hardcoded since UI does not allow for a different currency
                                                                :candidate_rateCurrencyId :USD}}}]})))
+
+(re/reg-event-fx
+ :page.sign-up/update-employer
+ (fn [{:keys [db]}]
+   (let [user-address (accounts-queries/active-account db)
+         {:user/keys [user-name github-username country-code email]} (get-in db [:users user-address])
+         {:employer/keys [professional-title bio]} (get-in db [:employers user-address])]
+     {:dispatch [::graphql/query {:query
+                                  "mutation UpdateEmployer($employerInput: EmployerInput!) {
+                                     updateEmployer(input: $employerInput) {
+                                       user_address
+                                       user_dateUpdated
+                                       employer_dateUpdated
+                                   }
+                                 }"
+                                  :variables {:employerInput {:user_address user-address
+                                                              :user_email email
+                                                              :user_userName user-name
+                                                              :user_githubUsername github-username
+                                                              :user_countryCode country-code
+                                                              :employer_bio bio
+                                                              :employer_professionalTitle professional-title}}}]})))
+
+;; TODO : tests
+(re/reg-event-fx
+ :page.sign-up/update-arbiter
+ (fn [{:keys [db]}]
+   (let [user-address (accounts-queries/active-account db)
+         {:user/keys [user-name github-username country-code email]} (get-in db [:users user-address])
+         {:arbiter/keys [professional-title bio fee]} (get-in db [:arbiters user-address])]
+     {:dispatch [::graphql/query {:query
+                                  "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
+                                     updateArbiter(input: $arbiterInput) {
+                                       user_address
+                                       user_dateUpdated
+                                       arbiter_dateUpdated
+                                   }
+                                 }"
+                                  :variables {:arbiterInput {:user_address user-address
+                                                             :user_email email
+                                                             :user_userName user-name
+                                                             :user_githubUsername github-username
+                                                             :user_countryCode country-code
+                                                             :arbiter_bio bio
+                                                             :arbiter_professionalTitle professional-title
+                                                             :arbiter_fee (js/parseInt fee)
+                                                             ;; NOTE: hardcoded since UI does not allow for a different currency
+                                                             :arbiter_feeCurrencyId :USD}}}]})))
