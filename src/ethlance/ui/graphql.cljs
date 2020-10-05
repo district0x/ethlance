@@ -3,16 +3,11 @@
    [district.shared.async-helpers :refer [promise->]]
    [re-frame.core :as re-frame]
    [taoensso.timbre :as log]
-   ;; [cljsjs.axios :as axios]
    [camel-snake-kebab.core :as camel-snake]
    [clojure.string :as string]
    ["axios" :as axios]
    [camel-snake-kebab.extras :as camel-snake-extras]
-   [ethlance.ui.util.component :refer [>evt]]
-
-   #_[district.graphql-utils :as graphql-utils]))
-
-;; (defonce axios js/axios)
+   [ethlance.ui.util.component :refer [>evt]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -136,6 +131,11 @@
   (log/debug "github-sign-up handler" user)
   {:db (assoc-in db [:users address] (merge user
                                             {:user/user-name github-username}))})
+
+(defmethod handler :linkedin-sign-up
+  [{:keys [db] :as cofx} _ {:user/keys [address full-name] :as user}]
+  (log/debug "linkedin-sign-up handler" user)
+  {:db (assoc-in db [:users address] (merge user {:user/user-name full-name}))})
 
 (defmethod handler :update-candidate
   [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated

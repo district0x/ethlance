@@ -137,6 +137,12 @@
    code: String!
   }
 
+  input linkedinSignUpInput {
+   user_address: ID!
+   code: String!
+   redirectUri: String!
+  }
+
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): String!
@@ -150,7 +156,7 @@
     createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
     replayEvents: Boolean!,
     githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
-
+    linkedinSignUp(input: linkedinSignUpInput!): linkedinSignUpPayload!
   }
 
   # mutation result types
@@ -177,6 +183,14 @@
     user_address: ID!
     user_fullName: String
     user_githubUsername: String
+    user_email: String
+    user_countryCode: String
+  }
+
+  type linkedinSignUpPayload {
+    user_address: ID!
+    user_fullName: String
+    user_linkedinUsername: String
     user_email: String
     user_countryCode: String
   }
