@@ -1,15 +1,15 @@
 (ns ethlance.ui.component.main-layout
-  ""
-  (:require
-   [re-frame.core :as rf]
-   
-   ;; Ethlance Components
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.main-navigation-bar :refer [c-main-navigation-bar]]
-   [ethlance.ui.component.main-navigation-menu :refer [c-main-navigation-menu]]
-   [ethlance.ui.component.mobile-navigation-bar :refer [c-mobile-navigation-bar]]
-   [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog]]))
-
+  (:require [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [ethlance.ui.component.main-navigation-bar
+             :refer
+             [c-main-navigation-bar]]
+            [ethlance.ui.component.main-navigation-menu
+             :refer
+             [c-main-navigation-menu]]
+            [ethlance.ui.component.mobile-navigation-bar
+             :refer
+             [c-mobile-navigation-bar]]
+            [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog]]))
 
 (defn c-main-layout
   "The main layout of each page in the ethlance ui.

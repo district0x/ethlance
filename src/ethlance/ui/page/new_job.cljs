@@ -1,36 +1,22 @@
 (ns ethlance.ui.page.new-job
-  (:require
-   [district.parsers :refer [parse-int]]
-   [district.ui.component.page :refer [page]]
-   [district.ui.router.subs :as router.subs]
-   [re-frame.core :as re]
-   [reagent.core :as r]
-   [taoensso.timbre :as log]
-
-   [ethlance.shared.constants :as constants]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-icon-label c-button-label]]
-   [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.icon :refer [c-icon]]
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element c-radio-secondary-element]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.table :refer [c-table]]
-   [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.text-input :refer [c-text-input]]
-   [ethlance.ui.component.textarea-input :refer [c-textarea-input]]))
-
+  (:require [district.ui.component.page :refer [page]]
+            [ethlance.shared.constants :as constants]
+            [ethlance.ui.component.button :refer [c-button c-button-label]]
+            [ethlance.ui.component.icon :refer [c-icon]]
+            [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.component.radio-select
+             :refer
+             [c-radio-secondary-element c-radio-select]]
+            [ethlance.ui.component.rating :refer [c-rating]]
+            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+            [ethlance.ui.component.select-input :refer [c-select-input]]
+            [ethlance.ui.component.text-input :refer [c-text-input]]
+            [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [re-frame.core :as re]))
 
 (defn c-arbiter-for-hire
-  [{:keys [] :as arbiter}]
+  []
   [:div.arbiter-for-hire
    [c-profile-image {}]
    [:div.name "Brian Curran"]
@@ -39,7 +25,6 @@
    [c-button
     {:size :small}
     [c-button-label "Invite"]]])
-
 
 (defmethod page :route.job/new []
   (let [*type (re/subscribe [:page.new-job/type])
@@ -164,11 +149,11 @@
 
          (when @*with-arbiter?
            [:div.arbiters
-            [c-arbiter-for-hire {}]
-            [c-arbiter-for-hire {}]
-            [c-arbiter-for-hire {}]])
+            [c-arbiter-for-hire]
+            [c-arbiter-for-hire]
+            [c-arbiter-for-hire]])
 
          [:div.button
-          {:on-click (fn [e])}
+          {:on-click (fn [])}
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))

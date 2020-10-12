@@ -1,18 +1,11 @@
 (ns ethlance.ui.component.pagination
-  (:require
-   [reagent.core :as r]
-   [re-frame.core :as re]
-   [district.parsers :refer [parse-int]]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.icon :refer [c-icon]]))
-
+  (:require [ethlance.ui.component.icon :refer [c-icon]]
+            [re-frame.core :as re]))
 
 ;; Math Functions
 (def ceil (aget js/Math "ceil"))
 (def floor (aget js/Math "floor"))
 (def abs (aget js/Math "abs"))
-
 
 (defn c-pagination
   "Component for handling pagination wrt a given listing.

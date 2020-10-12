@@ -1,12 +1,9 @@
-(ns ethlance.ui.component.table
-  (:require
-   [reagent.core :as r]))
-
+(ns ethlance.ui.component.table)
 
 (defn c-table
   "Ethlance Table Component.
 
-  This Component simplifies table construction. 
+  This Component simplifies table construction.
 
   # Keyword Arguments and Optional Arguments
 
@@ -35,19 +32,18 @@
     [:span \"Pending\"]]]
   "
   [{:keys [headers]} & rows]
-  (let []
-    [:div.ethlance-table
-     [:table
-      [:tbody
-       [:tr
-        (doall
-         (for [[i header] (map-indexed vector headers)]
-           ^{:key (str "header-" i)}
-           [:th header]))]
-       (doall
-        (for [[i row] (map-indexed vector rows)]
-          ^{:key (str "row-" i)}
-          [:tr
-           (for [[i elem] (map-indexed vector row)]
-             ^{:key (str "elem-" i)}
-             [:td elem])]))]]]))
+  [:div.ethlance-table
+   [:table
+    [:tbody
+     [:tr
+      (doall
+       (for [[i header] (map-indexed vector headers)]
+         ^{:key (str "header-" i)}
+         [:th header]))]
+     (doall
+      (for [[i row] (map-indexed vector rows)]
+        ^{:key (str "row-" i)}
+        [:tr
+         (for [[i elem] (map-indexed vector row)]
+           ^{:key (str "elem-" i)}
+           [:td elem])]))]]])

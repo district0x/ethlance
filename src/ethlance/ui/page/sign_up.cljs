@@ -1,10 +1,8 @@
 (ns ethlance.ui.page.sign-up
   (:require [cuerdas.core :as str]
             [district.ui.component.page :refer [page]]
-            [ethlance.ui.subscriptions :as subs]
-            [district.ui.router.subs :as router.subs]
             [district.ui.router.events :as router-events]
-            [district.ui.web3-accounts.subs :as accounts-subs]
+            [district.ui.router.subs :as router.subs]
             [ethlance.shared.constants :as constants]
             [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
             [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
@@ -12,7 +10,6 @@
             [ethlance.ui.component.email-input :refer [c-email-input]]
             [ethlance.ui.component.file-drag-input :refer [c-file-drag-input]]
             [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.util.navigation :as navigation-utils]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.search-input :refer [c-chip-search-input]]
             [ethlance.ui.component.select-input :refer [c-select-input]]
@@ -20,7 +17,9 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.event.sign-up :as event.sign-up]
-            [ethlance.ui.util.component :refer [>evt <sub]]
+            [ethlance.ui.subscriptions :as subs]
+            [ethlance.ui.util.component :refer [<sub >evt]]
+            [ethlance.ui.util.navigation :as navigation-utils]
             [re-frame.core :as re]
             [reagent.core :as r]
             [taoensso.timbre :as log]))
@@ -32,15 +31,15 @@
        [c-file-drag-input {:form-data form-data
                            :id :file-info
                            :label "Upload file"
-                           :file-accept-pred (fn [{:keys [name type size] :as props}]
+                           :file-accept-pred (fn [{:keys [name type size]}]
                                                (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
                                                     (< size 1500000)))
-                           :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
+                           :on-file-accepted (fn [{:keys [name type size]}]
                                                (swap! form-data update-in [:file-info] dissoc :error)
                                                (log/info "Accepted file" {:name name :type type :size size} ::file-accepted)
                                                (re/dispatch [::event.sign-up/upload-user-image @form-data]))
-                           :on-file-rejected (fn [{:keys [name type size] :as props}]
+                           :on-file-rejected (fn [{:keys [name type size]}]
                                                (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif .svg or .mp4 file selected with size less than 1.5 Mb"})
                                                (log/warn "Rejected file" {:name name :type type :size size} ::file-rejected))}]])))
 
@@ -347,7 +346,7 @@
 (defmethod page :route.me/sign-up []
   (let [active-page (re/subscribe [::router.subs/active-page])]
     (fn []
-      (let [{:keys [name params query] :as q} @active-page
+      (let [{:keys [name params query]} @active-page
             active-tab-index (case (-> query :tab str/lower str/keyword)
                                :candidate 0
                                :employer 1

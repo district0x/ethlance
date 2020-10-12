@@ -1,26 +1,18 @@
 (ns ethlance.ui.component.search-input
-  (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! timeout] :include-macros true]
-   [reagent.core :as r]
-   [reagent.dom :as rdom]
-   [taoensso.timbre :as log]
-   [cuerdas.core :as string]
-   
-   ;; Ethlance Components
-   [ethlance.ui.component.icon :refer [c-icon]]))
+  (:require [cuerdas.core :as string]
+            [ethlance.ui.component.icon :refer [c-icon]]
+            [reagent.core :as r]
+            [reagent.dom :as rdom]))
 
-
-(def blur-delay-ms 200) ;; ms
-
+(def blur-delay-ms 200)
 
 (defn filter-selections
   [search-text selections]
-  (if (and (not (empty? search-text)) (not (empty? selections)))
+  (if (and (seq search-text) (seq selections))
     (->> selections
          (filter #(string/includes? (string/lower %) (string/lower search-text)))
          vec)
     nil))
-
 
 (defn next-element
   "Get the next element in `xs` after element `v`."
@@ -31,7 +23,6 @@
       (>= (inc index) (count xs)) (first xs)
       :else (get xs (inc index)))))
 
-
 (defn previous-element
   "Get the previous element in `xs` before element `v`."
   [xs v]
@@ -40,7 +31,6 @@
       (< index 0) nil
       (= index 0) (last xs)
       :else (get xs (dec index)))))
-
 
 (defn c-chip
   [{:keys [on-close]} label]
@@ -51,7 +41,6 @@
     {:on-click on-close
      :title (str "Remove '" label "'")}
     [c-icon {:name :close :size :x-small :color :black :inline? false}]]])
-
 
 (defn c-chip-search-input
   "A standalone component for handling chip search inputs.
@@ -86,17 +75,7 @@
 
   :display-listing-on-focus? - If true, the listing of search results
   will show upon focusing the main input."
-  [{:keys [chip-listing
-           default-chip-listing
-           auto-suggestion-listing
-           on-chip-listing-change
-           allow-custom-chips?
-           search-icon?
-           placeholder
-           display-listing-on-focus?]
-    :or {search-icon? true
-         placeholder "Search Tags"}
-    :as opts}]
+  [{:keys [default-chip-listing]}]
   (let [*current-chip-listing (r/atom (or default-chip-listing #{}))
         *active-suggestion (r/atom nil)
         *search-text (r/atom "")
@@ -111,7 +90,7 @@
            search-input "blur"
            (fn []
              ;; Needs to be on a timeout for dropdown selections to work correctly.
-             (.setTimeout 
+             (.setTimeout
               js/window
               (fn []
                 (reset! *active-suggestion nil)
@@ -119,12 +98,12 @@
                 (reset! *input-focused? false))
               blur-delay-ms))
            true)
-          
+
           ;; Keep track of when the input is focused
           (.addEventListener
            search-input "focus"
            (fn []
-             (.setTimeout 
+             (.setTimeout
               js/window
               (fn []
                 (reset! *input-focused? true))
@@ -133,7 +112,6 @@
 
       :reagent-render
       (fn [{:keys [chip-listing
-                   default-chip-listing
                    auto-suggestion-listing
                    on-chip-listing-change
                    allow-custom-chips?
@@ -170,7 +148,7 @@
                 (let [key (some-> (aget event "key") string/lower)]
                   (case key
                     "enter"
-                    (cond 
+                    (cond
                       @*active-suggestion
                       (do
                         (-update-chip-listing (conj current-chip-listing @*active-suggestion))
@@ -181,7 +159,7 @@
                         (-update-chip-listing (conj current-chip-listing @*search-text))
                         (reset! *search-text "")
                         (reset! *active-suggestion nil)))
-                    
+
                     "arrowdown"
                     (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
                       (if @*active-suggestion
@@ -200,7 +178,7 @@
                     (do
                       (reset! *active-suggestion nil)
                       (reset! *search-text ""))
-                    
+
                     nil)))
               :placeholder (when (empty? current-chip-listing) placeholder)}]]
 
@@ -208,7 +186,7 @@
              [:div.search-button [c-icon {:name :search :size :normal :inline? false}]])
 
            (let [suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
-             (when (or (not (empty? @*search-text)) (and display-listing-on-focus? @*input-focused?))
+             (when (or (seq @*search-text) (and display-listing-on-focus? @*input-focused?))
                [:div.dropdown
                 [:div.suggestion-listing
                  (doall
@@ -216,7 +194,7 @@
                     ^{:key (str "suggestion-" suggestion)}
                     [:div.suggestion
                      {:class (when (= @*active-suggestion suggestion) "active")
-                      :on-click (fn [e]
+                      :on-click (fn []
                                   (-update-chip-listing (conj current-chip-listing suggestion))
                                   (reset! *search-text "")
                                   (reset! *active-suggestion nil))}

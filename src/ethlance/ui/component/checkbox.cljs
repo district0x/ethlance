@@ -1,8 +1,6 @@
 (ns ethlance.ui.component.checkbox
-  (:require
-   [reagent.core :as r]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
-
+  (:require [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+            [reagent.core :as r]))
 
 (defn c-labeled-checkbox
   "Checkbox Input Component
@@ -27,7 +25,7 @@
   [c-labeled-checkbox {:label \"I Agree to the Terms and Services.\"}]
   ```
   "
-  [{:keys [label on-change default-checked? checked?] :as opts}]
+  [{:keys [default-checked?]}]
   (let [*checked? (r/atom default-checked?)]
     (fn [{:keys [label on-change default-checked? checked?] :as opts}]
       (assert (not (and checked? default-checked?))
@@ -48,4 +46,3 @@
                         :width 24
                         :height 24}]
          [:span.label label]]))))
-

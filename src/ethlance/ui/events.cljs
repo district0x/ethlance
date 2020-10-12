@@ -1,5 +1,4 @@
 (ns ethlance.ui.events
-  "Main entry point for all registered events within re-frame for ethlance."
   (:require
    ethlance.ui.page.arbiters.events
    ethlance.ui.page.candidates.events
@@ -14,32 +13,18 @@
    ethlance.ui.page.profile.events
    ethlance.ui.page.sign-up.events
    day8.re-frame.forward-events-fx
-   [taoensso.timbre :as log]
-   [re-frame.core :as re]))
+   [re-frame.core :as re-frame]))
 
-(def forwarded-events
-  "Forwarded Events.
-
-   Notes:
-
-   - district.ui.router/watch-active-page effect handler uses forwarded events
-   - Additional info: https://github.com/day8/re-frame-forward-events-fx"
-  [[:page.jobs/initialize-page]
-   [:page.sign-up/initialize-page]
-   [:page.candidates/initialize-page]
-   [:page.arbiters/initialize-page]
-   [:page.employers/initialize-page]
-   [:page.profile/initialize-page]
-   [:page.job-contract/initialize-page]
-   [:page.job-detail/initialize-page]
-   [:page.new-job/initialize-page]
-   [:page.invoices/initialize-page]
-   [:page.new-invoice/initialize-page]])
-
-(defn initialize
-  "Sets initial db state for local components, local pages, and site-wide events."
-  [{:keys [db] :as cofx} [_ config]]
-  {:db (assoc db :ethlance/config config)
-   :dispatch-n forwarded-events})
-
-(re/reg-event-fx :ethlance/initialize initialize)
+(re-frame/reg-event-fx :ethlance/initialize (fn [{:keys [db]} [_ config]]
+                                              {:db (assoc db :ethlance/config config)
+                                               :dispatch-n [[:page.jobs/initialize-page]
+                                                            [:page.sign-up/initialize-page]
+                                                            [:page.candidates/initialize-page]
+                                                            [:page.arbiters/initialize-page]
+                                                            [:page.employers/initialize-page]
+                                                            [:page.profile/initialize-page]
+                                                            [:page.job-contract/initialize-page]
+                                                            [:page.job-detail/initialize-page]
+                                                            [:page.new-job/initialize-page]
+                                                            [:page.invoices/initialize-page]
+                                                            [:page.new-invoice/initialize-page]]}))

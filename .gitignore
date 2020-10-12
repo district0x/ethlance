@@ -29,3 +29,4 @@ smart_contracts_dev.cljs
 ethlance.db
 .shadow-cljs
 ui/node_modules/
+.clj-kondo/.cache/

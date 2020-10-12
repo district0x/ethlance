@@ -1,7 +1,4 @@
-(ns ethlance.ui.component.loading-spinner
-  (:require
-   [reagent.core :as r]))
-
+(ns ethlance.ui.component.loading-spinner)
 
 (defn c-loading-spinner []
   [:div.loading-spinner

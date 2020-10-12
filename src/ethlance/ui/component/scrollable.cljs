@@ -4,8 +4,7 @@
    [reagent.dom :as rdom]
    ["simplebar" :as simplebar]))
 
-
-(defn c-scrollable [opts child]
+(defn c-scrollable
   "Scrollable container. Uses simplebar-react
 
   # Keyword Options (opts)
@@ -16,6 +15,7 @@
 
   - Additional Readme Options (opts)
     https://github.com/Grsmto/simplebar/blob/master/packages/simplebar/README.md#options"
+  [opts _]
   (let [*instance (r/atom nil)]
     (r/create-class
      {:display-name "c-scrollable"
@@ -27,9 +27,9 @@
           (reset! *instance simplebar)))
 
       :component-will-unmount
-      (fn [this]
+      (fn []
         (.unMount @*instance))
 
       :reagent-render
-      (fn [opts child]
+      (fn [_ child]
         [:div.scrollable child])})))

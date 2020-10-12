@@ -1,0 +1,5 @@
+{:linters {:single-key-in {:level :error}
+           :unsorted-required-namespaces {:level :warning}
+           :unresolved-symbol {:exclude [(mount.core/defstate)
+                                         (cljs.core.match/match)]}
+           :lint-as {mount.core/defstate clojure.core/def}}}

@@ -1,13 +1,9 @@
 (ns ethlance.ui.page.sign-up.events
-  (:require [district.parsers :refer [parse-float]]
-            [ethlance.ui.util.component :refer [>evt]]
-            [district.ui.web3-accounts.events :as accounts-events]
+  (:require [district.ui.web3-accounts.events :as accounts-events]
             [district.ui.web3-accounts.queries :as accounts-queries]
-            [district.ui.router.effects :as router.effects]
-            [ethlance.ui.event.utils :as event.utils]
             [ethlance.ui.graphql :as graphql]
-            [re-frame.core :as re]
-            [taoensso.timbre :as log]))
+            [ethlance.ui.util.component :refer [>evt]]
+            [re-frame.core :as re]))
 
 (re/reg-event-fx
  :page.sign-up/set-user-name

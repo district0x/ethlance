@@ -1,36 +1,26 @@
 (ns ethlance.ui.page.arbiters
-  "General Arbiter Listings on ethlance"
-  (:require
-   [reagent.core :as r]
-   [re-frame.core :as re]
-   [taoensso.timbre :as log]
-   [district.ui.component.page :refer [page]]
-   [district.ui.router.events :as router-events]
+  (:require [district.ui.component.page :refer [page]]
+            [district.ui.router.events :as router-events]
+            [ethlance.shared.constants :as constants]
+            [ethlance.shared.enumeration.currency-type :as enum.currency]
+            [ethlance.ui.component.currency-input :refer [c-currency-input]]
+            [ethlance.ui.component.error-message :refer [c-error-message]]
+            [ethlance.ui.component.info-message :refer [c-info-message]]
+            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+            [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.component.mobile-search-filter
+             :refer
+             [c-mobile-search-filter]]
+            [ethlance.ui.component.pagination :refer [c-pagination]]
+            [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.component.rating :refer [c-rating]]
+            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+            [ethlance.ui.component.select-input :refer [c-select-input]]
+            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+            [ethlance.ui.component.text-input :refer [c-text-input]]
+            [re-frame.core :as re]))
 
-   [ethlance.shared.enumeration.currency-type :as enum.currency]
-   [ethlance.shared.constants :as constants]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.error-message :refer [c-error-message]]
-   [ethlance.ui.component.info-message :refer [c-info-message]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.pagination :refer [c-pagination]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.text-input :refer [c-text-input]]))
-
-
-(defn cf-arbiter-search-filter
-  "Component Fragment for the arbiter search filter."
-  []
+(defn cf-arbiter-search-filter []
   (let [*category (re/subscribe [:page.arbiters/category])
         *feedback-max-rating (re/subscribe [:page.arbiters/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.arbiters/feedback-min-rating])
@@ -87,21 +77,17 @@
          :color :secondary
          :default-search-text "Search Countries"}]])))
 
-
 (defn c-arbiter-search-filter []
   [:div.search-filter
    [cf-arbiter-search-filter]])
-
 
 (defn c-arbiter-mobile-search-filter
   []
   [c-mobile-search-filter
    [cf-arbiter-search-filter]])
 
-
 (defn c-arbiter-element
-  [{:keys [:user/address
-           :arbiter/bio]}]
+  [{:keys [:user/address]}]
   [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address address} {}])}
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
@@ -123,16 +109,6 @@
 
 (defn c-arbiter-listing []
   (let [*arbiter-listing-query (atom nil)
-        #_(re/subscribe
-         [:gql/query
-          {:queries
-           [[:arbiter-search
-             {:limit 10}
-             [[:items [:user/address
-                       :arbiter/bio
-                       :arbiter/fee]]
-              :total-count
-              :end-cursor]]]}])
         *limit (re/subscribe [:page.arbiters/limit])
         *offset (re/subscribe [:page.arbiters/offset])]
     (fn []
@@ -169,7 +145,6 @@
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.arbiters/set-offset}])]))))
-
 
 (defmethod page :route.user/arbiters []
   (let [*skills (re/subscribe [:page.arbiters/skills])]

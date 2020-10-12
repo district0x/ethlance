@@ -1,13 +1,9 @@
 (ns ethlance.shared.enumeration.currency-type
-  "Represents an enumeration type for currency."
-  (:require
-   [ethlance.shared.enumeration :as enum]))
-   
+  (:require [ethlance.shared.enumeration :as enum]))
 
 (def enum-currency
-  {::eth 0
-   ::usd 1})
-
+  {:eth 0
+   :usd 1})
 
 (def kw->val #(enum/kw->val enum-currency %))
 (def val->kw #(enum/val->kw enum-currency %))

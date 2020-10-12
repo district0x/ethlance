@@ -11,15 +11,12 @@
    [reagent.core :as r]
    [reagent.dom :as rdom]))
 
-
 (def *cached-svg-listing (atom {}))
-
 
 (defn fetch-url
   "Returns js/Promise"
   [url]
   (.fetch js/window url))
-
 
 (defn parse-xml-from-string
   "Parses the given string of XML into a DOM structure. Used to parse
@@ -27,7 +24,6 @@
   [s]
   (let [parser (js/DOMParser.)]
     (.parseFromString parser s "text/xml")))
-    
 
 (defn xml->svg
   "Removes namespacing from the given XML element to appear as an SVG
@@ -37,10 +33,8 @@
     (doto svg
       (.removeAttribute "xmlns:a"))))
 
-
 (defn- clone-element [elnode]
   (.cloneNode elnode true))
-
 
 (defn- remove-element-children [elnode]
   (loop [child (aget elnode "lastElementChild")]
@@ -48,8 +42,6 @@
       (.removeChild elnode child)
       (recur (aget elnode "lastElementChild"))))
   elnode)
-      
-
 
 (defn prepare-svg
   "Prepares the given SVG image residing at the given `url`.
@@ -59,7 +51,7 @@
   url - The string url of the given SVG to be processed.
 
   # Return Value
-  
+
   A DOMElement, consisting of the SVG DOM Structure.
 
   # Notes
@@ -76,60 +68,14 @@
                    (swap! *cached-svg-listing assoc url svg)
                    (clone-element svg)))))))
 
-
 (defn c-inline-svg
-  "Inline SVG Component, so that an SVG element that exists as an SVG
-  image can be processed and placed within the DOM. This allows CSS
-  styling to be applied to SVGs that exist within the page.
-
-  # Keyword Arguments
-
-  props - Optional Arguments supplied to the inline svg component.
-
-  # Optional Arguments (props)
-
-  :key - Unique React key to distinguish the inline svg component
-
-  :src - url source of the SVG image to inline.
-
-  :class - class attribute to apply to the SVG image to use as a CSS selector.
-
-  :id - id attribute to apply to the SVG image to use as a CSS selector.
-
-  :on-ready - Called after the SVG element exists on the page. Given
-  function receives two arguments (fn [dom-reference inline-svg])
-
-  :width - Width of the SVG element on the page.
-
-  :height - Height of the SVG element on the page.
-
-  # Notes
-
-  - When styling the SVG element using a CSS selector, given that most
-  SVGs perform styling within the DOM directly, it is necessary to
-  include the '!important' property to CSS styling in order to
-  override this inline styling.
-
-  - Some SVGs inadvertently set the opacity of elements to 0.0, making
-  SVG elements transparent. If things aren't appearing, set opacity to
-  1.0
-
-  svg , <inner selector> {
-    opacity: 1.0 !important;
-  }
-
-  - Using an SVG editor like inkscape, you can apply class attributes
-  and id attributes to elements and groups contained within the
-  SVG. This can be useful for styling and animating individual pieces
-  of the SVG.
-  "
-  [{:keys [key src class id on-ready width height] :as props}]
+  [{:keys [src]}]
   (let [*inline-svg (r/atom nil)]
     (r/create-class
      {:display-name "c-inline-svg"
 
       :component-did-mount
-      (fn [this]
+      (fn []
         ;; Preemptive Caching
         (if-let [cached-svg (get @*cached-svg-listing src)]
           (reset! *inline-svg (clone-element cached-svg))
@@ -138,7 +84,7 @@
 
       :component-did-update
       (fn [this old-argv]
-        (let [{:keys [key id root-class class width height on-ready src]}
+        (let [{:keys [id class width height on-ready src]}
               (-> this r/argv second)
               old-src (-> old-argv second :src)]
 
@@ -164,7 +110,7 @@
                 (on-ready elnode inline-svg))))))
 
       :reagent-render
-      (fn [{:keys [key src class id root-class width height on-ready] :as props}]
+      (fn [{:keys [key class width height root-class]}]
         (let [style (cond-> {}
                       width (assoc :width (str width "px"))
                       height (assoc :height (str height "px")))]

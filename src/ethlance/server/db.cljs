@@ -495,7 +495,7 @@
   (safe-go
    (log/info "Creating Sqlite Database...")
    (doseq [{:keys [table-name table-columns]} database-schema]
-     (log/debug (str/format "  - Creating Database Table '%s' ..." table-name))
+     #_(log/debug (str/format "  - Creating Database Table '%s' ..." table-name))
      (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))
    #_(log/debug "Tables Created: " (list-tables conn))))
 

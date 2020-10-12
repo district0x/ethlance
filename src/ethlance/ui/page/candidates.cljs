@@ -1,33 +1,26 @@
 (ns ethlance.ui.page.candidates
   "General Candidate Listings on ethlance"
-  (:require
-   [reagent.core :as r]
-   [re-frame.core :as re]
-   [taoensso.timbre :as log]
-   [cuerdas.core :as str]
-   [district.ui.component.page :refer [page]]
-   [district.ui.router.events :as router-events]
-
-   [ethlance.shared.enumeration.currency-type :as enum.currency]
-   [ethlance.shared.constants :as constants]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-label]]
-   [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.error-message :refer [c-error-message]]
-   [ethlance.ui.component.info-message :refer [c-info-message]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.pagination :refer [c-pagination]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
-
+  (:require [cuerdas.core :as str]
+            [district.ui.component.page :refer [page]]
+            [district.ui.router.events :as router-events]
+            [ethlance.shared.constants :as constants]
+            [ethlance.ui.component.error-message :refer [c-error-message]]
+            [ethlance.ui.component.info-message :refer [c-info-message]]
+            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+            [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.component.mobile-search-filter
+             :refer
+             [c-mobile-search-filter]]
+            [ethlance.ui.component.pagination :refer [c-pagination]]
+            [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.component.radio-select
+             :refer
+             [c-radio-search-filter-element c-radio-select]]
+            [ethlance.ui.component.rating :refer [c-rating]]
+            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+            [ethlance.ui.component.select-input :refer [c-select-input]]
+            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+            [re-frame.core :as re]))
 
 (defn cf-candidate-search-filter
   "Component Fragment for the candidate search filter."
@@ -71,26 +64,20 @@
           :color :secondary
           :default-search-text "Search Countries"}]]])))
 
-
 (defn c-candidate-search-filter
   []
   [:div.search-filter
    [cf-candidate-search-filter]])
-
 
 (defn c-candidate-mobile-search-filter
   []
   [c-mobile-search-filter
    [cf-candidate-search-filter]])
 
-
 (defn c-candidate-element
   [{:keys [:user/address
-           :candidate/rate
            :candidate/professional-title
-           :candidate/categories
-           :candidate/skills]
-    :as candidate}]
+           :candidate/skills]}]
   [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address address} {}])}
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
@@ -113,27 +100,12 @@
 (defn c-candidate-listing []
   (let [*limit (re/subscribe [:page.candidates/limit])
         *offset (re/subscribe [:page.candidates/offset])
-        *candidate-listing-query (atom nil)
-        #_(re/subscribe
-         [:gql/query
-          {:queries
-           [[:candidate-search
-             {:limit @*limit
-              :offset @*offset}
-             [[:items [:user/address
-                       :candidate/rate
-                       :candidate/professional-title
-                       :candidate/categories
-                       :candidate/skills]]
-              :total-count
-              :end-cursor]]]}])]
+        *candidate-listing-query (atom nil)]
     (fn []
       (let [{candidate-search  :candidate-search
              preprocessing?    :graphql/preprocessing?
              loading?          :graphql/loading?
-             errors            :graphql/errors
-             total-count       :total-count
-             has-next-page?    :has-next-page} @*candidate-listing-query
+             errors            :graphql/errors} @*candidate-listing-query
             {candidate-listing :items
              total-count       :total-count} candidate-search]
         [:<>
@@ -163,7 +135,6 @@
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.candidates/set-offset}])]))))
-
 
 (defmethod page :route.user/candidates []
   (let [*skills (re/subscribe [:page.candidates/skills])]

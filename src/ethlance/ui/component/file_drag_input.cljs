@@ -9,7 +9,7 @@
     (str/join "-" (map name path))
     (name path)))
 
-(defn c-file-drag-input [{:keys [form-data id file-accept-pred on-file-accepted on-file-rejected comment]
+(defn c-file-drag-input [{:keys [form-data id file-accept-pred on-file-accepted on-file-rejected]
                          :or {file-accept-pred (constantly true)}}]
   (let [allow-drop #(.preventDefault %)
         handle-files-select (fn [files]
@@ -34,10 +34,9 @@
                                         (.readAsArrayBuffer ab-reader f))
                                       (when on-file-rejected
                                         (on-file-rejected fprops))))))]
-    (fn [{:keys [form-data id file-accept-pred on-file-accepted on-file-rejected]
-         :as opts
-         :or {file-accept-pred (constantly true)}}]
-      (let [{:keys [name url-data] :as aaa} (get-in @form-data [id :selected-file])]
+    (fn [{:keys [form-data id]
+         :as opts}]
+      (let [{:keys [url-data]} (get-in @form-data [id :selected-file])]
         [:div.dropzone
          {:on-drag-over allow-drop
           :on-drop #(do
@@ -55,5 +54,4 @@
          [:input {:type :file
                   :id (id-for-path id)
                   :on-change (fn [e]
-                               (handle-files-select (-> e .-target .-files)))}]
-         ]))))
+                               (handle-files-select (-> e .-target .-files)))}]]))))
