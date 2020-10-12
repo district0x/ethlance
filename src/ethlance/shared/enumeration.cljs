@@ -1,10 +1,7 @@
 (ns ethlance.shared.enumeration
   "General Enumeration functions."
-  (:require
-   [bignumber.core :as bn]
-   [clojure.spec.alpha :as s]
-   [ethlance.shared.spec-utils :refer [strict-conform]]))
-
+  (:require [bignumber.core :as bn]
+            [ethlance.shared.spec-utils :refer [strict-conform]]))
 
 (defn kw->val
   "Strict conversion of a keyword to a value within a map representing a
@@ -21,12 +18,12 @@
   (let [x (strict-conform (set (vals e)) (bn/number x))
         ze (zipmap (vals e) (keys e))]
     (get ze x)))
-  
+
 
 (defn assoc-kw->val
   "Soft conversion of a map value representing an enumerated type from
   their keyword to their enumerated value.
-  
+
   Keyword Paramaters:
 
   e - The map representing the enumeration between the key and value.
@@ -48,7 +45,7 @@
 (defn assoc-val->kw
   "Soft conversion of a map value representing an enumerated type from
   their enumerated value to their keyword.
-  
+
   Keyword Paramaters:
 
   e - The map representing the enumeration between the key and value.

@@ -90,8 +90,7 @@
    - The list of icons can be found in the ethlance.ui.component.icon namespace."
   []
   (fn [{:keys [icon-name label-text inline?]
-        :or {inline? true}
-        :as opts}]
+        :or {inline? true}}]
     [:div.button-icon-label
      [:div.icon
       [c-icon {:name icon-name :inline? inline? :color :white}]]

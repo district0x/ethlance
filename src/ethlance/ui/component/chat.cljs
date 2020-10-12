@@ -1,20 +1,15 @@
 (ns ethlance.ui.component.chat
-  (:require
-   [reagent.core :as r]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]))
-
+  (:require [ethlance.ui.component.profile-image :refer [c-profile-image]]))
 
 ;; TODO: format 'text' into paragraphs <p>
 (defn c-chat-message
   "Individual Chat Message Components to be used within `c-chat-log` component.
-  
+
   # Keyword Arguments
 
   message - ethlance chat message object
   "
-  [{:keys [id user-type text full-name date-created date-updated details image-url] :as message}]
+  [{:keys [id user-type text full-name date-updated details image-url]}]
   (let [position-class (if (contains? #{:candidate :arbiter} user-type) " right " " left ")
         color-class (case user-type
                       :candidate "candidate"
@@ -41,7 +36,7 @@
   "Chat log component, containing the `c-chat-message` components
 
   # Keyword Arguments
-  
+
   chat-listing - Collection of ethlance chat message objects
 
   # Examples

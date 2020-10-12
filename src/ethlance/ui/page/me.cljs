@@ -1,33 +1,13 @@
 (ns ethlance.ui.page.me
-  (:require
-   [taoensso.timbre :as log]
-   [district.ui.router.subs :as router.subs]
-   [district.ui.router.events :as router.events]
-   [district.ui.router.effects :as router.effects]
-   [district.ui.component.page :refer [page]]
-   [reagent.core :as r]
-   [re-frame.core :as re]
-   [cuerdas.core :as str]
-
-   [ethlance.shared.enumeration.currency-type :as enum.currency]
-   [ethlance.shared.constants :as constants]
-   [ethlance.ui.util.navigation :as util.navigation]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.table :refer [c-table]]
-   [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]))
-
+  (:require [district.ui.component.page :refer [page]]
+            [district.ui.router.subs :as router.subs]
+            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
+            [ethlance.ui.component.table :refer [c-table]]
+            [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
+            [ethlance.ui.util.navigation :as util.navigation]
+            [re-frame.core :as re]))
 
 (defn c-nav-sidebar-element [label location]
   (let [*current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])
@@ -47,12 +27,6 @@
                        (.preventDefault e)
                        nil)}
           label]]))))
-
-
-;;
-;; Employer Sections
-;;
-
 
 (defn c-default-listing []
   [:<>
@@ -83,7 +57,6 @@
     [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
     [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
 
-
 (defn c-my-employer-job-listing []
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
@@ -92,11 +65,11 @@
    {:label "Invitations"}
    [:div.listing.my-employer-job-listing
     [c-default-listing]]
-   
+
    {:label "Pending Proposals"}
    [:div.listing
     [c-default-listing]]
-   
+
    {:label "Active Contracts"}
    [:div.listing
     [c-default-listing]]
@@ -108,7 +81,6 @@
    {:label "Canceled Contracts"}
    [:div.listing
     [c-default-listing]]])
-
 
 (defn c-my-employer-contract-listing []
   [:div.not-implemented "Not Implemented - Employer - My Contract"])
@@ -148,40 +120,36 @@
 (defn c-my-arbiter-dispute-listing []
   [:div.not-implemented "Not Implemented - Arbiter - My Disputes"])
 
-
 (defn c-sidebar
   []
-  (let []
-    (fn []
-      [:div.sidebar
-       [:div.section
-        [:div.label "Employer"]
-        [c-nav-sidebar-element "My Jobs" :my-employer-job-listing]
-        [c-nav-sidebar-element "My Contracts" :my-employer-contract-listing]
-        [c-nav-sidebar-element "My Invoices" :my-employer-invoice-listing]
-        [c-nav-sidebar-element "My Disputes" :my-employer-dispute-listing]]
-       
-       [:div.section
-        [:div.label "Candidate"]
-        [c-nav-sidebar-element "My Jobs" :my-candidate-job-listing]
-        [c-nav-sidebar-element "My Contracts" :my-candidate-contract-listing]
-        [c-nav-sidebar-element "My Invoices" :my-candidate-invoice-listing]
-        [c-nav-sidebar-element "My Disputes" :my-candidate-dispute-listing]]
+  (fn []
+    [:div.sidebar
+     [:div.section
+      [:div.label "Employer"]
+      [c-nav-sidebar-element "My Jobs" :my-employer-job-listing]
+      [c-nav-sidebar-element "My Contracts" :my-employer-contract-listing]
+      [c-nav-sidebar-element "My Invoices" :my-employer-invoice-listing]
+      [c-nav-sidebar-element "My Disputes" :my-employer-dispute-listing]]
 
-       [:div.section
-        [:div.label "Arbiter"]
-        [c-nav-sidebar-element "My Jobs" :my-arbiter-job-listing]
-        [c-nav-sidebar-element "My Contracts" :my-arbiter-contract-listing]
-        [c-nav-sidebar-element "My Invoices" :my-arbiter-invoice-listing]
-        [c-nav-sidebar-element "My Disputes" :my-arbiter-dispute-listing]]])))
+     [:div.section
+      [:div.label "Candidate"]
+      [c-nav-sidebar-element "My Jobs" :my-candidate-job-listing]
+      [c-nav-sidebar-element "My Contracts" :my-candidate-contract-listing]
+      [c-nav-sidebar-element "My Invoices" :my-candidate-invoice-listing]
+      [c-nav-sidebar-element "My Disputes" :my-candidate-dispute-listing]]
 
+     [:div.section
+      [:div.label "Arbiter"]
+      [c-nav-sidebar-element "My Jobs" :my-arbiter-job-listing]
+      [c-nav-sidebar-element "My Contracts" :my-arbiter-contract-listing]
+      [c-nav-sidebar-element "My Invoices" :my-arbiter-invoice-listing]
+      [c-nav-sidebar-element "My Disputes" :my-arbiter-dispute-listing]]]))
 
 (defn c-mobile-navigation
   []
   (fn []
     [c-mobile-sidebar
      [c-sidebar]]))
-
 
 (defn c-listing []
   (let [*current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])]
@@ -193,7 +161,7 @@
          :my-employer-contract-listing [c-my-employer-contract-listing]
          :my-employer-invoice-listing [c-my-employer-invoice-listing]
          :my-employer-dispute-listing [c-my-employer-dispute-listing]
-         
+
          ;; Candidate
          :my-candidate-job-listing [c-my-candidate-job-listing]
          :my-candidate-contract-listing [c-my-candidate-contract-listing]
@@ -207,11 +175,9 @@
 
          (throw (ex-info "Unable to determine sidebar choice" @*current-sidebar-choice)))])))
 
-
 (defmethod page :route.me/index []
-  (let []
-    (fn []
-      [c-main-layout {:container-opts {:class :my-contracts-main-container}}
-       [c-sidebar]
-       [c-mobile-navigation]
-       [c-listing]])))
+  (fn []
+    [c-main-layout {:container-opts {:class :my-contracts-main-container}}
+     [c-sidebar]
+     [c-mobile-navigation]
+     [c-listing]]))

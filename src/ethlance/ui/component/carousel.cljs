@@ -1,13 +1,9 @@
 (ns ethlance.ui.component.carousel
-  (:require
-   [reagent.core :as r]
-   ["pure-react-carousel" :as react-carousel]
-   ;; Ethlance Components
-   #_[ethlance.ui.component.button :refer [c-button c-button-icon-label c-circle-icon-button]]
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.rating :refer [c-rating]]))
-
+  (:require [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.component.rating :refer [c-rating]]
+            [reagent.core :as r]
+            ["pure-react-carousel" :as react-carousel]))
 
 (defn c-carousel-old
   "Carousel Component for displaying multiple 'slides' of content
@@ -32,13 +28,12 @@
   ```
   "
   [{:keys [default-index]
-    :or {default-index 0}
-    :as opts} & children]
+    :or {default-index 0}}]
   (let [*current-index (r/atom default-index)]
     (r/create-class
      {:display-name "ethlance-carousel"
       :reagent-render
-      (fn [opts & children]
+      (fn [_ & children]
         (let [first-slide? (<= @*current-index 0)
               last-slide? (>= @*current-index (dec (count children)))]
           [:div.ethlance-carousel
@@ -62,7 +57,7 @@
                :on-click #(swap! *current-index inc)}]]]]))})))
 
 (defn c-feedback-slide
-  [{:keys [id rating class] :as feedback}]
+  [{:keys [id rating class]}]
   [:div.feedback-slide
    ;; FIXME: use better unique key
    {:key (str "feedback-" id "-" rating) :class class}
@@ -75,9 +70,8 @@
    [:div.name
     "Brian Curran"]])
 
-(defn c-carousel [{:keys [default-index]
-                   :or {default-index 0}
-                   :as opts} & children]
+(defn c-carousel [{:keys []}
+                  & children]
   [:div.ethlance-new-carousel
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300
@@ -85,7 +79,7 @@
                                         :visible-slides 1}
     [:div.slider-outer
      [:> react-carousel/Slider
-      (for [[idx c] (map-indexed vector children)]
+      (for [[idx _] (map-indexed vector children)]
         [:> react-carousel/Slide {:index idx} [c-feedback-slide {:rating 3 :class ""}]])]]
 
     [:div.back-button
@@ -95,5 +89,4 @@
     [:div.forward-button
      [:> react-carousel/ButtonNext {:className "ethlance-circle-button ethlance-circle-icon-button primary"}
       [c-circle-icon-button
-       {:name :ic-arrow-right}]]]
-    ]])
+       {:name :ic-arrow-right}]]]]])

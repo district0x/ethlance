@@ -23,8 +23,7 @@
 
   - This is used primarily for creating handlers for the :on-click
   event in reagent components."
-  [{:keys [route params query replace?]}]
-  (let [event-name (if replace? ::router.events/navigate ::router.events/replace)])
+  [{:keys [route params query]}]
   (fn [event]
     (.preventDefault event)
     (re/dispatch [::router.events/navigate route params query])))

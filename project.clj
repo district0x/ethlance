@@ -38,25 +38,27 @@
                  [org.clojure/core.match "1.0.0"]
                  [org.clojure/tools.reader "1.3.2"]]
 
-  :plugins [[lein-ancient "0.6.15"]
-            [lein-cljsbuild "1.1.8"]
-            [lein-shell "0.5.0"]
-            [lein-marginalia "0.9.1"]]
-
-  :min-lein-version "2.5.3"
-  :source-paths ["src"]
-  :test-paths ["test"]
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
-  :figwheel {:css-dirs ["resources/public/css"]
-             :nrepl-port 9000
-             :server-ip "127.0.0.1"
-             :server-port 6500
-             :ring-handler handler/figwheel-request-handler}
   :exclusions [cljsjs/react-with-addons
                honeysql
                reagent
                mount
                district0x/district-ui-router]
+
+  :plugins [[lein-ancient "0.6.15"]
+            [lein-cljsbuild "1.1.8"]
+            [lein-shell "0.5.0"]
+            [lein-marginalia "0.9.1"]]
+
+  :source-paths ["src"]
+
+  :figwheel {:css-dirs ["resources/public/css"]
+             :nrepl-port 9000
+             :server-ip "127.0.0.1"
+             :server-port 6500
+             :ring-handler handler/figwheel-request-handler}
+
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dist"]
+
   :profiles
   {:dev
    {:source-paths ["src" "test" "dev"]
@@ -88,7 +90,7 @@
    [{:id "dev-server"
      :source-paths ["src/ethlance/server" "src/ethlance/shared" "dev/server/cljs" "src/district/server"]
      :figwheel {:on-jsload "ethlance.server.graphql.server/restart"}
-     :compiler {:main ethlance.server.core
+     :compiler {:main 'ethlance.server.core
                 :output-to "target/node/ethlance_server.js"
                 :output-dir "target/node/out-dev-server"
                 :target :nodejs
@@ -98,7 +100,7 @@
                 :closure-defines {goog.DEBUG true}}}
     {:id "prod-server"
      :source-paths ["src"]
-     :compiler {:main ethlance.server.core
+     :compiler {:main 'ethlance.server.core
                 :output-to "dist/ethlance_server.js"
                 :output-dir "target/node/out-prod-server"
                 :target :nodejs
@@ -107,7 +109,7 @@
                 :pretty-print false}}
     {:id "test-server"
      :source-paths ["src/ethlance/server" "test/ethlance/server" "src/ethlance/shared"]
-     :compiler {:main ethlance.server.test-runner
+     :compiler {:main 'ethlance.server.test-runner
                 :output-to "target/node_test/test_runner.js"
                 :output-dir "target/node_test/out-server-test-runner"
                 :target :nodejs

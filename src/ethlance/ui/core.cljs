@@ -12,10 +12,9 @@
    ethlance.ui.pages
    ethlance.ui.subscriptions
    [ethlance.ui.util.injection :as util.injection]
-   [mount.core :as mount :refer [defstate]]
+   [mount.core :as mount]
    [re-frame.core :as re]
-   [re-frisk.core :as re-frisk]
-   [taoensso.timbre :as log]))
+   [re-frisk.core :as re-frisk]))
 
 (enable-console-print!)
 

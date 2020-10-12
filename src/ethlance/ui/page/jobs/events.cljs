@@ -1,13 +1,11 @@
 (ns ethlance.ui.page.jobs.events
-  (:require
-   [re-frame.core :as re]
-   [district.parsers :refer [parse-int parse-float]]
-   [district.ui.router.effects :as router.effects]
-   [ethlance.shared.constants :as constants]
-   [ethlance.shared.mock :as mock]
-   [ethlance.ui.event.utils :as event.utils]
-   [ethlance.ui.event.templates :as event.templates]))
-
+  (:require [district.parsers :refer [parse-int]]
+            [district.ui.router.effects :as router.effects]
+            [ethlance.shared.constants :as constants]
+            [ethlance.shared.mock :as mock]
+            [ethlance.ui.event.templates :as event.templates]
+            [ethlance.ui.event.utils :as event.utils]
+            [re-frame.core :as re]))
 
 ;; Page State
 (def state-key :page.jobs)
@@ -28,10 +26,8 @@
    :experience-level :novice
    :country nil})
 
-
 (defn mock-job-listing [& [n]]
   (mapv mock/generate-mock-job (range 1 (or n 10))))
-
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -42,15 +38,13 @@
        :name :route.job/jobs
        :dispatch [:page.jobs/query-job-listing page-state]}]}))
 
-
 (defn mock-query-job-listing
   "Event FX Handler. Perform Job Listing Query."
-  [{:keys [db] :as cofxs} [_ page-state]]
+  [{:keys [db]} _]
   ;;TODO: mock up + production graphql
   (let [job-listing (mock-job-listing)]
     {:db (assoc-in db [state-key :job-listing/state] :loading)
      :dispatch [:page.jobs/-set-job-listing job-listing]}))
-
 
 (defn set-job-listing
   "Event FX Handler. Set the Current Job Listing."
@@ -59,18 +53,15 @@
            (assoc-in [state-key :job-listing/state] :done)
            (assoc-in [state-key :job-listing] job-listing))})
 
-
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."
   [{:keys [db]} [_ new-skill]]
   {:db (update-in db [state-key :skills] conj new-skill)})
 
-
 ;;
 ;; Registered Events
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
-
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
@@ -86,7 +77,6 @@
 (re/reg-event-fx :page.jobs/set-payment-type (create-assoc-handler :payment-type))
 (re/reg-event-fx :page.jobs/set-experience-level (create-assoc-handler :experience-level))
 (re/reg-event-fx :page.jobs/set-country (create-assoc-handler :country))
-
 
 ;; Intermediates
 (re/reg-event-fx :page.jobs/-set-job-listing set-job-listing)

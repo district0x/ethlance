@@ -1,8 +1,5 @@
 (ns ethlance.ui.event.templates
-  (:require
-   [re-frame.core :as re]
-   [district.parsers]))
-
+  (:require district.parsers))
 
 (defn create-set-feedback-min-rating
   "Event FX Handler. Set the current feedback min rating.

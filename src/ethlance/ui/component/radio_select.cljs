@@ -1,12 +1,14 @@
 (ns ethlance.ui.component.radio-select
-  "Component for performing radio selections"
-  (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! timeout] :include-macros true]
-   [reagent.core :as r]
-   [taoensso.timbre :as log]
-
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
-
+  (:require [clojure.core.async
+             :as
+             async
+             :refer
+             [<! chan close! go-loop put!]
+             :include-macros
+             true]
+            [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+            [reagent.core :as r]
+            [taoensso.timbre :as log]))
 
 (defn c-radio-element
   [{:keys [selection-key
@@ -18,10 +20,9 @@
     :class (when (= selection-key currently-active) "active")}
    child-element])
 
-
 (defn c-radio-select
   "Radio Select Input for collaboration with several radio elements.
-  
+
   # Keyword Arguments
 
   opts - Optional Arguments
@@ -48,14 +49,15 @@
    [:job [c-radio-secondary-element \"Job\"]]
    [:bounty [c-radio-secondary-element \"Bounty\"]]]
   "
-  [{:keys [default-selection selection on-selection flex?] :as opts} & children]
+  [{:keys [default-selection on-selection flex?]}]
   (let [*current-selection (r/atom default-selection)
         select-channel (chan 1)]
     (r/create-class
      {:display-name "ethlance-radio-select"
 
       :component-did-mount
-      (fn [this]
+      (fn []
+        ;; TODO : WTF is this, why is it using async??
         (go-loop []
           (when-let [selection (<! select-channel)]
             (reset! *current-selection selection)
@@ -65,9 +67,9 @@
             (recur))))
 
       :component-will-unmount
-      (fn [this]
+      (fn []
         (close! select-channel))
-      
+
       :reagent-render
       (fn [opts & children]
         (assert (not (and (:selection opts) (:default-selection opts)))
@@ -84,7 +86,6 @@
                 :select-channel select-channel
                 :child-element child-element
                 :currently-active current-selection}]))]))})))
-
 
 (defn c-radio-search-filter-element [label]
   [:<>

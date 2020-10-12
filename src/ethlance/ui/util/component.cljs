@@ -1,7 +1,5 @@
 (ns ethlance.ui.util.component
-  "Includes utilities for working with re-frame components"
-  (:require [re-frame.core :as re-frame]
-            [clojure.string :as string]))
+  (:require [re-frame.core :as re-frame]))
 
 (def <sub (comp deref re-frame/subscribe))
 (def >evt re-frame/dispatch)

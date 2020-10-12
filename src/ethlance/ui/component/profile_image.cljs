@@ -1,10 +1,6 @@
-(ns ethlance.ui.component.profile-image
-  (:require
-   [reagent.core :as r]))
-
+(ns ethlance.ui.component.profile-image)
 
 (def placeholder-image-url "/images/avatar-placeholder.png")
-
 
 (defn c-profile-image
   "Profile Image component for displaying a given user's profile image.
@@ -20,7 +16,7 @@
   :size - The size of the image to display. `:small`, `:normal`,
   `:large`, [default: `:normal`].
   "
-  [{:keys [src size] :as opts}]
+  [{:keys [src size]}]
   (let [size-class (case size
                     :small " small "
                     :normal ""

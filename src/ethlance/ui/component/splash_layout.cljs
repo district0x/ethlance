@@ -1,29 +1,23 @@
 (ns ethlance.ui.component.splash-layout
-  (:require
-   [reagent.core :as r]
-   [re-frame.core :as rf]
-   ["react-transition-group" :refer [CSSTransition TransitionGroup]]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.button :refer [c-button c-button-label]]
-   [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-   [ethlance.ui.component.icon :refer [c-icon]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]
-   [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]
-
-   ;; Ethlance Utils
-   [ethlance.ui.util.navigation :as util.navigation]))
-
-
+  (:require [ethlance.ui.component.button :refer [c-button c-button-label]]
+            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+            [ethlance.ui.component.icon :refer [c-icon]]
+            [ethlance.ui.component.splash-mobile-navigation-bar
+             :refer
+             [c-splash-mobile-navigation-bar]]
+            [ethlance.ui.component.splash-navigation-bar
+             :refer
+             [c-splash-navigation-bar]]
+            [ethlance.ui.util.navigation :as util.navigation]
+            [reagent.core :as r]
+            ["react-transition-group" :refer [CSSTransition TransitionGroup]]))
 
 (defn c-how-to-card [label src]
   [:div.how-to-card
    [:div.image
     [:img {:src src}]]
    [:span.label label]])
-
 
 (defn c-how-to-candidate
   []
@@ -35,7 +29,6 @@
    [c-how-to-card "Receive Ether" "/images/icon-free-ether.png"]
    [c-how-to-card "Leave Feedback" "/images/icon-feedback.png"]])
 
-
 (defn c-how-to-employer
   []
   [:div.how-to-employer
@@ -46,7 +39,6 @@
    [c-how-to-card "Pay Invoices In Ether" "/images/icon-ether.png"]
    [c-how-to-card "Leave Feedback" "/images/icon-feedback.png"]])
 
-
 (defn c-how-to-arbiter
   []
   [:div.how-to-arbiter
@@ -56,7 +48,6 @@
    [c-how-to-card "Resolve The Dispute" "/images/icon-ok.png"]
    [c-how-to-card "Receive Ether" "/images/icon-free-ether.png"]
    [c-how-to-card "Leave Feedback" "/images/icon-feedback.png"]])
-
 
 (defn c-how-it-works-layout
   []
@@ -102,7 +93,6 @@
             :classNames "how-card"
             :timeout 200}
            (r/as-element [c-how-to-arbiter])])]])))
-
 
 (defn c-splash-layout
   []

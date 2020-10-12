@@ -1,13 +1,12 @@
 (ns ethlance.ui.graphql
-  (:require
-   [district.shared.async-helpers :refer [promise->]]
-   [re-frame.core :as re-frame]
-   [taoensso.timbre :as log]
-   [camel-snake-kebab.core :as camel-snake]
-   [clojure.string :as string]
-   ["axios" :as axios]
-   [camel-snake-kebab.extras :as camel-snake-extras]
-   [ethlance.ui.util.component :refer [>evt]]))
+  (:require [camel-snake-kebab.core :as camel-snake]
+            [camel-snake-kebab.extras :as camel-snake-extras]
+            [clojure.string :as string]
+            [district.shared.async-helpers :refer [promise->]]
+            [ethlance.ui.util.component :refer [>evt]]
+            [re-frame.core :as re-frame]
+            [taoensso.timbre :as log]
+            ["axios" :as axios]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -42,7 +41,7 @@
 
 (defn- safe-merge [fx new-fx]
   (reduce (fn [merged-fx [k v]]
-            (if (= :db k)
+            (when (= :db k)
               (assoc merged-fx :db v)))
           fx
           new-fx))
@@ -61,13 +60,12 @@
   [cofx response]
   (do-reduce-handlers cofx
                       (fn [fxs [k v]]
-                        ;; (log/debug "@ calling handler" {:k k :v v :fx fxs})
                         (handler fxs k v))
                       response))
 
 (re-frame/reg-event-fx
  ::response
- (fn [{:keys [db] :as cofx} [_ response]]
+ (fn [cofx [_ response]]
    (reduce-handlers cofx response)))
 
 (re-frame/reg-fx
@@ -78,7 +76,7 @@
 
 (re-frame/reg-event-fx
  ::query
- (fn [{:keys [db]} [_ {:keys [query variables on-success on-error]}]]
+ (fn [{:keys [db]} [_ {:keys [query variables]}]]
    (let [url (get-in db [:ethlance/config :graphql :url])
          access-token (get-in db [:tokens :access-token])
          params (clj->js {:url url
@@ -99,69 +97,68 @@
      {::query [params callback]})))
 
 (defmethod handler :default
-  [{:keys [db] :as cofx} k values]
+  [cofx k values]
   ;; NOTE: this is the default handler that is intented for queries and mutations
   ;; that have nothing to do besides reducing over their response values
-  (log/debug "default handler" {:k k
-                                :cofx cofx})
+  (log/debug "default handler" {:k k})
   (reduce-handlers cofx values))
 
 (defmethod handler :user
-  [{:keys [db] :as cofx} _ {:user/keys [address email] :as user}]
+  [{:keys [db]} _ {:user/keys [address] :as user}]
   (log/debug "user handler" user)
   {:db (assoc-in db [:users address] user)})
 
 (defmethod handler :candidate
-  [{:keys [db] :as cofx} _ {:user/keys [address] :as candidate}]
+  [{:keys [db]} _ {:user/keys [address] :as candidate}]
   (log/debug "candidate handler" candidate)
   {:db (assoc-in db [:candidates address] candidate)})
 
 (defmethod handler :employer
-  [{:keys [db] :as cofx} _ {:user/keys [address] :as employer}]
+  [{:keys [db]} _ {:user/keys [address] :as employer}]
   (log/debug "employer handler" employer)
   {:db (assoc-in db [:employers address] employer)})
 
 (defmethod handler :arbiter
-  [{:keys [db] :as cofx} _ {:user/keys [address] :as arbiter}]
+  [{:keys [db]} _ {:user/keys [address] :as arbiter}]
   (log/debug "arbiter handler" arbiter)
   {:db (assoc-in db [:arbiters address] arbiter)})
 
 (defmethod handler :github-sign-up
-  [{:keys [db] :as cofx} _ {:user/keys [address github-username] :as user}]
+  [{:keys [db]} _ {:user/keys [address github-username] :as user}]
   (log/debug "github-sign-up handler" user)
   {:db (assoc-in db [:users address] (merge user
                                             {:user/user-name github-username}))})
 
 (defmethod handler :linkedin-sign-up
-  [{:keys [db] :as cofx} _ {:user/keys [address full-name] :as user}]
+  [{:keys [db]} _ {:user/keys [address full-name] :as user}]
   (log/debug "linkedin-sign-up handler" user)
   {:db (assoc-in db [:users address] (merge user {:user/user-name full-name}))})
 
 (defmethod handler :update-candidate
-  [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated
-                            candidate-date-updated :candidate/date-updated
-                            address :user/address
-                            :as candidate}]
+  [{:keys [db]} _ {user-date-updated :user/date-updated
+                   candidate-date-updated :candidate/date-updated
+                   address :user/address
+                   :as candidate}]
   (log/debug "update-candidate handler" candidate)
   {:db (-> db
            (assoc-in [:users address :user/date-updated] user-date-updated)
            (assoc-in [:candidates address :candidate/date-updated] candidate-date-updated))})
 
 (defmethod handler :update-employer
-  [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated
-                            employer-date-updated :employer/date-updated
-                            address :user/address
-                            :as employer}]
+  [{:keys [db]} _ {user-date-updated :user/date-updated
+                   employer-date-updated :employer/date-updated
+                   address :user/address
+                   :as employer}]
   (log/debug "update-employer handler" employer)
   {:db (-> db
            (assoc-in [:users address :user/date-updated] user-date-updated)
            (assoc-in [:employers address :employer/date-updated] employer-date-updated))})
 
 (defmethod handler :update-arbiter
-  [{:keys [db] :as cofx} _ {user-date-updated :user/date-updated
-                            arbiter-date-updated :arbiter/date-updated
-                            address :user/address
-                            :as arbiter}]
+  [{:keys [db]} _ {user-date-updated :user/date-updated
+                   arbiter-date-updated :arbiter/date-updated
+                   address :user/address
+                   :as arbiter}]
   (log/debug "update-arbiter handler" arbiter)
   {:db (-> db
            (assoc-in [:users address :user/date-updated] user-date-updated)

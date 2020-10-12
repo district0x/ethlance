@@ -1,14 +1,9 @@
 (ns ethlance.ui.component.rating
-  "UI Component which displays 5 stars for displaying and updating user feedback."
-  (:require
-   [reagent.core :as r]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
-
+  (:require [reagent.core :as r]))
 
 (def rating-star-src-primary "/images/icons/ethlance-star-icon-primary.svg")
 (def rating-star-src-black "/images/icons/ethlance-star-icon-black.svg")
 (def rating-star-src-white "/images/icons/ethlance-star-icon-white.svg")
-
 
 (defn c-star []
   (fn [{:keys [active? color index on-change size]
@@ -36,7 +31,6 @@
                 :height (str size-value "px")}
         :class [active-class size-class]}])))
 
-
 (defn c-rating
   "Rating Component, for displaying feedback within ethlance.
 
@@ -60,9 +54,8 @@
   :size - The size styling of the rating component. `:normal`,
   `:default`, `:large`, `:small`. [default: `:default`].
   "
-  [{:keys [rating default-rating color on-change size]
-    :or {color :primary size :default}
-    :as opts}]
+  [{:keys [default-rating color size]
+    :or {color :primary size :default}}]
   (let [*current-default-rating (r/atom default-rating)
         color-class (case color
                       :primary "primary"
@@ -74,9 +67,6 @@
                      :large    "large")]
     (fn [{:keys [rating default-rating color on-change size]
           :or {color :primary size :default}}]
-      #_(assert (or rating default-rating) "No `rating` or `default-rating` specified.")
-      #_(assert (not (and rating default-rating))
-              "Component has both controlled `rating` and uncontrolled `default-rating` attributes set.")
       (let [current-rating (if default-rating @*current-default-rating rating)]
         [:div.ethlance-component-rating
          {:class [color-class size-class]}

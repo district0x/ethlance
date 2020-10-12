@@ -1,8 +1,12 @@
 (ns ethlance.shared.async-utils
-  (:require
-   [taoensso.timbre :as log]
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close!] :include-macros true]))
-
+  (:require [clojure.core.async
+             :as
+             async
+             :refer
+             [<! close! go go-loop]
+             :include-macros
+             true]
+            [taoensso.timbre :as log]))
 
 (defn log-error-channel
   "Logs the error output and only returns the success-channel."
@@ -46,4 +50,3 @@
   [channel]
   (go-loop [result (<! channel)]
     (when result (recur (<! channel)))))
-   

@@ -1,31 +1,22 @@
 (ns ethlance.ui.page.employers
   "General Employer Listings on ethlance"
-  (:require
-   [reagent.core :as r]
-   [re-frame.core :as re]
-   [taoensso.timbre :as log]
-   [district.ui.component.page :refer [page]]
-
-   [ethlance.shared.enumeration.currency-type :as enum.currency]
-   [ethlance.shared.constants :as constants]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.currency-input :refer [c-currency-input]]
-   [ethlance.ui.component.error-message :refer [c-error-message]]
-   [ethlance.ui.component.info-message :refer [c-info-message]]
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-   [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-   [ethlance.ui.component.main-layout :refer [c-main-layout]]
-   [ethlance.ui.component.mobile-search-filter :refer [c-mobile-search-filter]]
-   [ethlance.ui.component.pagination :refer [c-pagination]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.radio-select :refer [c-radio-select c-radio-search-filter-element]]
-   [ethlance.ui.component.rating :refer [c-rating]]
-   [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-   [ethlance.ui.component.select-input :refer [c-select-input]]
-   [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-   [ethlance.ui.component.text-input :refer [c-text-input]]))
-
+  (:require [district.ui.component.page :refer [page]]
+            [ethlance.shared.constants :as constants]
+            [ethlance.ui.component.error-message :refer [c-error-message]]
+            [ethlance.ui.component.info-message :refer [c-info-message]]
+            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+            [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.component.mobile-search-filter
+             :refer
+             [c-mobile-search-filter]]
+            [ethlance.ui.component.pagination :refer [c-pagination]]
+            [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.component.rating :refer [c-rating]]
+            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+            [ethlance.ui.component.select-input :refer [c-select-input]]
+            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+            [ethlance.ui.component.text-input :refer [c-text-input]]
+            [re-frame.core :as re]))
 
 (defn cf-employer-search-filter []
   (let [*category (re/subscribe [:page.employers/category])
@@ -68,22 +59,17 @@
           :color :secondary
           :default-search-text "Search Countries"}]]])))
 
-
 (defn c-employer-search-filter []
   [:div.search-filter
    [cf-employer-search-filter]])
-
 
 (defn c-employer-mobile-search-filter
   []
   [c-mobile-search-filter
    [cf-employer-search-filter]])
 
-
 (defn c-employer-element
-  [{:keys [:user/address
-           :employer/bio
-           :employer/professional-title]}]
+  [{:employer/keys [professional-title]}]
   [:div.employer-element
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
@@ -100,7 +86,6 @@
     [c-rating {:default-rating 3}]
     [:div.label "(4)"]]
    [:div.location "New York, United States"]])
-
 
 (defn c-employer-listing []
   (let [*limit (re/subscribe [:page.employers/limit])
@@ -151,7 +136,6 @@
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.employers/set-offset}])]))))
-
 
 (defmethod page :route.user/employers []
   (let [*skills (re/subscribe [:page.employers/skills])]

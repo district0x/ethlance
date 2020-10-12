@@ -1,8 +1,6 @@
 (ns ethlance.shared.random)
 
-
 (def ^:dynamic *dist-resolution* 10000000000)
-
 
 (defn get-distribution [norm-factor tupl]
   (loop [cstart 0
@@ -16,16 +14,14 @@
                (conj distrib [[cstart cend] value])))
       distrib)))
 
-
 (defn -pick-rand-by-dist [ds]
   (let [r (rand *dist-resolution*)]
     (->> ds
-         (filter (fn [[[start end] value]]
+         (filter (fn [[[start end] _]]
                    (and (<= start r)
                         (> end r))))
          first
          second)))
-
 
 (defn pick-rand-by-dist
   "Pick a value from the provided tuple pairs, where the first value
@@ -57,7 +53,6 @@
         distrib (get-distribution norm-factor tupl)]
     (-pick-rand-by-dist distrib)))
 
-
 (defn pluck!
   "Plucks a random value from an atom containing a sequence, and updates
   the sequence with the plucked value removed. An empty sequence
@@ -69,12 +64,11 @@
       (swap! *coll (fn [v] (->> v (remove #(= val %)) (into (empty @*coll)))))
       val)))
 
-
 (defn rand-nth-n
   "Retrieve `n` random distinct values from the collection `coll` and return it as a sequence.
 
   Notes:
-  
+
   - If `n` exceeds the count of `coll`, the function returns early
   if (count coll) elements.
   "

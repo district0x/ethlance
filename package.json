@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "deps": "yarn install --frozen-lockfile",
-    "deploy" : "yarn truffle migrate --network ganache --reset",
+    "deploy": "yarn truffle migrate --network ganache --reset",
     "watch": "lein cljsbuild auto dev-server",
-    "clean": "git clean -fdx"
+    "clean": "git clean -fdx",
+    "lint": "clj-kondo --config .clj-kondo/config.edn --lint src/ethlance/ui/ src/district/ui/ src/ethlance/shared/"
   },
   "dependencies": {
     "@sentry/node": "4.2.1",
@@ -36,8 +37,9 @@
     "ganache-cli": "6.7.0",
     "less": "3.10.3",
     "less-watch-compiler": "1.14.1",
+    "shadow-cljs": "2.11.4",
     "truffle": "5.0.38",
-    "shadow-cljs": "2.11.4"
+    "clj-kondo": "^2020.1.13"
   },
   "engines": {
     "node": "11.14.0"

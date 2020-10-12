@@ -58,8 +58,8 @@
                                         (sql/format statement
                                                     :parameterizer :postgresql
                                                     :allow-namespaced-names? true))
-         _ (log/debug "Running QUERY " {:q query-str
-                                        :statement statement})
+         #_#__ (log/debug "Running QUERY " {:q query-str
+                                            :statement statement})
          res (<? (.query conn query-str (clj->js (or values []))))]
      (->> (js->clj (.-rows res))
           (map #(map-keys transform-result-keys-fn %))))))

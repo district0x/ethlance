@@ -45,6 +45,9 @@ jobs:
           key: npm-dependencies-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
+      - run:
+          name: Lint projects namespaces
+          command: yarn lint
       - run: env ETHLANCE_ENV=dev npx truffle migrate --network ganache --reset
       - run: lein doo node "test-server" once
       - slack/status:

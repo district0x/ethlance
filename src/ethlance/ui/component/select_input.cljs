@@ -1,10 +1,7 @@
 (ns ethlance.ui.component.select-input
-  (:require
-   [cuerdas.core :as string]
-   [reagent.core :as r]
-   
-   [ethlance.ui.component.icon :refer [c-icon]]))
-
+  (:require [cuerdas.core :as string]
+            [ethlance.ui.component.icon :refer [c-icon]]
+            [reagent.core :as r]))
 
 (defn filter-selections
   [search-text selections]
@@ -12,7 +9,6 @@
     (->> selections
          (filter #(string/includes? (string/lower %) (string/lower search-text))))
     selections))
-
 
 (defn c-select-input
   "Select Input Component for a dropdown listing of selections. Can also
@@ -45,17 +41,12 @@
 
   :size - Component Size Styling. `:large`, `:default`. [default:
   `:default`]"
-  [{:keys [label
-           selections
-           on-select
-           default-selection
-           selection
+  [{:keys [default-selection
            color
            search-bar?
            default-search-text
            size]
-    :or {default-search-text "Search"}
-    :as opts}]
+    :or {default-search-text "Search"}}]
   (let [*open? (r/atom false)
         *current-default-selection (r/atom default-selection)
         *search-text (r/atom "")

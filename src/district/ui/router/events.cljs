@@ -50,14 +50,14 @@
 (reg-event-fx
   ::watch-active-page
   interceptors
-  (fn [{:keys [:db]} [watchers]]
+  (fn [_ [watchers]]
     {::effects/watch-active-page watchers}))
 
 
 (reg-event-fx
   ::unwatch-active-page
   interceptors
-  (fn [{:keys [:db]} [watchers]]
+  (fn [_ [watchers]]
     {::effects/unwatch-active-page watchers}))
 
 

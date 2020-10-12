@@ -1,28 +1,20 @@
 (ns ethlance.ui.page.invoices.events
-  (:require
-   [re-frame.core :as re]
-   [district.parsers :refer [parse-int parse-float]]
-   [district.ui.router.effects :as router.effects]
-   [ethlance.shared.constants :as constants]
-   [ethlance.shared.mock :as mock]
-   [ethlance.ui.event.utils :as event.utils]
-   [ethlance.ui.event.templates :as event.templates]))
+  (:require [district.ui.router.effects :as router.effects]
+            [ethlance.ui.event.utils :as event.utils]
+            [re-frame.core :as re]))
 
 ;; Page State
 (def state-key :page.invoices)
 (def state-default
   {})
 
-
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  [{:keys [db]} _]
-  (let [page-state (get db state-key)]
-    {::router.effects/watch-active-page
-     [{:id :page.invoices/initialize-page
-       :name :route.invoice/index
-       :dispatch []}]}))
-
+  [{:keys []} _]
+  {::router.effects/watch-active-page
+   [{:id :page.invoices/initialize-page
+     :name :route.invoice/index
+     :dispatch []}]})
 
 ;;
 ;; Registered Events
