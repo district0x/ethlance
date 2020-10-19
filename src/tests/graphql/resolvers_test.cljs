@@ -1,5 +1,5 @@
-(ns ethlance.server.graphql.resolvers-test
-  (:require [cljs.core.async :refer [go <!]]
+(ns tests.graphql.resolvers-test
+  #_(:require [cljs.core.async :refer [go <!]]
             [cljs.nodejs :as nodejs]
             [cljs.test :refer-macros [deftest is testing async use-fixtures]]
             [district.server.async-db :as db]
@@ -13,39 +13,40 @@
             [taoensso.timbre :as log]
             [clojure.string :as str]))
 
-(async-helpers/extend-promises-as-channels!)
+#_(async-helpers/extend-promises-as-channels!)
 
 ;; Contains {"userAddress": "0x4c3f13898913f15f12f902d6480178484063a6fb"} signed with secret-token
 (def access-token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQWRkcmVzcyI6IjB4NGMzZjEzODk4OTEzZjE1ZjEyZjkwMmQ2NDgwMTc4NDg0MDYzYTZmYiIsImlhdCI6MTU4ODA5NTQxNn0.qGvidhMxes5rjXWvQf32n1vNSepGr3F3-voItByYBpU")
 (def secret-token "SECRET")
 
-(use-fixtures :once
+#_(use-fixtures :once
   {:before (fn []
              (async done
                     (safe-go
                      (log/debug "Running before fixture")
-                     (let [comps (<? (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
-                                                           :district/db {:user "user"
-                                                                         :host "localhost"
-                                                                         :database "ethlance"
-                                                                         :password "pass"
-                                                                         :port 5432}
-                                                           :ethlance/db {:resync? true}
-                                                          :graphql {:port 4000
-                                                                    :sign-in-secret secret-token}
-                                                          :logging {:level :debug
-                                                                    :console? true}})
-                                        (mount/only [#'district.server.logging/logging
-                                                     #'district.server.async-db/db
-                                                     #'district.server.config/config
-                                                     #'ethlance.server.db/ethlance-db
-                                                     #'ethlance.server.graphql.server/graphql])
-                                        (mount/start)))]
+                     (let [comps #_<?
+                           (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
+                                                 :district/db {:user "user"
+                                                               :host "localhost"
+                                                               :database "ethlance"
+                                                               :password "pass"
+                                                               :port 5432}
+                                                 :ethlance/db {:resync? true}
+                                                 :graphql {:port 4000
+                                                           :sign-in-secret secret-token}
+                                                 :logging {:level :debug
+                                                           :console? true}})
+                               (mount/only [#'district.server.logging/logging
+                                            #'district.server.async-db/db
+                                            #'district.server.config/config
+                                            #'ethlance.server.db/ethlance-db
+                                            #'ethlance.server.graphql.server/graphql])
+                               (mount/start))]
                        (log/info "Started" comps))
                      (done))))
    :after (fn [] (log/debug "Running after fixture"))})
 
-(deftest test-resolvers
+#_(deftest test-resolvers
   (async done
          (go
            (let [api-endpoint "http://localhost:4000/graphql"
@@ -217,7 +218,7 @@
 
              (done)))))
 
-(deftest test-mutations
+#_(deftest test-mutations
   (async done
          (go
            (let [api-endpoint "http://localhost:4000/graphql"

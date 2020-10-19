@@ -1,16 +1,14 @@
 (ns ethlance.server.graphql.server
   (:require [cljs.nodejs :as nodejs]
+            [cljs.reader :refer [read-string]]
             [district.server.config :as config]
             [district.shared.async-helpers :refer [promise->]]
-            [ethlance.shared.utils :as shared-utils]
-            [ethlance.server.graphql.authorization :as authorization]
-            [ethlance.server.graphql.resolvers :as resolvers]
             [ethlance.server.graphql.middlewares :as middlewares]
+            [ethlance.server.graphql.resolvers :as resolvers]
             [ethlance.shared.graphql.schema :as schema]
+            [ethlance.shared.utils :as shared-utils]
             [mount.core :as mount :refer [defstate]]
-            [cljs.reader :refer [read-string]]
-            [taoensso.timbre :as log]
-            [clojure.string :as str]))
+            [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
 
@@ -22,14 +20,12 @@
 (def makeExecutableSchema (aget (nodejs/require "graphql-tools") "makeExecutableSchema"))
 (def applyMiddleware (aget (nodejs/require "graphql-middleware") "applyMiddleware"))
 
-
 (declare start stop)
-
 
 (defstate ^{:on-reload :noop} graphql
   :start (start (merge (:graphql @config/config)
                        (:graphql (mount/args))))
-  :stop (stop))
+  :stop (stop graphql))
 
 (defn start [opts]
   (let [executable-schema (makeExecutableSchema (clj->js {:typeDefs (gql schema/schema)
@@ -60,11 +56,11 @@
                  (log/info "Graphql with express middleware server started...")
                  (js->clj url :keywordize-keys true)))))
 
-(defn stop []
+(defn stop [graphql]
   (promise-> @graphql
-             (fn [{:keys [:server] :as resp}]
+             (fn [{:keys [server]}]
                (js/Promise.
-                (fn [resolve reject]
+                (fn [resolve _]
                   (js-invoke server "close" (fn []
                                               (log/debug "Graphql server stopped...")
                                               (resolve ::stopped))))))))
@@ -72,8 +68,8 @@
 ;; TODO : implement restart
 (defn restart []
   (log/debug "restarting graphql server")
-  (let [opts (merge (:graphql @config/config)
+  #_(let [opts (merge (:graphql @config/config)
                     (:graphql (mount/args)))]
-    #_(promise-> (stop)
+    (promise-> (stop)
                (fn [resp]
                  (start opts)))))

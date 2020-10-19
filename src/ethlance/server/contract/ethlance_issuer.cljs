@@ -1,6 +1,5 @@
 (ns ethlance.server.contract.ethlance-issuer
-  (:require [district.server.smart-contracts :as contracts]
-            [ethlance.server.contract :as ethlance-contracts]))
+  (:require [district.server.smart-contracts :as contracts]))
 
 (def ^:dynamic *enthlance-issuer-key*
   "The main contract key"
@@ -30,16 +29,16 @@
 (defn test-ethlance-jobs-address []
   (contracts/contract-address *ethlance-jobs-key*))
 
-(defn issue-bounty [address [bounty-data-hash deadline token-address token-version deposit :as args] opts]
+(defn issue-bounty [address args opts]
   (contracts/contract-send [*enthlance-issuer-key* address] :issue-bounty args (merge {:gas 5e6} opts)))
 
-(defn issue-job [address [job-data-hash token-address token-version deposit :as args] opts]
+(defn issue-job [address args opts]
   (contracts/contract-send [*enthlance-issuer-key* address] :issue-job args (merge {:gas 5e6} opts)))
 
-(defn invite-arbiters [address [arbiters-addresses fee job-id job-type :as args] opts]
+(defn invite-arbiters [address args opts]
   (contracts/contract-send [*enthlance-issuer-key* address] :invite-arbiters args opts))
 
-(defn accept-arbiter-invitation [address [job-id job-type :as args] opts]
+(defn accept-arbiter-invitation [address args opts]
   (contracts/contract-send [*enthlance-issuer-key* address] :accept-arbiter-invitation args opts))
 
 (defn standard-bounties-event-in-tx [event-key tx-receipt]

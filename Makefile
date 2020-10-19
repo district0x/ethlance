@@ -78,10 +78,11 @@ dev-server:
 fig-dev-server:
 	lein with-profile +dev-server figwheel dev-server
 
+watch-server:
+	npx shadow-cljs watch dev-server
 
 watch-ui:
 	npx shadow-cljs watch dev-ui
-
 
 clean:
 	lein clean
@@ -90,12 +91,10 @@ clean:
 	rm -rf ./resources/public/css
 	rm -rf ./resources/public/contracts/build
 
-
 clean-all: clean
 	rm -rf node_modules
 	make -C ./designs clean
 	make -C ./docs clean
-
 
 lein-deps:
 	rm -rf ./node_modules/websocket/.git # Hotfix

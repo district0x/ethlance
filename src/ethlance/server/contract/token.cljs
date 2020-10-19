@@ -9,14 +9,7 @@
   and testing environment. Public use of this contract as a store of
   value is not recommended."
   (:refer-clojure :exclude [name symbol])
-  (:require
-   [bignumber.core :as bn]
-   [cljs-web3-next.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]
-   [clojure.core.async :as async :refer [go go-loop <! >! chan] :include-macros true]
-   [ethlance.shared.async-utils :refer [<!-<log <!-<throw flush! go-try] :include-macros true]
-   [ethlance.server.contract]))
-
+  (:require [district.server.smart-contracts :as contracts]))
 
 (def ^:dynamic *token-key*
   "The main contract key"

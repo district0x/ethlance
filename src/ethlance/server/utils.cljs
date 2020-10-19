@@ -1,9 +1,9 @@
 (ns ethlance.server.utils
   (:require [cljs-ipfs-api.files :as ipfs-files]
-            [taoensso.timbre :as log]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [taoensso.timbre :as log]))
 
-(defn- parse-meta [{:keys [:content :on-success :on-error] :as data}]
+(defn- parse-meta [{:keys [:content :on-success :on-error]}]
   (let [content (str/replace content "\n" "")
         json-part (second (re-find #".+?(\{.+\}).*" content))]
     (try

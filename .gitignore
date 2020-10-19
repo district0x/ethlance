@@ -4,7 +4,7 @@
 /resources/public/contracts
 /resources/public/contracts/build/*.bin
 /resources/public/js
-/resources/public/js/cljs-runtime
+/resources/public/js/cljs-runtime/*
 /resources/public/css
 /resources/ethlance.db
 /.idea
@@ -29,4 +29,10 @@ smart_contracts_dev.cljs
 ethlance.db
 .shadow-cljs
 ui/node_modules/
+server/node_modules/
 .clj-kondo/.cache/
+ethlance.zip
+server/cljs-runtime/
+server/ethlance_server.js
+server/yarn-error.log
+server/tests/

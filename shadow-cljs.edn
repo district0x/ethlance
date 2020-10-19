@@ -1,4 +1,4 @@
-{:source-paths ["src" "resources" "src-cljsjs"]
+{:source-paths ["src" "resources" "src-cljsjs" "test"]
  :dev-http {6500 "resources/public/"}
  :dependencies [[akiroz.re-frame/storage "0.1.4"]
                 [binaryage/devtools "0.9.10"]
@@ -66,7 +66,18 @@
                 [re-frame "0.12.0"]
                 [re-frisk "1.3.4"]
                 [reagent "0.10.0"]
-                [refactor-nrepl "2.5.0"]]
+                [refactor-nrepl "2.5.0"]
+
+                [district0x/district-graphql-utils "1.0.10"]
+                [district0x/district-server-config "1.0.1"]
+                [district0x/district-server-db "1.0.4"]
+                [district0x/district-server-logging "1.0.6"]
+                [district0x/district-server-middleware-logging "1.0.0"]
+                [district0x/district-server-smart-contracts "1.2.5"]
+                [district0x/district-server-web3 "1.2.6"]
+                [district0x/district-server-web3-events "1.1.10"]
+
+                ]
 
  :nrepl {:middleware [cider.piggieback/wrap-cljs-repl
                       refactor-nrepl.middleware/wrap-refactor]}
@@ -74,33 +85,40 @@
  :http {:port 3449
         :host "0.0.0.0"}
 
- :builds {:dev-ui {:target :browser
-                   :modules {:main {:init-fn ethlance.ui.core/init}}
-                   :main ethlance.ui.core
-                   :infer-externs true
-                   :js-options {:js-package-dirs ["./ui/node_modules"]}
-                   :npm-deps false
-                   :output-dir "resources/public/js/"
-                   :optimizations :none
-                   :source-map true
-                   :source-map-timestamp true
-                   :preloads [devtools.preload
-                              re-frisk.preload]
-                   :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
-                                     goog.DEBUG true}}
-          ;; :dev-server {:target :node-script
-          ;;              :main ethlance.server.core
-          ;;              :output-to "target/node/ethlance_server.js"
-          ;;              :output-dir "target/node/out-dev-server"
-          ;;              :optimizations :none
-          ;;              :source-map true
-          ;;              :source-map-timestamp true
-          ;;              :closure-defines {goog.DEBUG true}}
+ :builds {:dev-ui
+          {:target :browser
+           :modules {:main {:init-fn ethlance.ui.core/init}}
+           :main ethlance.ui.core
+           :infer-externs true
+           :js-options {:js-package-dirs ["./ui/node_modules"]}
+           :npm-deps false
+           :output-dir "resources/public/js/"
+           :optimizations :none
+           :source-map true
+           :source-map-timestamp true
+           :preloads [devtools.preload
+                      re-frisk.preload]
+           :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
+                             goog.DEBUG true}}
 
-          ;; :test-server {:target :node-script
-          ;;               :main ethlance.server.test-runner
-          ;;               :output-to "target/node_test/test_runner.js"
-          ;;               :output-dir "target/node_test/out-server-test-runner"
-          ;;               :source-map-timestamp true
-          ;;               :closure-defines {goog.DEBUG true}}
-          }}
+          :dev-server
+          {:target :node-script
+           :main ethlance.server.core/-main
+           :js-options {:js-package-dirs ["./server/node_modules"]}
+           :output-dir "server/"
+           :output-to "server/ethlance_server.js"
+           :optimizations :none
+           :source-map true
+           :source-map-timestamp true
+           :closure-defines {goog.DEBUG true}}
+
+          :server-tests
+          {:target :node-test
+           :js-options {:js-package-dirs ["./server/node_modules"]}
+           :output-dir "server/tests"
+           :output-to "server/tests/server-tests.js"
+           :ns-regexp "tests."
+           :optimizations :none
+           ;; needs to be set to false to report correct status code in CI
+           :autorun false
+           :closure-defines {goog.DEBUG true}}}}

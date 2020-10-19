@@ -1,4 +1,4 @@
-(ns ethlance.server.graphql.generator
+(ns tests.graphql.generator
   (:require
 
    [district.server.db :as db]

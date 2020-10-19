@@ -1,6 +1,6 @@
-(ns ethlance.server.contract.token-test
+(ns tests.contract.token-test
   "Unit Tests for Token wrapper."
-  (:require
+  #_(:require
    [bignumber.core :as bn]
    [clojure.test :refer [deftest is are testing use-fixtures]]
    [cljs-web3-next.eth :as web3-eth]
@@ -12,10 +12,10 @@
    [ethlance.server.contract.token :as token]
    [ethlance.server.test-utils :refer-macros [deftest-smart-contract-go]]))
 
-(defn bignum [n]
+#_(defn bignum [n]
   (str n))
 
-(deftest-smart-contract-go main-token-1 {}
+#_(deftest-smart-contract-go main-token-1 {}
   (let [token-address (token/test-token-address)]
     (println "Test token address " token-address)
 
@@ -41,7 +41,7 @@
         (is (bn/= (<? (token/balance-of token-address user2)) (bignum 200)))
         (is (bn/= (<? (token/balance-of token-address user3)) (bignum 300)))))))
 
-(deftest-smart-contract-go main-token-2 {}
+#_(deftest-smart-contract-go main-token-2 {}
   (let [token-address (token/test-token-address)]
     (println "Test token address " token-address)
 
