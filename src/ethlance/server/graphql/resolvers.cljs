@@ -1,17 +1,16 @@
 (ns ethlance.server.graphql.resolvers
-  (:require [cljs.nodejs :as nodejs]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
+            [district.graphql-utils :as graphql-utils]
             [district.server.async-db :as db :include-macros true]
-            [district.shared.async-helpers :refer [safe-go <? promise->]]
-            [ethlance.server.graphql.authorization :as authorization]
+            [district.shared.async-helpers :refer [<? safe-go]]
             [district.shared.error-handling :refer [try-catch-throw]]
             [ethlance.server.db :as ethlance-db]
-            [district.graphql-utils :as graphql-utils]
+            [ethlance.server.event-replay-queue :as replay-queue]
+            [ethlance.server.graphql.authorization :as authorization]
+            [ethlance.server.syncer :as syncer]
             [honeysql.core :as sql]
             [honeysql.helpers :as sql-helpers]
-            [taoensso.timbre :as log]
-            [ethlance.server.event-replay-queue :as replay-queue]
-            [ethlance.server.syncer :as syncer]))
+            [taoensso.timbre :as log]))
 
 (def axios (js/require "axios"))
 (def querystring (js/require "querystring"))
@@ -33,10 +32,7 @@
 
 (defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/full-name :user/user-name :order-by :order-direction]
                                :as args} _]
-
-  (db/with-async-resolver-conn
-   conn
-
+  (db/with-async-resolver-conn conn
    (log/debug "user-search-resolver" args)
    (let [query (cond-> {:select [:*]
                         :from [:Users]}
@@ -409,8 +405,6 @@
      (<? (paged-query conn query limit offset)))))
 
 (defn sign-in-mutation [_ {:keys [:input]} {:keys [config]}]
-  "Graphql sign-in mutation. Given `data` and `data-signature`
-  recovers user address. If successful returns a JWT containing the user address."
   (try-catch-throw
    (let [sign-in-secret (-> config :graphql :sign-in-secret)
          {:keys [:data-signature :data] :as input} (graphql-utils/gql-input->clj input)
@@ -419,7 +413,7 @@
      (log/debug "sign-in-mutation" {:input input})
      jwt)))
 
-(defn send-message-mutation [_ {:keys [:to :text]} {:keys [:config :current-user :timestamp]}]
+(defn send-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
   (db/with-async-resolver-tx conn
    (<? (ethlance-db/add-message conn {:message/type :direct-message
                                       :message/date-created timestamp
@@ -427,7 +421,7 @@
                                       :message/text text
                                       :direct-message/receiver to}))))
 
-(defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [:config :current-user :timestamp]}]
+(defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [current-user timestamp]}]
   (db/with-async-resolver-tx conn
    (<? (ethlance-db/add-message conn {:message/type :job-story-message
                                       :job-story-message/type :raise-dispute
@@ -436,7 +430,7 @@
                                       :message/creator (:user/address current-user)
                                       :message/text text}))))
 
-(defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [:config :current-user :timestamp]}]
+(defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [current-user timestamp]}]
   (db/with-async-resolver-tx conn
    (<? (ethlance-db/add-message conn {:message/type :job-story-message
                                       :job-story-message/type :resolve-dispute
@@ -445,7 +439,7 @@
                                       :message/creator (:user/address current-user)
                                       :message/text "Dispute resolved"}))))
 
-(defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [:config :current-user :timestamp]}]
+(defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [current-user timestamp]}]
   (db/with-async-resolver-tx conn
    (<? (ethlance-db/add-message conn {:message/type :job-story-message
                                       :job-story-message/type :feedback
@@ -456,7 +450,7 @@
                                       :feedback/rating rating
                                       :user/address to}))))
 
-(defn update-employer-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
+(defn update-employer-mutation [_ {:keys [input]} {:keys [timestamp]}]
 (db/with-async-resolver-tx conn
     (let [{:user/keys [address]} input
           response {:user/address address
@@ -468,7 +462,7 @@
                                              (merge response))))
       response)))
 
-(defn update-candidate-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
+(defn update-candidate-mutation [_ {:keys [input]} {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
     (let [{:user/keys [address]} input
           response {:user/address address
@@ -480,7 +474,7 @@
                                              (merge response))))
       response)))
 
-(defn update-arbiter-mutation [_ {:keys [input]} {:keys [config current-user timestamp]}]
+(defn update-arbiter-mutation [_ {:keys [input]} {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
     (let [{:user/keys [address]} input
           response {:user/address address
@@ -492,7 +486,7 @@
                                              (merge response))))
       response)))
 
-(defn create-job-proposal-mutation [_ {:keys [:job/id :text :rate :rate-currency-id]} {:keys [:config :current-user :timestamp]}]
+(defn create-job-proposal-mutation [_ {:keys [text rate rate-currency-id]} {:keys [current-user timestamp]}]
   (db/with-async-resolver-tx conn
    (<? (ethlance-db/add-message conn {:message/type :job-story-message
                                       :job-story-message/type :proposal
@@ -587,10 +581,6 @@
           (<? (dispatch-event nil ev)))))))
 
 (defn require-auth [next]
-  "Given a `resolver` fn returns a wrapped resolver.
-  It will call the given `resolver` if the request contains currentUser,
-  see `ethlance.server.graphql.mutations.sign-in/session-middleware`.
-  It will throw a error otherwise."
   (fn [root args {:keys [:current-user] :as context} info]
     (if-not current-user
       (throw (js/Error. "Authentication required"))

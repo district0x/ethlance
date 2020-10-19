@@ -1,37 +1,28 @@
 (ns ethlance.server.db
   "Represents the ethlance in-memory sqlite database. Contains a mount
   component for creating the in-memory database upon initial load."
-  (:require
-   [clojure.pprint :as pprint]
-   [com.rpl.specter :as $ :include-macros true]
-   [cuerdas.core :as str]
-   [district.server.config :refer [config]]
-   [district.server.async-db :as db]
-   [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
-   [district.server.db.honeysql-extensions]
-   [honeysql.core :as sql]
-   [medley.core :as medley]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]
-   [district.shared.async-helpers :refer [safe-go <?]]
-   [district.server.async-db :as async-db]
-   [clojure.set :as set]))
-
+  (:require [clojure.pprint :as pprint]
+            [clojure.set :as set]
+            [com.rpl.specter :as $ :include-macros true]
+            [cuerdas.core :as str]
+            [district.server.async-db :as db]
+            [district.server.config :refer [config]]
+            [district.server.db.column-types :refer [not-nil]]
+            [district.shared.async-helpers :refer [<? safe-go]]
+            [honeysql.core :as sql]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (declare start stop)
-
 
 (def mount-state-key
   "Key defining our mount component within the district configuration"
   :ethlance/db)
 
-
 (defstate ^{:on-reload :noop} ethlance-db
   :start (start (merge (get @config mount-state-key)
                        (mount-state-key (mount/args))))
   :stop (stop))
-
-
 
 (def database-schema
   "Represents the database schema, consisting of tables, and their
@@ -397,8 +388,6 @@
 
     :list-keys []}
 
-
-
    {:table-name :File
     :table-columns
     [[:file/id :integer]
@@ -433,7 +422,7 @@
 (defn print-db
   "(print-db) prints all db tables to the repl
    (print-db :users) prints only users table"
-  ([conn] (print-db nil))
+  ([_] (print-db nil))
   ([conn table]
    (safe-go
     (let [select (fn [& [select-fields & r]]
@@ -448,10 +437,9 @@
         (println "#######" (str/upper t) "#######")
         (select [:*] :from [(keyword t)]))))))
 
-;; (defn table-exists?
-;;   [name]
-;;   (contains? (set (list-tables)) name))
-
+#_(defn table-exists?
+  [name]
+  (contains? (set (list-tables)) name))
 
 (defn- get-table-schema
   "Retrieve the given table schema defined by `table-name` from the
@@ -465,7 +453,7 @@
     (assoc schema :id-keys id-keys)))
 
 
-(defn- get-table-pk-columns [table-name]
+#_(defn- get-table-pk-columns [table-name]
   (let [table-schema (get-table-schema table-name)]
     (->> (:table-columns table-schema)
          (mapcat (fn [x]
@@ -488,7 +476,6 @@
          (map first)
          (filter keyword?))))
 
-
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
   [conn]
@@ -499,16 +486,15 @@
      (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))
    #_(log/debug "Tables Created: " (list-tables conn))))
 
-
 (defn drop-db!
   "Drops all of the database tables defined in the `database-schema`."
   [conn]
   (safe-go
    (log/info "Dropping Sqlite Database...")
    (doseq [{:keys [table-name]} (reverse database-schema)]
-     (log/debug (str/format "  - Dropping Database Table '%s' ..." table-name) {:conn conn})
+     (log/debug (str/format "Dropping Database Table '%s' ..." table-name) {:conn conn})
      (<? (db/run! conn {:drop-table [:if-exists table-name]}))
-     (log/debug "DONE"))))
+     #_(log/debug "DONE"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Row manipulation utils ;;
@@ -521,7 +507,7 @@
   table-name and item structure are defined in the `database-schema`."
   [conn table-name item]
   (safe-go
-   (if-let [table-schema (get-table-schema table-name)]
+   (if (get-table-schema table-name)
      (let [table-column-names (set (get-table-column-names table-name))
            auto-increment-columns (get-table-columns-by-type table-name auto-increment-types)
            ;; remove auto increment columns that are nil in the item
@@ -544,7 +530,6 @@
                       #_(print-db conn)))))
      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
-
 (defn update-row!
   "Updates the given `table-name` with the given `item`. The table-name
   and item structure are defined in the `database-schema`.
@@ -558,7 +543,7 @@
   (safe-go
    (if-let [table-schema (get-table-schema table-name)]
      (do
-       (assert (not (empty? (:id-keys table-schema)))
+       (assert (seq (:id-keys table-schema))
                (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
        (let [table-column-names (get-table-column-names table-name)
              item (select-keys item table-column-names)
@@ -592,7 +577,7 @@
   (safe-go
    (if-let [table-schema (get-table-schema table-name)]
      (do
-       (assert (not (empty? (:id-keys table-schema)))
+       (assert (seq (:id-keys table-schema))
                (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
        (let [table-column-names (get-table-column-names table-name)
              item (select-keys item table-column-names)
@@ -769,12 +754,11 @@
   (safe-go
    (<? (insert-row! conn :JobStoryMessage job-story-message))))
 
-(defn add-message-file [conn message-id {:keys [:file/name :file/hash :file/directory-hash] :as file}]
+(defn add-message-file [conn message-id file]
   (safe-go
-   (let [file-id (-> (<? (insert-row! conn :File file))
-                     :file/id)]
+   (let [{:file/keys [id]} (<? (insert-row! conn :File file))]
      (<? (insert-row! conn :MessageFile {:message/id message-id
-                                         :file/id file-id})))))
+                                         :file/id id})))))
 
 (defn update-ethlance-job-candidate [conn ethlance-job-id user-address]
   (safe-go
@@ -827,12 +811,14 @@
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
 
-(defn refund-job-contribution [conn job-id contribution-id]
+(defn refund-job-contribution [_ _ _]
+  ;; [conn job-id contribution-id]
   ;; TODO: implement this, delete from the table
   (safe-go)
   )
 
-(defn update-job-approvers [conn job-id approvers-addresses]
+(defn update-job-approvers [_ _ _]
+  ;; [conn job-id approvers-addresses]
   ;; TODO: implement this
   ;; we can grab the current ones, remove the ones that shouldn't be there
   ;; delete all from db and insert the calculated ones again
@@ -842,9 +828,9 @@
 
 (defn start
   "Start the ethlance-db mount component."
-  [{:keys [:resync?] :as opts}]
+  [{:keys [resync?]}]
   (safe-go
-   (let [conn (<? (async-db/get-connection))]
+   (let [conn (<? (db/get-connection))]
      (log/info "Starting Ethlance DB component" {})
      (when resync?
        (log/info "Database module called with a resync flag.")

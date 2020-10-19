@@ -1,5 +1,7 @@
 {:linters {:single-key-in {:level :error}
            :unsorted-required-namespaces {:level :warning}
            :unresolved-symbol {:exclude [(mount.core/defstate)
-                                         (cljs.core.match/match)]}
+                                         (cljs.core.match/match)
+                                         (district.server.async-db/with-async-resolver-conn [conn])
+                                         (district.server.async-db/with-async-resolver-tx [conn])]}
            :lint-as {mount.core/defstate clojure.core/def}}}

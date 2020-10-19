@@ -1,54 +1,36 @@
 (ns ethlance.server.core
-  "Main entrypoint for the ethlance server."
-  (:require
-   [mount.core :as mount]
-   [taoensso.timbre :as log]
-   [cljs.nodejs :as nodejs]
-   [cljs-web3.eth :as web3-eth]
-
-   ;; District Mount Components
-   [district.server.web3]
-   [district.server.web3-events]
-   [district.server.config :refer [config]]
-   [district.server.smart-contracts]
-   [district.server.logging]
-   [taoensso.timbre :as timbre]
-
-   ;; District Libraries
-   [district.shared.async-helpers :as async-helpers :refer [promise-> safe-go <?]]
-
-   ;; Ethlance Mount Components
-   [ethlance.server.graphql.server]
-   [ethlance.server.syncer]
-   [district.server.db.honeysql-extensions]
-   [district.server.db]
-   [district.server.async-db]
-   [ethlance.server.db]
-   [ethlance.server.ipfs]
-   [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
-   [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-   [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
-
-   ;; Ethlance Libraries
-
-   [ethlance.shared.utils :as shared-utils]))
-
+  (:require [district.server.async-db]
+            [district.server.config :refer [config]]
+            [district.server.db.honeysql-extensions]
+            [district.server.db]
+            [district.server.logging]
+            [district.server.smart-contracts]
+            [district.server.web3-events]
+            [district.server.web3]
+            [district.shared.async-helpers :as async-helpers :refer [safe-go]]
+            [ethlance.server.db]
+            [ethlance.server.graphql.server]
+            [ethlance.server.ipfs]
+            [ethlance.server.syncer]
+            [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+            [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
+            [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
+            [ethlance.shared.utils :as shared-utils]
+            [mount.core :as mount]
+            [taoensso.timbre :refer [merge-config!] :as log]))
 
 (def environment (shared-utils/get-environment))
-
 
 (def graphql-config
   {:port 4000
    :sign-in-secret "SECRET"
    :graphiql (= environment "dev")})
 
-
 (def contracts-var
   (condp = environment
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
     "dev" #'smart-contracts-dev/smart-contracts))
-
 
 (def default-config
   {:web3 {:url "ws://127.0.0.1:8549"}
@@ -80,50 +62,40 @@
                           :ethlance-jobs/job-issuers-updated [:ethlance-jobs :JobIssuersUpdated]
                           :ethlance-jobs/job-approvers-updated [:ethlance-jobs :JobApproversUpdated]
                           :ethlance-jobs/job-data-changed [:ethlance-jobs :JobDataChanged]
-                          :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted]
-
-                          }
+                          :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted]}
                  :from-block 1
                  :block-step 1000
                  :crash-on-event-fail? true
                  :skip-past-events-replay? true
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
-
    :smart-contracts {:contracts-var contracts-var
                      :print-gas-usage? false
                      :auto-mining? false}
-
    :graphql graphql-config
-
-   ;; :db {:path "./ethlance.db"
-   ;;      :opts {:memory false}}
-
    :district/db {:user "user"
                  :host "localhost"
                  :database "ethlance"
                  :password "pass"
                  :port 5432}
-
    :ethlance/db {:resync? true}
-
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"
           :gateway "http://127.0.0.1:8080/ipfs"}
    :logging {:level "debug"
-             :console? true}
-   })
+             :console? true}})
 
-(defn -main [& args]
+(defn -main [& _]
   (log/info "Initializing Server...")
   (async-helpers/extend-promises-as-channels!)
   (println "starting with " default-config)
-  (timbre/merge-config!
+  (merge-config!
    {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go
    (try
-     (let [start-result (<? (-> (mount/with-args {:config {:default default-config}})
-                                (mount/start)))]
+     (let [start-result #_<?
+           (-> (mount/with-args {:config {:default default-config}})
+               (mount/start))]
        (log/warn "Started" {:components start-result
                             :config @config}))
      (catch js/Error e

@@ -1,5 +1,5 @@
-(ns ethlance.server.contract.bounty-test
-  (:require
+(ns tests.contract.bounty-test
+  #_(:require
    [bignumber.core :as bn]
    cljsjs.bignumber
    [clojure.test :refer [deftest is are testing use-fixtures]]
@@ -19,11 +19,11 @@
 (def ethlance-standard-bounty-meta-1 "QmRGpWTDJ6CfpJwnsL8wP939G9bKz7tGr6U2gvchvFeGx8") ;; ethlance-standard-bounty-meta-1.json
 (def gitcoin-standard-bounty-meta-1 "QmcjTwJeEpP4wFYRiZcv5w5vU5csafuJenp6aMggzHhQ29") ;; gitcoin-standard-bounty-meta-1.json
 
-(defn gas-price
+#_(defn gas-price
   [provider]
   (js-invoke (aget provider "eth") "getGasPrice"))
 
-(deftest-smart-contract-go issue-bounty-test {}
+#_(deftest-smart-contract-go issue-bounty-test {}
   (let [hex  (partial web3-utils/to-hex @web3)
         [deployer] (<! (web3-eth/accounts @web3))
         ethlance-issuer-address (ethlance-issuer/test-ethlance-issuer-address)
@@ -79,8 +79,7 @@
 
     ))
 
-
-(deftest-smart-contract-go arbiters-test {}
+#_(deftest-smart-contract-go arbiters-test {}
   (let [bn #(js/BigNumber. %)
         gp (<? (gas-price @web3))
         hex  (partial web3-utils/to-hex @web3)

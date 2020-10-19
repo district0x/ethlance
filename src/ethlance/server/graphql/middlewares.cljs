@@ -1,12 +1,9 @@
 (ns ethlance.server.graphql.middlewares
-  (:require [district.shared.async-helpers :as async-helpers]
-            [district.graphql-utils :as graphql-utils]
-            [taoensso.timbre :as log]
-            [clojure.string :as str]
-            [ethlance.server.db :as ethlance-db]
-            [district.server.async-db :as db]
+  (:require [district.graphql-utils :as graphql-utils]
             [district.server.config :as config]
-            [ethlance.server.graphql.authorization :as authorization]))
+            [district.shared.async-helpers :as async-helpers]
+            [ethlance.server.graphql.authorization :as authorization]
+            [taoensso.timbre :as log]))
 
 ;; TODO : root-value->clj middleware
 
@@ -32,7 +29,7 @@
                                          :info info})
   (resolve root args context info))
 
-(defn current-user-express-middleware [req res next]
+(defn current-user-express-middleware [req _ next]
   (let [secret (-> @config/config :graphql :sign-in-secret)
         headers (js->clj (.-headers req) :keywordize-keys true)
         current-user (authorization/token->user (:access-token headers) secret)]

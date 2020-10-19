@@ -1,21 +1,16 @@
 (ns ethlance.server.contract.ds-guard
   "Functions for manipulating the DSGuard contract."
-  (:require
-   [cljs-web3-next.eth :as web3-eth]
-   [district.server.smart-contracts :as contracts]
-   [ethlance.server.contract]))
-
+  (:require [district.server.smart-contracts :as contracts]
+            ethlance.server.contract))
 
 (def ^:dynamic *guard-key*
   "The default guard contract key."
   :ds-guard)
 
-
 (defn address
   "Address of the Deployed DSGuard Instance."
   []
   (contracts/contract-address *guard-key*))
-
 
 (defn call
   "Call the DSGuard contract with the given `method-name` and using the
@@ -27,11 +22,9 @@
    :contract-arguments args
    :contract-options opts))
 
-
 (def ANY
   "The ANY address for authority whitelisting."
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
-
 
 (defn permit!
   "Permit a given `src` address the authority to call methods at `dst`
@@ -66,13 +59,11 @@
   [{:keys [:src :dst :sig]} & [opts]]
   (call :permit [src dst sig] (merge {:gas 100000} opts)))
 
-
 (defn can-call?
   "Returns true if the given `src` `dst` combination is authorized to
   perform the given contract-call defined by `sig`, otherwise false."
   [{:keys [:src :dst :sig]}]
   (call :can-call [src dst sig] {}))
-
 
 (defn permit-any!
   "Permits all actions by source addresses on the given destination

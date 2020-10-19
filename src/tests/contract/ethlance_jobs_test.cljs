@@ -1,5 +1,5 @@
-(ns ethlance.server.contract.ethlance-jobs-test
-  (:require
+(ns tests.contract.ethlance-jobs-test
+  #_(:require
    [bignumber.core :as bn]
    cljsjs.bignumber
    [clojure.test :refer [deftest is are testing use-fixtures]]
@@ -22,7 +22,7 @@
 (def ethlance-job-meta-1 "QmQDGjqaAULR4Rd1Ftt5vircHaWX7JxSmVWV4b1QRhjcT9") ;; ethlance-job-meta-1.json
 (def proposal-meta "Qm...")
 
-(defn gas-price
+#_(defn gas-price
   [provider]
   (js-invoke (aget provider "eth") "getGasPrice"))
 
@@ -32,7 +32,7 @@
 ;; - Issuer can accept the candidate
 ;; - Only accepted candidates can invoice
 
-(deftest-smart-contract-go issue-jobs-test {}
+#_(deftest-smart-contract-go issue-jobs-test {}
   (let [hex  (partial web3-utils/to-hex @web3)
         [issuer] (<! (web3-eth/accounts @web3))
         ethlance-issuer-address (ethlance-issuer/test-ethlance-issuer-address)
@@ -55,8 +55,7 @@
         (is (empty? (:_approvers ev)) "It should not have approvers")
         (is (= ethlance-job-meta-1 (:_ipfs-hash ev)) "It should have the correct job data hash")))))
 
-
-(deftest-smart-contract-go candidates-test {}
+#_(deftest-smart-contract-go candidates-test {}
   (let [hex  (partial web3-utils/to-hex @web3)
         [issuer candidate1 candidate2] (<! (web3-eth/accounts @web3))
         ethlance-issuer-address (ethlance-issuer/test-ethlance-issuer-address)

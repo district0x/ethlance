@@ -1,8 +1,13 @@
 (ns ethlance.server.contract
   "Includes functions for working with ethereum contracts in an asynchronous manner."
-  (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! put! chan close!] :include-macros true]
-   [district.server.smart-contracts :as contracts]))
+  (:require [clojure.core.async
+             :as
+             async
+             :refer
+             [>! chan close! go put!]
+             :include-macros
+             true]
+            [district.server.smart-contracts :as contracts]))
 
 (defn call
   "Call the given `contract-address` with the kebab-case formatted

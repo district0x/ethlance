@@ -1,20 +1,18 @@
 (ns ethlance.server.ipfs
-  "Contains all of the necessary functions for adding and retrieving
-  IPFS data through the API using core.async.
-  
-  Also contains the mount component to initialize the IPFS instance."
   (:refer-clojure :exclude [get])
-  (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close! put! take!] :include-macros true]
-   [clojure.tools.reader.edn :as edn]
-   [cuerdas.core :as str]
-   [clojure.string :refer [ends-with?]]
-   [cljs-ipfs-api.core :as ipfs-core]
-   [cljs-ipfs-api.files :as ipfs-files]
-   [taoensso.timbre :as log]
-   [mount.core :as mount :refer [defstate]]
-   [district.server.config :refer [config]]))
-
+  (:require [cljs-ipfs-api.core :as ipfs-core]
+            [cljs-ipfs-api.files :as ipfs-files]
+            [clojure.core.async
+             :as
+             async
+             :refer
+             [<! >! chan close! go put!]
+             :include-macros
+             true]
+            [clojure.tools.reader.edn :as edn]
+            [district.server.config :refer [config]]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (def buffer (js/require "buffer"))
 (defn to-buffer
@@ -27,7 +25,6 @@
   (let [Buffer (.-Buffer buffer)]
     (.from Buffer x)))
 
-
 (defn start
   "Start the mount component."
   [opts]
@@ -36,16 +33,14 @@
       (log/info "IPFS Instance Started...")
       conn)
     (catch :default e
-      (log/error "Failed to connect to IPFS node")
+      (log/error "Failed to connect to IPFS node" {:error e})
       (throw (js/Error. "Can't connect to IPFS node")))))
-
 
 (defstate ipfs
   :start (start (merge (:ipfs @config)
                        (:ipfs (mount/args))))
   :stop (do (log/info "IPFS Instance Stopped...")
             :stopped))
-
 
 (defn add!
   "Add data to the IPFS network.
@@ -69,7 +64,6 @@
            (close! error-chan)))))
     [success-chan error-chan]))
 
-
 (defn get
   [ipfs-hash]
   (let [success-chan (chan 1) error-chan (chan 1)]
@@ -85,7 +79,6 @@
            (put! success-chan result)
            (close! error-chan)))))
     [success-chan error-chan]))
-
 
 (defn add-edn!
   "Add a clojure data structure to the IPFS network, where `data` is a
@@ -104,7 +97,7 @@
   namespaces outside of the EDN map structure.
 
     ex. {:user/id 1} --> #:user{:id 1} ;; Unsupported
-    
+
     versus
 
     {:user/id 1 ::dummy ::dummy} --> {:user/id 1 ::dummy ::dummy} ;; Supported
@@ -131,7 +124,6 @@
       (log/error (str "EDN Parse Error: " e))
       nil)))
 
-
 (defn get-edn
   "Get the clojure data structure stored as an EDN value for the
   resulting `hash`."
@@ -142,7 +134,7 @@
       (when-let [err (<! err-c)]
         (>! error-chan err)
         (close! success-chan))
-      
+
       (when-let [result (<! result-channel)]
         (if-let [parsed-result (parse-edn-result result)]
           (do (>! success-chan parsed-result)

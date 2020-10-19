@@ -2,6 +2,37 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@3.4.2
+  node: circleci/node@4.1.0
+  cache:
+    orbs:
+      node: circleci/node@4.1.0
+    commands:
+      with:
+        parameters:
+          cache-key:
+            default: deps.edn
+            type: string
+          cache-version:
+            default: ""
+            type: string
+          app-dir:
+            default: "."
+            type: string
+          steps:
+            type: steps
+        steps:
+          - node/install-packages:
+              app-dir: << parameters.app-dir >>
+              cache-version: << parameters.cache-version >>
+              pkg-manager: yarn
+              include-branch-in-cache-key: false
+          - restore_cache:
+              key: maven-<< parameters.cache-version >>2-{{ checksum "<< parameters.cache-key >>" }}
+          - steps: << parameters.steps >>
+          - save_cache:
+              key: maven-<< parameters.cache-version >>2-{{ checksum "<< parameters.cache-key >>" }}
+              paths:
+                - ~/.m2/repository
 
 jobs:
 
@@ -22,34 +53,36 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          name: Restore m2 package cache
+          name: Restore ethlance npm package cache
           keys:
-            - maven-dependencies-{{ checksum "project.clj" }}
-            # fallback to using the latest cache if no exact match is found
-            - maven-dependencies-
-      - run: lein deps
-      - save_cache:
-          name: Save m2 package cache
-          paths:
-            - ~/.m2
-          key: maven-dependencies-{{ checksum "project.clj" }}
-      - restore_cache:
-          name: Restore npm package cache
-          keys:
-            - npm-dependencies-{{ checksum "yarn.lock" }}
+            - npm-dependencies-ethlance-{{ checksum "yarn.lock" }}
       - run:
-          name: Install node modules
+          name: Install ethlance node modules
           command: yarn deps
       - save_cache:
-          name: Save npm package cache
-          key: npm-dependencies-{{ checksum "yarn.lock" }}
+          name: Save ethlance npm package cache
+          key: npm-dependencies-ethlance-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
       - run:
           name: Lint projects namespaces
           command: yarn lint
-      - run: env ETHLANCE_ENV=dev npx truffle migrate --network ganache --reset
-      - run: lein doo node "test-server" once
+      - run:
+          name: Deploy contracts
+          command: yarn deploy
+
+      - cache/with:
+          app-dir: server
+          cache-version: server
+          cache-key: yarn.lock
+          steps:
+            - run:
+                name: Run test suite
+                command: |
+                  yarn deps
+                  yarn tests:once
+                working_directory: server
+
       - slack/status:
           channel: travis-ci
           mentions: $CIRCLE_USERNAME

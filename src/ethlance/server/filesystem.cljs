@@ -1,11 +1,13 @@
 (ns ethlance.server.filesystem
-  "Functions wrapping nodejs 'fs' package with core.async"
-  (:require
-   [clojure.core.async :as async :refer [go go-loop <! >! chan close!] :include-macros true]))
-
+  (:require [clojure.core.async
+             :as
+             async
+             :refer
+             [>! chan close! go]
+             :include-macros
+             true]))
 
 (def fs (js/require "fs"))
-
 
 (defn read-file
   [file-path]

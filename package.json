@@ -5,50 +5,20 @@
   "scripts": {
     "deps": "yarn install --frozen-lockfile",
     "deploy": "yarn truffle migrate --network ganache --reset",
-    "watch": "lein cljsbuild auto dev-server",
     "clean": "git clean -fdx",
-    "lint": "clj-kondo --config .clj-kondo/config.edn --lint src/ethlance/ui/ src/district/ui/ src/ethlance/shared/"
+    "lint": "clj-kondo --config .clj-kondo/config.edn --lint src/ethlance/ui/ src/district/ui/ src/ethlance/shared/ src/ethlance/server/"
   },
   "dependencies": {
-    "@sentry/node": "4.2.1",
-    "apollo-server-express": "2.12.0",
-    "axios": "0.19.2",
-    "better-sqlite3": "5.4.0",
-    "body-parser": "1.19.0",
-    "chalk": "2.3.0",
-    "cors": "2.8.4",
-    "eth-sig-util": "2.4.4",
-    "ethereumjs-wallet": "0.6.0",
-    "express": "4.17.1",
-    "graphql": "14.2.1",
-    "graphql-middleware": "4.0.1",
-    "graphql-tools": "4.0.5",
-    "jsedn": "0.4.1",
-    "jsonwebtoken": "8.5.1",
-    "pg": "8.2.1",
-    "pure-react-carousel": "1.27.3",
     "react": "16.13.0",
-    "react-dom": "16.13.0",
-    "source-map-support": "0.5.9",
-    "web3": "1.2.0",
-    "ws": "4.0.0"
+    "react-dom": "16.13.0"
   },
   "devDependencies": {
-    "ganache-cli": "6.7.0",
-    "less": "3.10.3",
-    "less-watch-compiler": "1.14.1",
+    "clj-kondo": "^2020.1.13",
+    "jsedn": "0.4.1",
     "shadow-cljs": "2.11.4",
-    "truffle": "5.0.38",
-    "clj-kondo": "^2020.1.13"
+    "truffle": "5.0.38"
   },
   "engines": {
     "node": "11.14.0"
-  },
-  "comments": {
-    "dependencies": {
-      "eth-sig-util": "Sign in functionality",
-      "jsonwebtoken": "Sign in functionality",
-      "ethereumjs-wallet": "district0x/district-server-web3 uses ganache-core@2.0.2 which depends on 0.6.0. https://github.com/ethereumjs/ethereumjs-wallet/issues/64"
-    }
   }
 }

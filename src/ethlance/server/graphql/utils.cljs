@@ -1,8 +1,7 @@
 (ns ethlance.server.graphql.utils
   (:require [cljs.nodejs :as nodejs]
-            [district.graphql-utils :refer [kw->gql-name gql->clj]]
-            [graphql-query.core :refer [graphql-query]]
-            [taoensso.timbre :as log]))
+            [district.graphql-utils :refer [gql->clj kw->gql-name]]
+            [graphql-query.core :refer [graphql-query]]))
 
 (def axios (nodejs/require "axios"))
 (def graphql (nodejs/require "graphql"))
