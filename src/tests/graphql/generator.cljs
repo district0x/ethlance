@@ -1,18 +1,11 @@
 (ns tests.graphql.generator
-  (:require
-
-   [district.server.db :as db]
-   [ethlance.server.db :as ethlance-db]
-   [district.shared.async-helpers :refer [promise-> safe-go <?]]
-   [taoensso.timbre :as log]
-
-   [clojure.string :as string]
-   [cljs-time.core :as time]
-   [cljs-time.coerce :as time-coerce]
-
-   [district.server.async-db :as async-db]
-   [ethlance.server.contract.ethlance-issuer :as ethlance-issuer]
-   ))
+  (:require [cljs-time.coerce :as time-coerce]
+            [cljs-time.core :as time]
+            [clojure.string :as string]
+            [district.shared.async-helpers :refer [safe-go <?]]
+            [ethlance.server.contract.ethlance-issuer :as ethlance-issuer]
+            [ethlance.server.db :as ethlance-db]
+            [taoensso.timbre :as log]))
 
 (def lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis.")
 
@@ -44,26 +37,24 @@
 (defn generate-categories [conn categories [_ candidate arbiter]]
   (safe-go
    (doseq [category categories]
-     (do
-       (<? (ethlance-db/insert-row! conn :Category {:category/id category}))
+     (<? (ethlance-db/insert-row! conn :Category {:category/id category}))
 
-       (<? (ethlance-db/insert-row! conn :CandidateCategory {:user/address candidate
-                                                             :category/id category}))
+     (<? (ethlance-db/insert-row! conn :CandidateCategory {:user/address candidate
+                                                           :category/id category}))
 
-       (<? (ethlance-db/insert-row! conn :ArbiterCategory {:user/address arbiter
-                                                           :category/id category}))))))
+     (<? (ethlance-db/insert-row! conn :ArbiterCategory {:user/address arbiter
+                                                         :category/id category})))))
 
 (defn generate-skills [conn skills [_ candidate arbiter]]
   (safe-go
    (doseq [skill skills]
-     (do
-       (<? (ethlance-db/insert-row! conn :Skill {:skill/id skill}))
+     (<? (ethlance-db/insert-row! conn :Skill {:skill/id skill}))
 
-       (<? (ethlance-db/insert-row! conn :CandidateSkill {:user/address candidate
-                                                          :skill/id skill}))
+     (<? (ethlance-db/insert-row! conn :CandidateSkill {:user/address candidate
+                                                        :skill/id skill}))
 
-       (<? (ethlance-db/insert-row! conn :ArbiterSkill {:user/address arbiter
-                                                        :skill/id skill}))))))
+     (<? (ethlance-db/insert-row! conn :ArbiterSkill {:user/address arbiter
+                                                      :skill/id skill})))))
 
 (defn generate-users [conn user-addresses]
   (safe-go
@@ -112,7 +103,6 @@
 (defn generate-jobs [conn jobs [employer & _]]
   (safe-go
    (doseq [{:keys [job-id job-type]} jobs]
-
      (let [title (str (-> ["marmot" "deer" "mammut" "tiger" "lion" "elephant" "bobcat"] shuffle first) " "
                       (-> ["control" "design" "programming" "aministartion" "development"] shuffle first))
            description (let [from (rand-int 100)] (subs lorem from (+ 20 from)))
@@ -126,20 +116,14 @@
            token-version (ethlance-issuer/token-version (rand-nth [:eth :erc20 :erc721]))
            reward (rand-int 300)
            web-reference-url (str "http://ethlance.com/" job-id)
-
-
            estimated-length (case (-> (rand-nth [:hours :days :weeks]))
                               :hours (time/hours (rand-int 24))
                               :days (time/days (rand-int 30))
                               :weeks (time/weeks (rand-int 100)))
-           availability (rand-nth ["Part Time" "Full Time"])
-
-           bid-option (rand-nth ["Hourly Rate" "Bounty"])
-           number-of-candidates (rand-int 5)
-           invitation-only? (rand-nth [true false])
-
-
-
+           ;; availability (rand-nth ["Part Time" "Full Time"])
+           ;; bid-option (rand-nth ["Hourly Rate" "Bounty"])
+           ;; number-of-candidates (rand-int 5)
+           ;; invitation-only? (rand-nth [true false])
 
            language (rand-nth languages)
            job {:job/id job-id
@@ -167,7 +151,6 @@
                        :standard-bounty/deadline (time-coerce/to-long date-deadline)}]
            (<? (ethlance-db/add-bounty conn (merge job bounty))))
 
-
          :ethlance-job
          (let [ethlance-job-id job-id
                ethlance-job {:ethlance-job/id ethlance-job-id
@@ -182,7 +165,7 @@
        (<? (ethlance-db/insert-row! conn :JobCreator {:job/id job-id
                                                       :user/address employer}))))))
 
-(defn generate-job-arbiters [conn job-ids [employer candidate arbiter]]
+(defn generate-job-arbiters [conn job-ids [_ _ arbiter]]
   (safe-go
    (doseq [job-id job-ids]
      (let [status (rand-nth ["invited" "accepted" ])
@@ -195,7 +178,7 @@
                     :job-arbiter/status status}]
        (<? (ethlance-db/insert-row! conn :JobArbiter arbiter))))))
 
-(defn generate-message [{:keys [:message/creator :message/id :message/text] :as message}]
+(defn generate-message [{:message/keys [text] :as message}]
   (-> message
       (merge {:message/text (or text
                                 (let [from (rand-int 200)]
@@ -214,7 +197,7 @@
                                     nil)
                :direct-message {}))))
 
-(defn generate-job-stories [conn stories-ids jobs [employer candidate arbiter]]
+(defn generate-job-stories [conn stories-ids jobs [employer candidate _]]
   (safe-go
    (doseq [story-id stories-ids]
      (let [_ (println "Generating story" story-id)
@@ -240,7 +223,7 @@
                                                                 :job-story-message/type :invitation
                                                                 :job-story/id story-id})))))))))
 
-(defn generate-disputes [conn stories-ids [employer candidate arbiter]]
+(defn generate-disputes [conn stories-ids [employer _ _]]
   (safe-go
    (doseq [story-id stories-ids]
      (when (rand-nth [true false])
@@ -254,7 +237,7 @@
                                                             :job-story-message/type :resolve-dispute
                                                             :job-story/id story-id})))))))
 
-(defn generate-invoices [conn stories-ids [employer candidate arbiter]]
+(defn generate-invoices [conn stories-ids [_ candidate _]]
   (safe-go
    (doseq [story-id stories-ids]
      (let [[status _] (rand-nth ["paid" "pending"])
@@ -277,28 +260,26 @@
                                                             :invoice/date-work-ended (time-coerce/to-long date-work-ended)
                                                             :invoice/date-paid date-paid})))))))
 
-(defn generate-feedback [conn stories-ids [employer candidate arbiter]]
+(defn generate-feedback [conn stories-ids [employer candidate _]]
   (safe-go
    (doseq [story-id stories-ids]
-     (do
+     ;; feedback from the employer to the candidate
+     (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
+                                                          :message/type :job-story-message
+                                                          :job-story-message/type :feedback
+                                                          :job-story/id story-id
+                                                          :feedback/rating (rand-int 5)
+                                                          :user/address candidate})))
 
-       ;; feedback from the employer to the candidate
-       (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
-                                                            :message/type :job-story-message
-                                                            :job-story-message/type :feedback
-                                                            :job-story/id story-id
-                                                            :feedback/rating (rand-int 5)
-                                                            :user/address candidate})))
+     ;; feedback from the candidate to the employer
+     (<? (ethlance-db/add-message conn (generate-message {:message/creator candidate
+                                                          :message/type :job-story-message
+                                                          :job-story-message/type :feedback
+                                                          :job-story/id story-id
+                                                          :feedback/rating (rand-int 5)
+                                                          :user/address employer}))))))
 
-       ;; feedback from the candidate to the employer
-       (<? (ethlance-db/add-message conn (generate-message {:message/creator candidate
-                                                            :message/type :job-story-message
-                                                            :job-story-message/type :feedback
-                                                            :job-story/id story-id
-                                                            :feedback/rating (rand-int 5)
-                                                            :user/address employer})))))))
-
-(defn generate-dev-data []
+(defn generate-dev-data [conn]
   (safe-go
    (let [user-addresses ["EMPLOYER" "CANDIDATE" "ARBITER"]
          categories ["Web" "Mobile" "Embedded"]
@@ -306,10 +287,7 @@
          jobs (map (fn [jid jtype] {:job-id jid :job-type jtype})
                    (range 0 3)
                    (cycle [:standard-bounties :ethlance-job]))
-         stories-ids (range 0 5)
-         invoice-ids (range 0 10)
-         conn (<? (async-db/get-connection))]
-     (log/info "!!!!!!!!!!!!!!!!!!!" {:conn conn})
+         stories-ids (range 0 5)]
      (<? (generate-users conn user-addresses))
      (<? (generate-categories conn categories user-addresses))
      (<? (generate-skills conn skills user-addresses))

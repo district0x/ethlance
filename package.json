@@ -6,7 +6,7 @@
     "deps": "yarn install --frozen-lockfile",
     "deploy": "yarn truffle migrate --network ganache --reset",
     "clean": "git clean -fdx",
-    "lint": "clj-kondo --config .clj-kondo/config.edn --lint src/ethlance/ui/ src/district/ui/ src/ethlance/shared/ src/ethlance/server/"
+    "lint": "clj-kondo --config .clj-kondo/config.edn --lint src/"
   },
   "dependencies": {
     "react": "16.13.0",

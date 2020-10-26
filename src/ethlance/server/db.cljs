@@ -3,6 +3,7 @@
   component for creating the in-memory database upon initial load."
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
+            [cljs.core.async :as async :refer [go-loop <!]]
             [com.rpl.specter :as $ :include-macros true]
             [cuerdas.core :as str]
             [district.server.async-db :as db]
@@ -14,6 +15,7 @@
             [taoensso.timbre :as log]))
 
 (declare start stop)
+(defonce db-state (atom nil))
 
 (def mount-state-key
   "Key defining our mount component within the district configuration"
@@ -482,9 +484,7 @@
   (safe-go
    (log/info "Creating Sqlite Database...")
    (doseq [{:keys [table-name table-columns]} database-schema]
-     #_(log/debug (str/format "  - Creating Database Table '%s' ..." table-name))
-     (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))
-   #_(log/debug "Tables Created: " (list-tables conn))))
+     (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))))
 
 (defn drop-db!
   "Drops all of the database tables defined in the `database-schema`."
@@ -826,20 +826,35 @@
   (safe-go)
   )
 
+(defn ready-state?
+  []
+  (go-loop []
+    (let [ready? (= :db/ready @db-state)]
+      (log/info "Polling..." {:ready? ready?})
+      (if ready?
+        (do
+          (log/info "DB in ready state. Returning")
+          @db-state)
+        (do
+          (<! (async/timeout 1000))
+          (recur))))))
+
 (defn start
   "Start the ethlance-db mount component."
-  [{:keys [resync?]}]
+  [{:keys [resync?] :as opts}]
   (safe-go
    (let [conn (<? (db/get-connection))]
-     (log/info "Starting Ethlance DB component" {})
+     (log/info "Starting Ethlance DB component" opts)
      (when resync?
        (log/info "Database module called with a resync flag.")
        (<? (drop-db! conn)))
      (<? (create-db! conn))
-     #_(print-db conn)
-     (log/info "Ethlance DB component started" {}))))
+     (reset! db-state :db/ready)
+     (log/info "Ethlance DB component started")
+     @db-state)))
 
 (defn stop
   "Stop the ethlance-db mount component."
   []
-  ::stopped)
+  (reset! db-state :db/stopped)
+  @db-state)
