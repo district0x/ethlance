@@ -1,22 +1,21 @@
 (ns district.server.async-db
   (:refer-clojure :exclude [get run!])
-  (:require [mount.core :as mount :refer [defstate]]
-            [taoensso.timbre :as log]
-            [cljs.nodejs :as nodejs]
-            [honeysql.core :as sql]
-            [district.server.logging]
-            [honeysql.format :as sql-format]
-            [honeysql-postgres.format]
-            [honeysql-postgres.helpers :as psqlh]
-            [honeysql.helpers]
+  (:require ["pg" :as pg]
+            [clojure.string :as str]
             [district.server.config :refer [config]]
+            [district.server.logging]
             [district.shared.async-helpers :refer [safe-go <?]]
-            [clojure.string :as str]))
+            [honeysql-postgres.format]
+            [honeysql-postgres.helpers]
+            [honeysql.core :as sql]
+            [honeysql.format :as sql-format]
+            [honeysql.helpers]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
-(def pg (nodejs/require "pg"))
-(def Pool (.-Pool pg))
+(def Pool (.-Pool ^js pg))
 
-(declare start stop)
+(declare db start stop)
 
 (def mount-state-key
   "Key defining our mount component within the district configuration"
@@ -54,12 +53,10 @@
   "Given a db connection and a honey sql query runs it and returns its result."
   [conn statement]
   (safe-go
-   (let [[query-str & values :as all] (binding [sql-format/*name-transform-fn* sql-name-transform-fn]
-                                        (sql/format statement
-                                                    :parameterizer :postgresql
-                                                    :allow-namespaced-names? true))
-         #_#__ (log/debug "Running QUERY " {:q query-str
-                                            :statement statement})
+   (let [[query-str & values] (binding [sql-format/*name-transform-fn* sql-name-transform-fn]
+                                (sql/format statement
+                                            :parameterizer :postgresql
+                                            :allow-namespaced-names? true))
          res (<? (.query conn query-str (clj->js (or values []))))]
      (->> (js->clj (.-rows res))
           (map #(map-keys transform-result-keys-fn %))))))
@@ -102,10 +99,10 @@
                          :database database
                          :password password
                          :port port})]
-    (.on pool "error" (fn [err client]
+    (.on pool "error" (fn [err _]
                         (log/error "Unexpected error on idle client" {:err err})))
 
-    (log/info "DB component started" {})
+    (log/info "DB component started")
     {:connection-pool pool}))
 
 (defn stop
@@ -114,29 +111,29 @@
   (release-connection (:wildcard-connection @db))
   ::stopped)
 
-(comment
+#_(comment
 
-  (safe-go
-   (let [conn (<? (get-connection))
-         res (<? (run! conn {:create-table [:usr :if-not-exists]
-                             :with-columns [[[:user/address :varchar]
-                                             [:user/type :varchar]
+    (safe-go
+     (let [conn (<? (get-connection))
+           res (<? (run! conn {:create-table [:usr :if-not-exists]
+                               :with-columns [[[:user/address :varchar]
+                                               [:user/type :varchar]
 
-                                             ;; PK
-                                             [(sql/call :primary-key :user/address)]]]}))]))
+                                               ;; PK
+                                               [(sql/call :primary-key :user/address)]]]}))]))
 
-  (safe-go
-   (let [conn (<? (get-connection))]
-     (run! conn {:insert-into :usr
-                 :columns [:user/address :user/type]
-                 :values [["address1" "type1"]]})))
+    (safe-go
+     (let [conn (<? (get-connection))]
+       (run! conn {:insert-into :usr
+                   :columns [:user/address :user/type]
+                   :values [["address1" "type1"]]})))
 
-  (safe-go
-   (let [conn (<? (get-connection))]
-     (println (<? (get conn {:select [[(sql/call :last_insert_rowid) :id]]})))))
+    (safe-go
+     (let [conn (<? (get-connection))]
+       (println (<? (get conn {:select [[(sql/call :last_insert_rowid) :id]]})))))
 
-  (safe-go
-   (let [conn (<? (get-connection))
-         res (<? (all conn {:select [:*] :from [:usr]}))]
-     (log/info "GOT " {:rows res})))
-  )
+    (safe-go
+     (let [conn (<? (get-connection))
+           res (<? (all conn {:select [:*] :from [:usr]}))]
+       (log/info "GOT " {:rows res})))
+    )

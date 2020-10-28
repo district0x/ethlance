@@ -1,30 +1,33 @@
 (ns tests.graphql.resolvers-test
-  #_(:require [cljs.core.async :refer [go <!]]
+  (:require [cljs.core.async :refer [go <!]]
             [cljs.nodejs :as nodejs]
-            [cljs.test :refer-macros [deftest is testing async use-fixtures]]
-            [district.server.async-db :as db]
+            [cljs.test :refer-macros [deftest is async use-fixtures]]
+            [clojure.string :as str]
+            [district.server.async-db :as async-db]
             [district.server.logging]
-            [district.shared.async-helpers :as async-helpers :refer [promise-> safe-go <?]]
+            [district.server.config]
+            [district.shared.async-helpers :as async-helpers :refer [safe-go <?]]
             [ethlance.server.db :as ethlance-db]
-            [ethlance.server.graphql.generator :as generator]
             [ethlance.server.graphql.server]
             [ethlance.server.graphql.utils :refer [run-query]]
             [mount.core :as mount]
             [taoensso.timbre :as log]
-            [clojure.string :as str]))
+            [tests.graphql.generator :as generator]))
 
-#_(async-helpers/extend-promises-as-channels!)
+(nodejs/enable-util-print!)
 
 ;; Contains {"userAddress": "0x4c3f13898913f15f12f902d6480178484063a6fb"} signed with secret-token
+
 (def access-token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQWRkcmVzcyI6IjB4NGMzZjEzODk4OTEzZjE1ZjEyZjkwMmQ2NDgwMTc4NDg0MDYzYTZmYiIsImlhdCI6MTU4ODA5NTQxNn0.qGvidhMxes5rjXWvQf32n1vNSepGr3F3-voItByYBpU")
+
 (def secret-token "SECRET")
 
-#_(use-fixtures :once
+(use-fixtures :once
   {:before (fn []
              (async done
                     (safe-go
                      (log/debug "Running before fixture")
-                     (let [comps #_<?
+                     (let [components
                            (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
                                                  :district/db {:user "user"
                                                                :host "localhost"
@@ -42,20 +45,21 @@
                                             #'ethlance.server.db/ethlance-db
                                             #'ethlance.server.graphql.server/graphql])
                                (mount/start))]
-                       (log/info "Started" comps))
+                       (log/info "Started" components))
                      (done))))
    :after (fn [] (log/debug "Running after fixture"))})
 
-#_(deftest test-resolvers
+(deftest test-resolvers
   (async done
          (go
            (let [api-endpoint "http://localhost:4000/graphql"
-                 _ (<! (generator/generate-dev-data))
-                 {{{:keys [:user/address]} :user} :data
-                  :as user-query} (<! (run-query {:url api-endpoint
-                                                  :access-token access-token
-                                                  :query [:user {:user/address "EMPLOYER"}
-                                                          [:user/address]]}))
+                 _ (<! (ethlance-db/ready-state?))
+                 conn (<? (async-db/get-connection))
+                 _ (<! (generator/generate-dev-data conn))
+                 user-query (<! (run-query {:url api-endpoint
+                                            :access-token access-token
+                                            :query [:user {:user/address "EMPLOYER"}
+                                                    [:user/address]]}))
 
                  user-search-query (<! (run-query {:url api-endpoint
                                                    :access-token access-token
@@ -165,8 +169,7 @@
                                                        [:job/id
                                                         :job-story/id
                                                         :invoice/id
-                                                        :invoice/amount-paid]]}))
-                 ]
+                                                        :invoice/amount-paid]]}))]
 
              (is (= "EMPLOYER" (-> user-query :data :user :user/address str/trim)))
 
@@ -219,11 +222,11 @@
              (done)))))
 
 #_(deftest test-mutations
-  (async done
-         (go
-           (let [api-endpoint "http://localhost:4000/graphql"
-                 m1 (<! (run-query {:url api-endpoint
-                                    :access-token access-token
-                                    :type "mutation"
-                                    :query [:send-message {:to "EMPLOYER" :text "Some message text"}]}))])
-           (done))))
+    (async done
+           (go
+             (let [api-endpoint "http://localhost:4000/graphql"
+                   m1 (<! (run-query {:url api-endpoint
+                                      :access-token access-token
+                                      :type "mutation"
+                                      :query [:send-message {:to "EMPLOYER" :text "Some message text"}]}))])
+             (done))))
