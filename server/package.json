@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@sentry/node": "4.2.1",
-    "apollo-server-express": "2.12.0",
+    "apollo-server-express": "2.14.2",
     "axios": "0.19.2",
     "better-sqlite3": "5.4.0",
     "body-parser": "1.19.0",
