@@ -195,7 +195,7 @@ check:
 
 
 # Environment Setup for lessc, and less-watch-compiler
-LESS_BIN_PATH := ./node_modules/less/bin
+LESS_BIN_PATH := ./ui/node_modules/less/bin
 PATH := $(LESS_BIN_PATH):$(PATH)
 build-css:
 	$(LESS_BIN_PATH)/lessc resources/public/less/main.less resources/public/css/main.css

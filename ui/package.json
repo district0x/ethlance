@@ -24,11 +24,13 @@
     "source-map-support": "0.5.9",
     "simplebar": "5.0.7",
     "web3": "0.19.0",
-    "xregexp": "4.3.0"
+    "xregexp": "4.3.0",
+    "is-ipfs": "2.0.0"
   },
   "devDependencies": {
     "less": "3.10.3",
-    "less-watch-compiler": "1.14.1"
+    "less-watch-compiler": "1.14.1",
+    "shadow-cljs": "2.11.4"
   },
   "engines": {
     "node": "11.14.0"

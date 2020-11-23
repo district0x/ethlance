@@ -24,15 +24,15 @@
 
 (defn gql->clj [m]
   (->> m
-       (js->clj)
-       (camel-snake-extras/transform-keys gql-name->kw )))
+    (js->clj)
+    (camel-snake-extras/transform-keys gql-name->kw)))
 
 (defmulti handler
-  (fn [_ key value]
-    (cond
-      (:error value) :api/error
-      (vector? key) (first key)
-      :else key)))
+          (fn [_ key value]
+            (cond
+              (:error value) :api/error
+              (vector? key) (first key)
+              :else key)))
 
 (defn- update-db [cofx fx]
   (if-let [db (:db fx)]
@@ -64,37 +64,37 @@
                       response))
 
 (re-frame/reg-event-fx
- ::response
- (fn [cofx [_ response]]
-   (reduce-handlers cofx response)))
+  ::response
+  (fn [cofx [_ response]]
+    (reduce-handlers cofx response)))
 
 (re-frame/reg-fx
- ::query
- (fn [[params callback]]
-   (promise-> (axios params)
-              callback)))
+  ::query
+  (fn [[params callback]]
+    (promise-> (axios params)
+               callback)))
 
 (re-frame/reg-event-fx
- ::query
- (fn [{:keys [db]} [_ {:keys [query variables]}]]
-   (let [url (get-in db [:ethlance/config :graphql :url])
-         access-token (get-in db [:tokens :access-token])
-         params (clj->js {:url url
-                          :method :post
-                          :headers (merge {"Content-Type" "application/json"
-                                           "Accept" "application/json"}
-                                          (when access-token
-                                            {"access_token" access-token}))
-                          :data (js/JSON.stringify
-                                 (clj->js {:query query
-                                           :variables variables}))})
-         callback (fn [^js response]
-                    (if (= 200 (.-status response))
-                      ;; TODO we can still have errors even with a 200
-                      ;; so we should log them or handle in some other way
-                      (>evt [::response (gql->clj (.-data (.-data response)))])
-                      (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
-     {::query [params callback]})))
+  ::query
+  (fn [{:keys [db]} [_ {:keys [query variables]}]]
+    (let [url (get-in db [:ethlance/config :graphql :url])
+          access-token (get-in db [:tokens :access-token])
+          params (clj->js {:url url
+                           :method :post
+                           :headers (merge {"Content-Type" "application/json"
+                                            "Accept" "application/json"}
+                                           (when access-token
+                                             {"access_token" access-token}))
+                           :data (js/JSON.stringify
+                                   (clj->js {:query query
+                                             :variables variables}))})
+          callback (fn [^js response]
+                     (if (= 200 (.-status response))
+                       ;; TODO we can still have errors even with a 200
+                       ;; so we should log them or handle in some other way
+                       (>evt [::response (gql->clj (.-data (.-data response)))])
+                       (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
+      {::query [params callback]})))
 
 (defmethod handler :default
   [cofx k values]
@@ -127,12 +127,12 @@
   [{:keys [db]} _ {:user/keys [address github-username] :as user}]
   (log/debug "github-sign-up handler" user)
   {:db (assoc-in db [:users address] (merge user
-                                            {:user/user-name github-username}))})
+                                            {:user/name github-username}))})
 
 (defmethod handler :linkedin-sign-up
-  [{:keys [db]} _ {:user/keys [address full-name] :as user}]
+  [{:keys [db]} _ {:user/keys [address name] :as user}]
   (log/debug "linkedin-sign-up handler" user)
-  {:db (assoc-in db [:users address] (merge user {:user/user-name full-name}))})
+  {:db (assoc-in db [:users address] (merge user {:user/name name}))})
 
 (defmethod handler :update-candidate
   [{:keys [db]} _ {user-date-updated :user/date-updated
@@ -141,8 +141,8 @@
                    :as candidate}]
   (log/debug "update-candidate handler" candidate)
   {:db (-> db
-           (assoc-in [:users address :user/date-updated] user-date-updated)
-           (assoc-in [:candidates address :candidate/date-updated] candidate-date-updated))})
+         (assoc-in [:users address :user/date-updated] user-date-updated)
+         (assoc-in [:candidates address :candidate/date-updated] candidate-date-updated))})
 
 (defmethod handler :update-employer
   [{:keys [db]} _ {user-date-updated :user/date-updated
@@ -151,8 +151,8 @@
                    :as employer}]
   (log/debug "update-employer handler" employer)
   {:db (-> db
-           (assoc-in [:users address :user/date-updated] user-date-updated)
-           (assoc-in [:employers address :employer/date-updated] employer-date-updated))})
+         (assoc-in [:users address :user/date-updated] user-date-updated)
+         (assoc-in [:employers address :employer/date-updated] employer-date-updated))})
 
 (defmethod handler :update-arbiter
   [{:keys [db]} _ {user-date-updated :user/date-updated
@@ -161,8 +161,8 @@
                    :as arbiter}]
   (log/debug "update-arbiter handler" arbiter)
   {:db (-> db
-           (assoc-in [:users address :user/date-updated] user-date-updated)
-           (assoc-in [:arbiters address :arbiter/date-updated] arbiter-date-updated))})
+         (assoc-in [:users address :user/date-updated] user-date-updated)
+         (assoc-in [:arbiters address :arbiter/date-updated] arbiter-date-updated))})
 
 (defmethod handler :api/error
   [_ _ _]

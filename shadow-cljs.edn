@@ -49,6 +49,7 @@
                 [district0x/district-ui-web3-tx-id "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-web3-tx-log "1.0.13" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-window-size "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
+                [district0x/district-validation "1.0.0" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-web3-utils "1.0.3"]
                 [district0x/error-handling "1.0.4"]
                 [district0x/graphql-query "1.0.6"]

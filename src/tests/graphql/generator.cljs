@@ -71,12 +71,11 @@
            [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
        (<? (ethlance-db/insert-row! conn :Users {:user/address address
                                                  :user/type (case address
-                                                              "EMPLOYER"  :employer
+                                                              "EMPLOYER" :employer
                                                               "CANDIDATE" :candidate
-                                                              "ARBITER"   :arbiter)
-                                                 :user/country-code country-code
-                                                 :user/user-name (str "@" first-name)
-                                                 :user/full-name (str first-name " " second-name)
+                                                              "ARBITER" :arbiter)
+                                                 :user/country country-code
+                                                 :user/name (str first-name " " second-name)
                                                  :user/email (string/lower-case (str first-name "@" second-name "." extension))
                                                  :user/profile-image (str "https://randomuser.me/api/portraits/lego/" profile-id ".jpg")
                                                  :user/date-registered date-registered

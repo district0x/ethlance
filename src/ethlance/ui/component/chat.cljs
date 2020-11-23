@@ -9,7 +9,7 @@
 
   message - ethlance chat message object
   "
-  [{:keys [id user-type text full-name date-updated details image-url]}]
+  [{:keys [id user-type text name date-updated details image-url]}]
   (let [position-class (if (contains? #{:candidate :arbiter} user-type) " right " " left ")
         color-class (case user-type
                       :candidate "candidate"
@@ -22,7 +22,7 @@
        [:div.details
         [:div.profile-image [c-profile-image {:src image-url}]]
         [:div.info-container
-         [:span.full-name {:key "detail-full-name"} full-name]
+         [:span.full-name {:key "detail-full-name"} name]
          [:div.info-listing
           (doall
            (for [detail details]

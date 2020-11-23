@@ -201,16 +201,15 @@
 
 (defmethod page :route.job/jobs []
   (let [*skills (re/subscribe [:page.jobs/skills])]
-    (fn []
-      [c-main-layout {:container-opts {:class :jobs-main-container}}
-       [c-job-search-filter]
-       [c-job-mobile-search-filter]
-       [:div.job-listing.listing {:key "listing"}
-        [:div.search-container
-         [c-chip-search-input
-          {:chip-listing @*skills
-           :on-chip-listing-change #(re/dispatch [:page.jobs/set-skills %])
-           :placeholder "Search Job Skill Requirements"
-           :allow-custom-chips? false
-           :auto-suggestion-listing constants/skills}]]
-        [c-job-listing]]])))
+    [c-main-layout {:container-opts {:class :jobs-main-container}}
+     [c-job-search-filter]
+     [c-job-mobile-search-filter]
+     [:div.job-listing.listing {:key "listing"}
+      [:div.search-container
+       [c-chip-search-input
+        {:chip-listing @*skills
+         :on-chip-listing-change #(re/dispatch [:page.jobs/set-skills %])
+         :placeholder "Search Job Skill Requirements"
+         :allow-custom-chips? false
+         :auto-suggestion-listing constants/skills}]]
+      #_[c-job-listing]]]))

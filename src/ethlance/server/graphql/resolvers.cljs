@@ -30,7 +30,7 @@
       :end-cursor end-cursor
       :has-next-page (< end-cursor total-count)})))
 
-(defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/full-name :user/user-name :order-by :order-direction]
+(defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/name :order-by :order-direction]
                                :as args} _]
   (db/with-async-resolver-conn conn
    (log/debug "user-search-resolver" args)
@@ -39,9 +39,7 @@
 
                  address (sql-helpers/merge-where [:= :Users.user/address address])
 
-                 full-name (sql-helpers/merge-where [:= :Users.user/full-name full-name])
-
-                 user-name (sql-helpers/merge-where [:= :Users.user/user-name user-name])
+                 name (sql-helpers/merge-where [:= :Users.user/user-name name])
 
                  order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
                                                               :date-updated :user/date-updated}
@@ -521,10 +519,10 @@
           {:keys [name login email location] :as gh-resp} (:data (js->clj response :keywordize-keys true))
           _ (log/debug "github response" gh-resp)
           user {:user/address address
-                :user/full-name name
+                :user/name name
                 :user/github-username login
                 :user/email email
-                :user/country-code location}]
+                :user/country location}]
       user)))
 
 (defn linkedin-signup-mutation [_ {:keys [input]} {:keys [config]}]
@@ -563,7 +561,7 @@
                                             (get "handle~"))
               _ (log/debug "linkedin response" (merge resp1 resp2))
               user {:user/address address
-                    :user/full-name (str localizedFirstName " " localizedLastName)
+                    :user/name (str localizedFirstName " " localizedLastName)
                     :user/linkedin-username id
                     :user/email email}]
           (resolve user))

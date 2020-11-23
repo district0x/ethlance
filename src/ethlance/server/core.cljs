@@ -22,7 +22,7 @@
 (def environment (shared-utils/get-environment))
 
 (def graphql-config
-  {:port 4000
+  {:port 6300
    :sign-in-secret "SECRET"
    :graphiql (= environment "dev")})
 

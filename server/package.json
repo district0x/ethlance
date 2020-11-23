@@ -30,7 +30,8 @@
     "web3": "1.2.0",
     "bignumber.js": "9.0.1",
     "xregexp": "4.3.0",
-    "ws": "4.0.0"
+    "ws": "4.0.0",
+    "is-ipfs": "2.0.0"
   },
   "devDependencies": {
     "shadow-cljs": "2.11.4"

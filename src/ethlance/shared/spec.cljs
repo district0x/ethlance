@@ -1,175 +1,75 @@
 (ns ethlance.shared.spec
-  "Includes the data specs for all ethlance data"
   (:require
-   [bignumber.core :as bn]
-   [clojure.spec.alpha :as s]
-   [ethlance.shared.enumeration.currency-type :refer [enum-currency]]
-   [ethlance.shared.enumeration.bid-option :refer [enum-bid]]
-   [ethlance.shared.enumeration.payment-type :refer [enum-payment]]
-   [ethlance.shared.enumeration.availability :refer [enum-availability]]
-   [ethlance.shared.enumeration.user-type :refer [enum-user-type]]))
+    [cljs.spec.alpha :as s]
+    [clojure.set :as set]
+    [district.validation :refer [length? email? not-neg?]]
+    [ethlance.shared.constants :as constants]
+    [medley.core :refer [map-kv-vals]]))
 
 
-;;
-;; Fundamental Specs
-;;
+(def professional-title? #(length? % 3 80))
+(def bio? #(length? % 2000))
 
-(s/def ::id pos-int?)
-(s/def ::index nat-int?)
-(s/def ::address string?) ;; TODO: better address spec
-(s/def ::datetime nat-int?)
-(s/def ::ipfs-hash string?) ;; TODO: better hash spec(?)
-(s/def ::email string?) ;; TODO: better email predicate
-(s/def ::bigint (s/or :bn (s/and bn/bignumber? bn/int?)
-                      :n (s/and number? int?)))
+(s/def :user/name #(length? % 3 80))
+(s/def :user/email email?)
+(s/def :user/country (partial contains? constants/countries))
+(s/def :user/languages (fn [languages]
+                         (and (pos? (count languages))
+                              (set/subset? languages constants/languages))))
+(s/def :user/profile-image ())
 
-;; Enumerations
+(s/def :candidate/professional-title professional-title?)
+(s/def :candidate/rate not-neg?)
+(s/def :candidate/categories (fn [categories]
+                               (and (pos? (count categories))
+                                    (set/subset? categories constants/categories))))
 
-(s/def ::currency-type (set (keys enum-currency)))
-(s/def ::bid-option (set (keys enum-bid)))
-;; (s/def ::contract-status (set (keys enum-status)))
-(s/def ::payment-type (set (keys enum-payment)))
-(s/def ::availability (set (keys enum-availability)))
-(s/def ::user-type (set (keys enum-user-type)))
+(s/def :candidate/skills (fn [skills]
+                           (and (pos? (count skills))
+                                (<= (count skills) 30)
+                                (set/subset? skills constants/skills))))
 
-;;
-;; User Data
-;;
+(s/def :candidate/bio bio?)
 
-(s/def :user/id ::id)
-(s/def :user/address ::address)
-(s/def :user/country-code (s/and string? #(= (count %) 2)))
-(s/def :user/email ::email)
-(s/def :user/profile-image ::ipfs-hash)
-(s/def :user/date-created ::datetime)
-(s/def :user/date-updated ::datetime)
-(s/def :github/api-key string?)
-(s/def :linkedin/api-key string?)
-(s/def :user/languages (s/coll-of string? :distinct true :into []))
+(s/def :employer/professional-title professional-title?)
+(s/def :employer/bio bio?)
+
+(s/def :arbiter/professional-title professional-title?)
+(s/def :arbiter/bio bio?)
+(s/def :arbiter/fee not-neg?)
 
 
-;;
-;; User Candidate Data
-;;
-
-(s/def :candidate/biography string?)
-(s/def :candidate/date-registered ::datetime)
-(s/def :candidate/professional-title string?)
-(s/def :candidate/categories (s/coll-of string? :distinct true :into []))
-(s/def :candidate/skills (s/coll-of string? :distinct true :into []))
-
-
-;;
-;; User Employer Data
-;;
-
-(s/def :employer/biography string?)
-(s/def :employer/date-registered ::datetime)
-(s/def :employer/professional-title string?)
+(s/def :page.sign-up/update-candidate
+  (s/keys :req [:user/name
+                :user/email
+                :user/country
+                :user/languages
+                :candidate/professional-title
+                :candidate/rate
+                :candidate/categories
+                :candidate/skills
+                :candidate/bio]))
 
 
-;;
-;; User Arbiter Data
-;;
-
-(s/def :arbiter/biography string?)
-(s/def :arbiter/date-registered ::datetime)
-(s/def :arbiter/currency-type ::currency-type)
-(s/def :arbiter/payment-value ::bigint)
-
-
-;;
-;; Job Data
-;;
-
-(s/def :job/index ::index)
-(s/def :job/title string?)
-(s/def :job/accepted-arbiter ::address)
-(s/def :job/availability ::availability)
-(s/def :job/bid-option ::bid-option)
-(s/def :job/category string?)
-(s/def :job/description string?)
-(s/def :job/date-created ::datetime)
-(s/def :job/date-started ::datetime)
-(s/def :job/date-finished (s/nilable ::datetime))
-(s/def :job/employer-address ::address)
-(s/def :job/estimated-length-seconds nat-int?)
-(s/def :job/include-ether-token? boolean?)
-(s/def :job/is-invitation-only? boolean?)
-(s/def :job/reward-value ::bigint)
-
-;; Arbiter Request
-(s/def :arbiter-request/date-requested ::datetime)
-(s/def :arbiter-request/is-employer-request? boolean?)
-
-(s/def ::arbiter-request (s/keys :req [:user/id
-                                       :job/index
-                                       :arbiter-request/date-requested
-                                       :arbiter-request/is-employer-request?]))
-
-(s/def :job/arbiter-requests (s/coll-of ::arbiter-request :distinct true))
-(s/def :job/skills (s/coll-of string? :distrinct true :into []))
+(s/def :page.sign-up/update-employer
+  (s/keys :req [:user/name
+                :user/email
+                :user/country
+                :user/languages
+                :employer/professional-title
+                :employer/bio]))
 
 
-;;
-;; Work Contract
-;;
-
-(s/def :work-contract/index ::index)
-(s/def :work-contract/candidate-address ::address)
-(s/def :work-contract/contract-status ::contract-status)
-(s/def :work-contract/date-updated ::datetime)
-(s/def :work-contract/date-created ::datetime)
-(s/def :work-contract/date-finished ::datetime)
+(s/def :page.sign-up/update-arbiter
+  (s/keys :req [:user/name
+                :user/email
+                :user/country
+                :user/languages
+                :arbiter/professional-title
+                :arbiter/bio
+                :arbiter/fee]))
 
 
-;;
-;; Invoice
-;;
+(defn validate-keys [props]
+  (map-kv-vals #(s/valid? %1 %2) props))
 
-(s/def :invoice/index ::index)
-(s/def :invoice/date-created ::datetime)
-(s/def :invoice/date-updated ::datetime)
-(s/def :invoice/date-paid ::datetime)
-(s/def :invoice/amount-requested ::bigint)
-(s/def :invoice/amount-paid (s/nilable ::bigint))
-
-
-;;
-;; Dispute
-;;
-
-(s/def :dispute/index ::index)
-(s/def :dispute/reason string?)
-(s/def :dispute/date-created ::datetime)
-(s/def :dispute/date-updated ::datetime)
-(s/def :dispute/date-resolved (s/nilable ::datetime))
-(s/def :dispute/employer-resolution-amount (s/nilable ::bigint))
-(s/def :dispute/candidate-resolution-amount (s/nilable ::bigint))
-(s/def :dispute/arbiter-resolution-amount (s/nilable ::bigint))
-
-
-;;
-;; Comment
-;;
-
-(s/def :comment/index ::index)
-(s/def :comment/revision ::index)
-(s/def :comment/user-type ::user-type)
-(s/def :comment/date-created ::datetime)
-(s/def :comment/text string?)
-
-
-;;
-;; Feedback
-;;
-
-(s/def :feedback/index ::index)
-(s/def :feedback/to-user-type ::user-type)
-(s/def :feedback/to-user-id ::id)
-(s/def :feedback/from-user-type ::user-type)
-(s/def :feedback/from-user-id ::id)
-(s/def :feedback/date-created ::datetime)
-(s/def :feedback/date-updated ::datetime)
-(s/def :feedback/text string?)
-(s/def :feedback/rating (s/and nat-int? #(>= % 1) #(<= % 5)))

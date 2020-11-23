@@ -28,6 +28,8 @@
    {:client-id "83e6a6043ca4ae50f8b0"}
    :linkedin
    {:client-id "86csctqngadad5"}
+   :conversion-rates {:from-currencies [:ETH]
+                      :to-currencies [:USD]}
    })
 
 (def development-config

@@ -31,8 +31,7 @@
 
     userSearch(
       user_address: ID,
-      user_fullName: String,
-      user_userName: String,
+      user_name: String,
       orderBy: UserListOrderBy
       orderDirection: OrderDirection,
       limit: Int,
@@ -101,7 +100,7 @@
     user_email: String!
     user_userName: String!
     user_githubUsername: String
-    user_countryCode: String
+    user_country: String
     employer_bio: String
     employer_professionalTitle: String
   }
@@ -111,7 +110,7 @@
     user_email: String!
     user_userName: String!
     user_githubUsername: String
-    user_countryCode: String
+    user_country: String
     candidate_bio: String
     candidate_professionalTitle: String
     candidate_categories: [String!]
@@ -125,7 +124,7 @@
     user_email: String!
     user_userName: String!
     user_githubUsername: String
-    user_countryCode: String
+    user_country: String
     arbiter_bio: String
     arbiter_professionalTitle: String
     arbiter_feeCurrencyId: Keyword
@@ -181,18 +180,18 @@
 
   type githubSignUpPayload {
     user_address: ID!
-    user_fullName: String
+    user_name: String
     user_githubUsername: String
     user_email: String
-    user_countryCode: String
+    user_country: String
   }
 
   type linkedinSignUpPayload {
     user_address: ID!
-    user_fullName: String
+    user_name: String
     user_linkedinUsername: String
     user_email: String
-    user_countryCode: String
+    user_country: String
   }
 
   # User Types
@@ -203,10 +202,10 @@
     user_address: ID
 
     \"Two Letter Country Code\"
-    user_countryCode: String
+    user_country: String
 
     \"Full Name of the Given User\"
-    user_fullName: String
+    user_name: String
 
     user_githubUsername: String
 

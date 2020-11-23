@@ -116,7 +116,7 @@
 
                   // TODO: find a way of centering this diferently while still floating
                   top: 37%;
-                  left: 30%;
+                  left: 27%;
 
                   .ethlance-icon {
                       margin-bottom: 5px;
@@ -258,8 +258,12 @@
           height: 60px;
         }
 
-        &:hover {
+        &:hover:not(.disabled) {
           background-color: @color-dark-blue;
+        }
+
+        &.disabled {
+          opacity: 0.5;
         }
 
         > span {

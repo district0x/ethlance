@@ -46,10 +46,11 @@
 
          [:img {:src (or url-data empty-img-src)}]
 
-         [:label.file-input-label
-          {:for (id-for-path id)}
-          [c-icon {:name :ic-upload :color :dark-blue :inline? false}]
-          [:div (get opts :label "File...")]]
+         (when (not url-data)
+          [:label.file-input-label
+           {:for (id-for-path id)}
+           [c-icon {:name :ic-upload :color :dark-blue :inline? false}]
+           [:div (get opts :label "File...")]])
 
          [:input {:type :file
                   :id (id-for-path id)
