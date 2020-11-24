@@ -5,23 +5,22 @@
 *Ethlance Version 2 is Currently in Development and is subject to
 change before final release*
 
-
 # Development
 
 ## Prerequisites
 
+The following tools are needed to run different parts making up the Ethlance
+service.  Programming language tools (e.g. nodejs, python, etc.) may require
+specific versions.  To simplify maintaining their versions,
+[asdf](https://github.com/asdf-vm/asdf) version manager is a good tool Ethlance
+project also has `.tool-versions` described with appropriate versions
+
 * [NodeJS](https://nodejs.org) (Latest LTS Version)
-
 * [Leiningen](https://leiningen.org/)
-
 * [ganache-cli](https://github.com/trufflesuite/ganache-cli)
-
 * [ipfs](https://docs.ipfs.io/introduction/install/)
-
 * make
-  * Note: Windows users can use Msys for build essentials
-    (Untested)
-
+  * Note: Windows users can use Msys for build essentials (Untested)
 
 Run `make check` to determine whether you are missing any prerequisites
 
@@ -30,70 +29,37 @@ Run `make check` to determine whether you are missing any prerequisites
 
 Backend development requires:
 
-* instance of a figwheel server build
+1. Postgres database server (provided by docker image)
+2. IPFS server running
+3. Ganache test net running
+  * Contracts deployed to testnet
+4. CSS files to be watched & compiled
+5. Node.js server with Shadow CLJS for back-end running
+6. Node.js server with Shadow CLJS for front-end running
+7. Node.js server for GraphQL running
 
-* an attached node server to the figwheel server
+This is quite a few steps to run every time you start developing.
+To simplify that, a `Procfile` consuming tool like [Foreman](https://github.com/jmoses/foreman)
+(has implementations in various languages) or [Invoker](https://invoker.codemancers.com/) can be used.
 
-* a solidity contract compiler (lein-solc)
-
-* an local IPFS daemon with properly configured CORS privileges (ipfs)
-
-* a test net (ganache-cli)
-
-### Quickstart Server
-
-Terminal 1 (cljs repl):
-
-```bash
-make fig-dev-server
+Then it's easy as
 ```
-
-Terminal 2 (node server):
-
-```bash
-# Wait for fig-dev-server prompt: 'Prompt will show when Figwheel connects to your application'
-make dev-server
+❯ foreman start
+08:37:22 postgres.1         | started with pid 205427
+08:37:22 ipfs.1             | started with pid 205428
+08:37:22 testnet.1          | started with pid 205429
+08:37:22 deploy_contracts.1 | started with pid 205433
+08:37:22 css.1              | started with pid 205434
+08:37:22 ui.1               | started with pid 205436
+08:37:22 server.1           | started with pid 205439
+08:37:22 graphql.1          | started with pid 205442
+08:37:22 postgres.1         | docker run                                                       \
+08:37:22 ipfs.1             | ipfs daemon
+08:37:22 testnet.1          | npx ganache-cli -m district0x --host 0.0.0.0 --port 8549  -l 8000000
+08:37:22 css.1              | ./ui/node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css
+08:37:22 postgres.1
+<...>
 ```
-
-Terminal 3 (testnet):
-```bash
-make testnet
-```
-
-Terminal 4 (truffle):
-```bash
-make deploy
-```
-
-Terminal 5 (ipfs):
-```bash
-make ipfs
-```
-
-Terminal 1 (server repl):
-```clojure
-(start)
-        ;; By default, this will deploy the smart contracts, generate users
-        ;; and scenarios, and synchronize the results within the SQLite database.
-
-(help)  ;; To review additional commands
-```
-
-### Quickstart Browser
-
-Terminal 1 (cljs repl):
-
-```bash
-make dev-ui
-```
-
-Terminal 2 (LESS Compiler):
-
-```bash
-make build-css watch-css
-```
-
-Open Browser to http://localhost:9501
 
 ### Initial Setup
 
@@ -122,28 +88,6 @@ make clean-all deps
 
 - GCC 8+ do not work with some of the district libraries. This might
   change in the future. Please use GCC Version 6, or GCC Version 7.
-
-### Figwheel Server and Node Server Instance
-
-*Note: All instructions start in the root of the project directory*
-
-Open two terminals. In the first terminal, type:
-
-```bash
-$ make fig-dev-server
-```
-
-After a short while, the build will prompt for a connection.
-
-In the second terminal, type:
-
-```bash
-$ make dev-server
-```
-
-The the figwheel server should establish a connection with the node
-development server, and a CLJS repl should be available in the first
-terminal.
 
 ### Testnet Server
 

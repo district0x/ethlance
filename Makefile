@@ -171,8 +171,9 @@ build-contracts:
 
 # Environment setup for ganache-cli
 TESTNET_PORT := 8549
+TESTNET_HOST := 0.0.0.0
 testnet:
-	npx ganache-cli -m district0x -p $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
+	npx ganache-cli -m district0x --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
 
 build-docs:
@@ -215,3 +216,5 @@ design-build:
 
 design-deploy:
 	make -C ./designs deploy
+
+design: design-deps design-build design-deploy
