@@ -52,7 +52,7 @@
                                         user_userName
                                         user_email
                                         user_githubUsername
-                                        user_countryCode
+                                        user_country
                                         user_isRegisteredCandidate
                                         user_languages
                                       }
@@ -100,7 +100,7 @@
                                         user_name
                                         user_githubUsername
                                         user_email
-                                        user_countryCode
+                                        user_country
                                     }
                                   }"
                                    :variables {:githubSignUpInput {:code code :user_address user-address}}
@@ -128,7 +128,7 @@
                                         user_name
                                         user_linkedinUsername
                                         user_email
-                                        user_countryCode
+                                        user_country
                                     }
                                   }"
                                    :variables {:linkedinSignUpInput {:code code :user_address user-address :redirectUri redirect-uri}}
@@ -163,7 +163,7 @@
                                                                 :user_email email
                                                                 :user_userName name
                                                                 :user_githubUsername github-username
-                                                                :user_countryCode country
+                                                                :user_country country
                                                                 :candidate_bio bio
                                                                 :candidate_professionalTitle professional-title
                                                                 :candidate_categories categories
@@ -191,7 +191,7 @@
                                                                :user_email email
                                                                :user_userName name
                                                                :user_githubUsername github-username
-                                                               :user_countryCode country
+                                                               :user_country country
                                                                :employer_bio bio
                                                                :employer_professionalTitle professional-title}}}]})))
 
@@ -215,7 +215,7 @@
                                                               :user_email email
                                                               :user_userName name
                                                               :user_githubUsername github-username
-                                                              :user_countryCode country
+                                                              :user_country country
                                                               :arbiter_bio bio
                                                               :arbiter_professionalTitle professional-title
                                                               :arbiter_fee (js/parseInt fee)
