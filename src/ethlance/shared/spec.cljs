@@ -1,5 +1,6 @@
 (ns ethlance.shared.spec
   (:require
+    ["is-ipfs" :as is-ipfs]
     [cljs.spec.alpha :as s]
     [clojure.set :as set]
     [district.validation :refer [length? email? not-neg?]]
@@ -16,7 +17,7 @@
 (s/def :user/languages (fn [languages]
                          (and (pos? (count languages))
                               (set/subset? languages constants/languages))))
-(s/def :user/profile-image ())
+(s/def :user/profile-image is-ipfs/multihash)
 
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)

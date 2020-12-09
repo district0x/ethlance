@@ -16,6 +16,7 @@
 (re/reg-event-fx :page.sign-up/set-user-email (create-assoc-handler :user/email))
 (re/reg-event-fx :page.sign-up/set-user-country-code (create-assoc-handler :user/country))
 (re/reg-event-fx :page.sign-up/set-user-languages (create-assoc-handler :user/languages))
+(re/reg-event-fx :page.sign-up/set-user-profile-image (create-assoc-handler :user/profile-image))
 (re/reg-event-fx :page.sign-up/set-candidate-professional-title (create-assoc-handler :candidate/professional-title))
 (re/reg-event-fx :page.sign-up/set-candidate-rate (create-assoc-handler :candidate/rate))
 (re/reg-event-fx :page.sign-up/set-candidate-categories (create-assoc-handler :candidate/categories))
@@ -228,7 +229,6 @@
   (fn [_ [{:keys [:file-info] :as data}]]
     {:ipfs/call {:func "add"
                  :args [(:file file-info)]
-                 :opts {:wrap-with-directory true}
                  :on-success [::upload-user-image-success data]
                  :on-error [::logging/error "Error uploading user image" {:data data}]}}))
 
@@ -236,6 +236,6 @@
 (re/reg-event-fx
   ::upload-user-image-success
   [interceptors]
-  (fn [{:keys [:db]} [file-data ipfs-data]]
-    {:db (assoc-in db [state-key :user/profile-image] (get ipfs-data "Hash"))}))
+  (fn [{:keys [:db]} [file-data ipfs-resp]]
+    {:dispatch [:page.sign-up/set-user-profile-image (get (js->clj (js/JSON.parse ipfs-resp)) "Hash")]}))
 
