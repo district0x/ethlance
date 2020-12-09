@@ -158,8 +158,6 @@
        (fn []
          (let [form-values (merge @active-user @active-candidate @sign-up-form)
                form-validation (validate-keys form-values)]
-           (print.foo/look (s/explain :page.sign-up/update-candidate (print.foo/look form-values)))
-           (print.foo/look (s/valid? :page.sign-up/update-candidate form-values))
            [:div.candidate-sign-up
             [:div.form-container
              [:div.label "Sign Up"]
