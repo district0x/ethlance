@@ -6,7 +6,6 @@
     [clojure.string :as string]
     [district.shared.async-helpers :refer [promise->]]
     [ethlance.ui.util.component :refer [>evt]]
-    [re-frame.core :as re-frame]
     [re-frame.core :as re]
     [taoensso.timbre :as log]))
 
@@ -71,20 +70,20 @@
                         (handler fxs k v))
                       response))
 
-(re-frame/reg-event-fx
+(re/reg-event-fx
   ::response
   [(re/inject-cofx :store)]
   (fn [cofx [_ response]]
     (reduce-handlers cofx response)))
 
 
-(re-frame/reg-fx
+(re/reg-fx
   ::query
   (fn [[params callback]]
     (promise-> (axios params)
                callback)))
 
-(re-frame/reg-event-fx
+(re/reg-event-fx
   ::query
   (fn [{:keys [db]} [_ {:keys [query variables]}]]
     (let [url (get-in db [:ethlance/config :graphql :url])
@@ -176,7 +175,7 @@
 
 
 (defmethod handler :sign-in
-  [{:keys [db store]} _ {:keys [:jwt :user/address] :as response}]
+  [{:keys [db store]} _ {:as response}]
   (log/debug "sign in handler " response)
   {:db (assoc db :active-session response)
    :store (assoc store :active-session response)})

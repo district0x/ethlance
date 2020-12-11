@@ -14,6 +14,7 @@
     [ethlance.ui.page.profile.events]
     [ethlance.ui.page.sign-up.events]
     [district.ui.web3-accounts.events]
+    [print.foo]
     [re-frame.core :as re]))
 
 (re/reg-event-fx
