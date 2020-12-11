@@ -1,24 +1,41 @@
 (ns ethlance.ui.subscriptions
   (:require
-    [re-frame.core :as re-frame]
+    [district.cljs-utils :as cljs-utils]
     [district.ui.web3-accounts.subs :as accounts-subs]
     [ethlance.ui.component.modal.subscriptions]
-    [ethlance.ui.page.me.subscriptions]
-    [ethlance.ui.page.jobs.subscriptions]
-    [ethlance.ui.page.candidates.subscriptions]
     [ethlance.ui.page.arbiters.subscriptions]
+    [ethlance.ui.page.candidates.subscriptions]
     [ethlance.ui.page.employers.subscriptions]
-    [ethlance.ui.page.profile.subscriptions]
+    [ethlance.ui.page.invoices.subscriptions]
     [ethlance.ui.page.job-contract.subscriptions]
     [ethlance.ui.page.job-detail.subscriptions]
+    [ethlance.ui.page.jobs.subscriptions]
+    [ethlance.ui.page.me.subscriptions]
+    [ethlance.ui.page.new-invoice.subscriptions]
     [ethlance.ui.page.new-job.subscriptions]
-    [ethlance.ui.page.invoices.subscriptions]
-    [ethlance.ui.page.new-invoice.subscriptions]))
+    [ethlance.ui.page.profile.subscriptions]
+    [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
   ::config
   (fn [db _]
     (get db :ethlance/config)))
+
+
+(re-frame/reg-sub
+  ::active-session
+  (fn [db _]
+    (get db :active-session)))
+
+
+(re-frame/reg-sub
+  ::active-account-has-session?
+  :<- [::active-session]
+  :<- [::accounts-subs/active-account]
+  (fn [[active-session active-account]]
+    (and (cljs-utils/not-nil? (:user/address active-session))
+         (= (:user/address active-session) active-account))))
+
 
 (re-frame/reg-sub
   ::users

@@ -81,7 +81,8 @@
                 ]
 
  :nrepl {:middleware [cider.piggieback/wrap-cljs-repl
-                      refactor-nrepl.middleware/wrap-refactor]}
+                      refactor-nrepl.middleware/wrap-refactor]
+         :port 54872}
 
  :http {:port 3449
         :host "0.0.0.0"}
@@ -97,6 +98,7 @@
            :optimizations :none
            :source-map true
            :source-map-timestamp true
+           :devtools {:ignore-warnings true}
            :preloads [devtools.preload
                       re-frisk.preload]
            :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true

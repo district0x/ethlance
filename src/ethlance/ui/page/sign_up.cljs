@@ -129,7 +129,7 @@
    {:class (when disabled? "disabled")
     :on-click (fn []
                 (when-not disabled?
-                 (>evt [on-submit])))}
+                  (>evt on-submit)))}
    [:span "Create"]
    [c-icon {:name :ic-arrow-right :size :smaller}]])
 

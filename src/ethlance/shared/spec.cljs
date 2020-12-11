@@ -19,6 +19,10 @@
                               (set/subset? languages constants/languages))))
 (s/def :user/profile-image is-ipfs/multihash)
 
+(s/def :user/github-code string?)
+(s/def :user/linkedin-code string?)
+(s/def :user/linkedin-redirect-uri string?)
+
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)
 (s/def :candidate/categories (fn [categories]

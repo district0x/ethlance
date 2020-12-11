@@ -45,7 +45,6 @@
   [{:table-name :Users
     :table-columns
     [[:user/address :varchar]
-     [:user/type :varchar not-nil]
      [:user/email :varchar not-nil]
      [:user/name :varchar not-nil]
      [:user/country :varchar]
@@ -55,6 +54,15 @@
      [:user/github-username :varchar]
      [:user/linkedin-username :varchar]
      [:user/status :varchar]
+     ;; PK
+     [(sql/call :primary-key :user/address)]]
+    :list-keys []}
+
+   {:table-name :UserSocialAccounts
+    :table-columns
+    [[:user/address :varchar]
+     [:user/github-username :varchar]
+     [:user/linkedin-username :varchar]
      ;; PK
      [(sql/call :primary-key :user/address)]]
     :list-keys []}
@@ -630,8 +638,7 @@
 
 (defn upsert-user! [conn {:user/keys [type] :as user}]
   (safe-go
-   (let [values (-> (select-keys user (get-table-column-names :Users))
-                    (update :user/type name))
+   (let [values (select-keys user (get-table-column-names :Users))
          _ (<? (db/run! conn
                         {:insert-into :Users,
                          :values [values]
@@ -654,6 +661,18 @@
                                        :values [candidate]
                                        :upsert (array-map :on-conflict [:user/address]
                                                           :do-update-set (keys candidate))})))))))
+
+
+(defn upsert-user-social-accounts! [conn user-social-accounts]
+  (safe-go
+    (let [values (select-keys user-social-accounts (get-table-column-names :UserSocialAccounts))]
+      (<? (db/run! conn
+                   {:insert-into :UserSocialAccounts,
+                    :values [values]
+                    :upsert
+                    (array-map :on-conflict [:user/address]
+                               :do-update-set (keys values))})))))
+
 
 (defn add-bounty [conn bounty-job]
   (safe-go

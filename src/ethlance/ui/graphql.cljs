@@ -1,12 +1,14 @@
 (ns ethlance.ui.graphql
-  (:require [camel-snake-kebab.core :as camel-snake]
-            [camel-snake-kebab.extras :as camel-snake-extras]
-            [clojure.string :as string]
-            [district.shared.async-helpers :refer [promise->]]
-            [ethlance.ui.util.component :refer [>evt]]
-            [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
-            ["axios" :as axios]))
+  (:require
+    ["axios" :as axios]
+    [camel-snake-kebab.core :as camel-snake]
+    [camel-snake-kebab.extras :as camel-snake-extras]
+    [clojure.string :as string]
+    [district.shared.async-helpers :refer [promise->]]
+    [ethlance.ui.util.component :refer [>evt]]
+    [re-frame.core :as re-frame]
+    [re-frame.core :as re]
+    [taoensso.timbre :as log]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -34,26 +36,32 @@
               (vector? key) (first key)
               :else key)))
 
+
 (defn- update-db [cofx fx]
-  (if-let [db (:db fx)]
-    (assoc cofx :db db)
-    cofx))
+  (cond-> cofx
+    (:db fx) (assoc :db (:db fx))
+    (:store fx) (assoc :store (:store fx))))
+
 
 (defn- safe-merge [fx new-fx]
   (reduce (fn [merged-fx [k v]]
-            (when (= :db k)
-              (assoc merged-fx :db v)))
+            (cond
+              (= :db k) (assoc merged-fx :db v)
+              (= :store k) (assoc merged-fx :store v)
+              :else nil))
           fx
           new-fx))
 
+
 (defn- do-reduce-handlers
-  [{:keys [db] :as cofx} f coll]
+  [{:keys [db store] :as cofx} f coll]
   (reduce (fn [fxs element]
             (let [updated-cofx (update-db cofx fxs)]
               (if element
                 (safe-merge fxs (f updated-cofx element))
                 fxs)))
-          {:db db}
+          {:db db
+           :store store}
           coll))
 
 (defn reduce-handlers
@@ -65,8 +73,10 @@
 
 (re-frame/reg-event-fx
   ::response
+  [(re/inject-cofx :store)]
   (fn [cofx [_ response]]
     (reduce-handlers cofx response)))
+
 
 (re-frame/reg-fx
   ::query
@@ -78,13 +88,13 @@
   ::query
   (fn [{:keys [db]} [_ {:keys [query variables]}]]
     (let [url (get-in db [:ethlance/config :graphql :url])
-          access-token (get-in db [:tokens :access-token])
+          access-token (get-in db [:active-session :jwt])
           params (clj->js {:url url
                            :method :post
                            :headers (merge {"Content-Type" "application/json"
                                             "Accept" "application/json"}
                                            (when access-token
-                                             {"access_token" access-token}))
+                                             {"access-token" access-token}))
                            :data (js/JSON.stringify
                                    (clj->js {:query query
                                              :variables variables}))})
@@ -163,6 +173,14 @@
   {:db (-> db
          (assoc-in [:users address :user/date-updated] user-date-updated)
          (assoc-in [:arbiters address :arbiter/date-updated] arbiter-date-updated))})
+
+
+(defmethod handler :sign-in
+  [{:keys [db store]} _ {:keys [:jwt :user/address] :as response}]
+  (log/debug "sign in handler " response)
+  {:db (assoc db :active-session response)
+   :store (assoc store :active-session response)})
+
 
 (defmethod handler :api/error
   [_ _ _]

@@ -7,6 +7,7 @@
     [district.web3-utils :as web3-utils]
     [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.event.sign-in]
     [ethlance.ui.subscriptions :as ethlance-subs]
     [ethlance.ui.util.navigation :as util.navigation]
     [print.foo :include-macros true]
@@ -17,8 +18,10 @@
   []
   (let [active-account (subscribe [::accounts-subs/active-account])
         balance-eth (subscribe [::balances-subs/active-account-balance])
-        active-user (subscribe [::ethlance-subs/active-user])]
+        active-user (subscribe [::ethlance-subs/active-user])
+        active-account-has-session? (subscribe [::ethlance-subs/active-account-has-session?])]
     (fn []
+      (print.foo/look @active-account-has-session?)
       [:div.main-navigation-bar
        [c-ethlance-logo
         {:color :white

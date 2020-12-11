@@ -1,5 +1,6 @@
 (ns ethlance.ui.core
   (:require
+    [akiroz.re-frame.storage :refer [reg-co-fx!]]
     [district.ui.component.router]
     [district.ui.conversion-rates]
     [district.ui.ipfs]
@@ -29,6 +30,8 @@
     ;; Initialize our district re-mount components
     (-> (mount/with-args main-config)
       (mount/start))
+
+    (reg-co-fx! :ethlance {:fx :store :cofx :store})
 
     ;; Initialize our re-frame app state
     (re/dispatch-sync [:ethlance/initialize main-config])

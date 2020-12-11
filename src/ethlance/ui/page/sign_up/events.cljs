@@ -1,5 +1,6 @@
 (ns ethlance.ui.page.sign-up.events
   (:require
+    [district.parsers :as parsers]
     [district.ui.logging.events :as logging]
     [district.ui.web3-accounts.events :as accounts-events]
     [district.ui.web3-accounts.queries :as accounts-queries]
@@ -144,13 +145,20 @@
   [interceptors]
   (fn [{:keys [db]}]
     (let [user-address (accounts-queries/active-account db)
-          {:user/keys [name github-username country email]} (get-in db [:users user-address])
-          {:candidate/keys [rate
-                            professional-title
-                            categories
-                            skills
-                            bio]}
-          (get-in db [:candidates user-address])]
+          {:keys [:user/email
+                  :user/country
+                  :user/name
+                  :user/languages
+                  :user/profile-image
+                  :user/github-code
+                  :user/linkedin-code
+                  :user/linkedin-redirect-uri
+                  :candidate/professional-title
+                  :candidate/rate
+                  :candidate/categories
+                  :candidate/bio
+                  :candidate/skills
+                  ]} (get-in db [state-key])]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateCandidate($candidateInput: CandidateInput!) {
                                       updateCandidate(input: $candidateInput) {
@@ -162,13 +170,12 @@
                                    :variables {:candidateInput {:user_address user-address
                                                                 :user_email email
                                                                 :user_userName name
-                                                                :user_githubUsername github-username
                                                                 :user_country country
                                                                 :candidate_bio bio
                                                                 :candidate_professionalTitle professional-title
                                                                 :candidate_categories categories
                                                                 :candidate_skills skills
-                                                                :candidate_rate (js/parseInt rate)
+                                                                :candidate_rate (parsers/parse-int rate)
                                                                 ;; NOTE: hardcoded since UI does not allow for a different currency
                                                                 :candidate_rateCurrencyId :USD}}}]})))
 

@@ -99,7 +99,6 @@
     user_address: ID!
     user_email: String!
     user_userName: String!
-    user_githubUsername: String
     user_country: String
     employer_bio: String
     employer_professionalTitle: String
@@ -123,7 +122,6 @@
     user_address: ID!
     user_email: String!
     user_userName: String!
-    user_githubUsername: String
     user_country: String
     arbiter_bio: String
     arbiter_professionalTitle: String
@@ -144,7 +142,7 @@
 
   type Mutation {
 
-    signIn(dataSignature: String!, data: String!): String!
+    signIn(dataSignature: String!, data: String!): signInPayload!
     sendMessage(to: ID, text: String): Boolean!,
     raiseDispute(jobStory_id: Int!, text: String): Boolean!,
     resolveDispute(jobStory_id: Int!): Boolean!,
@@ -160,21 +158,32 @@
 
   # mutation result types
 
+  type signInPayload {
+    jwt: String!
+    user_address: String!
+  }
+
   type updateCandidatePayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_githubUsername: String
+    user_linkedinUsername: String
     candidate_dateUpdated: Date!
   }
 
   type updateEmployerPayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_githubUsername: String
+    user_linkedinUsername: String
     employer_dateUpdated: Date!
   }
 
   type updateArbiterPayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_githubUsername: String
+    user_linkedinUsername: String
     arbiter_dateUpdated: Date!
   }
 
@@ -208,6 +217,8 @@
     user_name: String
 
     user_githubUsername: String
+
+    user_linkedInUsername: String
 
     \"The short-form username of the User\"
     user_userName: String
