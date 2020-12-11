@@ -236,6 +236,6 @@
 (re/reg-event-fx
   ::upload-user-image-success
   [interceptors]
-  (fn [{:keys [:db]} [file-data ipfs-resp]]
+  (fn [_ [_ ipfs-resp]]
     {:dispatch [:page.sign-up/set-user-profile-image (get (js->clj (js/JSON.parse ipfs-resp)) "Hash")]}))
 

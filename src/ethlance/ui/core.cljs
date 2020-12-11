@@ -16,8 +16,7 @@
     [ethlance.ui.util.injection :as util.injection]
     [mount.core :as mount]
     [print.foo :include-macros true]
-    [re-frame.core :as re]
-    [re-frisk.core :as re-frisk]))
+    [re-frame.core :as re]))
 
 (enable-console-print!)
 
