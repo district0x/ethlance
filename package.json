@@ -13,7 +13,7 @@
     "react-dom": "16.13.0"
   },
   "devDependencies": {
-    "clj-kondo": "^2020.1.13",
+    "clj-kondo": "^v2020.11.07",
     "jsedn": "0.4.1",
     "shadow-cljs": "2.11.4",
     "truffle": "5.0.38"

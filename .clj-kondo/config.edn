@@ -1,5 +1,5 @@
 {:linters {:single-key-in {:level :error}
-           :unsorted-required-namespaces {:level :warning}
+           :unsorted-required-namespaces {:level :off}
            :unresolved-symbol {:exclude [(mount.core/defstate)
                                          (cljs.core.match/match)
                                          (district.server.async-db/with-async-resolver-conn [conn])
