@@ -49,8 +49,7 @@
                                    "query InitialQuery($address: ID!) {
                                       user(user_address: $address) {
                                         user_address
-                                        user_userName
-                                        user_userName
+                                        user_name
                                         user_email
                                         user_githubUsername
                                         user_country
@@ -169,7 +168,7 @@
                                   }"
                                    :variables {:candidateInput {:user_address user-address
                                                                 :user_email email
-                                                                :user_userName name
+                                                                :user_name name
                                                                 :user_country country
                                                                 :candidate_bio bio
                                                                 :candidate_professionalTitle professional-title
@@ -196,7 +195,7 @@
                                   }"
                                    :variables {:employerInput {:user_address user-address
                                                                :user_email email
-                                                               :user_userName name
+                                                               :user_name name
                                                                :user_githubUsername github-username
                                                                :user_country country
                                                                :employer_bio bio
@@ -220,7 +219,7 @@
                                   }"
                                    :variables {:arbiterInput {:user_address user-address
                                                               :user_email email
-                                                              :user_userName name
+                                                              :user_name name
                                                               :user_githubUsername github-username
                                                               :user_country country
                                                               :arbiter_bio bio
