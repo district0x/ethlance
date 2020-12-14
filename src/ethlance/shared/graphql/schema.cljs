@@ -98,7 +98,7 @@
   input EmployerInput {
     user_address: ID!
     user_email: String!
-    user_userName: String!
+    user_name: String!
     user_country: String
     employer_bio: String
     employer_professionalTitle: String
@@ -107,7 +107,7 @@
   input CandidateInput {
     user_address: ID!
     user_email: String!
-    user_userName: String!
+    user_name: String!
     user_githubUsername: String
     user_country: String
     candidate_bio: String
@@ -121,7 +121,7 @@
   input ArbiterInput {
     user_address: ID!
     user_email: String!
-    user_userName: String!
+    user_name: String!
     user_country: String
     arbiter_bio: String
     arbiter_professionalTitle: String
