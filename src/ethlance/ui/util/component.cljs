@@ -1,8 +1,8 @@
 (ns ethlance.ui.util.component
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re]))
 
-(def <sub (comp deref re-frame/subscribe))
-(def >evt re-frame/dispatch)
+(def <sub (comp deref re/subscribe))
+(def >evt re/dispatch)
 
 (defn unwrap-seq
   "Unwraps a sequence argument if it contains one element.

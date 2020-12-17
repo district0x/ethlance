@@ -14,21 +14,21 @@
     [ethlance.ui.page.new-invoice.subscriptions]
     [ethlance.ui.page.new-job.subscriptions]
     [ethlance.ui.page.profile.subscriptions]
-    [re-frame.core :as re-frame]))
+    [re-frame.core :as re]))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::config
   (fn [db _]
     (get db :ethlance/config)))
 
 
-(re-frame/reg-sub
+(re/reg-sub
   ::active-session
   (fn [db _]
     (get db :active-session)))
 
 
-(re-frame/reg-sub
+(re/reg-sub
   ::active-account-has-session?
   :<- [::active-session]
   :<- [::accounts-subs/active-account]
@@ -37,48 +37,48 @@
          (= (:user/address active-session) active-account))))
 
 
-(re-frame/reg-sub
+(re/reg-sub
   ::users
   (fn [db _]
     (get db :users)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::active-user
   :<- [::users]
   :<- [::accounts-subs/active-account]
   (fn [[users address]]
     (get users address)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::candidates
   (fn [db _]
     (get db :candidates)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::active-candidate
   :<- [::candidates]
   :<- [::accounts-subs/active-account]
   (fn [[candidates address]]
     (get candidates address)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::employers
   (fn [db _]
     (get db :employers)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::active-employer
   :<- [::employers]
   :<- [::accounts-subs/active-account]
   (fn [[employers address]]
     (get employers address)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::arbiters
   (fn [db _]
     (get db :arbiters)))
 
-(re-frame/reg-sub
+(re/reg-sub
   ::active-arbiter
   :<- [::arbiters]
   :<- [::accounts-subs/active-account]
