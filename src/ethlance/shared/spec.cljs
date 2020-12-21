@@ -20,11 +20,16 @@
 (s/def :user/profile-image is-ipfs/multihash)
 
 (s/def :user/github-code string?)
+(s/def :user/github-username (s/nilable string?))
+(def ethereum-address-pattern #"^0x([A-Fa-f0-9]{64})$")
+(s/def :user/address #(re-matches ethereum-address-pattern %))
 (s/def :user/linkedin-code string?)
 (s/def :user/linkedin-redirect-uri string?)
+(s/def :user/is-registered-candidate boolean?)
 
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)
+(s/def :candidate/rate-currency-id string?)
 (s/def :candidate/categories (fn [categories]
                                (and (pos? (count categories))
                                     (set/subset? categories constants/categories))))
