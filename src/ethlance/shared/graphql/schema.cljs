@@ -99,7 +99,9 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_githubUsername: String
     user_country: String
+    user_languages: [String!]
     employer_bio: String
     employer_professionalTitle: String
   }
@@ -110,6 +112,7 @@
     user_name: String!
     user_githubUsername: String
     user_country: String
+    user_languages: [String!]
     candidate_bio: String
     candidate_professionalTitle: String
     candidate_categories: [String!]
@@ -122,7 +125,9 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_githubUsername: String
     user_country: String
+    user_languages: [String!]
     arbiter_bio: String
     arbiter_professionalTitle: String
     arbiter_feeCurrencyId: Keyword

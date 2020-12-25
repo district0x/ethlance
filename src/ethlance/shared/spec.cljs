@@ -21,11 +21,13 @@
 
 (s/def :user/github-code string?)
 (s/def :user/github-username (s/nilable string?))
-(def ethereum-address-pattern #"^0x([A-Fa-f0-9]{64})$")
+(def ethereum-address-pattern #"^0x([A-Fa-f0-9]{40})$")
 (s/def :user/address #(re-matches ethereum-address-pattern %))
 (s/def :user/linkedin-code string?)
 (s/def :user/linkedin-redirect-uri string?)
 (s/def :user/is-registered-candidate boolean?)
+(s/def :user/date-updated int?)
+(s/def :candidate/date-updated int?)
 
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)
@@ -43,10 +45,12 @@
 
 (s/def :employer/professional-title professional-title?)
 (s/def :employer/bio bio?)
+(s/def :employer/date-updated int?)
 
 (s/def :arbiter/professional-title professional-title?)
 (s/def :arbiter/bio bio?)
 (s/def :arbiter/fee not-neg?)
+(s/def :arbitrer/date-updated int?)
 
 
 (s/def :page.sign-up/update-candidate

@@ -9,7 +9,10 @@
     [re-frame.core :as re]
     [taoensso.timbre :as log]))
 
-(defn gql-name->kw [gql-name]
+(defn gql-name->kw
+  "Turns names from graphql <namespace>_<camelCasedName> into <namespace>/<kebab-cased-name>
+     Example: user_isRegisteredCandidate -> user/is-registered-candidate"
+  [gql-name]
   (when gql-name
     (let [k (name gql-name)]
       (if (string/starts-with? k "__")

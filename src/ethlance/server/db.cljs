@@ -635,6 +635,30 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Application level db access ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn- add-new-associations
+  "Returns map suitablefor honeysql with upsert semantics to store associated model.
+  Association is identified by address (foreign key)"
+  [address table column values]
+  (let [fk-column :user/address
+        value-tuples (map #(into [address %]) values)]
+    {:insert-into table
+     :columns [fk-column column]
+     :values value-tuples
+     :on-conflict [fk-column column]
+     :do-update-set [column]}))
+
+(defn- remove-old-associations
+  "Deletes rows identified by address"
+  [address table]
+  (let [fk-column :user/address]
+    {:delete-from table :where [:= fk-column address]}))
+
+(defn- add-missing-values
+  "Helper to populate tables with normalized values (e.g. languages, skills, categories)
+  when new value is seen for the first time. In the future may get replaced with some
+  initial data loading script"
+  [table values]
+  {:insert-into table :values (map vector values) :on-conflict nil :do-nothing []})
 
 (defn upsert-user! [conn {:user/keys [type] :as user}]
   (safe-go
@@ -660,8 +684,15 @@
                     (<? (db/run! conn {:insert-into :Candidate
                                        :values [candidate]
                                        :upsert (array-map :on-conflict [:user/address]
-                                                          :do-update-set (keys candidate))})))))))
-
+                                                          :do-update-set (keys candidate))}))
+                    (doseq [address [(:user/address user)]
+                            target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
+                                    [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
+                                    [nil :UserLanguage :language/id (:user/languages user)]]]
+                      (let [[pk-table table column values] target]
+                        (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
+                        (<? (db/run! conn (remove-old-associations address table)))
+                        (<? (db/run! conn (add-new-associations address table column values))))))))))
 
 (defn upsert-user-social-accounts! [conn user-social-accounts]
   (safe-go

@@ -24,6 +24,7 @@
 (re/reg-event-fx :page.sign-up/set-candidate-skills (create-assoc-handler :candidate/skills))
 (re/reg-event-fx :page.sign-up/set-candidate-bio (create-assoc-handler :candidate/bio))
 (re/reg-event-fx :page.sign-up/set-employer-professional-title (create-assoc-handler :employer/professional-title))
+(re/reg-event-fx :page.sign-up/set-employer-bio (create-assoc-handler :employer/bio))
 (re/reg-event-fx :page.sign-up/set-arbiter-fee (create-assoc-handler :arbiter/fee))
 (re/reg-event-fx :page.sign-up/set-arbiter-professional-title (create-assoc-handler :arbiter/professional-title))
 (re/reg-event-fx :page.sign-up/set-arbiter-bio (create-assoc-handler :arbiter/bio))
@@ -170,6 +171,7 @@
                                                                 :user_email email
                                                                 :user_name name
                                                                 :user_country country
+                                                                :user_languages languages
                                                                 :candidate_bio bio
                                                                 :candidate_professionalTitle professional-title
                                                                 :candidate_categories categories
@@ -183,8 +185,8 @@
   [interceptors]
   (fn [{:keys [db]}]
     (let [user-address (accounts-queries/active-account db)
-          {:user/keys [name github-username country email]} (get-in db [:users user-address])
-          {:employer/keys [professional-title bio]} (get-in db [:employers user-address])]
+          {:user/keys [name github-username country languages email]} (get-in db [state-key])
+          {:employer/keys [professional-title bio]} (get-in db [state-key])]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateEmployer($employerInput: EmployerInput!) {
                                       updateEmployer(input: $employerInput) {
@@ -198,6 +200,7 @@
                                                                :user_name name
                                                                :user_githubUsername github-username
                                                                :user_country country
+                                                               :user_languages languages
                                                                :employer_bio bio
                                                                :employer_professionalTitle professional-title}}}]})))
 
@@ -207,8 +210,8 @@
   [interceptors]
   (fn [{:keys [db]}]
     (let [user-address (accounts-queries/active-account db)
-          {:user/keys [name github-username country email]} (get-in db [:users user-address])
-          {:arbiter/keys [professional-title bio fee]} (get-in db [:arbiters user-address])]
+          {:user/keys [name github-username country languages email]} (get-in db [state-key])
+          {:arbiter/keys [professional-title bio fee]} (get-in db [state-key])]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
                                       updateArbiter(input: $arbiterInput) {
@@ -222,6 +225,7 @@
                                                               :user_name name
                                                               :user_githubUsername github-username
                                                               :user_country country
+                                                              :user_languages languages
                                                               :arbiter_bio bio
                                                               :arbiter_professionalTitle professional-title
                                                               :arbiter_fee (js/parseInt fee)
