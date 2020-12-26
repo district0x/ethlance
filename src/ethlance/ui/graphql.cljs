@@ -96,7 +96,7 @@
                            :headers (merge {"Content-Type" "application/json"
                                             "Accept" "application/json"}
                                            (when access-token
-                                             {"access-token" access-token}))
+                                             {"Authorization" (str "Bearer " access-token)}))
                            :data (js/JSON.stringify
                                    (clj->js {:query query
                                              :variables variables}))})
