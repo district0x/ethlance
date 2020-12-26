@@ -7,6 +7,10 @@ change before final release*
 
 # Development
 
+Here's a high level overview of the components involved in ethlance.
+
+![Ethlance components](docs/diagrams/ethlance-components-dev-workflow.png)
+
 ## Prerequisites
 
 The following tools are needed to run different parts making up the Ethlance
@@ -23,7 +27,6 @@ project also has `.tool-versions` described with appropriate versions
   * Note: Windows users can use Msys for build essentials (Untested)
 
 Run `make check` to determine whether you are missing any prerequisites
-
 
 ## Setup Backend
 
