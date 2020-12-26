@@ -140,6 +140,9 @@
   (fn []
     {:forward-events {:unregister ::initial-query?}}))
 
+(defn- fallback-data [db section address]
+  (merge (get-in db [:users address]) (get-in db [section address])))
+
 (re/reg-event-fx
   :page.sign-up/update-candidate
   [interceptors]
@@ -158,7 +161,7 @@
                   :candidate/categories
                   :candidate/bio
                   :candidate/skills
-                  ]} (get-in db [state-key])]
+                  ]} (merge (fallback-data db :candidates user-address) (get-in db [state-key]))]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateCandidate($candidateInput: CandidateInput!) {
                                       updateCandidate(input: $candidateInput) {
@@ -185,8 +188,13 @@
   [interceptors]
   (fn [{:keys [db]}]
     (let [user-address (accounts-queries/active-account db)
-          {:user/keys [name github-username country languages email]} (get-in db [state-key])
-          {:employer/keys [professional-title bio]} (get-in db [state-key])]
+          {:keys [:user/name
+                  :user/email
+                  :user/languages
+                  :user/github-username
+                  :user/country
+                  :employer/professional-title
+                  :employer/bio]} (merge (fallback-data db :employers user-address) (get-in db [state-key]))]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateEmployer($employerInput: EmployerInput!) {
                                       updateEmployer(input: $employerInput) {
@@ -211,7 +219,15 @@
   (fn [{:keys [db]}]
     (let [user-address (accounts-queries/active-account db)
           {:user/keys [name github-username country languages email]} (get-in db [state-key])
-          {:arbiter/keys [professional-title bio fee]} (get-in db [state-key])]
+          {:arbiter/keys [professional-title bio fee]} (get-in db [state-key])
+          {:keys [:user/name
+                  :user/email
+                  :user/languages
+                  :user/github-username
+                  :user/country
+                  :arbiter/professional-title
+                  :arbiter/bio
+                  :arbiter/fee]} (merge (fallback-data db :arbiters user-address) (get-in db [state-key]))]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
                                       updateArbiter(input: $arbiterInput) {
