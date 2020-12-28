@@ -151,7 +151,7 @@
           {:keys [:user/email
                   :user/country
                   :user/name
-                  ; :user/languages
+                  :user/languages
                   ; :user/profile-image
                   ; :user/github-code
                   ; :user/linkedin-code
@@ -218,8 +218,6 @@
   [interceptors]
   (fn [{:keys [db]}]
     (let [user-address (accounts-queries/active-account db)
-          {:user/keys [name github-username country languages email]} (get-in db [state-key])
-          {:arbiter/keys [professional-title bio fee]} (get-in db [state-key])
           {:keys [:user/name
                   :user/email
                   :user/languages
