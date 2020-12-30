@@ -3,6 +3,8 @@
             [cljs-time.core :as time]
             [clojure.string :as string]
             [district.shared.async-helpers :refer [safe-go <?]]
+            [district.server.async-db :as async-db]
+            [cljs.core.async :refer [go <!]]
             [ethlance.server.contract.ethlance-issuer :as ethlance-issuer]
             [ethlance.server.db :as ethlance-db]
             [taoensso.timbre :as log]))
@@ -58,7 +60,7 @@
 
 (defn generate-users [conn user-addresses]
   (safe-go
-   (doseq [address user-addresses]
+   (doseq [[address-owner address] user-addresses]
      (let [[country-code _] (shuffle ["US" "BE" "UA" "CA" "SLO" "PL"])
            [first-name _] (shuffle ["Filip" "Juan" "Ben" "Matus"])
            [second-name _] (shuffle ["Fu" "Bar" "Smith" "Doe" "Hoe"])
@@ -70,7 +72,7 @@
            bio (subs lorem from (+ 100 from))
            [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
        (<? (ethlance-db/insert-row! conn :Users {:user/address address
-                                                 :user/type (case address
+                                                 :user/type (case address-owner
                                                               "EMPLOYER" :employer
                                                               "CANDIDATE" :candidate
                                                               "ARBITER" :arbiter)
@@ -81,18 +83,18 @@
                                                  :user/date-registered date-registered
                                                  :user/date-updated date-registered}))
 
-       (when (= "EMPLOYER" address)
+       (when (= "EMPLOYER" address-owner)
          (<? (ethlance-db/insert-row! conn :Employer {:user/address address
                                                       :employer/bio bio
                                                       :employer/professional-title professional-title})))
 
-       (when (= "CANDIDATE" address)
+       (when (= "CANDIDATE" address-owner)
          (<? (ethlance-db/insert-row! conn :Candidate {:user/address address
                                                        :candidate/rate (rand-int 200)
                                                        :candidate/rate-currency-id currency
                                                        :candidate/bio bio
                                                        :candidate/professional-title professional-title})))
-       (when (= "ARBITER" address)
+       (when (= "ARBITER" address-owner)
          (<? (ethlance-db/insert-row! conn :Arbiter {:user/address address
                                                      :arbiter/bio bio
                                                      :arbiter/professional-title professional-title
@@ -277,24 +279,36 @@
                                                           :job-story/id story-id
                                                           :feedback/rating (rand-int 5)
                                                           :user/address employer}))))))
+(defn generate-dev-data
+  ([conn] (generate-dev-data conn {}))
+  ([conn provided-addresses]
+   (safe-go
+     (let [default-user-types ["EMPLOYER" "CANDIDATE" "ARBITER"]
+           user-addresses (map #(or (get provided-addresses %) %) default-user-types)
+           user-address-map (into {} (map vector default-user-types user-addresses))
+           categories ["Web" "Mobile" "Embedded"]
+           skills ["Solidity" "Clojure"]
+           jobs (map (fn [jid jtype] {:job-id jid :job-type jtype})
+                     (range 0 3)
+                     (cycle [:standard-bounties :ethlance-job]))
+           stories-ids (range 0 5)]
+       (<? (generate-users conn user-address-map))
+       (<? (generate-categories conn categories user-addresses))
+       (<? (generate-skills conn skills user-addresses))
+       (<? (generate-user-languages conn user-addresses))
+       (<? (generate-jobs conn jobs user-addresses))
+       (<? (generate-job-arbiters conn (map :job-id jobs) user-addresses))
+       (<? (generate-job-stories conn stories-ids jobs user-addresses))
+       (<? (generate-disputes conn stories-ids user-addresses))
+       (<? (generate-invoices conn stories-ids user-addresses))
+       (<? (generate-feedback conn stories-ids user-addresses))
+       (log/debug "Done")))))
 
-(defn generate-dev-data [conn]
-  (safe-go
-   (let [user-addresses ["EMPLOYER" "CANDIDATE" "ARBITER"]
-         categories ["Web" "Mobile" "Embedded"]
-         skills ["Solidity" "Clojure"]
-         jobs (map (fn [jid jtype] {:job-id jid :job-type jtype})
-                   (range 0 3)
-                   (cycle [:standard-bounties :ethlance-job]))
-         stories-ids (range 0 5)]
-     (<? (generate-users conn user-addresses))
-     (<? (generate-categories conn categories user-addresses))
-     (<? (generate-skills conn skills user-addresses))
-     (<? (generate-user-languages conn user-addresses))
-     (<? (generate-jobs conn jobs user-addresses))
-     (<? (generate-job-arbiters conn (map :job-id jobs) user-addresses))
-     (<? (generate-job-stories conn stories-ids jobs user-addresses))
-     (<? (generate-disputes conn stories-ids user-addresses))
-     (<? (generate-invoices conn stories-ids user-addresses))
-     (<? (generate-feedback conn stories-ids user-addresses))
-     (log/debug "Done"))))
+(defn generate-for-address
+  "Helper function to create dev data for your real Ethereum address"
+  [address]
+  (go
+    (let [conn (<? (async-db/get-connection))
+          address-map {"EMPLOYER" address "CANDIDATE" address "ARBITER" address}]
+       (<! (generate-dev-data conn address-map)))))
+
