@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+REPL_PORT=54872
+COMMAND=$1
+RETRIES=5
+SLEEP_BETWEEN=5
+
+run_in_repl() {
+  { ERR=$(echo $1 | lein repl :connect $REPL_PORT 2>&1 >&3 3>&-); } 3>&1
+  if [[ "$ERR" =~ "Connection refused" ]]; then
+    echo "Failure"
+    return 1
+  else
+    echo "Success!"
+  fi
+}
+
+retry() {
+  echo "Attempting to run ${@:2}"
+  for i in $(seq 1 $RETRIES); do run_in_repl "${@:2}" && break || echo "Retry ${i} of ${RETRIES}" && sleep $SLEEP_BETWEEN; done
+}
+
+retry run_in_repl "${COMMAND}"

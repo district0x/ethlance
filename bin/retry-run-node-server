@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+RETRIES=5
+SLEEP_BETWEEN=5
+script_name=$0
+script_full_path=$(dirname "$0")
+repl_runner="${script_full_path}/repl-run"
+
+start_server_when_watched() {
+  output=$($repl_runner "(shadow/worker-running? :dev-server)" | grep true)
+  if [ "$output" = "true" ]; then
+    echo "$output"
+    echo "Server JS assets being watched. Starting node server"
+    sleep 10 # Wait a bit more in case assets haven't finished compiling
+    node server/ethlance_server.js
+  else
+    echo "Still waiting for server JS assets build to start"
+    return 1
+  fi
+}
+
+for i in $(seq 1 $RETRIES); do start_server_when_watched && break || echo "Retry ${i} of ${RETRIES}" && sleep $SLEEP_BETWEEN; done
