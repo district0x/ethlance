@@ -84,6 +84,28 @@ If you're having issues with your environment, you can run this command:
 make clean-all deps
 ```
 
+### First steps, showing example data
+
+In order for the front-end to be able to have the JWT token (kept in LocalStorage), you must sign a transaction. Currently it can be done manually. Open REPL for UI:
+```
+lein repl :connect 54872
+(shadow/repl :dev-ui)
+(in-ns 'ethlance.ui.event.sign-in)
+(re/dispatch [:user/sign-in])
+```
+  - this will show a pop up and using MetaMask you can create a transaction
+  - after doing this successfully the UI graphql requests will have proper `Authorization: Bearer ...` header
+
+Then to generate some example data you can use server REPL:
+```
+lein repl :connect 54872
+(shadow/repl :dev-server)
+(in-ns 'tests.graphql.generator)
+(generate-for-address "0xafcf1a2bc71acf041c93012a2e552e31026dfeab")
+```
+  - for that the test namespace must be included in the server build (e.g. by adding `[tests.graphql.generator :as test-data-generator]` to `ethlance.server.core`)
+  - alternatively you can submit the data manually through the forms
+
 #### Additional Troubleshooting
 
 - Make sure you are using NodeJS LTS Version. (Latest LTS Version is
@@ -120,20 +142,6 @@ ipfs config --json Gateway.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
 ipfs config --json Gateway.HTTPHeaders.Access-Control-Allow-Headers '["X-Requested-With"]'
 ipfs config --json Gateway.Writable true
 ```
-
-### Smart Contract Deployment, User / Scenario Generation, Syncing
-
-If all of the previous sections are completed, we can perform a smart
-contract deployment on the testnet through the fig-dev-server
-CLJS-REPL.
-
-While in the Figwheel Server CLJS REPL, type:
-
-```clojure
-(start) ;; Reloaded Lifecycle
-```
-
-You should see activity in the `ganache-cli` testnet server.
 
 # Deployment
 
