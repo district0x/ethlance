@@ -102,9 +102,9 @@
                                              :variables variables}))})
           callback (fn [^js response]
                      (if (= 200 (.-status response))
-                       ;; TODO we can still have errors even with a 200
-                       ;; so we should log them or handle in some other way
-                       (>evt [::response (gql->clj (.-data (.-data response)))])
+                       (do
+                         (>evt [::response {:api/error (map :message (gql->clj (.-errors (.-data response))))}])
+                         (>evt [::response (gql->clj (.-data (.-data response)))]))
                        (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
       {::query [params callback]})))
 
@@ -185,6 +185,6 @@
 
 
 (defmethod handler :api/error
-  [_ _ _]
-  ;; NOTE: this handler is here only to catch errors
-  )
+  [{:keys [:db]} _ error-messages]
+  (log/debug (str "api/error handler " error-messages))
+  {:db (merge db {:api-errors error-messages})})

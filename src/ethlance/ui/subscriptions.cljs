@@ -84,3 +84,8 @@
   :<- [::accounts-subs/active-account]
   (fn [[arbiters address]]
     (get arbiters address)))
+
+(re/reg-sub
+  ::api-errors
+  (fn [db _]
+    (:api-errors db)))

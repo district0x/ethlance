@@ -346,8 +346,16 @@
              {:on-submit [:page.sign-up/update-arbiter]
               :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))})))
 
+(defn c-api-errors
+  [messages]
+  (when (seq messages)
+    [:div.api-errors
+     [:h1 "There were API errors:"]
+     [:ul (map #(conj [:li.error] %) messages)]]))
+
 (defmethod page :route.me/sign-up []
-  (let [active-page (re/subscribe [::router.subs/active-page])]
+  (let [active-page (re/subscribe [::router.subs/active-page])
+        api-errors (re/subscribe [::subs/api-errors])]
     (fn []
       (let [{:keys [name params query]} @active-page
             active-tab-index (case (-> query :tab str/lower str/keyword)
@@ -356,6 +364,7 @@
                                :arbiter 2
                                0)]
         [c-main-layout {:container-opts {:class :sign-up-main-container}}
+         [c-api-errors @api-errors]
          [c-tabular-layout
           {:key "sign-up-tabular-layout"
            :default-tab active-tab-index}
