@@ -12,7 +12,8 @@
     [honeysql.helpers :as sql-helpers]
     [print.foo :include-macros true]
     [taoensso.timbre :as log]
-    [clojure.string :as string]))
+    [clojure.string :as string]
+    [ethlance.shared.spec :refer [validate-keys]]))
 
 (def axios (js/require "axios"))
 (def querystring (js/require "querystring"))
@@ -585,6 +586,13 @@
       (throw (js/Error. "Authentication required"))
       (next root args context info))))
 
+(defn fail-with-error [next]
+  (fn [root args context info]
+    (let [some-invalid (some #(not %2) (validate-keys (:input args)))]
+      (if some-invalid
+        (throw (js/Error "Invalid form data sent to server"))
+        (next root args context info)))))
+
 (def resolvers-map {:Query {:user user-resolver
                             :userSearch user-search-resolver
                             :candidate candidate-resolver
@@ -618,7 +626,7 @@
                                :leaveFeedback (require-auth leave-feedback-mutation)
                                ;; TODO : do require auth
                                :updateEmployer (require-auth update-employer-mutation)
-                               :updateCandidate (require-auth update-candidate-mutation)
+                               :updateCandidate (require-auth (fail-with-error update-candidate-mutation))
                                :updateArbiter (require-auth update-arbiter-mutation)
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :replayEvents replay-events
