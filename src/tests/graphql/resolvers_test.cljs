@@ -49,16 +49,30 @@
                      (done))))
    :after (fn [] (log/debug "Running after fixture"))})
 
+(defn encode-user-type-in-address
+  "Returns Ethereum address looking string with user-type in it (with non-hex characters replaced)"
+  [user-type]
+  (let [address-base "0x4c3F13898913F15F12F902d6480178484063A6Fb"
+        beginning (subs address-base 0 2)
+        hexy-user (clojure.string/replace user-type #"[^a-f^A-F^0-9]" "f")
+        ending (subs address-base (+ (count beginning) (count user-type)) (count address-base))]
+  (str beginning hexy-user ending)))
+
+(defn user-address-pairs [user-type]
+  [user-type (encode-user-type-in-address user-type)])
+
 (deftest test-resolvers
   (async done
          (go
            (let [api-endpoint "http://localhost:4000/graphql"
                  _ (<! (ethlance-db/ready-state?))
                  conn (<? (async-db/get-connection))
-                 _ (<! (generator/generate-dev-data conn))
+                 users-addresses (into {} (map user-address-pairs ["CANDIDATE" "EMPLOYER" "ARBITER"]))
+                 _ (println "users-addresses" users-addresses)
+                 _ (<! (generator/generate-dev-data conn users-addresses))
                  user-query (<! (run-query {:url api-endpoint
                                             :access-token access-token
-                                            :query [:user {:user/address "EMPLOYER"}
+                                            :query [:user {:user/address (users-addresses "EMPLOYER")}
                                                     [:user/address]]}))
 
                  user-search-query (<! (run-query {:url api-endpoint
@@ -68,7 +82,7 @@
                                                             [:items [:user/address]]]]}))
                  candidate-query (<! (run-query {:url api-endpoint
                                                  :access-token access-token
-                                                 :query [:candidate {:user/address "CANDIDATE"}
+                                                 :query [:candidate {:user/address (users-addresses "CANDIDATE")}
                                                          [:user/address
                                                           [:candidate/feedback [:total-count
                                                                                 [:items
@@ -94,7 +108,7 @@
 
                  employer-query (<! (run-query {:url api-endpoint
                                                 :access-token access-token
-                                                :query [:employer {:user/address "EMPLOYER"}
+                                                :query [:employer {:user/address (users-addresses "EMPLOYER")}
                                                         [:user/address
                                                          [:employer/feedback [:total-count
                                                                               [:items
@@ -106,7 +120,7 @@
 
                  arbiter-query (<! (run-query {:url api-endpoint
                                                :access-token access-token
-                                               :query [:arbiter {:user/address "ARBITER"}
+                                               :query [:arbiter {:user/address (users-addresses "ARBITER")}
                                                        [:user/address
                                                         [:arbiter/feedback [:total-count
                                                                             [:items
@@ -171,12 +185,12 @@
                                                         :invoice/id
                                                         :invoice/amount-paid]]}))]
 
-             (is (= "EMPLOYER" (-> user-query :data :user :user/address str/trim)))
+             (is (= (users-addresses "EMPLOYER") (-> user-query :data :user :user/address str/trim)))
 
              (is (= 3 (-> user-search-query :data :user-search :total-count)))
              (is (= 3 (-> user-search-query :data :user-search :items count)))
 
-             (is (= "CANDIDATE" (-> candidate-query :data :candidate :user/address str/trim)))
+             (is (= (users-addresses "CANDIDATE") (-> candidate-query :data :candidate :user/address str/trim)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :total-count)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :items count)))
              (is (= "Employer" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/from-user-type)))

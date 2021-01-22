@@ -199,8 +199,8 @@
      [:ethlance-job/id :integer]
      [:ethlance-job/estimated-length :bigint]
      [:ethlance-job/max-number-of-candidates :integer]
-     [:ethlance-job/invitation-only? :integer]
-     [:ethlance-job/required-availability :integer]
+     [:ethlance-job/invitation-only? :bool]
+     [:ethlance-job/required-availability :bool]
      [:ethlance-job/hire-address :varchar]
      [:ethlance-job/bid-option :integer]
 
