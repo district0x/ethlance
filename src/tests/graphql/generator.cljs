@@ -7,7 +7,8 @@
             [cljs.core.async :refer [go <!]]
             [ethlance.server.contract.ethlance-issuer :as ethlance-issuer]
             [ethlance.server.db :as ethlance-db]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [ethlance.shared.constants :as constants]))
 
 (def lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In blandit auctor neque ut pharetra. Vivamus mollis ligula at ultrices cursus. Sed suscipit hendrerit nulla. Maecenas eleifend facilisis enim, eget imperdiet ipsum vestibulum id. Maecenas at dui ut purus tempor porttitor vitae vel mauris. In accumsan mattis est, eget sollicitudin nibh bibendum nec. Mauris posuere nisi pulvinar nibh dapibus varius. Nunc elementum arcu eu ex ullamcorper mattis. Proin porttitor viverra nisi, eu venenatis magna feugiat ultrices. Vestibulum justo justo, ullamcorper sit amet ultrices in, tempor non turpis.")
 
@@ -26,7 +27,7 @@
    11 "Accounting & Consulting"
    12 "Other"})
 
-(def languages ["en" "nl" "pl" "de" "es" "fr"])
+(def languages (map (zipmap constants/languages constants/languages) ["English" "español"]))
 
 (defn generate-user-languages [conn user-addresses]
   (safe-go
@@ -61,7 +62,7 @@
 (defn generate-users [conn user-addresses]
   (safe-go
    (doseq [[address-owner address] user-addresses]
-     (let [[country-code _] (shuffle ["US" "BE" "UA" "CA" "SLO" "PL"])
+     (let [[country-code _] (shuffle ["United States" "Belgium" "United Arab Emirates" "Canada" "Slovakia" "Poland"])
            [first-name _] (shuffle ["Filip" "Juan" "Ben" "Matus"])
            [second-name _] (shuffle ["Fu" "Bar" "Smith" "Doe" "Hoe"])
            [extension _] (shuffle ["io" "com" "gov"])
@@ -286,7 +287,7 @@
      (let [default-user-types ["EMPLOYER" "CANDIDATE" "ARBITER"]
            user-addresses (map #(or (get provided-addresses %) %) default-user-types)
            user-address-map (into {} (map vector default-user-types user-addresses))
-           categories ["Web" "Mobile" "Embedded"]
+           categories (take 3 constants/categories)
            skills ["Solidity" "Clojure"]
            jobs (map (fn [jid jtype] {:job-id jid :job-type jtype})
                      (range 0 3)
