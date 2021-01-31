@@ -8,7 +8,7 @@
     [medley.core :refer [map-kv-vals]]))
 
 
-(def professional-title? #(length? % 3 80))
+(def professional-title? #(length? % 2 80))
 (def bio? #(length? % 2000))
 
 (s/def :user/name #(length? % 3 80))

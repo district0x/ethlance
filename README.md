@@ -165,9 +165,10 @@ To run all of the tests in a standalone test runner, you must first
 build the solidity contracts, run an instance of the testnet server,
 and an instance of the IPFS daemon. The test runner can be run via:
 
-```bash
-make clean deploy test
-```
+1. Watch test build (compiles test CLJS files)
+  - `./bin/repl-run "(shadow/watch :server-tests) @(promise)"`
+2. Run tests:
+  - `node server/tests/server-tests.js`
 
 # Contributing
 
