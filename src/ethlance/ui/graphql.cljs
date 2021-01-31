@@ -7,6 +7,7 @@
     [district.shared.async-helpers :refer [promise->]]
     [ethlance.ui.util.component :refer [>evt]]
     [re-frame.core :as re]
+    [district.ui.notification.events :as events]
     [taoensso.timbre :as log]))
 
 (defn gql-name->kw
@@ -104,6 +105,8 @@
                      (if (= 200 (.-status response))
                        (do
                          (>evt [::response {:api/error (map :message (gql->clj (.-errors (.-data response))))}])
+                         (doseq [message (map :message (gql->clj (.-errors (.-data response))))]
+                           (>evt [::events/show {:message message}]))
                          (>evt [::response (gql->clj (.-data (.-data response)))]))
                        (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
       {::query [params callback]})))
