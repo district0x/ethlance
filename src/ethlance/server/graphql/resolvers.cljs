@@ -588,9 +588,8 @@
 
 (defn fail-with-error [next]
   (fn [root args context info]
-    (let [some-invalid (some #(not %2) (validate-keys (:input args)))]
-      (if some-invalid
-        (throw (js/Error "Invalid form data sent to server"))
+    (let [some-invalid (some #(not %) (vals (validate-keys (:input args))))]
+      (if some-invalid (throw (js/Error "Invalid form data sent to server"))
         (next root args context info)))))
 
 (def resolvers-map {:Query {:user user-resolver

@@ -1,6 +1,7 @@
 (ns ethlance.ui.core
   (:require
     [akiroz.re-frame.storage :refer [reg-co-fx!]]
+    [district.ui.notification]
     [district.ui.component.router]
     [district.ui.conversion-rates]
     [district.ui.ipfs]

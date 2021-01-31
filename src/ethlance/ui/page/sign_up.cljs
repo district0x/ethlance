@@ -3,6 +3,7 @@
     [cuerdas.core :as str]
     [district.ui.component.page :refer [page]]
     [district.ui.router.events :as router-events]
+    [district.ui.notification.subs :as noti-subs]
     [district.ui.router.subs :as router.subs]
     [ethlance.shared.constants :as constants]
     [ethlance.shared.spec :refer [validate-keys]]
@@ -132,7 +133,6 @@
                   (>evt on-submit)))}
    [:span "Create"]
    [c-icon {:name :ic-arrow-right :size :smaller}]])
-
 
 (defn c-candidate-sign-up []
   (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
@@ -353,18 +353,24 @@
      [:h1 "There were API errors:"]
      [:ul (map #(conj [:li.error] %) messages)]]))
 
+(defn c-api-error-notification [message open?]
+  [:div {:class ["notification-box" (when (not open?) "hidden")]}
+    [:div {:class ["ui negative message"]}
+     [:div {:class "header"} "Error"]
+     [:p message]]])
+
 (defmethod page :route.me/sign-up []
-  (let [active-page (re/subscribe [::router.subs/active-page])
-        api-errors (re/subscribe [::subs/api-errors])]
+  (let [active-page (re/subscribe [::router.subs/active-page])]
     (fn []
       (let [{:keys [name params query]} @active-page
             active-tab-index (case (-> query :tab str/lower str/keyword)
                                :candidate 0
                                :employer 1
                                :arbiter 2
-                               0)]
+                               0)
+            {:keys [:open? :message]} @(re/subscribe [::noti-subs/notification])]
         [c-main-layout {:container-opts {:class :sign-up-main-container}}
-         [c-api-errors @api-errors]
+         [c-api-error-notification message open?]
          [c-tabular-layout
           {:key "sign-up-tabular-layout"
            :default-tab active-tab-index}
