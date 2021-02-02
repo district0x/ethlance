@@ -586,7 +586,7 @@
       (throw (js/Error. "Authentication required"))
       (next root args context info))))
 
-(defn fail-with-error [next]
+(defn validate-input [next]
   (fn [root args context info]
     (let [some-invalid (some #(not %) (vals (validate-keys (:input args))))]
       (if some-invalid (throw (js/Error "Invalid form data sent to server"))
@@ -625,7 +625,7 @@
                                :leaveFeedback (require-auth leave-feedback-mutation)
                                ;; TODO : do require auth
                                :updateEmployer (require-auth update-employer-mutation)
-                               :updateCandidate (require-auth (fail-with-error update-candidate-mutation))
+                               :updateCandidate (require-auth (validate-input update-candidate-mutation))
                                :updateArbiter (require-auth update-arbiter-mutation)
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :replayEvents replay-events

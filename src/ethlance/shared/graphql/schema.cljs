@@ -100,10 +100,10 @@
     user_email: String!
     user_name: String!
     user_githubUsername: String
-    user_country: String
+    user_country: String!
     user_languages: [String!]
-    employer_bio: String
-    employer_professionalTitle: String
+    employer_bio: String!
+    employer_professionalTitle: String!
   }
 
   input CandidateInput {
@@ -111,13 +111,13 @@
     user_email: String!
     user_name: String!
     user_githubUsername: String
-    user_country: String
+    user_country: String!
     user_languages: [String!]
-    candidate_bio: String
-    candidate_professionalTitle: String
+    candidate_bio: String!
+    candidate_professionalTitle: String!
     candidate_categories: [String!]
     candidate_skills: [String!]
-    candidate_rateCurrencyId: Keyword
+    candidate_rateCurrencyId: Keyword!
     candidate_rate: Int!
   }
 
@@ -126,11 +126,11 @@
     user_email: String!
     user_name: String!
     user_githubUsername: String
-    user_country: String
+    user_country: String!
     user_languages: [String!]
-    arbiter_bio: String
-    arbiter_professionalTitle: String
-    arbiter_feeCurrencyId: Keyword
+    arbiter_bio: String!
+    arbiter_professionalTitle: String!
+    arbiter_feeCurrencyId: Keyword!
     arbiter_fee: Int!
   }
 
