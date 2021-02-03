@@ -4,7 +4,6 @@
     [camel-snake-kebab.core :as camel-snake]
     [camel-snake-kebab.extras :as camel-snake-extras]
     [clojure.string :as string]
-    [district.shared.async-helpers :refer [promise->]]
     [ethlance.ui.util.component :refer [>evt]]
     [re-frame.core :as re]
     [district.ui.notification.events :as events]
@@ -80,12 +79,23 @@
   (fn [cofx [_ response]]
     (reduce-handlers cofx response)))
 
+(re/reg-event-db
+  ::request-finished
+  (fn [db _]
+    (assoc db :api-request-in-progress false)))
+
+(re/reg-event-db
+  ::request-started
+  (fn [db _]
+    (assoc db :api-request-in-progress true)))
 
 (re/reg-fx
   ::query
   (fn [[params callback]]
-    (promise-> (axios params)
-               callback)))
+    (>evt [::request-started])
+    (-> (axios params)
+        (.then callback)
+        (.finally #(>evt [::request-finished])))))
 
 (re/reg-event-fx
   ::query
