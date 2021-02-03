@@ -89,3 +89,8 @@
   ::api-errors
   (fn [db _]
     (:api-errors db)))
+
+(re/reg-sub
+  ::api-request-in-progress
+  (fn [db _]
+    (:api-request-in-progress db)))

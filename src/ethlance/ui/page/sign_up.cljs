@@ -126,13 +126,13 @@
 
 
 (defn- c-submit-button [{:keys [:on-submit :disabled?]}]
-  [:div.form-submit
-   {:class (when disabled? "disabled")
-    :on-click (fn []
-                (when-not disabled?
-                  (>evt on-submit)))}
-   [:span "Create"]
-   [c-icon {:name :ic-arrow-right :size :smaller}]])
+  (let [in-progress @(re/subscribe [::subs/api-request-in-progress])
+        disabled? (or disabled? in-progress)]
+    [:div.form-submit
+     {:class (when disabled? "disabled")
+      :on-click (fn [] (when-not disabled? (>evt on-submit)))}
+     [:span "Save"]
+     [c-icon {:name :ic-arrow-right :size :smaller}]]))
 
 (defn c-candidate-sign-up []
   (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
@@ -345,13 +345,6 @@
             [c-submit-button
              {:on-submit [:page.sign-up/update-arbiter]
               :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))})))
-
-(defn c-api-errors
-  [messages]
-  (when (seq messages)
-    [:div.api-errors
-     [:h1 "There were API errors:"]
-     [:ul (map #(conj [:li.error] %) messages)]]))
 
 (defn c-api-error-notification [message open?]
   [:div {:class ["notification-box" (when (not open?) "hidden")]}
