@@ -80,7 +80,7 @@
     [:div.slider-outer
      [:> react-carousel/Slider
       (for [[idx _] (map-indexed vector children)]
-        [:> react-carousel/Slide {:index idx} [c-feedback-slide {:rating 3 :class ""}]])]]
+        ^{:key idx} [:> react-carousel/Slide {:index idx} [c-feedback-slide {:rating 3 :class ""}]])]]
 
     [:div.back-button
      [:> react-carousel/ButtonBack {:className "ethlance-circle-button ethlance-circle-icon-button primary"}

@@ -4,7 +4,9 @@
    [reagent.dom :as rdom]
    ["simplebar" :as simplebar]))
 
-(defn c-scrollable
+
+(defn- c-scrollable-noop [opts body] body)
+(defn- c-scrollable-real
   "Scrollable container. Uses simplebar-react
 
   # Keyword Options (opts)
@@ -33,3 +35,8 @@
       :reagent-render
       (fn [_ child]
         [:div.scrollable child])})))
+
+(defn c-scrollable
+  [opts _]
+  ; Using noop implementation until can make the simplebar work
+  (c-scrollable-noop opts _))
