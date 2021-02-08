@@ -11,6 +11,7 @@
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.subscriptions :as subs]
+            [ethlance.ui.page.profile.subscriptions :as page-subs]
             [re-frame.core :as re]
             [clojure.string :as string]
             ))
@@ -18,6 +19,24 @@
 (defn c-tag-list [name tags]
   (let [container [:div {:class (string/lower-case name)} [:span name]]]
     (into container (map #(vector c-tag {} [c-tag-label %]) tags))))
+
+(defn c-job-activity-row [job column-names]
+  (map #(conj [] :span (get job %)) column-names))
+
+(defn c-job-activity [jobs keys-headers]
+  (let [headers (map last keys-headers)
+        column-names (map first keys-headers)]
+    [:div.job-listing
+      [:div.title "Job Activity"]
+      [c-scrollable
+       {:forceVisible true :autoHide false}
+       [c-table {:headers headers} (map #(c-job-activity-row % column-names) jobs)]]
+
+      [:div.button-listing
+       [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
+       [c-circle-icon-button {:name :ic-arrow-left :size :small}]
+       [c-circle-icon-button {:name :ic-arrow-right :size :small}]
+       [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]))
 
 (defn c-candidate-profile []
   (let [user @(re/subscribe [::subs/active-user])
@@ -28,7 +47,8 @@
         professional-title (:candidate/professional-title candidate)
         biography (:candidate/bio candidate)
         languages (:user/languages user)
-        skills (:candidate/skills candidate)]
+        skills (:candidate/skills candidate)
+        jobs @(re/subscribe [::page-subs/candidate-jobs])]
    [:<>
      [:div.candidate-profile
       [:div.title
@@ -53,37 +73,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     [:div.job-listing
-      [:div.title "Job Activity"]
-      [c-scrollable
-       {:forceVisible true :autoHide false}
-       [c-table
-        {:headers ["Title" "Hired" "Created" "Status"]}
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]]]
-
-      [:div.button-listing
-       [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
+     (c-job-activity jobs {:title "Title" :accepted-at "Created"})
 
      [:div.feedback-listing
       [:div.title "Feedback"]
@@ -104,7 +94,8 @@
         location (:user/country user)
         professional-title (:candidate/professional-title employer)
         biography (:candidate/bio employer)
-        languages (:user/languages user)]
+        languages (:user/languages user)
+        jobs @(re/subscribe [::page-subs/employer-jobs])]
     [:<>
      [:div.employer-profile
       [:div.title
@@ -127,37 +118,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     [:div.job-listing
-      [:div.title "Job Activity"]
-      [c-scrollable
-       {:forceVisible true :autoHide false}
-       [c-table
-        {:headers ["Title" "Hired" "Created" "Status"]}
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]]]
-
-      [:div.button-listing
-       [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
+     (c-job-activity jobs {:title "Title" :accepted-at "Created" :status "Status"})
 
      [:div.feedback-listing
       [:div.title "Feedback"]
@@ -178,7 +139,9 @@
         location (:user/country user)
         professional-title (:candidate/professional-title arbiter)
         biography (:candidate/bio arbiter)
-        languages (:user/languages user)]
+        languages (:user/languages user)
+        jobs @(re/subscribe [::page-subs/arbiter-jobs])
+        ]
     [:<>
      [:div.arbiter-profile
       [:div.title
@@ -201,37 +164,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     [:div.job-listing
-      [:div.title "Job Activity"]
-      [c-scrollable
-       {:forceVisible true :autoHide false}
-       [c-table
-        {:headers ["Title" "Hired" "Created" "Status"]}
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]
-
-        [[:span "Cryptoeconomics Research Intern"]
-         [:span "1"]
-         [:span "5 Days Ago"]
-         [:span "Hiring"]]]]
-
-      [:div.button-listing
-       [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
+     (c-job-activity jobs {:title "Title" :accepted-at "Created"})
 
      [:div.feedback-listing
       [:div.title "Feedback"]

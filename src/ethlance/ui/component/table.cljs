@@ -1,5 +1,14 @@
 (ns ethlance.ui.component.table)
 
+(defn- unwrap-rows
+  "If rows is a collection that only contains another collection, return the inner.
+  This helps make c-table interface more flexible. E.g. by allowing passing in rows from (map ...),
+  that is single object instead of separate arguments"
+  [rows]
+  (if (and (seqable? rows) (= 1 (count rows)) (seqable? (first rows)))
+    (first rows)
+    rows))
+
 (defn c-table
   "Ethlance Table Component.
 
@@ -41,7 +50,7 @@
          ^{:key (str "header-" i)}
          [:th header]))]
      (doall
-      (for [[i row] (map-indexed vector rows)]
+      (for [[i row] (map-indexed vector (unwrap-rows rows))]
         ^{:key (str "row-" i)}
         [:tr
          (for [[i elem] (map-indexed vector row)]
