@@ -30,7 +30,7 @@
       [:div.title "Job Activity"]
       [c-scrollable
        {:forceVisible true :autoHide false}
-       [c-table {:headers headers} (map #(c-job-activity-row % column-names) jobs)]]
+       (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) jobs))]
 
       [:div.button-listing
        [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
