@@ -76,6 +76,8 @@
 
     job(job_id : Int!): Job
 
+    jobRoleSearch(user_address: ID!): JobRoleList
+
     jobSearch(
       job_id: Int,
       orderBy: JobListOrderBy,
@@ -510,6 +512,24 @@
     dateCreated
   }
 
+
+  enum Role {
+    CANDIDATE
+    EMPLOYER
+    ARBITER
+  }
+
+  type JobRole {
+    job: EthlanceJob!
+    role: Role!
+  }
+
+  type JobRoleList {
+    items: [JobRole!]
+    totalCount: Int
+    endCursor: Int
+    hasNextPage: Boolean
+  }
 
   # Invoice Types
 
