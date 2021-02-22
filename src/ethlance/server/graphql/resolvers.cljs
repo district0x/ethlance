@@ -352,13 +352,15 @@
                                             :EthlanceJob.ethlance-job/bid-option]
                                    :from [:EthlanceJob]})
 
-(defn job-resolver [_ {:keys [:job/id] :as args} _]
+(defn job-resolver [parent {:keys [:job/id] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "job-resolver" args)
-    (let [job (<? (db/get conn (sql-helpers/merge-where job-query [:= id :Job.job/id])))
+    (let [parent-job-id (:job/id (graphql-utils/gql->clj parent))
+          job-id (or parent-job-id id)
+          job (<? (db/get conn (sql-helpers/merge-where job-query [:= job-id :Job.job/id])))
           job-type-query (-> (case (keyword (:job/type job))
-                               :standard-bounty (sql-helpers/merge-where standard-bounty-query [:= id :StandardBounty.job/id])
-                               :ethlance-job (sql-helpers/merge-where ethlance-job-query [:= id :EthlanceJob.job/id])))]
+                               :standard-bounty (sql-helpers/merge-where standard-bounty-query [:= job-id :StandardBounty.job/id])
+                               :ethlance-job (sql-helpers/merge-where ethlance-job-query [:= job-id :EthlanceJob.job/id])))]
       (log/debug "Sub " job-type-query)
       (merge job (<? (db/get conn job-type-query))))))
 
@@ -390,6 +392,27 @@
                               :from [:JobStoryInvoiceMessage]
                               :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.contract/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
+
+(def ^:private job-role-search-query {:select
+                                      [:Job.job/id
+                                       ["CANDIDATE" :role]]
+                              :from [:Job]
+                              :join [:JobStory [:= :JobStory.job/id :Job.job/id]
+                                     :EthlanceJobStory [:= :EthlanceJobStory.job-story/id :JobStory.job-story/id]]})
+
+(defn job-role-search-resolver [_ {:keys [:limit :offset
+                                         :user/address
+                                         :order-by :order-direction]
+                                  :as args} _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-role-search-resolver" args)
+    (let [query (cond-> job-role-search-query
+                  address (sql-helpers/merge-where [:= address :EthlanceJobStory.ethlance-job-story/candidate])
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
+                                                               :date-updated :user/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :asc)]]))]
+      (<? (paged-query conn query limit offset)))))
 
 (defn invoice-resolver [_ {message-id :message/id :as args} _]
   (db/with-async-resolver-conn conn
@@ -602,8 +625,10 @@
                             :arbiterSearch arbiter-search-resolver
                             :job job-resolver
                             :jobStory job-story-resolver
+                            :jobRoleSearch job-role-search-resolver
                             :invoice invoice-resolver}
                     :Job {:job_stories job->job-stories-resolver}
+                    :JobRole { :job job-resolver }
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver}
