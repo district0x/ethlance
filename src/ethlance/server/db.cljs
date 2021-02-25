@@ -268,6 +268,7 @@
      [:job-arbiter/fee :integer]
      [:job-arbiter/fee-currency-id :varchar]
      [:job-arbiter/status :varchar]
+     [:job-arbiter/date-accepted :bigint]
      ;; PK
      [(sql/call :primary-key :job/id :user/address)]
 
@@ -330,6 +331,7 @@
      [:ethlance-job-story/proposal-rate :integer]
      [:ethlance-job-story/proposal-rate-currency-id :varchar]
      [:ethlance-job-story/candidate :varchar]
+     [:ethlance-job-story/date-candidate-accepted :bigint]
 
      ;; PK
      [(sql/call :primary-key :job-story/id)]

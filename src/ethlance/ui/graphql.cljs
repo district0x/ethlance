@@ -189,6 +189,18 @@
          (assoc-in [:users address :user/date-updated] user-date-updated)
          (assoc-in [:arbiters address :arbiter/date-updated] arbiter-date-updated))})
 
+(defn normalise-job-roles-to-db
+  "Puts the items in JobRoleList to hash (like app-db) nested such that:
+   (get-in db [:job-role-search user-address {CANDIDATE/EMPLOYER/ARBITER}]) => [{job-ids}]"
+  [acc {:keys [job user-address role start-date status]}]
+  (let [job-role-entry {:job-id (:job/id job) :title (:job/title job) :start-date start-date :status status}]
+    (update-in acc [user-address role] #(conj (or %1 []) job-role-entry))))
+
+(defmethod handler :job-role-search
+  [{:keys [db]} handler-name job-roles]
+  (log/debug "update-arbiter handler" job-roles)
+  (def job-roles job-roles)
+  {:db (assoc-in db [:job-role-search] (reduce normalise-job-roles-to-db (:job-role-search db) (:items job-roles)))})
 
 (defmethod handler :sign-in
   [{:keys [db store]} _ {:as response}]

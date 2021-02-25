@@ -393,25 +393,46 @@
                               :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.contract/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
-(def ^:private job-role-search-query {:select
-                                      [:Job.job/id
-                                       ["CANDIDATE" :role]]
-                              :from [:Job]
-                              :join [:JobStory [:= :JobStory.job/id :Job.job/id]
-                                     :EthlanceJobStory [:= :EthlanceJobStory.job-story/id :JobStory.job-story/id]]})
+(defn- candidate-job-roles-query [address]
+  {:select
+   [:Job.job/id
+    [:EthlanceJobStory.ethlance-job-story/candidate :user-address]
+    ["CANDIDATE" :role]
+    [:EthlanceJobStory.ethlance-job-story/date-candidate-accepted :start-date]
+    [nil :status]]
+   :from [:Job]
+   :join [:JobStory [:= :JobStory.job/id :Job.job/id]
+          :EthlanceJobStory [:= :EthlanceJobStory.job-story/id :JobStory.job-story/id]]
+   :where [:= :EthlanceJobStory.ethlance-job-story/candidate address]})
 
-(defn job-role-search-resolver [_ {:keys [:limit :offset
-                                         :user/address
-                                         :order-by :order-direction]
-                                  :as args} _]
+(defn- employer-job-roles-query [address]
+  {:select
+   [:Job.job/id
+    [:JobCreator.user/address :user-address]
+    ["EMPLOYER" :role]
+    [:Job.job/date-created :start-date]
+    ["Created" :status]]
+   :from [:Job]
+   :join [:JobCreator [:= :JobCreator.job/id :Job.job/id]]
+   :where [:= :JobCreator.user/address address]})
+
+(defn- arbiter-job-roles-query [address]
+  {:select
+   [:Job.job/id
+    [:JobArbiter.user/address :user-address]
+    ["ARBITER" :role]
+    [:JobArbiter.job-arbiter/date-accepted :start-date]
+    [nil :status]]
+   :from [:Job]
+   :join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]]
+   :where [:= :JobArbiter.user/address address]})
+
+(defn job-role-search-resolver [_ {:keys [:limit :offset :user/address] :as args}]
   (db/with-async-resolver-conn conn
     (log/debug "job-role-search-resolver" args)
-    (let [query (cond-> job-role-search-query
-                  address (sql-helpers/merge-where [:= address :EthlanceJobStory.ethlance-job-story/candidate])
-                  order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
-                                                               :date-updated :user/date-updated}
-                                                              (graphql-utils/gql-name->kw order-by))
-                                                         (or (keyword order-direction) :asc)]]))]
+    (let [query {:union [(candidate-job-roles-query address)
+                         (employer-job-roles-query address)
+                         (arbiter-job-roles-query address)]}]
       (<? (paged-query conn query limit offset)))))
 
 (defn invoice-resolver [_ {message-id :message/id :as args} _]
@@ -628,7 +649,7 @@
                             :jobRoleSearch job-role-search-resolver
                             :invoice invoice-resolver}
                     :Job {:job_stories job->job-stories-resolver}
-                    :JobRole { :job job-resolver }
+                    :JobRole {:job job-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver}
