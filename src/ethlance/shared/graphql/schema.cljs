@@ -521,7 +521,10 @@
 
   type JobRole {
     job: EthlanceJob!
+    userAddress: String!
     role: Role!
+    startDate: Date
+    status: String
   }
 
   type JobRoleList {

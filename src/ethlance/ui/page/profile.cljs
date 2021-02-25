@@ -48,7 +48,7 @@
         biography (:candidate/bio candidate)
         languages (:user/languages user)
         skills (:candidate/skills candidate)
-        jobs @(re/subscribe [::page-subs/candidate-jobs])]
+        jobs @(re/subscribe [::page-subs/candidate-jobs "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])]
    [:<>
      [:div.candidate-profile
       [:div.title
@@ -73,7 +73,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     (c-job-activity jobs {:title "Title" :accepted-at "Created"})
+     (c-job-activity jobs {:title "Title" :start-date "Created"})
 
      [:div.feedback-listing
       [:div.title "Feedback"]
@@ -95,7 +95,7 @@
         professional-title (:candidate/professional-title employer)
         biography (:candidate/bio employer)
         languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/employer-jobs])]
+        jobs @(re/subscribe [::page-subs/employer-jobs "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])]
     [:<>
      [:div.employer-profile
       [:div.title
@@ -118,7 +118,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     (c-job-activity jobs {:title "Title" :accepted-at "Created" :status "Status"})
+     (c-job-activity jobs {:title "Title" :start-date "Created" :status "Status"})
 
      [:div.feedback-listing
       [:div.title "Feedback"]
@@ -140,7 +140,7 @@
         professional-title (:candidate/professional-title arbiter)
         biography (:candidate/bio arbiter)
         languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/arbiter-jobs])
+        jobs @(re/subscribe [::page-subs/arbiter-jobs "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
         ]
     [:<>
      [:div.arbiter-profile
@@ -164,7 +164,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     (c-job-activity jobs {:title "Title" :accepted-at "Created"})
+     (c-job-activity jobs {:title "Title" :start-date "Created"})
 
      [:div.feedback-listing
       [:div.title "Feedback"]

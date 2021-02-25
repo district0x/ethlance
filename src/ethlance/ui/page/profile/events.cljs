@@ -21,7 +21,7 @@
   :query-job-roles
   (fn [coeff val]
     (let [query "query JobRoleSearch($address: ID!) {
-                jobRoleSearch(user_address: $address) {items {job {job_title} role}}}"
+                jobRoleSearch(user_address: $address) {items {job {job_id job_title} userAddress role startDate status}}}"
           ; TODO: Take from active page url, e.g. /user/:address/profile
           user-address "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]
       {:dispatch [::graphql/query {:query query :variables {:address user-address}}]})))

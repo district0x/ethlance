@@ -6,16 +6,29 @@
 (def create-get-handler #(subscription.utils/create-get-handler profile.events/state-key %))
 
 (re/reg-sub
+  ::job-roles
+  (fn [db _] (:job-role-search db)))
+
+(defn- prepare-role-data [job-role]
+  (select-keys job-role [:job-id :start-date :title :status]))
+
+(re/reg-sub
   ::candidate-jobs
-  (fn [db candidate-id]
-    [{:title "Sometimes lose, always win" :accepted-at "2021-02-01"}]))
+  :<- [::job-roles]
+  (fn [job-roles [_ candidate-id]]
+    (let [roles (get-in job-roles [candidate-id "CANDIDATE"])]
+      (map prepare-role-data roles))))
 
 (re/reg-sub
   ::employer-jobs
-  (fn [db employer-id]
-    [{:title "Make Dogecoin great again" :accepted-at "2021-02-02" :status "🚀🌙"}]))
+  :<- [::job-roles]
+  (fn [job-roles [_ employer-id]]
+    (let [roles (get-in job-roles [employer-id "EMPLOYER"])]
+          (map prepare-role-data roles))))
 
 (re/reg-sub
   ::arbiter-jobs
-  (fn [db employer-id]
-    [{:title "Watch me now, I'm going down" :accepted-at "2021-02-03"}]))
+  :<- [::job-roles]
+  (fn [job-roles [_ arbiter-id]]
+    (let [roles (get-in job-roles [arbiter-id "ARBITER"])]
+          (map prepare-role-data roles))))
