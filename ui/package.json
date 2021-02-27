@@ -25,7 +25,8 @@
     "simplebar": "5.0.7",
     "web3": "0.19.0",
     "xregexp": "4.3.0",
-    "is-ipfs": "2.0.0"
+    "is-ipfs": "2.0.0",
+    "graphql": "15.5.0"
   },
   "devDependencies": {
     "less": "3.10.3",

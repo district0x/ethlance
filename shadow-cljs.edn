@@ -53,6 +53,7 @@
                 [district0x/district-web3-utils "1.0.3"]
                 [district0x/error-handling "1.0.4"]
                 [district0x/graphql-query "1.0.6"]
+                [cljsjs/graphql "0.13.1-0"]
                 [district0x/re-frame-ipfs-fx "1.1.1"]
                 [expound "0.8.4"]
                 [flib/simplebar "5.0.7-SNAPSHOT"]
