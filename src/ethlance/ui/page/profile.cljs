@@ -48,7 +48,7 @@
         biography (:candidate/bio candidate)
         languages (:user/languages user)
         skills (:candidate/skills candidate)
-        jobs @(re/subscribe [::page-subs/candidate-jobs "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])]
+        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])]
    [:<>
      [:div.candidate-profile
       [:div.title
@@ -95,7 +95,7 @@
         professional-title (:candidate/professional-title employer)
         biography (:candidate/bio employer)
         languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/employer-jobs "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])]
+        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "EMPLOYER"])]
     [:<>
      [:div.employer-profile
       [:div.title
@@ -140,7 +140,7 @@
         professional-title (:candidate/professional-title arbiter)
         biography (:candidate/bio arbiter)
         languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/arbiter-jobs "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
+        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "ARBITER"])
         ]
     [:<>
      [:div.arbiter-profile
