@@ -12,6 +12,10 @@
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.subscriptions :as subs]
             [ethlance.ui.page.profile.subscriptions :as page-subs]
+            [district.format :as format]
+            [cljsjs.graphql]
+            [clojure.string :as string]
+            [district.graphql-utils :as utils]
             [re-frame.core :as re]
             [clojure.string :as string]
             ))
@@ -20,8 +24,13 @@
   (let [container [:div {:class (string/lower-case name)} [:span name]]]
     (into container (map #(vector c-tag {} [c-tag-label %]) tags))))
 
+(defn- format-date-looking-column [column value]
+  (if (string/ends-with? (name column) "-date")
+    (format/format-datetime (utils/gql-date->date value))
+    value))
+
 (defn c-job-activity-row [job column-names]
-  (map #(conj [] :span (get job %)) column-names))
+  (map #(conj [] :span (format-date-looking-column % (get job %))) column-names))
 
 (defn c-job-activity [jobs keys-headers]
   (let [headers (map last keys-headers)
