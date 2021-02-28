@@ -133,10 +133,19 @@
   (log/debug "user handler" user)
   {:db (assoc-in db [:users address] user)})
 
+(defn- merge-in-changed-parts
+  "Useful in cases when app-db key can get new data from
+  different queries. E.g. get candidate generic fields like rate and bio
+  from one and ratings from another. Leaves existing data intact, merging in new data"
+  [db lookup new-data]
+  (let [old-value (get-in db lookup {})
+        new-value (merge old-value new-data)]
+    (assoc-in db lookup new-value)))
+
 (defmethod handler :candidate
   [{:keys [db]} _ {:user/keys [address] :as candidate}]
   (log/debug "candidate handler" candidate)
-  {:db (assoc-in db [:candidates address] candidate)})
+  {:db (merge-in-changed-parts db [:candidates address] candidate)})
 
 (defmethod handler :employer
   [{:keys [db]} _ {:user/keys [address] :as employer}]
@@ -201,7 +210,7 @@
 
 (defmethod handler :job-role-search
   [{:keys [db]} handler-name job-roles]
-  (log/debug "update-arbiter handler" job-roles)
+  (log/debug "job-role-search handler" job-roles)
   {:db (-> db
            (assoc-in [:job-role-search] (reduce update-job-role-search (:job-role-search db) (:items job-roles)))
            (assoc-in [:jobs] (reduce update-jobs (:jobs db) (:items job-roles))))})

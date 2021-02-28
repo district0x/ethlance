@@ -26,3 +26,17 @@
 
   (fn [[jobs role-data] _]
     (map #(assoc % :title (get-in jobs [(:job-id %) :job/title])) role-data)))
+
+(re/reg-sub
+  ::ratings
+  (fn [db [_ address]]
+    (let [ratings (get-in db [:candidates address :candidate/feedback :items] [])]
+      (map :feedback/rating ratings))))
+
+(re/reg-sub
+  ::candidate-rating
+  (fn [[_ address] _]
+    (re/subscribe [::ratings address]))
+  (fn [ratings _]
+    {:average (/ (reduce + ratings) (count ratings))
+     :count (count ratings)}))

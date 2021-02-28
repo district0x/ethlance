@@ -47,6 +47,11 @@
        [c-circle-icon-button {:name :ic-arrow-right :size :small}]
        [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]))
 
+(defn c-rating-box [rating]
+  [:div.rating
+   [c-rating {:rating (:average rating) :color :primary}]
+   [:span (str "(" (:count rating) ")")]])
+
 (defn c-candidate-profile []
   (let [user @(re/subscribe [::subs/active-user])
         candidate @(re/subscribe [::subs/active-candidate])
@@ -57,7 +62,8 @@
         biography (:candidate/bio candidate)
         languages (:user/languages user)
         skills (:candidate/skills candidate)
-        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])]
+        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])
+        rating @(re/subscribe [::page-subs/candidate-rating "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])]
    [:<>
      [:div.candidate-profile
       [:div.title
@@ -66,9 +72,7 @@
        [:div.name name]
        [:div.detail professional-title]]
       [:div.biography biography]
-      [:div.rating
-       [c-rating {:default-rating 3 :color :primary}] ; TODO
-       [:span "(8)"]] ; TODO
+      [c-rating-box rating]
       [:div.location location]
       [:div.detail-listing
        [c-tag-list "Languages" languages]
