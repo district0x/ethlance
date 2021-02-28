@@ -20,8 +20,11 @@
 (re/reg-event-fx
   :query-job-roles
   (fn [coeff val]
-    (let [query "query JobRoleSearch($address: ID!) {
-                jobRoleSearch(user_address: $address) {items {job {job_id job_title} userAddress role startDate status}}}"
+    (let [query "query ($address: ID!) {
+                  jobRoleSearch(user_address: $address) {items {job {job_id job_title} userAddress role startDate status}}
+                  candidate(user_address: $address) {user_address candidate_feedback {items {feedback_rating} totalCount}}
+                  employer(user_address: $address) {user_address employer_feedback {items {feedback_rating} totalCount}}
+                }"
           ; TODO: Take from active page url, e.g. /user/:address/profile
           user-address "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]
       {:dispatch [::graphql/query {:query query :variables {:address user-address}}]})))
