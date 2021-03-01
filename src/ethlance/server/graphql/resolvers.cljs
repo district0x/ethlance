@@ -58,6 +58,10 @@
                       :from [:Users]
                       :where [:= address :Users.user/address]}))))
 
+(defn feedback->from-user-resolver [root _ _]
+  (let [address (:feedback/from-user-address (graphql-utils/gql->clj root))]
+    (user-resolver nil {:user/address address} nil)))
+
 (defn user->is-registered-candidate-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
@@ -119,11 +123,13 @@
                                              [:Message.message/creator :feedback/from-user-address]
                                              [:JobStoryFeedbackMessage.user/address :feedback/to-user-address]
                                              [:Message.message/date-created :feedback/date-created]
-                                             [:Message.message/text :feedback/text]]
+                                             [:Message.message/text :feedback/text]
+                                             :Users.user/name]
                                     :from [:JobStoryFeedbackMessage]
                                     :join [:JobStory [:= :JobStoryFeedbackMessage.job-story/id :JobStory.job-story/id]
                                            :Job [:= :JobStory.job/id :Job.job/id]
-                                           :Message [:= :Message.message/id :JobStoryFeedbackMessage.message/id]]})
+                                           :Message [:= :Message.message/id :JobStoryFeedbackMessage.message/id]
+                                           :Users [:= :Users.user/address :JobStoryFeedbackMessage.user/address]]})
 
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
@@ -189,7 +195,7 @@
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)
           q (sql-helpers/merge-where user-type-query [:= from-user-address :user/address])]
-      (log/debug "feedback->to-user-type-resolver" feedback)
+      (log/debug "feedback->from-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
 (def ^:private candidate-query
@@ -663,6 +669,7 @@
                     :Employer {:employer_feedback employer->feedback-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver}
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
+                               :feedback_fromUser feedback->from-user-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :Mutation {:signIn sign-in-mutation
                                :sendMessage (require-auth send-message-mutation)

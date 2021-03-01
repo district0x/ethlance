@@ -40,3 +40,13 @@
   (fn [ratings _]
     {:average (/ (reduce + ratings) (count ratings))
      :count (count ratings)}))
+
+(re/reg-sub
+  ::candidate-feedback
+  (fn [[_ address] _]
+    (re/subscribe [::ratings address]))
+  (fn [ratings _]
+    (let [ratings (map (fn [rating] {:rating (:feedback/rating rating)
+                                     :text (:feedback/text rating)
+                                     :author (get-in [:feedback/from-user :user/name])} ratings))]
+      ratings)))

@@ -52,9 +52,16 @@
    [c-rating {:rating (:average rating) :color :primary}]
    [:span (str "(" (:count rating) ")")]])
 
+(defn c-feedback-listing [feedback-list]
+  (println "c-feedback-listing running" feedback-list)
+  [:div.feedback-listing
+      [:div.title "Feedback"]
+      [:div.sub-title "Smart Contract Hacker"]
+      (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))])
+
 (defn c-candidate-profile []
   (let [user @(re/subscribe [::subs/active-user])
-        candidate @(re/subscribe [::subs/active-candidate])
+        candidate @(re/subscribe [::subs/active-candidate]) ; TODO: subscribe to selected candidate (based on the URL)
         name (:user/name user)
         email (:user/email user)
         location (:user/country user)
@@ -63,7 +70,11 @@
         languages (:user/languages user)
         skills (:candidate/skills candidate)
         jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])
-        rating @(re/subscribe [::page-subs/candidate-rating "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])]
+        rating @(re/subscribe [::page-subs/candidate-rating "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
+        ; feedback-list @(re/subscribe [::page-subs/candidate-feedback "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
+        feedback-list [{:rating 1 :author "Zorro" :text "Wazzup"}]
+        ]
+    (println "*************** ---------------> " feedback-list)
    [:<>
      [:div.candidate-profile
       [:div.title
@@ -87,17 +98,8 @@
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
      (c-job-activity jobs {:title "Title" :start-date "Created"})
-
-     [:div.feedback-listing
-      [:div.title "Feedback"]
-      [:div.sub-title "Smart Contract Hacker"]
-      [c-carousel {}
-       [c-feedback-slide {:rating 1}]
-       [c-feedback-slide {:rating 2}]
-       [c-feedback-slide {:rating 3}]
-       [c-feedback-slide {:rating 4}]
-       [c-feedback-slide {:rating 5}]]
-      ]]))
+     (c-feedback-listing feedback-list)
+     ]))
 
 (defn c-employer-profile []
   (let [user @(re/subscribe [::subs/active-user])
