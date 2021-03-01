@@ -22,8 +22,9 @@
   (fn [coeff val]
     (let [query "query ($address: ID!) {
                   jobRoleSearch(user_address: $address) {items {job {job_id job_title} userAddress role startDate status}}
-                  candidate(user_address: $address) {user_address candidate_feedback {items {feedback_rating} totalCount}}
-                  employer(user_address: $address) {user_address employer_feedback {items {feedback_rating} totalCount}}
+                  candidate(user_address: $address) {user_address candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  employer(user_address: $address) {user_address employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  arbiter(user_address: $address) {user_address arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
                 }"
           ; TODO: Take from active page url, e.g. /user/:address/profile
           user-address "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]

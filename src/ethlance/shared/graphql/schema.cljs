@@ -593,6 +593,7 @@
     jobStory_id: Int
     feedback_toUserType: Keyword
     feedback_toUserAddress: ID
+    feedback_fromUser: User
     feedback_fromUserType: Keyword
     feedback_fromUserAddress: ID
     feedback_dateCreated: Date

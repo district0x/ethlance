@@ -57,18 +57,16 @@
                :on-click #(swap! *current-index inc)}]]]]))})))
 
 (defn c-feedback-slide
-  [{:keys [id rating class]}]
+  [{:keys [id rating author text class]}]
+  (println "c-feedback-slide" id rating author)
   [:div.feedback-slide
    ;; FIXME: use better unique key
    {:key (str "feedback-" id "-" rating) :class class}
    [:div.profile-image
     [c-profile-image {}]]
-   [:div.rating
-    [c-rating {:rating rating :color :white}]]
-   [:div.message
-    "\"Everything about this is wonderful!\""]
-   [:div.name
-    "Brian Curran"]])
+   [:div.rating [c-rating {:rating rating :color :white}]]
+   [:div.message text]
+   [:div.name author]])
 
 (defn c-carousel [{:keys []}
                   & children]
