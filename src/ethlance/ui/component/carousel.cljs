@@ -57,19 +57,17 @@
                :on-click #(swap! *current-index inc)}]]]]))})))
 
 (defn c-feedback-slide
-  [{:keys [id rating author text class]}]
-  (println "c-feedback-slide" id rating author)
+  [{:keys [id rating author text class :as args]}]
+  (println "c-feedback-slide" args id text rating author)
   [:div.feedback-slide
    ;; FIXME: use better unique key
    {:key (str "feedback-" id "-" rating) :class class}
-   [:div.profile-image
-    [c-profile-image {}]]
+   [:div.profile-image [c-profile-image {}]]
    [:div.rating [c-rating {:rating rating :color :white}]]
    [:div.message text]
    [:div.name author]])
 
-(defn c-carousel [{:keys []}
-                  & children]
+(defn c-carousel [{:keys []} & children]
   [:div.ethlance-new-carousel
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300
