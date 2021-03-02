@@ -28,25 +28,25 @@
     (map #(assoc % :title (get-in jobs [(:job-id %) :job/title])) role-data)))
 
 (re/reg-sub
-  ::ratings
+  ::candidate-feedback
   (fn [db [_ address]]
-    (let [ratings (get-in db [:candidates address :candidate/feedback :items] [])]
-      (map :feedback/rating ratings))))
+    (get-in db [:candidates address :candidate/feedback :items] [])))
 
 (re/reg-sub
-  ::candidate-rating
-  (fn [[_ address] _]
-    (re/subscribe [::ratings address]))
-  (fn [ratings _]
+  ::candidate-ratings
+  (fn [[_ address] _] (re/subscribe [::candidate-feedback address]))
+  (fn [ratings [_ address]]
     {:average (/ (reduce + ratings) (count ratings))
      :count (count ratings)}))
 
 (re/reg-sub
-  ::candidate-feedback
-  (fn [[_ address] _]
-    (re/subscribe [::ratings address]))
-  (fn [ratings _]
-    (let [ratings (map (fn [rating] {:rating (:feedback/rating rating)
+  ::candidate-feedback-cards
+  (fn [[_ address] _] (re/subscribe [::candidate-feedback address]))
+  (fn [x-ratings _]
+    (let [ratings (map (fn [rating]
+                         (println "Parsing da shit" x-ratings)
+                         {:rating (:feedback/rating rating)
                                      :text (:feedback/text rating)
-                                     :author (get-in [:feedback/from-user :user/name])} ratings))]
+                                     :author (get-in rating [:feedback/from-user :user/name])}) x-ratings)]
+      (println "candidate-feedback subscription" ratings)
       ratings)))

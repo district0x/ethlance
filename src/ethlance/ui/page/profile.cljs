@@ -57,7 +57,9 @@
   [:div.feedback-listing
       [:div.title "Feedback"]
       [:div.sub-title "Smart Contract Hacker"]
-      (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))])
+      (into [c-carousel {}] (map (fn [x]
+                                   (println "Oleme luubis" x)
+                                   [c-feedback-slide x]) feedback-list))])
 
 (defn c-candidate-profile []
   (let [user @(re/subscribe [::subs/active-user])
@@ -70,9 +72,9 @@
         languages (:user/languages user)
         skills (:candidate/skills candidate)
         jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])
-        rating @(re/subscribe [::page-subs/candidate-rating "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
-        ; feedback-list @(re/subscribe [::page-subs/candidate-feedback "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
-        feedback-list [{:rating 1 :author "Zorro" :text "Wazzup"}]
+        rating @(re/subscribe [::page-subs/candidate-ratings "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
+        ; feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
+        feedback-list [{:id 42 :rating 1 :author "Zorro" :text "Wazzup"}]
         ]
     (println "*************** ---------------> " feedback-list)
    [:<>
@@ -135,16 +137,17 @@
 
      (c-job-activity jobs {:title "Title" :start-date "Created" :status "Status"})
 
-     [:div.feedback-listing
-      [:div.title "Feedback"]
-      [:div.sub-title "Smart Contract Hacker"]
-      [c-carousel {}
-       [c-feedback-slide {:rating 1}]
-       [c-feedback-slide {:rating 2}]
-       [c-feedback-slide {:rating 3}]
-       [c-feedback-slide {:rating 4}]
-       [c-feedback-slide {:rating 5}]]
-    ]]))
+     ; [:div.feedback-listing
+     ;  [:div.title "Feedback"]
+     ;  [:div.sub-title "Smart Contract Hacker"]
+     ;  [c-carousel {}
+     ;   [c-feedback-slide {:rating 1}]
+     ;   [c-feedback-slide {:rating 2}]
+     ;   [c-feedback-slide {:rating 3}]
+     ;   [c-feedback-slide {:rating 4}]
+     ;   [c-feedback-slide {:rating 5}]]
+    ; ]
+     ]))
 
 (defn c-arbiter-profile []
   (let [user @(re/subscribe [::subs/active-user])
@@ -181,16 +184,17 @@
 
      (c-job-activity jobs {:title "Title" :start-date "Created"})
 
-     [:div.feedback-listing
-      [:div.title "Feedback"]
-      [:div.sub-title "Smart Contract Hacker"]
-      [c-carousel {}
-       [c-feedback-slide {:rating 1}]
-       [c-feedback-slide {:rating 2}]
-       [c-feedback-slide {:rating 3}]
-       [c-feedback-slide {:rating 4}]
-       [c-feedback-slide {:rating 5}]]
-    ]]))
+     ; [:div.feedback-listing
+     ;  [:div.title "Feedback"]
+     ;  [:div.sub-title "Smart Contract Hacker"]
+     ;  [c-carousel {}
+     ;   [c-feedback-slide {:rating 1}]
+     ;   [c-feedback-slide {:rating 2}]
+     ;   [c-feedback-slide {:rating 3}]
+     ;   [c-feedback-slide {:rating 4}]
+     ;   [c-feedback-slide {:rating 5}]]
+    ; ]
+     ]))
 
 (defmethod page :route.user/profile []
   (fn []
