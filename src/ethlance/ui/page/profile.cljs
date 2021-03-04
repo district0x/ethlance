@@ -53,13 +53,10 @@
    [:span (str "(" (:count rating) ")")]])
 
 (defn c-feedback-listing [feedback-list]
-  (println "c-feedback-listing running" feedback-list)
   [:div.feedback-listing
       [:div.title "Feedback"]
       [:div.sub-title "Smart Contract Hacker"]
-      (into [c-carousel {}] (map (fn [x]
-                                   (println "Oleme luubis" x)
-                                   [c-feedback-slide x]) feedback-list))])
+      (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))])
 
 (defn c-candidate-profile []
   (let [user @(re/subscribe [::subs/active-user])
@@ -73,10 +70,8 @@
         skills (:candidate/skills candidate)
         jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])
         rating @(re/subscribe [::page-subs/candidate-ratings "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
-        ; feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
-        feedback-list [{:id 42 :rating 1 :author "Zorro" :text "Wazzup"}]
+        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
         ]
-    (println "*************** ---------------> " feedback-list)
    [:<>
      [:div.candidate-profile
       [:div.title
@@ -112,7 +107,9 @@
         professional-title (:candidate/professional-title employer)
         biography (:candidate/bio employer)
         languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "EMPLOYER"])]
+        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "EMPLOYER"])
+        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]) ; FIXME: employer subscription
+        ]
     [:<>
      [:div.employer-profile
       [:div.title
@@ -136,18 +133,7 @@
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
      (c-job-activity jobs {:title "Title" :start-date "Created" :status "Status"})
-
-     ; [:div.feedback-listing
-     ;  [:div.title "Feedback"]
-     ;  [:div.sub-title "Smart Contract Hacker"]
-     ;  [c-carousel {}
-     ;   [c-feedback-slide {:rating 1}]
-     ;   [c-feedback-slide {:rating 2}]
-     ;   [c-feedback-slide {:rating 3}]
-     ;   [c-feedback-slide {:rating 4}]
-     ;   [c-feedback-slide {:rating 5}]]
-    ; ]
-     ]))
+     (c-feedback-listing feedback-list)]))
 
 (defn c-arbiter-profile []
   (let [user @(re/subscribe [::subs/active-user])
@@ -159,6 +145,7 @@
         biography (:candidate/bio arbiter)
         languages (:user/languages user)
         jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "ARBITER"])
+        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]) ; FIXME: replace with arbiter subscription
         ]
     [:<>
      [:div.arbiter-profile
@@ -183,18 +170,7 @@
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
      (c-job-activity jobs {:title "Title" :start-date "Created"})
-
-     ; [:div.feedback-listing
-     ;  [:div.title "Feedback"]
-     ;  [:div.sub-title "Smart Contract Hacker"]
-     ;  [c-carousel {}
-     ;   [c-feedback-slide {:rating 1}]
-     ;   [c-feedback-slide {:rating 2}]
-     ;   [c-feedback-slide {:rating 3}]
-     ;   [c-feedback-slide {:rating 4}]
-     ;   [c-feedback-slide {:rating 5}]]
-    ; ]
-     ]))
+     (c-feedback-listing feedback-list)]))
 
 (defmethod page :route.user/profile []
   (fn []

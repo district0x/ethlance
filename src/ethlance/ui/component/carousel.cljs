@@ -58,7 +58,6 @@
 
 (defn c-feedback-slide
   [{:keys [id rating author text class :as args]}]
-  (println "c-feedback-slide" args id text rating author)
   [:div.feedback-slide
    ;; FIXME: use better unique key
    {:key (str "feedback-" id "-" rating) :class class}
@@ -71,12 +70,12 @@
   [:div.ethlance-new-carousel
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300
-                                        :total-slides 5
+                                        :total-slides (count children)
                                         :visible-slides 1}
     [:div.slider-outer
      [:> react-carousel/Slider
-      (for [[idx _] (map-indexed vector children)]
-        ^{:key idx} [:> react-carousel/Slide {:index idx} [c-feedback-slide {:rating 3 :class ""}]])]]
+      (for [[idx child] (map-indexed vector children)]
+        ^{:key idx} [:> react-carousel/Slide {:index idx} child])]]
 
     [:div.back-button
      [:> react-carousel/ButtonBack {:className "ethlance-circle-button ethlance-circle-icon-button primary"}

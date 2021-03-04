@@ -44,9 +44,7 @@
   (fn [[_ address] _] (re/subscribe [::candidate-feedback address]))
   (fn [x-ratings _]
     (let [ratings (map (fn [rating]
-                         (println "Parsing da shit" x-ratings)
                          {:rating (:feedback/rating rating)
-                                     :text (:feedback/text rating)
-                                     :author (get-in rating [:feedback/from-user :user/name])}) x-ratings)]
-      (println "candidate-feedback subscription" ratings)
+                          :text (:feedback/text rating)
+                          :author (get-in rating [:feedback/from-user :user/name])}) x-ratings)]
       ratings)))
