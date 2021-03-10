@@ -175,7 +175,7 @@
 (defmethod page :route.user/profile []
   (let [page-params @(re/subscribe [::router-subs/active-page-query])
         tabs {"candidate" 0 "employer" 1 "arbiter" 2}
-        default-tab (or (:tab page-params) 0)]
+        default-tab (get (:tab page-params) tabs 0)]
     (fn []
       [c-main-layout {:container-opts {:class :profile-main-container}}
        [c-tabular-layout
