@@ -173,17 +173,20 @@
      (c-feedback-listing feedback-list)]))
 
 (defmethod page :route.user/profile []
-  (fn []
-    [c-main-layout {:container-opts {:class :profile-main-container}}
-     [c-tabular-layout
-      {:key "profile-tabular-layout"
-       :default-tab 0}
+  (let [page-params @(re/subscribe [::router-subs/active-page-query])
+        tabs {"candidate" 0 "employer" 1 "arbiter" 2}
+        default-tab (or (:tab page-params) 0)]
+    (fn []
+      [c-main-layout {:container-opts {:class :profile-main-container}}
+       [c-tabular-layout
+        {:key "profile-tabular-layout"
+         :default-tab default-tab}
 
-      {:label "Candidate Profile"}
-      [c-candidate-profile]
+        {:label "Candidate Profile"}
+        [c-candidate-profile]
 
-      {:label "Employer Profile"}
-      [c-employer-profile]
+        {:label "Employer Profile"}
+        [c-employer-profile]
 
-      {:label "Arbiter Profile"}
-      [c-arbiter-profile]]]))
+        {:label "Arbiter Profile"}
+        [c-arbiter-profile]]])))
