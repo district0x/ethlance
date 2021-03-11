@@ -22,31 +22,33 @@
 
 (def secret-token "SECRET")
 
+(defn set-up-db-and-graphql-api []
+  (async done
+         (safe-go
+           (log/debug "Running before fixture")
+           (let [components
+                 (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
+                                       :district/db {:user "user"
+                                                     :host "localhost"
+                                                     :database "ethlance"
+                                                     :password "pass"
+                                                     :port 5432}
+                                       :ethlance/db {:resync? true}
+                                       :graphql {:port 4000
+                                                 :sign-in-secret secret-token}
+                                       :logging {:level :debug
+                                                 :console? true}})
+                     (mount/only [#'district.server.logging/logging
+                                  #'district.server.async-db/db
+                                  #'district.server.config/config
+                                  #'ethlance.server.db/ethlance-db
+                                  #'ethlance.server.graphql.server/graphql])
+                     (mount/start))]
+             (log/info "Started" components))
+           (done))))
+
 (use-fixtures :once
-  {:before (fn []
-             (async done
-                    (safe-go
-                     (log/debug "Running before fixture")
-                     (let [components
-                           (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
-                                                 :district/db {:user "user"
-                                                               :host "localhost"
-                                                               :database "ethlance"
-                                                               :password "pass"
-                                                               :port 5432}
-                                                 :ethlance/db {:resync? true}
-                                                 :graphql {:port 4000
-                                                           :sign-in-secret secret-token}
-                                                 :logging {:level :debug
-                                                           :console? true}})
-                               (mount/only [#'district.server.logging/logging
-                                            #'district.server.async-db/db
-                                            #'district.server.config/config
-                                            #'ethlance.server.db/ethlance-db
-                                            #'ethlance.server.graphql.server/graphql])
-                               (mount/start))]
-                       (log/info "Started" components))
-                     (done))))
+  {:before set-up-db-and-graphql-api
    :after (fn [] (log/debug "Running after fixture"))})
 
 (defn encode-user-type-in-address
