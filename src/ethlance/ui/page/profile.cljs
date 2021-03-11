@@ -12,6 +12,8 @@
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.subscriptions :as subs]
             [ethlance.ui.page.profile.subscriptions :as page-subs]
+            [district.ui.router.subs :as router-subs]
+            [district.ui.router.events :as router-events]
             [district.format :as format]
             [cljsjs.graphql]
             [clojure.string :as string]
@@ -173,20 +175,24 @@
      (c-feedback-listing feedback-list)]))
 
 (defmethod page :route.user/profile []
-  (let [page-params @(re/subscribe [::router-subs/active-page-query])
+  (let [{:keys [name params query]} @(re/subscribe [::router-subs/active-page])
         tabs {"candidate" 0 "employer" 1 "arbiter" 2}
-        default-tab (get (:tab page-params) tabs 0)]
+        default-tab (get tabs (:tab query) 0)
+        navigate-to (fn [tab name params] (when name (re/dispatch [::router-events/navigate name params (merge query {:tab tab})])))
+        navigate-to-candidate (partial navigate-to "candidate" name params)
+        navigate-to-employer (partial navigate-to "employer" name params)
+        navigate-to-arbiter (partial navigate-to "arbiter" name params)]
     (fn []
       [c-main-layout {:container-opts {:class :profile-main-container}}
        [c-tabular-layout
         {:key "profile-tabular-layout"
          :default-tab default-tab}
 
-        {:label "Candidate Profile"}
+        {:label "Candidate Profile" :on-click navigate-to-candidate}
         [c-candidate-profile]
 
-        {:label "Employer Profile"}
+        {:label "Employer Profile" :on-click navigate-to-employer}
         [c-employer-profile]
 
-        {:label "Arbiter Profile"}
+        {:label "Arbiter Profile" :on-click navigate-to-arbiter}
         [c-arbiter-profile]]])))
