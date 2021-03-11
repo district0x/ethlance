@@ -36,3 +36,4 @@ server/cljs-runtime/
 server/ethlance_server.js
 server/yarn-error.log
 server/tests/
+Session.vim
