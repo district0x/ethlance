@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+DB_ADDRESS="postgres://user:pass@localhost:5432/ethlance"
+if ! command -v pgcli &> /dev/null; then
+  psql $DB_ADDRESS
+else
+  # Nice graphical CLI interface with autocomplete https://www.pgcli.com/
+  pgcli $DB_ADDRESS
+fi
