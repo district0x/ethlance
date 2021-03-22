@@ -291,6 +291,20 @@
                                        :where [:= address :CandidateSkill.user/address]}))))))
 
 
+(def candidate-ethlance-job-stories-query
+  {:select [:*]
+   :from [:EthlanceJobStory]
+   :join [:JobStory [:= :EthlanceJobStory.job-story/id :JobStory.job-story/id]]})
+
+(defn candidate->ethlance-job-stories-resolver [root {:keys [:limit :offset] :as args} _]
+  (db/with-async-resolver-conn conn
+    (let [candidate (graphql-utils/gql->clj root)
+          address (:user/address (graphql-utils/gql->clj root))
+          query (-> candidate-ethlance-job-stories-query
+                  (sql-helpers/merge-where [:= address :EthlanceJobStory.ethlance-job-story/candidate]))]
+      (log/debug "candidate->ethlance-job-stories-resolver" {:address address :args args})
+      (<? (paged-query conn query limit offset)))))
+
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)
@@ -665,7 +679,8 @@
                            :user_isRegisteredArbiter user->is-registered-arbiter-resolver}
                     :Candidate {:candidate_feedback candidate->feedback-resolver
                                 :candidate_categories candidate->candidate-categories-resolver
-                                :candidate_skills candidate->candidate-skills-resolver}
+                                :candidate_skills candidate->candidate-skills-resolver
+                                :candidate_ethlanceJobStories candidate->ethlance-job-stories-resolver}
                     :Employer {:employer_feedback employer->feedback-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver}
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver

@@ -61,8 +61,10 @@
       (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))])
 
 (defn c-candidate-profile []
-  (let [user @(re/subscribe [::subs/active-user])
-        candidate @(re/subscribe [::subs/active-candidate]) ; TODO: subscribe to selected candidate (based on the URL)
+  (let [page-params @(re/subscribe [::router-subs/active-page-params])
+        address (:address page-params)
+        user @(re/subscribe [::subs/user address])
+        candidate @(re/subscribe [::subs/candidate address])
         name (:user/name user)
         email (:user/email user)
         location (:user/country user)
@@ -70,9 +72,9 @@
         biography (:candidate/bio candidate)
         languages (:user/languages user)
         skills (:candidate/skills candidate)
-        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "CANDIDATE"])
-        rating @(re/subscribe [::page-subs/candidate-ratings "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
-        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"])
+        jobs @(re/subscribe [::page-subs/job-roles address "CANDIDATE"])
+        rating @(re/subscribe [::page-subs/candidate-ratings address ])
+        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards address])
         ]
    [:<>
      [:div.candidate-profile
@@ -195,4 +197,5 @@
         [c-employer-profile]
 
         {:label "Arbiter Profile" :on-click navigate-to-arbiter}
-        [c-arbiter-profile]]])))
+        [c-arbiter-profile]
+        ]])))

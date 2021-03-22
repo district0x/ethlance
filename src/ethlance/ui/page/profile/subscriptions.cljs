@@ -35,9 +35,10 @@
 (re/reg-sub
   ::candidate-ratings
   (fn [[_ address] _] (re/subscribe [::candidate-feedback address]))
-  (fn [ratings [_ address]]
-    {:average (/ (reduce + ratings) (count ratings))
-     :count (count ratings)}))
+  (fn [feedback [_ address]]
+    (let [ratings (map :feedback/rating feedback)]
+      {:average (/ (reduce + ratings) (count ratings))
+       :count (count ratings)})))
 
 (re/reg-sub
   ::candidate-feedback-cards
