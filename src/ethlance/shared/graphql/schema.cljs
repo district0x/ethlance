@@ -294,6 +294,15 @@
       limit: Int,
       offset: Int
     ): FeedbackList
+
+    candidate_ethlanceJobStories: EthlanceJobStoryList
+  }
+
+  type EthlanceJobStoryList {
+    items: [EthlanceJobStory]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
   }
 
   type CandidateList {
@@ -498,6 +507,7 @@
     ethlanceJobStory_proposalMessage: Message
     ethlanceJobStory_proposalRate: Int
     ethlanceJobStory_proposalRateCurrencyId: Int
+    ethlanceJobStory_dateCandidateAccepted: Date
   }
 
   type JobStoryList {

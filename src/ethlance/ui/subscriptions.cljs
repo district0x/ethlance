@@ -43,6 +43,11 @@
     (get db :users)))
 
 (re/reg-sub
+  ::user
+  (fn [db [_ address]]
+    (get-in db [:users address])))
+
+(re/reg-sub
   ::active-user
   :<- [::users]
   :<- [::accounts-subs/active-account]
@@ -53,6 +58,11 @@
   ::candidates
   (fn [db _]
     (get db :candidates)))
+
+(re/reg-sub
+  ::candidate
+  (fn [db [_ address]]
+    (get-in db [:candidates address])))
 
 (re/reg-sub
   ::active-candidate
