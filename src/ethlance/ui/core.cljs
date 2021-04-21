@@ -17,6 +17,10 @@
     [ethlance.ui.subscriptions]
     [ethlance.ui.util.injection :as util.injection]
     [mount.core :as mount]
+    [cljsjs.apollo-fetch]
+    [cljsjs.dataloader]
+    [cljsjs.graphql]
+    [district.ui.graphql]
     [print.foo :include-macros true]
     [re-frame.core :as re]))
 

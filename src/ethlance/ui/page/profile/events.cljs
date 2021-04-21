@@ -20,21 +20,14 @@
 
 (re/reg-event-fx
   :query-profile-page-data
-  (fn [coeff val]
-    (let [query "query ($address: ID!) {
-                  candidate(user_address: $address) {
-                    user_address
-                    candidate_feedback { items { feedback_rating feedback_text feedback_fromUser { user_name } } totalCount }
-                    candidate_ethlanceJobStories { items { ethlanceJobStory_dateCandidateAccepted } }
-                  }
+  (fn [coeff _val]
+    (let [
+          query "query ($address: ID!) {
+                  candidate(user_address: $address) {user_address candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  employer(user_address: $address) {user_address employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  arbiter(user_address: $address) {user_address arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
                 }"
-          ; query "query ($address: ID!) {
-          ;         candidate(user_address: $address) {user_address candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-          ;         employer(user_address: $address) {user_address employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-          ;         arbiter(user_address: $address) {user_address arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-          ;       }"
           user-address (-> coeff :db active-page-params :address)]
-      (println "query-profile-page-data coeff is" user-address)
       {:dispatch [::graphql/query {:query query :variables {:address user-address}}]})))
 
 ;;

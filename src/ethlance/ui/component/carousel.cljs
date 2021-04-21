@@ -57,7 +57,7 @@
                :on-click #(swap! *current-index inc)}]]]]))})))
 
 (defn c-feedback-slide
-  [{:keys [id rating author text class :as args]}]
+  [{:keys [id rating author text class]}]
   [:div.feedback-slide
    ;; FIXME: use better unique key
    {:key (str "feedback-" id "-" rating) :class class}

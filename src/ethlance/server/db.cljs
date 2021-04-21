@@ -74,6 +74,7 @@
      [:candidate/professional-title :varchar]
      [:candidate/rate :integer not-nil]
      [:candidate/rate-currency-id :varchar not-nil]
+     [:candidate/rating :real]
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs

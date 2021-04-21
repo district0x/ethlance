@@ -10,17 +10,14 @@
             [ethlance.ui.component.table :refer [c-table]]
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-            [ethlance.ui.subscriptions :as subs]
-            [ethlance.ui.page.profile.subscriptions :as page-subs]
             [district.ui.router.subs :as router-subs]
             [district.ui.router.events :as router-events]
             [district.format :as format]
             [cljsjs.graphql]
             [clojure.string :as string]
             [district.graphql-utils :as utils]
-            [re-frame.core :as re]
-            [clojure.string :as string]
-            ))
+            [district.ui.graphql.subs :as gql]
+            [re-frame.core :as re]))
 
 (defn c-tag-list [name tags]
   (let [container [:div {:class (string/lower-case name)} [:span name]]]
@@ -60,24 +57,135 @@
       [:div.sub-title "Smart Contract Hacker"]
       (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))])
 
+(def log (.-log js/console))
+
+(defn prepare-ratings [rating]
+  {:rating (:feedback/rating rating)
+   :from (get-in rating [:feedback/from-user :user/name])
+   :text (:feedback/text rating)})
+
+(defn prepare-feedback-cards [item]
+  {:rating (:feedback/rating item)
+   :text (:feedback/text item)
+   :author (get-in item [:feedback/from-user :user/name])})
+
+(defn prepare-jobs [story]
+  {:title (get-in story [:job :job/title])
+   :start-date (get-in story [:ethlance-job-story/date-candidate-accepted])})
+
 (defn c-candidate-profile []
-  (let [page-params @(re/subscribe [::router-subs/active-page-params])
-        address (:address page-params)
-        user @(re/subscribe [::subs/user address])
-        candidate @(re/subscribe [::subs/candidate address])
-        name (:user/name user)
-        email (:user/email user)
-        location (:user/country user)
-        professional-title (:candidate/professional-title candidate)
-        biography (:candidate/bio candidate)
-        languages (:user/languages user)
-        skills (:candidate/skills candidate)
-        jobs @(re/subscribe [::page-subs/job-roles address "CANDIDATE"])
-        rating @(re/subscribe [::page-subs/candidate-ratings address ])
-        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards address])
-        ]
-   [:<>
-     [:div.candidate-profile
+  (let [page-params (re/subscribe [::router-subs/active-page-params])
+        query "query ($id: ID!) {
+                 user(user_address: $id) { user_name user_profileImage user_country user_languages }
+                 candidate(user_address: $id) {
+                 candidate_professionalTitle
+                 candidate_skills
+                 candidate_bio
+                 candidate_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
+                 candidate_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
+        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
+  (fn []
+    (let [name (get-in @results [:user :user/name])
+          location (get-in @results [:user :user/country])
+          professional-title (get-in @results [:candidate :candidate/professional-title])
+          biography (get-in @results [:candidate :candidate/bio])
+          languages (get-in @results [:user :user/languages])
+          skills (get-in @results [:user :user/skills])
+          job-activity-column-headers {:title "Title" :start-date "Created"}
+          jobs (map prepare-jobs (get-in @results [:candidate :candidate/ethlance-job-stories :items]))
+          ratings (map prepare-ratings (get-in @results [:candidate :candidate/feedback :items]))
+          rating {:average (/ (reduce + (map :rating ratings)) (count ratings)) :count (count ratings)}
+          feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))]
+      [:<>
+       [:div.candidate-profile
+        [:div.title
+         [:div.profile-image
+          [c-profile-image {}]]
+         [:div.name name]
+         [:div.detail professional-title]]
+        [:div.biography biography]
+        [c-rating-box rating]
+        [:div.location location]
+        [:div.detail-listing
+         [c-tag-list "Languages" languages]
+         [c-tag-list "Skills" skills]]
+        [:div.button-listing
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+       (c-job-activity jobs job-activity-column-headers)
+       (c-feedback-listing feedback-list)]))))
+
+(defn c-employer-profile []
+  (let [page-params (re/subscribe [::router-subs/active-page-params])
+        query "query ($id: ID!) {
+                 user(user_address: $id) { user_name user_profileImage user_country user_languages }
+                 employer(user_address: $id) {
+                 employer_professionalTitle
+                 employer_bio
+                 employer_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
+                 employer_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
+        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
+  (fn []
+    (let [name (get-in @results [:user :user/name])
+          location (get-in @results [:user :user/country])
+          professional-title (get-in @results [:employer :employer/professional-title])
+          biography (get-in @results [:employer :employer/bio])
+          languages (get-in @results [:user :user/languages])
+          job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
+          jobs (map prepare-jobs (get-in @results [:employer :employer/ethlance-job-stories :items]))
+          ratings (map prepare-ratings (get-in @results [:employer :employer/feedback :items]))
+          rating {:average (/ (reduce + (map :rating ratings)) (count ratings)) :count (count ratings)}
+          feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))]
+      [:<>
+       [:div.employer-profile
+        [:div.title
+         [:div.profile-image
+          [c-profile-image {}]]
+         [:div.name name]
+         [:div.detail professional-title]]
+        [:div.biography biography]
+        [c-rating-box rating]
+        [:div.location location]
+        [:div.detail-listing
+         [c-tag-list "Languages" languages]]
+        [:div.button-listing
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+       (c-job-activity jobs job-activity-column-headers)
+       (c-feedback-listing feedback-list)]))))
+
+(defn c-arbiter-profile []
+  (let [page-params (re/subscribe [::router-subs/active-page-params])
+        query "query ($id: ID!) {
+                 user(user_address: $id) { user_name user_profileImage user_country user_languages }
+                 arbiter(user_address: $id) {
+                 arbiter_professionalTitle
+                 arbiter_bio
+                 arbiter_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
+                 arbiter_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
+        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
+    (fn []
+      (let [name (get-in @results [:user :user/name])
+            location (get-in @results [:user :user/country])
+            professional-title (get-in @results [:arbiter :arbiter/professional-title])
+            biography (get-in @results [:arbiter :arbiter/bio])
+            languages (get-in @results [:user :user/languages])
+            job-activity-column-headers {:title "Title" :start-date "Created"}
+            jobs (map prepare-jobs (get-in @results [:arbiter :arbiter/ethlance-job-stories :items]))
+            ratings (map prepare-ratings (get-in @results [:arbiter :arbiter/feedback :items]))
+            rating {:average (/ (reduce + (map :rating ratings)) (count ratings)) :count (count ratings)}
+            feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))]
+    [:<>
+     [:div.arbiter-profile
       [:div.title
        [:div.profile-image
         [c-profile-image {}]]
@@ -87,46 +195,6 @@
       [c-rating-box rating]
       [:div.location location]
       [:div.detail-listing
-       [c-tag-list "Languages" languages]
-       [c-tag-list "Skills" skills]]
-
-      [:div.button-listing
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
-
-     (c-job-activity jobs {:title "Title" :start-date "Created"})
-     (c-feedback-listing feedback-list)
-     ]))
-
-(defn c-employer-profile []
-  (let [user @(re/subscribe [::subs/active-user])
-        employer @(re/subscribe [::subs/active-employer])
-        name (:user/name user)
-        email (:user/email user)
-        location (:user/country user)
-        professional-title (:candidate/professional-title employer)
-        biography (:candidate/bio employer)
-        languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "EMPLOYER"])
-        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]) ; FIXME: employer subscription
-        ]
-    [:<>
-     [:div.employer-profile
-      [:div.title
-       [:div.profile-image
-        [c-profile-image {}]]
-       [:div.name name]
-       [:div.detail professional-title]]
-      [:div.biography biography]
-      [:div.rating
-       [c-rating {:rating 3 :color :primary}] ; TODO
-       [:span "(8)"]] ; TODO
-      [:div.location location]
-      [:div.detail-listing
        [c-tag-list "Languages" languages]]
       [:div.button-listing
        [c-button
@@ -136,45 +204,8 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     (c-job-activity jobs {:title "Title" :start-date "Created" :status "Status"})
-     (c-feedback-listing feedback-list)]))
-
-(defn c-arbiter-profile []
-  (let [user @(re/subscribe [::subs/active-user])
-        arbiter @(re/subscribe [::subs/active-arbiter])
-        name (:user/name user)
-        email (:user/email user)
-        location (:user/country user)
-        professional-title (:candidate/professional-title arbiter)
-        biography (:candidate/bio arbiter)
-        languages (:user/languages user)
-        jobs @(re/subscribe [::page-subs/job-roles "0xc238fa6ccc9d226e2c49644b36914611319fc3ff" "ARBITER"])
-        feedback-list @(re/subscribe [::page-subs/candidate-feedback-cards "0xc238fa6ccc9d226e2c49644b36914611319fc3ff"]) ; FIXME: replace with arbiter subscription
-        ]
-    [:<>
-     [:div.arbiter-profile
-      [:div.title
-       [:div.profile-image
-        [c-profile-image {}]]
-       [:div.name name]
-       [:div.detail professional-title]]
-      [:div.biography biography]
-      [:div.rating
-       [c-rating {:rating 3 :color :primary}] ; TODO
-       [:span "(8)"]] ; TODO
-      [:div.location location]
-      [:div.detail-listing
-       [c-tag-list "Languages" languages]]
-      [:div.button-listing
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
-
-     (c-job-activity jobs {:title "Title" :start-date "Created"})
-     (c-feedback-listing feedback-list)]))
+     (c-job-activity jobs job-activity-column-headers)
+     (c-feedback-listing feedback-list)]))))
 
 (defmethod page :route.user/profile []
   (let [{:keys [name params query]} @(re/subscribe [::router-subs/active-page])
@@ -183,7 +214,8 @@
         navigate-to (fn [tab name params] (when name (re/dispatch [::router-events/navigate name params (merge query {:tab tab})])))
         navigate-to-candidate (partial navigate-to "candidate" name params)
         navigate-to-employer (partial navigate-to "employer" name params)
-        navigate-to-arbiter (partial navigate-to "arbiter" name params)]
+        navigate-to-arbiter (partial navigate-to "arbiter" name params)
+        ]
     (fn []
       [c-main-layout {:container-opts {:class :profile-main-container}}
        [c-tabular-layout
