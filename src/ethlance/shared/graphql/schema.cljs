@@ -76,8 +76,6 @@
 
     job(job_id : Int!): Job
 
-    jobRoleSearch(user_address: ID!): JobRoleList
-
     jobSearch(
       job_id: Int,
       orderBy: JobListOrderBy,
@@ -338,6 +336,8 @@
       limit: Int,
       offset: Int
     ): FeedbackList
+
+    employer_ethlanceJobStories: EthlanceJobStoryList
   }
 
   type EmployerList {
@@ -372,6 +372,8 @@
       limit: Int,
       offset: Int
     ): FeedbackList
+
+    arbiter_ethlanceJobStories: EthlanceJobStoryList
   }
 
   type ArbiterList  {
@@ -473,6 +475,7 @@
 
   interface JobStory {
     job_id: Int
+    job: Job
     jobStory_id: Int
     jobStory_status: Keyword
     jobStory_candidateAddress: ID
@@ -489,6 +492,7 @@
   }
 
   type EthlanceJobStory implements JobStory{
+    job: EthlanceJob
     job_id: Int
     jobStory_id: Int
     jobStory_status: Keyword
@@ -520,28 +524,6 @@
   enum JobStoryOrderBy {
     dateUpdated
     dateCreated
-  }
-
-
-  enum Role {
-    CANDIDATE
-    EMPLOYER
-    ARBITER
-  }
-
-  type JobRole {
-    job: EthlanceJob!
-    userAddress: String!
-    role: Role!
-    startDate: Date
-    status: String
-  }
-
-  type JobRoleList {
-    items: [JobRole!]
-    totalCount: Int
-    endCursor: Int
-    hasNextPage: Boolean
   }
 
   # Invoice Types

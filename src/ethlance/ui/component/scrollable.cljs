@@ -5,7 +5,7 @@
    ["simplebar" :as simplebar]))
 
 
-(defn- c-scrollable-noop [opts body] body)
+(defn- c-scrollable-noop [_opts body] body)
 (defn- c-scrollable-real
   "Scrollable container. Uses simplebar-react
 
@@ -37,6 +37,8 @@
         [:div.scrollable child])})))
 
 (defn c-scrollable
-  [opts _]
-  ; Using noop implementation until can make the simplebar work
-  (c-scrollable-noop opts _))
+  [opts val]
+  (let [use-noop true] ; Using noop implementation until can make the simplebar work
+    (if use-noop
+      (c-scrollable-noop opts val)
+      (c-scrollable-real opts val))))
