@@ -81,6 +81,7 @@
                  candidate_professionalTitle
                  candidate_skills
                  candidate_bio
+                 candidate_rating
                  candidate_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
                  candidate_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
         results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
@@ -93,9 +94,8 @@
           skills (get-in @results [:user :user/skills])
           job-activity-column-headers {:title "Title" :start-date "Created"}
           jobs (map prepare-jobs (get-in @results [:candidate :candidate/ethlance-job-stories :items]))
-          ratings (map prepare-ratings (get-in @results [:candidate :candidate/feedback :items]))
-          rating {:average (/ (reduce + (map :rating ratings)) (count ratings)) :count (count ratings)}
-          feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))]
+          feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
+          rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
       [:<>
        [:div.candidate-profile
         [:div.title
@@ -126,6 +126,7 @@
                  employer(user_address: $id) {
                  employer_professionalTitle
                  employer_bio
+                 employer_rating
                  employer_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
                  employer_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
         results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
@@ -137,9 +138,8 @@
           languages (get-in @results [:user :user/languages])
           job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
           jobs (map prepare-jobs (get-in @results [:employer :employer/ethlance-job-stories :items]))
-          ratings (map prepare-ratings (get-in @results [:employer :employer/feedback :items]))
-          rating {:average (/ (reduce + (map :rating ratings)) (count ratings)) :count (count ratings)}
-          feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))]
+          feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
+          rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>
        [:div.employer-profile
         [:div.title
@@ -170,6 +170,7 @@
                  arbiter(user_address: $id) {
                  arbiter_professionalTitle
                  arbiter_bio
+                 arbiter_rating
                  arbiter_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
                  arbiter_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
         results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
@@ -181,9 +182,8 @@
             languages (get-in @results [:user :user/languages])
             job-activity-column-headers {:title "Title" :start-date "Created"}
             jobs (map prepare-jobs (get-in @results [:arbiter :arbiter/ethlance-job-stories :items]))
-            ratings (map prepare-ratings (get-in @results [:arbiter :arbiter/feedback :items]))
-            rating {:average (/ (reduce + (map :rating ratings)) (count ratings)) :count (count ratings)}
-            feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))]
+            feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
+            rating {:average (get-in @results [:arbiter :arbiter/rating]) :count (count feedback-list)}]
     [:<>
      [:div.arbiter-profile
       [:div.title
