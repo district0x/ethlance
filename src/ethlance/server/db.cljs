@@ -86,6 +86,7 @@
     [[:user/address :varchar not-nil]
      [:employer/bio :varchar]
      [:employer/professional-title :varchar]
+     [:employer/rating :real]
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs
@@ -99,6 +100,7 @@
      [:arbiter/professional-title :varchar]
      [:arbiter/fee :integer not-nil]
      [:arbiter/fee-currency-id :varchar not-nil]
+     [:arbiter/rating :real]
      ;; PK
      [(sql/call :primary-key :user/address)]
      ;; FKs

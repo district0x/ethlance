@@ -107,6 +107,7 @@
 (def ^:private employer-query {:select [[:Employer.user/address :user/address]
                                         [:Employer.employer/professional-title :employer/professional-title]
                                         [:Employer.employer/bio :employer/bio]
+                                        [:Employer.employer/rating :employer/rating]
                                         [:Users.user/date-registered :employer/date-registered]]
                                :from [:Employer]
                                :join [:Users [:= :Users.user/address :Employer.user/address]]})
@@ -152,6 +153,7 @@
                                        :Arbiter.arbiter/professional-title
                                        :Arbiter.arbiter/fee
                                        :Arbiter.arbiter/fee-currency-id
+                                       :Arbiter.arbiter/rating
                                        [:Users.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
                               :join [:Users [:= :Users.user/address :Arbiter.user/address]]})
@@ -202,6 +204,7 @@
             [:Candidate.candidate/professional-title :candidate/professional-title]
             [:Candidate.candidate/bio :candidate/bio]
             [:Candidate.candidate/rate :candidate/rate]
+            [:Candidate.candidate/rating :candidate/rating]
             [:Candidate.candidate/rate-currency-id :candidate/rate-currency-id]
             [:Users.user/date-registered :candidate/date-registered]]
    :from [:Candidate]
