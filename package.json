@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "react": "16.13.0",
-    "react-dom": "16.13.0"
+    "react-dom": "16.13.0",
+    "@openzeppelin/contracts": "4.1.0"
   },
   "devDependencies": {
     "clj-kondo": "^v2020.11.07",
