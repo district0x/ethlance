@@ -36,6 +36,7 @@ contract Job {
    * - `_creator` cannot be empty
    * - `_offeredValues` cannot be empty
    *
+   * TODO: Needs implementation
    */
   function initialize(
     Ethlance _ethlance,
@@ -59,6 +60,7 @@ contract Job {
    *
    * Emits {QuoteForArbitrationSet} event
    *
+   * TODO: Needs implementation
    */
   function setQuoteForArbitration(
     Ethlance.TokenValue[] memory _quote
@@ -81,6 +83,7 @@ contract Job {
    *
    * Emits {QuoteForArbitrationAccepted} event
    *
+   * TODO: Needs implementation
    */
   function _acceptQuoteForArbitration(
     address _arbiter,
@@ -99,6 +102,8 @@ contract Job {
    * - same `_candidate` cannot be added twice
    *
    * Emits {CandidateAdded} event
+   *
+   * TODO: Needs implementation
    */
   function addCandidate(
     address _candidate
@@ -117,6 +122,7 @@ contract Job {
    *
    * Emits {InvoiceCreated} event
    * See spec :ethlance/invoice-created for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function createInvoice(
     Ethlance.TokenValue[] memory _invoicedValue,
@@ -135,6 +141,7 @@ contract Job {
    *
    * Emits {InvoicePaid} event
    * See spec :ethlance/invoice-paid for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function payInvoice(
     uint _invoiceId,
@@ -153,6 +160,7 @@ contract Job {
    *
    * Emits {InvoiceCanceled} event
    * See spec :ethlance/invoice-canceled for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function cancelInvoice(
     uint _invoiceId,
@@ -174,6 +182,7 @@ contract Job {
    *
    * Emits {FundsAdded} event
    * See spec :ethlance/funds-added for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function _addFunds(
     address _funder,
@@ -186,6 +195,7 @@ contract Job {
    * @dev It joins together `{_addFunds}` and `{payInvoice}` calls
    *
    * This function is not meant to be called directly, but via token received callbacks
+   * TODO: Needs implementation
    */
   function _addFundsAndPayInvoice(
     Ethlance.TokenValue[] memory _fundedValue,
@@ -203,6 +213,7 @@ contract Job {
    *
    * Emits {FundsWithdrawn} event
    * See spec :ethlance/funds-withdrawn for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function withdrawFunds(
   ) external {
@@ -218,6 +229,7 @@ contract Job {
    *
    * Emits {DisputeRaised} event
    * See spec :ethlance/dispute-raised for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function raiseDispute(
     uint _invoiceId,
@@ -237,6 +249,7 @@ contract Job {
    *
    * Emits {DisputeResolved} event
    * See spec :ethlance/dispute-resolved for the format of _ipfsData file
+   * TODO: Needs implementation
    */
   function resolveDispute(
     uint _invoiceId,
@@ -310,6 +323,7 @@ contract Job {
   /**
    * @dev This function is called automatically when this contract receives ETH
    * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `msg.data`
+   * TODO: Needs implementation
    */
   receive(
   ) external payable {
