@@ -39,7 +39,8 @@
 
 
  :mutation/update-job
- {:job/title "string, max 100 chars"
+ {:job/address "address"
+  :job/title "string, max 100 chars"
   :job/description "string, max 5000 chars"
   :job/category "one of ethlance.shared.constants/categories"
   :job/expertise-level "beginner|intermediate|expert"
