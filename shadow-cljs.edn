@@ -121,6 +121,7 @@
 
           :server-tests
           {:target :node-test
+           :modules {:main {:init-fn tests.runner/start-and-run-tests}}
            :js-options {:js-package-dirs ["./server/node_modules"]}
            :output-dir "server/tests"
            :output-to "server/tests/server-tests.js"

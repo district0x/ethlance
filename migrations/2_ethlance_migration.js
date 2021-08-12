@@ -31,11 +31,11 @@ const ethlanceJobsPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 // Contract Artifacts
 //
 
-let DSGuard = requireContract("DSGuard");
-let TestToken = requireContract("TestToken");
-let StandardBounties = requireContract("StandardBounties");
-let EthlanceJobs = requireContract("EthlanceJobs");
-let EthlanceIssuer = requireContract("EthlanceIssuer");
+// let DSGuard = requireContract("DSGuard");
+// let TestToken = requireContract("TestToken");
+// let StandardBounties = requireContract("StandardBounties");
+// let EthlanceJobs = requireContract("EthlanceJobs");
+// let EthlanceIssuer = requireContract("EthlanceIssuer");
 
 //
 // Deployment Functions
@@ -87,10 +87,12 @@ async function deploy_EthlanceIssuer(deployer, opts){
   Deploy All Ethlance Contracts
  */
 async function deploy_all(deployer, opts) {
-  await deploy_DSGuard(deployer, opts);
-  await deploy_TestToken(deployer, opts);
-  await deploy_EthlanceIssuer(deployer, opts);
-  writeSmartContracts();
+
+  console.log("Skipping everything in 2_ethlance_migrations");
+  // await deploy_DSGuard(deployer, opts);
+  // await deploy_TestToken(deployer, opts);
+  // await deploy_EthlanceIssuer(deployer, opts);
+  // writeSmartContracts();
 }
 
 
