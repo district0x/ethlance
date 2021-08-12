@@ -11,10 +11,11 @@
             [ethlance.server.db]
             [ethlance.server.graphql.server]
             [ethlance.server.ipfs]
-            [ethlance.server.syncer]
+            ; [ethlance.server.syncer]
             [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
+            [ethlance.server.contract.ethlance :as ethlance-contract]
             [ethlance.shared.utils :as shared-utils]
             [mount.core :as mount]
             [taoensso.timbre :refer [merge-config!] :as log]))
@@ -33,36 +34,39 @@
     "dev" #'smart-contracts-dev/smart-contracts))
 
 (def default-config
-  {:web3 {:url "ws://127.0.0.1:8549"}
-   :web3-events {:events {:ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited]
+  {:web3 {:url  "ws://192.168.12.1:7545"} ; "ws://d0x-vm:8549"
+   :web3-events {:events {
+                          ; TODO: replace with events from new Ethlance.sol contract (commented out to allow server to start)
+                          ; :ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited]
 
-                          :standard-bounties/bounty-issued [:standard-bounties :BountyIssued]
-                          :standard-bounties/bounty-approvers-updated [:standard-bounties :BountyApproversUpdated]
-                          :standard-bounties/contribution-added [:standard-bounties :ContributionAdded]
-                          :standard-bounties/contribution-refunded [:standard-bounties :ContributionRefunded]
-                          :standard-bounties/contributions-refunded [:standard-bounties :ContributionsRefunded]
-                          :standard-bounties/bounty-drained [:standard-bounties :BountyDrained]
-                          :standard-bounties/action-performed [:standard-bounties :ActionPerformed]
-                          :standard-bounties/bounty-fulfilled [:standard-bounties :BountyFulfilled]
-                          :standard-bounties/fulfillment-updated [:standard-bounties :FulfillmentUpdated]
-                          :standard-bounties/fulfillment-accepted [:standard-bounties :FulfillmentAccepted]
-                          :standard-bounties/bounty-changed [:standard-bounties :BountyChanged]
-                          :standard-bounties/bounty-issuers-updated [:standard-bounties :BountyIssuersUpdated]
-                          :standard-bounties/bounty-data-changed [:standard-bounties :BountyDataChanged]
-                          :standard-bounties/bounty-deadline-changed [:standard-bounties :BountyDeadlineChanged]
+                          ; :standard-bounties/bounty-issued [:standard-bounties :BountyIssued]
+                          ; :standard-bounties/bounty-approvers-updated [:standard-bounties :BountyApproversUpdated]
+                          ; :standard-bounties/contribution-added [:standard-bounties :ContributionAdded]
+                          ; :standard-bounties/contribution-refunded [:standard-bounties :ContributionRefunded]
+                          ; :standard-bounties/contributions-refunded [:standard-bounties :ContributionsRefunded]
+                          ; :standard-bounties/bounty-drained [:standard-bounties :BountyDrained]
+                          ; :standard-bounties/action-performed [:standard-bounties :ActionPerformed]
+                          ; :standard-bounties/bounty-fulfilled [:standard-bounties :BountyFulfilled]
+                          ; :standard-bounties/fulfillment-updated [:standard-bounties :FulfillmentUpdated]
+                          ; :standard-bounties/fulfillment-accepted [:standard-bounties :FulfillmentAccepted]
+                          ; :standard-bounties/bounty-changed [:standard-bounties :BountyChanged]
+                          ; :standard-bounties/bounty-issuers-updated [:standard-bounties :BountyIssuersUpdated]
+                          ; :standard-bounties/bounty-data-changed [:standard-bounties :BountyDataChanged]
+                          ; :standard-bounties/bounty-deadline-changed [:standard-bounties :BountyDeadlineChanged]
 
-                          :ethlance-jobs/job-issued [:ethlance-jobs :JobIssued]
-                          :ethlance-jobs/contribution-added [:ethlance-jobs :ContributionAdded]
-                          :ethlance-jobs/contribution-refunded [:ethlance-jobs :ContributionRefunded]
-                          :ethlance-jobs/contributions-refunded [:ethlance-jobs :ContributionsRefunded]
-                          :ethlance-jobs/job-drained [:ethlance-jobs :JobDrained]
-                          :ethlance-jobs/job-invoice [:ethlance-jobs :JobInvoice]
-                          :ethlance-jobs/invoice-accepted [:ethlance-jobs :InvoiceAccepted]
-                          :ethlance-jobs/job-changed [:ethlance-jobs :JobChanged]
-                          :ethlance-jobs/job-issuers-updated [:ethlance-jobs :JobIssuersUpdated]
-                          :ethlance-jobs/job-approvers-updated [:ethlance-jobs :JobApproversUpdated]
-                          :ethlance-jobs/job-data-changed [:ethlance-jobs :JobDataChanged]
-                          :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted]}
+                          ; :ethlance-jobs/job-issued [:ethlance-jobs :JobIssued]
+                          ; :ethlance-jobs/contribution-added [:ethlance-jobs :ContributionAdded]
+                          ; :ethlance-jobs/contribution-refunded [:ethlance-jobs :ContributionRefunded]
+                          ; :ethlance-jobs/contributions-refunded [:ethlance-jobs :ContributionsRefunded]
+                          ; :ethlance-jobs/job-drained [:ethlance-jobs :JobDrained]
+                          ; :ethlance-jobs/job-invoice [:ethlance-jobs :JobInvoice]
+                          ; :ethlance-jobs/invoice-accepted [:ethlance-jobs :InvoiceAccepted]
+                          ; :ethlance-jobs/job-changed [:ethlance-jobs :JobChanged]
+                          ; :ethlance-jobs/job-issuers-updated [:ethlance-jobs :JobIssuersUpdated]
+                          ; :ethlance-jobs/job-approvers-updated [:ethlance-jobs :JobApproversUpdated]
+                          ; :ethlance-jobs/job-data-changed [:ethlance-jobs :JobDataChanged]
+                          ; :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted]
+                          }
                  :from-block 1
                  :block-step 1000
                  :crash-on-event-fail? true
@@ -78,10 +82,10 @@
                  :database "ethlance"
                  :password "pass"
                  :port 5432}
-   :ethlance/db {:resync? true}
-   :ipfs {:host "http://127.0.0.1:5001"
+   :ethlance/db {:resync? false}
+   :ipfs {:host "http://d0x-vm:5001"
           :endpoint "/api/v0"
-          :gateway "http://127.0.0.1:8080/ipfs"}
+          :gateway "http://d0x-vm:8080/ipfs"}
    :logging {:level "debug"
              :console? true}})
 
