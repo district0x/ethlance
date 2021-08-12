@@ -142,4 +142,37 @@
              job-token-balance (<! (smart-contracts/contract-call :test-multi-token :balance-of [created-job token-id]))]
 
          (is (= (int job-token-balance) sent-amount))
+         (done)))))
+
+  (testing "Batch payment in multi-token (ERC1155)"
+    (async done
+     (go
+       (let [ethlance-addr (smart-contracts/contract-address :ethlance)
+            [owner employer worker] (<! (web3-eth/accounts @web3))
+             token-1-receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [employer 7]))
+             token-2-receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [employer 5]))
+             token-ids (map (fn [receipt] (. (get-in receipt [:events :Transfer-single :return-values]) -id)) [token-1-receipt token-2-receipt])
+             job-type 1
+             arbiters []
+             ipfs-data "0x0"
+             job-proxy-address (get-in addresses/smart-contracts [:job :address])
+             ethlance-init-result (<! (ethlance/initialize job-proxy-address))
+             test-token-address (smart-contracts/contract-address :test-multi-token)
+             offered-token-type (contract-constants/token-type :erc1155)
+             sent-amount 3
+             offered-values (map (fn [id] {:token
+                                    {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
+                                     :tokenId id} :value sent-amount}) token-ids)
+             call-data (web3-eth/encode-abi (smart-contracts/instance :ethlance)
+                                                 :create-job
+                                                 [employer offered-values job-type arbiters ipfs-data])
+             transfer-receipt (<! (smart-contracts/contract-send :test-multi-token :safe-batch-transfer-from
+                                                                 [employer ethlance-addr token-ids [sent-amount sent-amount] call-data] {:from employer}))
+             job-created-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated transfer-receipt))
+             created-job (:job job-created-event)
+             job-token-1-balance (<! (smart-contracts/contract-call :test-multi-token :balance-of [created-job (first token-ids)]))
+             job-token-2-balance (<! (smart-contracts/contract-call :test-multi-token :balance-of [created-job (second token-ids)]))]
+
+         (is (= (int job-token-1-balance) sent-amount))
+         (is (= (int job-token-2-balance) sent-amount))
          (done))))))
