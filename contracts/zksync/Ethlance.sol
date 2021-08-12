@@ -187,12 +187,12 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address payable newJobPayableAddress = payable(address(uint160(newJob)));
     MutableForwarder(newJobPayableAddress).setTarget(jobProxyTarget);
 
-
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
-
     Job(newJobPayableAddress).initialize(this, _creator, _jobType, _offeredValues, _invitedArbiters);
+
     uint timestamp = block.number;
     emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _jobType, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp);
+
     return newJob;
   }
 
@@ -405,6 +405,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint256[] calldata _values,
     bytes calldata _data
   ) external override returns (bytes4) {
+    _createJobWithPassedData(_data);
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
 
