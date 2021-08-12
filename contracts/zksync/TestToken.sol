@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 /*
   This ERC20 compliant contract should not be used as an actual
   cryptocurrency, and should only be used strictly in a development
@@ -5,10 +6,10 @@
   value is not recommended."
 */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
-import "./math/SafeMath.sol";
-import "./token/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title ERC20 Token Implementation for testing purposes
 contract TestToken is IERC20 {
@@ -33,14 +34,13 @@ contract TestToken is IERC20 {
   //
   // Collections
   //
-  mapping (address => uint256) private token_balance_mapping;
+  mapping (address => uint256) public token_balance_mapping;
   mapping (address => mapping (address => uint256)) private token_allowance_mapping;
-
 
   //
   // Constructor
   //
-  constructor(address _contract_owner) public {
+  constructor(address _contract_owner) {
     contract_owner = _contract_owner;
   }
 
@@ -50,27 +50,27 @@ contract TestToken is IERC20 {
   //
 
 
-  function totalSupply() external view returns (uint256) {
+  function totalSupply() external view override returns (uint256) {
     return total_balance;
   }
 
 
-  function balanceOf(address _owner) external view returns (uint256) {
+  function balanceOf(address _owner) external view override returns (uint256) {
     return token_balance_mapping[_owner];
   }
 
 
   function allowance(address owner, address spender)
-    external view returns (uint256) {
+    external view override returns (uint256) {
     return token_allowance_mapping[owner][spender];
   }
 
 
-  function transfer(address to, uint256 value) external returns (bool) {
+  function transfer(address to, uint256 value) external override returns (bool) {
     if (token_balance_mapping[msg.sender] < value || to == address(0)) {
       return false;
     }
-  
+
     token_balance_mapping[msg.sender] = token_balance_mapping[msg.sender].sub(value);
     token_balance_mapping[to] = token_balance_mapping[to].add(value);
     emit Transfer(msg.sender, to, value);
@@ -79,7 +79,7 @@ contract TestToken is IERC20 {
 
 
   function approve(address spender, uint256 value)
-    external returns (bool) {
+    external override returns (bool) {
     if (spender == address(0)) {
       return false;
     }
@@ -91,17 +91,17 @@ contract TestToken is IERC20 {
 
 
   function transferFrom(address from, address to, uint256 value)
-    external returns (bool) {
+    external override returns (bool) {
     if (token_allowance_mapping[from][to] < value ||
         token_balance_mapping[from] < value ||
         to == address(0)) {
       return false;
     }
-  
+
     token_allowance_mapping[from][to] = token_allowance_mapping[from][to].sub(value);
     token_balance_mapping[from] = token_balance_mapping[from].sub(value);
     token_balance_mapping[to] = token_balance_mapping[to].add(value);
-  
+
     return true;
   }
 
@@ -109,13 +109,13 @@ contract TestToken is IERC20 {
   //
   // Methods
   //
-    
+
   function mint(address to, uint256 value)
     external returns(bool) {
     if (to == address(0)) {
       return false;
     }
-  
+
     total_balance = total_balance.add(value);
     token_balance_mapping[to] = token_balance_mapping[to].add(value);
 

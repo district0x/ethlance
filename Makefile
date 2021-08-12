@@ -14,7 +14,7 @@
 
 
 ETHLANCE_ENV := dev # dev, qa, prod
-ETHEREUM_NETWORK := ganache # ganache, parity
+ETHEREUM_NETWORK := hostia # ganache, parity
 
 
 #
@@ -173,7 +173,7 @@ build-contracts:
 TESTNET_PORT := 8549
 TESTNET_HOST := 0.0.0.0
 testnet:
-	npx ganache-cli -m district0x --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
+	npx ganache-cli --mnemonic district0x --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
 
 build-docs:

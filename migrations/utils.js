@@ -62,10 +62,22 @@ let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) =
 };
 
 
+/*
+  Returns the contract artifact for the given `contract_name`
+ */
+function requireContract(contract_name, contracts_build_directory, contract_copy_name) {
+  console.log("Creating Copy of " + contract_name + " for deployment...");
+  const copy_name = contract_copy_name || contract_name + "_deployment_copy";
+  console.log("- Contract Name: " + copy_name);
+  copy(contract_name, copy_name, contracts_build_directory);
+  return artifacts.require(copy_name);
+}
+
 module.exports = {
   last: last,
   copy: copy,
   linkBytecode: linkBytecode,
   smartContractsTemplate: smartContractsTemplate,
   encodeContractEDN: encodeContractEDN,
+  requireContract: requireContract,
 };
