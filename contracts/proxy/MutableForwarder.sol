@@ -1,7 +1,8 @@
-pragma solidity ^0.5.0;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
 
 import "../proxy/DelegateProxy.sol";
-import "../DSAuth.sol";
+import "../zksync/ds-auth/auth.sol";
 
 /**
  * @title Forwarder proxy contract with editable target
@@ -27,7 +28,15 @@ contract MutableForwarder is DelegateProxy, DSAuth {
     target = _target;
   }
 
-  function() external payable {
+  // Here to silence the compiler warning because in Solidity 0.6 the default fallback
+  // function was split into 2 to avoid confusion
+  // https://docs.soliditylang.org/en/latest/contracts.html#receive-ether-function
+  event Received(address, uint);
+  receive() external payable {
+    emit Received(msg.sender, msg.value);
+  }
+
+  fallback() external payable {
     delegatedFwd(target, msg.data);
   }
 

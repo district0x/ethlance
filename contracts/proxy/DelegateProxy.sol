@@ -1,4 +1,6 @@
-pragma solidity ^0.5.0;
+// SPDX-License-Identifier: GPL-3.0
+// Copied from: https://github.com/aragon/aragonOS/blob/940605977685cc9ad5ee85d67a6c310e3e8aab24/contracts/common/DelegateProxy.sol
+pragma solidity ^0.8.0;
 
 contract DelegateProxy {
   /**
@@ -9,8 +11,8 @@ contract DelegateProxy {
   function delegatedFwd(address _dst, bytes memory _calldata) internal {
     require(isContract(_dst));
     assembly {
-      let result := delegatecall(sub(gas, 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)
-        let size := returndatasize
+      let result := delegatecall(sub(gas(), 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)
+        let size := returndatasize()
 
         let ptr := mload(0x40)
         returndatacopy(ptr, 0, size)

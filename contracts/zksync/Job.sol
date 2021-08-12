@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "./EthlanceStructs.sol";
 import "./Ethlance.sol";
-import "../token/ApproveAndCallFallback.sol";
+// import "../token/ApproveAndCallFallback.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 
@@ -15,11 +16,10 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
  * Every new Job contract is created as a proxy contract.
  */
 
-contract Job {
+contract Job is IERC721Receiver {
 
   uint public constant version = 1; // current version of {Job} smart-contract
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
-
 
   /**
    * @dev Contract initialization
@@ -35,18 +35,37 @@ contract Job {
    * - `_ethlance` cannot be empty
    * - `_creator` cannot be empty
    * - `_offeredValues` cannot be empty
-   *
-   * TODO: Needs implementation
    */
+  address public creator;
+  EthlanceStructs.JobType public jobType;
+  mapping(uint => EthlanceStructs.TokenValue) public offeredValues;
+  address[] public invitedArbiters;
+
   function initialize(
     Ethlance _ethlance,
     address _creator,
-    Ethlance.JobType memory _jobType,
-    Ethlance.TokenValue[] memory _offeredValues,
-    address[] _invitedArbiters
+    EthlanceStructs.JobType _jobType,
+    EthlanceStructs.TokenValue[] calldata _offeredValues,
+    address[] calldata _invitedArbiters
   ) external {
+    require(address(_ethlance) != address(0), "Ethlance can't be null");
+    require(_creator != address(0), "Creator can't be null");
+    require(_offeredValues.length > 0, "You must offer some tokens as pay");
+
+    ethlance = _ethlance;
+    creator = _creator;
+    jobType = _jobType;
+    invitedArbiters = _invitedArbiters;
+
+    for(uint i = 0; i < _offeredValues.length; i++) {
+      offeredValues[i] = _offeredValues[i];
+    }
   }
 
+  // TODO: to be removed, here just for testing & debugging
+  function getOfferInfo(uint index) public view returns (address) {
+    return offeredValues[index].token.tokenContract.tokenAddress;
+  }
 
   /**
    * @dev Sets quote for arbitration requested by arbiter for his services
@@ -63,7 +82,7 @@ contract Job {
    * TODO: Needs implementation
    */
   function setQuoteForArbitration(
-    Ethlance.TokenValue[] memory _quote
+    EthlanceStructs.TokenValue[] memory _quote
   ) external {
   }
 
@@ -87,7 +106,7 @@ contract Job {
    */
   function _acceptQuoteForArbitration(
     address _arbiter,
-    Ethlance.TokenValue[] memory _transferredValue
+    EthlanceStructs.TokenValue[] memory _transferredValue
   ) internal {
   }
 
@@ -97,7 +116,7 @@ contract Job {
    *
    * Requirements:
    * - Can only be called by job creator
-   * - Can be called only when {Ethlance.JobType} is GIG
+   * - Can be called only when {EthlanceStructs.JobType} is GIG
    * - `_candidate` cannot be empty
    * - same `_candidate` cannot be added twice
    *
@@ -115,8 +134,8 @@ contract Job {
    * @dev Function called by candidate to create an invoice to be paid
    *
    * Requirements:
-   * - If {Ethlance.JobType} is GIG, `msg.sender` must be among added candidates
-   * - If {Ethlance.JobType} is BOUNTY, anybody can call this function
+   * - If {EthlanceStructs.JobType} is GIG, `msg.sender` must be among added candidates
+   * - If {EthlanceStructs.JobType} is BOUNTY, anybody can call this function
    * - `_invoicedValue` cannot be empty
    * - `_ipfsData` cannot be empty
    *
@@ -125,7 +144,7 @@ contract Job {
    * TODO: Needs implementation
    */
   function createInvoice(
-    Ethlance.TokenValue[] memory _invoicedValue,
+    EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external {
   }
@@ -186,7 +205,7 @@ contract Job {
    */
   function _addFunds(
     address _funder,
-    Ethlance.TokenValue[] memory _fundedValue
+    EthlanceStructs.TokenValue[] memory _fundedValue
   ) internal {
   }
 
@@ -198,7 +217,7 @@ contract Job {
    * TODO: Needs implementation
    */
   function _addFundsAndPayInvoice(
-    Ethlance.TokenValue[] memory _fundedValue,
+    EthlanceStructs.TokenValue[] memory _fundedValue,
     uint _invoiceId
   ) internal {
   }
@@ -253,7 +272,7 @@ contract Job {
    */
   function resolveDispute(
     uint _invoiceId,
-    Ethlance.TokenValue[] memory _valueForInvoicer,
+    EthlanceStructs.TokenValue[] memory _valueForInvoicer,
     bytes memory _ipfsData
   ) external {
   }
@@ -269,7 +288,7 @@ contract Job {
     uint256 _amount,
     address _token,
     bytes memory _data
-  ) external override {
+  ) external {
   }
 
 
@@ -299,7 +318,7 @@ contract Job {
     uint256 _id,
     uint256 _value,
     bytes calldata _data
-  ) external override returns (bytes4) {
+  ) external returns (bytes4) {
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
 
@@ -315,7 +334,7 @@ contract Job {
     uint256[] calldata _ids,
     uint256[] calldata _values,
     bytes calldata _data
-  ) external override returns (bytes4) {
+  ) external returns (bytes4) {
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
 
@@ -328,6 +347,4 @@ contract Job {
   receive(
   ) external payable {
   }
-
-
 }
