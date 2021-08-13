@@ -14,7 +14,7 @@
 
 
 ETHLANCE_ENV := dev # dev, qa, prod
-ETHEREUM_NETWORK := hostia # ganache, parity
+ETHEREUM_NETWORK := ganache # ganache, parity
 
 
 #

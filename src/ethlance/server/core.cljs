@@ -15,7 +15,6 @@
             [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-            [ethlance.server.contract.ethlance :as ethlance-contract]
             [ethlance.shared.utils :as shared-utils]
             [mount.core :as mount]
             [taoensso.timbre :refer [merge-config!] :as log]))
@@ -34,7 +33,7 @@
     "dev" #'smart-contracts-dev/smart-contracts))
 
 (def default-config
-  {:web3 {:url  "ws://192.168.12.1:7545"} ; "ws://d0x-vm:8549"
+  {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
    :web3-events {:events {
                           ; TODO: replace with events from new Ethlance.sol contract (commented out to allow server to start)
                           ; :ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited]
