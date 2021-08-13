@@ -42,7 +42,7 @@ module.exports = {
     },
 
     ganache: {
-      host: 'd0x-vm',
+      host: 'localhost',
       port: 8549,
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache

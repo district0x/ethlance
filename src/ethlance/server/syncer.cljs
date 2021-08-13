@@ -464,9 +464,13 @@
                          :ethlance-jobs/job-approvers-updated handle-job-approvers-updated
                          :ethlance-jobs/job-data-changed handle-job-data-changed
                          :ethlance-jobs/candidate-accepted handle-candidate-accepted}
-        dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
-        callback-ids (doall (for [[event-key] event-callbacks]
-                              (web3-events/register-callback! event-key dispatcher)))]
+
+        dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) [])
+        _ (identity event-callbacks) ; To silence clj-kondo warning during dev
+        callback-ids []
+        ; callback-ids (doall (for [[event-key] event-callbacks]
+        ;                       (web3-events/register-callback! event-key dispatcher)))
+        ]
     (log/debug "Syncer started")
     {:callback-ids callback-ids
      :dispatcher dispatcher}))

@@ -1,7 +1,5 @@
 (ns ethlance.server.contract.ethlance
-  (:require [ethlance.server.contract :refer [call]]
-            [district.web3-utils :as web3-utils]
-            [district.server.smart-contracts :as smart-contracts]))
+  (:require [district.server.smart-contracts :as smart-contracts]))
 
 (defn initialize [job-proxy-address]
   (smart-contracts/contract-send :ethlance :initialize [job-proxy-address] {:gas 6000000}))
