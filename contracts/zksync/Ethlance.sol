@@ -189,6 +189,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
 
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
     Job(newJobPayableAddress).initialize(this, _creator, _jobType, _offeredValues, _invitedArbiters);
+    isJobMap[newJobPayableAddress] = true;
 
     uint timestamp = block.number;
     emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _jobType, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp);
@@ -199,13 +200,14 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   /**
    * @dev Emits {QuoteForArbitrationSet} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitQuoteForArbitrationSet(
     address _job,
     address _arbiter,
     EthlanceStructs.TokenValue[] memory _quote
   ) external isJob {
+    uint timestamp = block.number;
+    emit QuoteForArbitrationSet(_job, _arbiter, _quote, timestamp);
   }
 
 
