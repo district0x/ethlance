@@ -169,3 +169,95 @@
          (is (= (int job-token-1-balance) sent-amount))
          (is (= (int job-token-2-balance) sent-amount))
          (done))))))
+
+(defn- fund-in-eth
+  "Produces data 2 structures that can be used as input for `ethlance/create-job`
+
+   TIP: use with currying provide the eth-amount, so it can be used with 2 args in the
+   create-initialized-job reduce function"
+  [eth-amount offered-values create-job-opts]
+
+  (let [wei-in-eth (bn/number 10e17)
+        amount-in-wei (str (bn/number (* wei-in-eth eth-amount))) ; FIXME: why web3-utils/eth->wei returns nil
+        offered-token-type (contract-constants/token-type :eth)
+        placeholder-address "0x1111111111111111111111111111111111111111"
+        not-used-for-erc20 0
+        eth-offered-value {:token
+                           {:tokenContract {:tokenType offered-token-type
+                                            :tokenAddress placeholder-address}
+                            :tokenId not-used-for-erc20} :value amount-in-wei}
+        additional-opts {:value amount-in-wei}]
+    [(conj offered-values eth-offered-value) (merge create-job-opts additional-opts)]))
+
+(defn- fund-in-erc20
+  "Mints & approves necessary tokens and produces 2 data structures to be used for ethlance/create-job"
+  [recipient offered-values create-job-opts]
+  )
+
+(defn- create-initialized-job
+  "Creates new Job contract and initializes Ethlance contract with it.
+   Also adds initial-balance-in-wei (currently 0.05 ETH) to the balance."
+  ([] (create-initialized-job []))
+
+  ([funding-functions]
+   (go
+      (let [[_owner employer worker arbiter] (<! (web3-eth/accounts @web3))
+            job-type (contract-constants/job-type :gig)
+            arbiters []
+            ipfs-data "0x0"
+            job-impl-address (get-in addresses/smart-contracts [:job :address])
+            collect-from-funding-funcs (fn [[offered additional] funding-func]
+                                             (let [[new-offered new-additional] (funding-func offered additional)]
+                                               [new-offered new-additional]))
+            [offered-values additional-opts] (reduce collect-from-funding-funcs [[] {}] funding-functions)]
+        (<! (ethlance/initialize job-impl-address))
+
+        (let [tx-receipt (<! (ethlance/create-job employer
+                                                  offered-values
+                                                  job-type
+                                                  arbiters
+                                                  ipfs-data
+                                                  additional-opts))
+              create-job-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated tx-receipt))
+              created-job-address (:job create-job-event)]
+          {:ethlance (smart-contracts/contract-address :ethlance)
+           :job created-job-address
+           :employer employer
+           :worker worker
+           :arbiter arbiter
+           :offered-values offered-values})))))
+
+(deftest job-contract-methods
+  (testing "setQuoteForArbitration"
+    (async done
+           (go
+             (let [job-data (<! (create-initialized-job [(partial fund-in-eth 0.01)]))
+                   job-address (:job job-data)
+                   value-held-before (<? (web3-eth/get-balance @web3 job-address)) ; TODO: Figure out why it has non-zero amount before
+                   quoted-token-address "0x1111111111111111111111111111111111111111" ; placeholder for ETH
+                   payment-in-wei (str 10000000000000000) ; 0.01 ETH
+                   arbiter (:arbiter job-data)
+                   token-type (contract-constants/token-type :eth)
+                   [arbitration-quote _extra] (fund-in-eth 0.01 [] {})
+                   tx-receipt (<! (smart-contracts/contract-send [:job job-address] :set-quote-for-arbitration [arbitration-quote] {:from arbiter}))
+                   quote-set-event (<! (smart-contracts/contract-event-in-tx :ethlance :QuoteForArbitrationSet tx-receipt))
+                   quote-from-event (js->clj (:quote quote-set-event)) ; Structure: [[[[0 0x1111111111111111111111111111111111111111] 0] 10000000000000000]]
+                   value-held-by-job-contract (<? (web3-eth/get-balance @web3 job-address))
+                   received-amount (get-in quote-from-event [0 1])
+                   received-token-address (get-in quote-from-event [0 0 0 1])
+                   received-token-type (get-in quote-from-event [0 0 0 0])
+
+                   ]
+               (is (not (nil? (:job job-data))))
+               (is (= payment-in-wei value-held-by-job-contract))
+               (is (= job-address (:job quote-set-event)))
+               (is (= arbiter (:arbiter quote-set-event)))
+               (is (= payment-in-wei received-amount))
+               (is (= quoted-token-address received-token-address))
+               (is (= (str token-type) received-token-type))
+
+               (let [[arbitration-quote _extra] (fund-in-eth 10 [] {})
+                     tx-receipt (<! (smart-contracts/contract-send [:job job-address] :set-quote-for-arbitration [arbitration-quote] {:from arbiter}))]
+                 (is (nil? tx-receipt) "Expected transaction to fail because of insufficient funds"))
+
+               (done))))))

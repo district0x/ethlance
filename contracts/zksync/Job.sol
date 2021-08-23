@@ -39,6 +39,7 @@ contract Job is IERC721Receiver {
   address public creator;
   EthlanceStructs.JobType public jobType;
   mapping(uint => EthlanceStructs.TokenValue) public offeredValues;
+  mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;
   address[] public invitedArbiters;
 
   function initialize(
@@ -62,11 +63,6 @@ contract Job is IERC721Receiver {
     }
   }
 
-  // TODO: to be removed, here just for testing & debugging
-  function getOfferInfo(uint index) public view returns (address) {
-    return offeredValues[index].token.tokenContract.tokenAddress;
-  }
-
   /**
    * @dev Sets quote for arbitration requested by arbiter for his services
    *
@@ -78,14 +74,17 @@ contract Job is IERC721Receiver {
    * - `_quote` cannot be empty
    *
    * Emits {QuoteForArbitrationSet} event
-   *
-   * TODO: Needs implementation
    */
   function setQuoteForArbitration(
     EthlanceStructs.TokenValue[] memory _quote
   ) external {
+    // Currently allowing & requiring single TokenValue, leaving the interface
+    // backwards-compatible in case me support more in the future.
+    require(_quote.length == 1, "Exactly 1 quote is required");
+    require(address(this).balance >= _quote[0].value, "Job contract must hold >= value of ETH than required for arbitrage");
+    arbiterQuotes[msg.sender] = _quote[0];
+    ethlance.emitQuoteForArbitrationSet(address(this), msg.sender, _quote);
   }
-
 
   /**
    * @dev It is called by job creator when he decides to accept an quote from an arbiter
