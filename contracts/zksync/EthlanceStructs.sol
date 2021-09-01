@@ -36,8 +36,6 @@ library EthlanceStructs {
 
   error UnsupportedTokenType();
 
-  event DescNumb(string desc, uint numb);
-
   function transferToJob(address initialOwner, address ethlance, address jobProxy, TokenValue[] memory _offeredValues) internal {
     for(uint i = 0; i < _offeredValues.length; i++) {
       EthlanceStructs.TokenValue memory offer = _offeredValues[i];
