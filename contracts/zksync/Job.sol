@@ -7,6 +7,7 @@ import "./Ethlance.sol";
 // import "../token/ApproveAndCallFallback.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 
 /**
@@ -17,7 +18,6 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
  */
 
 contract Job is IERC721Receiver {
-
   uint public constant version = 1; // current version of {Job} smart-contract
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
@@ -40,7 +40,9 @@ contract Job is IERC721Receiver {
   EthlanceStructs.JobType public jobType;
   mapping(uint => EthlanceStructs.TokenValue) public offeredValues;
   mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;
-  address[] public invitedArbiters;
+  using EnumerableSet for EnumerableSet.AddressSet;
+  EnumerableSet.AddressSet internal invitedArbiters;
+  EnumerableSet.AddressSet internal invitedCandidates;
 
   function initialize(
     Ethlance _ethlance,
@@ -49,6 +51,7 @@ contract Job is IERC721Receiver {
     EthlanceStructs.TokenValue[] calldata _offeredValues,
     address[] calldata _invitedArbiters
   ) external {
+    require(address(ethlance) == address(0), "Contract already initialized. Can only be done once");
     require(address(_ethlance) != address(0), "Ethlance can't be null");
     require(_creator != address(0), "Creator can't be null");
     require(_offeredValues.length > 0, "You must offer some tokens as pay");
@@ -56,18 +59,14 @@ contract Job is IERC721Receiver {
     ethlance = _ethlance;
     creator = _creator;
     jobType = _jobType;
-    invitedArbiters = _invitedArbiters;
-
-    for(uint i = 0; i < _offeredValues.length; i++) {
-      offeredValues[i] = _offeredValues[i];
-    }
+    for(uint i = 0; i < _invitedArbiters.length; i++) { invitedArbiters.add(_invitedArbiters[i]); }
+    for(uint i = 0; i < _offeredValues.length; i++) { offeredValues[i] = _offeredValues[i]; }
   }
 
   /**
    * @dev Sets quote for arbitration requested by arbiter for his services
    *
    * It stores passed arguments for later usage
-   * It validates if `_offeredValues` have been actually transferred into this contract
    *
    * Requirements:
    * - `msg.sender` must be among invited arbiters
@@ -75,13 +74,15 @@ contract Job is IERC721Receiver {
    *
    * Emits {QuoteForArbitrationSet} event
    */
+   // Arbiter can set any quote that they want
+   // Just check that they're amongst invited ones <<<---- ADD THIS (and test)
   function setQuoteForArbitration(
     EthlanceStructs.TokenValue[] memory _quote
   ) external {
     // Currently allowing & requiring single TokenValue, leaving the interface
     // backwards-compatible in case me support more in the future.
+    require(invitedArbiters.contains(msg.sender));
     require(_quote.length == 1, "Exactly 1 quote is required");
-    require(address(this).balance >= _quote[0].value, "Job contract must hold >= value of ETH than required for arbitrage");
     arbiterQuotes[msg.sender] = _quote[0];
     ethlance.emitQuoteForArbitrationSet(address(this), msg.sender, _quote);
   }
@@ -120,12 +121,14 @@ contract Job is IERC721Receiver {
    * - same `_candidate` cannot be added twice
    *
    * Emits {CandidateAdded} event
-   *
-   * TODO: Needs implementation
    */
   function addCandidate(
-    address _candidate
+    address _candidate,
+    bytes memory _ipfsData
   ) external {
+    // TODO: Needs test
+    invitedCandidates.add(_candidate);
+    ethlance.emitCandidateAdded(address(this), address(_candidate), _ipfsData);
   }
 
 
@@ -140,14 +143,40 @@ contract Job is IERC721Receiver {
    *
    * Emits {InvoiceCreated} event
    * See spec :ethlance/invoice-created for the format of _ipfsData file
-   * TODO: Needs implementation
    */
+  // mapping (address => (mapping (uint => EthlanceStructs.TokenValue[]))) public requestedInvoices;
+  // invoiceId can be incremental id
+  // (candidate => (invoiceId => invoicedValues[]))
+  // FIXME: because I couldn't figure out how to store array of TokenValue-s in the mapping
+  //        single token-value will be saved and separate invoice for each token value be created
+  struct Invoice {
+    EthlanceStructs.TokenValue item;
+    address payable issuer;
+    uint invoiceId;
+    bool paid;
+  }
+  mapping (uint => Invoice) public invoices;
+  mapping (address => uint[]) public candidateInvoiceIds;
+  uint lastInvoiceIndex;
   function createInvoice(
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external {
-  }
+    if (jobType == EthlanceStructs.JobType.GIG) { require(invitedCandidates.contains(msg.sender)); }
+    // Check that job isn't paid
+    // Check that issuer has been set
+    for(uint i = 0; i < _invoicedValue.length; i++) {
+      Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false);
+      invoices[lastInvoiceIndex] = newInvoice;
+      candidateInvoiceIds[msg.sender].push(lastInvoiceIndex);
 
+      // TODO: Is there a better way to emit array of TokenValue-s?
+      EthlanceStructs.TokenValue[] memory single = new EthlanceStructs.TokenValue[](1);
+      single[0] = _invoicedValue[0];
+      ethlance.emitInvoiceCreated(address(this), address(msg.sender), lastInvoiceIndex, single, _ipfsData);
+      lastInvoiceIndex += 1;
+    }
+  }
 
   /**
    * @dev Transfers invoiced value from this contract to the invoicer's address
@@ -159,12 +188,28 @@ contract Job is IERC721Receiver {
    *
    * Emits {InvoicePaid} event
    * See spec :ethlance/invoice-paid for the format of _ipfsData file
-   * TODO: Needs implementation
    */
   function payInvoice(
     uint _invoiceId,
     bytes memory _ipfsData
   ) external {
+    require(msg.sender == creator);
+    Invoice memory invoice = invoices[_invoiceId];
+    require(invoice.paid == false);
+    EthlanceStructs.TokenType tokenType = invoice.item.token.tokenContract.tokenType;
+    if (tokenType == EthlanceStructs.TokenType.ETH) {
+      invoice.issuer.transfer(invoice.item.value);
+    } else if (tokenType == EthlanceStructs.TokenType.ERC20) {
+      IERC20 offeredToken = IERC20(invoice.item.token.tokenContract.tokenAddress);
+      require(offeredToken.balanceOf(address(this)) > 0, "Job must own the token in order to pay it out");
+      offeredToken.transfer(invoice.issuer, invoice.item.value);
+    } else {
+      revert("Unsupported token type");
+    }
+
+    invoice.paid = true;
+    invoices[_invoiceId] = invoice;
+    ethlance.emitInvoicePaid(_invoiceId, _ipfsData);
   }
 
 
@@ -234,7 +279,14 @@ contract Job is IERC721Receiver {
    * TODO: Needs implementation
    */
   function withdrawFunds(
+    EthlanceStructs.TokenValue[] memory _toBeWithdrawn
   ) external {
+    // Check if sender has funded this value or more before
+    // If this contract has that amount balance
+    // At least for now no proportional paying - if there's available amount to be withdrawn
+    //   and the user has contributed it, they can withdraw it.
+    // If contract has 0.8 ETH but caller calls with 1, transaction will fail.
+    // The amount has to match (input data preparetion and validation will happen in the front-end)
   }
 
 

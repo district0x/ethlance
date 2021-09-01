@@ -191,10 +191,13 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     Job(newJobPayableAddress).initialize(this, _creator, _jobType, _offeredValues, _invitedArbiters);
     isJobMap[newJobPayableAddress] = true;
 
-    uint timestamp = block.number;
-    emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _jobType, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp);
+    emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _jobType, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp());
 
     return newJob;
+  }
+
+  function timestamp() internal returns(uint) {
+    return block.number;
   }
 
   /**
@@ -206,8 +209,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address _arbiter,
     EthlanceStructs.TokenValue[] memory _quote
   ) external isJob {
-    uint timestamp = block.number;
-    emit QuoteForArbitrationSet(_job, _arbiter, _quote, timestamp);
+    emit QuoteForArbitrationSet(_job, _arbiter, _quote, timestamp());
   }
 
 
@@ -233,13 +235,13 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address _candidate,
     bytes memory _ipfsData
   ) external isJob {
+    emit CandidateAdded(_job, _candidate, _ipfsData, timestamp());
   }
 
 
   /**
    * @dev Emits {InvoiceCreated} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitInvoiceCreated(
     address _job,
@@ -248,6 +250,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external isJob {
+    emit InvoiceCreated(_job, _invoicer, _invoiceId, _invoicedValue, _ipfsData, timestamp());
   }
 
 
@@ -260,6 +263,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint _invoiceId,
     bytes memory _ipfsData
   ) external isJob {
+    emit Ethlance.InvoicePaid(_invoiceId, _ipfsData, timestamp());
   }
 
 
