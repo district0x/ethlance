@@ -362,7 +362,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint256 _tokenId,
     bytes calldata _data
   ) public override returns (bytes4) {
-    _createJobWithPassedData(_data);
+    if(isCalledForOneStepJobCreation(_data)) { _createJobWithPassedData(_data); }
     return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
   }
 
@@ -372,7 +372,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * - passed `_creator` is `_from`
    * - passed `_offeredValues` are constructed from the transferred token
    * - rest of arguments is obtained by decoding `_data`
-   * TODO: Needs implementation
    */
   function onERC1155Received(
     address _operator,
@@ -381,19 +380,14 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint256 _value,
     bytes calldata _data
   ) external override returns (bytes4) {
-    _createJobWithPassedData(_data);
+    if(isCalledForOneStepJobCreation(_data)) { _createJobWithPassedData(_data); }
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
 
-  function _createJobWithPassedData(bytes calldata _data) internal {
-    address creator;
-    EthlanceStructs.TokenValue[] memory offeredValues;
-    EthlanceStructs.JobType jobType;
-    address[] memory invitedArbiters;
-    bytes memory ipfsData;
-
-    (creator, offeredValues, jobType, invitedArbiters, ipfsData) = abi.decode(_data[4:], (address, EthlanceStructs.TokenValue[], EthlanceStructs.JobType, address[], bytes));
-    createJob(creator, offeredValues, jobType, invitedArbiters, ipfsData);
+  enum OperationType {
+    ONE_STEP_JOB_CREATION, // Create job via ERC721/1155 callback onERC<...>Received (1 transaction)
+    TWO_STEP_JOB_CREATION, // First approve tokens, then create job (2 transactions)
+    ADD_FUNDS
   }
 
   /**
@@ -429,7 +423,63 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   }
 
   function supportsInterface(bytes4 interfaceId) external override view returns (bool) {
-    return false;
+    // return interfaceId == type(IERC20).interfaceId ||
+    //   interfaceId == type(IERC721).interfaceId ||
+    //   interfaceId == type(IERC1155).interfaceId ||
+    //   interfaceId == type(IERC721Receiver).interfaceId ||
+    //   interfaceId == type(IERC1155Receiver).interfaceId;
+    return true;
   }
 
+  function transferCallbackDelegate(
+    OperationType operationType,
+    address _creator,
+    EthlanceStructs.TokenValue[] memory _offeredValues,
+    EthlanceStructs.JobType _jobType,
+    address[] memory _invitedArbiters,
+    bytes memory _ipfsData
+  ) public payable returns(address) {
+    // This method is currently used just for its signature to allow encoding arguments
+    // for the ERC721 and ERC1155 data parameter using Web3 encode-abi
+    // It has the same signature as createJob + operationType
+    //   operationType allows to distinguish the callbacks made to the contract
+    //   E.g. different job creation methods (1tx, 2tx) or adding funds (no new job creation)
+  }
+
+  function _createJobWithPassedData(bytes calldata _data) internal {
+    address creator;
+    EthlanceStructs.TokenValue[] memory offeredValues;
+    EthlanceStructs.JobType jobType;
+    address[] memory invitedArbiters;
+    OperationType operationType;
+    bytes memory ipfsData;
+
+    (operationType, creator, offeredValues, jobType, invitedArbiters, ipfsData) = _decodeJobCreationData(_data);
+    createJob(creator, offeredValues, jobType, invitedArbiters, ipfsData);
+  }
+
+  // TODO: how to optimize so that multiple calls to this method wouldn't
+  //       redo the work multiple times (and thus spend gas) during one
+  //       contract execution
+  function _decodeJobCreationData(bytes calldata _data) internal returns(OperationType, address, EthlanceStructs.TokenValue[] memory, EthlanceStructs.JobType, address[] memory, bytes memory) {
+    return abi.decode(_data[4:], (OperationType, address, EthlanceStructs.TokenValue[], EthlanceStructs.JobType, address[], bytes));
+  }
+
+  function isCalledForOneStepJobCreation(bytes calldata _data) internal returns(bool) {
+    if (_data.length > 0) {
+      address creator;
+      EthlanceStructs.TokenValue[] memory offeredValues;
+      EthlanceStructs.JobType jobType;
+      address[] memory invitedArbiters;
+      OperationType operationType;
+      bytes memory ipfsData;
+
+      (operationType, creator, offeredValues, jobType, invitedArbiters, ipfsData) = _decodeJobCreationData(_data);
+
+      if(operationType == OperationType.ONE_STEP_JOB_CREATION) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
