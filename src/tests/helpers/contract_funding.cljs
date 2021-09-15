@@ -1,0 +1,136 @@
+(ns tests.helpers.contract-funding
+  (:require [bignumber.core :as bn]
+            [cljs-web3-next.eth :as web3-eth]
+            [district.server.web3 :refer [web3]]
+            [ethlance.server.smart-contracts :as sc]
+            [ethlance.server.contract.ethlance :as ethlance]
+            [ethlance.shared.contract-constants :as contract-constants]
+            [ethlance.shared.smart-contracts-dev :as addresses]
+            [district.server.smart-contracts :as smart-contracts]
+            [cljs.core.async :refer [<! go]]
+            [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
+            [district.shared.async-helpers :refer [<?]]))
+
+(defn eth->wei [eth-amount]
+  (let [wei-in-eth (bn/number 10e17)]
+    (bn/number (* wei-in-eth (bn/number eth-amount)))))
+
+(defn wei->eth [wei-amount]
+  (let [wei-in-eth (bn/number 10e17)]
+    (/ (bn/number wei-amount) wei-in-eth)))
+
+(defn fund-in-eth
+  "Produces data 2 structures that can be used as input for `ethlance/create-job`
+
+   TIP: use with currying provide the eth-amount, so it can be used with 2 args in the
+   create-initialized-job reduce function"
+  [eth-amount offered-values create-job-opts]
+
+  (let [amount-in-wei (str (eth->wei eth-amount)) ; FIXME: why web3-utils/eth->wei returns nil
+        offered-token-type (contract-constants/token-type :eth)
+        placeholder-address "0x1111111111111111111111111111111111111111"
+        not-used-for-erc20 0
+        eth-offered-value {:token
+                           {:tokenContract {:tokenType offered-token-type
+                                            :tokenAddress placeholder-address}
+                            :tokenId not-used-for-erc20} :value amount-in-wei}
+        additional-opts {:value amount-in-wei}]
+    [(conj offered-values eth-offered-value) (merge create-job-opts additional-opts)]))
+
+(defn fund-in-erc20
+  "Mints ERC20 TestToken for recipient and approves them for Ethlance.
+   Returns 2 data structures to be used for ethlance/create-job"
+  [recipient funding-amount offered-values create-job-opts]
+  (go
+    (let [ethlance-addr (smart-contracts/contract-address :ethlance)
+          [_owner employer _worker] (<! (web3-eth/accounts @web3))
+          _ (<? (smart-contracts/contract-send :token :mint [recipient funding-amount]))
+          test-token-address (smart-contracts/contract-address :token)
+          not-used-for-erc20 0
+          offered-token-type (contract-constants/token-type :erc20)
+          erc-20-value {:token
+                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
+                         :tokenId not-used-for-erc20} :value funding-amount}
+          approval-result (<! (smart-contracts/contract-send :token :approve [ethlance-addr funding-amount] {:from recipient}))
+          ]
+      [(conj offered-values erc-20-value) create-job-opts])))
+
+(defn fund-in-erc721
+  [recipient offered-values create-job-opts]
+  (go
+    (let [ethlance-addr (smart-contracts/contract-address :ethlance)
+          [_owner employer _worker] (<! (web3-eth/accounts @web3))
+          receipt (<? (smart-contracts/contract-send :test-nft :award-item [recipient]))
+          token-id (. (get-in receipt [:events :Transfer :return-values]) -tokenId)
+          test-token-address (smart-contracts/contract-address :test-nft)
+          offered-token-type (contract-constants/token-type :erc721)
+          approval-result (<? (smart-contracts/contract-send :test-nft :approve [ethlance-addr token-id] {:from recipient}))
+          token-offer {:token
+                       {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
+                        :tokenId token-id} :value 1}]
+      [(conj offered-values token-offer) create-job-opts])))
+
+(defn fund-in-erc1155
+  [recipient amount offered-values create-job-opts]
+  (go
+    (let [ethlance-addr (smart-contracts/contract-address :ethlance)
+          [_owner employer _worker] (<! (web3-eth/accounts @web3))
+          receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [recipient amount]))
+          _ (println "fund-in-erc1155 receipt" receipt)
+          token-id (. (get-in receipt [:events :Transfer-single :return-values]) -id)
+          token-amount (. (get-in receipt [:events :Transfer-single :return-values]) -value)
+          _ (println "token-id | amount" token-id token-amount (type token-amount))
+          test-token-address (smart-contracts/contract-address :test-multi-token)
+          offered-token-type (contract-constants/token-type :erc1155)
+          approval-result (<? (smart-contracts/contract-send :test-multi-token :set-approval-for-all [ethlance-addr true] {:from recipient}))
+          _ (println ">>>>>>>>>> approval-result" approval-result)
+          token-offer {:token
+                       {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
+                        :tokenId token-id} :value (int token-amount)}]
+      [(conj offered-values token-offer) create-job-opts])))
+
+(defn collect-from-funding-funcs
+  "Takes the previous results, which are produced by calling other funding functions and
+   appends passes them to the next funding function.
+   To support the funding functions to be async (e.g. result of a go block when having to send
+   messages to the blockchain network), there is the check (instance? ManyToManyChannel) to unify the result usage"
+  [previous-results funding-func]
+  (go
+    (let [[offered additional] (if (instance? ManyToManyChannel previous-results)
+                                 (<? previous-results) previous-results)
+          funding-result (funding-func offered additional)
+          [new-offered new-additional] (if (instance? ManyToManyChannel funding-result)
+                                         (<? funding-result) funding-result)]
+      [new-offered new-additional])))
+
+(defn create-initialized-job
+  "Creates new Job contract and initializes Ethlance contract with it.
+   Also adds initial-balance-in-wei (currently 0.05 ETH) to the balance."
+  ([] (create-initialized-job []))
+
+  ([funding-functions & {arbiters :arbiters :or {arbiters []}}]
+   (go
+      (let [[_owner employer worker] (<! (web3-eth/accounts @web3))
+            job-type (contract-constants/job-type :gig)
+            ipfs-data "0x0"
+            job-impl-address (get-in addresses/smart-contracts [:job :address])
+            real-vals (reduce collect-from-funding-funcs [[] {}] funding-functions)
+            [offered-values additional-opts] (<! real-vals)]
+        (<! (ethlance/initialize job-impl-address))
+        (println ">>>> creating job with offered values" offered-values)
+        (let [tx-receipt (<! (ethlance/create-job employer
+                                                  offered-values
+                                                  job-type
+                                                  arbiters
+                                                  ipfs-data
+                                                  additional-opts))
+              create-job-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated tx-receipt))
+              _ (println "!!!!!!!! IMPORTANT create-job-event !!!!!!!" create-job-event)
+              created-job-address (:job create-job-event)]
+          (if (= nil create-job-event) (throw (str "Job creation failed for values" offered-values)))
+          {:ethlance (smart-contracts/contract-address :ethlance)
+           :job created-job-address
+           :employer employer
+           :worker worker
+           :offered-values offered-values
+           :tx-receipt tx-receipt})))))

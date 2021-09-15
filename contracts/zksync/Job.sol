@@ -17,7 +17,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  * Every new Job contract is created as a proxy contract.
  */
 
-contract Job is IERC721Receiver {
+contract Job is IERC721Receiver, IERC1155Receiver {
   uint public constant version = 1; // current version of {Job} smart-contract
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
@@ -81,7 +81,7 @@ contract Job is IERC721Receiver {
   ) external {
     // Currently allowing & requiring single TokenValue, leaving the interface
     // backwards-compatible in case me support more in the future.
-    require(invitedArbiters.contains(msg.sender));
+    require(invitedArbiters.contains(msg.sender), "Quotes can only be set by invited arbiters");
     require(_quote.length == 1, "Exactly 1 quote is required");
     arbiterQuotes[msg.sender] = _quote[0];
     ethlance.emitQuoteForArbitrationSet(address(this), msg.sender, _quote);
@@ -104,6 +104,9 @@ contract Job is IERC721Receiver {
    *
    * TODO: Needs implementation
    */
+   // Employer sends Tx to Job contract with the necessary tokens included
+   // This function gets called via the ERC20/721/1155 callbacks
+   // If the amounts are correct, the tokens get immediately forwarded to the Arbiter
   function _acceptQuoteForArbitration(
     address _arbiter,
     EthlanceStructs.TokenValue[] memory _transferredValue
@@ -158,13 +161,15 @@ contract Job is IERC721Receiver {
   mapping (uint => Invoice) public invoices;
   mapping (address => uint[]) public candidateInvoiceIds;
   uint lastInvoiceIndex;
+
   function createInvoice(
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external {
     if (jobType == EthlanceStructs.JobType.GIG) { require(invitedCandidates.contains(msg.sender)); }
-    // Check that job isn't paid
-    // Check that issuer has been set
+    // TODO: Check that job isn't paid
+    // TODO: Check that issuer has been set
+
     for(uint i = 0; i < _invoicedValue.length; i++) {
       Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false);
       invoices[lastInvoiceIndex] = newInvoice;
@@ -203,6 +208,15 @@ contract Job is IERC721Receiver {
       IERC20 offeredToken = IERC20(invoice.item.token.tokenContract.tokenAddress);
       require(offeredToken.balanceOf(address(this)) > 0, "Job must own the token in order to pay it out");
       offeredToken.transfer(invoice.issuer, invoice.item.value);
+    } else if (tokenType == EthlanceStructs.TokenType.ERC721) {
+      IERC721 offeredToken = IERC721(invoice.item.token.tokenContract.tokenAddress);
+      require(offeredToken.ownerOf(invoice.item.token.tokenId) == address(this), "Job must own the token in order to pay it out");
+      offeredToken.safeTransferFrom(address(this), invoice.issuer, invoice.item.token.tokenId);
+    } else if (tokenType == EthlanceStructs.TokenType.ERC1155) {
+      IERC1155 offeredToken = IERC1155(invoice.item.token.tokenContract.tokenAddress);
+      uint payableAmount = invoice.item.value;
+      require(offeredToken.balanceOf(address(this), invoice.item.token.tokenId) >= payableAmount, "Job must enough of the ERC1155 token in order to pay it out");
+      offeredToken.safeTransferFrom(address(this), invoice.issuer, invoice.item.token.tokenId, payableAmount, "");
     } else {
       revert("Unsupported token type");
     }
@@ -229,6 +243,9 @@ contract Job is IERC721Receiver {
     uint _invoiceId,
     bytes memory _ipfsData
   ) external {
+    // TODO: do I need additional boolean to determine whether it's cancelled? Probably yes
+    //       we don't want to delete from invoices (useful to show in the UI)
+    // We mark invoice as cancelled (use this info to determine whether an invoice can be paid)
   }
 
 
@@ -251,6 +268,7 @@ contract Job is IERC721Receiver {
     address _funder,
     EthlanceStructs.TokenValue[] memory _fundedValue
   ) internal {
+    // check that the _fundedValue is within _offeredValue (used during initialization)
   }
 
 
@@ -369,7 +387,7 @@ contract Job is IERC721Receiver {
     uint256 _id,
     uint256 _value,
     bytes calldata _data
-  ) external returns (bytes4) {
+  ) public override returns (bytes4) {
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
 
@@ -385,7 +403,7 @@ contract Job is IERC721Receiver {
     uint256[] calldata _ids,
     uint256[] calldata _values,
     bytes calldata _data
-  ) external returns (bytes4) {
+  ) public override returns (bytes4) {
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
 
@@ -397,5 +415,13 @@ contract Job is IERC721Receiver {
    */
   receive(
   ) external payable {
+  }
+
+  function supportsInterface(bytes4 interfaceId) external override view returns (bool) {
+    return interfaceId == type(IERC20).interfaceId ||
+      interfaceId == type(IERC721).interfaceId ||
+      interfaceId == type(IERC1155).interfaceId ||
+      interfaceId == type(IERC721Receiver).interfaceId ||
+      interfaceId == type(IERC1155Receiver).interfaceId;
   }
 }
