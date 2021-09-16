@@ -76,14 +76,11 @@
     (let [ethlance-addr (smart-contracts/contract-address :ethlance)
           [_owner employer _worker] (<! (web3-eth/accounts @web3))
           receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [recipient amount]))
-          _ (println "fund-in-erc1155 receipt" receipt)
           token-id (. (get-in receipt [:events :Transfer-single :return-values]) -id)
           token-amount (. (get-in receipt [:events :Transfer-single :return-values]) -value)
-          _ (println "token-id | amount" token-id token-amount (type token-amount))
           test-token-address (smart-contracts/contract-address :test-multi-token)
           offered-token-type (contract-constants/token-type :erc1155)
           approval-result (<? (smart-contracts/contract-send :test-multi-token :set-approval-for-all [ethlance-addr true] {:from recipient}))
-          _ (println ">>>>>>>>>> approval-result" approval-result)
           token-offer {:token
                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                         :tokenId token-id} :value (int token-amount)}]
@@ -108,16 +105,17 @@
    Also adds initial-balance-in-wei (currently 0.05 ETH) to the balance."
   ([] (create-initialized-job []))
 
-  ([funding-functions & {arbiters :arbiters :or {arbiters []}}]
+  ([funding-functions & {job-type :job-type
+                         arbiters :arbiters
+                         :or {arbiters []
+                              job-type (contract-constants/job-type :gig)}}]
    (go
       (let [[_owner employer worker] (<! (web3-eth/accounts @web3))
-            job-type (contract-constants/job-type :gig)
             ipfs-data "0x0"
             job-impl-address (get-in addresses/smart-contracts [:job :address])
             real-vals (reduce collect-from-funding-funcs [[] {}] funding-functions)
             [offered-values additional-opts] (<! real-vals)]
         (<! (ethlance/initialize job-impl-address))
-        (println ">>>> creating job with offered values" offered-values)
         (let [tx-receipt (<! (ethlance/create-job employer
                                                   offered-values
                                                   job-type
@@ -125,7 +123,6 @@
                                                   ipfs-data
                                                   additional-opts))
               create-job-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated tx-receipt))
-              _ (println "!!!!!!!! IMPORTANT create-job-event !!!!!!!" create-job-event)
               created-job-address (:job create-job-event)]
           (if (= nil create-job-event) (throw (str "Job creation failed for values" offered-values)))
           {:ethlance (smart-contracts/contract-address :ethlance)

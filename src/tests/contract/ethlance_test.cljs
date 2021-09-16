@@ -296,10 +296,8 @@
 
                  ; Pay ERC1155 (MultiToken) invoice
                  (let [token-offer (offer-from-job-data job-data :erc1155)
-                       _ (println ">>>>>>>> multi-token offer" token-offer)
                        token-id (get-in token-offer [:token :tokenId])
                        offered-token-amount (get-in token-offer [:value])
-                       _ (println "offer made id / amount" token-id offered-token-amount)
                        tx-receipt (<! (smart-contracts/contract-send [:job job-address] :create-invoice [[token-offer] "0x0"] {:from worker}))
                        invoice-event (<! (smart-contracts/contract-event-in-tx :ethlance :InvoiceCreated tx-receipt))
                        invoice-id (int (:invoice-id invoice-event))
@@ -307,3 +305,35 @@
                        final-worker-balance (<? (smart-contracts/contract-call :test-multi-token :balance-of [worker token-id]))]
                    (is (= (int final-worker-balance) offered-token-amount) "In the end the offered NFT1155 must end up at worker's account"))
                (done))))))
+
+(deftest adding-candidate
+  (testing "Job#addCandidate"
+    (async done
+           (go
+             (let [[_owner employer worker candidate-a candidate-b] (<! (web3-eth/accounts @web3))
+                   job-data (<! (create-initialized-job [(partial fund-in-eth 0.01)]))
+                   job-address (:job job-data)
+                   empty-ipfs-data "0x0"]
+
+               ; Basic scenario - add candidate to a created GIG job by employer
+               (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-a empty-ipfs-data] {:from employer}))
+                     candidate-added-event (<! (smart-contracts/contract-event-in-tx :ethlance :CandidateAdded tx-receipt))]
+                 (is (= (:candidate candidate-added-event) candidate-a)))
+
+               ; Add duplicate candidate (should fail)
+               (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-a empty-ipfs-data] {:from employer}))]
+                 (is (= tx-receipt nil)))
+
+               ; Try adding candidate for other job type - bounty (should fail)
+              (let [[_owner employer _worker candidate-a candidate-b] (<! (web3-eth/accounts @web3))
+                    job-data (<! (create-initialized-job [(partial fund-in-eth 0.01)]
+                                                         :job-type (contract-constants/job-type :bounty)))
+                    job-address (:job job-data)
+                    empty-ipfs-data "0x0"
+                    tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-b empty-ipfs-data] {:from employer}))]
+                (is (= nil tx-receipt) "Transaction fails (receipt nil) when adding candidate to non-GIG (e.g. BOUNTY) job"))
+
+              ; Try adding candidate by user other than job creator (should fail)
+              (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker empty-ipfs-data] {:from worker}))]
+                (is (= nil tx-receipt))))
+             (done)))))
