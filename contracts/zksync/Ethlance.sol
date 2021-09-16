@@ -76,7 +76,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   );
 
 
-  event InvoiceCanceled(
+  event InvoiceCancelled(
     uint invoiceId,
     bytes ipfsData,
     uint timestamp
@@ -276,6 +276,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint _invoiceId,
     bytes memory _ipfsData
   ) external isJob {
+    emit Ethlance.InvoiceCancelled(_invoiceId, _ipfsData, timestamp());
   }
 
 

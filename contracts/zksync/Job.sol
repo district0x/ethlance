@@ -44,6 +44,17 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   EnumerableSet.AddressSet internal invitedArbiters;
   EnumerableSet.AddressSet internal invitedCandidates;
 
+  struct Invoice {
+    EthlanceStructs.TokenValue item;
+    address payable issuer;
+    uint invoiceId;
+    bool paid;
+    bool cancelled;
+  }
+  mapping (uint => Invoice) public invoices;
+  mapping (address => uint[]) public candidateInvoiceIds;
+  uint lastInvoiceIndex;
+
   function initialize(
     Ethlance _ethlance,
     address _creator,
@@ -154,16 +165,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   // (candidate => (invoiceId => invoicedValues[]))
   // FIXME: because I couldn't figure out how to store array of TokenValue-s in the mapping
   //        single token-value will be saved and separate invoice for each token value be created
-  struct Invoice {
-    EthlanceStructs.TokenValue item;
-    address payable issuer;
-    uint invoiceId;
-    bool paid;
-  }
-  mapping (uint => Invoice) public invoices;
-  mapping (address => uint[]) public candidateInvoiceIds;
-  uint lastInvoiceIndex;
-
   function createInvoice(
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
@@ -173,7 +174,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     // TODO: Check that issuer has been set
 
     for(uint i = 0; i < _invoicedValue.length; i++) {
-      Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false);
+      Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false, false);
       invoices[lastInvoiceIndex] = newInvoice;
       candidateInvoiceIds[msg.sender].push(lastInvoiceIndex);
 
@@ -183,6 +184,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       ethlance.emitInvoiceCreated(address(this), address(msg.sender), lastInvoiceIndex, single, _ipfsData);
       lastInvoiceIndex += 1;
     }
+  }
+
+  function getInvoice(uint _invoiceId) external view returns(Invoice memory) {
+    return invoices[_invoiceId];
   }
 
   /**
@@ -204,6 +209,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     Invoice memory invoice = invoices[_invoiceId];
     require(invoice.paid == false);
     EthlanceStructs.TokenType tokenType = invoice.item.token.tokenContract.tokenType;
+
     if (tokenType == EthlanceStructs.TokenType.ETH) {
       invoice.issuer.transfer(invoice.item.value);
     } else if (tokenType == EthlanceStructs.TokenType.ERC20) {
@@ -239,15 +245,17 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Emits {InvoiceCanceled} event
    * See spec :ethlance/invoice-canceled for the format of _ipfsData file
-   * TODO: Needs implementation
    */
   function cancelInvoice(
     uint _invoiceId,
     bytes memory _ipfsData
   ) external {
-    // TODO: do I need additional boolean to determine whether it's cancelled? Probably yes
-    //       we don't want to delete from invoices (useful to show in the UI)
-    // We mark invoice as cancelled (use this info to determine whether an invoice can be paid)
+    Invoice storage invoice = invoices[_invoiceId];
+    require(invoice.issuer == msg.sender, "Invoice can only be cancelled by its issuer");
+    require(invoice.cancelled != true, "The invoice was already cancelled");
+    require(invoice.paid != true, "The invoice was already paid and so can't be cancelled");
+    invoice.cancelled = true;
+    ethlance.emitInvoiceCanceled(_invoiceId, _ipfsData);
   }
 
 
