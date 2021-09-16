@@ -129,7 +129,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     address _candidate,
     bytes memory _ipfsData
   ) external {
-    // TODO: Needs test
+    require(msg.sender == creator, "Only job creator can add candidates");
+    require(invitedCandidates.contains(_candidate) == false, "Candidate already added. Can't add duplicates");
+    require(jobType == EthlanceStructs.JobType.GIG, "Can only add candidates to GIG job type");
     invitedCandidates.add(_candidate);
     ethlance.emitCandidateAdded(address(this), address(_candidate), _ipfsData);
   }
