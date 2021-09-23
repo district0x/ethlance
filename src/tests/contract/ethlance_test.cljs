@@ -85,13 +85,13 @@
                  (is-same-amount job-proxy-eth-balance payment-in-wei "all offered ETH must end up in the created job proxy contract")
                  (done)))))))
 
-#_ (deftest ethlance-erc721-payment
+(deftest ethlance-erc721-payment
   (testing "Paying in NFT (ERC721)"
     (async done
      (go
        (let [ethlance-addr (smart-contracts/contract-address :ethlance)
             [_owner employer _worker] (<! (web3-eth/accounts @web3))
-             receipt (<? (smart-contracts/contract-send :test-nft :award-item [employer])) ; Give him 1st token
+             receipt (<! (smart-contracts/contract-send :test-nft :award-item [employer])) ; Give him 1st token
              token-id (. (get-in receipt [:events :Transfer :return-values]) -tokenId)
              job-type 1
              arbiters []
@@ -104,7 +104,7 @@
                             {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                              :tokenId token-id} :value 1}
              operation-type (contract-constants/operation-type :one-step-job-creation)
-             ; Write clojure.spec for the call-data structure
+             ; TODO: Write clojure.spec for the call-data structure
              call-data (web3-eth/encode-abi (smart-contracts/instance :ethlance)
                                                  :transfer-callback-delegate
                                                  [operation-type employer [offered-value] job-type arbiters ipfs-data])
@@ -374,3 +374,71 @@
                  (is (= invoice-paid? true))
                  (is (= invoice-cancelled? false))))
              (done)))))
+
+(deftest accepting-arbiter-quote
+  (testing "Accept arbiter quote workflow"
+    (async done
+           ; Test steps
+           ; 1. Create a job (create-initialized-job) with invited arbiter
+           ; 2. Arbiter sets a quote (Job#setQuoteForArbitration)
+           ; 3. Employer accepts quote (by sending Tx with the funds included)
+           ; 4. Assert that arbiter now has the funds
+           ; 5. Try accepting another arbiter (should fail)
+           (go
+             ; ERC20
+             (let [[_owner employer _worker arbiter] (<! (web3-eth/accounts @web3))
+                   ; 1. Create a job (create-initialized-job) with invited arbiter
+                   arbiter-funds-before (<? (smart-contracts/contract-call :token :balance-of [arbiter]))
+                   arbiter-quote-amount 2
+                   job-data (<! (create-initialized-job [(partial fund-in-erc20 employer arbiter-quote-amount)]
+                                                        :arbiters [arbiter]))
+                   job-address (:job job-data)
+                   token-offer [(offer-from-job-data job-data :erc20)]
+
+                   ; 2. Arbiter sets a quote (Job#setQuoteForArbitration)
+                   set-quote-tx (<! (smart-contracts/contract-send [:job job-address] :set-quote-for-arbitration [token-offer] {:from arbiter}))
+
+                   ; 3. Employer accepts quote (by sending Tx with the funds included)
+                   ;      - in case of tokens not supporting callbacks(ERC20), 2 tx are needed:
+                   ;        1st approves the amount in token contract
+                   ;        2nd calls Job#setQuoteForArbitration
+                   approve-for-job-tx (<! (smart-contracts/contract-send :token :approve [job-address arbiter-quote-amount] {:from employer}))
+                   accept-quote-tx (<! (smart-contracts/contract-send [:job job-address] :accept-quote-for-arbitration [arbiter token-offer] {:from employer}))
+
+                   ; 4. Assert that arbiter now has the funds
+                   arbiter-funds-after (<? (smart-contracts/contract-call :token :balance-of [arbiter]))]
+               (is (= arbiter-quote-amount (- arbiter-funds-after arbiter-funds-before))))
+
+             ; ERC721
+             (let [[_owner employer _worker arbiter] (<! (web3-eth/accounts @web3))
+                   ; 1. Create a job (create-initialized-job) with invited arbiter
+                   arbiter-funds-before (<? (smart-contracts/contract-call :test-nft :balance-of [arbiter]))
+                   job-data (<! (create-initialized-job [(partial fund-in-erc20 employer 1)] :arbiters [arbiter]))
+                   token-offer [(offer-from-job-data job-data :erc20)]
+                   job-address (:job job-data)
+                   [[erc721-offer] _] (<! (fund-in-erc721 employer [] {} :approval false))
+                   token-id (get-in  erc721-offer [:token :tokenId])
+
+                   ; 2. Arbiter sets a quote (Job#setQuoteForArbitration)
+                   set-quote-tx (<! (smart-contracts/contract-send [:job job-address] :set-quote-for-arbitration [token-offer] {:from arbiter}))
+
+                   ; 3. Employer accepts quote (by sending Tx with the funds included)
+                   ;    As ERC721 (and 1155) support callbacks, this can be done with a single tx
+                   ;    (we prepare transaction with data, employer signs & sends it, ERC721 contract
+                   ;    calls Job#onERC721Received, in which we'll make necessary state changes)
+                   target-method (contract-constants/job-target-method :accept-quote-for-arbitration)
+                   not-used-invoice-id 0 ; just a placeholder, not used for accepting quote call
+                   call-data (web3-eth/encode-abi (smart-contracts/instance :job)
+                                                       :example-function-signature-for-token-callback-data-encoding
+                                                       [target-method arbiter, [erc721-offer], not-used-invoice-id])
+
+                   send-tokens-tx (<! (smart-contracts/contract-send :test-nft
+                                                                         :safe-transfer-from
+                                                                         [employer arbiter token-id call-data]
+                                                                         {:from employer}))
+                   accept-quote-tx (<! (smart-contracts/contract-send [:job job-address] :accept-quote-for-arbitration [arbiter token-offer] {:from employer}))
+
+                   ; 4. Assert that arbiter now owns the token
+                   token-owner-after (<? (smart-contracts/contract-call :test-nft :owner-of [token-id]))]
+               (is (= arbiter token-owner-after)))
+               (done)))))

@@ -43,6 +43,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   using EnumerableSet for EnumerableSet.AddressSet;
   EnumerableSet.AddressSet internal invitedArbiters;
   EnumerableSet.AddressSet internal invitedCandidates;
+  address acceptedArbiter;
 
   struct Invoice {
     EthlanceStructs.TokenValue item;
@@ -85,14 +86,12 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Emits {QuoteForArbitrationSet} event
    */
-   // Arbiter can set any quote that they want
-   // Just check that they're amongst invited ones <<<---- ADD THIS (and test)
   function setQuoteForArbitration(
     EthlanceStructs.TokenValue[] memory _quote
   ) external {
     // Currently allowing & requiring single TokenValue, leaving the interface
     // backwards-compatible in case me support more in the future.
-    require(invitedArbiters.contains(msg.sender), "Quotes can only be set by invited arbiters");
+    require(isAmongstInvitedArbiters(msg.sender), "Quotes can only be set by invited arbiters");
     require(_quote.length == 1, "Exactly 1 quote is required");
     arbiterQuotes[msg.sender] = _quote[0];
     ethlance.emitQuoteForArbitrationSet(address(this), msg.sender, _quote);
@@ -112,16 +111,24 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * - Only 1 arbiter can be accepted. Further accepts should revert.
    *
    * Emits {QuoteForArbitrationAccepted} event
-   *
-   * TODO: Needs implementation
    */
    // Employer sends Tx to Job contract with the necessary tokens included
+   //  - or sends Tx to his ERC721/1155 contract, which then calls Job via onERC721Received/onERC1155Received
    // This function gets called via the ERC20/721/1155 callbacks
    // If the amounts are correct, the tokens get immediately forwarded to the Arbiter
-  function _acceptQuoteForArbitration(
+  function acceptQuoteForArbitration(
     address _arbiter,
     EthlanceStructs.TokenValue[] memory _transferredValue
-  ) internal {
+  ) public {
+    require(acceptedArbiter == address(0) || acceptedArbiter == _arbiter, "Another arbiter had been accepted before. Only 1 can be accepted.");
+    require(isAmongstInvitedArbiters(_arbiter));
+    require(isCallerJobCreator(msg.sender));
+    require(_transferredValue.length == 1, "Currently only 1 _transferredValue is supported at a time");
+    require(tokenValuesEqual(_transferredValue[0], arbiterQuotes[_arbiter]), "Accepted TokenValue must match exactly the value quoted by arbiter");
+
+    acceptedArbiter = _arbiter;
+    EthlanceStructs.transferTokenValue(_transferredValue[0], address(this), _arbiter);
+    ethlance.emitQuoteForArbitrationAccepted(address(this), _arbiter);
   }
 
 
@@ -370,18 +377,31 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   ) external {
   }
 
+  enum TargetMethod { ACCEPT_QUOTE_FOR_ARBITRATION, ADD_FUNDS, ADD_FUNDS_AND_PAY_INVOICE }
+
+  // This function is not meant to have implementation, rather only to serve for ABI encoder
+  // to use for encoding call data for token (ERC721/1155) callbacks
+  function exampleFunctionSignatureForTokenCallbackDataEncoding(TargetMethod targetMethod,
+                                                                address target,
+                                                                EthlanceStructs.TokenValue[] memory tokenValues,
+                                                                uint invoiceId) public payable {}
+
+
+  function _decodeTokenCallbackData(bytes calldata _data) internal returns(TargetMethod, address, EthlanceStructs.TokenValue[] memory, uint) {
+    return abi.decode(_data[4:], (TargetMethod, address, EthlanceStructs.TokenValue[], uint));
+  }
 
   /**
    * @dev This function is called automatically when this contract receives ERC721 token
    * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `_data`
-   * TODO: Needs implementation
    */
   function onERC721Received(
     address _operator,
     address _from,
     uint256 _tokenId,
-    bytes memory _data
+    bytes calldata _data
   ) public override returns (bytes4) {
+    if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
   }
 
@@ -389,7 +409,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   /**
    * @dev This function is called automatically when this contract receives ERC1155 token
    * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `_data`
-   * TODO: Needs implementation
    */
   function onERC1155Received(
     address _operator,
@@ -398,9 +417,23 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256 _value,
     bytes calldata _data
   ) public override returns (bytes4) {
+    if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
 
+  function _delegateBasedOnData(bytes calldata _data) internal {
+    TargetMethod targetMethod;
+    address target;
+    EthlanceStructs.TokenValue[] memory tokenValues;
+    uint invoiceId;
+
+    (targetMethod, target, tokenValues, invoiceId) = _decodeTokenCallbackData(_data);
+    if(targetMethod == TargetMethod.ACCEPT_QUOTE_FOR_ARBITRATION) {
+      acceptQuoteForArbitration(target, tokenValues);
+    } else {
+      revert("Unknown TargetMethod on ERC721 receival callback");
+    }
+  }
 
   /**
    * @dev This function is called automatically when this contract receives multiple ERC1155 tokens
@@ -433,5 +466,17 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       interfaceId == type(IERC1155).interfaceId ||
       interfaceId == type(IERC721Receiver).interfaceId ||
       interfaceId == type(IERC1155Receiver).interfaceId;
+  }
+
+  function isAmongstInvitedArbiters(address account) internal returns (bool) {
+    return invitedArbiters.contains(account);
+  }
+
+  function isCallerJobCreator(address account) internal returns (bool) {
+    return account == creator;
+  }
+
+  function tokenValuesEqual(EthlanceStructs.TokenValue memory first, EthlanceStructs.TokenValue memory second) internal returns (bool) {
+    return true;
   }
 }

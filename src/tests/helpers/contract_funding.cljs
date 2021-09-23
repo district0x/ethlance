@@ -56,7 +56,7 @@
       [(conj offered-values erc-20-value) create-job-opts])))
 
 (defn fund-in-erc721
-  [recipient offered-values create-job-opts]
+  [recipient offered-values create-job-opts & {approval :approval :or {approval true}}]
   (go
     (let [ethlance-addr (smart-contracts/contract-address :ethlance)
           [_owner employer _worker] (<! (web3-eth/accounts @web3))
@@ -64,10 +64,10 @@
           token-id (. (get-in receipt [:events :Transfer :return-values]) -tokenId)
           test-token-address (smart-contracts/contract-address :test-nft)
           offered-token-type (contract-constants/token-type :erc721)
-          approval-result (<? (smart-contracts/contract-send :test-nft :approve [ethlance-addr token-id] {:from recipient}))
           token-offer {:token
                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                         :tokenId token-id} :value 1}]
+      (if approval (<? (smart-contracts/contract-send :test-nft :approve [ethlance-addr token-id] {:from recipient})))
       [(conj offered-values token-offer) create-job-opts])))
 
 (defn fund-in-erc1155
