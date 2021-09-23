@@ -215,26 +215,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(msg.sender == creator);
     Invoice memory invoice = invoices[_invoiceId];
     require(invoice.paid == false);
-    EthlanceStructs.TokenType tokenType = invoice.item.token.tokenContract.tokenType;
 
-    if (tokenType == EthlanceStructs.TokenType.ETH) {
-      invoice.issuer.transfer(invoice.item.value);
-    } else if (tokenType == EthlanceStructs.TokenType.ERC20) {
-      IERC20 offeredToken = IERC20(invoice.item.token.tokenContract.tokenAddress);
-      require(offeredToken.balanceOf(address(this)) > 0, "Job must own the token in order to pay it out");
-      offeredToken.transfer(invoice.issuer, invoice.item.value);
-    } else if (tokenType == EthlanceStructs.TokenType.ERC721) {
-      IERC721 offeredToken = IERC721(invoice.item.token.tokenContract.tokenAddress);
-      require(offeredToken.ownerOf(invoice.item.token.tokenId) == address(this), "Job must own the token in order to pay it out");
-      offeredToken.safeTransferFrom(address(this), invoice.issuer, invoice.item.token.tokenId);
-    } else if (tokenType == EthlanceStructs.TokenType.ERC1155) {
-      IERC1155 offeredToken = IERC1155(invoice.item.token.tokenContract.tokenAddress);
-      uint payableAmount = invoice.item.value;
-      require(offeredToken.balanceOf(address(this), invoice.item.token.tokenId) >= payableAmount, "Job must enough of the ERC1155 token in order to pay it out");
-      offeredToken.safeTransferFrom(address(this), invoice.issuer, invoice.item.token.tokenId, payableAmount, "");
-    } else {
-      revert("Unsupported token type");
-    }
+    EthlanceStructs.transferTokenValue(invoice.item, address(this), invoice.issuer);
 
     invoice.paid = true;
     invoices[_invoiceId] = invoice;
