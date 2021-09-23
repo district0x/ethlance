@@ -37,7 +37,7 @@ async function deploy_DSGuard(deployer, opts) {
 
   // Set DSGuard Authority
   console.log("- Configuring DSGuard Authority...");
-  await dsGuard.setAuthority(dsGuard.address, Object.assign(opts, {gas: 0.5e6}));
+  await dsGuard.setAuthority(dsGuard.address, {...opts, gas: 0.5e6});
 
   // Attach to our smart contract listings
   assignContract(dsGuard, "DSGuard", "ds-guard");
@@ -45,7 +45,7 @@ async function deploy_DSGuard(deployer, opts) {
 
 async function deploy_TestNft(deployer, opts) {
   console.log("Deploying TestNft...");
-  await deployer.deploy(TestNft, opts.from, Object.assign(opts, {gas: 3.0e6}));
+  await deployer.deploy(TestNft, opts.from, {...opts, gas: 3.0e6});
   let token = await TestNft.deployed();
 
   // Assign
@@ -54,7 +54,7 @@ async function deploy_TestNft(deployer, opts) {
 
 async function deploy_TestMultiToken(deployer, opts) {
   console.log("Deploying TestMultiToken...");
-  await deployer.deploy(TestMultiToken, opts.from, Object.assign(opts, {gas: 3.0e6}));
+  await deployer.deploy(TestMultiToken, opts.from, {...opts, gas: 3.0e6});
   let token = await TestMultiToken.deployed();
 
   // Assign
@@ -63,7 +63,7 @@ async function deploy_TestMultiToken(deployer, opts) {
 
 async function deploy_TestToken(deployer, opts) {
   console.log("Deploying TestToken...");
-  await deployer.deploy(TestToken, opts.from, Object.assign(opts, {gas: 3.0e6}));
+  await deployer.deploy(TestToken, opts.from, {...opts, gas: 3.0e6});
   let token = await TestToken.deployed();
 
   // Assign
@@ -71,25 +71,22 @@ async function deploy_TestToken(deployer, opts) {
 }
 
 async function deploy_EthlanceStructs(deployer, opts){
-  let ethlanceStructs = await deployer.deploy(EthlanceStructs, Object.assign(opts, {gas: 6e6}));
+  let ethlanceStructs = await deployer.deploy(EthlanceStructs, {...opts, gas: 6e6});
   assignContract(ethlanceStructs, "EthlanceStructs", "ethlance-structs");
 }
 
 async function deploy_Ethlance(deployer, opts){
-  let ethlance = await deployer.deploy(Ethlance, Object.assign(opts, {gas: 6e6}));
+  let ethlance = await deployer.deploy(Ethlance, {...opts, gas: 6e6});
   deployer.link(EthlanceStructs, Ethlance);
   assignContract(ethlance, "Ethlance", "ethlance");
 }
 
 async function deploy_Job(deployer, opts){
-  let job = await deployer.deploy(Job, Object.assign(opts, {gas: 6e6}));
+  let job = await deployer.deploy(Job, {...opts, gas: 7e6});
   deployer.link(EthlanceStructs, Job);
   assignContract(job, "Job", "job");
 }
 
-/*
-  Deploy All Ethlance Contracts
- */
 async function deploy_all(deployer, opts) {
   await deploy_DSGuard(deployer, opts);
   await deploy_TestToken(deployer, opts);
