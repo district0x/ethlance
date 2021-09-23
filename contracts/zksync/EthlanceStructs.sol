@@ -39,7 +39,7 @@ library EthlanceStructs {
     TokenType tokenType = tokenValue.token.tokenContract.tokenType;
 
     if (tokenType == TokenType.ETH) {
-      transferETH(tokenValue, to);
+      transferETH(tokenValue, payable(to));
     } else if (tokenType == TokenType.ERC20) {
       transferERC20(tokenValue, from, to);
     } else if (tokenType == TokenType.ERC721) {
@@ -51,10 +51,10 @@ library EthlanceStructs {
     }
   }
 
-  function transferETH(TokenValue memory tokenValue, address to) internal {
-    address payable toPayable = payable(address(uint160(to)));
-    require(msg.value >= tokenValue.value, "Transaction must contain >= of ETH vs that defined in the offer");
-    toPayable.transfer(tokenValue.value); // If more was included in msg.value, the reminder stays in the calling contract
+  function transferETH(TokenValue memory tokenValue, address payable to) internal {
+    // Is the following restriction necessary? Wouldn't the tx fail anyway if there wasn't enough ETH in the contract
+    // require(msg.value >= tokenValue.value, "Transaction must contain >= of ETH vs that defined in the offer");
+    to.transfer(tokenValue.value); // If more was included in msg.value, the reminder stays in the calling contract
   }
 
   function transferERC20(TokenValue memory tokenValue, address from, address to) internal {
@@ -91,7 +91,7 @@ library EthlanceStructs {
       TokenType tokenType = offer.token.tokenContract.tokenType;
 
       if (tokenType == TokenType.ETH) {
-        transferETH(offer, jobProxy);
+        transferETH(offer, payable(jobProxy));
       } else if (tokenType == TokenType.ERC20) {
         transferERC20(offer, initialOwner, ethlance);
         transferERC20(offer, ethlance, jobProxy);
