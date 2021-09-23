@@ -216,12 +216,12 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   /**
    * @dev Emits {QuoteForArbitrationAccepted} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitQuoteForArbitrationAccepted(
     address _job,
     address _arbiter
   ) external isJob {
+    emit QuoteForArbitrationAccepted(_job, _arbiter, timestamp());
   }
 
 
@@ -406,6 +406,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint256[] calldata _values,
     bytes calldata _data
   ) external override returns (bytes4) {
+    // TODO: iterate over _ids & _values
     _createJobWithPassedData(_data);
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
