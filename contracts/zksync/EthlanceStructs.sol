@@ -34,8 +34,15 @@ library EthlanceStructs {
     uint value;
   }
 
+  function tokenValuesEqual(EthlanceStructs.TokenValue memory first, EthlanceStructs.TokenValue memory second) public returns (bool) {
+    bytes32 firstHash = keccak256(abi.encodePacked(first.value, first.token.tokenId, first.token.tokenContract.tokenAddress));
+    bytes32 secondHash = keccak256(abi.encodePacked(second.value, second.token.tokenId, second.token.tokenContract.tokenAddress));
+
+    return firstHash == secondHash;
+  }
+
   error UnsupportedTokenType(TokenType);
-  function transferTokenValue(TokenValue memory tokenValue, address from, address to) internal {
+  function transferTokenValue(TokenValue memory tokenValue, address from, address to) public {
     TokenType tokenType = tokenValue.token.tokenContract.tokenType;
 
     if (tokenType == TokenType.ETH) {
@@ -51,13 +58,13 @@ library EthlanceStructs {
     }
   }
 
-  function transferETH(TokenValue memory tokenValue, address payable to) internal {
+  function transferETH(TokenValue memory tokenValue, address payable to) public {
     // Is the following restriction necessary? Wouldn't the tx fail anyway if there wasn't enough ETH in the contract
     // require(msg.value >= tokenValue.value, "Transaction must contain >= of ETH vs that defined in the offer");
     to.transfer(tokenValue.value); // If more was included in msg.value, the reminder stays in the calling contract
   }
 
-  function transferERC20(TokenValue memory tokenValue, address from, address to) internal {
+  function transferERC20(TokenValue memory tokenValue, address from, address to) public {
     uint offeredAmount = tokenValue.value;
     IERC20 offeredToken = IERC20(tokenValue.token.tokenContract.tokenAddress);
 
@@ -72,20 +79,20 @@ library EthlanceStructs {
     }
   }
 
-  function transferERC721(TokenValue memory tokenValue, address from, address to) internal {
+  function transferERC721(TokenValue memory tokenValue, address from, address to) public {
     uint tokenId = tokenValue.token.tokenId;
     IERC721 offeredToken = IERC721(tokenValue.token.tokenContract.tokenAddress);
     offeredToken.safeTransferFrom(from, to, tokenId);
   }
 
-  function transferERC1155(TokenValue memory tokenValue, address from, address to) internal {
+  function transferERC1155(TokenValue memory tokenValue, address from, address to) public {
     uint tokenId = tokenValue.token.tokenId;
     uint tokenAmount = tokenValue.value;
     IERC1155 offeredToken = IERC1155(tokenValue.token.tokenContract.tokenAddress);
     offeredToken.safeTransferFrom(from, to, tokenId, tokenAmount, "");
   }
 
-  function transferToJob(address initialOwner, address ethlance, address jobProxy, TokenValue[] memory _offeredValues) internal {
+  function transferToJob(address initialOwner, address ethlance, address jobProxy, TokenValue[] memory _offeredValues) public {
     for(uint i = 0; i < _offeredValues.length; i++) {
       EthlanceStructs.TokenValue memory offer = _offeredValues[i];
       TokenType tokenType = offer.token.tokenContract.tokenType;
@@ -113,7 +120,7 @@ library EthlanceStructs {
   // 2. In the second case, user sends the transaction with extra data to Token contract
   //   which will call back onERC721Received on Ethlance which will end up creating job and
   //   completing the process (at the end of which the tokens belong to the Job created)
-  function transferERC721ToJob(address initialOwner, address ethlance, address job, TokenValue memory offer) internal {
+  function transferERC721ToJob(address initialOwner, address ethlance, address job, TokenValue memory offer) public {
     uint tokenId = offer.token.tokenId;
     IERC721 offeredToken = IERC721(offer.token.tokenContract.tokenAddress);
     bool needToTransferToEthlanceFirst = offeredToken.ownerOf(tokenId) == initialOwner && offeredToken.getApproved(tokenId) == ethlance;
@@ -122,7 +129,7 @@ library EthlanceStructs {
     transferERC721(offer, ethlance, job);
   }
 
-  function transferERC1155ToJob(address initialOwner, address ethlance, address job, TokenValue memory offer) internal {
+  function transferERC1155ToJob(address initialOwner, address ethlance, address job, TokenValue memory offer) public {
     uint tokenId = offer.token.tokenId;
     uint tokenAmount = offer.value;
     IERC1155 offeredToken = IERC1155(offer.token.tokenContract.tokenAddress);

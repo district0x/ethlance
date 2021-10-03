@@ -76,14 +76,14 @@ async function deploy_EthlanceStructs(deployer, opts){
 }
 
 async function deploy_Ethlance(deployer, opts){
-  let ethlance = await deployer.deploy(Ethlance, {...opts, gas: 6e6});
   deployer.link(EthlanceStructs, Ethlance);
+  let ethlance = await deployer.deploy(Ethlance, {...opts, gas: 6e6});
   assignContract(ethlance, "Ethlance", "ethlance");
 }
 
 async function deploy_Job(deployer, opts){
-  let job = await deployer.deploy(Job, {...opts, gas: 7e6});
   deployer.link(EthlanceStructs, Job);
+  let job = await deployer.deploy(Job, {...opts, gas: 7e6});
   assignContract(job, "Job", "job");
 }
 
