@@ -19,23 +19,31 @@
   (let [wei-in-eth (bn/number 10e17)]
     (/ (bn/number wei-amount) wei-in-eth)))
 
+(defn diff-percent [first second]
+  (/ (Math/abs (- second first)) second))
+
+(defn approx=
+  "Returns true if second differs from first less than diff-percent (0..1)"
+  [percent first second]
+  (< (diff-percent first second) percent))
+
 (defn fund-in-eth
   "Produces data 2 structures that can be used as input for `ethlance/create-job`
 
    TIP: use with currying provide the eth-amount, so it can be used with 2 args in the
    create-initialized-job reduce function"
-  [eth-amount offered-values create-job-opts]
-
-  (let [amount-in-wei (str (eth->wei eth-amount)) ; FIXME: why web3-utils/eth->wei returns nil
-        offered-token-type (contract-constants/token-type :eth)
-        placeholder-address "0x1111111111111111111111111111111111111111"
-        not-used-for-erc20 0
-        eth-offered-value {:token
-                           {:tokenContract {:tokenType offered-token-type
-                                            :tokenAddress placeholder-address}
-                            :tokenId not-used-for-erc20} :value amount-in-wei}
-        additional-opts {:value amount-in-wei}]
-    [(conj offered-values eth-offered-value) (merge create-job-opts additional-opts)]))
+  ([eth-amount] (fund-in-eth eth-amount [] {}))
+  ([eth-amount offered-values create-job-opts]
+   (let [amount-in-wei (str (eth->wei eth-amount)) ; FIXME: why web3-utils/eth->wei returns nil
+         offered-token-type (contract-constants/token-type :eth)
+         placeholder-address "0x1111111111111111111111111111111111111111"
+         not-used-for-erc20 0
+         eth-offered-value {:token
+                            {:tokenContract {:tokenType offered-token-type
+                                             :tokenAddress placeholder-address}
+                             :tokenId not-used-for-erc20} :value amount-in-wei}
+         additional-opts {:value amount-in-wei}]
+     [(conj offered-values eth-offered-value) (merge create-job-opts additional-opts)])))
 
 (defn fund-in-erc20
   "Mints ERC20 TestToken for recipient and approves them for Ethlance.
@@ -71,20 +79,21 @@
       [(conj offered-values token-offer) create-job-opts])))
 
 (defn fund-in-erc1155
-  [recipient amount offered-values create-job-opts]
-  (go
-    (let [ethlance-addr (smart-contracts/contract-address :ethlance)
-          [_owner employer _worker] (<! (web3-eth/accounts @web3))
-          receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [recipient amount]))
-          token-id (. (get-in receipt [:events :Transfer-single :return-values]) -id)
-          token-amount (. (get-in receipt [:events :Transfer-single :return-values]) -value)
-          test-token-address (smart-contracts/contract-address :test-multi-token)
-          offered-token-type (contract-constants/token-type :erc1155)
-          approval-result (<? (smart-contracts/contract-send :test-multi-token :set-approval-for-all [ethlance-addr true] {:from recipient}))
-          token-offer {:token
-                       {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
-                        :tokenId token-id} :value (int token-amount)}]
-      [(conj offered-values token-offer) create-job-opts])))
+  ([recipient amount] (fund-in-erc1155 recipient amount [] {} :approval true))
+  ([recipient amount offered-values create-job-opts & {approval :approval :or {approval true}}]
+   (go
+     (let [ethlance-addr (smart-contracts/contract-address :ethlance)
+           [_owner employer _worker] (<! (web3-eth/accounts @web3))
+           receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [recipient amount]))
+           token-id (. (get-in receipt [:events :Transfer-single :return-values]) -id)
+           token-amount (. (get-in receipt [:events :Transfer-single :return-values]) -value)
+           test-token-address (smart-contracts/contract-address :test-multi-token)
+           offered-token-type (contract-constants/token-type :erc1155)
+           token-offer {:token
+                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
+                         :tokenId token-id} :value (int token-amount)}]
+       (if approval (<? (smart-contracts/contract-send :test-multi-token :set-approval-for-all [ethlance-addr true] {:from recipient})))
+       [(conj offered-values token-offer) create-job-opts]))))
 
 (defn collect-from-funding-funcs
   "Takes the previous results, which are produced by calling other funding functions and
@@ -102,7 +111,11 @@
 
 (defn create-initialized-job
   "Creates new Job contract and initializes Ethlance contract with it.
-   Also adds initial-balance-in-wei (currently 0.05 ETH) to the balance."
+   Also adds initial-balance-in-wei (currently 0.05 ETH) to the balance.
+
+   NB! Using fund-in-eth will take ETH from `employer` account (web3 2nd account)
+       The rest of the token funding functions(fund-in-erc20 fund-in-erc721 fund-in-erc1155)
+       accept `recipient` param"
   ([] (create-initialized-job []))
 
   ([funding-functions & {job-type :job-type
