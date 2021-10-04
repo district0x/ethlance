@@ -16,7 +16,8 @@
                                                     fund-in-erc721
                                                     fund-in-erc1155
                                                     create-initialized-job
-                                                    eth->wei wei->eth]]))
+                                                    eth->wei wei->eth
+                                                    approx=] :as cofu]))
 
 #_ (deftest job-contract-methods
   (testing "setQuoteForArbitration"
@@ -61,7 +62,7 @@
                 (contract-constants/token-type token) )
             (get-in job-data [:offered-values]))))
 
-#_ (deftest invoice-flows
+(deftest invoice-flows
   (testing "invoice flow (create/pay/cancel)"
     (async done
            (go
@@ -211,7 +212,7 @@
                  (is (= invoice-cancelled? false))))
              (done)))))
 
-(deftest accepting-arbiter-quote
+#_ (deftest accepting-arbiter-quote
   (testing "Accept arbiter quote workflow"
     (async done
            ; Test steps
@@ -262,11 +263,11 @@
                    ;    As ERC721 (and 1155) support callbacks, this can be done with a single tx
                    ;    (we prepare transaction with data, employer signs & sends it, ERC721 contract
                    ;    calls Job#onERC721Received, in which we'll make necessary state changes)
-                   target-method (contract-constants/job-target-method :accept-quote-for-arbitration)
+                   target-method (contract-constants/job-callback-target-method :accept-quote-for-arbitration)
                    not-used-invoice-id 0 ; just a placeholder, not used for accepting quote call
                    call-data (web3-eth/encode-abi (smart-contracts/instance :job)
                                                        :example-function-signature-for-token-callback-data-encoding
-                                                       [target-method arbiter, [erc721-offer], not-used-invoice-id])
+                                                       [target-method arbiter [erc721-offer] not-used-invoice-id])
 
                    send-tokens-tx (<! (smart-contracts/contract-send :test-nft
                                                                          :safe-transfer-from
@@ -278,3 +279,86 @@
                    token-owner-after (<? (smart-contracts/contract-call :test-nft :owner-of [token-id]))]
                (is (= arbiter token-owner-after)))
                (done)))))
+
+(deftest add-withdraw-funds
+  (testing "Add & withdraw funds workflows"
+    (async done
+           ; Test scenario:
+           ; 1. Create a job (create-initialized-job) with ETH (employer account A)
+           ; 2. Add ETH from account B
+           ; 3. Add ERC1155 from account C
+           ; 4. Assert that A can withdraw ETH (to the amount they contributed)
+           ; 5. Assert that C can withdraw ERC1155 (to the amount they contributed)
+           ;      - and that they can't withdraw ETH
+           ; 6. Assert that B can withdraw ETH (to the amount they contributed)
+           ;      - and that they can't withdraw ERC1155 (added by C)
+           (go
+             ; ERC20
+             (let [[_owner contributor-a _worker contributor-b contributor-c] (<! (web3-eth/accounts @web3))
+                   ; 1. Create a job (create-initialized-job) with ETH (employer account A)
+                   contributor-a-amount 0.05
+                   contributor-b-amount 0.07
+                   contributor-c-amount 3
+                   job-data (<! (create-initialized-job [(partial fund-in-eth contributor-a-amount)]))
+                   job-address (:job job-data)
+                   contributor-a-amount-eth (offer-from-job-data job-data :eth)
+                   target-method-add-funds (contract-constants/job-callback-target-method :add-funds)
+
+                   ; 2. Add ETH from account B after job creation
+                   [contributor-b-offer _extra] (fund-in-eth contributor-b-amount)
+                   add-funds-from-b-tx (<! (smart-contracts/contract-send [:job job-address]
+                                                                   :add-funds
+                                                                   [contributor-b-offer]
+                                                                   {:from contributor-b
+                                                                    :value (eth->wei contributor-b-amount)}))
+
+                   ; 3. Add ERC1155 from account C
+                   [[contributor-c-offer-multi-token] _] (<! (fund-in-erc1155 contributor-c contributor-c-amount))
+                   token-id (get-in contributor-c-offer-multi-token [:token :tokenId])
+                   not-used-invoice-id 0 ; just a placeholder, not used for add-funds call
+                   call-data (web3-eth/encode-abi (smart-contracts/instance :job)
+                                                       :example-function-signature-for-token-callback-data-encoding
+                                                       [target-method-add-funds contributor-c [contributor-c-offer-multi-token] not-used-invoice-id])
+                   add-funds-tx (<! (smart-contracts/contract-send :test-multi-token
+                                                                   :safe-transfer-from
+                                                                   [contributor-c job-address token-id contributor-c-amount call-data]
+                                                                   {:from contributor-c}))
+                   funds-in-job-by-contributor-c (map contract-constants/token-value-vec->map
+                                                      (js->clj (<! (smart-contracts/contract-call [:job job-address] :get-deposits [contributor-c]))))
+                   deposit-ids (js->clj (<! (smart-contracts/contract-call [:job job-address] :get-deposit-ids [])))
+                   deposit-count (<! (smart-contracts/contract-call [:job job-address] :get-deposits-count []))]
+               (is (= (:value (first funds-in-job-by-contributor-c)) contributor-c-amount) "contributor-c ERC1155 tokens have to end up in Job before continuing")
+
+               ; 4. A withdraws his ETH
+               (let [balance-before (js/parseInt (<! (web3-eth/get-balance @web3 contributor-a)))
+                     withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[contributor-a-amount-eth]] {:from contributor-a}))
+                     balance-after (js/parseInt (<! (web3-eth/get-balance @web3 contributor-a)))
+                     balance-change (- balance-after balance-before)
+                     allowed-error-pct 0.03]; Allow 3% difference due to gas fees
+                 (is (> balance-after balance-before) "Withdrawing should have increased A's balance")
+                 (is (approx= allowed-error-pct (eth->wei contributor-a-amount) balance-change) "After withdrawal the ETH must end up at A's account"))
+
+               ; 5. C withdraws his ERC1155
+               (let [withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[contributor-c-offer-multi-token]] {:from contributor-c}))
+                     contributor-owned-tokens (js/parseInt (<! (smart-contracts/contract-call :test-multi-token :balance-of [contributor-c token-id])))]
+                 (is (= contributor-c-amount contributor-owned-tokens) "After withdrawal the ERC1155 must end up at C's account"))
+
+               ; 5.a C can't withdraw ETH (as he didn't contribute any)
+               (let [balance-before (js/parseInt (<! (web3-eth/get-balance @web3 contributor-c)))
+                     withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[contributor-a-amount-eth]] {:from contributor-c}))
+                     balance-after (js/parseInt (<! (web3-eth/get-balance @web3 contributor-c)))
+                     balance-change (- balance-after balance-before)
+                     allowed-error-pct 0.0001]; Allow 0.01% difference due to gas fees
+                 (is (= nil withdraw-tx) "Tx fails (nil receipt) because C didn't contribute ETH")
+                 (is (approx= allowed-error-pct balance-before balance-after) "The Tx fails but some gas gets spent still"))
+
+               ; 6. B can withdraw their contributed ETH
+               (let [balance-before (js/parseInt (<! (web3-eth/get-balance @web3 contributor-b)))
+                     withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [contributor-b-offer] {:from contributor-b}))
+                     balance-after (js/parseInt (<! (web3-eth/get-balance @web3 contributor-b)))
+                     balance-change (- balance-after balance-before)
+                     allowed-error-pct 0.03]; Allow 3% difference due to gas fees
+                 (is (> balance-after balance-before) "Withdrawing should have increased B's balance")
+                 (is (approx= allowed-error-pct (eth->wei contributor-b-amount) balance-change) "After withdrawal the ETH must end up at B's account"))
+
+               (done))))))

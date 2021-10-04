@@ -39,6 +39,15 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   address public creator;
   EthlanceStructs.JobType public jobType;
   mapping(uint => EthlanceStructs.TokenValue) public offeredValues;
+
+  // The bytes32 being keccak256(abi.encodePacked(depositorAddress, TokenType, contractAddress, tokenId))
+  mapping(bytes32 => Deposit) deposits;
+  struct Deposit {
+    address depositor;
+    EthlanceStructs.TokenValue tokenValue;
+  }
+  bytes32[] depositIds; // So it's possible to look up and list all the deposits
+
   mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;
   using EnumerableSet for EnumerableSet.AddressSet;
   EnumerableSet.AddressSet internal invitedArbiters;
@@ -73,6 +82,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     jobType = _jobType;
     for(uint i = 0; i < _invitedArbiters.length; i++) { invitedArbiters.add(_invitedArbiters[i]); }
     for(uint i = 0; i < _offeredValues.length; i++) { offeredValues[i] = _offeredValues[i]; }
+
+    _recordAddedFunds(creator, _offeredValues);
   }
 
   /**
@@ -124,7 +135,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(isAmongstInvitedArbiters(_arbiter));
     require(isCallerJobCreator(msg.sender));
     require(_transferredValue.length == 1, "Currently only 1 _transferredValue is supported at a time");
-    require(tokenValuesEqual(_transferredValue[0], arbiterQuotes[_arbiter]), "Accepted TokenValue must match exactly the value quoted by arbiter");
+    require(EthlanceStructs.tokenValuesEqual(_transferredValue[0], arbiterQuotes[_arbiter]), "Accepted TokenValue must match exactly the value quoted by arbiter");
 
     acceptedArbiter = _arbiter;
     EthlanceStructs.transferTokenValue(_transferredValue[0], address(this), _arbiter);
@@ -261,23 +272,79 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Emits {FundsAdded} event
    * See spec :ethlance/funds-added for the format of _ipfsData file
-   * TODO: Needs implementation
    */
-  function _addFunds(
+  function _recordAddedFunds(
     address _funder,
-    EthlanceStructs.TokenValue[] memory _fundedValue
+    EthlanceStructs.TokenValue[] memory _offeredValues
   ) internal {
-    // check that the _fundedValue is within _offeredValue (used during initialization)
+    // TODO: check that the _fundedValue is within _offeredValue (used during initialization)
+    for(uint i = 0; i < _offeredValues.length; i++) {
+      EthlanceStructs.TokenValue memory tv = _offeredValues[i];
+      Deposit memory deposit = Deposit(_funder, tv);
+      bytes32 depositId = _generateDepositId(_funder, tv);
+      deposits[depositId] = deposit;
+      depositIds.push(depositId);
+    }
+    ethlance.emitFundsAdded(address(this), _funder, _offeredValues);
   }
 
+  // For adding ETH and ERC20 funds. ERC721 and 1155 get added via callbacks (onERC<...>Received)
+  function addFunds(EthlanceStructs.TokenValue[] memory _tokenValues) public payable {
+    require(_tokenValues.length == 1, "Currently only single TokenValue can be added");
+    EthlanceStructs.TokenValue memory tokenValue = _tokenValues[0];
+    EthlanceStructs.transferTokenValue(tokenValue, msg.sender, address(this));
+    _recordAddedFunds(msg.sender, _tokenValues);
+  }
+
+  function _generateDepositId(address depositor, EthlanceStructs.TokenValue memory tokenValue) internal returns(bytes32) {
+    return keccak256(abi.encodePacked(
+      depositor,
+      tokenValue.token.tokenContract.tokenType,
+      tokenValue.token.tokenContract.tokenAddress,
+      tokenValue.token.tokenId));
+  }
+
+  function getDepositsCount() public view returns(uint) {
+    return depositIds.length;
+  }
+
+  function getDepositIds() public view returns(bytes32[] memory) {
+    return depositIds;
+  }
+
+  // There will be 2 withdraw functions
+  //   - one takes all necessary information for depositId (msg.sender, contract address, token type, etc)
+  // 2nd interface:
+  //   - without any parameters, allows 1 contributor to withdraw all of their deposits
+  function getDeposits(address depositor) public view returns (EthlanceStructs.TokenValue[] memory) {
+    EthlanceStructs.TokenValue[] memory selectedValues = new EthlanceStructs.TokenValue[](depositIds.length);
+    uint lastFilled = 0;
+    for(uint i = 0; i < depositIds.length; i++) {
+      bytes32 depositId = depositIds[i];
+      Deposit memory currentDeposit = deposits[depositId];
+      if(currentDeposit.depositor == depositor) {
+        selectedValues[lastFilled] = currentDeposit.tokenValue;
+        lastFilled += 1;
+      }
+      // selectedValues[i] = currentDeposit.tokenValue;
+    }
+
+    EthlanceStructs.TokenValue[] memory compactedValues = new EthlanceStructs.TokenValue[](lastFilled);
+    for(uint i = 0; i < lastFilled; i++) {
+      if(selectedValues[i].value != 0) {
+        compactedValues[i] = selectedValues[i];
+      }
+    }
+    return compactedValues;
+  }
 
   /**
-   * @dev It joins together `{_addFunds}` and `{payInvoice}` calls
+   * @dev It joins together `{_recordAddedFunds}` and `{payInvoice}` calls
    *
    * This function is not meant to be called directly, but via token received callbacks
    * TODO: Needs implementation
    */
-  function _addFundsAndPayInvoice(
+  function _recordAddedFundsAndPayInvoice(
     EthlanceStructs.TokenValue[] memory _fundedValue,
     uint _invoiceId
   ) internal {
@@ -304,6 +371,17 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     //   and the user has contributed it, they can withdraw it.
     // If contract has 0.8 ETH but caller calls with 1, transaction will fail.
     // The amount has to match (input data preparetion and validation will happen in the front-end)
+
+    require(_toBeWithdrawn.length == 1, "Currently only possible to withdraw single TokenValue at a time");
+    EthlanceStructs.TokenValue memory withdrawnValue = _toBeWithdrawn[0];
+    bytes32 valueDepositId = _generateDepositId(msg.sender, withdrawnValue);
+    Deposit memory deposit = deposits[valueDepositId];
+
+    int supposedTokenBalanceAfterWithdrawal = int(deposit.tokenValue.value) - int(withdrawnValue.value);
+    require(supposedTokenBalanceAfterWithdrawal >= 0, "This withdrawal would result in negative balance for the depositor. Reduce the amount withdrawn.");
+    deposit.tokenValue.value = uint(supposedTokenBalanceAfterWithdrawal);
+    deposits[valueDepositId] = deposit;
+    EthlanceStructs.transferTokenValue(withdrawnValue, address(this), msg.sender);
   }
 
 
@@ -348,7 +426,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives approval for ERC20 MiniMe token
-   * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
    * TODO: Needs implementation
    */
   function receiveApproval(
@@ -375,7 +453,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives ERC721 token
-   * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
    */
   function onERC721Received(
     address _operator,
@@ -390,7 +468,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives ERC1155 token
-   * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
    */
   function onERC1155Received(
     address _operator,
@@ -399,6 +477,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256 _value,
     bytes calldata _data
   ) public override returns (bytes4) {
+    // TODO: think about how creating new job with 1155 offer would work
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
@@ -408,10 +487,12 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     address target;
     EthlanceStructs.TokenValue[] memory tokenValues;
     uint invoiceId;
-
     (targetMethod, target, tokenValues, invoiceId) = _decodeTokenCallbackData(_data);
+
     if(targetMethod == TargetMethod.ACCEPT_QUOTE_FOR_ARBITRATION) {
       acceptQuoteForArbitration(target, tokenValues);
+    } else if(targetMethod == TargetMethod.ADD_FUNDS) {
+      _recordAddedFunds(target, tokenValues);
     } else {
       revert("Unknown TargetMethod on ERC721 receival callback");
     }
@@ -419,7 +500,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives multiple ERC1155 tokens
-   * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
    * TODO: Needs implementation
    */
   function onERC1155BatchReceived(
@@ -435,8 +516,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives ETH
-   * It calls either {_acceptQuoteForArbitration} or {_addFunds} or {_addFundsAndPayInvoice} based on decoding `msg.data`
-   * TODO: Needs implementation
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive(
   ) external payable {
@@ -458,7 +538,4 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return account == creator;
   }
 
-  function tokenValuesEqual(EthlanceStructs.TokenValue memory first, EthlanceStructs.TokenValue memory second) internal returns (bool) {
-    return true;
-  }
 }
