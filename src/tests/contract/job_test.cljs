@@ -428,3 +428,61 @@
                  (is (= employer-balance 2))
                  (is (= sponsor-balance 1)))
                (done))))))
+
+(deftest withdraw-overdraw-checks
+  (testing "Checks for not withdrawing too much"
+    (async done
+           (go
+             (let [[_owner employer worker sponsor arbiter] (<! (web3-eth/accounts @web3))
+                   contribution-a-amount 10
+                   contribution-b-amount 6
+
+                   ; 1. Prepare a job (10 ERC from employer, 6 from sponsor)
+                   job-init-offer (partial fund-in-erc20 employer contribution-a-amount)
+                   job-data (<! (create-initialized-job [(partial fund-in-erc20 employer contribution-a-amount)] :arbiters [arbiter]))
+                   job-address (:job job-data)
+                   add-candidate-tx (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker "0x0"] {:from employer}))
+                   employer-contribution-a (offer-from-job-data job-data :erc20)
+                   target-method-add-funds (contract-constants/job-callback-target-method :add-funds)
+
+                   [extra-funding-from-sponsor _extra] (<! (fund-in-erc20 sponsor contribution-b-amount [] {} :approve-for job-address))
+                   add-funds-from-c-tx (<! (smart-contracts/contract-send [:job job-address]
+                                                                   :add-funds
+                                                                   [extra-funding-from-sponsor]
+                                                                   {:from sponsor}))
+                   ; 2. Invoice for 50% the amount & pay it out
+                   invoice-amounts [(merge employer-contribution-a {:value 7})]
+                   invoice-tx (<? (smart-contracts/contract-send [:job job-address] :create-invoice [invoice-amounts "0x0"] {:from worker}))
+                   invoice-event (<! (smart-contracts/contract-event-in-tx :ethlance :InvoiceCreated invoice-tx))
+                   invoice-id (int (:invoice-id invoice-event))
+                   tx-pay-invoice (<! (smart-contracts/contract-send [:job job-address] :pay-invoice [invoice-id "0x0"] {:from employer}))
+                   event-pay-invoice (<! (smart-contracts/contract-event-in-tx :ethlance :InvoicePaid tx-pay-invoice))]
+
+               ; 3. Employer intents to withdraw original sum of 10 (fails, as 7 of 16 are already paid out with only 9 left)
+               (let [withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[employer-contribution-a]] {:from employer}))]
+                 (is (nil? withdraw-tx) "Withdraw should fail because some of the tokens were already paid out"))
+
+               ; 4. Employer withdraws according to `Job#maxWithdrawableAmounts` (succeeds)
+               ; 5. Job contract will be left empty
+               (let [employer-balance-before (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [employer])))
+                     sponsor-balance-before (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [sponsor])))
+
+                     employer-max-amounts (<! (smart-contracts/contract-call [:job job-address] :max-withdrawable-amounts [employer]))
+                     sponsor-max-amounts (<! (smart-contracts/contract-call [:job job-address] :max-withdrawable-amounts [sponsor]))
+
+                     ; TODO: replace with deserialized amount from `max-withdrawable-amounts`
+                     ;       Sponsor should be able to withdraw min((16 - 7), 6) = 6
+                     ;       Employer should be able to withdraw min((16 - 7 - 6), 10) = 3
+                     sponsor-withdraw-amounts [(merge employer-contribution-a {:value 6})]
+                     employer-withdraw-amounts [(merge employer-contribution-a {:value 3})]
+
+                     withdraw-sponsor-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [sponsor-withdraw-amounts] {:from sponsor}))
+                     withdraw-employer-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [employer-withdraw-amounts] {:from employer}))
+
+                     employer-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [employer]))) employer-balance-before)
+                     sponsor-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [sponsor]))) sponsor-balance-before)
+                     ]
+                 (is (= employer-balance 3))
+                 (is (= sponsor-balance 6))
+                 )
+               (done))))))

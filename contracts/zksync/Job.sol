@@ -401,10 +401,49 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(supposedTokenBalanceAfterWithdrawal >= 0, "This withdrawal would result in negative balance for the depositor. Reduce the amount withdrawn.");
     deposit.tokenValue.value = uint(supposedTokenBalanceAfterWithdrawal);
     deposits[valueDepositId] = deposit;
+
+    // Check against max amount of particular token that this user
+    // can withdraw (proportional to their contribution).
+    // No changes here, just checks. The user must send correct TokenValue
+    // TODO: Create a method that outputs maximum withdrawable TokenValues for user
     EthlanceStructs.transferTokenValue(withdrawnValue, address(this), msg.sender);
     ethlance.emitFundsWithdrawn(address(this), msg.sender, _toBeWithdrawn);
   }
 
+
+  // Normally the contributors (job creator and those who have added funds) can withdraw all their funds
+  // at any point. This is not the case when there have already been payouts and thus the funds kept in
+  // this Job contract are less.
+  // In such case these users will be eligible for proportion of their original contribution.
+  //
+  // This method can be used to receive array of TokenValue-s with max amounts to be used
+  // for subsequent withdrawFunds call
+  function maxWithdrawableAmounts(address contributor) public view returns(EthlanceStructs.TokenValue[] memory) {
+    EthlanceStructs.TokenValue[] memory withdrawables = new EthlanceStructs.TokenValue[](depositIds.length);
+    uint withdrawablesCount = 0;
+    for(uint i = 0; i < depositIds.length; i++) {
+      Deposit memory deposit = deposits[depositIds[i]];
+      if(deposit.depositor == contributor) {
+        EthlanceStructs.TokenValue memory tv = deposit.tokenValue;
+        uint jobTokenBalance = EthlanceStructs.tokenValueBalance(address(this), tv);
+        tv.value = min(jobTokenBalance, tv.value);
+        withdrawables[withdrawablesCount] = tv;
+        withdrawablesCount += 1;
+      }
+    }
+
+    // Return only the ones that matched contributor (can't dynamically allocate in-memory array, need to reconstruct)
+    EthlanceStructs.TokenValue[] memory compactWithdrawables = new EthlanceStructs.TokenValue[](withdrawablesCount);
+    for(uint i = 0; i < withdrawablesCount; i++) {
+      compactWithdrawables[i] = withdrawables[i];
+    }
+
+    return compactWithdrawables;
+  }
+
+  function min(uint a, uint b) pure internal returns(uint) {
+    return a <= b ? a : b;
+  }
 
   /**
    * @dev Raises a dispute between job creator and candidate
