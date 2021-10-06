@@ -280,18 +280,9 @@
                (is (= arbiter token-owner-after)))
                (done)))))
 
-(deftest add-withdraw-funds
+#_ (deftest add-withdraw-funds
   (testing "Add & withdraw funds workflows"
     (async done
-           ; Test scenario:
-           ; 1. Create a job (create-initialized-job) with ETH (employer account A)
-           ; 2. Add ETH from account B
-           ; 3. Add ERC1155 from account C
-           ; 4. Assert that A can withdraw ETH (to the amount they contributed)
-           ; 5. Assert that C can withdraw ERC1155 (to the amount they contributed)
-           ;      - and that they can't withdraw ETH
-           ; 6. Assert that B can withdraw ETH (to the amount they contributed)
-           ;      - and that they can't withdraw ERC1155 (added by C)
            (go
              ; ERC20
              (let [[_owner contributor-a _worker contributor-b contributor-c] (<! (web3-eth/accounts @web3))
@@ -361,4 +352,79 @@
                  (is (> balance-after balance-before) "Withdrawing should have increased B's balance")
                  (is (approx= allowed-error-pct (eth->wei contributor-b-amount) balance-change) "After withdrawal the ETH must end up at B's account"))
 
+               (done))))))
+
+(deftest raise-resolve-disputes
+  (testing "Raising & resolving disputes"
+    (async done
+           (go
+             ; 1. Job gets set up & funded by A with 2 ERC20
+             ; 2. A adds 4 ERC20
+             ; 3. B adds 3 ERC20
+             ; 4. Worker raises invoice for 9 ERC20
+             ; 5. Worker raises dispute
+             ; 6. Arbiter resolves dispute with TokenValue[] value = 6 (2/3)
+             ; 7. Payouts (proportional):
+             ;   - Worker (2/3)*9       = *6* (2/3 of the invoice according to arbiter)
+             ;   - A gets (1/3)*(2/3)*9 = *2* (1/3 remaining, his contribution was 2/3)
+             ;   - B gets (1/3)*(1/3)*9 = *1*
+             (let [[_owner employer worker sponsor arbiter] (<! (web3-eth/accounts @web3))
+                   contribution-a-amount 2
+                   contribution-b-amount 4
+                   contribution-c-amount 3
+
+                   ; 1. Job gets set up & funded by A with 2 ERC20
+                   job-init-offer (partial fund-in-erc20 employer contribution-a-amount)
+                   job-data (<! (create-initialized-job [(partial fund-in-erc20 employer contribution-a-amount)] :arbiters [arbiter]))
+                   job-address (:job job-data)
+                   add-candidate-tx (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker "0x0"] {:from employer}))
+                   employer-contribution-a (offer-from-job-data job-data :erc20)
+                   target-method-add-funds (contract-constants/job-callback-target-method :add-funds)
+
+                   ; 2. A adds 4 ERC20
+                   [extra-funding-from-employer _extra] (<! (fund-in-erc20 employer contribution-b-amount [] {} :approve-for job-address))
+                   add-funds-from-b-tx (<! (smart-contracts/contract-send [:job job-address]
+                                                                   :add-funds
+                                                                   [extra-funding-from-employer]
+                                                                   {:from employer}))
+
+                   ; 3. B adds 3 ERC20
+                   [extra-funding-from-sponsor _extra] (<! (fund-in-erc20 sponsor contribution-c-amount [] {} :approve-for job-address))
+                   add-funds-from-c-tx (<! (smart-contracts/contract-send [:job job-address]
+                                                                   :add-funds
+                                                                   [extra-funding-from-sponsor]
+                                                                   {:from sponsor}))
+                   ; 4. Worker raises invoice for 9 ERC20
+                   invoice-amounts-all [(merge employer-contribution-a {:value 9})]
+                   invoice-tx (<? (smart-contracts/contract-send [:job job-address] :create-invoice [invoice-amounts-all "0x0"] {:from worker}))
+                   invoice-event (<! (smart-contracts/contract-event-in-tx :ethlance :InvoiceCreated invoice-tx))
+                   invoice-id (int (:invoice-id invoice-event))]
+
+               ; 5. Worker raises dispute
+               (let [dispute-raise-tx (<! (smart-contracts/contract-send [:job job-address] :raise-dispute [invoice-id "0x0"] {:from worker}))
+                     withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[employer-contribution-a]] {:from employer}))]
+                 (is (nil? withdraw-tx) "It should be impossible to withdraw funds when there's a dispute"))
+
+               (let [worker-balance-before (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [worker])))
+                     employer-balance-before (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [employer])))
+                     sponsor-balance-before (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [sponsor])))
+
+                     worker-withdraw-amounts [(merge employer-contribution-a {:value 6})]
+                     employer-withdraw-amounts [(merge employer-contribution-a {:value 2})]
+                     sponsor-withdraw-amounts [(merge employer-contribution-a {:value 1})]
+                     dispute-resolve-by-rando-tx (<! (smart-contracts/contract-send [:job job-address] :resolve-dispute [invoice-id worker-withdraw-amounts "0x0"] {:from worker}))
+                     dispute-resolve-by-arbiter-tx (<! (smart-contracts/contract-send [:job job-address] :resolve-dispute [invoice-id worker-withdraw-amounts "0x0"] {:from arbiter}))
+                     withdraw-employer-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [employer-withdraw-amounts] {:from employer}))
+                     withdraw-sponsor-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [sponsor-withdraw-amounts] {:from sponsor}))
+
+                     withdraw-employer-event (<! (smart-contracts/contract-event-in-tx :ethlance :FundsWithdrawn withdraw-employer-tx))
+                     withdraw-sponsor-event (<! (smart-contracts/contract-event-in-tx :ethlance :FundsWithdrawn withdraw-sponsor-tx))
+
+                     worker-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [worker]))) worker-balance-before)
+                     employer-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [employer]))) employer-balance-before)
+                     sponsor-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [sponsor]))) sponsor-balance-before)]
+                 (is (nil? dispute-resolve-by-rando-tx) "Only invited arbiters can resolve disputes")
+                 (is (= worker-balance 6))
+                 (is (= employer-balance 2))
+                 (is (= sponsor-balance 1)))
                (done))))))

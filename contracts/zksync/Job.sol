@@ -21,21 +21,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   uint public constant version = 1; // current version of {Job} smart-contract
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
-  /**
-   * @dev Contract initialization
-   * It is manually called instead of native contructor,
-   * because this contract is used through a proxy.
-   * This function cannot be called twice.
-   *
-   * It stores passed arguments for later usage
-   * It validates if `_offeredValues` have been actually transferred into this contract
-   *
-   * Requirements:
-   *
-   * - `_ethlance` cannot be empty
-   * - `_creator` cannot be empty
-   * - `_offeredValues` cannot be empty
-   */
   address public creator;
   EthlanceStructs.JobType public jobType;
   mapping(uint => EthlanceStructs.TokenValue) public offeredValues;
@@ -54,6 +39,15 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   EnumerableSet.AddressSet internal invitedCandidates;
   address acceptedArbiter;
 
+  struct Dispute {
+    uint invoiceId;
+    address creator;
+    EthlanceStructs.TokenValue resolution;
+    bool resolved;
+  }
+  mapping (uint => Dispute) public disputes;
+  uint[] disputeIds;
+
   struct Invoice {
     EthlanceStructs.TokenValue item;
     address payable issuer;
@@ -65,6 +59,21 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   mapping (address => uint[]) public candidateInvoiceIds;
   uint lastInvoiceIndex;
 
+  /**
+   * @dev Contract initialization
+   * It is manually called instead of native contructor,
+   * because this contract is used through a proxy.
+   * This function cannot be called twice.
+   *
+   * It stores passed arguments for later usage
+   * It validates if `_offeredValues` have been actually transferred into this contract
+   *
+   * Requirements:
+   *
+   * - `_ethlance` cannot be empty
+   * - `_creator` cannot be empty
+   * - `_offeredValues` cannot be empty
+   */
   function initialize(
     Ethlance _ethlance,
     address _creator,
@@ -187,7 +196,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external {
-    if (jobType == EthlanceStructs.JobType.GIG) { require(invitedCandidates.contains(msg.sender)); }
+    if (jobType == EthlanceStructs.JobType.GIG) {
+      require(invitedCandidates.contains(msg.sender), "Sender must be amongst invitedCandidates to raise an invoice for GIG job type");
+    }
     // TODO: Check that job isn't paid
     // TODO: Check that issuer has been set
 
@@ -360,7 +371,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Emits {FundsWithdrawn} event
    * See spec :ethlance/funds-withdrawn for the format of _ipfsData file
-   * TODO: Needs implementation
    */
   function withdrawFunds(
     EthlanceStructs.TokenValue[] memory _toBeWithdrawn
@@ -372,7 +382,17 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     // If contract has 0.8 ETH but caller calls with 1, transaction will fail.
     // The amount has to match (input data preparetion and validation will happen in the front-end)
 
+    // TODO: try implementing proportional payouts
+    //         - when someone has added X of total Y, and there's a payout Z
+    //         - they'll be eligible for (X / Y) * (Y - Z)
+    //         - the proportion of the funds remaining according to the % they contributed initially
     require(_toBeWithdrawn.length == 1, "Currently only possible to withdraw single TokenValue at a time");
+    bool unresolvedDisputeFound = false;
+    for(uint i = 0; i < disputeIds.length; i++) {
+      if(disputes[disputeIds[i]].resolved == false) { unresolvedDisputeFound = true; }
+    }
+    require(unresolvedDisputeFound == false, "Can't withdraw funds when there is unresolved dispute");
+
     EthlanceStructs.TokenValue memory withdrawnValue = _toBeWithdrawn[0];
     bytes32 valueDepositId = _generateDepositId(msg.sender, withdrawnValue);
     Deposit memory deposit = deposits[valueDepositId];
@@ -382,6 +402,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     deposit.tokenValue.value = uint(supposedTokenBalanceAfterWithdrawal);
     deposits[valueDepositId] = deposit;
     EthlanceStructs.transferTokenValue(withdrawnValue, address(this), msg.sender);
+    ethlance.emitFundsWithdrawn(address(this), msg.sender, _toBeWithdrawn);
   }
 
 
@@ -394,12 +415,26 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Emits {DisputeRaised} event
    * See spec :ethlance/dispute-raised for the format of _ipfsData file
-   * TODO: Needs implementation
    */
   function raiseDispute(
     uint _invoiceId,
     bytes memory _ipfsData
   ) external {
+    Invoice memory invoice = invoices[_invoiceId];
+    require(invoice.issuer != address(0), "Can only raise dispute for invoices that exist");
+    require(invoice.issuer == msg.sender, "Only issuer of an invoice can raise dispute about it");
+    bool previousDisputeFound = false;
+    for(uint i = 0; i < disputeIds.length; i++) {
+      if(disputes[disputeIds[i]].invoiceId == _invoiceId) {
+        previousDisputeFound = true;
+        break;
+      }
+    }
+    require(previousDisputeFound == false, "Can't raise dispute for same invoice more than once.");
+    Dispute memory dispute = Dispute(_invoiceId, msg.sender, invoice.item, false);
+    disputes[_invoiceId] = dispute;
+    disputeIds.push(_invoiceId);
+    ethlance.emitDisputeRaised(address(this), _invoiceId, _ipfsData);
   }
 
 
@@ -414,13 +449,29 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Emits {DisputeResolved} event
    * See spec :ethlance/dispute-resolved for the format of _ipfsData file
-   * TODO: Needs implementation
    */
   function resolveDispute(
     uint _invoiceId,
     EthlanceStructs.TokenValue[] memory _valueForInvoicer,
     bytes memory _ipfsData
   ) external {
+    Dispute memory dispute = disputes[_invoiceId];
+    require(dispute.creator != address(0), "The dispute to resolve didn't exist");
+    require(dispute.resolved == false, "Can only resolve dispute once");
+    require(invitedArbiters.contains(msg.sender), "Only invited arbitor can resolve disputes");
+    dispute.resolved = true;
+
+    Invoice memory invoice = invoices[_invoiceId];
+    invoice.cancelled = true; // We pay it via dispute resolution. Should it be another state?
+
+    for(uint i = 0; i < _valueForInvoicer.length; i++) {
+      EthlanceStructs.TokenValue memory tv = _valueForInvoicer[i];
+      EthlanceStructs.transferTokenValue(tv, address(this), invoice.issuer);
+    }
+
+    disputes[_invoiceId] = dispute;
+    invoices[_invoiceId] = invoice;
+    ethlance.emitDisputeResolved(_invoiceId, _valueForInvoicer, _ipfsData);
   }
 
 

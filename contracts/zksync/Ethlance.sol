@@ -172,7 +172,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * Emits an {JobCreated} event
    *
    * See spec :ethlance/job-created for the format of _ipfsData file
-   * TODO: Add validation and step 2
    */
   function createJob(
     address _creator,
@@ -188,8 +187,8 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     MutableForwarder(newJobPayableAddress).setTarget(jobProxyTarget);
 
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
-    Job(newJobPayableAddress).initialize(this, _creator, _jobType, _offeredValues, _invitedArbiters);
     isJobMap[newJobPayableAddress] = true;
+    Job(newJobPayableAddress).initialize(this, _creator, _jobType, _offeredValues, _invitedArbiters);
 
     emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _jobType, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp());
 
@@ -257,7 +256,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   /**
    * @dev Emits {InvoicePaid} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitInvoicePaid(
     uint _invoiceId,
@@ -270,7 +268,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   /**
    * @dev Emits {InvoiceCanceled} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitInvoiceCanceled(
     uint _invoiceId,
@@ -283,52 +280,52 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   /**
    * @dev Emits {FundsAdded} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitFundsAdded(
     address _job,
     address _funder,
     EthlanceStructs.TokenValue[] memory _fundedValue
   ) external isJob {
+    emit FundsAdded(_job, _funder, _fundedValue, timestamp());
   }
 
 
   /**
    * @dev Emits {FundsWithdrawn} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitFundsWithdrawn(
     address _job,
     address _withdrawer,
     EthlanceStructs.TokenValue[] memory _withdrawnValues
   ) external isJob {
+    emit FundsWithdrawn(_job, _withdrawer, _withdrawnValues, timestamp());
   }
 
 
   /**
    * @dev Emits {DisputeRaised} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitDisputeRaised(
     address _job,
     uint _invoiceId,
     bytes calldata _ipfsData
   ) external isJob {
+    emit DisputeRaised(_job, _invoiceId, _ipfsData, timestamp());
   }
 
 
   /**
    * @dev Emits {DisputeResolved} event
    * Can only be called by {Job} contract address
-   * TODO: Needs implementation
    */
   function emitDisputeResolved(
     uint _invoiceId,
     EthlanceStructs.TokenValue[] memory _valueForInvoicer,
     bytes memory _ipfsData
   ) external isJob {
+    emit DisputeResolved(_invoiceId, _valueForInvoicer, _ipfsData, timestamp());
   }
 
 
