@@ -46,22 +46,25 @@
      [(conj offered-values eth-offered-value) (merge create-job-opts additional-opts)])))
 
 (defn fund-in-erc20
-  "Mints ERC20 TestToken for recipient and approves them for Ethlance.
+  "Mints ERC20 TestToken for recipient and approves them for Ethlance (or address at :approve-for).
    Returns 2 data structures to be used for ethlance/create-job"
-  [recipient funding-amount offered-values create-job-opts]
-  (go
-    (let [ethlance-addr (smart-contracts/contract-address :ethlance)
-          [_owner employer _worker] (<! (web3-eth/accounts @web3))
-          _ (<? (smart-contracts/contract-send :token :mint [recipient funding-amount]))
-          test-token-address (smart-contracts/contract-address :token)
-          not-used-for-erc20 0
-          offered-token-type (contract-constants/token-type :erc20)
-          erc-20-value {:token
-                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
-                         :tokenId not-used-for-erc20} :value funding-amount}
-          approval-result (<! (smart-contracts/contract-send :token :approve [ethlance-addr funding-amount] {:from recipient}))
-          ]
-      [(conj offered-values erc-20-value) create-job-opts])))
+  ([recipient funding-amount]
+   (fund-in-erc20 recipient funding-amount [] {}))
+
+  ([recipient funding-amount offered-values create-job-opts & {approve-for :approve-for :or {approve-for :ethlance}}]
+   (go
+     (let [ethlance-addr (smart-contracts/contract-address :ethlance)
+           [_owner employer _worker] (<! (web3-eth/accounts @web3))
+           approve-addr (if (= :ethlance approve-for) ethlance-addr approve-for)
+           _ (<? (smart-contracts/contract-send :token :mint [recipient funding-amount]))
+           test-token-address (smart-contracts/contract-address :token)
+           not-used-for-erc20 0
+           offered-token-type (contract-constants/token-type :erc20)
+           erc-20-value {:token
+                         {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
+                          :tokenId not-used-for-erc20} :value funding-amount}
+           approval-result (<! (smart-contracts/contract-send :token :approve [approve-addr funding-amount] {:from recipient}))]
+       [(conj offered-values erc-20-value) create-job-opts]))))
 
 (defn fund-in-erc721
   [recipient offered-values create-job-opts & {approval :approval :or {approval true}}]
@@ -126,9 +129,9 @@
       (let [[_owner employer worker] (<! (web3-eth/accounts @web3))
             ipfs-data "0x0"
             job-impl-address (get-in addresses/smart-contracts [:job :address])
-            real-vals (reduce collect-from-funding-funcs [[] {}] funding-functions)
-            [offered-values additional-opts] (<! real-vals)]
-        (<! (ethlance/initialize job-impl-address))
+            real-vals (<! (reduce collect-from-funding-funcs [[] {}] funding-functions))
+            [offered-values additional-opts] real-vals
+            ethlance-init-tx (<! (ethlance/initialize job-impl-address))]
         (let [tx-receipt (<! (ethlance/create-job employer
                                                   offered-values
                                                   job-type
