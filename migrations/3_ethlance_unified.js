@@ -83,7 +83,7 @@ async function deploy_Ethlance(deployer, opts){
 
 async function deploy_Job(deployer, opts){
   deployer.link(EthlanceStructs, Job);
-  let job = await deployer.deploy(Job, {...opts, gas: 7e6});
+  let job = await deployer.deploy(Job, {...opts, gas: 8e6});
   assignContract(job, "Job", "job");
 }
 

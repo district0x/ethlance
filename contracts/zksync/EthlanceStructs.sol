@@ -41,6 +41,26 @@ library EthlanceStructs {
     return firstHash == secondHash;
   }
 
+  function tokenValueBalance(address owner, TokenValue memory tokenValue) view public returns(uint) {
+    TokenType tokenType = tokenValue.token.tokenContract.tokenType;
+
+    if (tokenType == TokenType.ETH) {
+      return address(owner).balance;
+    } else if (tokenType == TokenType.ERC20) {
+      IERC20 token = IERC20(tokenValue.token.tokenContract.tokenAddress);
+      return token.balanceOf(owner);
+    } else if (tokenType == TokenType.ERC721) {
+      IERC721 token = IERC721(tokenValue.token.tokenContract.tokenAddress);
+      bool isOwner = token.ownerOf(tokenValue.token.tokenId) == owner;
+      return isOwner ? 1 : 0;
+    } else if (tokenType == TokenType.ERC1155) {
+      IERC1155 token = IERC1155(tokenValue.token.tokenContract.tokenAddress);
+      return token.balanceOf(owner, tokenValue.token.tokenId);
+    } else {
+      revert UnsupportedTokenType(tokenType);
+    }
+  }
+
   error UnsupportedTokenType(TokenType);
   function transferTokenValue(TokenValue memory tokenValue, address from, address to) public {
     TokenType tokenType = tokenValue.token.tokenContract.tokenType;
