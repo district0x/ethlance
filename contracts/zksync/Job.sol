@@ -375,41 +375,42 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   function withdrawFunds(
     EthlanceStructs.TokenValue[] memory _toBeWithdrawn
   ) external {
-    // Check if sender has funded this value or more before
-    // If this contract has that amount balance
-    // At least for now no proportional paying - if there's available amount to be withdrawn
-    //   and the user has contributed it, they can withdraw it.
-    // If contract has 0.8 ETH but caller calls with 1, transaction will fail.
-    // The amount has to match (input data preparetion and validation will happen in the front-end)
-
-    // TODO: try implementing proportional payouts
-    //         - when someone has added X of total Y, and there's a payout Z
-    //         - they'll be eligible for (X / Y) * (Y - Z)
-    //         - the proportion of the funds remaining according to the % they contributed initially
     require(_toBeWithdrawn.length == 1, "Currently only possible to withdraw single TokenValue at a time");
-    bool unresolvedDisputeFound = false;
-    for(uint i = 0; i < disputeIds.length; i++) {
-      if(disputes[disputeIds[i]].resolved == false) { unresolvedDisputeFound = true; }
-    }
-    require(unresolvedDisputeFound == false, "Can't withdraw funds when there is unresolved dispute");
-
+    require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
     EthlanceStructs.TokenValue memory withdrawnValue = _toBeWithdrawn[0];
-    bytes32 valueDepositId = _generateDepositId(msg.sender, withdrawnValue);
-    Deposit memory deposit = deposits[valueDepositId];
+    require(_isWithinWithdrawLimits(msg.sender, withdrawnValue), "Either you've deposited less than the withdrawn amount or Job has fewer of that token left to withdraw");
 
-    int supposedTokenBalanceAfterWithdrawal = int(deposit.tokenValue.value) - int(withdrawnValue.value);
-    require(supposedTokenBalanceAfterWithdrawal >= 0, "This withdrawal would result in negative balance for the depositor. Reduce the amount withdrawn.");
-    deposit.tokenValue.value = uint(supposedTokenBalanceAfterWithdrawal);
-    deposits[valueDepositId] = deposit;
-
-    // Check against max amount of particular token that this user
-    // can withdraw (proportional to their contribution).
-    // No changes here, just checks. The user must send correct TokenValue
-    // TODO: Create a method that outputs maximum withdrawable TokenValues for user
-    EthlanceStructs.transferTokenValue(withdrawnValue, address(this), msg.sender);
+    _executeWithdraw(msg.sender, withdrawnValue);
     ethlance.emitFundsWithdrawn(address(this), msg.sender, _toBeWithdrawn);
   }
 
+  function withdrawAll() external {
+    EthlanceStructs.TokenValue[] memory withdrawAmounts = maxWithdrawableAmounts(msg.sender);
+    for(uint i = 0; i < withdrawAmounts.length; i++) { _executeWithdraw(msg.sender, withdrawAmounts[i]); }
+    ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
+  }
+
+  function _isWithinWithdrawLimits(address withdrawer, EthlanceStructs.TokenValue memory tokenValue) internal returns(bool) {
+    uint depositBalance = deposits[_generateDepositId(withdrawer, tokenValue)].tokenValue.value;
+    uint jobBalance = EthlanceStructs.tokenValueBalance(withdrawer, tokenValue);
+    return depositBalance > 0 && depositBalance >= jobBalance;
+  }
+
+  function _noUnresolvedDisputes() internal returns(bool) {
+    bool allResolved = true;
+    for(uint i = 0; i < disputeIds.length; i++) {
+      allResolved = allResolved && disputes[disputeIds[i]].resolved ;
+    }
+    return allResolved;
+  }
+
+  function _executeWithdraw(address receiver, EthlanceStructs.TokenValue memory tokenValue) internal {
+    bytes32 valueDepositId = _generateDepositId(receiver, tokenValue);
+    Deposit memory deposit = deposits[valueDepositId];
+    EthlanceStructs.transferTokenValue(tokenValue, address(this), receiver);
+    deposit.tokenValue.value -= tokenValue.value;
+    deposits[valueDepositId] = deposit;
+  }
 
   // Normally the contributors (job creator and those who have added funds) can withdraw all their funds
   // at any point. This is not the case when there have already been payouts and thus the funds kept in
@@ -426,7 +427,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       if(deposit.depositor == contributor) {
         EthlanceStructs.TokenValue memory tv = deposit.tokenValue;
         uint jobTokenBalance = EthlanceStructs.tokenValueBalance(address(this), tv);
-        tv.value = min(jobTokenBalance, tv.value);
+        if (jobTokenBalance == 0) { break; } // Nothing to do if 0 tokens left of the kind
+        uint valueToWithdraw = min(jobTokenBalance, tv.value);
+        if (valueToWithdraw == 0) { break; } // Nothing to do if could withdraw 0
+        tv.value = valueToWithdraw;
         withdrawables[withdrawablesCount] = tv;
         withdrawablesCount += 1;
       }

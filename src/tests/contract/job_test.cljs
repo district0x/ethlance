@@ -99,8 +99,7 @@
                        tx-pay-invoice (<! (smart-contracts/contract-send [:job job-address] :pay-invoice [invoice-1-id "0x0"] {:from employer}))
                        event-pay-invoice (<! (smart-contracts/contract-event-in-tx :ethlance :InvoicePaid tx-pay-invoice))
                        worker-eth-balance-after (<? (web3-eth/get-balance @web3 worker))
-                       worker-eth-change (wei->eth (bn/- (bn/number worker-eth-balance-after) (bn/number worker-eth-balance-before)))
-                       ]
+                       worker-eth-change (wei->eth (bn/- (bn/number worker-eth-balance-after) (bn/number worker-eth-balance-before)))]
                    (is (= (int (:invoice-id event-pay-invoice)) invoice-1-id))
                    (is (= worker-eth-change invoice-amount-eth)))
 
@@ -114,8 +113,7 @@
                        erc-20-invoice-id (int (:invoice-id invoice-event))
                        tx-pay-invoice (<! (smart-contracts/contract-send [:job job-address] :pay-invoice [erc-20-invoice-id "0x0"] {:from employer}))
                        worker-final-erc20-balance (<? (smart-contracts/contract-call :token :balance-of [worker]))
-                       worker-erc20-balance-change (- (int worker-final-erc20-balance) (int worker-initial-erc20-balance))
-                       ]
+                       worker-erc20-balance-change (- (int worker-final-erc20-balance) (int worker-initial-erc20-balance))]
                    (is (= worker-erc20-balance-change erc-20-token-amount)))
 
                  ; Pay ERC721 (NFT) invoice
@@ -473,16 +471,21 @@
                      ; TODO: replace with deserialized amount from `max-withdrawable-amounts`
                      ;       Sponsor should be able to withdraw min((16 - 7), 6) = 6
                      ;       Employer should be able to withdraw min((16 - 7 - 6), 10) = 3
-                     sponsor-withdraw-amounts [(merge employer-contribution-a {:value 6})]
-                     employer-withdraw-amounts [(merge employer-contribution-a {:value 3})]
+                     sponsor-withdraw-amounts [(merge employer-contribution-a {:value 6})]  ; Sponsor to withdraw 6 from remaining 9, leaving 3
+                     employer-withdraw-amounts [(merge employer-contribution-a {:value 2})] ; Employer to withdraw 2 from remaining 3, leaving 1
 
                      withdraw-sponsor-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [sponsor-withdraw-amounts] {:from sponsor}))
                      withdraw-employer-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [employer-withdraw-amounts] {:from employer}))
 
                      employer-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [employer]))) employer-balance-before)
-                     sponsor-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [sponsor]))) sponsor-balance-before)
-                     ]
-                 (is (= employer-balance 3))
-                 (is (= sponsor-balance 6))
-                 )
+                     sponsor-balance (- (js/parseInt (<? (smart-contracts/contract-call :token :balance-of [sponsor]))) sponsor-balance-before)]
+                 (is (= employer-balance 2))
+                 (is (= sponsor-balance 6)))
+
+               (let [job-starting-balance (js/parseInt (<! (smart-contracts/contract-call :token :balance-of [job-address])))
+                     employer-final-withdrawal-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-all [] {:from employer}))
+                     job-final-balance (js/parseInt (<! (smart-contracts/contract-call :token :balance-of [job-address])))]
+                 (is (= job-starting-balance 1))
+                 (is ((comp = not nil?) employer-final-withdrawal-tx))
+                 (is (= job-final-balance 0)))
                (done))))))
