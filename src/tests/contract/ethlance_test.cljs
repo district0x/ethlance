@@ -3,7 +3,6 @@
             [cljs-web3-next.eth :as web3-eth]
             [cljs.test :refer-macros [deftest is testing async]]
             [district.server.web3 :refer [web3]]
-            [ethlance.server.smart-contracts :as sc]
             [ethlance.server.contract.ethlance :as ethlance]
             [ethlance.shared.contract-constants :as contract-constants]
             [ethlance.shared.smart-contracts-dev :as addresses]

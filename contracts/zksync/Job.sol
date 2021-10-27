@@ -23,12 +23,13 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   address public creator;
   EthlanceStructs.JobType public jobType;
-  mapping(uint => EthlanceStructs.TokenValue) public offeredValues;
 
   // The bytes32 being keccak256(abi.encodePacked(depositorAddress, TokenType, contractAddress, tokenId))
   mapping(bytes32 => Deposit) deposits;
   struct Deposit {
     address depositor;
+    // This (tokenValue) reflects the amount depositor has added - withdrawn
+    // It excludes (doesn't get updated for) the amounts paid out as invoices
     EthlanceStructs.TokenValue tokenValue;
   }
   bytes32[] depositIds; // So it's possible to look up and list all the deposits
@@ -90,7 +91,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     creator = _creator;
     jobType = _jobType;
     for(uint i = 0; i < _invitedArbiters.length; i++) { invitedArbiters.add(_invitedArbiters[i]); }
-    for(uint i = 0; i < _offeredValues.length; i++) { offeredValues[i] = _offeredValues[i]; }
 
     _recordAddedFunds(creator, _offeredValues);
   }
@@ -199,15 +199,13 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     if (jobType == EthlanceStructs.JobType.GIG) {
       require(invitedCandidates.contains(msg.sender), "Sender must be amongst invitedCandidates to raise an invoice for GIG job type");
     }
-    // TODO: Check that job isn't paid
-    // TODO: Check that issuer has been set
 
     for(uint i = 0; i < _invoicedValue.length; i++) {
       Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false, false);
       invoices[lastInvoiceIndex] = newInvoice;
       candidateInvoiceIds[msg.sender].push(lastInvoiceIndex);
 
-      // TODO: Is there a better way to emit array of TokenValue-s?
+      // FIXME: Is there a better way to emit array of TokenValue-s?
       EthlanceStructs.TokenValue[] memory single = new EthlanceStructs.TokenValue[](1);
       single[0] = _invoicedValue[0];
       ethlance.emitInvoiceCreated(address(this), address(msg.sender), lastInvoiceIndex, single, _ipfsData);
@@ -233,7 +231,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   function payInvoice(
     uint _invoiceId,
     bytes memory _ipfsData
-  ) external {
+  ) public {
     require(msg.sender == creator);
     Invoice memory invoice = invoices[_invoiceId];
     require(invoice.paid == false);
@@ -288,7 +286,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     address _funder,
     EthlanceStructs.TokenValue[] memory _offeredValues
   ) internal {
-    // TODO: check that the _fundedValue is within _offeredValue (used during initialization)
     for(uint i = 0; i < _offeredValues.length; i++) {
       EthlanceStructs.TokenValue memory tv = _offeredValues[i];
       Deposit memory deposit = Deposit(_funder, tv);
@@ -350,17 +347,18 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   /**
-   * @dev It joins together `{_recordAddedFunds}` and `{payInvoice}` calls
+   * @dev It joins together `{addFunds}` and `{payInvoice}` calls
    *
-   * This function is not meant to be called directly, but via token received callbacks
-   * TODO: Needs implementation
+   * The primary use is for ERC20 token transfers (as the 721 and 1155 will work though callbacks)
    */
-  function _recordAddedFundsAndPayInvoice(
-    EthlanceStructs.TokenValue[] memory _fundedValue,
-    uint _invoiceId
-  ) internal {
+  function addFundsAndPayInvoice(
+    EthlanceStructs.TokenValue[] memory _tokenValues,
+    uint _invoiceId,
+    bytes memory _ipfsData
+  ) public {
+    addFunds(_tokenValues);
+    payInvoice(_invoiceId, _ipfsData);
   }
-
 
   /**
    * @dev Withdraws funds back to the original funder
@@ -377,6 +375,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   ) external {
     require(_toBeWithdrawn.length == 1, "Currently only possible to withdraw single TokenValue at a time");
     require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
+    require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
     EthlanceStructs.TokenValue memory withdrawnValue = _toBeWithdrawn[0];
     require(_isWithinWithdrawLimits(msg.sender, withdrawnValue), "Either you've deposited less than the withdrawn amount or Job has fewer of that token left to withdraw");
 
@@ -386,7 +385,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   function withdrawAll() external {
     EthlanceStructs.TokenValue[] memory withdrawAmounts = maxWithdrawableAmounts(msg.sender);
-    for(uint i = 0; i < withdrawAmounts.length; i++) { _executeWithdraw(msg.sender, withdrawAmounts[i]); }
+    for(uint i = 0; i < withdrawAmounts.length; i++) {
+      _executeWithdraw(msg.sender, withdrawAmounts[i]);
+    }
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
   }
 
@@ -394,6 +395,16 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint depositBalance = deposits[_generateDepositId(withdrawer, tokenValue)].tokenValue.value;
     uint jobBalance = EthlanceStructs.tokenValueBalance(withdrawer, tokenValue);
     return depositBalance > 0 && depositBalance >= jobBalance;
+  }
+
+  function _hasUnpaidInvoices() internal returns(bool) {
+    for(uint i = 0; i < lastInvoiceIndex; i++) {
+      Invoice memory invoice = invoices[i];
+      if (invoice.paid == false && invoice.cancelled == false) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function _noUnresolvedDisputes() internal returns(bool) {
@@ -520,7 +531,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives approval for ERC20 MiniMe token
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    * TODO: Needs implementation
    */
   function receiveApproval(
@@ -547,7 +558,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives ERC721 token
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    */
   function onERC721Received(
     address _operator,
@@ -562,7 +573,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives ERC1155 token
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    */
   function onERC1155Received(
     address _operator,
@@ -571,7 +582,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256 _value,
     bytes calldata _data
   ) public override returns (bytes4) {
-    // TODO: think about how creating new job with 1155 offer would work
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
@@ -587,6 +597,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       acceptQuoteForArbitration(target, tokenValues);
     } else if(targetMethod == TargetMethod.ADD_FUNDS) {
       _recordAddedFunds(target, tokenValues);
+    } else if (targetMethod == TargetMethod.ADD_FUNDS_AND_PAY_INVOICE) {
+      // 1. Take ownership of the tokens (by this time the tokens should be approved for this Job contract)
+      // 2. Send them to the worker
+      revert("Not yet implemented");
     } else {
       revert("Unknown TargetMethod on ERC721 receival callback");
     }
@@ -594,7 +608,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives multiple ERC1155 tokens
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `_data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    * TODO: Needs implementation
    */
   function onERC1155BatchReceived(
@@ -610,7 +624,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   /**
    * @dev This function is called automatically when this contract receives ETH
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {_recordAddedFundsAndPayInvoice} based on decoding `msg.data`
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive(
   ) external payable {
@@ -631,5 +645,4 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   function isCallerJobCreator(address account) internal returns (bool) {
     return account == creator;
   }
-
 }

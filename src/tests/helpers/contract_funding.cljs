@@ -2,7 +2,6 @@
   (:require [bignumber.core :as bn]
             [cljs-web3-next.eth :as web3-eth]
             [district.server.web3 :refer [web3]]
-            [ethlance.server.smart-contracts :as sc]
             [ethlance.server.contract.ethlance :as ethlance]
             [ethlance.shared.contract-constants :as contract-constants]
             [ethlance.shared.smart-contracts-dev :as addresses]

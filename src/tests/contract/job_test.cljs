@@ -3,7 +3,6 @@
             [cljs-web3-next.eth :as web3-eth]
             [cljs.test :refer-macros [deftest is testing async]]
             [district.server.web3 :refer [web3]]
-            [ethlance.server.smart-contracts :as sc]
             [ethlance.server.contract.ethlance :as ethlance]
             [ethlance.shared.contract-constants :as contract-constants]
             [ethlance.shared.smart-contracts-dev :as addresses]
@@ -12,6 +11,7 @@
             [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
             [district.web3-utils :as web3-utils]
             [district.shared.async-helpers :refer [<?]]
+            [tests.helpers.contract :as cont :refer [tx-reverted-with]]
             [tests.helpers.contract-funding :refer [fund-in-eth fund-in-erc20
                                                     fund-in-erc721
                                                     fund-in-erc1155
@@ -179,7 +179,8 @@
                    token-offer (offer-from-job-data job-data :erc20)
                    job-address (:job job-data)
                    empty-ipfs-data "0x0"
-                   invoice-tx-receipt (<! (smart-contracts/contract-send [:job job-address] :create-invoice [[token-offer] "0x0"] {:from worker}))
+                   _ (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker empty-ipfs-data] {:from employer}))
+                   invoice-tx-receipt (<! (smart-contracts/contract-send [:job job-address] :create-invoice [[token-offer] empty-ipfs-data] {:from worker}))
                    invoice-event (<! (smart-contracts/contract-event-in-tx :ethlance :InvoiceCreated invoice-tx-receipt))
                    invoice-id (int (:invoice-id invoice-event))]
 
@@ -189,8 +190,9 @@
                  (is (= (int (:invoice-id cancel-event)) invoice-id)))
 
                ; Cancel same invoice again (tx fails)
-               (let [tx-cancel-invoice (<! (smart-contracts/contract-send [:job job-address] :cancel-invoice [invoice-id "0x0"] {:from worker}))]
-                 (is (= nil tx-cancel-invoice)))
+               (let [tx-cancel-invoice (<! (smart-contracts/contract-send [:job job-address] :cancel-invoice [invoice-id "0x0"] {:from worker}))
+                     error-message (. tx-cancel-invoice -message)]
+                 (is (tx-reverted-with tx-cancel-invoice #"was already cancelled")))
 
                ; Create new invoice, pay it & try to cancel (should fail)
                (let [invoice-tx-receipt (<! (smart-contracts/contract-send [:job job-address] :create-invoice [[token-offer] "0x0"] {:from worker}))
@@ -205,7 +207,7 @@
                      invoice (js->clj invoice-raw) ; [[[[0 0x0000000000000000000000000000000000000000] 0] 0] 0x0000000000000000000000000000000000000000 0 true false]
                      invoice-paid? (get-in invoice [3])
                      invoice-cancelled? (get-in invoice [4])]
-                 (is (= nil tx-cancel-invoice))
+                 (is (tx-reverted-with tx-cancel-invoice #"was already paid"))
                  (is (= invoice-paid? true))
                  (is (= invoice-cancelled? false))))
              (done)))))
@@ -457,7 +459,7 @@
                    event-pay-invoice (<! (smart-contracts/contract-event-in-tx :ethlance :InvoicePaid tx-pay-invoice))]
 
                ; 3. Employer intents to withdraw original sum of 10 (fails, as 7 of 16 are already paid out with only 9 left)
-               (let [withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[employer-contribution-a]] {:from employer}))]
+               (let [[withdraw-tx err] (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [[employer-contribution-a]] {:from employer}))]
                  (is (nil? withdraw-tx) "Withdraw should fail because some of the tokens were already paid out"))
 
                ; 4. Employer withdraws according to `Job#maxWithdrawableAmounts` (succeeds)
@@ -484,8 +486,71 @@
 
                (let [job-starting-balance (js/parseInt (<! (smart-contracts/contract-call :token :balance-of [job-address])))
                      employer-final-withdrawal-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-all [] {:from employer}))
+                     ; TODO: add final check that the withdrawers got the amounts back at their addresses
                      job-final-balance (js/parseInt (<! (smart-contracts/contract-call :token :balance-of [job-address])))]
                  (is (= job-starting-balance 1))
                  (is ((comp = not nil?) employer-final-withdrawal-tx))
                  (is (= job-final-balance 0)))
+               (done))))))
+
+(deftest add-funds-and-pay-invoice
+  ; Scenario:
+  ;   1. Job gets created & funded with 2 ERC20
+  ;   2. Worker raises an invoice for larger amount 5 ERC20
+  ;   3. Employer tries to withdraw and fails because there is an unpaid invoice
+  ;   4. Employer adds 8 more ERC20 tokens (now 10 total) & pays invoice in one step (expect success)
+  ;   5. Employer withdraws remaining ERC20 tokens (based on Job#maxWithdrawableAmounts)
+  ;   6. Result: job is left with 0 ERC20, employer gets 3 ERC20
+  (testing "when invoice amount is > funds, employer can add funds & pay invoice in 1 step"
+    (async done
+           (go
+             (let [[_owner employer worker sponsor] (<! (web3-eth/accounts @web3))
+                   employer-starting-balance (int (<! (smart-contracts/contract-call :token :balance-of [employer])))
+                   erc-20-amount 2
+                   additional-amount 3
+                   ;   1. Job gets created & funded with 2 ERC20
+                   job-data (<! (create-initialized-job [(partial fund-in-erc20 employer erc-20-amount)]))
+                   funding-tx-receipt (:tx-receipt job-data)
+                   job-address (:job job-data)
+                   add-candidate-tx (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker "0x0"] {:from employer}))
+
+                   ;   2. Worker raises an invoice for larger amount 5 ERC20 (3 extra)
+                   invoice-amounts [(merge (offer-from-job-data job-data :erc20) {:value (+ erc-20-amount additional-amount)})]
+                   tx-receipt (<? (smart-contracts/contract-send [:job job-address] :create-invoice [invoice-amounts "0x0"] {:from worker}))
+                   invoice-event (<! (smart-contracts/contract-event-in-tx :ethlance :InvoiceCreated tx-receipt))
+                   invoice-id (int (:invoice-id invoice-event))]
+
+               ;   3. Employer tries to withdraw and fails because there is an unpaid invoice
+               (let [employer-withdraw-amounts [(offer-from-job-data job-data :erc20)]
+                     withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [employer-withdraw-amounts] {:from employer}))]
+                 (is (tx-reverted-with withdraw-tx #"Can't withdraw whilst there are unpaid invoices")))
+
+               ; Try to pay (will fail because there are insufficient ERC20 funds)
+               (let [pay-invoice-tx (<! (smart-contracts/contract-send [:job job-address] :pay-invoice [invoice-id "0x0"] {:from employer}))]
+                 (is (tx-reverted-with pay-invoice-tx #"Insufficient ERC20 tokens")))
+
+               ;   4. Employer adds 3+5=8 more ERC20 tokens (now 10 total) & pays invoice in one step (expect success)
+               (let [leftover-tokens 5 ; These will stay in ERC20 contract as Job only takes ownershipe of minimum amount needed
+                     to-approve (+ additional-amount leftover-tokens)
+                     mint-additional-tx (<! (smart-contracts/contract-send :token :mint [employer to-approve]))
+                     approve-more-erc20-tx (<! (smart-contracts/contract-send :token :approve [job-address to-approve] {:from employer}))
+
+                     worker-token-balance-before (<? (smart-contracts/contract-call :token :balance-of [worker]))
+                     extra-funds [(merge (first invoice-amounts) {:value to-approve})]
+                     tx-pay-invoice (<! (smart-contracts/contract-send [:job job-address] :add-funds-and-pay-invoice [extra-funds invoice-id "0x0"] {:from employer}))
+                     event-pay-invoice (<! (smart-contracts/contract-event-in-tx :ethlance :InvoicePaid tx-pay-invoice))
+                     worker-token-balance-after (<? (smart-contracts/contract-call :token :balance-of [worker]))
+                     worker-token-change (bn/- (bn/number worker-token-balance-after) (bn/number worker-token-balance-before))
+                     max-withdrawable-amounts (map contract-constants/token-value-vec->map
+                                                        (js->clj (<! (smart-contracts/contract-call [:job job-address] :max-withdrawable-amounts [employer] {:from employer}))))
+                     leftover-token-amounts [(merge (first invoice-amounts) {:value leftover-tokens})]
+
+                     ;   5. Employer withdraws remaining ERC20 tokens (based on Job#maxWithdrawableAmounts)
+                     leftover-withdraw-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [leftover-token-amounts] {:from employer}))
+                     job-final-balance (<! (smart-contracts/contract-call :token :balance-of [job-address]))
+                     employer-erc20-balance-diff (- (<! (smart-contracts/contract-call :token :balance-of [employer])) employer-starting-balance)]
+                 ;   6. Result: job is left with 0 ERC20, employer gets 3 ERC20
+                 (is (= (int employer-erc20-balance-diff) 5))
+                 (is (= (int job-final-balance) 0) "After withdrawing ")
+                 (is (= worker-token-change 5)))
                (done))))))
