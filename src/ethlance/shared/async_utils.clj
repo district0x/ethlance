@@ -10,14 +10,14 @@
 (defmacro <!-<log
   "Pulls from success channel, logs error channel."
   [form]
-  `(clojure.core.async/<!
+  `(cljs.core.async/<!
     (ethlance.shared.async-utils/log-error-channel ~form)))
 
 
 (defmacro <!-<throw
   "Pulls from success channel, throws on error channel."
   [form]
-  `(clojure.core.async/<!
+  `(cljs.core.async/<!
     (ethlance.shared.async-utils/throw-error-channel ~form)))
 
 
@@ -26,7 +26,7 @@
 
    ex. (is (<log-<! (my-func))) ;; test expects an error object"
   [form]
-  `(clojure.core.async/<!
+  `(cljs.core.async/<!
     (ethlance.shared.async-utils/pull-error-channel ~form)))
 
 
@@ -37,7 +37,7 @@
 
   - Also ensures that the channel returned by `go` returns `:done`"
   [& body]
-  `(clojure.core.async/go
+  `(cljs.core.async/go
      (try
        ~@body
        (catch :default e#

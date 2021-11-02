@@ -26,7 +26,7 @@
 (defn- positive-int-upto [n]
   (+ 1 (rand-int (- n 1))))
 
-#_ (deftest ethlance-erc20-payment
+(deftest ethlance-erc20-payment
   (testing "Creating job paid with ERC20 token"
     (async done
            (go
@@ -59,7 +59,7 @@
                  (is-same-amount job-proxy-balance to-approve-amount "tokens held in proxy must >= approved")
                  (done)))))))
 
-#_ (deftest ethlance-eth-payment
+(deftest ethlance-eth-payment
   (testing "Paying with ETH for a Ethlance job"
     (async done
            (go
@@ -115,7 +115,7 @@
          (is (= created-job token-owner))
          (done))))))
 
-#_ (deftest ethlance-erc1155-payment
+(deftest ethlance-erc1155-payment
   (testing "Paying in multi-token (ERC1155)"
     (async done
      (go
