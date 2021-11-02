@@ -3,7 +3,7 @@
  :dependencies [[akiroz.re-frame/storage "0.1.4"]
                 [binaryage/devtools "0.9.10"]
                 [camel-snake-kebab "0.4.1"]
-                [cider/cider-nrepl "0.25.3"]
+                [cider/cider-nrepl "0.27.2"]
                 [cider/piggieback "0.4.1"]
                 [cljs-web3 "0.19.0-0-10"]
                 [cljsjs/bignumber "4.1.0-0"]
@@ -78,13 +78,12 @@
                 [district0x/district-server-db "1.0.4"]
                 [district0x/district-server-logging "1.0.6"]
                 [district0x/district-server-middleware-logging "1.0.0"]
-                [district0x/district-server-smart-contracts "1.2.5"]
+                [district0x/district-server-smart-contracts "1.2.8"]
                 [district0x/district-server-web3 "1.2.6"]
-                [district0x/district-server-web3-events "1.1.10"]
+                [district0x/district-server-web3-events "1.1.10"]]
 
-                ]
-
- :nrepl {:middleware [cider.piggieback/wrap-cljs-repl
+ :nrepl {
+         :middleware [cider.piggieback/wrap-cljs-repl
                       refactor-nrepl.middleware/wrap-refactor]
          :port 54872}
 
@@ -121,7 +120,6 @@
 
           :server-tests
           {:target :node-test
-           :modules {:main {:init-fn tests.runner/start-and-run-tests}}
            :js-options {:js-package-dirs ["./server/node_modules"]}
            :output-dir "server/tests"
            :output-to "server/tests/server-tests.js"
