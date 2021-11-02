@@ -32,7 +32,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     // It excludes (doesn't get updated for) the amounts paid out as invoices
     EthlanceStructs.TokenValue tokenValue;
   }
-  bytes32[] depositIds; // So it's possible to look up and list all the deposits
+  bytes32[] depositIds; // To allow looking up and listing all deposits
 
   mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;
   using EnumerableSet for EnumerableSet.AddressSet;
@@ -288,10 +288,18 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   ) internal {
     for(uint i = 0; i < _offeredValues.length; i++) {
       EthlanceStructs.TokenValue memory tv = _offeredValues[i];
-      Deposit memory deposit = Deposit(_funder, tv);
       bytes32 depositId = _generateDepositId(_funder, tv);
-      deposits[depositId] = deposit;
-      depositIds.push(depositId);
+      Deposit storage earlierDeposit = deposits[depositId];
+      if (earlierDeposit.depositor == address(0)) {
+        // No earlier deposit of that token from the depositor
+        Deposit memory deposit = Deposit(_funder, tv);
+        deposits[depositId] = deposit;
+        depositIds.push(depositId);
+      } else {
+        // There was a deposit before of that token from the depositor
+        // Record added funds
+        earlierDeposit.tokenValue.value += tv.value;
+      }
     }
     ethlance.emitFundsAdded(address(this), _funder, _offeredValues);
   }
@@ -320,10 +328,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return depositIds;
   }
 
-  // There will be 2 withdraw functions
-  //   - one takes all necessary information for depositId (msg.sender, contract address, token type, etc)
-  // 2nd interface:
-  //   - without any parameters, allows 1 contributor to withdraw all of their deposits
   function getDeposits(address depositor) public view returns (EthlanceStructs.TokenValue[] memory) {
     EthlanceStructs.TokenValue[] memory selectedValues = new EthlanceStructs.TokenValue[](depositIds.length);
     uint lastFilled = 0;
@@ -334,7 +338,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
         selectedValues[lastFilled] = currentDeposit.tokenValue;
         lastFilled += 1;
       }
-      // selectedValues[i] = currentDeposit.tokenValue;
     }
 
     EthlanceStructs.TokenValue[] memory compactedValues = new EthlanceStructs.TokenValue[](lastFilled);
@@ -377,7 +380,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
     require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
     EthlanceStructs.TokenValue memory withdrawnValue = _toBeWithdrawn[0];
-    require(_isWithinWithdrawLimits(msg.sender, withdrawnValue), "Either you've deposited less than the withdrawn amount or Job has fewer of that token left to withdraw");
 
     _executeWithdraw(msg.sender, withdrawnValue);
     ethlance.emitFundsWithdrawn(address(this), msg.sender, _toBeWithdrawn);
@@ -389,12 +391,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       _executeWithdraw(msg.sender, withdrawAmounts[i]);
     }
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
-  }
-
-  function _isWithinWithdrawLimits(address withdrawer, EthlanceStructs.TokenValue memory tokenValue) internal returns(bool) {
-    uint depositBalance = deposits[_generateDepositId(withdrawer, tokenValue)].tokenValue.value;
-    uint jobBalance = EthlanceStructs.tokenValueBalance(withdrawer, tokenValue);
-    return depositBalance > 0 && depositBalance >= jobBalance;
   }
 
   function _hasUnpaidInvoices() internal returns(bool) {
@@ -418,6 +414,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   function _executeWithdraw(address receiver, EthlanceStructs.TokenValue memory tokenValue) internal {
     bytes32 valueDepositId = _generateDepositId(receiver, tokenValue);
     Deposit memory deposit = deposits[valueDepositId];
+    require(tokenValue.value <= deposit.tokenValue.value, "Can't withdraw more than the withdrawer has deposited");
     EthlanceStructs.transferTokenValue(tokenValue, address(this), receiver);
     deposit.tokenValue.value -= tokenValue.value;
     deposits[valueDepositId] = deposit;
@@ -426,7 +423,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   // Normally the contributors (job creator and those who have added funds) can withdraw all their funds
   // at any point. This is not the case when there have already been payouts and thus the funds kept in
   // this Job contract are less.
-  // In such case these users will be eligible for proportion of their original contribution.
+  // In such case these users will be eligible up to what they've contributed limited to what's left in Job
   //
   // This method can be used to receive array of TokenValue-s with max amounts to be used
   // for subsequent withdrawFunds call
