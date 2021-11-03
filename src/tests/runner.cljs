@@ -1,11 +1,10 @@
 (ns tests.runner
   (:require
    [cljs.nodejs :as nodejs]
-   [cljs.test :refer [run-tests]]
-   [tests.contract.ethlance-test]
    [district.server.logging]
    [district.server.web3]
    [tests.contract.ethlance-test]
+   [tests.contract.job-test]
    [district.shared.async-helpers :as async-helpers]
    [cljs-promises.async]
    [ethlance.shared.smart-contracts-dev :refer [smart-contracts]]

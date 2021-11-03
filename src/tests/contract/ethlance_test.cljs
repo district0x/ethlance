@@ -8,14 +8,7 @@
             [ethlance.shared.smart-contracts-dev :as addresses]
             [district.server.smart-contracts :as smart-contracts]
             [cljs.core.async :refer [<! go]]
-            [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
-            [district.web3-utils :as web3-utils]
-            [district.shared.async-helpers :refer [<?]]
-            [tests.helpers.contract-funding :refer [fund-in-eth fund-in-erc20
-                                                    fund-in-erc721
-                                                    fund-in-erc1155
-                                                    create-initialized-job
-                                                    eth->wei wei->eth]]))
+            [district.shared.async-helpers :refer [<?]]))
 
 (defn is-same-amount [amount-a amount-b & more]
   (let [description (first more)]
