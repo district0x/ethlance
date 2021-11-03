@@ -53,7 +53,6 @@
   ([recipient funding-amount offered-values create-job-opts & {approve-for :approve-for :or {approve-for :ethlance}}]
    (go
      (let [ethlance-addr (smart-contracts/contract-address :ethlance)
-           [_owner employer _worker] (<! (web3-eth/accounts @web3))
            approve-addr (if (= :ethlance approve-for) ethlance-addr approve-for)
            _ (<? (smart-contracts/contract-send :token :mint [recipient funding-amount]))
            test-token-address (smart-contracts/contract-address :token)
@@ -61,15 +60,14 @@
            offered-token-type (contract-constants/token-type :erc20)
            erc-20-value {:token
                          {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
-                          :tokenId not-used-for-erc20} :value funding-amount}
-           approval-result (<! (smart-contracts/contract-send :token :approve [approve-addr funding-amount] {:from recipient}))]
+                          :tokenId not-used-for-erc20} :value funding-amount}]
+       (smart-contracts/contract-send :token :approve [approve-addr funding-amount] {:from recipient})
        [(conj offered-values erc-20-value) create-job-opts]))))
 
 (defn fund-in-erc721
   [recipient offered-values create-job-opts & {approval :approval :or {approval true}}]
   (go
     (let [ethlance-addr (smart-contracts/contract-address :ethlance)
-          [_owner employer _worker] (<! (web3-eth/accounts @web3))
           receipt (<? (smart-contracts/contract-send :test-nft :award-item [recipient]))
           token-id (. (get-in receipt [:events :Transfer :return-values]) -tokenId)
           test-token-address (smart-contracts/contract-address :test-nft)
@@ -77,7 +75,7 @@
           token-offer {:token
                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                         :tokenId token-id} :value 1}]
-      (if approval (<? (smart-contracts/contract-send :test-nft :approve [ethlance-addr token-id] {:from recipient})))
+      (if approval (<? (smart-contracts/contract-send :test-nft :approve [ethlance-addr token-id] {:from recipient})) nil)
       [(conj offered-values token-offer) create-job-opts])))
 
 (defn fund-in-erc1155
@@ -85,7 +83,6 @@
   ([recipient amount offered-values create-job-opts & {approval :approval :or {approval true}}]
    (go
      (let [ethlance-addr (smart-contracts/contract-address :ethlance)
-           [_owner employer _worker] (<! (web3-eth/accounts @web3))
            receipt (<? (smart-contracts/contract-send :test-multi-token :award-item [recipient amount]))
            token-id (. (get-in receipt [:events :Transfer-single :return-values]) -id)
            token-amount (. (get-in receipt [:events :Transfer-single :return-values]) -value)
@@ -94,7 +91,9 @@
            token-offer {:token
                         {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                          :tokenId token-id} :value (int token-amount)}]
-       (if approval (<? (smart-contracts/contract-send :test-multi-token :set-approval-for-all [ethlance-addr true] {:from recipient})))
+       (if approval
+         (<? (smart-contracts/contract-send :test-multi-token :set-approval-for-all [ethlance-addr true] {:from recipient}))
+         nil)
        [(conj offered-values token-offer) create-job-opts]))))
 
 (defn collect-from-funding-funcs
@@ -130,19 +129,19 @@
             job-impl-address (get-in addresses/smart-contracts [:job :address])
             real-vals (<! (reduce collect-from-funding-funcs [[] {}] funding-functions))
             [offered-values additional-opts] real-vals
-            ethlance-init-tx (<! (ethlance/initialize job-impl-address))]
-        (let [tx-receipt (<! (ethlance/create-job employer
+            _ (<! (ethlance/initialize job-impl-address))
+            tx-receipt (<! (ethlance/create-job employer
                                                   offered-values
                                                   job-type
                                                   arbiters
                                                   ipfs-data
                                                   additional-opts))
-              create-job-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated tx-receipt))
-              created-job-address (:job create-job-event)]
-          (if (= nil create-job-event) (throw (str "Job creation failed for values" offered-values)))
-          {:ethlance (smart-contracts/contract-address :ethlance)
-           :job created-job-address
-           :employer employer
-           :worker worker
-           :offered-values offered-values
-           :tx-receipt tx-receipt})))))
+            create-job-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated tx-receipt))
+            created-job-address (:job create-job-event)]
+        (if (= nil create-job-event) (throw (str "Job creation failed for values" offered-values)) nil)
+        {:ethlance (smart-contracts/contract-address :ethlance)
+         :job created-job-address
+         :employer employer
+         :worker worker
+         :offered-values offered-values
+         :tx-receipt tx-receipt}))))
