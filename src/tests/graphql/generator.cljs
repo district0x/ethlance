@@ -5,7 +5,6 @@
             [district.shared.async-helpers :refer [safe-go <?]]
             [district.server.async-db :as async-db]
             [cljs.core.async :refer [go <!]]
-            [ethlance.server.contract.ethlance-issuer :as ethlance-issuer]
             [ethlance.server.db :as ethlance-db]
             [taoensso.timbre :as log]
             [ethlance.shared.constants :as constants]))
@@ -115,7 +114,6 @@
            date-updated (time/plus date-published (time/days (rand-int 7)))
            expertise-level (rand-int 5)
            token "0x8f389F672Ef0586628689f9227e1d0e09f9A3245"
-           token-version (ethlance-issuer/token-version (rand-nth [:eth :erc20 :erc721]))
            reward (rand-int 300)
            web-reference-url (str "http://ethlance.com/" job-id)
            estimated-length (case (-> (rand-nth [:hours :days :weeks]))
@@ -138,7 +136,7 @@
                 :job/date-updated (time-coerce/to-long date-updated)
                 :job/expertise-level expertise-level
                 :job/token token
-                :job/token-version token-version
+                :job/token-version 0 ; FIXME: these events don't exist anymore. Remove
                 :job/reward reward
                 :job/web-reference-url web-reference-url
                 :job/language-id language}]
