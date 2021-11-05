@@ -29,7 +29,7 @@ const mnemonic = "easy leave proof verb wait patient fringe laptop intact opera 
 module.exports = {
   env: ETHLANCE_ENV,
   smart_contracts_path: __dirname + smartContractsPaths[ETHLANCE_ENV],
-  contracts_directory: __dirname + "/contracts/zksync",
+  contracts_directory: __dirname + "/contracts",
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : parameters [ETHLANCE_ENV],
 

@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 
 import "./EthlanceStructs.sol";
 import "./Job.sol";
-import "../token/ApproveAndCallFallback.sol";
-import "../proxy/MutableForwarder.sol";
+import "./external/ApproveAndCallFallback.sol";
+import "./external/MutableForwarder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./ds-auth/auth.sol";
+import "./external/ds-auth/auth.sol";
 
 
 /**

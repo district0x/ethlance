@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "../proxy/DelegateProxy.sol";
-import "../zksync/ds-auth/auth.sol";
+import "./DelegateProxy.sol";
+import "./ds-auth/auth.sol";
 
 /**
  * @title Forwarder proxy contract with editable target
