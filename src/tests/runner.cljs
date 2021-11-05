@@ -19,7 +19,7 @@
 ; Tests get run automatically by shadow.test.node/main which runs tests using cljs.test
 ; To run specific namespace tests, add --tests=<namespaces-separated-by-comma>
 (defn setup-test-env []
-  (-> (mount/with-args {:web3 {:url "ws://d0x-vm:8549"} ; hostia: "ws://192.168.32.1:7545"
+  (-> (mount/with-args {:web3 {:url "ws://localhost:8549"} ; d0x-vm: "ws://d0x-vm:8549" hostia: "ws://192.168.32.1:7545"
                         :smart-contracts {:contracts-var #'smart-contracts}
                         :logging {:level :info
                                   :console? true}})
