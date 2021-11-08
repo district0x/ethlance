@@ -16,7 +16,7 @@
     "clj-kondo": "^v2020.11.07",
     "jsedn": "0.4.1",
     "shadow-cljs": "2.11.4",
-    "truffle": "5.0.38"
+    "truffle": "5.3.5"
   },
   "engines": {
     "node": "11.14.0"
