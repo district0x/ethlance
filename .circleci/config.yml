@@ -41,7 +41,7 @@ jobs:
       # Primary container image where all steps run.
       - image: district0x/cljs-dev
       # Secondary container images on common network.
-      - image: trufflesuite/ganache-cli:v6.9.1
+      - image: trufflesuite/ganache-cli:v6.12.2
         command: [-d, -m district0x, -p 8549, -l 8000000, --noVMErrorsOnRPCResponse]
       - image: district0x/ipfs-daemon:latest
       - image: postgres:latest
