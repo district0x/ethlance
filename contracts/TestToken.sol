@@ -5,7 +5,7 @@
   value is not recommended."
 */
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 import "./math/SafeMath.sol";
 import "./token/IERC20.sol";
