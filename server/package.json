@@ -27,7 +27,7 @@
     "jsonwebtoken": "8.5.1",
     "pg": "8.2.1",
     "source-map-support": "0.5.9",
-    "web3": "1.2.0",
+    "web3": "1.4.0",
     "bignumber.js": "9.0.1",
     "xregexp": "4.3.0",
     "ws": "4.0.0",
