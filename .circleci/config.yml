@@ -76,11 +76,15 @@ jobs:
           cache-key: yarn.lock
           steps:
             - run:
-                name: Run test suite
+                name: Server dependencies
                 command: |
                   yarn deps
-                  yarn tests:once
-                working_directory: server
+                working_directory: ~/ethlance/server
+            - run:
+                name: Run test suite
+                command: |
+                  npx shadow-cljs compile server-tests && node server/tests/server-tests.js
+                working_directory: ~/ethlance
 
 workflows:
   version: 2
