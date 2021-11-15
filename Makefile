@@ -14,7 +14,7 @@
 
 
 ETHLANCE_ENV := dev # dev, qa, prod
-ETHEREUM_NETWORK := ganache # ganache, parity
+ETHEREUM_NETWORK := ganache # hostia, ganache, parity
 
 
 #
@@ -145,7 +145,7 @@ run:
 
 
 ipfs:
-	ipfs daemon
+	ipfs daemon --api "/ip4/0.0.0.0/tcp/5001"
 
 
 ETHLANCE_DB_PORT := 5432
@@ -173,8 +173,8 @@ build-contracts:
 TESTNET_PORT := 8549
 TESTNET_HOST := 0.0.0.0
 testnet:
-	# npx ganache-cli --mnemonic "easy leave proof verb wait patient fringe laptop intact opera slab shine" --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000 --allowUnlimitedContractSize
-	npx ganache-cli --mnemonic $(TESTNET_SEED_PHRASE) --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000 --allowUnlimitedContractSize
+	npx ganache-cli --mnemonic "easy leave proof verb wait patient fringe laptop intact opera slab shine" --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000 --allowUnlimitedContractSize
+	# npx ganache-cli --mnemonic $(TESTNET_SEED_PHRASE) --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000 --allowUnlimitedContractSize
 	# npx ganache-cli --mnemonic district0x --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
 
 
