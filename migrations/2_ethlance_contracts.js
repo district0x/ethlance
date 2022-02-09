@@ -75,9 +75,10 @@ async function deploy_EthlanceStructs(deployer, opts){
   assignContract(ethlanceStructs, "EthlanceStructs", "ethlance-structs");
 }
 
-async function deploy_Ethlance(deployer, opts){
+async function deploy_Ethlance(jobAddress, deployer, opts){
   deployer.link(EthlanceStructs, Ethlance);
   let ethlance = await deployer.deploy(Ethlance, {...opts, gas: 6e6});
+  await ethlance.initialize(jobAddress);
   assignContract(ethlance, "Ethlance", "ethlance");
 }
 
@@ -93,8 +94,9 @@ async function deploy_all(deployer, opts) {
   await deploy_TestNft(deployer, opts);
   await deploy_TestMultiToken(deployer, opts);
   await deploy_EthlanceStructs(deployer, opts);
-  await deploy_Ethlance(deployer, opts);
   await deploy_Job(deployer, opts);
+  job = await Job.deployed();
+  await deploy_Ethlance(job.address, deployer, opts);
 }
 
 
