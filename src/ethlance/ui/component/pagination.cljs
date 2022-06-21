@@ -4,8 +4,6 @@
 
 ;; Math Functions
 (def ceil (aget js/Math "ceil"))
-(def floor (aget js/Math "floor"))
-(def abs (aget js/Math "abs"))
 
 (defn c-pagination
   "Component for handling pagination wrt a given listing.

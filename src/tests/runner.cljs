@@ -21,7 +21,7 @@
 (defn setup-test-env []
   (-> (mount/with-args {:web3 {:url "ws://localhost:8549"} ; d0x-vm: "ws://d0x-vm:8549" hostia: "ws://192.168.32.1:7545"
                         :smart-contracts {:contracts-var #'smart-contracts}
-                        :logging {:level :info
+                        :logging {:level :warn
                                   :console? true}})
       (mount/only [#'district.server.logging/logging
                    #'district.server.web3/web3

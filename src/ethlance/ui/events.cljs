@@ -22,16 +22,17 @@
   [(re/inject-cofx :store)]
   (fn [{:keys [db store]} [_ config]]
     {:db (-> db
-           (assoc :ethlance/config config)
-           (merge (print.foo/look store)))
-     :dispatch-n [[:page.jobs/initialize-page]
-                  [:page.sign-up/initialize-page]
-                  [:page.candidates/initialize-page]
-                  [:page.arbiters/initialize-page]
-                  [:page.employers/initialize-page]
-                  [:page.profile/initialize-page]
-                  [:page.job-contract/initialize-page]
-                  [:page.job-detail/initialize-page]
-                  [:page.new-job/initialize-page]
-                  [:page.invoices/initialize-page]
-                  [:page.new-invoice/initialize-page]]}))
+           (assoc :ethlance/config config))
+     :dispatch-n [
+                  ; [:page.jobs/initialize-page]
+                  ; [:page.sign-up/initialize-page]
+                  ; [:page.candidates/initialize-page]
+                  ; [:page.arbiters/initialize-page]
+                  ; [:page.employers/initialize-page]
+                  ; [:page.profile/initialize-page]
+                  ; [:page.job-contract/initialize-page]
+                  ; [:page.job-detail/initialize-page]
+                  ; [:page.new-job/initialize-page]
+                  ; [:page.invoices/initialize-page]
+                  ; [:page.new-invoice/initialize-page]
+                  ]}))

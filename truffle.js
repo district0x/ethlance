@@ -50,16 +50,17 @@ module.exports = {
     },
 
     hostia: { // Truffle Ganache GUI app running on host machine
-      host: "192.168.12.1",     // Localhost (default: none)
-      port: 7545,            // Standard Ethereum port (default: none)
+      host: "192.168.32.1",     // Localhost (default: none)
+      port: 7545,               // Standard Ethereum port (default: none)
       network_id: "5777",       // Any network (default: none)
-      provider: () => new HDWalletProvider(mnemonic, `http://192.168.12.1:7545`),
+      websockets: true,
+      provider: () => new HDWalletProvider(mnemonic, `http://192.168.32.1:7545`),
     },
   },
 
   compilers: {
     solc: {
-      version: "0.8.4",
+      version: "0.8.12",
     }
   }
 }

@@ -1,10 +1,17 @@
 (ns ethlance.ui.config
   (:require [district.ui.component.router :as router]
+            [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+            [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
+            [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
             [ethlance.shared.graphql.schema :refer [schema]]
             [ethlance.shared.routes :as routes]))
 
 (def general-config
-  {:logging
+  ; config of https://github.com/district0x/district-ui-smart-contracts
+  {:smart-contracts {:format :truffle-json
+                     :load-path "./resources/public/contracts/build/"
+                     :contracts smart-contracts-dev/smart-contracts}
+   :logging
    {:level :info
     :console? true}
    :reagent-render
@@ -15,15 +22,17 @@
     :default-route :route/home
     :scroll-top? true
     :html5? true}
+   :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
+   :web3-tx {:disable-using-localstorage? true}
    :ipfs
    {:endpoint "/api/v0"
-    :host "http://127.0.0.1:5001"
-    :gateway "http://127.0.0.1:8080/ipfs"}
+    :host "http://d0x-vm:5001"
+    :gateway "http://192.168.32.14/ipfs"}
    :graphql
    {:schema schema
-    :url "http://localhost:6300/graphql"
+    :url "http://d0x-vm:6300/graphql"
     :jwt-sign-secret "SECRET"}
-   :root-url "http://127.0.0.1:6500"
+   :root-url "http://d0x-vm:6500"
    :github
    {:client-id "83e6a6043ca4ae50f8b0"}
    :linkedin
