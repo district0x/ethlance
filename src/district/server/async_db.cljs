@@ -5,6 +5,7 @@
             [district.server.config :refer [config]]
             [district.server.logging]
             [district.shared.async-helpers :refer [safe-go <?]]
+            [cljs.core.async :refer [<! go]]
             [honeysql-postgres.format]
             [honeysql-postgres.helpers]
             [honeysql.core :as sql]
@@ -60,6 +61,20 @@
          res (<? (.query conn query-str (clj->js (or values []))))]
      (->> (js->clj (.-rows res))
           (map #(map-keys transform-result-keys-fn %))))))
+
+(defn run-raw!
+  "Given a db connection and raw SQL string run & return result"
+  ([query-str]
+   (run-raw! (get-connection) query-str []))
+  ([query-str values]
+   (run-raw! (get-connection) query-str values))
+  ([conn-or-chan query-str values]
+   (safe-go
+     (let [conn (if (= js/Promise (type conn-or-chan)) (<! conn-or-chan) conn-or-chan)
+           _ (println ">> conn is" conn)
+           res (<! (.query conn query-str (clj->js (or values []))))]
+       (->> (js->clj (.-rows res))
+            (map #(map-keys transform-result-keys-fn %)))))))
 
 (defn all
   "Given a db connection and a honey sql query runs it and returns resultset rows."

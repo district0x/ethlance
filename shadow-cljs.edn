@@ -1,11 +1,10 @@
 {:source-paths ["src" "resources" "src-cljsjs" "test"]
  :dev-http {6500 "resources/public/"}
- :dependencies [[akiroz.re-frame/storage "0.1.4"]
-                [binaryage/devtools "0.9.10"]
+ :dependencies [
+                [mvxcvi/alphabase "2.1.1"]
+                [akiroz.re-frame/storage "0.1.4"]
+                [binaryage/devtools "1.0.4"]
                 [camel-snake-kebab "0.4.1"]
-                [cider/cider-nrepl "0.27.2"]
-                [cider/piggieback "0.4.1"]
-                [cljs-web3 "0.19.0-0-10"]
                 [cljsjs/bignumber "4.1.0-0"]
                 [cljsjs/buffer "5.1.0-1"]
                 [cljsjs/d3 "5.12.0-0"]
@@ -18,7 +17,7 @@
                 [day8.re-frame/http-fx "0.1.6"]
                 [district0x/async-helpers "0.1.3"]
                 [district0x/bignumber "1.0.3"]
-                [district0x/cljs-ipfs-http-client "1.0.5"]
+                [district0x/cljs-ipfs-http-client "1.0.6"]
                 [district0x/cljs-solidity-sha3 "1.0.0"]
                 [district0x/district-cljs-utils "1.0.4"]
                 [district0x/district-encryption "1.0.1"]
@@ -37,7 +36,7 @@
                 [district0x/district-ui-notification "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-now "1.0.2" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-reagent-render "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
-                [district0x/district-ui-router "1.0.7" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
+                [district0x/district-ui-router "1.0.8" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-router-google-analytics "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-smart-contracts "1.0.8" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
                 [district0x/district-ui-web3 "1.3.2" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]]
@@ -60,6 +59,7 @@
                 [district0x/re-frame-ipfs-fx "1.1.1"]
                 [expound "0.8.4"]
                 [flib/simplebar "5.0.7-SNAPSHOT"]
+                [funcool/bide "1.7.0"] ; FIXME: district.ui.router requires it but older version is included by some other library
                 [funcool/cuerdas "2.2.0"]
                 [medley "1.3.0"]
                 [mount "0.1.16"]
@@ -68,24 +68,28 @@
                 [org.clojure/core.match "1.0.0"]
                 [org.clojure/tools.reader "1.3.6"]
                 [print-foo-cljs "2.0.3"]
-                [re-frame "0.12.0"]
-                [re-frisk "1.3.4"]
-                [reagent "0.10.0"]
-                [refactor-nrepl "2.5.0"]
+                [re-frame "1.2.0"]
+                [re-frisk "1.6.0"]
+                [reagent "1.1.1"]
+
+                [io.github.district0x/cljs-web3-next "0.2.0-SNAPSHOT"]
 
                 [district0x/district-graphql-utils "1.0.10"]
                 [district0x/district-server-config "1.0.1"]
                 [district0x/district-server-db "1.0.4"]
                 [district0x/district-server-logging "1.0.6"]
                 [district0x/district-server-middleware-logging "1.0.0"]
-                [district0x/district-server-smart-contracts "1.2.8"]
-                [district0x/district-server-web3 "1.2.6"]
-                [district0x/district-server-web3-events "1.1.10"]]
+                [district0x/district-server-smart-contracts "1.2.8" :exclusions [district0x/cljs-web3-next]] ; needs cljs-web3-next
+                [district0x/district-server-web3 "1.2.6" :exclusions [district0x/cljs-web3-next]] ; needs cljs-web3-next
+                [district0x/district-server-web3-events "1.1.10" :exclusions [district0x/cljs-web3-next]] ; needs cljs-web3-next
 
- :nrepl {
-         :middleware [cider.piggieback/wrap-cljs-repl
-                      refactor-nrepl.middleware/wrap-refactor]
-         :port 54872}
+                ; Vim Iced deps
+                [refactor-nrepl "3.3.2"]
+                [cider/cider-nrepl "0.28.2"]
+                [com.github.liquidz/iced-nrepl "1.2.8"]
+                ]
+
+ :nrepl {:port 54872}
 
  :http {:port 3449
         :host "0.0.0.0"}
@@ -95,6 +99,7 @@
            :modules {:main {:init-fn ethlance.ui.core/init}}
            :main ethlance.ui.core
            :infer-externs true
+           :externs ["./externs"]
            :js-options {:js-package-dirs ["./ui/node_modules"]}
            :npm-deps false
            :output-dir "resources/public/js/"

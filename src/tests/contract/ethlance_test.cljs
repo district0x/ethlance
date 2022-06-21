@@ -7,6 +7,7 @@
             [ethlance.shared.contract-constants :as contract-constants]
             [ethlance.shared.smart-contracts-dev :as addresses]
             [district.server.smart-contracts :as smart-contracts]
+            [cljs-web3-next.eth]
             [cljs.core.async :refer [<! go]]
             [district.shared.async-helpers :refer [<?]]))
 

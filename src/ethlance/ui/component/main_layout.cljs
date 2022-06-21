@@ -9,7 +9,7 @@
             [ethlance.ui.component.mobile-navigation-bar
              :refer
              [c-mobile-navigation-bar]]
-            [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog]]))
+            [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog] :as sidi]))
 
 (defn c-main-layout
   "The main layout of each page in the ethlance ui.

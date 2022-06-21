@@ -5,6 +5,8 @@
             [ethlance.ui.component.icon :refer [c-icon]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [district.ui.web3-tx.events :as tx-events]
+            [district.ui.smart-contracts.queries :as contract-queries]
             [ethlance.ui.component.radio-select
              :refer
              [c-radio-secondary-element c-radio-select]]
@@ -13,6 +15,7 @@
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [ethlance.ui.util.component :refer [<sub >evt]]
             [re-frame.core :as re]))
 
 (defn c-arbiter-for-hire
@@ -154,6 +157,6 @@
             [c-arbiter-for-hire]])
 
          [:div.button
-          {:on-click (fn [])}
+          {:on-click (fn [] (>evt [:page.new-job/create]))}
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))

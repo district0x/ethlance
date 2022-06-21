@@ -10,7 +10,6 @@
   "dependencies": {
     "axios": "0.19.0",
     "body-parser": "1.19.0",
-    "bignumber.js": "9.0.1",
     "chalk": "2.3.0",
     "cors": "2.8.4",
     "dataloader": "^1.4.0",
@@ -23,7 +22,7 @@
     "@sentry/browser": "5.17.0",
     "source-map-support": "0.5.9",
     "simplebar": "5.0.7",
-    "web3": "1.4.0",
+    "web3": "1.7.3",
     "xregexp": "4.3.0",
     "is-ipfs": "2.0.0",
     "graphql": "0.13.2",
@@ -33,10 +32,8 @@
   "devDependencies": {
     "less": "3.10.3",
     "less-watch-compiler": "1.14.1",
-    "shadow-cljs": "2.11.4"
-  },
-  "engines": {
-    "node": "11.14.0"
+    "shadow-cljs": "2.19.3",
+    "web3-core-promievent": "1.7.1"
   },
   "comments": {
     "dependencies": {

@@ -224,17 +224,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   }
 
 
-  // FIXME:
-  //   Exact copy of CandidateAdded event. For some reason
-  //   in Clojure contract-event-in-tx doesn't find the event signature for :CandidateAdded
-  //   Works perfectly fine with the changed name.
-  // TODO: Remove this (CandidateAgregado) and all references to it
-  event CandidatoAgregado(
-    address job,
-    address candidate,
-    bytes ipfsData,
-    uint timestamp
-  );
   /**
    * @dev Emits {CandidateAdded} event
    * Can only be called by {Job} contract address
@@ -244,7 +233,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address _candidate,
     bytes memory _ipfsData
   ) external isJob {
-    emit CandidatoAgregado(_job, _candidate, _ipfsData, timestamp());
     emit CandidateAdded(_job, _candidate, _ipfsData, timestamp());
   }
 

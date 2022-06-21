@@ -170,12 +170,12 @@ build-contracts:
 
 
 # Environment setup for ganache-cli
+# Ganache >= 7: npm install ganache@rc --global
 TESTNET_PORT := 8549
 TESTNET_HOST := 0.0.0.0
+TESTNET_SEED_PHRASE := "easy leave proof verb wait patient fringe laptop intact opera slab shine"
 testnet:
-	npx ganache-cli --mnemonic "easy leave proof verb wait patient fringe laptop intact opera slab shine" --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000 --allowUnlimitedContractSize
-	# npx ganache-cli --mnemonic $(TESTNET_SEED_PHRASE) --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000 --allowUnlimitedContractSize
-	# npx ganache-cli --mnemonic district0x --host $(TESTNET_HOST) --port $(TESTNET_PORT) $(TESTNET_OPTIONS) -l 8000000
+	npx ganache-cli --mnemonic $(TESTNET_SEED_PHRASE) --host $(TESTNET_HOST) --port $(TESTNET_PORT) -l 8000000 --chain.allowUnlimitedContractSize true --miner.blockTime 0 --chain.vmErrorsOnRPCResponse --chain.chainId 1337
 
 
 build-docs:

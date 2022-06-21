@@ -200,8 +200,7 @@
 (defn generate-job-stories [conn stories-ids jobs [employer candidate _]]
   (safe-go
    (doseq [story-id stories-ids]
-     (let [_ (println "Generating story" story-id)
-           {:keys [job-id job-type]} (rand-nth jobs)
+     (let [{:keys [job-id job-type]} (rand-nth jobs)
            status  (rand-nth ["proposal pending" "active" "finished" "cancelled"])
            date-created (time/minus (time/now) (time/days (rand-int 60)))
            job-story {:job-story/id story-id
@@ -227,7 +226,6 @@
   (safe-go
    (doseq [story-id stories-ids]
      (when (rand-nth [true false])
-       (prn "Generating dispute for story " story-id)
        (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
                                                             :message/type :job-story-message
                                                             :job-story-message/type :raise-dispute

@@ -10,6 +10,9 @@
     [district.ui.router]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
+    [district.ui.web3]
+    [district0x.re-frame.web3-fx]
+    [district.ui.smart-contracts]
     [ethlance.ui.config :as ui.config]
     [ethlance.ui.effects]
     [ethlance.ui.events]
@@ -28,7 +31,6 @@
 
 (defn ^:export init []
   (let [main-config (ui.config/get-config)]
-    #_ (re-frisk/enable-re-frisk!)
     (.log js/console (clj->js main-config))
     (util.injection/inject-data-scroll! {:injection-selector "#app"})
 

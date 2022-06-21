@@ -27,7 +27,7 @@ smart_contracts_dev.cljs
 /resources/libs/yarn-error.log
 /resources/libs/yarn.lock
 ethlance.db
-.shadow-cljs
+/.shadow-cljs/**
 ui/node_modules/
 server/node_modules/
 .clj-kondo/.cache/
@@ -37,3 +37,7 @@ server/ethlance_server.js
 server/yarn-error.log
 server/tests/
 Session.vim
+tags
+.cpcache
+yarn-error.log
+scripts
