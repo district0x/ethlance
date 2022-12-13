@@ -20,7 +20,7 @@
     "cors": "2.8.4",
     "eth-sig-util": "2.4.4",
     "ethereumjs-wallet": "0.6.0",
-    "express": "4.17.1",
+    "express": "4.17.3",
     "fetch-blob": "1.0.2",
     "graphql": "14.2.1",
     "graphql-middleware": "4.0.1",
