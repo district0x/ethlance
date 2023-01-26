@@ -1,0 +1,86 @@
+{:paths ["src" "test" "../shared/src" "resources" "src-cljsjs"]
+ :deps
+ {org.clojure/clojure {:mvn/version "1.10.3"},
+  org.clojure/clojurescript {:mvn/version "1.11.60"},
+  binaryage/devtools {:mvn/version "1.0.6"}
+
+  re-frame/re-frame {:mvn/version "1.3.0"}
+  re-frisk/re-frisk {:mvn/version "1.6.0"}
+  reagent/reagent {:mvn/version "1.1.1"}
+
+  is.d0x/cljs-web3-next {:mvn/version "22.12.12-SNAPSHOT"}
+  is.d0x/district-ui-bundle {:mvn/version "22.12.12-SNAPSHOT"}
+
+  district0x/async-helpers {:mvn/version "0.1.3"}
+  district0x/error-handling {:mvn/version "1.0.4"}
+  district0x/graphql-query {:mvn/version "1.0.6"}
+  district0x/re-frame-ipfs-fx {:mvn/version "1.1.1"}
+  district0x/district-graphql-utils {:mvn/version "1.0.10"}
+  district0x/bignumber {:mvn/version "1.0.3"}
+  district0x/cljs-ipfs-http-client {:mvn/version "1.0.6"}
+  district0x/cljs-solidity-sha3 {:mvn/version "1.0.0"}
+  district0x/district-cljs-utils {:mvn/version "1.0.4"}
+  district0x/district-encryption {:mvn/version "1.0.1"}
+  district0x/district-format {:mvn/version "1.0.8"}
+  district0x/district-parsers {:mvn/version "1.0.0"}
+  district0x/district-sendgrid {:mvn/version "1.0.1"}
+  district0x/district-time {:mvn/version "1.0.1"}
+
+  district0x/district-ui-component-active-account {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-component-active-account-balance {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-component-form {:mvn/version "0.2.13" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-component-input {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-component-notification {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-component-tx-button {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-ipfs {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-logging {:mvn/version "1.1.0" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-notification {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-now {:mvn/version "1.0.2" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-router {:mvn/version "1.0.8" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-ui-router-google-analytics {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+
+  district0x/district-ui-window-size {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-validation {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent com.cognitect/transit-js]}
+  district0x/district-web3-utils {:mvn/version "1.0.3"}
+  district0x/district-ui-graphql {:mvn/version "1.0.13"}
+
+  cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
+  cljsjs/graphql {:mvn/version "0.13.1-0"}
+  expound/expound {:mvn/version "0.8.4"}
+  flib/simplebar {:mvn/version "5.0.7-SNAPSHOT"}
+  funcool/bide {:mvn/version "1.7.0"} ; FIXME: district.ui.router requires it but older version is included by some other library
+  funcool/cuerdas {:mvn/version "2022.06.16-403"}
+
+  medley/medley {:mvn/version "1.3.0"}
+  mount/mount {:mvn/version "0.1.16"}
+  orchestra/orchestra {:mvn/version "2019.02.06-1"}
+  org.clojars.mmb90/cljs-cache {:mvn/version "0.1.4"}
+  org.clojure/core.match {:mvn/version "1.0.0"}
+  org.clojure/tools.reader {:mvn/version "1.3.6"}
+  print-foo-cljs/print-foo-cljs {:mvn/version "2.0.3"}
+
+  mvxcvi/alphabase {:mvn/version "2.1.1"}
+  akiroz.re-frame/storage {:mvn/version "0.1.4"}
+  camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.1"}
+
+  cljsjs/bignumber {:mvn/version "4.1.0-0"}
+  cljsjs/buffer {:mvn/version "5.1.0-1"}
+  cljsjs/d3 {:mvn/version "5.12.0-0"}
+  cljsjs/react-infinite {:mvn/version "0.13.0-0"}
+  com.andrewmcveigh/cljs-time {:mvn/version "0.5.2"}
+  com.rpl/specter {:mvn/version "1.1.3"}
+  com.taoensso/timbre {:mvn/version "4.10.0"}
+  day8.re-frame/forward-events-fx {:mvn/version "0.0.6"}
+  day8.re-frame/http-fx {:mvn/version "0.1.6"}
+  }
+
+ :aliases
+ {:shadow-cljs
+  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.20.20"}},
+   :main-opts ["-m" "shadow.cljs.devtools.cli"]}
+  :dev
+  {:extra-deps
+   {; Vim Iced deps
+    refactor-nrepl {:mvn/version "3.3.2"}
+    cider/cider-nrepl {:mvn/version "0.28.2"}
+    com.github.liquidz/iced-nrepl {:mvn/version "1.2.8"}}}}}

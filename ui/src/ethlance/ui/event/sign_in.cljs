@@ -53,13 +53,5 @@
                  :variables {:dataSignature data-signature
                              :data data-str}}]}))
 
-
 (comment
   (re/dispatch [:user/sign-in]))
-
-
-
-
-
-
-

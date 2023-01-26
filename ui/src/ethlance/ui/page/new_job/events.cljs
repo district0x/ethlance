@@ -6,7 +6,7 @@
     [ethlance.ui.graphql :as graphql]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]
-    [ethlance.ui.util.ipfs :as ipfs]
+    ; [ethlance.ui.util.ipfs :as ipfs] ; Dowsn't exist
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]

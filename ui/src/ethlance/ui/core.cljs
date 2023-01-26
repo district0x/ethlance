@@ -7,7 +7,7 @@
     [district.ui.ipfs]
     [district.ui.logging]
     [district.ui.reagent-render]
-    [district.ui.router]
+    ; [district.ui.router]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
     [district.ui.web3]
@@ -23,7 +23,7 @@
     [cljsjs.apollo-fetch]
     [cljsjs.dataloader]
     [cljsjs.graphql]
-    [district.ui.graphql]
+    ; [district.ui.graphql]
     [print.foo :include-macros true]
     [re-frame.core :as re]))
 

@@ -1,5 +1,6 @@
 (ns ethlance.server.core
-  (:require [district.server.async-db]
+  (:require
+    [district.server.async-db]
             [district.server.config :refer [config]]
             [district.server.db.honeysql-extensions]
             [district.server.db]
@@ -9,15 +10,19 @@
             [district.server.web3]
             [district.shared.async-helpers :as async-helpers :refer [safe-go]]
             [ethlance.server.db]
-            [ethlance.server.graphql.server]
-            [ethlance.server.ipfs]
-            ; [ethlance.server.syncer]
+            ; [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
+            ; [ethlance.server.ipfs]
+            ; ; [ethlance.server.syncer]
             [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
             [ethlance.shared.utils :as shared-utils]
             [mount.core :as mount]
-            [taoensso.timbre :refer [merge-config!] :as log]))
+            [taoensso.timbre :refer [merge-config!] :as log]
+            ))
+
+; (defn -main [& args]
+;   (println "Running (FAKE SRC) ethlance.server.core/-main That's it"))
 
 (def environment (shared-utils/get-environment))
 
@@ -31,6 +36,8 @@
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
     "dev" #'smart-contracts-dev/smart-contracts))
+
+(println ">>> contracts-var" contracts-var)
 
 (def default-config
   {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
@@ -73,6 +80,7 @@
                  :write-events-into-file? true
                  :file-path "ethlance-events.log"}
    :smart-contracts {:contracts-var contracts-var
+                     :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false
                      :auto-mining? false}
    :graphql graphql-config
@@ -96,13 +104,15 @@
    {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go
    (try
-     (let [start-result #_<?
-           (-> (mount/with-args {:config {:default default-config}})
-               (mount/start))]
+     (let [start-result (-> (mount/with-args {:config {:default default-config}})
+                               (mount/start))]
        (log/warn "Started" {:components start-result
                             :config @config}))
      (catch js/Error e
        (log/error "Something went wrong when starting the application" {:error e})))))
 
 
+; When compiled for a command-line target, whatever function *main-cli-fn* is
+; set to will be called with the command-line argv as arguments.
+;   See: https://cljs.github.io/api/cljs.core/STARmain-cli-fnSTAR
 (set! *main-cli-fn* -main)

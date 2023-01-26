@@ -1,0 +1,93 @@
+{:paths [
+         ; "fake-src"
+         "src"
+         ; "test"
+         ]
+ :deps
+ {
+  ; [org.clojure/clojurescript "1.11.60"
+  ;   :exclusions
+  ;   [com.google.javascript/closure-compiler-unshaded
+  ;    org.clojure/google-closure-library
+  ;    org.clojure/google-closure-library-third-party]]
+
+  ;  [com.google.javascript/closure-compiler-unshaded "v20230103"]
+
+  ;  [org.clojure/google-closure-library "0.0-20211011-0726fdeb"]
+  ;  [org.clojure/google-closure-library-third-party "0.0-20211011-0726fdeb"]
+
+  org.clojure/clojure {:mvn/version "1.10.3"},
+  org.clojure/clojurescript {:mvn/version "1.11.60"}
+  ; START (pasted from shadow-cljs deps.edn)
+  ; org.clojure/clojurescript
+  ; {:mvn/version "1.11.60"
+  ;  :exclusions
+  ;  [com.google.javascript/closure-compiler-unshaded
+  ;   org.clojure/google-closure-library
+  ;   org.clojure/google-closure-library-third-party]}
+
+  ; com.google.javascript/closure-compiler-unshaded {:mvn/version "v20230103"}
+  ; org.clojure/google-closure-library {:mvn/version "0.0-20211011-0726fdeb"}
+  ; org.clojure/google-closure-library-third-party {:mvn/version "0.0-20211011-0726fdeb"}
+  ; END (pasted from shadow-cljs deps.edn)
+
+  is.d0x/ethlance-shared {:local/root "../shared"}
+  mvxcvi/alphabase {:mvn/version "2.1.1"}
+  binaryage/devtools {:mvn/version "1.0.4"}
+  camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.1"}
+
+  cljsjs/bignumber {:mvn/version "4.1.0-0"}
+  cljsjs/buffer {:mvn/version "5.1.0-1"}
+  com.andrewmcveigh/cljs-time {:mvn/version "0.5.2"}
+  com.rpl/specter {:mvn/version "1.1.3"}
+  com.taoensso/timbre {:mvn/version "4.10.0"}
+  district0x/async-helpers {:mvn/version "0.1.3"}
+  district0x/bignumber {:mvn/version "1.0.3"}
+
+
+  is.d0x/district-server-smart-contracts {:local/root "../../d0x-libs/server/district-server-smart-contracts"}
+  ; is.d0x/district-server-smart-contracts {:mvn/version "LATEST"}
+  is.d0x/cljs-ipfs-http-client {:mvn/version "LATEST"}
+  is.d0x/cljs-solidity-sha3 {:mvn/version "LATEST"}
+  is.d0x/district-parsers {:mvn/version "LATEST"}
+  is.d0x/district-server-bundle {:mvn/version "LATEST"}
+
+  district0x/district-graphql-utils {:mvn/version "1.0.10"}
+  district0x/district-server-config {:mvn/version "1.0.1"}
+  district0x/district-server-logging {:mvn/version "1.0.6"}
+  district0x/district-server-middleware-logging {:mvn/version "1.0.0"}
+
+  district0x/district-cljs-utils {:mvn/version "1.0.4"}
+  district0x/district-encryption {:mvn/version "1.0.1"}
+  district0x/district-format {:mvn/version "1.0.8"}
+  district0x/district-sendgrid {:mvn/version "1.0.1"}
+  district0x/district-time {:mvn/version "1.0.1"}
+
+  district0x/district-validation {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
+  district0x/error-handling {:mvn/version "1.0.4"}
+  district0x/graphql-query {:mvn/version "1.0.6"}
+
+  cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
+  cljsjs/graphql {:mvn/version "0.13.1-0"}
+  district0x/re-frame-ipfs-fx {:mvn/version "1.1.1"}
+  expound/expound {:mvn/version "0.8.4"}
+  flib/simplebar {:mvn/version "5.0.7-SNAPSHOT"}
+  funcool/bide {:mvn/version "1.7.0"} ; FIXME: district.ui.router requires it but older version is included by some other library
+  funcool/cuerdas {:mvn/version "2.2.0"}
+  medley/medley {:mvn/version "1.3.0"}
+  mount/mount {:mvn/version "0.1.16"}
+  orchestra/orchestra {:mvn/version "2019.02.06-1"}
+  org.clojars.mmb90/cljs-cache {:mvn/version "0.1.4"}
+  org.clojure/core.match {:mvn/version "1.0.0"}
+  org.clojure/tools.reader {:mvn/version "1.3.6"}
+  print-foo-cljs/print-foo-cljs {:mvn/version "2.0.3"}}
+ :aliases
+ {:shadow-cljs
+  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.20.20"}},
+   :main-opts ["-m" "shadow.cljs.devtools.cli"]}
+  :dev
+  {:extra-deps
+   {; Vim Iced deps
+    refactor-nrepl/refactor-nrepl {:mvn/version "3.3.2"}
+    cider/cider-nrepl {:mvn/version "0.28.2"}
+    com.github.liquidz/iced-nrepl {:mvn/version "1.2.8"}}}}}

@@ -7,7 +7,7 @@
 (re/reg-fx
   :web3/personal-sign
   (fn [{:keys [web3 data-str from on-success on-error]}]
-    (.sendAsync (web3/current-provider web3)
+    (.sendAsync ^js (web3/current-provider web3)
                 (clj->js {:method "personal_sign"
                           :params [data-str from]
                           :from from})

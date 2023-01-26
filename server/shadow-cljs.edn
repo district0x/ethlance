@@ -1,0 +1,26 @@
+{:deps true
+ :npm-deps {:install true}
+ :nrepl {:port 54872}
+ :http {:port 3449
+        :host "0.0.0.0"}
+
+ :builds {:dev-server
+          {:target :node-script
+           :main ethlance.server.core/-main
+           :output-dir "out/"
+           :output-to "out/ethlance_server.js"
+           :optimizations :none
+           :source-map true
+           :source-map-timestamp true
+           :closure-defines {goog.DEBUG true}}
+
+          :server-tests
+          {:target :node-test
+           :js-options {:js-package-dirs ["./server/node_modules"]}
+           :output-dir "out/"
+           :output-to "out/server-tests.js"
+           :ns-regexp "tests."
+           :optimizations :none
+           ;; needs to be set to false to report correct status code in CI
+           :autorun false
+           :closure-defines {goog.DEBUG true}}}}

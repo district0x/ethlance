@@ -3,9 +3,9 @@ const ETHLANCE_ENV = process.env.ETHLANCE_ENV || "dev";
 
 
 const smartContractsPaths = {
-  "dev" : '/src/ethlance/shared/smart_contracts_dev.cljs',
-  "qa" : '/src/ethlance/shared/smart_contracts_qa.cljs',
-  "prod" :'/src/ethlance/shared/smart_contracts_prod.cljs'
+  "dev" : '/shared/src/ethlance/shared/smart_contracts_dev.cljs',
+  "qa" : '/shared/src/ethlance/shared/smart_contracts_qa.cljs',
+  "prod" :'/shared/src/ethlance/shared/smart_contracts_prod.cljs'
 };
 
 

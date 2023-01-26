@@ -1,6 +1,6 @@
 (ns ethlance.shared.spec
   (:require
-    ["is-ipfs" :as is-ipfs]
+    ; ["is-ipfs" :as is-ipfs]
     [cljs.spec.alpha :as s]
     [clojure.set :as set]
     [district.validation :refer [length? email? not-neg?]]
@@ -17,7 +17,8 @@
 (s/def :user/languages (fn [languages]
                          (and (pos? (count languages))
                               (set/subset? languages constants/languages))))
-(s/def :user/profile-image is-ipfs/multihash)
+; (s/def :user/profile-image is-ipfs/multihash) ; TODO: figure out how to use is-ipfs
+(s/def :user/profile-image string?)
 
 (s/def :user/github-code string?)
 (s/def :user/github-username (s/nilable string?))
