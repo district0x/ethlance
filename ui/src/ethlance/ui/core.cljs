@@ -7,7 +7,7 @@
     [district.ui.ipfs]
     [district.ui.logging]
     [district.ui.reagent-render]
-    ; [district.ui.router]
+    [district.ui.router]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
     [district.ui.web3]
@@ -36,7 +36,7 @@
 
     ;; Initialize our district re-mount components
     (-> (mount/with-args main-config)
-      (mount/start))
+        (mount/start))
 
     (reg-co-fx! :ethlance {:fx :store :cofx :store})
 

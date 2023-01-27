@@ -9,7 +9,7 @@
 (def general-config
   ; config of https://github.com/district0x/district-ui-smart-contracts
   {:smart-contracts {:format :truffle-json
-                     :load-path "./resources/public/contracts/build/"
+                     :load-path "../resources/public/contracts/build/"
                      :contracts smart-contracts-dev/smart-contracts}
    :logging
    {:level :info

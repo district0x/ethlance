@@ -10,10 +10,11 @@
             [district.server.web3]
             [district.shared.async-helpers :as async-helpers :refer [safe-go]]
             [ethlance.server.db]
-            ; [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
+            [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
             ; [ethlance.server.ipfs]
             ; ; [ethlance.server.syncer]
             [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+            [tests.graphql.generator]
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
             [ethlance.shared.utils :as shared-utils]
@@ -84,7 +85,7 @@
                      :print-gas-usage? false
                      :auto-mining? false}
    :graphql graphql-config
-   :district/db {:user "user"
+   :district/db {:user "ethlanceuser"
                  :host "localhost"
                  :database "ethlance"
                  :password "pass"

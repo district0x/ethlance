@@ -18,6 +18,7 @@
 
 
   ; is.d0x/district-server-smart-contracts {:local/root "../../d0x-libs/server/district-server-smart-contracts"}
+  is.d0x/cljs-web3-next {:mvn/version "LATEST"}
   is.d0x/district-server-smart-contracts {:mvn/version "LATEST"}
   is.d0x/cljs-ipfs-http-client {:mvn/version "LATEST"}
   is.d0x/cljs-solidity-sha3 {:mvn/version "LATEST"}

@@ -13,7 +13,7 @@ jobs:
       - image: postgres:latest
         environment:
           POSTGRES_PASSWORD: pass
-          POSTGRES_USER: user
+          POSTGRES_USER: ethlanceuser
           POSTGRES_DB: ethlance
     steps:
       - checkout
