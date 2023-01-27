@@ -18,4 +18,11 @@
          run-server {:doc "Start Node.js API server process"
                       :task (do
                               (println "Starting Ethlance API server")
-                              (shell {:dir "server"} "node out/ethlance_server.js"))}}}
+                              (shell {:dir "server"} "node out/ethlance_server.js"))}
+         run-server-tests {:doc "Compile & run server tests"
+                      :task (do
+                              (println "Compiling server tests")
+                              (clojure {:dir "server"} "-A:dev:shadow-cljs compile server-tests")
+                              (println "Running server tests")
+                              (shell {:dir "server"} "node out/server-tests.js"))}
+         }}

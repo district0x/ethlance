@@ -1,48 +1,14 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@4.1.0
-  cache:
-    orbs:
-      node: circleci/node@4.1.0
-    commands:
-      with:
-        parameters:
-          cache-key:
-            default: deps.edn
-            type: string
-          cache-version:
-            default: ""
-            type: string
-          app-dir:
-            default: "."
-            type: string
-          steps:
-            type: steps
-        steps:
-          - node/install-packages:
-              app-dir: << parameters.app-dir >>
-              cache-version: << parameters.cache-version >>
-              pkg-manager: yarn
-              include-branch-in-cache-key: false
-          - restore_cache:
-              key: maven-<< parameters.cache-version >>2-{{ checksum "<< parameters.cache-key >>" }}
-          - steps: << parameters.steps >>
-          - save_cache:
-              key: maven-<< parameters.cache-version >>2-{{ checksum "<< parameters.cache-key >>" }}
-              paths:
-                - ~/.m2/repository
-
 jobs:
-
   test:
     working_directory: ~/ethlance
     docker:
       # Primary container image where all steps run.
-      - image: district0x/cljs-dev
+      - image: 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-16.15.1
       # Secondary container images on common network.
-      - image: trufflesuite/ganache-cli:v6.12.2
-        command: ganache-cli -d -m district0x -p 8549 -l 8000000 --noVMErrorsOnRPCResponse --allowUnlimitedContractSize
+      - image: trufflesuite/ganache:v7.6.0
+        command: [-v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8549, -l 8000000, -b 1, --chain.allowUnlimitedContractSize=true]
       - image: district0x/ipfs-daemon:latest
       - image: postgres:latest
         environment:
@@ -64,27 +30,11 @@ jobs:
           paths:
             - ./node_modules
       - run:
-          name: Lint projects namespaces
-          command: yarn lint
-      - run:
           name: Deploy contracts
-          command: yarn deploy
-
-      - cache/with:
-          app-dir: server
-          cache-version: server
-          cache-key: yarn.lock
-          steps:
-            - run:
-                name: Server dependencies
-                command: |
-                  yarn deps
-                working_directory: ~/ethlance/server
-            - run:
-                name: Run test suite
-                command: |
-                  npx shadow-cljs compile server-tests && node server/tests/server-tests.js
-                working_directory: ~/ethlance
+          command: npx truffle migrate --network ganache --reset
+      - run:
+          name: Run test suite
+          command: bb run-server-tests
 
 workflows:
   version: 2

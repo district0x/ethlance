@@ -2,8 +2,10 @@
 .shadow-cljs
 node_modules
 .cpcache
-*/out/*
+ui/out
+server/out
 yarn-error.log
 ui/resources/public/js
 ui/resources/public/css
 resources/public/contracts
+Session.vim

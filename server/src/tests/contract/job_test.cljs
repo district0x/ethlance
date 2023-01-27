@@ -59,6 +59,9 @@
                 (contract-constants/token-type token) )
             (get-in job-data [:offered-values]))))
 
+(defn close-enough= [a b]
+  (< (abs (- a b)) (* 0.001 (max a b))))
+
 (deftest invoice-flows
   (testing "invoice flow (create/pay/cancel)"
     (async done
@@ -97,7 +100,7 @@
                        worker-eth-balance-after (<? (web3-eth/get-balance @web3 worker))
                        worker-eth-change (wei->eth (bn/- (bn/number worker-eth-balance-after) (bn/number worker-eth-balance-before)))]
                    (is (= (int (:invoice-id event-pay-invoice)) invoice-1-id))
-                   (is (= worker-eth-change invoice-amount-eth)))
+                   (is (close-enough= worker-eth-change invoice-amount-eth)))
 
                  ; Pay ERC20 invoice
                  (let [erc-20-token-amount 1

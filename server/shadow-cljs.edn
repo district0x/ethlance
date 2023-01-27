@@ -19,7 +19,7 @@
            :js-options {:js-package-dirs ["./server/node_modules"]}
            :output-dir "out/"
            :output-to "out/server-tests.js"
-           :ns-regexp "tests."
+           :ns-regexp "tests.*"
            :optimizations :none
            ;; needs to be set to false to report correct status code in CI
            :autorun false

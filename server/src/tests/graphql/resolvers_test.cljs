@@ -9,7 +9,7 @@
             [district.shared.async-helpers :as async-helpers :refer [safe-go <?]]
             [ethlance.server.db :as ethlance-db]
             [ethlance.server.graphql.server]
-            [ethlance.server.graphql.utils :refer [run-query run-query-raw]]
+            [ethlance.server.graphql.utils :refer [run-query]]
             [mount.core :as mount]
             [taoensso.timbre :as log]
             [tests.graphql.generator :as generator]))
