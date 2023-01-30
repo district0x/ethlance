@@ -8,7 +8,7 @@
     "create-react-class": "15.7.0",
     "dataloader": "^2.1.0",
     "events": "^3.3.0",
-    "graphql": "^16.6.0",
+    "graphql": "0.13.2",
     "highlight.js": "11.1.0",
     "is-ipfs": "^7.0.3",
     "karma": "6.3.0",

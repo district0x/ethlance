@@ -26,8 +26,8 @@
    :web3-tx {:disable-using-localstorage? true}
    :ipfs
    {:endpoint "/api/v0"
-    :host "http://d0x-vm:5001"
-    :gateway "http://192.168.32.14/ipfs"}
+    :host "http://host-machine:5001"
+    :gateway "http://host-machine/ipfs"}
    :graphql
    {:schema schema
     :url "http://d0x-vm:6300/graphql"

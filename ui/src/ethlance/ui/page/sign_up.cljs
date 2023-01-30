@@ -2,6 +2,7 @@
   (:require
     [cuerdas.core :as str]
     [district.ui.component.page :refer [page]]
+    [ethlance.ui.component.modal.events]
     [district.ui.router.events :as router-events]
     [district.ui.notification.subs :as noti-subs]
     [district.ui.router.subs :as router.subs]

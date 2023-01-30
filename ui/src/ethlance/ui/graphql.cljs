@@ -200,7 +200,7 @@
 
 (defmethod handler :sign-in
   [{:keys [db store]} _ {:as response}]
-  (log/debug "sign in handler " response)
+  (log/debug "ethlance.ui.graphql :sign-in handler " response)
   {:db (assoc db :active-session response)
    :store (assoc store :active-session response)})
 

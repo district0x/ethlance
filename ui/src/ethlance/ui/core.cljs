@@ -22,8 +22,7 @@
     [mount.core :as mount]
     [cljsjs.apollo-fetch]
     [cljsjs.dataloader]
-    [cljsjs.graphql]
-    ; [district.ui.graphql]
+    [district.ui.graphql]
     [print.foo :include-macros true]
     [re-frame.core :as re]))
 

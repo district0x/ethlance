@@ -11,8 +11,8 @@
             [district.shared.async-helpers :as async-helpers :refer [safe-go]]
             [ethlance.server.db]
             [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
-            ; [ethlance.server.ipfs]
-            ; ; [ethlance.server.syncer]
+            [ethlance.server.ipfs]
+            ; [ethlance.server.syncer]
             [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
             [tests.graphql.generator]
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -37,8 +37,6 @@
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
     "dev" #'smart-contracts-dev/smart-contracts))
-
-(println ">>> contracts-var" contracts-var)
 
 (def default-config
   {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
@@ -91,9 +89,9 @@
                  :password "pass"
                  :port 5432}
    :ethlance/db {:resync? false}
-   :ipfs {:host "http://d0x-vm:5001"
+   :ipfs {:host "http://host-machine:5001"
           :endpoint "/api/v0"
-          :gateway "http://d0x-vm:8080/ipfs"}
+          :gateway "http://host-machine:8080/ipfs"}
    :logging {:level "debug"
              :console? true}})
 

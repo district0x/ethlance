@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DB_ADDRESS="postgres://user:pass@localhost:5432/ethlance"
+DB_ADDRESS="postgres://ethlanceuser:pass@localhost:5432/ethlance"
 if ! command -v pgcli &> /dev/null; then
   psql $DB_ADDRESS
 else
