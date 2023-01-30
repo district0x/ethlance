@@ -15,14 +15,16 @@
     [ethlance.ui.page.sign-up.events]
     [district.ui.web3-accounts.events]
     [print.foo]
-    [re-frame.core :as re]))
+    [re-frame.core :as re]
+    [akiroz.re-frame.storage]))
 
 (re/reg-event-fx
   :ethlance/initialize
   [(re/inject-cofx :store)]
   (fn [{:keys [db store]} [_ config]]
     {:db (-> db
-           (assoc :ethlance/config config))
+           (assoc :ethlance/config config)
+           (merge (akiroz.re-frame.storage/<-store :ethlance))) ; TODO: is this desired or should the user sign new Tx each time first when opening Ethlance
      :dispatch-n [
                   [:page.jobs/initialize-page]
                   [:page.sign-up/initialize-page]
