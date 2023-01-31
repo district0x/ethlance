@@ -1,25 +1,14 @@
 {
-  "name": "ethlance-server",
-  "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "tests:once": "shadow-cljs compile server-tests && node tests/server-tests.js",
-    "tests:watch": "shadow-cljs watch server-tests --config-merge '{:autorun true}'",
-    "deps": "yarn install --frozen-lockfile",
-    "watch": "shadow-cljs watch dev-server",
-    "clean": "git clean -fdx"
-  },
   "dependencies": {
-    "@sentry/node": "4.2.1",
+    "@sentry/node": "7.31.1",
     "apollo-server-express": "2.12.0",
-    "axios": "0.19.2",
-    "better-sqlite3": "5.4.0",
+    "axios": "0.27.2",
+    "better-sqlite3": "7.6.2",
     "bignumber.js": "9.0.1",
     "body-parser": "1.19.0",
+    "buffer": "6.0.3",
     "chalk": "2.3.0",
     "cors": "2.8.4",
-    "eth-sig-util": "2.4.4",
-    "ethereumjs-wallet": "0.6.0",
     "express": "4.17.1",
     "fetch-blob": "1.0.2",
     "graphql": "14.2.1",
@@ -28,24 +17,19 @@
     "is-ipfs": "2.0.0",
     "jsedn": "0.4.1",
     "jsonwebtoken": "8.5.1",
-    "pg": "8.2.1",
-    "source-map-support": "0.5.9",
-    "w3c-xmlhttprequest": "^3.0.4",
-    "web3": "1.7.1",
+    "pg": "8.8.0",
+    "shadow-cljs": "2.20.20",
+    "web3": "1.7.3",
     "ws": "4.0.0",
-    "xregexp": "4.3.0"
+    "xmlhttprequest": "1.8.0",
+    "xregexp": "5.1.1"
+  },
+  "@comment dependencies": {
+    "eth-sig-util": "2.4.4",
+    "w3c-xmlhttprequest": "^3.0.4",
+    "ethereumjs-wallet": "0.6.0"
   },
   "devDependencies": {
-    "shadow-cljs": "2.15.10"
-  },
-  "engines": {
-    "node": "11.14.0"
-  },
-  "comments": {
-    "dependencies": {
-      "eth-sig-util": "Sign in functionality",
-      "jsonwebtoken": "Sign in functionality",
-      "ethereumjs-wallet": "district0x/district-server-web3 uses ganache-core@2.0.2 which depends on 0.6.0. https://github.com/ethereumjs/ethereumjs-wallet/issues/64"
-    }
+    "source-map-support": "^0.5.21"
   }
 }

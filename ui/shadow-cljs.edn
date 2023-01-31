@@ -1,0 +1,24 @@
+{:deps true
+ :npm-deps {:install true}
+ :dev-http {6500 ["resources/public/" "../resources/public/"]}
+ :nrepl {:port 54200}
+ :http {:port 3449
+        :host "0.0.0.0"}
+ :builds {:dev-ui
+          {:target :browser
+           :modules {:main {:init-fn ethlance.ui.core/init}}
+           :main ethlance.ui.core
+           :infer-externs true
+           :externs ["./externs"]
+           ; :js-options {:js-package-dirs ["./ui/node_modules"]}
+           :npm-deps false
+           :output-dir "resources/public/js/"
+           :optimizations :none
+           :source-map true
+           :source-map-timestamp true
+           :devtools {:ignore-warnings true
+                      :preloads [devtools.preload
+                                 day8.re-frame-10x.preload]}
+           :closure-defines {re-frame.trace.trace-enabled?        true
+                             day8.re-frame.tracing.trace-enabled? true
+                             goog.DEBUG true}}}}

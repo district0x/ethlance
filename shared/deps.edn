@@ -1,0 +1,4 @@
+{:paths ["src"]
+ :deps {com.taoensso/timbre {:mvn/version "4.10.0"}
+        is.d0x/district-validation {:mvn/version "LATEST"}}
+ :aliases {}}

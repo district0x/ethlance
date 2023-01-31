@@ -1,0 +1,32 @@
+{:paths []
+ :deps {org.babashka/cli {:mvn/version "0.4.39"}}
+ :tasks {testnet {:doc "Start testnet"
+                  :task (let [seed  "easy leave proof verb wait patient fringe laptop intact opera slab shine"
+                              host "0.0.0.0"
+                              port "8549"
+                              args (format "ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 8000000 --chain.allowUnlimitedContractSize true --miner.blockTime 0.5 --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port)]
+                                (println "Starting testnet")
+                                (shell args))}
+         compile-css {:doc "Compile LESS -> CSS"
+                      :task (do
+                              (println "Compiling LESS to CSS")
+                              (shell {:dir "ui"} "./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose"))}
+         watch-ui {:doc "Watch and compile ui code changes CLJS -> JS in ui/src/**"
+                   :requires ([babashka.cli :as cli])
+                   :task (let [aliases (or *command-line-args* [])
+                               command-args (format "-A:dev:shadow-cljs%s watch dev-ui" (clojure.string.join "" aliases))]
+                           (println "Starting watch-ui. args:" command-args)
+                           (clojure {:dir "ui"} command-args))}
+         watch-server {:doc "Watch and compile server code changes CLJS -> JS in server/src/**"
+                       :task (clojure {:dir "server"} "-A:dev:shadow-cljs watch dev-server")}
+         run-server {:doc "Start Node.js API server process"
+                      :task (do
+                              (println "Starting Ethlance API server")
+                              (shell {:dir "server"} "node out/ethlance_server.js"))}
+         run-server-tests {:doc "Compile & run server tests"
+                      :task (do
+                              (println "Compiling server tests")
+                              (clojure {:dir "server"} "-A:dev:shadow-cljs compile server-tests")
+                              (println "Running server tests")
+                              (shell {:dir "server"} "node out/server-tests.js"))}
+         }}
