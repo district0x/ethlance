@@ -8,7 +8,7 @@ jobs:
       - image: 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-16.15.1
       # Secondary container images on common network.
       - image: trufflesuite/ganache:v7.6.0
-        command: [-v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8549, -l 8000000, -b 1, --chain.allowUnlimitedContractSize=true]
+        command: [-v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8549, -l 8000000, -b 0.5, --chain.allowUnlimitedContractSize=true]
       - image: district0x/ipfs-daemon:latest
       - image: postgres:latest
         environment:
@@ -18,14 +18,26 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          name: Restore ethlance npm package cache
+          name: Restore ethlance top-level npm package cache
           keys:
             - npm-dependencies-ethlance-{{ checksum "yarn.lock" }}
       - run:
-          name: Install ethlance node modules
-          command: yarn deps
+          name: Install ethlance top-level node modules
+          command: yarn install
+      - restore_cache:
+          name: Restore ethlance server npm package cache
+          keys:
+            - npm-dependencies-ethlance-{{ checksum "server/yarn.lock" }}
+      - run:
+          name: Install ethlance server node modules
+          command: cd server && yarn install
       - save_cache:
-          name: Save ethlance npm package cache
+          name: Save ethlance server npm package cache
+          key: npm-dependencies-ethlance-{{ checksum "server/yarn.lock" }}
+          paths:
+            - ./server/node_modules
+      - save_cache:
+          name: Save ethlance top-level npm package cache
           key: npm-dependencies-ethlance-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules

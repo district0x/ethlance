@@ -153,7 +153,7 @@
                      ; Explanation of this also in Ethlance.sol Basically (web3-helpers/event-interface contract-instance event)
                      ;  doesn't find the event signature hash and thus can't filter the event. Though the event is in the logs
                      ;  (checked it via truffle console).
-                     candidate-added-event (<! (smart-contracts/contract-event-in-tx :ethlance :CandidatoAgregado tx-receipt))
+                     candidate-added-event (<! (smart-contracts/contract-event-in-tx :ethlance :CandidateAdded tx-receipt))
                      ]
                  (is (= (:candidate candidate-added-event) candidate-a)))
 

@@ -4,7 +4,7 @@
                   :task (let [seed  "easy leave proof verb wait patient fringe laptop intact opera slab shine"
                               host "0.0.0.0"
                               port "8549"
-                              args (format "ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 8000000 --chain.allowUnlimitedContractSize true --miner.blockTime 1 --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port)]
+                              args (format "ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 8000000 --chain.allowUnlimitedContractSize true --miner.blockTime 0.5 --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port)]
                                 (println "Starting testnet")
                                 (shell args))}
          compile-css {:doc "Compile LESS -> CSS"

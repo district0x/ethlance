@@ -28,7 +28,7 @@
            (log/debug "Running before fixture")
            (let [components
                  (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
-                                       :district/db {:user "user"
+                                       :district/db {:user "ethlanceuser"
                                                      :host "localhost"
                                                      :database "ethlance"
                                                      :password "pass"
