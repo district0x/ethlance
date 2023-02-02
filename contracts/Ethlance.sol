@@ -114,6 +114,11 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint timestamp
   );
 
+  event TestEvent(uint theAnswer);
+  function emitTestEvent(uint answer) external returns(uint) {
+    emit TestEvent(answer);
+    return answer + 1;
+  }
 
   modifier isJob {
     require(isJobMap[msg.sender], "Not a job contract address");

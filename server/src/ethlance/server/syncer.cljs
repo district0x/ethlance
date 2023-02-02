@@ -372,6 +372,24 @@
                                          (<? (ethlance-db/get-job-id-for-ethlance-job conn (:_job-id args)))
                                          (:_approvers args)))))
 
+
+(defn handle-job-created [conn _ {:keys [args] :as event}]
+  (safe-go
+   (log/info (str ">>> Handling event job-created" args))
+   ; (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
+   ;   (<? (ethlance-db/add-ethlance-job conn
+   ;                                     (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
+   ;                                             :job/date-created (:timestamp event)
+   ;                                             :job/date-published (:timestamp event)
+   ;                                             :job/date-updated (:timestamp event)
+   ;                                             :job/token (:_token args)
+   ;                                             :job/token-version (:_token-version args)
+   ;                                             :ethlance-job/id (:_job-id args)}
+   ;                                            (build-ethlance-job-data-from-ipfs-object ipfs-data)))))
+   ))
+
+(defn handle-test-event [& args]
+  (println ">>> HANDLE TEST EVENT args: " args))
 ;;;;;;;;;;;;;;;;;;
 ;; Syncer Start ;;
 ;;;;;;;;;;;;;;;;;;
@@ -433,43 +451,47 @@
 
 (defn start []
   (log/debug "Starting Syncer...")
-  (let [event-callbacks {:ethlance-issuer/arbiters-invited handle-arbiters-invited
+  (let [event-callbacks {
+                         :ethlance/job-created handle-job-created
+                         :ethlance/test-event handle-test-event
+                         ; :ethlance-issuer/arbiters-invited handle-arbiters-invited
 
                          ;; StandardBounties
-                         :standard-bounties/bounty-issued handle-bounty-issued
-                         :standard-bounties/bounty-approvers-updated handle-bounty-approvers-updated
-                         :standard-bounties/contribution-added handle-bounty-contribution-added
-                         :standard-bounties/contribution-refunded handle-bounty-contribution-refunded
-                         :standard-bounties/contributions-refunded handle-bounty-contributions-refunded
-                         :standard-bounties/bounty-drained handle-bounty-drained
-                         :standard-bounties/action-performed handle-bounty-action-performed
-                         :standard-bounties/bounty-fulfilled handle-bounty-fulfilled
-                         :standard-bounties/fulfillment-updated handle-fulfillment-updated
-                         :standard-bounties/fulfillment-accepted handle-fulfillment-accepted
-                         :standard-bounties/bounty-changed handle-bounty-changed
-                         :standard-bounties/bounty-issuers-updated handle-bounty-issuers-updated
-                         :standard-bounties/bounty-data-changed handle-bounty-datachanged
-                         :standard-bounties/bounty-deadline-changed handle-bounty-deadline-changed
+                         ; :standard-bounties/bounty-issued handle-bounty-issued
+                         ; :standard-bounties/bounty-approvers-updated handle-bounty-approvers-updated
+                         ; :standard-bounties/contribution-added handle-bounty-contribution-added
+                         ; :standard-bounties/contribution-refunded handle-bounty-contribution-refunded
+                         ; :standard-bounties/contributions-refunded handle-bounty-contributions-refunded
+                         ; :standard-bounties/bounty-drained handle-bounty-drained
+                         ; :standard-bounties/action-performed handle-bounty-action-performed
+                         ; :standard-bounties/bounty-fulfilled handle-bounty-fulfilled
+                         ; :standard-bounties/fulfillment-updated handle-fulfillment-updated
+                         ; :standard-bounties/fulfillment-accepted handle-fulfillment-accepted
+                         ; :standard-bounties/bounty-changed handle-bounty-changed
+                         ; :standard-bounties/bounty-issuers-updated handle-bounty-issuers-updated
+                         ; :standard-bounties/bounty-data-changed handle-bounty-datachanged
+                         ; :standard-bounties/bounty-deadline-changed handle-bounty-deadline-changed
 
                          ;; EthlanceJobs
-                         :ethlance-jobs/job-issued handle-job-issued
-                         :ethlance-jobs/contribution-added handle-job-contribution-added
-                         :ethlance-jobs/contribution-refunded handle-job-contribution-refunded
-                         :ethlance-jobs/contributions-refunded handle-job-contributions-refunded
-                         :ethlance-jobs/job-drained handle-job-drained
-                         :ethlance-jobs/job-invoice handle-job-invoice
-                         :ethlance-jobs/invoice-accepted handle-invoice-accepted
-                         :ethlance-jobs/job-changed handle-job-changed
-                         :ethlance-jobs/job-issuers-updated handle-job-issuers-updated
-                         :ethlance-jobs/job-approvers-updated handle-job-approvers-updated
-                         :ethlance-jobs/job-data-changed handle-job-data-changed
-                         :ethlance-jobs/candidate-accepted handle-candidate-accepted}
+                         ; :ethlance-jobs/job-issued handle-job-issued
+                         ; :ethlance-jobs/contribution-added handle-job-contribution-added
+                         ; :ethlance-jobs/contribution-refunded handle-job-contribution-refunded
+                         ; :ethlance-jobs/contributions-refunded handle-job-contributions-refunded
+                         ; :ethlance-jobs/job-drained handle-job-drained
+                         ; :ethlance-jobs/job-invoice handle-job-invoice
+                         ; :ethlance-jobs/invoice-accepted handle-invoice-accepted
+                         ; :ethlance-jobs/job-changed handle-job-changed
+                         ; :ethlance-jobs/job-issuers-updated handle-job-issuers-updated
+                         ; :ethlance-jobs/job-approvers-updated handle-job-approvers-updated
+                         ; :ethlance-jobs/job-data-changed handle-job-data-changed
+                         ; :ethlance-jobs/candidate-accepted handle-candidate-accepted
+                         }
 
-        dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) [])
+        dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
         _ (identity event-callbacks) ; To silence clj-kondo warning during dev
-        callback-ids []
-        ; callback-ids (doall (for [[event-key] event-callbacks]
-        ;                       (web3-events/register-callback! event-key dispatcher)))
+        ; callback-ids []
+        callback-ids (doall (for [[event-key] event-callbacks]
+                              (web3-events/register-callback! event-key dispatcher)))
         ]
     (log/debug "Syncer started")
     {:callback-ids callback-ids

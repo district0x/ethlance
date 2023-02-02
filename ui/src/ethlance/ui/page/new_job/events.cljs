@@ -81,7 +81,10 @@
   (fn [{:keys [db]}]
     (let [db-job (get-in db [state-key])
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
-      {:ipfs/call {:func "add" :args [(js/Blob. [ipfs-job])] :on-success [:job-to-ipfs-success] :on-error [:job-to-ipfs-failure]}})))
+      {:ipfs/call {:func "add"
+                   :args [(js/Blob. [ipfs-job])]
+                   :on-success [:job-to-ipfs-success]
+                   :on-error [:job-to-ipfs-failure]}})))
 
 (defn base58->hex [base58-str]
   (->> base58-str
@@ -92,7 +95,8 @@
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
-    ; IPFS `event` param structure: [:job-to-ipfs-success {"Name":"blob","Hash":"QmT8k5NsMDDoeiXQz9ox5FfdCwHaf7ZYi9CZUyysXAu8TG","Size":"263"}]
+    ; IPFS `event` param structure:
+    ;  [:job-to-ipfs-success {"Name":"blob","Hash":"QmT8k5NsMDDoeiXQz9ox5FfdCwHaf7ZYi9CZUyysXAu8TG","Size":"263"}]
     (let [creator (accounts-queries/active-account (:db cofx))
           funding-amount-wei (* 0.01 100000000000000)
           not-used-for-erc20 0
@@ -104,10 +108,11 @@
 
           job-type 1
           invited-arbiters []
-          ipfs-response (->> (get-in event [1])
-                         (.parse js/JSON ,,,)
-                         (js->clj ,,,))
-          ipfs-hash (base58->hex (get ipfs-response "Hash"))]
+          _ (println ">>> :job-to-ipfs-success FX" {:event event :type (type event)})
+          ipfs-response (get-in event [:event 1])
+          ipfs-hash (base58->hex (get-in event [1 :Hash]))
+          _ (println ">>> IPFS-HASH" ipfs-hash)
+          _ (println ">>> :job-to-ipfs-success FX ipfs-hash" (base58->hex (get ipfs-response "Hash")))]
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :ethlance)
                    :fn :createJob
@@ -117,15 +122,30 @@
                    :on-tx-hash-n [[:tx-hash]]
                    :on-tx-hash-error [:tx-hash-error]
                    :on-tx-hash-error-n [[:tx-hash-error]]
-                   :on-tx-success [:tx-success]
-                   :on-tx-success-n [[:tx-success]]
-                   :on-tx-error [:tx-error]
-                   :on-tx-error-n [[:tx-error]]}]})))
+                   :on-tx-success [:create-job-tx-success]
+                   :on-tx-success-n [[:create-job-tx-success]]
+                   :on-tx-error [:create-job-tx-error]
+                   :on-tx-error-n [[:create-job-tx-error]]}]})))
 
 ; TODO: fix event/callback names in README (they don't have on-<...> prefix)
 ;         https://github.com/district0x/re-frame-web3-fx#usage
 (re/reg-event-fx :tx-hash (fn [db event]         (println ">>>>>>!!!!! tx-hash" event)))
 (re/reg-event-fx :web3-tx-localstorage (fn [db event]         (println ">>>>>>!!!!! web3-tx-localstorage" event)))
+
+(defonce create-job-tx-receipt (atom nil))
+
+(re/reg-event-db
+  :create-job-tx-success
+  (fn [db event]
+    (reset! create-job-tx-receipt (last event))
+    ; {:ipfsData "0x12204129c213954a4864af722e5160c92b158f1215c13416a1165a6ee7142371b368", :creator "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0" ...}
+    (println ">>> JobCreated event data: " (get-in (last event) [:events :Job-created :return-values]))
+    (println ">>> got :create-job-tx-success event:" event)))
+
+(re/reg-event-db
+  :create-job-tx-error
+  (fn [db event]
+    (println ">>> got :create-job-tx-error event:" event)))
 
 (re/reg-event-db
   :job-to-ipfs-failure

@@ -60,8 +60,8 @@
   {:id 1
    :title (generate-job-title)
    :description "lorem ipsum"
-   :category (rand-nth constants/categories)
-   :skills (into #{} (random/rand-nth-n constants/skills (inc (rand-int 5))))
+   :category (rand-nth (into [] constants/categories))
+   :skills (into #{} (random/rand-nth-n (into [] constants/skills) (inc (rand-int 5))))
    :date-created ""
    :arbiter nil
    :employer nil
@@ -85,4 +85,4 @@
    (random/pick-rand-by-dist
     [[20 :part-time]
      [80 :full-time]])
-   :country (rand-nth constants/countries)})
+   :country (rand-nth (into [] constants/countries))})

@@ -17,7 +17,7 @@
              ["/jobs/contract/:id" :route.job/contract]
              ["/jobs/detail/" :route.job/detail]
              ["/jobs/detail/:id" :route.job/detail]
-             
+
              ;; Invoices
              ["/invoices/new" :route.invoice/new]
              ["/invoices/" :route.invoice/index]

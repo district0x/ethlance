@@ -33,12 +33,14 @@
   district0x/district-ui-component-form {:mvn/version "0.2.13" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-component-input {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-component-notification {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
-  district0x/district-ui-component-tx-button {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
+  district0x/district-ui-component-tx-button {:mvn/version "1.0.0"
+                                              :exclusions [district0x/district-ui-web3-accounts ; because it depends on old district0x.re-frame/web3-fx
+                                                           cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-ipfs {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-logging {:mvn/version "1.1.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-notification {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-now {:mvn/version "1.0.2" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
-  district0x/district-ui-router {:mvn/version "1.0.8" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
+  district0x/district-ui-router {:mvn/version "1.1.0-SNAPSHOT" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js re-frame/re-frame]}
   district0x/district-ui-router-google-analytics {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
 
   district0x/district-ui-window-size {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
@@ -80,7 +82,9 @@
   :local-deps
   {:override-deps
    {district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
-    is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}}}
+    is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}
+    is.d0x/re-frame-web3-fx {:local/root "../../d0x-libs/browser/re-frame-web3-fx"}
+    is.d0x/district-ui-web3-tx {:local/root "../../d0x-libs/browser/district-ui-web3-tx"}}}
   :dev
   {:extra-deps
    {day8.re-frame/re-frame-10x {:mvn/version "1.5.0"}

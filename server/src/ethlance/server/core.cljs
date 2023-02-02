@@ -12,7 +12,7 @@
             [ethlance.server.db]
             [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
             [ethlance.server.ipfs]
-            ; [ethlance.server.syncer]
+            [ethlance.server.syncer]
             [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
             [tests.graphql.generator]
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -40,7 +40,8 @@
 
 (def default-config
   {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
-   :web3-events {:events {
+   :web3-events {:events {:ethlance/job-created [:ethlance :JobCreated]
+                          :ethlance/test-event [:ethlance :TestEvent]
                           ; TODO: replace with events from new Ethlance.sol contract (commented out to allow server to start)
                           ; :ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited]
 

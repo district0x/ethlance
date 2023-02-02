@@ -18,7 +18,11 @@
                            (println "Starting watch-ui. args:" command-args)
                            (clojure {:dir "ui"} command-args))}
          watch-server {:doc "Watch and compile server code changes CLJS -> JS in server/src/**"
-                       :task (clojure {:dir "server"} "-A:dev:shadow-cljs watch dev-server")}
+                       :requires ([babashka.cli :as cli])
+                       :task (let [aliases (or *command-line-args* [])
+                                   command-args (format "-A:dev:shadow-cljs%s watch dev-server" (clojure.string.join "" aliases))]
+                                (println "Starting watch dev-server args:" command-args)
+                                (clojure {:dir "server"} command-args))}
          run-server {:doc "Start Node.js API server process"
                       :task (do
                               (println "Starting Ethlance API server")
