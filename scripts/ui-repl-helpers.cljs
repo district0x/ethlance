@@ -16,17 +16,17 @@
 ; Fill new-job form
 ; http://d0x-vm:6500/jobs/new
 (defn fill-new-job-form [db & {:keys [] :as overrides}]
-  (let [default-vals {:type :job
-                      :name "Siimar"
-                      :description "Test description"
-                      :category "Admin Support"
-                      :required-experience-level :intermediate
-                      :bid-option :hourly-rate
-                      :required-availability :part-time
-                      :estimated-project-length :week
-                      :required-skills #{"Translation English Spanish" "Sketch"}
-                      :form-of-payment :ethereum
-                      :with-arbiter? false}
+  (let [default-vals {:job/type :job
+                      :job/title "Siimar"
+                      :job/description "Test description"
+                      :job/category "Admin Support"
+                      :job/required-experience-level :intermediate
+                      :job/bid-option :hourly-rate
+                      :job/required-availability :part-time
+                      :job/estimated-project-length :week
+                      :job/required-skills #{"Translation English Spanish" "Sketch"}
+                      :job/form-of-payment :ethereum
+                      :job/with-arbiter? false}
         with-overrides (merge default-vals overrides)]
   (reset! db (merge @app-db {:page.new-job with-overrides}))))
 
