@@ -6,19 +6,17 @@
     [ethlance.ui.graphql :as graphql]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]
-    ; [ethlance.ui.util.ipfs :as ipfs] ; Dowsn't exist
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
-    [ethlance.shared.contract-constants :as contract-constants]
-    ))
+    [ethlance.shared.contract-constants :as contract-constants]))
 
 (def state-key :page.new-job)
 (def interceptors [re/trim-v])
 
 (def state-default
   {:type :job
-   :name nil
+   :title nil
    :category nil
    :bid-option :hourly-rate
    :required-experience-level :intermediate
@@ -40,30 +38,30 @@
 
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
-(re/reg-event-fx :page.new-job/initialize-page initialize-page)
-(re/reg-event-fx :page.new-job/set-type (create-assoc-handler :type))
-(re/reg-event-fx :page.new-job/set-name (create-assoc-handler :name))
-(re/reg-event-fx :page.new-job/set-description (create-assoc-handler :description))
-(re/reg-event-fx :page.new-job/set-category (create-assoc-handler :category))
-(re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :required-experience-level))
-(re/reg-event-fx :page.new-job/set-bid-option (create-assoc-handler :bid-option))
-(re/reg-event-fx :page.new-job/set-required-availability (create-assoc-handler :required-availability))
-(re/reg-event-fx :page.new-job/set-estimated-project-length (create-assoc-handler :estimated-project-length))
-(re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :required-skills))
-(re/reg-event-fx :page.new-job/set-form-of-payment (create-assoc-handler :form-of-payment))
-(re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :token-address))
-(re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :with-arbiter?))
 
+(re/reg-event-fx :page.new-job/initialize-page initialize-page)
+(re/reg-event-fx :page.new-job/set-bid-option (create-assoc-handler :bid-option))
+(re/reg-event-fx :page.new-job/set-category (create-assoc-handler :job/category))
+(re/reg-event-fx :page.new-job/set-description (create-assoc-handler :job/description))
+(re/reg-event-fx :page.new-job/set-estimated-project-length (create-assoc-handler :job/estimated-project-length))
+(re/reg-event-fx :page.new-job/set-form-of-payment (create-assoc-handler :job/form-of-payment))
+(re/reg-event-fx :page.new-job/set-title (create-assoc-handler :job/title))
+(re/reg-event-fx :page.new-job/set-required-availability (create-assoc-handler :job/required-availability))
+(re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :job/required-experience-level))
+(re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
+(re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :job/token-address))
+(re/reg-event-fx :page.new-job/set-type (create-assoc-handler :job/type))
+(re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
 
 (def db->ipfs-mapping
-  {:job/title :name
-   :job/description :description
-   :job/category :category
-   :job/expertise-level :required-experience-level
-   :job/bid-option :bid-option
-   :job/required-availability :required-availability
-   :job/estimated-length :estimated-project-length
-   :job/required-skills :skills})
+  {:job/bid-option :job/bid-option
+   :job/category :job/category
+   :job/description :job/description
+   :job/estimated-project-length :job/estimated-project-length
+   :job/required-experience-level :job/required-experience-level
+   :job/required-availability :job/required-availability
+   :job/required-skills :job/required-skills
+   :job/title :job/title})
 
 (defn- db-job->ipfs-job
   "Useful for renaming map keys by reducing over a map of keyword -> keyword

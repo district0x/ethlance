@@ -186,7 +186,7 @@
      [:job/date-created :bigint]
      [:job/date-published :bigint]
      [:job/date-updated :bigint]
-     [:job/expertise-level :integer]
+     [:job/required-experience-level :text]
      [:job/token :varchar]
      [:job/token-version :integer]
      [:job/reward :integer]
@@ -199,13 +199,13 @@
    {:table-name :EthlanceJob
     :table-columns
     [[:job/id :integer]
-     [:ethlance-job/id :integer]
-     [:ethlance-job/estimated-length :bigint]
+     [:ethlance-job/id :serial]
+     [:ethlance-job/estimated-project-length :text]
      [:ethlance-job/max-number-of-candidates :integer]
      [:ethlance-job/invitation-only? :bool]
-     [:ethlance-job/required-availability :bool]
+     [:ethlance-job/required-availability :text]
      [:ethlance-job/hire-address :varchar]
-     [:ethlance-job/bid-option :integer]
+     [:ethlance-job/bid-option :text]
 
      ;; PK
      [(sql/call :primary-key :job/id)]
@@ -718,9 +718,9 @@
      (<? (insert-row! conn :StandardBounty (assoc bounty-job :job/id job-id))))))
 
 (defn add-ethlance-job [conn ethlance-job]
+  (println ">>> ethlance.server.db/add-ethlance-job" ethlance-job)
   (safe-go
-   (let [job-id (-> (<? (insert-row! conn :Job (assoc ethlance-job
-                                                      :job/type "ethlance-job")))
+   (let [job-id (-> (<? (insert-row! conn :Job (assoc ethlance-job :job/type "ethlance-job")))
                     :job/id)]
      (<? (insert-row! conn :EthlanceJob (assoc ethlance-job :job/id job-id))))))
 

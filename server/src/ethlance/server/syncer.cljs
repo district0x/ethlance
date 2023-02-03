@@ -11,6 +11,7 @@
             [ethlance.server.event-replay-queue :as replay-queue]
             [ethlance.server.ipfs :as ipfs]
             [ethlance.server.utils :as server-utils]
+            [ethlance.shared.utils :as shared-utils]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
@@ -261,22 +262,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn build-ethlance-job-data-from-ipfs-object [ethlance-job-data]
-  {:job/title (-> ethlance-job-data :payload :title)
-   :job/description (-> ethlance-job-data :payload :description)
-   :job/category (-> ethlance-job-data :payload :majorCategory)
-   :job/web-reference-url (-> ethlance-job-data :payload :webReferenceUrl)
-   :job/reward (-> ethlance-job-data :payload :fulfillmentAmount)
-   :job/language-id (-> ethlance-job-data :payload :language-id)
-   :ethlance-job/estimatedLenght (-> ethlance-job-data :payload :estimatedLenght)
-   :ethlance-job/maxNumberOfCandidates (-> ethlance-job-data :payload :maxNumberOfCandidates)
-   :ethlance-job/invitationOnly (-> ethlance-job-data :payload :invitationOnly)
-   :ethlance-job/requiredAvailability (-> ethlance-job-data :payload :requiredAvailability)
+  (println ">>> build-ethlance-job-data-from-ipfs-object" ethlance-job-data)
+  {:job/title (:job/title ethlance-job-data)
+   :job/description (:job/description ethlance-job-data)
+   :job/category (:job/category ethlance-job-data)
+   :job/required-experience-level (:job/required-experience-level ethlance-job-data)
+   :job/web-reference-url nil ; TODO
+   :job/reward nil ; TODO: where does it come from
+   :job/language-id nil; TODO: where does it come from
+   :ethlance-job/bid-option (:job/bid-option ethlance-job-data)
+   :ethlance-job/estimated-project-length (:job/estimated-project-length ethlance-job-data)
+   :ethlance-job/max-number-of-candidates nil ; TODO: where does it come from
+   :ethlance-job/invitation-only? nil ; TODO: where does it come from
+   :ethlance-job/required-availability (:job/required-availability ethlance-job-data)
    })
 
 ;; event JobIssued(uint _jobId, address payable _creator, address payable[] _issuers, address[] _approvers, string _ipfsHash, address _token, uint _tokenVersion);
 (defn handle-job-issued [conn _ {:keys [args] :as event}]
   (safe-go
    (log/info (str "Handling event handle-job-issued" args))
+   (println ">>> handle-job-issued event:" event)
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
      (<? (ethlance-db/add-ethlance-job conn
                                        (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
@@ -374,18 +379,40 @@
 
 
 (defn handle-job-created [conn _ {:keys [args] :as event}]
+  ; (:args event)
+  ;   {:invited-arbiters #js [],
+  ;    :creator "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0",
+  ;    :version nil,
+  ;    :timestamp 178334,
+  ;    :job-type "1",
+  ;    :offered-values #js [#js [#js [#js ["0" "0x1111111111111111111111111111111111111111"] "0"] "1000000000000"]],
+  ;    :ipfs-data "0x12204129c213954a4864af722e5160c92b158f1215c13416a1165a6ee7142371b368",
+  ;    :job-version "1",
+  ;    :job "0xB09D4faa942B31dA354c16ab92193e33dADDA6c3"}
+  ; ipfs-job-content
+  ;   {:job/title "Siimar Sapp",
+  ;    :job/description "tere hommikust",
+  ;    :job/category "Admin Support",
+  ;    :job/expertise-level :beginner,
+  ;    :job/bid-option :hourly-rate,
+  ;    :job/required-availability :full-time,
+  ;    :job/estimated-length :day,
+  ;    :job/required-skills nil}
   (safe-go
    (log/info (str ">>> Handling event job-created" args))
-   ; (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
-   ;   (<? (ethlance-db/add-ethlance-job conn
-   ;                                     (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
-   ;                                             :job/date-created (:timestamp event)
-   ;                                             :job/date-published (:timestamp event)
-   ;                                             :job/date-updated (:timestamp event)
-   ;                                             :job/token (:_token args)
-   ;                                             :job/token-version (:_token-version args)
-   ;                                             :ethlance-job/id (:_job-id args)}
-   ;                                            (build-ethlance-job-data-from-ipfs-object ipfs-data)))))
+   (println ">>> ipfs-data | type ipfs-data" (:ipfs-data args) (type (:ipfs-data args)))
+   (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
+         _ (println ">>> got IPFS hash: " ipfs-hash)
+         ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
+         _ (println ">>> got IPFS content" ipfs-job-content)]
+     (<? (ethlance-db/add-ethlance-job conn
+                                       (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
+                                               :job/date-created (:timestamp event)
+                                               :job/date-published (:timestamp event)
+                                               :job/date-updated (:timestamp event)
+                                               :job/token (:_token args)
+                                               :job/token-version (:_token-version args)}
+                                              (build-ethlance-job-data-from-ipfs-object ipfs-job-content)))))
    ))
 
 (defn handle-test-event [& args]

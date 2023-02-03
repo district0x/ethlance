@@ -1,29 +1,27 @@
 (ns ethlance.server.core
   (:require
+    [alphabase.base58 :as base58]
+    [alphabase.hex :as hex]
     [district.server.async-db]
-            [district.server.config :refer [config]]
-            [district.server.db.honeysql-extensions]
-            [district.server.db]
-            [district.server.logging]
-            [district.server.smart-contracts]
-            [district.server.web3-events]
-            [district.server.web3]
-            [district.shared.async-helpers :as async-helpers :refer [safe-go]]
-            [ethlance.server.db]
-            [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
-            [ethlance.server.ipfs]
-            [ethlance.server.syncer]
-            [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
-            [tests.graphql.generator]
-            [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
-            [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-            [ethlance.shared.utils :as shared-utils]
-            [mount.core :as mount]
-            [taoensso.timbre :refer [merge-config!] :as log]
-            ))
-
-; (defn -main [& args]
-;   (println "Running (FAKE SRC) ethlance.server.core/-main That's it"))
+    [district.server.config :refer [config]]
+    [district.server.db.honeysql-extensions]
+    [district.server.db]
+    [district.server.logging]
+    [district.server.smart-contracts]
+    [district.server.web3-events]
+    [district.server.web3]
+    [district.shared.async-helpers :as async-helpers :refer [safe-go]]
+    [ethlance.server.db]
+    [ethlance.server.graphql.server]
+    [ethlance.server.ipfs]
+    [ethlance.server.syncer]
+    [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+    [tests.graphql.generator]
+    [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
+    [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
+    [ethlance.shared.utils :as shared-utils]
+    [mount.core :as mount]
+    [taoensso.timbre :refer [merge-config!] :as log]))
 
 (def environment (shared-utils/get-environment))
 

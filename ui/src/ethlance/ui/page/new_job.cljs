@@ -7,6 +7,7 @@
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
             [district.ui.web3-tx.events :as tx-events]
             [district.ui.smart-contracts.queries :as contract-queries]
+            [ethlance.ui.page.new-job.events :as new-job.events]
             [ethlance.ui.component.radio-select
              :refer
              [c-radio-secondary-element c-radio-select]]
@@ -16,7 +17,8 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.util.component :refer [<sub >evt]]
-            [re-frame.core :as re]))
+            [re-frame.core :as re]
+            [clojure.spec.alpha :as s]))
 
 (defn c-arbiter-for-hire
   []
@@ -30,18 +32,19 @@
     [c-button-label "Invite"]]])
 
 (defmethod page :route.job/new []
-  (let [*type (re/subscribe [:page.new-job/type])
-        *name (re/subscribe [:page.new-job/name])
+  (let [*bid-option (re/subscribe [:page.new-job/bid-option])
         *category (re/subscribe [:page.new-job/category])
-        *bid-option (re/subscribe [:page.new-job/bid-option])
-        *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
-        *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
-        *required-availability (re/subscribe [:page.new-job/required-availability])
-        *required-skills (re/subscribe [:page.new-job/required-skills])
         *description (re/subscribe [:page.new-job/description])
+        *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
         *form-of-payment (re/subscribe [:page.new-job/form-of-payment])
+        *name (re/subscribe [:page.new-job/title])
+        *required-availability (re/subscribe [:page.new-job/required-availability])
+        *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
+        *required-skills (re/subscribe [:page.new-job/required-skills])
         *token-address (re/subscribe [:page.new-job/token-address])
-        *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])]
+        *type (re/subscribe [:page.new-job/type])
+        *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])
+        form-values (re/subscribe [:page.new-job/form])]
     (fn []
       (let [is-bounty? (= @*type :bounty)
             with-token? (= @*form-of-payment :erc20)]
@@ -59,7 +62,7 @@
            [c-text-input
             {:placeholder "Name"
              :value @*name
-             :on-change #(re/dispatch [:page.new-job/set-name %])}]]
+             :on-change #(re/dispatch [:page.new-job/set-title %])}]]
           [:div.category-input
            [c-select-input
             {:label "Category"
@@ -156,7 +159,14 @@
             [c-arbiter-for-hire]
             [c-arbiter-for-hire]])
 
-         [:div.button
-          {:on-click (fn [] (>evt [:page.new-job/create]))}
+         ; TODO: how to disable the Create button (functionally & visually) when the spec validation fails?
+         ; [:div.button
+         ;  {:on-click (fn [] (>evt [:page.new-job/create]))}
+         ;  [:div.label "Create"]
+         ;  [c-icon {:name :ic-arrow-right :size :small}]]
+
+         [c-button
+          {:on-click (fn [] (>evt [:page.new-job/create]))
+           :disabled? (not (s/valid? :page.new-job/create @form-values))}
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))
