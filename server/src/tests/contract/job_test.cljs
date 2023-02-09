@@ -161,14 +161,6 @@
                (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-a empty-ipfs-data] {:from employer}))]
                  (is (= tx-receipt nil)))
 
-               ; Try adding candidate for other job type - bounty (should fail)
-              (let [job-data (<! (create-initialized-job [(partial fund-in-eth 0.01)]
-                                                         :job-type (contract-constants/job-type :bounty)))
-                    job-address (:job job-data)
-                    empty-ipfs-data "0x0"
-                    tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-b empty-ipfs-data] {:from employer}))]
-                (is (= nil tx-receipt) "Transaction fails (receipt nil) when adding candidate to non-GIG (e.g. BOUNTY) job"))
-
               ; Try adding candidate by user other than job creator (should fail)
               (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker empty-ipfs-data] {:from worker}))]
                 (is (= nil tx-receipt))))

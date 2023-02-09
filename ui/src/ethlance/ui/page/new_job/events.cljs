@@ -3,6 +3,7 @@
     [alphabase.base58 :as base58]
     [alphabase.hex :as hex]
     [district.ui.router.effects :as router.effects]
+    [district.ui.router.events :as router-events]
     [ethlance.ui.graphql :as graphql]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]
@@ -15,8 +16,7 @@
 (def interceptors [re/trim-v])
 
 (def state-default
-  {:type :job
-   :title nil
+  {:title nil
    :category nil
    :bid-option :hourly-rate
    :required-experience-level :intermediate
@@ -40,7 +40,7 @@
 
 
 (re/reg-event-fx :page.new-job/initialize-page initialize-page)
-(re/reg-event-fx :page.new-job/set-bid-option (create-assoc-handler :bid-option))
+(re/reg-event-fx :page.new-job/set-bid-option (create-assoc-handler :job/bid-option))
 (re/reg-event-fx :page.new-job/set-category (create-assoc-handler :job/category))
 (re/reg-event-fx :page.new-job/set-description (create-assoc-handler :job/description))
 (re/reg-event-fx :page.new-job/set-estimated-project-length (create-assoc-handler :job/estimated-project-length))
@@ -50,7 +50,6 @@
 (re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :job/required-experience-level))
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
 (re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :job/token-address))
-(re/reg-event-fx :page.new-job/set-type (create-assoc-handler :job/type))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
 
 (def db->ipfs-mapping
@@ -104,7 +103,6 @@
                          {:tokenContract {:tokenType offered-token-type :tokenAddress placeholder-address}
                           :tokenId not-used-for-erc20} :value funding-amount-wei}
 
-          job-type 1
           invited-arbiters []
           _ (println ">>> :job-to-ipfs-success FX" {:event event :type (type event)})
           ipfs-response (get-in event [:event 1])
@@ -114,7 +112,7 @@
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :ethlance)
                    :fn :createJob
-                   :args [creator [offered-value] job-type invited-arbiters ipfs-hash]
+                   :args [creator [offered-value] invited-arbiters ipfs-hash]
                    :tx-opts {:from creator :gas 4500000 :value (:value offered-value)}
                    :tx-hash [:tx-hash]
                    :on-tx-hash-n [[:tx-hash]]
@@ -130,15 +128,13 @@
 (re/reg-event-fx :tx-hash (fn [db event]         (println ">>>>>>!!!!! tx-hash" event)))
 (re/reg-event-fx :web3-tx-localstorage (fn [db event]         (println ">>>>>>!!!!! web3-tx-localstorage" event)))
 
-(defonce create-job-tx-receipt (atom nil))
-
 (re/reg-event-db
   :create-job-tx-success
-  (fn [db event]
-    (reset! create-job-tx-receipt (last event))
-    ; {:ipfsData "0x12204129c213954a4864af722e5160c92b158f1215c13416a1165a6ee7142371b368", :creator "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0" ...}
-    (println ">>> JobCreated event data: " (get-in (last event) [:events :Job-created :return-values]))
-    (println ">>> got :create-job-tx-success event:" event)))
+  (fn [db [event-name tx-data]]
+    (re/dispatch [::router-events/navigate
+                  :route.job/detail
+                  {:contract (get-in tx-data
+                                     [:events :Job-created :return-values :job])}])))
 
 (re/reg-event-db
   :create-job-tx-error

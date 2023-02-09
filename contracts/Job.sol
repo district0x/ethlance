@@ -21,7 +21,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
   address public creator;
-  EthlanceStructs.JobType public jobType;
 
   // The bytes32 being keccak256(abi.encodePacked(depositorAddress, TokenType, contractAddress, tokenId))
   mapping(bytes32 => Deposit) deposits;
@@ -77,7 +76,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   function initialize(
     Ethlance _ethlance,
     address _creator,
-    EthlanceStructs.JobType _jobType,
     EthlanceStructs.TokenValue[] calldata _offeredValues,
     address[] calldata _invitedArbiters
   ) external {
@@ -88,7 +86,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     ethlance = _ethlance;
     creator = _creator;
-    jobType = _jobType;
     for(uint i = 0; i < _invitedArbiters.length; i++) { invitedArbiters.add(_invitedArbiters[i]); }
 
     _recordAddedFunds(creator, _offeredValues);
@@ -156,7 +153,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    *
    * Requirements:
    * - Can only be called by job creator
-   * - Can be called only when {EthlanceStructs.JobType} is GIG
    * - `_candidate` cannot be empty
    * - same `_candidate` cannot be added twice
    *
@@ -168,7 +164,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   ) external {
     require(msg.sender == creator, "Only job creator can add candidates");
     require(invitedCandidates.contains(_candidate) == false, "Candidate already added. Can't add duplicates");
-    require(jobType == EthlanceStructs.JobType.GIG, "Can only add candidates to GIG job type");
     invitedCandidates.add(_candidate);
     ethlance.emitCandidateAdded(address(this), address(_candidate), _ipfsData);
   }
@@ -178,8 +173,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * @dev Function called by candidate to create an invoice to be paid
    *
    * Requirements:
-   * - If {EthlanceStructs.JobType} is GIG, `msg.sender` must be among added candidates
-   * - If {EthlanceStructs.JobType} is BOUNTY, anybody can call this function
+   * - `msg.sender` must be among added candidates
    * - `_invoicedValue` cannot be empty
    * - `_ipfsData` cannot be empty
    *
@@ -195,9 +189,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external {
-    if (jobType == EthlanceStructs.JobType.GIG) {
-      require(invitedCandidates.contains(msg.sender), "Sender must be amongst invitedCandidates to raise an invoice for GIG job type");
-    }
+    require(invitedCandidates.contains(msg.sender), "Sender must be amongst invitedCandidates to raise an invoice");
 
     for(uint i = 0; i < _invoicedValue.length; i++) {
       Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false, false);

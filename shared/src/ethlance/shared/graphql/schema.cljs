@@ -74,7 +74,7 @@
       offset: Int,
     ): ArbiterList
 
-    job(job_id : Int!): Job
+    job(contract: ID!): Job
 
     jobSearch(
       job_id: Int,
@@ -392,57 +392,15 @@
 
   # Job Types
 
-  interface Job {
+  type Job {
     job_id: Int
-    job_type: Keyword
+    job_contract: ID
     job_title: String
     job_description: String
+    job_requiredExperienceLevel: String
     job_category: String
     job_status: Keyword
     job_dateCreated: Date
-    job_datePublished: Date
-    job_dateUpdated: Date
-    job_token: String
-    job_tokenVersion: Int
-    job_reward: Int
-    job_acceptedArbiterAddress: ID
-    job_employerAddress: ID
-
-    job_stories(limit: Int, offset: Int): JobStoryList
-  }
-
-  type StandardBounty implements Job {
-    job_id: Int
-    job_type: Keyword
-    job_title: String
-    job_description: String
-    job_category: String
-    job_status: Keyword
-    job_dateCreated: Date
-    job_datePublished: Date
-    job_dateUpdated: Date
-    job_token: String
-    job_tokenVersion: Int
-    job_reward: Int
-    job_acceptedArbiterAddress: ID
-    job_employerAddress: ID
-
-    job_stories(limit: Int, offset: Int): JobStoryList
-
-    standardBounty_id: Int
-    standardBounty_platform: String
-    standardBounty_deadline: Date
-  }
-
-  type EthlanceJob implements Job {
-    job_id: Int
-    job_type: Keyword
-    job_title: String
-    job_description: String
-    job_category: String
-    job_status: Keyword
-    job_dateCreated: Date
-    job_datePublished: Date
     job_dateUpdated: Date
     job_token: String
     job_tokenVersion: Int
@@ -451,14 +409,14 @@
     job_employerAddress: ID
     job_stories(limit: Int, offset: Int): JobStoryList
 
-    ethlanceJob_id: Int
-    ethlanceJob_estimatedLenght: Int
-    ethlanceJob_maxNumberOfCandidates: Int
-    ethlanceJob_invitationOnly: Boolean
-    ethlanceJob_requiredAvailability: Boolean
-    ethlanceJob_hireAddress: String
-    ethlanceJob_bidOption: Int
+    job_estimatedProjectLength: Int
+    job_maxNumberOfCandidates: Int
+    job_invitationOnly: Boolean
+    job_requiredAvailability: Boolean
+    job_hireAddress: String
+    job_bidOption: String
   }
+
 
   type JobList {
     items: [Job]
@@ -492,7 +450,7 @@
   }
 
   type EthlanceJobStory implements JobStory{
-    job: EthlanceJob
+    job: Job
     job_id: Int
     jobStory_id: Int
     jobStory_status: Keyword

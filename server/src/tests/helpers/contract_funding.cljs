@@ -119,10 +119,7 @@
        accept `recipient` param"
   ([] (create-initialized-job []))
 
-  ([funding-functions & {job-type :job-type
-                         arbiters :arbiters
-                         :or {arbiters []
-                              job-type (contract-constants/job-type :gig)}}]
+  ([funding-functions & {arbiters :arbiters :or {arbiters []}}]
    (go
       (let [[_owner employer worker] (<! (web3-eth/accounts @web3))
             ipfs-data "0x0"
@@ -132,7 +129,6 @@
             _ (<! (ethlance/initialize job-impl-address))
             tx-receipt (<! (ethlance/create-job employer
                                                   offered-values
-                                                  job-type
                                                   arbiters
                                                   ipfs-data
                                                   additional-opts))

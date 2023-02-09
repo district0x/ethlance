@@ -23,7 +23,6 @@
 (re/reg-sub :page.new-job/required-skills (create-get-handler :job/required-skills))
 (re/reg-sub :page.new-job/title (create-get-handler :job/title))
 (re/reg-sub :page.new-job/token-address (create-get-handler :job/token-address))
-(re/reg-sub :page.new-job/type (create-get-handler :job/type))
 (re/reg-sub :page.new-job/with-arbiter? (create-get-handler :job/with-arbiter?))
 
 

@@ -84,7 +84,7 @@
                  candidate_rating
                  candidate_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
                  candidate_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
-        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
+        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}}])]
   (fn []
     (let [name (get-in @results [:user :user/name])
           location (get-in @results [:user :user/country])

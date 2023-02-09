@@ -27,7 +27,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   event JobCreated(
     address job,
     uint jobVersion,
-    EthlanceStructs.JobType jobType,
     address creator,
     EthlanceStructs.TokenValue[] offeredValues,
     address[] invitedArbiters,
@@ -181,7 +180,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   function createJob(
     address _creator,
     EthlanceStructs.TokenValue[] memory _offeredValues,
-    EthlanceStructs.JobType _jobType,
     address[] memory _invitedArbiters,
     bytes memory _ipfsData
   ) public payable returns(address) {
@@ -193,9 +191,9 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
 
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
     isJobMap[newJobPayableAddress] = true;
-    Job(newJobPayableAddress).initialize(this, _creator, _jobType, _offeredValues, _invitedArbiters);
+    Job(newJobPayableAddress).initialize(this, _creator, _offeredValues, _invitedArbiters);
 
-    emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _jobType, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp());
+    emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp());
 
     return newJob;
   }
@@ -438,7 +436,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     OperationType operationType,
     address _creator,
     EthlanceStructs.TokenValue[] memory _offeredValues,
-    EthlanceStructs.JobType _jobType,
     address[] memory _invitedArbiters,
     bytes memory _ipfsData
   ) public payable returns(address) {
@@ -452,32 +449,30 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   function _createJobWithPassedData(bytes calldata _data) internal {
     address creator;
     EthlanceStructs.TokenValue[] memory offeredValues;
-    EthlanceStructs.JobType jobType;
     address[] memory invitedArbiters;
     OperationType operationType;
     bytes memory ipfsData;
 
-    (operationType, creator, offeredValues, jobType, invitedArbiters, ipfsData) = _decodeJobCreationData(_data);
-    createJob(creator, offeredValues, jobType, invitedArbiters, ipfsData);
+    (operationType, creator, offeredValues, invitedArbiters, ipfsData) = _decodeJobCreationData(_data);
+    createJob(creator, offeredValues, invitedArbiters, ipfsData);
   }
 
   // TODO: how to optimize so that multiple calls to this method wouldn't
   //       redo the work multiple times (and thus spend gas) during one
   //       contract execution
-  function _decodeJobCreationData(bytes calldata _data) internal returns(OperationType, address, EthlanceStructs.TokenValue[] memory, EthlanceStructs.JobType, address[] memory, bytes memory) {
-    return abi.decode(_data[4:], (OperationType, address, EthlanceStructs.TokenValue[], EthlanceStructs.JobType, address[], bytes));
+  function _decodeJobCreationData(bytes calldata _data) internal returns(OperationType, address, EthlanceStructs.TokenValue[] memory, address[] memory, bytes memory) {
+    return abi.decode(_data[4:], (OperationType, address, EthlanceStructs.TokenValue[], address[], bytes));
   }
 
   function isCalledForOneStepJobCreation(bytes calldata _data) internal returns(bool) {
     if (_data.length > 0) {
       address creator;
       EthlanceStructs.TokenValue[] memory offeredValues;
-      EthlanceStructs.JobType jobType;
       address[] memory invitedArbiters;
       OperationType operationType;
       bytes memory ipfsData;
 
-      (operationType, creator, offeredValues, jobType, invitedArbiters, ipfsData) = _decodeJobCreationData(_data);
+      (operationType, creator, offeredValues, invitedArbiters, ipfsData) = _decodeJobCreationData(_data);
 
       if(operationType == OperationType.ONE_STEP_JOB_CREATION) {
         return true;

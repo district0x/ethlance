@@ -376,47 +376,39 @@
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-query {:select [:Job.job/id
-                                   :Job.job/type
+                                   :Job.job/contract
+                                   :Job.job/creator
                                    :Job.job/title
                                    :Job.job/description
                                    :Job.job/category
                                    :Job.job/status
                                    :Job.job/date-created
-                                   :Job.job/date-published
+                                   :Job.job/required-experience-level
                                    :Job.job/date-updated
                                    :Job.job/token
                                    :Job.job/token-version
                                    :Job.job/reward
+                                   :Job.job/estimated-project-length
+                                   :Job.job/max-number-of-candidates
+                                   :Job.job/invitation-only?
+                                   :Job.job/hire-address
+                                   :Job.job/bid-option
 
-                                   [:JobArbiter.user/address :job/accepted-arbiter-address]
-                                   [:JobCreator.user/address :job/employer-address]]
+                                   [:JobArbiter.user/address :job/accepted-arbiter-address]]
                           :from [:Job]
-                          :join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]
-                                 :JobCreator [:= :JobCreator.job/id :Job.job/id]]})
+                          :left-join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]]})
 
-(def ^:private standard-bounty-query {:select [:StandardBounty.standard-bounty/id
-                                               :StandardBounty.standard-bounty/platform
-                                               :StandardBounty.standard-bounty/deadline]
-                                      :from [:StandardBounty]})
-
-(def ^:private ethlance-job-query {:select [:EthlanceJob.ethlance-job/id
-                                            :EthlanceJob.ethlance-job/estimated-length
-                                            :EthlanceJob.ethlance-job/max-number-of-candidates
-                                            :EthlanceJob.ethlance-job/invitation-only?
-                                            :EthlanceJob.ethlance-job/hire-address
-                                            :EthlanceJob.ethlance-job/bid-option]
-                                   :from [:EthlanceJob]})
-
-(defn job-resolver [parent {:keys [:job/id] :as args} _]
+(defn job-resolver [parent {:keys [:contract :job/id] :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug "job-resolver" args)
-    (let [parent-job-id (:job/id (graphql-utils/gql->clj parent))
-          job-id (or parent-job-id id)
-          job (<? (db/get conn (sql-helpers/merge-where job-query [:= job-id :Job.job/id])))
-          job-type-query (-> (case (keyword (:job/type job))
-                               :standard-bounty (sql-helpers/merge-where standard-bounty-query [:= job-id :StandardBounty.job/id])
-                               :ethlance-job (sql-helpers/merge-where ethlance-job-query [:= job-id :EthlanceJob.job/id])))]
-      (merge job (<? (db/get conn job-type-query))))))
+    (log/debug ">>> job-resolver" {:parent parent :args args})
+    (let [
+          ; parent-job-id (:job/id (graphql-utils/gql->clj parent))
+          ; job-id (or parent-job-id id)
+          contract-address (:contract args)
+          job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract :Job.job/contract])))
+          _ (println ">>> job-resolver RESULTS: job:" job)]
+      job
+      )))
 
 (def ^:private job-story-query {:select [:JobStory.job-story/id
                                          :Job.job/id

@@ -42,22 +42,13 @@
         *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
         *required-skills (re/subscribe [:page.new-job/required-skills])
         *token-address (re/subscribe [:page.new-job/token-address])
-        *type (re/subscribe [:page.new-job/type])
         *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])
         form-values (re/subscribe [:page.new-job/form])]
     (fn []
-      (let [is-bounty? (= @*type :bounty)
-            with-token? (= @*form-of-payment :erc20)]
+      (let [with-token? (= @*form-of-payment :erc20)]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
-          [:div.title (if is-bounty? "New Bounty" "New Job")]
-          [:div.job-type-input
-           [c-radio-select
-            {:selection @*type
-             :on-selection #(re/dispatch [:page.new-job/set-type %])
-             :flex? true}
-            [:job [c-radio-secondary-element "Job"]]
-            [:bounty [c-radio-secondary-element "Bounty"]]]]
+          [:div.title "New job"]
           [:div.name-input
            [c-text-input
             {:placeholder "Name"
@@ -69,44 +60,39 @@
              :selections (sort constants/categories)
              :selection @*category
              :on-select #(re/dispatch [:page.new-job/set-category %])}]]
-          (when-not is-bounty?
-            [:div.bid-for-radio-input.radio
-             [:div.label "Candidates Should Bid For"]
-             [c-radio-select
-              {:selection @*bid-option
-               :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
-              [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
-              [:fixed-price [c-radio-secondary-element "Fixed Price"]]]])
+          [:div.bid-for-radio-input.radio
+           [:div.label "Candidates Should Bid For"]
+           [c-radio-select
+            {:selection @*bid-option
+             :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
+            [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
+            [:fixed-price [c-radio-secondary-element "Fixed Price"]]]]
+          [:div.experience-radio-input.radio
+           [:div.label "Required Experience Level"]
+           [c-radio-select
+            {:selection @*required-experience-level
+             :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}
+            [:beginner [c-radio-secondary-element "Beginner ($)"]]
+            [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
+            [:expert [c-radio-secondary-element "Expert ($$$)"]]]]
 
-          (when-not is-bounty?
-            [:div.experience-radio-input.radio
-             [:div.label "Required Experience Level"]
-             [c-radio-select
-              {:selection @*required-experience-level
-               :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}
-              [:beginner [c-radio-secondary-element "Beginner ($)"]]
-              [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
-              [:expert [c-radio-secondary-element "Expert ($$$)"]]]])
+          [:div.project-length-radio-input.radio
+           [:div.label "Estimated Project Length"]
+           [c-radio-select
+            {:selection @*estimated-project-length
+             :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}
+            [:day [c-radio-secondary-element "Hours or Days"]]
+            [:week [c-radio-secondary-element "Weeks"]]
+            [:month [c-radio-secondary-element "Months"]]
+            [:year [c-radio-secondary-element ">6 Months"]]]]
 
-          (when-not is-bounty?
-            [:div.project-length-radio-input.radio
-             [:div.label "Estimated Project Length"]
-             [c-radio-select
-              {:selection @*estimated-project-length
-               :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}
-              [:day [c-radio-secondary-element "Hours or Days"]]
-              [:week [c-radio-secondary-element "Weeks"]]
-              [:month [c-radio-secondary-element "Months"]]
-              [:year [c-radio-secondary-element ">6 Months"]]]])
-
-          (when-not is-bounty?
-            [:div.availability-radio-input.radio
-             [:div.label "Required Availability"]
-             [c-radio-select
-              {:selection @*required-availability
-               :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}
-              [:full-time [c-radio-secondary-element "Full-Time"]]
-              [:part-time [c-radio-secondary-element "Part-Time"]]]])
+          [:div.availability-radio-input.radio
+           [:div.label "Required Availability"]
+           [c-radio-select
+            {:selection @*required-availability
+             :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}
+            [:full-time [c-radio-secondary-element "Full-Time"]]
+            [:part-time [c-radio-secondary-element "Part-Time"]]]]
 
           [:div.with-arbiter-radio-input.radio
            [:div.label "Arbiter"]

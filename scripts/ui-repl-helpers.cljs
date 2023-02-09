@@ -12,6 +12,8 @@
 (re/dispatch [:district.ui.router.events/navigate :route.job/jobs {} {}])
 (re/dispatch [:district.ui.router.events/navigate :route.misc/about {} {}])
 (re/dispatch [:district.ui.router.events/navigate :route.misc/about])
+(re/dispatch [:district.ui.router.events/navigate :route.job/detail {:contract "0x739c79FEE46b13227fBa11f54126bbD7710CF2e5"}])
+(re/dispatch [:district.ui.router.events/navigate :route.job/detail])
 
 ; Fill new-job form
 ; http://d0x-vm:6500/jobs/new
@@ -37,3 +39,11 @@
   (binding [*print-readably* true
             *print-namespace-maps* false]
     (with-out-str (cljs.pprint/pprint deps-map))))
+
+; namespaced keyword experiment
+(in-ns 'is.mad.one)
+(def model {::name "First"})
+(in-ns 'is.mad.two)
+(def model {::name "Second"})
+(in-ns 'is.mad.three)
+

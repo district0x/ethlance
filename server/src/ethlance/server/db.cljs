@@ -8,7 +8,7 @@
             [cuerdas.core :as str]
             [district.server.async-db :as db]
             [district.server.config :refer [config]]
-            [district.server.db.column-types :refer [not-nil]]
+            [district.server.db.column-types :as column-types :refer [not-nil]]
             [district.shared.async-helpers :refer [<? safe-go]]
             [honeysql.core :as sql]
             [mount.core :as mount :refer [defstate]]
@@ -178,55 +178,36 @@
    {:table-name :Job
     :table-columns
     [[:job/id :serial]
-     [:job/type :varchar not-nil]
+     [:job/contract column-types/address] ; add unique & not null constraints
+                                          ; https://github.com/seancorfield/honeysql/blob/develop/doc/clause-reference.md
+                                          ; https://github.com/district0x/d0x-libs/blob/master/server/district-server-db/src/district/server/db/column_types.cljs
+     [:job/creator column-types/address]
      [:job/title :varchar not-nil]
      [:job/description :varchar not-nil]
      [:job/category :varchar]
      [:job/status :varchar]
      [:job/date-created :bigint]
-     [:job/date-published :bigint]
      [:job/date-updated :bigint]
      [:job/required-experience-level :text]
-     [:job/token :varchar]
-     [:job/token-version :integer]
-     [:job/reward :integer]
-     [:job/web-reference-url :varchar]
-     [:job/language-id :varchar]
+
+     [:job/token :varchar]         ; token-address These were meant to store the payment data
+     [:job/token-version :integer] ; token-type    Find a better data structure to store them
+     [:job/reward :integer]        ; token-amount  The amount (paid token or ETH)
+                                   ; token-id      Additional field: token-id (for NFTs)
+
+     ; These fields had :ethlance-job/estimated-project-length prefix
+     ; (originally from EthlanceJob table). Find places where to rename
+     [:job/estimated-project-length :text]
+     [:job/max-number-of-candidates :integer] ; TODO: remove
+     [:job/invitation-only? :bool]
+     [:job/required-availability :text]
+     [:job/hire-address :varchar]
+     [:job/bid-option :text]
+
+     [:job/language-id :varchar] ; TODO: REMOVE
      ;; PK
      [(sql/call :primary-key :job/id)]]
     :list-keys []}
-
-   {:table-name :EthlanceJob
-    :table-columns
-    [[:job/id :integer]
-     [:ethlance-job/id :serial]
-     [:ethlance-job/estimated-project-length :text]
-     [:ethlance-job/max-number-of-candidates :integer]
-     [:ethlance-job/invitation-only? :bool]
-     [:ethlance-job/required-availability :text]
-     [:ethlance-job/hire-address :varchar]
-     [:ethlance-job/bid-option :text]
-
-     ;; PK
-     [(sql/call :primary-key :job/id)]
-
-     ;; FK
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     ;; TODO: add to  candidate table
-     ]}
-
-   {:table-name :StandardBounty
-    :table-columns
-    [[:job/id :integer]
-     [:standard-bounty/id :integer]
-     [:standard-bounty/platform :varchar]
-     [:standard-bounty/deadline :bigint]
-     ;; PK
-     [(sql/call :primary-key :job/id)]
-
-     ;; FK
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     ]}
 
    {:table-name :JobCreator
     :table-columns
@@ -709,47 +690,19 @@
                     (array-map :on-conflict [:user/address]
                                :do-update-set (keys values))})))))
 
-
-(defn add-bounty [conn bounty-job]
+(defn add-job [conn job]
+  (println ">>> ethlance.server.db/add-job" job)
   (safe-go
-   (let [job-id (-> (<? (insert-row! conn :Job (assoc bounty-job
-                                                      :job/type "standard-bounty")))
-                    :job/id)]
-     (<? (insert-row! conn :StandardBounty (assoc bounty-job :job/id job-id))))))
+    (:job/id (<? (insert-row! conn :Job job)))))
 
-(defn add-ethlance-job [conn ethlance-job]
-  (println ">>> ethlance.server.db/add-ethlance-job" ethlance-job)
-  (safe-go
-   (let [job-id (-> (<? (insert-row! conn :Job (assoc ethlance-job :job/type "ethlance-job")))
-                    :job/id)]
-     (<? (insert-row! conn :EthlanceJob (assoc ethlance-job :job/id job-id))))))
-
-(defn get-job-id-for-bounty [conn bounty-id]
-  (safe-go
-   (let [r (-> (<? (db/get conn {:select [:job/id]
-                                 :from [[:StandardBounty :sb]]
-                                 :where [:= :sb.standard-bounty/id bounty-id]}))
-               :job/id)]
-     r)))
-
-(defn update-bounty [conn bounty-id job-data]
-  (safe-go
-   (let [job-id (<? (get-job-id-for-bounty conn bounty-id))]
-     (<? (update-row! conn :StandardBounty job-data))
-     (<? (update-row! conn :Job (assoc job-data :job/id job-id))))))
-
+; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
+;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)
 (defn get-job-id-for-ethlance-job [conn ethlance-job-id]
-  (safe-go
-   (-> (<? (db/get conn {:select [:job/id]
-                         :from [[:EthlanceJob :ej]]
-                         :where [:= :ej.ethlance-job/id ethlance-job-id]}))
-       :job/id)))
+  (safe-go ethlance-job-id))
 
-(defn update-ethlance-job [conn ethlance-job-id job-data]
+(defn update-ethlance-job [conn job-id job-data]
   (safe-go
-   (let [job-id (<? (get-job-id-for-ethlance-job conn ethlance-job-id))]
-     (<? (update-row! conn :EthlanceJob job-data))
-     (<? (update-row! conn :Job (assoc job-data :job/id job-id))))))
+  (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
 (defn update-job-story-invoice-message  [conn msg]
   (safe-go
@@ -819,28 +772,13 @@
    (<? (update-row! conn :EthlanceJob {:ethlance-job/id ethlance-job-id
                                        :ethlance-job/candidate user-address}))))
 
-(defn get-job-story-id-by-standard-bounty-id [conn bounty-id]
-  (safe-go
-   (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
-                          :from [[:JobStory :js]]
-                          :join [[:Job :j] [:= :js.job/id :j.job/id]
-                                 [:StandardBounty :sb] [:= :j.job/id :sb.job/id]]
-                          :where [:= :sb.standard-bounty/id bounty-id]})))))
-
-(defn set-job-story-invoice-status-for-bounties [conn bounty-id invoice-ref-id status]
-  (safe-go
-   (let [job-story-id (<? (get-job-story-id-by-standard-bounty-id conn bounty-id))]
-     (<? (db/run! conn {:update :JobStoryInvoiceMessage
-                        :set {:invoice/status status}
-                        :where [:and
-                                [:= :job-story/id job-story-id]
-                                [:= :invoice/ref-id invoice-ref-id]]})))))
-
 (defn get-job-story-id-by-ethlance-job-id [conn ethlance-job-id]
   (safe-go
    (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
                           :from [[:JobStory :js]]
                           :join [[:Job :j] [:= :js.job/id :j.job/id]
+                                 ; TODO: EthlanceJob was removed and merged to Job table.
+                                 ; Update queries
                                  [:EthlanceJob :ej] [:= :j.job/id :ej.job/id]]
                           :where [:= :ej.ethlance-job/id ethlance-job-id]})))))
 

@@ -142,6 +142,11 @@
         new-value (merge old-value new-data)]
     (assoc-in db lookup new-value)))
 
+(defmethod handler :job
+  [{:keys [db]} _ xxx]
+  (log/debug "job handler" xxx)
+  {:db db})
+
 (defmethod handler :candidate
   [{:keys [db]} _ {:user/keys [address] :as candidate}]
   (log/debug "candidate handler" candidate)

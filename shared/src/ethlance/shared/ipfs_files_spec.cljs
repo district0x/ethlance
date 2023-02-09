@@ -8,7 +8,8 @@
   :job/bid-option "hourly|monthly|annually"
   :job/required-availability "part-time|full-time"
   :job/estimated-length "hours-or-days|weeks|months|lt-6-months"
-  :job/required-skills "one or more of ethlance.shared.constants/skills"}
+  :job/required-skills "one or more of ethlance.shared.constants/skills"
+  :job/invite-only? "boolean (affects whether the job is listed in the search results)"}
 
  :ethlance/candidate-added
  {:message/text "string, max 3000 chars"}

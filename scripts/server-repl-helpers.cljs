@@ -38,3 +38,18 @@
 (in-ns 'ethlance.server.db)
 (def conn (atom nil))
 (.then (db/get-connection) #(reset! conn %))
+(drop-db! @conn)
+(create-db! @conn)
+
+; Trying DB queries
+(in-ns 'ethlance.server.graphql.resolvers)
+(def contract "0xD6C0df65B9c3b453b016f46EC1f5F5751a74b2f2")
+(def query-promise (atom nil))
+(reset! query-promise (job-resolver nil {:contract contract} nil))
+(def query-result (atom nil))
+(.then @query-promise #(reset! query-result %))
+(.catch @query-promise #(reset! query-result %))
+
+(sql/format (sql-helpers/merge-where job-query [:= contract :Job.job/contract]))
+(db/get conn (sql-helpers/merge-where job-query [:= contract :Job.job/contract]))
+
