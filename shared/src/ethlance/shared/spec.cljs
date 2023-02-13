@@ -51,7 +51,7 @@
 (s/def :arbiter/professional-title professional-title?)
 (s/def :arbiter/bio bio?)
 (s/def :arbiter/fee not-neg?)
-(s/def :arbitrer/date-updated int?)
+(s/def :arbiter/date-updated int?)
 
 
 (s/def :job/title (s/and string? (comp not empty?)))

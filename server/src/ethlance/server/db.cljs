@@ -298,6 +298,11 @@
      [:job-story/resolved-dispute-message-id :integer]
      [:job-story/proposal-rate :integer]
      [:job-story/proposal-rate-currency-id :varchar]
+
+     ; The following used to be :ethlance-job-story/...
+     [:job-story/candidate :varchar]
+     [:job-story/date-candidate-accepted :bigint]
+
      ;; PK
      [(sql/call :primary-key :job-story/id)]
 
@@ -306,23 +311,6 @@
      [(sql/call :foreign-key :job-story/invitation-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job-story/proposal-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
-
-   {:table-name :EthlanceJobStory
-    :table-columns
-    [[:job-story/id :integer]
-     [:ethlance-job-story/invitation-message-id :integer]
-     [:ethlance-job-story/proposal-message-id :integer]
-     [:ethlance-job-story/proposal-rate :integer]
-     [:ethlance-job-story/proposal-rate-currency-id :varchar]
-     [:ethlance-job-story/candidate :varchar]
-     [:ethlance-job-story/date-candidate-accepted :bigint]
-
-     ;; PK
-     [(sql/call :primary-key :job-story/id)]
-
-     ;; FKs
-     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]]
-    }
 
    {:table-name :JobStoryMessage
     :table-columns
@@ -729,12 +717,12 @@
                :resolve-dispute (update-row! conn :JobStory (assoc message
                                                                    :job-story/id (:job-story/id message)
                                                                    :job-story/resolved-dispute-message-id msg-id))
-               :proposal (update-row! conn :EthlanceJobStory (assoc message
-                                                                    :job-story/id (:job-story/id message)
-                                                                    :ethlance-job-story/proposal-message-id msg-id))
-               :invitation (update-row! conn :EthlanceJobStory (assoc message
-                                                                      :job-story/id (:job-story/id message)
-                                                                      :ethlance-job-story/invitation-message-id msg-id))
+               :proposal (update-row! conn :JobStory (assoc message
+                                                            :job-story/id (:job-story/id message)
+                                                            :job-story/proposal-message-id msg-id))
+               :invitation (update-row! conn :JobStory (assoc message
+                                                              :job-story/id (:job-story/id message)
+                                                              :job-story/invitation-message-id msg-id))
                :invoice (insert-row! conn :JobStoryInvoiceMessage message)
                :feedback  (insert-row! conn :JobStoryFeedbackMessage message)
                nil)))
@@ -748,15 +736,6 @@
   (safe-go
    (:job-story/id (<? (insert-row! conn :JobStory job-story)))))
 
-(defn add-ethlance-job-story
-  "Inserts a EthlanceJobStory. Returns autoincrement id"
-  [conn ethlance-job-story]
-  (safe-go
-   (let [job-story-id (-> (<? (insert-row! conn :JobStory ethlance-job-story))
-                          :job-story/id)]
-     (<? (insert-row! conn :EthlanceJobStory (assoc ethlance-job-story
-                                                    :job-story/id job-story-id))))))
-
 (defn add-job-story-message [conn job-story-message]
   (safe-go
    (<? (insert-row! conn :JobStoryMessage job-story-message))))
@@ -767,24 +746,21 @@
      (<? (insert-row! conn :MessageFile {:message/id message-id
                                          :file/id id})))))
 
-(defn update-ethlance-job-candidate [conn ethlance-job-id user-address]
+(defn update-job-candidate [conn job-id user-address]
   (safe-go
-   (<? (update-row! conn :EthlanceJob {:ethlance-job/id ethlance-job-id
+   (<? (update-row! conn :EthlanceJob {:ethlance-job/id job-id
                                        :ethlance-job/candidate user-address}))))
 
-(defn get-job-story-id-by-ethlance-job-id [conn ethlance-job-id]
+(defn get-job-story-id-by-job-id [conn job-id]
   (safe-go
    (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
                           :from [[:JobStory :js]]
-                          :join [[:Job :j] [:= :js.job/id :j.job/id]
-                                 ; TODO: EthlanceJob was removed and merged to Job table.
-                                 ; Update queries
-                                 [:EthlanceJob :ej] [:= :j.job/id :ej.job/id]]
-                          :where [:= :ej.ethlance-job/id ethlance-job-id]})))))
+                          :join [[:Job :j] [:= :js.job/id :j.job/id]]
+                          :where [:= :j.job/id job-id]})))))
 
-(defn set-job-story-invoice-status-for-ethlance-job [conn ethlance-job-id invoice-id status]
+(defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
   (safe-go
-   (let [job-story-id (<? (get-job-story-id-by-ethlance-job-id conn ethlance-job-id))]
+   (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
      (<? (db/run! conn {:update :JobStoryInvoiceMessage
                         :set {:invoice/status status}
                         :where [:and

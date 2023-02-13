@@ -71,13 +71,13 @@
    :job/description (:job/description ethlance-job-data)
    :job/category (:job/category ethlance-job-data)
    :job/required-experience-level (:job/required-experience-level ethlance-job-data)
-   :job/reward nil ; TODO: where does it come from
+   :job/reward nil ; TODO: token amount (ETH, ERC-...)
    :job/language-id nil; TODO: where does it come from
-   :ethlance-job/bid-option (:job/bid-option ethlance-job-data)
-   :ethlance-job/estimated-project-length (:job/estimated-project-length ethlance-job-data)
-   :ethlance-job/max-number-of-candidates nil ; TODO: where does it come from
-   :ethlance-job/invitation-only? nil ; TODO: where does it come from
-   :ethlance-job/required-availability (:job/required-availability ethlance-job-data)
+   :job/bid-option (:job/bid-option ethlance-job-data)
+   :job/estimated-project-length (:job/estimated-project-length ethlance-job-data)
+   :job/max-number-of-candidates nil ; TODO: where does it come from
+   :job/invitation-only? nil ; TODO: where does it come from
+   :job/required-availability (:job/required-availability ethlance-job-data)
    })
 
 ;; event JobIssued(uint _jobId, address payable _creator, address payable[] _issuers, address[] _approvers, string _ipfsHash, address _token, uint _tokenVersion);
@@ -87,13 +87,12 @@
    (println ">>> handle-job-issued event:" event)
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
      (<? (ethlance-db/add-job conn
-                                       (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
-                                               :job/date-created (:timestamp event)
-                                               :job/date-updated (:timestamp event)
-                                               :job/token (:_token args)
-                                               :job/token-version (:_token-version args)
-                                               :ethlance-job/id (:_job-id args)}
-                                              (build-ethlance-job-data-from-ipfs-object ipfs-data)))))))
+                              (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
+                                      :job/date-created (:timestamp event)
+                                      :job/date-updated (:timestamp event)
+                                      :job/token (:_token args)
+                                      :job/token-version (:_token-version args)}
+                                      (build-ethlance-job-data-from-ipfs-object ipfs-data)))))))
 
 ;; event JobInvoice(uint _jobId, uint _invoiceId, address payable _invoiceIssuer, string _ipfsHash, address _submitter, uint _amount);
 (defn handle-job-invoice [conn _ {:keys [args]}]
@@ -109,7 +108,7 @@
 (defn handle-invoice-accepted [conn _ {:keys [args]}]
   (safe-go
    (log/info (str "Handling event handle-invoice-accepted" args))
-   (<? (ethlance-db/set-job-story-invoice-status-for-ethlance-job conn (:_job-id args) (:_invoice-id args) "payed"))))
+   (<? (ethlance-db/set-job-story-invoice-status-for-job conn (:_job-id args) (:_invoice-id args) "payed"))))
 
 ;; event JobChanged(uint _jobId, address _changer, address payable[] _issuers, address payable[] _approvers, string _ipfsHash);
 (defn handle-job-changed [conn _ {:keys [args] :as event}]
@@ -119,8 +118,7 @@
      (<? (ethlance-db/update-ethlance-job conn (:_job-id args)
                                           (merge {:job/date-updated (:timestamp event)
                                                   :job/token (:_token args)
-                                                  :job/token-version (:_token-version args)
-                                                  :ethlance-job/id (:_job-id args)}
+                                                  :job/token-version (:_token-version args)}
                                                  (build-ethlance-job-data-from-ipfs-object ipfs-data)))))))
 
 ;; event JobDataChanged(uint _jobId, address _changer, string _ipfsHash);
@@ -134,7 +132,7 @@
 (defn handle-candidate-accepted [conn _ {:keys [args]}]
   (safe-go
    (log/info (str "Handling event handle-candidate-accepted" args))
-   (<? (ethlance-db/update-ethlance-job-candidate conn (:_job-id args) (:_candidate args)))))
+   (<? (ethlance-db/update-job-candidate conn (:_job-id args) (:_candidate args)))))
 
 ;; event ContributionAdded(uint _jobId, uint _contributionId, address payable _contributor, uint _amount);
 (defn handle-job-contribution-added [conn _ {:keys [args]}]
@@ -209,14 +207,14 @@
          _ (println ">>> got IPFS content" ipfs-job-content)]
      (println ">>> job/contract" (:job args) "---> event:" event "---> keys" (keys event))
      (<? (ethlance-db/add-job conn
-                                       (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
-                                               :job/contract (:job args)
-                                               :job/creator (:creator args)
-                                               :job/date-created (:timestamp event)
-                                               :job/date-updated (:timestamp event)
-                                               :job/token (:_token args)
-                                               :job/token-version (:_token-version args)}
-                                              (build-ethlance-job-data-from-ipfs-object ipfs-job-content)))))
+                              (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
+                                      :job/contract (:job args)
+                                      :job/creator (:creator args)
+                                      :job/date-created (:timestamp event)
+                                      :job/date-updated (:timestamp event)
+                                      :job/token (:_token args)
+                                      :job/token-version (:_token-version args)}
+                                     (build-ethlance-job-data-from-ipfs-object ipfs-job-content)))))
    ))
 
 (defn handle-test-event [& args]

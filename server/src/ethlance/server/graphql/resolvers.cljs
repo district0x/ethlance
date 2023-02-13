@@ -293,51 +293,46 @@
                                        :where [:= address :CandidateSkill.user/address]}))))))
 
 
-(def candidate-ethlance-job-stories-query
+(def candidate-job-stories-query
   {:select [:*]
-   :from [:EthlanceJobStory]
-   :join [:JobStory [:= :EthlanceJobStory.job-story/id :JobStory.job-story/id]]})
+   :from [:JobStory]})
 
-(defn candidate->ethlance-job-stories-resolver [root {:keys [:limit :offset] :as args} _]
+(defn candidate->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:user/address (graphql-utils/gql->clj root))
-          query (-> candidate-ethlance-job-stories-query
-                  (sql-helpers/merge-where [:= address :EthlanceJobStory.ethlance-job-story/candidate]))]
-      (log/debug "candidate->ethlance-job-stories-resolver" {:address address :args args})
+          query (-> candidate-job-stories-query
+                  (sql-helpers/merge-where [:= address :JobStory.job-story/candidate]))]
+      (log/debug "candidate->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn- employer-ethlance-job-stories-query [address]
+(defn- employer-job-stories-query [address]
   {:select
-   [:JobStory.*
-    :EthlanceJobStory.*]
-   :from [:EthlanceJobStory]
-   :join [:JobStory [:= :JobStory.job-story/id :EthlanceJobStory.job-story/id]
-          :Job [:= :Job.job/id :JobStory.job/id]
+   [:JobStory.*]
+   :from [:JobStory]
+   :join [:Job [:= :Job.job/id :JobStory.job/id]
           :JobCreator [:= :JobCreator.job/id :Job.job/id]]
    :where [:= :JobCreator.user/address address]})
 
-(defn employer->ethlance-job-stories-resolver [root {:keys [:limit :offset] :as args} _]
+(defn employer->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:user/address (graphql-utils/gql->clj root))
-          query (employer-ethlance-job-stories-query address)]
-      (log/debug "employer->ethlance-job-stories-resolver" {:address address :args args})
+          query (employer-job-stories-query address)]
+      (log/debug "employer->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn- arbiter-ethlance-job-stories-query [address]
+(defn- arbiter-job-stories-query [address]
   {:select
-   [:JobStory.*
-    :EthlanceJobStory.*]
-   :from [:EthlanceJobStory]
-   :join [:JobStory [:= :JobStory.job-story/id :EthlanceJobStory.job-story/id]
-          :Job [:= :Job.job/id :JobStory.job/id]
+   [:JobStory.*]
+   :from [:JobStory]
+   :join [:Job [:= :Job.job/id :JobStory.job/id]
           :JobArbiter [:= :JobArbiter.job/id :Job.job/id]]
    :where [:= :JobArbiter.user/address address]})
 
-(defn arbiter->ethlance-job-stories-resolver [root {:keys [:limit :offset] :as args} _]
+(defn arbiter->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:user/address (graphql-utils/gql->clj root))
-          query (arbiter-ethlance-job-stories-query address)]
-      (log/debug "arbiter->ethlance-job-stories-resolver" {:address address :args args})
+          query (arbiter-job-stories-query address)]
+      (log/debug "arbiter->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
@@ -376,23 +371,24 @@
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-query {:select [:Job.job/id
+                                   :Job.job/bid-option
+                                   :Job.job/category
                                    :Job.job/contract
                                    :Job.job/creator
-                                   :Job.job/title
-                                   :Job.job/description
-                                   :Job.job/category
-                                   :Job.job/status
                                    :Job.job/date-created
-                                   :Job.job/required-experience-level
                                    :Job.job/date-updated
+                                   :Job.job/description
+                                   :Job.job/estimated-project-length
+                                   :Job.job/hire-address
+                                   :Job.job/invitation-only?
+                                   :Job.job/max-number-of-candidates
+                                   :Job.job/required-experience-level
+                                   :Job.job/required-availability
+                                   :Job.job/reward
+                                   :Job.job/status
+                                   :Job.job/title
                                    :Job.job/token
                                    :Job.job/token-version
-                                   :Job.job/reward
-                                   :Job.job/estimated-project-length
-                                   :Job.job/max-number-of-candidates
-                                   :Job.job/invitation-only?
-                                   :Job.job/hire-address
-                                   :Job.job/bid-option
 
                                    [:JobArbiter.user/address :job/accepted-arbiter-address]]
                           :from [:Job]
@@ -405,8 +401,8 @@
           ; parent-job-id (:job/id (graphql-utils/gql->clj parent))
           ; job-id (or parent-job-id id)
           contract-address (:contract args)
-          job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract :Job.job/contract])))
-          _ (println ">>> job-resolver RESULTS: job:" job)]
+          job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/contract])))
+          _ (println ">>> job-resolver " contract-address "RESULTS: job:" job)]
       job
       )))
 
@@ -542,8 +538,8 @@
                                        :message/date-created timestamp
                                        :message/creator (:user/address current-user)
                                        :message/text text
-                                       :ethlance-job-story/proposal-rate rate
-                                       :ethlance-job-story/proposal-rate-currency-id rate-currency-id}))))
+                                       :job-story/proposal-rate rate
+                                       :job-story/proposal-rate-currency-id rate-currency-id}))))
 
 (defn github-signup-mutation [_ {:keys [input]} {:keys [current-user config]}]
   (db/with-async-resolver-conn conn
@@ -663,12 +659,11 @@
                     :Candidate {:candidate_feedback candidate->feedback-resolver
                                 :candidate_categories candidate->candidate-categories-resolver
                                 :candidate_skills candidate->candidate-skills-resolver
-                                :candidate_ethlanceJobStories candidate->ethlance-job-stories-resolver}
-                    :EthlanceJobStory {:job job-resolver}
+                                :candidate_jobStories candidate->job-stories-resolver}
                     :Employer {:employer_feedback employer->feedback-resolver
-                               :employer_ethlanceJobStories employer->ethlance-job-stories-resolver}
+                               :employer_jobStories employer->job-stories-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
-                              :arbiter_ethlanceJobStories arbiter->ethlance-job-stories-resolver}
+                              :arbiter_jobStories arbiter->job-stories-resolver}
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}

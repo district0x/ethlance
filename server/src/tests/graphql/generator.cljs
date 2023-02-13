@@ -191,7 +191,7 @@
                       :job-story/status status
                       :job-story/date-created (time-coerce/to-long date-created)
                       :job-story/creator candidate}]
-       (<? (ethlance-db/add-ethlance-job-story conn job-story))
+       (<? (ethlance-db/add-job-story conn job-story))
        (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
                                                             :message/text "Do you want to work with us?"
                                                             :message/type :job-story-message

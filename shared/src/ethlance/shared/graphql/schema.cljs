@@ -293,14 +293,7 @@
       offset: Int
     ): FeedbackList
 
-    candidate_ethlanceJobStories: EthlanceJobStoryList
-  }
-
-  type EthlanceJobStoryList {
-    items: [EthlanceJobStory]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
+    candidate_jobStories: JobStoryList
   }
 
   type CandidateList {
@@ -337,7 +330,7 @@
       offset: Int
     ): FeedbackList
 
-    employer_ethlanceJobStories: EthlanceJobStoryList
+    employer_jobStories: JobStoryList
   }
 
   type EmployerList {
@@ -373,7 +366,7 @@
       offset: Int
     ): FeedbackList
 
-    arbiter_ethlanceJobStories: EthlanceJobStoryList
+    arbiter_jobStories: JobStoryList
   }
 
   type ArbiterList  {
@@ -409,10 +402,10 @@
     job_employerAddress: ID
     job_stories(limit: Int, offset: Int): JobStoryList
 
-    job_estimatedProjectLength: Int
+    job_estimatedProjectLength: String
     job_maxNumberOfCandidates: Int
     job_invitationOnly: Boolean
-    job_requiredAvailability: Boolean
+    job_requiredAvailability: String
     job_hireAddress: String
     job_bidOption: String
   }
@@ -431,7 +424,7 @@
     dateFinished
   }
 
-  interface JobStory {
+  type JobStory {
     job_id: Int
     job: Job
     jobStory_id: Int
@@ -447,29 +440,12 @@
 
     jobStory_invoices(limit: Int, offset: Int,): InvoiceList
 
-  }
-
-  type EthlanceJobStory implements JobStory{
-    job: Job
-    job_id: Int
-    jobStory_id: Int
-    jobStory_status: Keyword
-    jobStory_candidateAddress: ID
-    jobStory_dateCreated: Date
-    jobStory_dateUpdated: Date
-
-    jobStory_employerFeedback: Feedback
-    jobStory_candidateFeedback: Feedback
-
-    jobStory_dispute: Dispute
-
-    jobStory_invoices(limit: Int, offset: Int): InvoiceList
-
-    ethlanceJobStory_invitationMessage: Message
-    ethlanceJobStory_proposalMessage: Message
-    ethlanceJobStory_proposalRate: Int
-    ethlanceJobStory_proposalRateCurrencyId: Int
-    ethlanceJobStory_dateCandidateAccepted: Date
+    # The below fields were ethlanceJobStory_...
+    jobStory_invitationMessage: Message
+    jobStory_proposalMessage: Message
+    jobStory_proposalRate: Int
+    jobStory_proposalRateCurrencyId: Int
+    jobStory_dateCandidateAccepted: Date
   }
 
   type JobStoryList {
