@@ -16,7 +16,7 @@
   {::router.effects/watch-active-page
    [{:id :page.profile/initialize-page
      :name :route.user/profile
-     :dispatch [:query-profile-page-data]}]})
+     :dispatch []}]})
 
 (re/reg-event-fx
   :query-profile-page-data

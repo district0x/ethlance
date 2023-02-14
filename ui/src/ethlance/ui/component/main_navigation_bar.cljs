@@ -19,10 +19,10 @@
   (let [active-account (subscribe [::accounts-subs/active-account])
         balance-eth (subscribe [::balances-subs/active-account-balance])
         active-user (subscribe [::ethlance-subs/active-user])
-        profile-image (subscribe [:page.sign-up/user-profile-image])
+        profile-image (subscribe [:page.sign-up/update-user-profile-image])
         active-account-has-session? (subscribe [::ethlance-subs/active-account-has-session?])]
     (fn []
-      (print.foo/look @active-account-has-session?)
+      (println "ACTIVE ACCOUNT HAS SESSION?" @active-account-has-session?)
       [:div.main-navigation-bar
        [c-ethlance-logo
         {:color :white

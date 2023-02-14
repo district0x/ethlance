@@ -99,6 +99,7 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
@@ -110,6 +111,7 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
@@ -125,6 +127,7 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
@@ -171,6 +174,7 @@
   type updateCandidatePayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_profileImage: String
     user_githubUsername: String
     user_linkedinUsername: String
     candidate_dateUpdated: Date!
@@ -179,6 +183,7 @@
   type updateEmployerPayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_profileImage: String
     user_githubUsername: String
     user_linkedinUsername: String
     employer_dateUpdated: Date!
@@ -187,6 +192,7 @@
   type updateArbiterPayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_profileImage: String
     user_githubUsername: String
     user_linkedinUsername: String
     arbiter_dateUpdated: Date!
