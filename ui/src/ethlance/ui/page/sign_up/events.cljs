@@ -261,5 +261,5 @@
   ::upload-user-image-success
   [interceptors]
   (fn [_ [_ ipfs-resp]]
-    {:dispatch [:page.sign-up/set-user-profile-image (get (js->clj (js/JSON.parse ipfs-resp)) "Hash")]}))
+    {:dispatch [:page.sign-up/set-user-profile-image (:Hash ipfs-resp)]}))
 

@@ -19,6 +19,7 @@
   (let [active-account (subscribe [::accounts-subs/active-account])
         balance-eth (subscribe [::balances-subs/active-account-balance])
         active-user (subscribe [::ethlance-subs/active-user])
+        profile-image (subscribe [:page.sign-up/user-profile-image])
         active-account-has-session? (subscribe [::ethlance-subs/active-account-has-session?])]
     (fn []
       (print.foo/look @active-account-has-session?)
@@ -32,7 +33,7 @@
          :inline? false}]
        [:div.profile
         (when @active-user
-          [c-profile-image {:size :small}])
+          [c-profile-image {:size :small :src @profile-image}])
         [:div.name
          (cond
            @active-user (:user/name @active-user)
