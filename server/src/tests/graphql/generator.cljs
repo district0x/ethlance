@@ -112,8 +112,8 @@
            date-created (time/minus (time/now) (time/days (rand-int 60)))
            date-updated (time/plus date-created (time/days (rand-int 7)))
            expertise-level (rand-int 5)
-           token "0x8f389F672Ef0586628689f9227e1d0e09f9A3245"
-           reward (rand-int 300)
+           token-type :eth
+           token-amount 1000
            estimated-length (case (-> (rand-nth [:hours :days :weeks]))
                               :hours (time/hours (rand-int 24))
                               :days (time/days (rand-int 30))
@@ -132,9 +132,8 @@
                 :job/date-created (time-coerce/to-long date-created)
                 :job/date-updated (time-coerce/to-long date-updated)
                 :job/expertise-level expertise-level
-                :job/token token
-                :job/token-version 0 ; FIXME: these events don't exist anymore. Remove
-                :job/reward reward
+                :job/token-type token-type
+                :job/token-amount token-amount
                 :job/language-id language}
            ethlance-job-id job-id
            ethlance-job {:ethlance-job/id ethlance-job-id

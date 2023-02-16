@@ -29,5 +29,3 @@
 
  :ethlance/dispute-resolved
  {:message/text "string, max 3000 chars"}}
-
-

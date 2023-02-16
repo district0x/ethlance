@@ -60,8 +60,9 @@
         ]
     (fn []
       (let [with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
-            with-nft? (#{:erc721 :erc1155} @*token-type)
-            with-multi-token? (= @*token-type :erc1155)]
+            with-nft? (#{:erc721} @*token-type)
+            token-with-amount? (#{:erc20 :erc1155 :eth} @*token-type)
+            token-with-id? (#{:erc721 :erc1155} @*token-type)]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
           [:div.title "New job"]
@@ -145,10 +146,11 @@
             [:erc20 [c-radio-secondary-element "Token ERC-20"]]
             [:erc721 [c-radio-secondary-element "NFT Token (ERC-721)"]]
             [:erc1155 [c-radio-secondary-element "Multi-Token (ERC-1155)"]]]
-            [c-text-input
-                {:value @*token-amount
-                 :on-change #(re/dispatch [:page.new-job/set-token-amount %])
-                 :placeholder "Token Amount"}]
+           (when token-with-amount?
+             [c-text-input
+              {:value @*token-amount
+               :on-change #(re/dispatch [:page.new-job/set-token-amount %])
+               :placeholder "Token Amount"}])
            (when with-token?
              [:div.token-address-input
               [:div.input
@@ -159,11 +161,12 @@
                [:div.token-label "SNT"]]
               ;; TODO: retrieve token logo
               [:div.token-logo]])
-           (when with-nft?
+           (when token-with-id?
              [:div.token-address-input
               [:div.input
                [c-text-input
                 {:value @*token-id
+                 :type :number
                  :on-change #(re/dispatch [:page.new-job/set-token-id %])
                  :placeholder "Token ID"}]]])]]
 

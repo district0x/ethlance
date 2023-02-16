@@ -35,7 +35,6 @@
 ;;            :expertiseLevel
 ;;            :ipfsFilename
 ;;            :webReferenceURL
-;;            :reward
 ;;            languageId
 ;;            :estimatedLength
 ;;            :maxNumberOfCandidates

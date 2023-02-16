@@ -384,11 +384,13 @@
                                    :Job.job/max-number-of-candidates
                                    :Job.job/required-experience-level
                                    :Job.job/required-availability
-                                   :Job.job/reward
                                    :Job.job/status
                                    :Job.job/title
-                                   :Job.job/token
-                                   :Job.job/token-version
+
+                                   :Job.job/token-type
+                                   :Job.job/token-amount
+                                   :Job.job/token-address
+                                   :Job.job/token-id
 
                                    [:JobArbiter.user/address :job/accepted-arbiter-address]]
                           :from [:Job]

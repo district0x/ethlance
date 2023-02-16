@@ -20,12 +20,14 @@
       (assert (not (and value default-value))
               "Component has both controlled `value` and uncontrolled `default-value` attributes set.")
       (let [current-value (if (contains? opts :default-value) @*current-value value)
-            opts (dissoc opts :default-value :value :color :on-change :error?)]
+            input-type (get opts :type :text)
+            opts (dissoc opts :default-value :value :color :on-change :error? :type)]
         [:input.ethlance-text-input
          (merge
            (dissoc opts :error)
            {:class [class-color (when error? "error") (when @*dirty? "dirty")]
             :value current-value
+            :type input-type
             :on-change (fn [e]
                          (reset! *dirty? true)
                          (let [target-value (-> e .-target .-value)]

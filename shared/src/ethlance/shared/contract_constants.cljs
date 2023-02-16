@@ -39,10 +39,12 @@
     {:tokenType (get-in offered [0 1])
      :tokenAddress (get-in offered [0 0 1])}}})
 
+; Parsed structure (EthlanceStructs.OfferedValue)
+;  [ [ [3 0xE13fD5Ed78f1306B4C7C9c3C96FDB99CFc943C5B] 1] 6]
 (defn offered-vec->flat-map
   "Basically same (without type conversions) as token-value-vec->map"
   [offered]
-  {:token-type (js/parseInt (get-in offered [0 1]))
+  {:token-type (js/parseInt (get-in offered [0 0 0]))
    :token-amount (get-in offered [1])
    :token-address (get-in offered [0 0 1])
-   :token-id (get-in offered [0 0 0])})
+   :token-id (js/parseInt (get-in offered [0 1]))})

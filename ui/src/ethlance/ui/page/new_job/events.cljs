@@ -130,7 +130,7 @@
                           address-placeholder)
           offered-value {:value token-amount
                          :token
-                         {:tokenId 1
+                         {:tokenId (:job/token-id job-fields)
                           :tokenContract
                           {:tokenType (contract-constants/token-type->enum-val token-type)
                            :tokenAddress token-address}}}

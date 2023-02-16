@@ -401,9 +401,10 @@
     job_status: Keyword
     job_dateCreated: Date
     job_dateUpdated: Date
-    job_token: String
-    job_tokenVersion: Int
-    job_reward: Int
+    job_tokenType: String
+    job_tokenAmount: Int
+    job_tokenAddress: String
+    job_tokenId: Int
     job_acceptedArbiterAddress: ID
     job_employerAddress: ID
     job_stories(limit: Int, offset: Int): JobStoryList
