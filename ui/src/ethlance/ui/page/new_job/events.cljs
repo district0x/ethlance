@@ -26,10 +26,10 @@
    :job/required-availability :full-time
    :job/required-skills #{"Somali" "Solidity"}
    :job/token-type :eth
-   :job/token-amount 2
+   :job/token-amount 0.69
    :job/token-address "0x1111111111111111111111111111111111111111"
    :job/token-id 0
-   :job/with-arbiter? true})
+   :job/with-arbiter? false})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -37,10 +37,15 @@
   {::router.effects/watch-active-page
    [{:id :page.new-job/initialize-page
      :name :route.job/new
-     :dispatch []}]})
+     :dispatch [:page.new-job/auto-fill-form]}]})
 
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
+(re/reg-event-db
+  :page.new-job/auto-fill-form
+  (fn [db]
+    (println ">>> :page.new-job/auto-fill-form")
+    (assoc-in db [state-key] state-default)))
 
 (re/reg-event-fx :page.new-job/initialize-page initialize-page)
 (re/reg-event-fx :page.new-job/set-bid-option (create-assoc-handler :job/bid-option))
@@ -141,6 +146,7 @@
           invited-arbiters [] ; TODO: implement
           ipfs-response (get-in event [:event 1])
           ipfs-hash (base58->hex (get-in event [1 :Hash]))]
+      (println ">>> dispatching web3-events/send-tx Ethlance#createJob" {:ipfs-hash (get-in event [1 :Hash])})
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :ethlance)
                    :fn :createJob

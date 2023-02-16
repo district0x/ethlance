@@ -242,8 +242,7 @@
      ;; PK
      [(sql/call :primary-key :job/id :skill/id)]
      ;; FKs
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :JobArbiter
@@ -679,10 +678,18 @@
                     (array-map :on-conflict [:user/address]
                                :do-update-set (keys values))})))))
 
+(defn add-skills [conn job-id skills]
+  (safe-go
+    (doseq [skill skills]
+      (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
+
 (defn add-job [conn job]
   (println ">>> ethlance.server.db/add-job" job)
   (safe-go
-    (:job/id (<? (insert-row! conn :Job job)))))
+    (let [skills (:job/required-skills job)
+          job-fields (dissoc job :job/required-skills)
+          job-id (:job/id (<? (insert-row! conn :Job job)))]
+      (add-skills conn job-id skills))))
 
 ; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
 ;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)

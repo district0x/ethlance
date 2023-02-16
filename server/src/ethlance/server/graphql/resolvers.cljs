@@ -404,9 +404,10 @@
           ; job-id (or parent-job-id id)
           contract-address (:contract args)
           job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/contract])))
-          _ (println ">>> job-resolver " contract-address "RESULTS: job:" job)]
-      job
-      )))
+          skills (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id (:job/id job)]}))
+          job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
+      (println ">>> job-resolver " contract-address "RESULTS: job:" job-full)
+      job-full)))
 
 (def ^:private job-story-query {:select [:JobStory.job-story/id
                                          :Job.job/id

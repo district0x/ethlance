@@ -128,7 +128,7 @@
              :chip-listing @*required-skills
              :on-chip-listing-change #(re/dispatch [:page.new-job/set-required-skills %])
              :placeholder "Search Skills"
-             :allow-custom-chips? false}]]
+             :allow-custom-chips? true}]]
 
           [:div.description-text.chip
            [:div.label "Description"]

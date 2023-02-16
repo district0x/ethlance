@@ -34,6 +34,7 @@ Please contact us if this sounds interesting.")
                      job_contract
                      job_title
                      job_description
+                     job_requiredSkills
                      job_category
                      job_status
                      job_requiredExperienceLevel
@@ -54,7 +55,7 @@ Please contact us if this sounds interesting.")
                            (:job/status results)
                            (:job/required-experience-level results)
                            (:job/bid-option results)])
-          *required-skills ["Koodimine" "Loodimine" "Poodlemine"]]
+          *required-skills (:job/required-skills results)]
 
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header

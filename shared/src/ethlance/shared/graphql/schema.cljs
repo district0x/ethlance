@@ -396,6 +396,7 @@
     job_contract: ID
     job_title: String
     job_description: String
+    job_requiredSkills: [String]
     job_requiredExperienceLevel: String
     job_category: String
     job_status: Keyword

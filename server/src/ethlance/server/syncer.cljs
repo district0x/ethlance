@@ -71,6 +71,7 @@
   {:job/title (:job/title ethlance-job-data)
    :job/description (:job/description ethlance-job-data)
    :job/category (:job/category ethlance-job-data)
+   :job/required-skills (:job/required-skills ethlance-job-data)
    :job/required-experience-level (:job/required-experience-level ethlance-job-data)
    :job/language-id nil; TODO: where does it come from
    :job/bid-option (:job/bid-option ethlance-job-data)
