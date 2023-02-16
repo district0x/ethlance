@@ -10,23 +10,26 @@
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
+    ["web3" :as w3]
     [ethlance.shared.contract-constants :as contract-constants]))
 
 (def state-key :page.new-job)
 (def interceptors [re/trim-v])
 
 (def state-default
-  {:title nil
-   :category nil
-   :bid-option :hourly-rate
-   :required-experience-level :intermediate
-   :estimated-project-length :day
-   :required-availability :full-time
-   :required-skills #{}
-   :description nil
-   :form-of-payment :ethereum
-   :token-address nil
-   :with-arbiter? true})
+  {:job/title "Rauamaak on meie saak"
+   :job/description "Tee t88d ja n2e vaeva"
+   :job/category "Admin Support"
+   :job/bid-option :hourly-rate
+   :job/required-experience-level :intermediate
+   :job/estimated-project-length :day
+   :job/required-availability :full-time
+   :job/required-skills #{"Somali" "Solidity"}
+   :job/token-type :eth
+   :job/token-amount 2
+   :job/token-address "0x1111111111111111111111111111111111111111"
+   :job/token-id 0
+   :job/with-arbiter? true})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -44,13 +47,16 @@
 (re/reg-event-fx :page.new-job/set-category (create-assoc-handler :job/category))
 (re/reg-event-fx :page.new-job/set-description (create-assoc-handler :job/description))
 (re/reg-event-fx :page.new-job/set-estimated-project-length (create-assoc-handler :job/estimated-project-length))
-(re/reg-event-fx :page.new-job/set-form-of-payment (create-assoc-handler :job/form-of-payment))
 (re/reg-event-fx :page.new-job/set-title (create-assoc-handler :job/title))
 (re/reg-event-fx :page.new-job/set-required-availability (create-assoc-handler :job/required-availability))
 (re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :job/required-experience-level))
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
-(re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :job/token-address))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
+
+(re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
+(re/reg-event-fx :page.new-job/set-token-amount (create-assoc-handler :job/token-amount))
+(re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :job/token-address))
+(re/reg-event-fx :page.new-job/set-token-id (create-assoc-handler :job/token-id))
 
 (def db->ipfs-mapping
   {:job/bid-option :job/bid-option
@@ -78,6 +84,7 @@
   (fn [{:keys [db]}]
     (let [db-job (get-in db [state-key])
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
+      (println ">>> NEW job going to IPFS" ipfs-job)
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-job])]
                    :on-success [:job-to-ipfs-success]
@@ -89,31 +96,56 @@
     hex/encode
     (str "0x" ,,,)))
 
+(defn to-bignum [value] (.toBN (.-utils w3) value))
+; (defn eth->wei [eth-amount] (to-bignum (* 1000000000000000000 eth-amount)))
+(defn eth->wei [eth-amount] (.toWei (.-utils w3) (str eth-amount)))
+
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
     ; IPFS `event` param structure:
     ;  [:job-to-ipfs-success {"Name":"blob","Hash":"QmT8k5NsMDDoeiXQz9ox5FfdCwHaf7ZYi9CZUyysXAu8TG","Size":"263"}]
+    ; [:db stat-key] structure:
+    ;   {:job/title Kaevamine,
+    ;    :job/estimated-project-length :week,
+    ;    :job/token-address "0xe13fd5ed78f1306b4c7c9c3c96fdb99cfc943c5b",
+    ;    :job/token-id 42,
+    ;    :job/token-type :erc1155,
+    ;    :job/required-experience-level :intermediate,
+    ;    :job/bid-option :hourly-rate,
+    ;    :job/description "Kaeva sygavalt ja kiiresti",
+    ;    :job/category "Customer Service",
+    ;    :job/required-availability :full-time,
+    ;    :job/required-skills #{"Translation English Spanish" "Weka"},
+    ;    :job/token-amount 2}
     (let [creator (accounts-queries/active-account (:db cofx))
-          funding-amount-wei (* 0.01 100000000000000)
-          not-used-for-erc20 0
-          offered-token-type (contract-constants/token-type :eth)
-          placeholder-address "0x1111111111111111111111111111111111111111"
-          offered-value {:token
-                         {:tokenContract {:tokenType offered-token-type :tokenAddress placeholder-address}
-                          :tokenId not-used-for-erc20} :value funding-amount-wei}
-
-          invited-arbiters []
-          _ (println ">>> :job-to-ipfs-success FX" {:event event :type (type event)})
+          job-fields (get-in cofx [:db state-key])
+          token-type (:job/token-type job-fields)
+          token-amount (if (= token-type :eth)
+                         (eth->wei (:job/token-amount job-fields))
+                         (:job/token-amount job-fields))
+          address-placeholder "0x1111111111111111111111111111111111111111"
+          token-address (if (not (= token-type :eth))
+                          (:job/token-address job-fields)
+                          address-placeholder)
+          offered-value {:value token-amount
+                         :token
+                         {:tokenId 1
+                          :tokenContract
+                          {:tokenType (contract-constants/token-type->enum-val token-type)
+                           :tokenAddress token-address}}}
+          tx-opts {:from creator :gas 10000000}
+          tx-opts-with-value (if (= token-type :eth)
+                               (merge tx-opts {:value token-amount})
+                               tx-opts)
+          invited-arbiters [] ; TODO: implement
           ipfs-response (get-in event [:event 1])
-          ipfs-hash (base58->hex (get-in event [1 :Hash]))
-          _ (println ">>> IPFS-HASH" ipfs-hash)
-          _ (println ">>> :job-to-ipfs-success FX ipfs-hash" (base58->hex (get ipfs-response "Hash")))]
+          ipfs-hash (base58->hex (get-in event [1 :Hash]))]
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :ethlance)
                    :fn :createJob
-                   :args [creator [offered-value] invited-arbiters ipfs-hash]
-                   :tx-opts {:from creator :gas 4500000 :value (:value offered-value)}
+                   :args [creator [(clj->js offered-value)] invited-arbiters ipfs-hash]
+                   :tx-opts tx-opts-with-value
                    :tx-hash [:tx-hash]
                    :on-tx-hash-n [[:tx-hash]]
                    :on-tx-hash-error [:tx-hash-error]

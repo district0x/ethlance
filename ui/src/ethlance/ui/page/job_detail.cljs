@@ -43,18 +43,19 @@ Please contact us if this sounds interesting.")
                   }
                 }
                 "
-          results (re/subscribe [::gql/query query {:variables {:contract contract-address}}])
-          *title (:job/title @results)
-          *description (:job/description @results)
-          *sub-title (:job/category @results)
-          *experience (:job/required-experience-level @results)
+          query-results (re/subscribe [::gql/query query {:variables {:contract contract-address}}])
+          results (:job @query-results)
+          *title (:job/title results)
+          *description (:job/description results)
+          *sub-title (:job/category results)
+          *experience (:job/required-experience-level results)
           *posted-time "Posted 7 Days Ago"
-          *job-info-tags [(:ethlance-job/estimated-project-length @results)
-                          (:job/status @results)
-                          (:job/required-experience-level @results)]
-          ]
-      (println ">>> :route.job/detail page-params" @page-params)
-      (println ">>> :route.job/detail results" @results)
+          *job-info-tags (remove nil? [(:job/estimated-project-length results)
+                           (:job/status results)
+                           (:job/required-experience-level results)
+                           (:job/bid-option results)])
+          *required-skills ["Koodimine" "Loodimine" "Poodlemine"]]
+
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
         [:div.main
@@ -63,10 +64,7 @@ Please contact us if this sounds interesting.")
          [:div.description *description]
          [:div.label "Required Skills"]
          [:div.skill-listing
-          [c-tag {} [c-tag-label "System Administration"]]
-          [c-tag {} [c-tag-label "Game Design"]]
-          [c-tag {} [c-tag-label "Game Development"]]
-          [c-tag {} [c-tag-label "Web Programming"]]]
+          (for [skill *required-skills] [c-tag {:key skill} [c-tag-label skill]])]
          [:div.ticket-listing
           [:div.ticket
            [:div.label "Available Funds"]
@@ -88,13 +86,7 @@ Please contact us if this sounds interesting.")
            [:div.fee "Fee: 0.12 ETH"]]]]
         [:div.side
          [:div.label *posted-time]
-         [c-tag {} [c-tag-label "Hiring"]]
-         [c-tag {} [c-tag-label "Hourly Rate"]]
-         [c-tag {} [c-tag-label "For Months"]]
-         [c-tag {} [c-tag-label "For Expert ($$$)"]]
-         [c-tag {} [c-tag-label "Full Time"]]
-         [c-tag {} [c-tag-label "Needs 3 Freelancers"]]]]
-
+         (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])]]
        [:div.proposal-listing
         [:div.label "Proposals"]
         [:div #_c-scrollable

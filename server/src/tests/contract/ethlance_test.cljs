@@ -37,7 +37,7 @@
                    job-proxy-address (get-in addresses/smart-contracts [:job :address])
                    test-token-address (smart-contracts/contract-address :token)
                    not-used-for-erc20 0
-                   offered-token-type (contract-constants/token-type :erc20)
+                   offered-token-type (contract-constants/token-types :erc20)
                    offered-value {:token
                                   {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                                    :tokenId not-used-for-erc20} :value to-approve-amount}]
@@ -62,7 +62,7 @@
                    ipfs-data "0x0"
                    job-proxy-address (get-in addresses/smart-contracts [:job :address])
                    not-used-for-erc20 0
-                   offered-token-type (contract-constants/token-type :eth)
+                   offered-token-type (contract-constants/token-types :eth)
                    placeholder-address "0x1111111111111111111111111111111111111111"
                    offered-value {:token
                                   {:tokenContract {:tokenType offered-token-type :tokenAddress placeholder-address}
@@ -89,7 +89,7 @@
              job-proxy-address (get-in addresses/smart-contracts [:job :address])
              _ (<! (ethlance/initialize job-proxy-address))
              test-token-address (smart-contracts/contract-address :test-nft)
-             offered-token-type (contract-constants/token-type :erc721)
+             offered-token-type (contract-constants/token-types :erc721)
              offered-value {:token
                             {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                              :tokenId token-id} :value 1}
@@ -119,7 +119,7 @@
              job-proxy-address (get-in addresses/smart-contracts [:job :address])
              _ (<! (ethlance/initialize job-proxy-address))
              test-token-address (smart-contracts/contract-address :test-multi-token)
-             offered-token-type (contract-constants/token-type :erc1155)
+             offered-token-type (contract-constants/token-types :erc1155)
              operation-type (contract-constants/operation-type :one-step-job-creation)
              sent-amount 3
              offered-value {:token
@@ -150,7 +150,7 @@
              job-proxy-address (get-in addresses/smart-contracts [:job :address])
              _ (<! (ethlance/initialize job-proxy-address))
              test-token-address (smart-contracts/contract-address :test-multi-token)
-             offered-token-type (contract-constants/token-type :erc1155)
+             offered-token-type (contract-constants/token-types :erc1155)
              sent-amount 3
              operation-type (contract-constants/operation-type :one-step-job-creation)
              offered-values (map (fn [id] {:token

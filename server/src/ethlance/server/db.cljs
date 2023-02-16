@@ -190,10 +190,11 @@
      [:job/date-updated :bigint]
      [:job/required-experience-level :text]
 
-     [:job/token :varchar]         ; token-address These were meant to store the payment data
-     [:job/token-version :integer] ; token-type    Find a better data structure to store them
-     [:job/reward :integer]        ; token-amount  The amount (paid token or ETH)
-                                   ; token-id      Additional field: token-id (for NFTs)
+     ; new fields (remove previous 3 :job/{:token/token-version/reward})
+     [:job/token-type :text]
+     [:job/token-amount :bigint]
+     [:job/token-address :text]
+     [:job/token-id :integer]
 
      ; These fields had :ethlance-job/estimated-project-length prefix
      ; (originally from EthlanceJob table). Find places where to rename

@@ -12,6 +12,8 @@
             [ethlance.server.ipfs :as ipfs]
             [ethlance.server.utils :as server-utils]
             [ethlance.shared.utils :as shared-utils]
+            [ethlance.shared.contract-constants :refer [offered-vec->flat-map
+                                                        enum-val->token-type]]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
@@ -71,7 +73,6 @@
    :job/description (:job/description ethlance-job-data)
    :job/category (:job/category ethlance-job-data)
    :job/required-experience-level (:job/required-experience-level ethlance-job-data)
-   :job/reward nil ; TODO: token amount (ETH, ERC-...)
    :job/language-id nil; TODO: where does it come from
    :job/bid-option (:job/bid-option ethlance-job-data)
    :job/estimated-project-length (:job/estimated-project-length ethlance-job-data)
@@ -84,7 +85,6 @@
 (defn handle-job-issued [conn _ {:keys [args] :as event}]
   (safe-go
    (log/info (str "Handling event handle-job-issued" args))
-   (println ">>> handle-job-issued event:" event)
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
      (<? (ethlance-db/add-job conn
                               (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
@@ -202,20 +202,20 @@
    (log/info (str ">>> Handling event job-created" args))
    (println ">>> ipfs-data | type ipfs-data" (:ipfs-data args) (type (:ipfs-data args)))
    (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
-         _ (println ">>> got IPFS hash: " ipfs-hash)
          ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
-         _ (println ">>> got IPFS content" ipfs-job-content)]
-     (println ">>> job/contract" (:job args) "---> event:" event "---> keys" (keys event))
+         offered-value (offered-vec->flat-map (first (:offered-values args)))]
      (<? (ethlance-db/add-job conn
                               (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
                                       :job/contract (:job args)
                                       :job/creator (:creator args)
                                       :job/date-created (:timestamp event)
                                       :job/date-updated (:timestamp event)
-                                      :job/token (:_token args)
-                                      :job/token-version (:_token-version args)}
-                                     (build-ethlance-job-data-from-ipfs-object ipfs-job-content)))))
-   ))
+
+                                      :job/token-type (enum-val->token-type (:token-type offered-value))
+                                      :job/token-amount (:token-amount offered-value)
+                                      :job/token-address (:token-address offered-value)
+                                      :job/token-id (:token-id offered-value)}
+                                     (build-ethlance-job-data-from-ipfs-object ipfs-job-content)))))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))

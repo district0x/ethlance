@@ -17,6 +17,7 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.util.component :refer [<sub >evt]]
+            [ethlance.ui.subscriptions :as subs]
             [re-frame.core :as re]
             [clojure.spec.alpha :as s]))
 
@@ -31,21 +32,36 @@
     {:size :small}
     [c-button-label "Invite"]]])
 
+(defn- c-submit-button [{:keys [:on-submit :disabled?]}]
+  (let [in-progress @(re/subscribe [::subs/api-request-in-progress])
+        disabled? (or disabled? in-progress)]
+    [:div.form-submit
+     {:class (when disabled? "disabled")
+      :on-click (fn [] (when-not disabled? (>evt on-submit)))}
+     [:span "Create"]
+     [c-icon {:name :ic-arrow-right :size :smaller}]]))
+
 (defmethod page :route.job/new []
   (let [*bid-option (re/subscribe [:page.new-job/bid-option])
         *category (re/subscribe [:page.new-job/category])
         *description (re/subscribe [:page.new-job/description])
         *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
-        *form-of-payment (re/subscribe [:page.new-job/form-of-payment])
         *name (re/subscribe [:page.new-job/title])
         *required-availability (re/subscribe [:page.new-job/required-availability])
         *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
         *required-skills (re/subscribe [:page.new-job/required-skills])
-        *token-address (re/subscribe [:page.new-job/token-address])
         *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])
-        form-values (re/subscribe [:page.new-job/form])]
+        form-values (re/subscribe [:page.new-job/form])
+
+        *token-type (re/subscribe [:page.new-job/token-type])
+        *token-amount (re/subscribe [:page.new-job/token-amount])
+        *token-address (re/subscribe [:page.new-job/token-address])
+        *token-id (re/subscribe [:page.new-job/token-id])
+        ]
     (fn []
-      (let [with-token? (= @*form-of-payment :erc20)]
+      (let [with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
+            with-nft? (#{:erc721 :erc1155} @*token-type)
+            with-multi-token? (= @*token-type :erc1155)]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
           [:div.title "New job"]
@@ -123,11 +139,16 @@
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]
            [c-radio-select
-            {:selection @*form-of-payment
-             :on-selection #(re/dispatch [:page.new-job/set-form-of-payment %])}
-            [:ethereum [c-radio-secondary-element "Ether"]]
-            [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
-
+            {:selection @*token-type
+             :on-selection #(re/dispatch [:page.new-job/set-token-type %])}
+            [:eth [c-radio-secondary-element "Ether"]]
+            [:erc20 [c-radio-secondary-element "Token ERC-20"]]
+            [:erc721 [c-radio-secondary-element "NFT Token (ERC-721)"]]
+            [:erc1155 [c-radio-secondary-element "Multi-Token (ERC-1155)"]]]
+            [c-text-input
+                {:value @*token-amount
+                 :on-change #(re/dispatch [:page.new-job/set-token-amount %])
+                 :placeholder "Token Amount"}]
            (when with-token?
              [:div.token-address-input
               [:div.input
@@ -137,19 +158,20 @@
                  :placeholder "Token Address"}]
                [:div.token-label "SNT"]]
               ;; TODO: retrieve token logo
-              [:div.token-logo]])]]
+              [:div.token-logo]])
+           (when with-nft?
+             [:div.token-address-input
+              [:div.input
+               [c-text-input
+                {:value @*token-id
+                 :on-change #(re/dispatch [:page.new-job/set-token-id %])
+                 :placeholder "Token ID"}]]])]]
 
          (when @*with-arbiter?
            [:div.arbiters
             [c-arbiter-for-hire]
             [c-arbiter-for-hire]
             [c-arbiter-for-hire]])
-
-         ; TODO: how to disable the Create button (functionally & visually) when the spec validation fails?
-         ; [:div.button
-         ;  {:on-click (fn [] (>evt [:page.new-job/create]))}
-         ;  [:div.label "Create"]
-         ;  [c-icon {:name :ic-arrow-right :size :small}]]
 
          [c-button
           {:on-click (fn [] (>evt [:page.new-job/create]))
