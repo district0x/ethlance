@@ -112,9 +112,54 @@
                                :from [:Employer]
                                :join [:Users [:= :Users.user/address :Employer.user/address]]})
 
-(defn employer-resolver [_ {:keys [:user/address] :as args} _]
+; (def ^:private job->employer-query {:select [[:Employer.user/address :user/address]
+;                                         [:Employer.employer/professional-title :employer/professional-title]
+;                                         [:Employer.employer/bio :employer/bio]
+;                                         [:Employer.employer/rating :employer/rating]
+;                                         [:Users.user/date-registered :employer/date-registered]]
+;                                :from [:Employer]
+;                                :join [:Users [:= :Users.user/address :Employer.user/address]
+;                                       :Job [:= :Job.job/creator :Employer.user/address]]})
+
+(def ^:private job->employer-query {:select[:*]
+                                    :from [:Employer]
+                                    :join [:Users [:= :Users.user/address :Employer.user/address]
+                                           :Job [:= :Job.job/creator :Employer.user/address]]})
+
+(def ^:private job->arbiter-query {:select[:*]
+                                   :from [:Arbiter]
+                                   :join [:JobArbiter [:= :JobArbiter.user/address :Arbiter.user/address]
+                                          :Job [:= :Job.job/id :JobArbiter.job/id]]})
+
+(defn participant->user-resolver [parent args context info]
+  (log/debug "participant->user-resolver")
+  (db/with-async-resolver-conn conn
+    (let [clj-parent (js->clj parent)
+          user-address (get (js->clj parent :keywordize-keys) "user_address")
+          query {:select [:*]
+                 :from [:Users]
+                 :where [:= :Users.user/address user-address]}
+          user-results (<? (db/get conn query))]
+      user-results)))
+
+(defn job->employer-resolver [parent args context info]
+  (db/with-async-resolver-conn conn
+    (log/debug "job->employer-resolver contract:" (:contract args))
+    (let [contract (:contract args)
+          query (sql-helpers/merge-where job->employer-query [:= contract :Job.job/contract])]
+      (<? (db/get conn query)))))
+
+(defn job->arbiter-resolver [parent args context info]
+  (db/with-async-resolver-conn conn
+    (log/debug "job->arbiter-resolver contract:" (:contract args))
+    (let [contract (:contract args)
+          query (sql-helpers/merge-where job->arbiter-query [:= contract :Job.job/contract])]
+      (<? (db/get conn query)))))
+
+(defn employer-resolver [obj {:keys [:user/address :contract] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
+    (println ">>> employer-resolver" {:obj obj :args args :address address :contract contract})
     (<? (db/get conn (sql-helpers/merge-where employer-query [:= address :Employer.user/address])))))
 
 (def ^:private user-feedback-query {:select [:Message.message/id
@@ -392,6 +437,7 @@
                                    :Job.job/token-address
                                    :Job.job/token-id
 
+                                   [:Job.job/creator :job/employer-address]
                                    [:JobArbiter.user/address :job/accepted-arbiter-address]]
                           :from [:Job]
                           :left-join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]]})
@@ -650,7 +696,9 @@
                             :job job-resolver
                             :jobStory job-story-resolver
                             :invoice invoice-resolver}
-                    :Job {:job_stories job->job-stories-resolver}
+                    :Job {:job_stories job->job-stories-resolver
+                          :job_employer job->employer-resolver
+                          :job_arbiter job->arbiter-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver
@@ -664,9 +712,12 @@
                                 :candidate_skills candidate->candidate-skills-resolver
                                 :candidate_jobStories candidate->job-stories-resolver}
                     :Employer {:employer_feedback employer->feedback-resolver
-                               :employer_jobStories employer->job-stories-resolver}
+                               :employer_jobStories employer->job-stories-resolver
+                               :user participant->user-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
-                              :arbiter_jobStories arbiter->job-stories-resolver}
+                              :arbiter_jobStories arbiter->job-stories-resolver
+                              :user participant->user-resolver}
+
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}

@@ -28,7 +28,7 @@ Please contact us if this sounds interesting.")
   (fn []
     (let [page-params (re/subscribe [:district.ui.router.subs/active-page-params])
           contract-address (:contract @page-params)
-          query "query ($contract: ID!) {
+          job-query "query ($contract: ID!) {
                    job(contract: $contract) {
                      job_id
                      job_contract
@@ -41,11 +41,26 @@ Please contact us if this sounds interesting.")
                      job_requiredAvailability
                      job_bidOption
                      job_estimatedProjectLength
+
+                     job_employer(contract: $contract) {
+                       employer_rating
+                       user_address
+                       user {user_country user_name user_profileImage}
+                     }
+                     job_arbiter(contract: $contract) {
+                       arbiter_rating
+                       arbiter_fee
+                       arbiter_feeCurrencyId
+                       user_address
+                       user {user_country user_name user_profileImage}
+                     }
                   }
                 }
                 "
-          query-results (re/subscribe [::gql/query query {:variables {:contract contract-address}}])
+          query-results (re/subscribe [::gql/query job-query {:variables {:contract contract-address}}])
           results (:job @query-results)
+
+          _ (println ">>> GQL job query RESULTS" @query-results)
           *title (:job/title results)
           *description (:job/description results)
           *sub-title (:job/category results)
@@ -55,7 +70,22 @@ Please contact us if this sounds interesting.")
                            (:job/status results)
                            (:job/required-experience-level results)
                            (:job/bid-option results)])
-          *required-skills (:job/required-skills results)]
+          *required-skills (:job/required-skills results)
+
+          _ (println ">>> result keys" (keys results))
+          *employer-name (get-in results [:job/employer :user :user/name])
+          *employer-rating (get-in results [:job/employer :employer/rating])
+          *employer-country (get-in results [:job/employer :user :user/country])
+          *employer-profile-image (get-in results [:job/employer :user :user/profile-image])
+
+          *arbiter-name (get-in results [:job/arbiter :user :user/name])
+          *arbiter-rating (get-in results [:job/arbiter :arbiter/rating])
+          *arbiter-country (get-in results [:job/arbiter :user :user/country])
+          *arbiter-profile-image (get-in results [:job/arbiter :user :user/profile-image])
+          *arbiter-fee (get-in results [:job/arbiter :arbiter/fee])
+          *arbiter-fee-currency (-> (get-in results [:job/arbiter :arbiter/fee-currency-id] "")
+                                    name
+                                    clojure.string/upper-case)]
 
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
@@ -73,18 +103,18 @@ Please contact us if this sounds interesting.")
          [:div.profiles
           [:div.employer-detail
            [:div.header "Employer"]
-           [:div.profile-image [c-profile-image {}]]
-           [:div.name "Brian Curran"]
-           [:div.rating [c-rating {:default-rating 3}]]
-           [:div.location "New York, United States"]
+           [:div.profile-image [c-profile-image {:src *employer-profile-image}]]
+           [:div.name *employer-name]
+           [:div.rating [c-rating {:rating *employer-rating}]]
+           [:div.location *employer-country]
            [:div.fee ""]]
           [:div.arbiter-detail
            [:div.header "Arbiter"]
-           [:div.profile-image [c-profile-image {}]]
-           [:div.name "Brian Curran"]
-           [:div.rating [c-rating {:default-rating 3}]]
-           [:div.location "New York, United States"]
-           [:div.fee "Fee: 0.12 ETH"]]]]
+           [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
+           [:div.name *arbiter-name]
+           [:div.rating [c-rating {:rating *arbiter-rating}]]
+           [:div.location *arbiter-country]
+           [:div.fee (str *arbiter-fee " " *arbiter-fee-currency)]]]]
         [:div.side
          [:div.label *posted-time]
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])]]

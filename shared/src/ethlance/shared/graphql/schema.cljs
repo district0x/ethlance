@@ -320,9 +320,11 @@
   type Employer {
     \"User ID for the given employer\"
     user_address: ID
+    user: User
 
     \"Auto Biography written by the Employer\"
     employer_bio: String
+    employer_rating: Float
 
     \"Date of Registration\"
     employer_dateRegistered: Date
@@ -356,22 +358,17 @@
 
   type Arbiter {
     user_address: ID
-
+    user: User
     arbiter_dateRegistered: Date
-
     arbiter_professionalTitle: String
-
     arbiter_bio: String
-
+    arbiter_rating: Float
     arbiter_feeCurrencyId: Keyword
-
     arbiter_fee: Int
-
     arbiter_feedback(
       limit: Int,
       offset: Int
     ): FeedbackList
-
     arbiter_jobStories: JobStoryList
   }
 
@@ -406,15 +403,20 @@
     job_tokenAmount: Int
     job_tokenAddress: String
     job_tokenId: Int
-    job_acceptedArbiterAddress: ID
-    job_employerAddress: ID
+
+    job_acceptedArbiterAddress: String
+    job_employerAddress: String
+    job_hireAddress: String
+
+    job_employer(contract: ID): Employer
+    job_arbiter(contract: ID): Arbiter
+
     job_stories(limit: Int, offset: Int): JobStoryList
 
     job_estimatedProjectLength: String
     job_maxNumberOfCandidates: Int
     job_invitationOnly: Boolean
     job_requiredAvailability: String
-    job_hireAddress: String
     job_bidOption: String
   }
 

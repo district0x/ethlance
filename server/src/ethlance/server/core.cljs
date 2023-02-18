@@ -76,7 +76,7 @@
                  :crash-on-event-fail? true
                  :skip-past-events-replay? true
                  :write-events-into-file? true
-                 :file-path "ethlance-events.log"}
+                 :checkpoint-file "ethlance-events.log"}
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false
