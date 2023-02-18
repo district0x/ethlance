@@ -1,7 +1,8 @@
 (ns ethlance.shared.utils
   (:require-macros [ethlance.shared.utils])
   (:require [alphabase.base58 :as base58]
-            [alphabase.hex :as hex]))
+            [alphabase.hex :as hex]
+            ["web3" :as w3]))
 
 (defn now []
   (.getTime (js/Date.)))
@@ -28,3 +29,6 @@
       (clojure.string/replace ,,, #"^0x" "")
       hex/decode
       base58/encode))
+
+(defn eth->wei [eth-amount] (.toWei (.-utils w3) (str eth-amount)))
+(defn wei->eth [wei-amount] (.fromWei (.-utils w3) (str wei-amount)))

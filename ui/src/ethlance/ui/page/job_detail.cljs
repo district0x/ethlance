@@ -14,6 +14,7 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [district.ui.graphql.subs :as gql]
+            [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
 
 ;; FIXME: description needs to be broken up into paragraphs. <p>
@@ -41,6 +42,9 @@ Please contact us if this sounds interesting.")
                      job_requiredAvailability
                      job_bidOption
                      job_estimatedProjectLength
+
+                     job_tokenType
+                     job_tokenAmount
 
                      job_employer(contract: $contract) {
                        employer_rating
@@ -85,7 +89,13 @@ Please contact us if this sounds interesting.")
           *arbiter-fee (get-in results [:job/arbiter :arbiter/fee])
           *arbiter-fee-currency (-> (get-in results [:job/arbiter :arbiter/fee-currency-id] "")
                                     name
-                                    clojure.string/upper-case)]
+                                    clojure.string/upper-case)
+
+          *job-token-type (get-in results [:job/token-type])
+          raw-token-amount (get-in results [:job/token-amount])
+          *job-token-amount (if (= (str *job-token-type) "eth")
+                              (shared-utils/wei->eth raw-token-amount)
+                              raw-token-amount)]
 
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
@@ -99,7 +109,7 @@ Please contact us if this sounds interesting.")
          [:div.ticket-listing
           [:div.ticket
            [:div.label "Available Funds"]
-           [:div.amount "14,000 SNT"]]]
+           [:div.amount (str *job-token-amount " " *job-token-type)]]]
          [:div.profiles
           [:div.employer-detail
            [:div.header "Employer"]
