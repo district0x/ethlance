@@ -288,6 +288,7 @@
    {:table-name :JobStory
     :table-columns
     [[:job-story/id :serial]
+     [:job/contract :text]
      [:job/id :integer]
      [:job-story/status :varchar]
      [:job-story/date-created :bigint]
@@ -507,8 +508,7 @@
                     (first (<? (db/run! conn statement)))
                     (catch js/Error e
                       (log/error "Error executing insert statement" {:error e
-                                                                     :statement statement})
-                      #_(print-db conn)))))
+                                                                     :statement statement})))))
      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
 (defn update-row!
@@ -533,13 +533,12 @@
                         :where (concat
                                 [:and]
                                 (for [id-key (:id-keys table-schema)]
-                                  [:= id-key (get item id-key)]))}]
+                                  [:= id-key (get item id-key)]))
+                        :returning [:*]}]
          (not-empty (try
                       (<? (db/run! conn statement))
                       (catch js/Error e
-                        (log/error "Error executing update statement" {:error e
-                                                                       :statement statement})
-                        #_(print-db conn)
+                        (log/error "Error executing update statement" {:error e :statement statement})
                         (throw e))))))
      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
@@ -708,16 +707,23 @@
   "Inserts a Message. Returns autoincrement id"
   [conn message]
   (safe-go
-   (println "Inserting message " message)
-
    (let [msg-id (-> (<? (insert-row! conn :Message message))
                     :message/id)
-         message (assoc message :message/id msg-id)]
+         job-story-id (or (:job-story/id message)
+                          (:job-story/id (<? (insert-row! conn :JobStory
+                                                          {:job-story/contract (:job/contract message)
+                                                           :job-story/candidate (:message/creator message)
+                                                           :job-story/date-created (:message/date-created message)
+                                                           :job-story/status "proposed"
+                                                           :job-story/proposal-message-id msg-id
+                                                           :job-story/proposal-rate (:job-story/proposal-rate message)}))))
+         message (assoc message :message/id msg-id :job-story/id job-story-id)]
      (case (:message/type message)
        :job-story-message
        (do
          (<? (insert-row! conn :JobStoryMessage (assoc message
-                                                       :message/id msg-id)))
+                                                       :message/id msg-id
+                                                       :job-story/id job-story-id)))
          (<? (case (:job-story-message/type message)
                :raise-dispute (update-row! conn :JobStory (assoc message
                                                                  :job-story/id (:job-story/id message)
@@ -732,8 +738,7 @@
                                                               :job-story/id (:job-story/id message)
                                                               :job-story/invitation-message-id msg-id))
                :invoice (insert-row! conn :JobStoryInvoiceMessage message)
-               :feedback  (insert-row! conn :JobStoryFeedbackMessage message)
-               nil)))
+               :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
        :direct-message
        (<? (insert-row! conn :DirectMessage message))))))

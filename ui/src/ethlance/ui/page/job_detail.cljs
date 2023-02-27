@@ -4,6 +4,7 @@
             [ethlance.ui.component.carousel
              :refer
              [c-carousel c-carousel-old c-feedback-slide]]
+            [ethlance.ui.component.scrollable :refer [c-scrollable]]
             [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -14,6 +15,8 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [district.ui.graphql.subs :as gql]
+            [ethlance.ui.util.component :refer [<sub >evt]]
+            [ethlance.shared.utils :refer [millis->relative-time]]
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
 
@@ -64,7 +67,6 @@ Please contact us if this sounds interesting.")
           query-results (re/subscribe [::gql/query job-query {:variables {:contract contract-address}}])
           results (:job @query-results)
 
-          _ (println ">>> GQL job query RESULTS" @query-results)
           *title (:job/title results)
           *description (:job/description results)
           *sub-title (:job/category results)
@@ -76,7 +78,6 @@ Please contact us if this sounds interesting.")
                            (:job/bid-option results)])
           *required-skills (:job/required-skills results)
 
-          _ (println ">>> result keys" (keys results))
           *employer-name (get-in results [:job/employer :user :user/name])
           *employer-rating (get-in results [:job/employer :employer/rating])
           *employer-country (get-in results [:job/employer :user :user/country])
@@ -95,8 +96,17 @@ Please contact us if this sounds interesting.")
           raw-token-amount (get-in results [:job/token-amount])
           *job-token-amount (if (= (str *job-token-type) "eth")
                               (shared-utils/wei->eth raw-token-amount)
-                              raw-token-amount)]
+                              raw-token-amount)
 
+          *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
+          *proposal-text (re/subscribe [:page.job-detail/proposal-text])
+
+          proposals (re/subscribe [:page.job-detail/active-proposals])
+          my-proposal (re/subscribe [:page.job-detail/my-proposal])
+          my-job-story-id (:job-story/id @my-proposal)
+          my-proposal? (not (nil? @my-proposal))
+          no-my-proposal? (nil? @my-proposal)
+          my-proposal-withdrawable? (and @my-proposal (= "proposed" (:status @my-proposal)))]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
         [:div.main
@@ -130,14 +140,16 @@ Please contact us if this sounds interesting.")
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])]]
        [:div.proposal-listing
         [:div.label "Proposals"]
-        [:div #_c-scrollable
+        [c-scrollable
          {:forceVisible true :autoHide false}
-         [c-table
-          {:headers ["Candidate" "Rate" "Created" "Status"]}
-          [[:span "Cyrus Keegan"]
-           [:span "$25"]
-           [:span "5 Days Ago"]
-           [:span "Pending"]]]]
+          (into [c-table {:headers ["" "Candidate" "Rate" "Created" "Status"]}]
+                (map (fn [proposal]
+                       [[:span (if (:current-user? proposal) "⭐" "")]
+                        [:span (:candidate-name proposal)]
+                        [:span (:rate proposal)]
+                        [:span (millis->relative-time (:created-at proposal))]
+                        [:span (:status proposal)]])
+                     @proposals))]
         [:div.button-listing
          [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
          [c-circle-icon-button {:name :ic-arrow-left :size :small}]
@@ -147,15 +159,28 @@ Please contact us if this sounds interesting.")
          [:div.label "Send Proposal"]
          [:div.amount-input
           [c-text-input
-           {:placeholder "0"}]
-          [c-select-input
-           {:label "Token"
-            :selections #{"ETH" "SNT" "DAI"}
-            :default-selection "ETH"}]]
+           {:placeholder "0"
+            :type :number
+            :disabled my-proposal? ; (not (nil? my-proposal))
+            :value (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
+            :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseInt %)])}]]
          [:div.description-input
           [c-textarea-input
-           {:placeholder "Proposal Description"}]]
-         [c-button {:size :small} [c-button-label "Send"]]]]
+           {:disabled my-proposal?
+            :placeholder "Proposal Description"
+            :value (if my-proposal? (:message @my-proposal) @*proposal-text)
+            :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
+
+         (if my-proposal-withdrawable?
+           [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
+                      :size :small}
+            [c-button-label "Remove"]]
+           )
+         (if no-my-proposal?
+           [c-button {:on-click (fn [] (>evt [:page.job-proposal/send contract-address]))
+                      :size :small}
+            [c-button-label "Send"]])
+         ]]
 
        [:div.invoice-listing
         [:div.label "Invoices"]

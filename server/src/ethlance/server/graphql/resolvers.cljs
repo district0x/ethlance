@@ -255,10 +255,27 @@
    :from [:Candidate]
    :join [:Users [:= :Users.user/address :Candidate.user/address]]})
 
-(defn candidate-resolver [_ {:keys [:user/address] :as args} _]
+(defn candidate-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
     (log/debug "candidate-resolver" args)
-    (<? (db/get conn (sql-helpers/merge-where candidate-query [:= address :Candidate.user/address])))))
+    (let [address-from-args (:user/address args)
+          parent (graphql-utils/gql->clj raw-parent)
+          address-from-parent (:job-story/candidate parent)
+          address (or address-from-args address-from-parent)]
+      (<? (db/get conn (sql-helpers/merge-where candidate-query [:ilike address :Candidate.user/address]))))))
+
+
+(defn job-story->proposal-message-resolver [raw-parent args _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story->proposal-message-resolver")
+    (let [address-from-args (:user/address args)
+          parent (graphql-utils/gql->clj raw-parent)
+          proposal-message-id (:job-story/proposal-message-id parent)
+          proposal-message-query {:select [:*]
+                                  :from [:Message]
+                                  :where [:= :Message.message/id proposal-message-id]}
+          query-result (<? (db/get conn proposal-message-query))]
+      (assoc query-result :__typename "JobStoryMessage"))))
 
 (defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
   (reduce-kv (fn [result index value]
@@ -444,23 +461,14 @@
 
 (defn job-resolver [parent {:keys [:contract :job/id] :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug ">>> job-resolver" {:parent parent :args args})
-    (let [
-          ; parent-job-id (:job/id (graphql-utils/gql->clj parent))
-          ; job-id (or parent-job-id id)
-          contract-address (:contract args)
+    (log/debug "job-resolver")
+    (let [contract-address (:contract args)
           job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/contract])))
           skills (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id (:job/id job)]}))
           job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
-      (println ">>> job-resolver " contract-address "RESULTS: job:" job-full)
       job-full)))
 
-(def ^:private job-story-query {:select [:JobStory.job-story/id
-                                         :Job.job/id
-                                         :JobStory.job-story/status
-                                         :JobStory.job-story/date-created
-                                         :JobStory.job-story/date-updated
-                                         [:ContractCandidate.user/address :contract/candidate-address]]
+(def ^:private job-story-query {:select [:*]
                                 :from [:JobStory]
                                 :join [:Job [:= :Job.job/id :JobStory.job/id]]})
 
@@ -477,6 +485,14 @@
                        (sql-helpers/merge-where [:= job-id :Job.job/id])
                        (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))))))
 
+(defn job-story-list-resolver [_ args _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story-list-resolver" args)
+    (let [contract (:job-contract args)
+          query {:select [:*]
+                 :from [:JobStory]
+                 :where [:= :JobStory.job/contract contract]}]
+      (<? (db/all conn query)))))
 
 (def ^:private invoice-query {:select [:JobStoryInvoiceMessage.invoice/id :JobStoryInvoiceMessage.invoice/date-paid :JobStoryInvoiceMessage.invoice/amount-requested :JobStoryInvoiceMessage.invoice/amount-paid
                                        :JobStory.job-story/id :Job.job/id]
@@ -508,6 +524,14 @@
 
 
 (defn send-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
+  (db/with-async-resolver-tx conn
+    (<? (ethlance-db/add-message conn {:message/type :proposal
+                                       :message/date-created timestamp
+                                       :message/creator (:user/address current-user)
+                                       :message/text text}))))
+
+; This is done by employer (invitation)
+(defn send-proposal-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
   (db/with-async-resolver-tx conn
     (<? (ethlance-db/add-message conn {:message/type :direct-message
                                        :message/date-created timestamp
@@ -580,15 +604,24 @@
                                              (merge response))))
       response)))
 
-(defn create-job-proposal-mutation [_ {:keys [text rate rate-currency-id]} {:keys [current-user timestamp]}]
-  (db/with-async-resolver-tx conn
-    (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                       :job-story-message/type :proposal
-                                       :message/date-created timestamp
-                                       :message/creator (:user/address current-user)
-                                       :message/text text
-                                       :job-story/proposal-rate rate
-                                       :job-story/proposal-rate-currency-id rate-currency-id}))))
+(defn create-job-proposal-mutation [_ gql-params {:keys [current-user timestamp]}]
+  (db/with-async-resolver-conn conn
+    (let [input (:input gql-params)
+          message-params {:message/type :job-story-message
+                          :job-story-message/type :proposal
+                          :job/contract (:contract input)
+                          :message/date-created timestamp
+                          :message/creator (:user/address current-user)
+                          :message/text (:text input)
+                          :job-story/proposal-rate (:rate input)
+                          :job-story/proposal-rate-currency-id (:rate-currency-id input)}]
+      (first (<? (ethlance-db/add-message conn message-params))))))
+
+
+(defn remove-job-proposal-mutation [_ gql-params {:keys [current-user timestamp]}]
+  (db/with-async-resolver-conn conn
+    (let [message-params {:job-story/status "deleted" :job-story/id (:job-story/id gql-params)}]
+      (first (<? (ethlance-db/update-row! conn :JobStory message-params))))))
 
 (defn github-signup-mutation [_ {:keys [input]} {:keys [current-user config]}]
   (db/with-async-resolver-conn conn
@@ -695,6 +728,7 @@
                             :arbiterSearch arbiter-search-resolver
                             :job job-resolver
                             :jobStory job-story-resolver
+                            :jobStoryList job-story-list-resolver
                             :invoice invoice-resolver}
                     :Job {:job_stories job->job-stories-resolver
                           :job_employer job->employer-resolver
@@ -702,7 +736,9 @@
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver
-                               :job job-resolver}
+                               :job job-resolver
+                               :candidate candidate-resolver
+                               :jobStory_proposalMessage job-story->proposal-message-resolver}
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
@@ -710,7 +746,8 @@
                     :Candidate {:candidate_feedback candidate->feedback-resolver
                                 :candidate_categories candidate->candidate-categories-resolver
                                 :candidate_skills candidate->candidate-skills-resolver
-                                :candidate_jobStories candidate->job-stories-resolver}
+                                :candidate_jobStories candidate->job-stories-resolver
+                                :user participant->user-resolver}
                     :Employer {:employer_feedback employer->feedback-resolver
                                :employer_jobStories employer->job-stories-resolver
                                :user participant->user-resolver}
@@ -731,6 +768,9 @@
                                :updateCandidate (require-auth (validate-input update-candidate-mutation))
                                :updateArbiter (require-auth update-arbiter-mutation)
                                :createJobProposal (require-auth create-job-proposal-mutation)
+                               :removeJobProposal (require-auth remove-job-proposal-mutation)
                                :replayEvents replay-events
                                :githubSignUp (require-auth github-signup-mutation)
-                               :linkedinSignUp (require-auth linkedin-signup-mutation)}})
+                               :linkedinSignUp (require-auth linkedin-signup-mutation)}
+                    ; :Date ; TODO: https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/#example-the-date-scalar
+                    })

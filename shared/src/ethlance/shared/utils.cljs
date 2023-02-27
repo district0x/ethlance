@@ -2,6 +2,7 @@
   (:require-macros [ethlance.shared.utils])
   (:require [alphabase.base58 :as base58]
             [alphabase.hex :as hex]
+            [goog.date.relative :as gdate]
             ["web3" :as w3]))
 
 (defn now []
@@ -32,3 +33,6 @@
 
 (defn eth->wei [eth-amount] (.toWei (.-utils w3) (str eth-amount)))
 (defn wei->eth [wei-amount] (.fromWei (.-utils w3) (str wei-amount)))
+
+(defn millis->relative-time [millis]
+  (gdate/format (new js/Date (js/parseInt millis))))

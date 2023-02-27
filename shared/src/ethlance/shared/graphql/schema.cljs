@@ -85,6 +85,7 @@
     ): JobList
 
     jobStory(jobStory_id: Int!): JobStory
+    jobStoryList(jobContract: ID): [JobStory]
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
@@ -148,6 +149,13 @@
    redirectUri: String!
   }
 
+  input ProposalInput {
+    contract: String!,
+    text: String!,
+    rate: Float!,
+    rateCurrencyId: String # FIXME: remove, job supports only 1 offeredValue
+  }
+
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): signInPayload!
@@ -158,7 +166,8 @@
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
     updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
-    createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
+    createJobProposal(input: ProposalInput): JobStory,
+    removeJobProposal(jobStory_id: Int!): JobStory,
     replayEvents: Boolean!,
     githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
     linkedinSignUp(input: linkedinSignUpInput!): linkedinSignUpPayload!
@@ -273,6 +282,7 @@
   type Candidate {
     \"User ID for the given candidate\"
     user_address: ID
+    user: User
 
     \"Auto Biography written by the Candidate\"
     candidate_bio: String
@@ -435,11 +445,13 @@
   }
 
   type JobStory {
+    jobStory_id: Int
     job_id: Int
     job: Job
-    jobStory_id: Int
+    job_contract: String
+    candidate: Candidate
     jobStory_status: Keyword
-    jobStory_candidateAddress: ID
+    jobStory_candidate: String
     jobStory_dateCreated: Date
     jobStory_dateUpdated: Date
 
