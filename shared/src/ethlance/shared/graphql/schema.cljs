@@ -167,7 +167,7 @@
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
     updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
     createJobProposal(input: ProposalInput): JobStory,
-    removeJobProposal(jobStory_id: Int!): JobStory,
+    removeJobProposal(jobStory_id: ID!): JobStory,
     replayEvents: Boolean!,
     githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
     linkedinSignUp(input: linkedinSignUpInput!): linkedinSignUpPayload!
@@ -445,7 +445,7 @@
   }
 
   type JobStory {
-    jobStory_id: Int
+    jobStory_id: ID
     job_id: Int
     job: Job
     job_contract: String

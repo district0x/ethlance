@@ -20,13 +20,24 @@
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
 
-;; FIXME: description needs to be broken up into paragraphs. <p>
-(def ^{:private true} fake-description
-  "We are looking for help building a blockchain game called E.T.H. (Extreme Time Heroes). This is a turn-style fighting game that will be run on a custom hybrid plasma state-channels implementation. Players can collect heroes, battle for wagers or hero pink slips, and earn points for winning battles that let you mine new heroes. In collaboration with district0x, we are building a district to manage the hero/item marketplace. We also have plans to extend these NFT-wagered fights to other systems like Decentraland Land.
+(defn c-token-values [opts]
+  (fn [{:keys [token-type token-amount token-address token-id disabled?]}]
+    (let [token-type (keyword token-type)
+          step (if (= token-type :eth) 0.001 1)]
+      (cond
+        (= :erc721 token-type)
+        [:div "The payment will be NFT (ERC721)"]
 
-We are currently most in need of web developers but are open to those that would like to work on scalability research and development or blockchain/distributed game development.
-
-Please contact us if this sounds interesting.")
+       (#{:eth :erc1155 :erc20} token-type)
+        [:div.amount-input
+         [c-text-input
+          {:placeholder "Token amount"
+           :step step
+           :type :number
+           :default-value nil
+           :disabled disabled?
+           :value @token-amount
+           :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]]))))
 
 (defmethod page :route.job/detail []
   (fn []
@@ -48,6 +59,8 @@ Please contact us if this sounds interesting.")
 
                      job_tokenType
                      job_tokenAmount
+                     job_tokenAddress
+                     job_tokenId
 
                      job_employer(contract: $contract) {
                        employer_rating
@@ -92,8 +105,10 @@ Please contact us if this sounds interesting.")
                                     name
                                     clojure.string/upper-case)
 
-          *job-token-type (get-in results [:job/token-type])
           raw-token-amount (get-in results [:job/token-amount])
+          *job-token-type (get-in results [:job/token-type])
+          *job-token-id (get-in results [:job/token-id])
+          *job-token-address (get-in results [:job/token-address])
           *job-token-amount (if (= (str *job-token-type) "eth")
                               (shared-utils/wei->eth raw-token-amount)
                               raw-token-amount)
@@ -105,7 +120,6 @@ Please contact us if this sounds interesting.")
           my-proposal (re/subscribe [:page.job-detail/my-proposal])
           my-job-story-id (:job-story/id @my-proposal)
           my-proposal? (not (nil? @my-proposal))
-          no-my-proposal? (nil? @my-proposal)
           my-proposal-withdrawable? (and @my-proposal (= "proposed" (:status @my-proposal)))]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
@@ -157,13 +171,11 @@ Please contact us if this sounds interesting.")
          [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
         [:div.proposal-form
          [:div.label "Send Proposal"]
-         [:div.amount-input
-          [c-text-input
-           {:placeholder "0"
-            :type :number
-            :disabled my-proposal? ; (not (nil? my-proposal))
-            :value (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
-            :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseInt %)])}]]
+         [c-token-values {:disabled? (not (nil? @my-proposal)) ; my-proposal?
+                          :token-type *job-token-type
+                          :token-amount *proposal-token-amount
+                          :token-id *job-token-id
+                          :token-address *job-token-address}]
          [:div.description-input
           [c-textarea-input
            {:disabled my-proposal?
@@ -176,7 +188,7 @@ Please contact us if this sounds interesting.")
                       :size :small}
             [c-button-label "Remove"]]
            )
-         (if no-my-proposal?
+         (if (not my-proposal?)
            [c-button {:on-click (fn [] (>evt [:page.job-proposal/send contract-address]))
                       :size :small}
             [c-button-label "Send"]])

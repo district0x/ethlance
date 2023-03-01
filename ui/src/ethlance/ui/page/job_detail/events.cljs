@@ -65,7 +65,7 @@
                (assoc-in ,,, [state-key :job/proposal-text] nil))
        :dispatch [::graphql/query
                   {:query
-                   "mutation RemoveProposal($jobStory_id: Int!) {
+                   "mutation RemoveProposal($jobStory_id: ID!) {
                      removeJobProposal(jobStory_id: $jobStory_id) {
                        jobStory_id
                        jobStory_status
