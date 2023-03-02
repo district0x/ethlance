@@ -16,6 +16,7 @@
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.component :refer [<sub >evt]]
+            [ethlance.ui.util.navigation :as util.navigation]
             [ethlance.shared.utils :refer [millis->relative-time]]
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
@@ -92,11 +93,13 @@
           *required-skills (:job/required-skills results)
 
           *employer-name (get-in results [:job/employer :user :user/name])
+          *employer-address (get-in results [:job/employer :user/address])
           *employer-rating (get-in results [:job/employer :employer/rating])
           *employer-country (get-in results [:job/employer :user :user/country])
           *employer-profile-image (get-in results [:job/employer :user :user/profile-image])
 
           *arbiter-name (get-in results [:job/arbiter :user :user/name])
+          *arbiter-address (get-in results [:job/arbiter :user/address])
           *arbiter-rating (get-in results [:job/arbiter :arbiter/rating])
           *arbiter-country (get-in results [:job/arbiter :user :user/country])
           *arbiter-profile-image (get-in results [:job/arbiter :user :user/profile-image])
@@ -135,15 +138,25 @@
            [:div.label "Available Funds"]
            [:div.amount (str *job-token-amount " " *job-token-type)]]]
          [:div.profiles
-          [:div.employer-detail
+          [:div.employer-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
+                                                                            :params {:address *employer-address}
+                                                                            :query {:tab :employer}})
+                                 :href (util.navigation/resolve-route {:route :route.user/profile
+                                                                       :params {:address *employer-address}
+                                                                       :query {:tab :employer}})}
            [:div.header "Employer"]
            [:div.profile-image [c-profile-image {:src *employer-profile-image}]]
            [:div.name *employer-name]
            [:div.rating [c-rating {:rating *employer-rating}]]
            [:div.location *employer-country]
            [:div.fee ""]]
-          [:div.arbiter-detail
-           [:div.header "Arbiter"]
+          [:a.arbiter-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
+                                                                         :params {:address *arbiter-address}
+                                                                         :query {:tab :arbiter}})
+                              :href (util.navigation/resolve-route {:route :route.user/profile
+                                                                    :params {:address *arbiter-address}
+                                                                    :query {:tab :arbiter}})}
+           [:div.header  "Arbiter"]
            [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
            [:div.name *arbiter-name]
            [:div.rating [c-rating {:rating *arbiter-rating}]]

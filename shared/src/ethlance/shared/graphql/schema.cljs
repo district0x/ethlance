@@ -409,6 +409,7 @@
     job_status: Keyword
     job_dateCreated: Date
     job_dateUpdated: Date
+
     job_tokenType: String
     job_tokenAmount: Float
     job_tokenAddress: String
