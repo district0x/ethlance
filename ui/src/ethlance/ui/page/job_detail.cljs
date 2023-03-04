@@ -138,7 +138,7 @@
            [:div.label "Available Funds"]
            [:div.amount (str *job-token-amount " " *job-token-type)]]]
          [:div.profiles
-          [:div.employer-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
+          [:a.employer-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
                                                                             :params {:address *employer-address}
                                                                             :query {:tab :employer}})
                                  :href (util.navigation/resolve-route {:route :route.user/profile

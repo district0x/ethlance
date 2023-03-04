@@ -287,6 +287,8 @@
     \"Auto Biography written by the Candidate\"
     candidate_bio: String
 
+    candidate_rating: Float
+
     \"The date when the Candidate was registered\"
     candidate_dateRegistered: Date
 

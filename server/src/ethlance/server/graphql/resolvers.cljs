@@ -159,7 +159,6 @@
 (defn employer-resolver [obj {:keys [:user/address :contract] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
-    (println ">>> employer-resolver" {:obj obj :args args :address address :contract contract})
     (<? (db/get conn (sql-helpers/merge-where employer-query [:= address :Employer.user/address])))))
 
 (def ^:private user-feedback-query {:select [:Message.message/id
@@ -253,11 +252,11 @@
             [:Candidate.candidate/rate-currency-id :candidate/rate-currency-id]
             [:Users.user/date-registered :candidate/date-registered]]
    :from [:Candidate]
-   :join [:Users [:= :Users.user/address :Candidate.user/address]]})
+   :join [:Users [:ilike :Users.user/address :Candidate.user/address]]})
 
 (defn candidate-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
-    (log/debug "candidate-resolver" args)
+    (log/debug "candidate-resolver" {:args args :raw-parent raw-parent})
     (let [address-from-args (:user/address args)
           parent (graphql-utils/gql->clj raw-parent)
           address-from-parent (:job-story/candidate parent)
@@ -371,9 +370,8 @@
   {:select
    [:JobStory.*]
    :from [:JobStory]
-   :join [:Job [:= :Job.job/id :JobStory.job/id]
-          :JobCreator [:= :JobCreator.job/id :Job.job/id]]
-   :where [:= :JobCreator.user/address address]})
+   :join [:Job [:= :Job.job/contract :JobStory.job/contract]]
+   :where [:and [:= :Job.job/creator address] [:!= :JobStory.job-story/status "deleted"]]})
 
 (defn employer->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
@@ -386,7 +384,7 @@
   {:select
    [:JobStory.*]
    :from [:JobStory]
-   :join [:Job [:= :Job.job/id :JobStory.job/id]
+   :join [:Job [:= :Job.job/contract :JobStory.job/contract]
           :JobArbiter [:= :JobArbiter.job/id :Job.job/id]]
    :where [:= :JobArbiter.user/address address]})
 
@@ -462,7 +460,9 @@
 (defn job-resolver [parent {:keys [:contract :job/id] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "job-resolver")
-    (let [contract-address (:contract args)
+    (let [contract-from-parent (:job/contract (graphql-utils/gql->clj parent))
+          contract-from-args (:contract args)
+          contract-address (or contract-from-parent contract-from-args)
           job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/contract])))
           skills (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id (:job/id job)]}))
           job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
