@@ -471,6 +471,7 @@
     jobStory_proposalRate: Int
     jobStory_proposalRateCurrencyId: Int
     jobStory_dateCandidateAccepted: Date
+    jobStory_dateArbiterAccepted: Date
   }
 
   type JobStoryList {

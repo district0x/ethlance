@@ -382,11 +382,12 @@
 
 (defn- arbiter-job-stories-query [address]
   {:select
-   [:JobStory.*]
+   [:JobStory.*
+    [:JobArbiter.job-arbiter/date-accepted :job-story/date-arbiter-accepted]]
    :from [:JobStory]
    :join [:Job [:= :Job.job/contract :JobStory.job/contract]
           :JobArbiter [:= :JobArbiter.job/id :Job.job/id]]
-   :where [:= :JobArbiter.user/address address]})
+   :where [:and [:= :JobArbiter.user/address address] [:!= :JobStory.job-story/status "deleted"]]})
 
 (defn arbiter->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn

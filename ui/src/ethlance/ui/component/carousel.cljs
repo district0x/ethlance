@@ -57,11 +57,11 @@
                :on-click #(swap! *current-index inc)}]]]]))})))
 
 (defn c-feedback-slide
-  [{:keys [id rating author text class]}]
+  [{:keys [id rating author text image-url class]}]
   [:div.feedback-slide
    ;; FIXME: use better unique key
    {:key (str "feedback-" id "-" rating) :class class}
-   [:div.profile-image [c-profile-image {}]]
+   [:div.profile-image [c-profile-image {:src image-url}]]
    [:div.rating [c-rating {:rating rating :color :white}]]
    [:div.message text]
    [:div.name author]])
@@ -71,7 +71,7 @@
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300
                                         :total-slides (count children)
-                                        :visible-slides 1}
+                                        :visible-slides 2}
     [:div.slider-outer
      [:> react-carousel/Slider
       (for [[idx child] (map-indexed vector children)]
