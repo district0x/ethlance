@@ -212,4 +212,4 @@
          :placeholder "Search Job Skill Requirements"
          :allow-custom-chips? false
          :auto-suggestion-listing constants/skills}]]
-      #_[c-job-listing]]]))
+      [c-job-listing]]]))

@@ -129,7 +129,7 @@
           token-amount (if (= token-type :eth)
                          (eth->wei (:job/token-amount job-fields))
                          (:job/token-amount job-fields))
-          address-placeholder "0x1111111111111111111111111111111111111111"
+          address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
                           address-placeholder)

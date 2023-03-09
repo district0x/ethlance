@@ -398,6 +398,12 @@
   }
 
 
+  type TokenDetails {
+    tokenDetail_id: ID!
+    tokenDetail_name: String
+    tokenDetail_symbol: String
+    tokenDetail_abi: String
+  }
   # Job Types
 
   type Job {
@@ -416,6 +422,7 @@
     job_tokenAmount: Float
     job_tokenAddress: String
     job_tokenId: Int
+    tokenDetails: TokenDetails
 
     job_acceptedArbiterAddress: String
     job_employerAddress: String

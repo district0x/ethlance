@@ -38,6 +38,9 @@
   district0x/error-handling {:mvn/version "1.0.4"}
   district0x/graphql-query {:mvn/version "1.0.6"}
 
+  cljs-http/cljs-http {:mvn/version "0.1.46"}
+  binaryage/oops {:mvn/version "0.7.2"}
+
   cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
   cljsjs/graphql {:mvn/version "0.13.1-0"}
   district0x/re-frame-ipfs-fx {:mvn/version "1.1.1"}
@@ -59,7 +62,9 @@
   :local-deps
   {:override-deps
    {is.d0x/district-server-smart-contracts {:local/root "../../d0x-libs/server/district-server-smart-contracts"}
-    is.d0x/district-server-web3-events {:local/root "../../d0x-libs/server/district-server-web3-events"}}}
+    is.d0x/district-server-web3-events {:local/root "../../d0x-libs/server/district-server-web3-events"}
+    is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}}
+   }
   :dev
   {:extra-deps
    {; Vim Iced deps

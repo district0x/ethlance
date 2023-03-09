@@ -131,6 +131,16 @@
      [(sql/call :primary-key :skill/id)]]
     :list-keys []}
 
+   {:table-name :TokenDetail
+    :table-columns
+    [[:token-detail/id column-types/address]
+     [:token-detail/name :text]
+     [:token-detail/symbol :text]
+     [:token-detail/abi :text]
+     ;; PK
+     [(sql/call :primary-key :token-detail/id)]
+     ]
+    :list-keys []}
    {:table-name :ArbiterCategory
     :table-columns
     [[:user/address :varchar not-nil]
@@ -459,6 +469,9 @@
     (->> (:table-columns table-schema)
          (map first)
          (filter keyword?))))
+
+(defn filter-tables [table-names schema]
+  (filter #((set table-names) (:table-name %)) schema))
 
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
@@ -806,6 +819,20 @@
   ;; NOTE: the problem with implementing this is we don't have fee and fee-currency-id for the new ones
   (safe-go)
   )
+
+(defn get-token [conn token-address]
+  (safe-go
+    (<? (db/get conn {:select [:*]
+                          :from [:TokenDetail]
+                          :where [:= :TokenDetail.token-detail/id token-address]}))))
+
+(defn store-token-details [conn token-details]
+  (safe-go
+    (<? (insert-row! conn :TokenDetail
+                     {:token-detail/id (:address token-details)
+                      :token-detail/name (:name token-details)
+                      :token-detail/symbol (:symbol token-details)
+                      :token-detail/abi (:abi-string token-details)}))))
 
 (defn ready-state?
   []

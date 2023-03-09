@@ -17,12 +17,13 @@
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.util.navigation :as util.navigation]
+            [ethlance.ui.util.tokens :as token-utils]
             [ethlance.shared.utils :refer [millis->relative-time]]
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
 
 (defn c-token-values [opts]
-  (fn [{:keys [token-type token-amount token-address token-id disabled?]}]
+  (fn [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name]}]
     (let [token-type (keyword token-type)
           step (if (= token-type :eth) 0.001 1)]
       (cond
@@ -38,7 +39,10 @@
            :default-value nil
            :disabled disabled?
            :value @token-amount
-           :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]]))))
+           :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]
+         [:div
+         [:label token-symbol]
+         [:label (str "(" token-name ")")]]]))))
 
 (defmethod page :route.job/detail []
   (fn []
@@ -62,6 +66,7 @@
                      job_tokenAmount
                      job_tokenAddress
                      job_tokenId
+                     tokenDetails {tokenDetail_id tokenDetail_name tokenDetail_symbol}
 
                      job_employer(contract: $contract) {
                        employer_rating
@@ -115,6 +120,8 @@
           *job-token-amount (if (= (str *job-token-type) "eth")
                               (shared-utils/wei->eth raw-token-amount)
                               raw-token-amount)
+          *token-detail-name (get-in results [:token-details :token-detail/name])
+          *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
 
           *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
           *proposal-text (re/subscribe [:page.job-detail/proposal-text])
@@ -134,9 +141,9 @@
          [:div.skill-listing
           (for [skill *required-skills] [c-tag {:key skill} [c-tag-label skill]])]
          [:div.ticket-listing
-          [:div.ticket
-           [:div.label "Available Funds"]
-           [:div.amount (str *job-token-amount " " *job-token-type)]]]
+         [:a.ticket {:href (token-utils/address->token-info-url *job-token-address) :target "_blank"}
+          [:div.label "Available Funds"]
+          [:div.amount (str *job-token-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
          [:div.profiles
           [:a.employer-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
                                                                             :params {:address *employer-address}
@@ -188,7 +195,9 @@
                           :token-type *job-token-type
                           :token-amount *proposal-token-amount
                           :token-id *job-token-id
-                          :token-address *job-token-address}]
+                          :token-address *job-token-address
+                          :token-name *token-detail-name
+                          :token-symbol *token-detail-symbol}]
          [:div.description-input
           [c-textarea-input
            {:disabled my-proposal?

@@ -22,7 +22,10 @@
     "web3": "1.7.3",
     "ws": "4.0.0",
     "xmlhttprequest": "1.8.0",
-    "xregexp": "5.1.1"
+    "xregexp": "5.1.1",
+    "xhr2": "0.2.1",
+    "evm-proxy-detection": "1.1.0",
+    "ethers": "6.1.0"
   },
   "@comment dependencies": {
     "eth-sig-util": "2.4.4",

@@ -131,6 +131,16 @@
                                    :join [:JobArbiter [:= :JobArbiter.user/address :Arbiter.user/address]
                                           :Job [:= :Job.job/id :JobArbiter.job/id]]})
 
+(defn job->token-details-resolver [parent args context info]
+  (log/debug "job->token-details-resolver" parent)
+  (db/with-async-resolver-conn conn
+    (let [clj-parent (js->clj parent)
+          token-address (get (js->clj parent :keywordize-keys) "job_tokenAddress")
+          query {:select [:*]
+                 :from [:TokenDetail]
+                 :where [:= :TokenDetail.token-detail/id token-address]}]
+      (<? (db/get conn query)))))
+
 (defn participant->user-resolver [parent args context info]
   (log/debug "participant->user-resolver")
   (db/with-async-resolver-conn conn
@@ -733,7 +743,8 @@
                             :invoice invoice-resolver}
                     :Job {:job_stories job->job-stories-resolver
                           :job_employer job->employer-resolver
-                          :job_arbiter job->arbiter-resolver}
+                          :job_arbiter job->arbiter-resolver
+                          :tokenDetails job->token-details-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver

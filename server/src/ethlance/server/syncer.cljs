@@ -14,6 +14,7 @@
             [ethlance.shared.utils :as shared-utils]
             [ethlance.shared.contract-constants :refer [offered-vec->flat-map
                                                         enum-val->token-type]]
+            [ethlance.shared.token-utils :as token-utils]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
@@ -203,7 +204,8 @@
    (println ">>> ipfs-data | type ipfs-data" (:ipfs-data args) (type (:ipfs-data args)))
    (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
          ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
-         offered-value (offered-vec->flat-map (first (:offered-values args)))]
+         offered-value (offered-vec->flat-map (first (:offered-values args)))
+         token-address (:token-address offered-value)]
      (<? (ethlance-db/add-job conn
                               (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
                                       :job/contract (:job args)
@@ -213,9 +215,12 @@
 
                                       :job/token-type (enum-val->token-type (:token-type offered-value))
                                       :job/token-amount (:token-amount offered-value)
-                                      :job/token-address (:token-address offered-value)
+                                      :job/token-address token-address
                                       :job/token-id (:token-id offered-value)}
-                                     (build-ethlance-job-data-from-ipfs-object ipfs-job-content)))))))
+                                     (build-ethlance-job-data-from-ipfs-object ipfs-job-content))))
+     (if (not (<? (ethlance-db/get-token conn token-address)))
+       (let [token-details (<! (token-utils/get-token-details token-address))]
+         (ethlance-db/store-token-details conn token-details))))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
