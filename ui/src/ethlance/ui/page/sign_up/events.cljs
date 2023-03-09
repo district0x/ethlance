@@ -56,6 +56,7 @@
                                         user_country
                                         user_isRegisteredCandidate
                                         user_languages
+                                        user_profileImage
                                       }
                                       candidate(user_address: $address) {
                                         user_address
@@ -152,7 +153,7 @@
                   :user/country
                   :user/name
                   :user/languages
-                  ; :user/profile-image
+                  :user/profile-image
                   ; :user/github-code
                   ; :user/linkedin-code
                   ; :user/linkedin-redirect-uri
@@ -166,6 +167,7 @@
                                    "mutation UpdateCandidate($candidateInput: CandidateInput!) {
                                       updateCandidate(input: $candidateInput) {
                                         user_address
+                                        user_profileImage
                                         user_dateUpdated
                                         candidate_dateUpdated
                                     }
@@ -175,6 +177,7 @@
                                                                 :user_name name
                                                                 :user_country country
                                                                 :user_languages languages
+                                                                :user_profileImage profile-image
                                                                 :candidate_bio bio
                                                                 :candidate_professionalTitle professional-title
                                                                 :candidate_categories categories
@@ -191,14 +194,16 @@
           {:keys [:user/name
                   :user/email
                   :user/languages
+                  :user/profile-image
                   :user/github-username
                   :user/country
                   :employer/professional-title
-                  :employer/bio]} (merge (fallback-data db :employers user-address) (get-in db [state-key]))]
+                  :employer/bio] :as u-data} (merge (fallback-data db :employers user-address) (get-in db [state-key]))]
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateEmployer($employerInput: EmployerInput!) {
                                       updateEmployer(input: $employerInput) {
                                         user_address
+                                        user_profileImage
                                         user_dateUpdated
                                         employer_dateUpdated
                                     }
@@ -209,6 +214,7 @@
                                                                :user_githubUsername github-username
                                                                :user_country country
                                                                :user_languages languages
+                                                                :user_profileImage profile-image
                                                                :employer_bio bio
                                                                :employer_professionalTitle professional-title}}}]})))
 
@@ -221,6 +227,7 @@
           {:keys [:user/name
                   :user/email
                   :user/languages
+                  :user/profile-image
                   :user/github-username
                   :user/country
                   :arbiter/professional-title
@@ -230,6 +237,7 @@
                                    "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
                                       updateArbiter(input: $arbiterInput) {
                                         user_address
+                                        user_profileImage
                                         user_dateUpdated
                                         arbiter_dateUpdated
                                     }
@@ -240,6 +248,7 @@
                                                               :user_githubUsername github-username
                                                               :user_country country
                                                               :user_languages languages
+                                                              :user_profileImage profile-image
                                                               :arbiter_bio bio
                                                               :arbiter_professionalTitle professional-title
                                                               :arbiter_fee (js/parseInt fee)
@@ -256,10 +265,9 @@
                  :on-success [::upload-user-image-success data]
                  :on-error [::logging/error "Error uploading user image" {:data data}]}}))
 
-
 (re/reg-event-fx
   ::upload-user-image-success
   [interceptors]
   (fn [_ [_ ipfs-resp]]
-    {:dispatch [:page.sign-up/set-user-profile-image (get (js->clj (js/JSON.parse ipfs-resp)) "Hash")]}))
+    {:dispatch [:page.sign-up/set-user-profile-image (:Hash ipfs-resp)]}))
 

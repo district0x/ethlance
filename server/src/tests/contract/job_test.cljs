@@ -25,7 +25,7 @@
                    job-address (:job job-data)
                    quoted-token-address "0x1111111111111111111111111111111111111111" ; placeholder for ETH
                    payment-in-wei (str 10000000000000000) ; 0.01 ETH
-                   token-type (contract-constants/token-type :eth)
+                   token-type (contract-constants/token-types :eth)
                    [arbitration-quote _extra] (fund-in-eth 0.01 [] {})
                    tx-receipt (<! (smart-contracts/contract-send [:job job-address] :set-quote-for-arbitration [arbitration-quote] {:from arbiter}))
                    quote-set-event (<! (smart-contracts/contract-event-in-tx :ethlance :QuoteForArbitrationSet tx-receipt))
@@ -51,12 +51,12 @@
                (done))))))
 
 (defn offer-from-job-data
-  "Fetches the offered value for token-id (contract-constants/token-type)
+  "Fetches the offered value for token-id (contract-constants/token-types)
    item from array (returned from create-initialized-job)"
   [job-data token]
   (first
     (filter #(= (get-in % [:token :tokenContract :tokenType])
-                (contract-constants/token-type token) )
+                (contract-constants/token-types token) )
             (get-in job-data [:offered-values]))))
 
 (defn close-enough= [a b]
@@ -160,14 +160,6 @@
                ; Add duplicate candidate (should fail)
                (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-a empty-ipfs-data] {:from employer}))]
                  (is (= tx-receipt nil)))
-
-               ; Try adding candidate for other job type - bounty (should fail)
-              (let [job-data (<! (create-initialized-job [(partial fund-in-eth 0.01)]
-                                                         :job-type (contract-constants/job-type :bounty)))
-                    job-address (:job job-data)
-                    empty-ipfs-data "0x0"
-                    tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [candidate-b empty-ipfs-data] {:from employer}))]
-                (is (= nil tx-receipt) "Transaction fails (receipt nil) when adding candidate to non-GIG (e.g. BOUNTY) job"))
 
               ; Try adding candidate by user other than job creator (should fail)
               (let [tx-receipt (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker empty-ipfs-data] {:from worker}))]

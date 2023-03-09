@@ -51,8 +51,13 @@
 (s/def :arbiter/professional-title professional-title?)
 (s/def :arbiter/bio bio?)
 (s/def :arbiter/fee not-neg?)
-(s/def :arbitrer/date-updated int?)
+(s/def :arbiter/date-updated int?)
 
+
+(s/def :job/title (s/and string? (comp not empty?)))
+(s/def :job/required-skills (comp not empty?))
+(s/def :page.new-job/create
+  (s/keys :req [:job/title :job/required-skills]))
 
 (s/def :page.sign-up/update-candidate
   (s/keys :req [:user/name

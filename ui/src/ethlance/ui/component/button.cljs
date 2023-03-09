@@ -40,7 +40,8 @@
              (merge
               {:class [(case color
                          :primary "primary"
-                         :secondary "secondary")
+                         :secondary "secondary"
+                         :warning "warning")
                        (when disabled? "disabled")
                        (when active? "active")
                        (condp = size

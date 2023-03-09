@@ -4,13 +4,20 @@
                   :task (let [seed  "easy leave proof verb wait patient fringe laptop intact opera slab shine"
                               host "0.0.0.0"
                               port "8549"
-                              args (format "ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 8000000 --chain.allowUnlimitedContractSize true --miner.blockTime 0.5 --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port)]
+                              block-time "0" ; Seconds (could be fractional). 0 means instamine https://trufflesuite.com/docs/ganache/reference/cli-options/#miner
+                              args (format "ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 20000000 --chain.allowUnlimitedContractSize true --miner.blockTime=%s --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port block-time)]
                                 (println "Starting testnet")
                                 (shell args))}
+         serve-designs {:doc "Start HTTP server on 8088 to serve designs"
+                        :task (shell {:dir "designs"} "php --server 0.0.0.0:8088 --docroot ./deploy")}
          compile-css {:doc "Compile LESS -> CSS"
                       :task (do
                               (println "Compiling LESS to CSS")
                               (shell {:dir "ui"} "./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose"))}
+         watch-css {:doc "Watch & recompile LESS to CSS on file changes"
+                    :task (do
+                            (println "Watching LESS under ui/resources/public/less")
+                            (shell {:dir "ui"} "npx less-watch-compiler resources/public/less resources/public/css main.less"))}
          watch-ui {:doc "Watch and compile ui code changes CLJS -> JS in ui/src/**"
                    :requires ([babashka.cli :as cli])
                    :task (let [aliases (or *command-line-args* [])
@@ -18,7 +25,11 @@
                            (println "Starting watch-ui. args:" command-args)
                            (clojure {:dir "ui"} command-args))}
          watch-server {:doc "Watch and compile server code changes CLJS -> JS in server/src/**"
-                       :task (clojure {:dir "server"} "-A:dev:shadow-cljs watch dev-server")}
+                       :requires ([babashka.cli :as cli])
+                       :task (let [aliases (or *command-line-args* [])
+                                   command-args (format "-A:dev:shadow-cljs%s watch dev-server" (clojure.string.join "" aliases))]
+                                (println "Starting watch dev-server args:" command-args)
+                                (clojure {:dir "server"} command-args))}
          run-server {:doc "Start Node.js API server process"
                       :task (do
                               (println "Starting Ethlance API server")
@@ -28,5 +39,4 @@
                               (println "Compiling server tests")
                               (clojure {:dir "server"} "-A:dev:shadow-cljs compile server-tests")
                               (println "Running server tests")
-                              (shell {:dir "server"} "node out/server-tests.js"))}
-         }}
+                              (shell {:dir "server"} "node out/server-tests.js"))}}}

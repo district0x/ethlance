@@ -34,7 +34,7 @@
   ([eth-amount] (fund-in-eth eth-amount [] {}))
   ([eth-amount offered-values create-job-opts]
    (let [amount-in-wei (str (eth->wei eth-amount)) ; FIXME: why web3-utils/eth->wei returns nil
-         offered-token-type (contract-constants/token-type :eth)
+         offered-token-type (contract-constants/token-types :eth)
          placeholder-address "0x1111111111111111111111111111111111111111"
          not-used-for-erc20 0
          eth-offered-value {:token
@@ -57,7 +57,7 @@
            _ (<? (smart-contracts/contract-send :token :mint [recipient funding-amount]))
            test-token-address (smart-contracts/contract-address :token)
            not-used-for-erc20 0
-           offered-token-type (contract-constants/token-type :erc20)
+           offered-token-type (contract-constants/token-types :erc20)
            erc-20-value {:token
                          {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                           :tokenId not-used-for-erc20} :value funding-amount}]
@@ -71,7 +71,7 @@
           receipt (<? (smart-contracts/contract-send :test-nft :award-item [recipient]))
           token-id (. (get-in receipt [:events :Transfer :return-values]) -tokenId)
           test-token-address (smart-contracts/contract-address :test-nft)
-          offered-token-type (contract-constants/token-type :erc721)
+          offered-token-type (contract-constants/token-types :erc721)
           token-offer {:token
                        {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                         :tokenId token-id} :value 1}]
@@ -87,7 +87,7 @@
            token-id (. (get-in receipt [:events :Transfer-single :return-values]) -id)
            token-amount (. (get-in receipt [:events :Transfer-single :return-values]) -value)
            test-token-address (smart-contracts/contract-address :test-multi-token)
-           offered-token-type (contract-constants/token-type :erc1155)
+           offered-token-type (contract-constants/token-types :erc1155)
            token-offer {:token
                         {:tokenContract {:tokenType offered-token-type :tokenAddress test-token-address}
                          :tokenId token-id} :value (int token-amount)}]
@@ -119,10 +119,7 @@
        accept `recipient` param"
   ([] (create-initialized-job []))
 
-  ([funding-functions & {job-type :job-type
-                         arbiters :arbiters
-                         :or {arbiters []
-                              job-type (contract-constants/job-type :gig)}}]
+  ([funding-functions & {arbiters :arbiters :or {arbiters []}}]
    (go
       (let [[_owner employer worker] (<! (web3-eth/accounts @web3))
             ipfs-data "0x0"
@@ -132,7 +129,6 @@
             _ (<! (ethlance/initialize job-impl-address))
             tx-receipt (<! (ethlance/create-job employer
                                                   offered-values
-                                                  job-type
                                                   arbiters
                                                   ipfs-data
                                                   additional-opts))

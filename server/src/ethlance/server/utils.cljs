@@ -3,16 +3,25 @@
             [clojure.string :as str]
             [taoensso.timbre :as log]))
 
-(defn- parse-meta [{:keys [:content :on-success :on-error]}]
+(defn- parse-json [string]
+  (js->clj (.parse js/JSON string) :keywordize-keys true))
+
+(defn- parse-edn [string]
+  (cljs.reader/read-string string))
+
+(defn- parse-meta
+  "Gracefully handles JSON or EDN data from IPFS"
+  [{:keys [:content :on-success :on-error]}]
   (let [content (str/replace content "\n" "")
-        json-part (second (re-find #".+?(\{.+\}).*" content))]
+        between-curly-braces #".+?(\{.+\}).*"
+        content-string (second (re-find between-curly-braces content))]
     (try
-      (-> json-part
-          js/JSON.parse
-          (js->clj :keywordize-keys true)
-          on-success)
+      (on-success (parse-json content-string))
       (catch :default e
-        (on-error e)))))
+        (try
+          (on-success (parse-edn content-string))
+          (catch :default e
+            (on-error e)))))))
 
 (defn get-ipfs-meta [conn meta-hash]
   (js/Promise.
@@ -21,6 +30,7 @@
      (ipfs-files/fget (str "/ipfs/" meta-hash)
                       {:req-opts {:compress false}}
                       (fn [err content]
+                        (println ">>> ethlance.server.utils/get-ipfs-meta" {:meta-hash meta-hash :content content})
                         (cond
                           err
                           (let [err-txt "Error when retrieving metadata from ipfs"]

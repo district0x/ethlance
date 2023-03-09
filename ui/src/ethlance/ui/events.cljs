@@ -24,7 +24,7 @@
   (fn [{:keys [db store]} [_ config]]
     {:db (-> db
            (assoc :ethlance/config config)
-           (merge (akiroz.re-frame.storage/<-store :ethlance))) ; TODO: is this desired or should the user sign new Tx each time first when opening Ethlance
+           (merge (akiroz.re-frame.storage/<-store :ethlance))) ; TODO: add expiration period 30 days (preferribly UI side)
      :dispatch-n [
                   [:page.jobs/initialize-page]
                   [:page.sign-up/initialize-page]

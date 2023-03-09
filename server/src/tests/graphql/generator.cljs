@@ -103,19 +103,17 @@
 
 (defn generate-jobs [conn jobs [employer & _]]
   (safe-go
-   (doseq [{:keys [job-id job-type]} jobs]
+   (doseq [{:keys [job-id]} jobs]
      (let [title (str (-> ["marmot" "deer" "mammut" "tiger" "lion" "elephant" "bobcat"] shuffle first) " "
                       (-> ["control" "design" "programming" "aministartion" "development"] shuffle first))
            description (let [from (rand-int 100)] (subs lorem from (+ 20 from)))
            category (get job-categories (rand-int 13))
            status  (rand-nth ["hiring" "hiring done"])
            date-created (time/minus (time/now) (time/days (rand-int 60)))
-           date-published (time/plus date-created (time/days (rand-int 5)))
-           date-updated (time/plus date-published (time/days (rand-int 7)))
+           date-updated (time/plus date-created (time/days (rand-int 7)))
            expertise-level (rand-int 5)
-           token "0x8f389F672Ef0586628689f9227e1d0e09f9A3245"
-           reward (rand-int 300)
-           web-reference-url (str "http://ethlance.com/" job-id)
+           token-type :eth
+           token-amount 1000
            estimated-length (case (-> (rand-nth [:hours :days :weeks]))
                               :hours (time/hours (rand-int 24))
                               :days (time/days (rand-int 30))
@@ -132,36 +130,20 @@
                 :job/category category
                 :job/status status
                 :job/date-created (time-coerce/to-long date-created)
-                :job/date-published (time-coerce/to-long date-published)
                 :job/date-updated (time-coerce/to-long date-updated)
                 :job/expertise-level expertise-level
-                :job/token token
-                :job/token-version 0 ; FIXME: these events don't exist anymore. Remove
-                :job/reward reward
-                :job/web-reference-url web-reference-url
-                :job/language-id language}]
-
-       (case job-type
-         :standard-bounties
-         (let [bounty-id job-id ;; this is not real but will work for generator
-               platform (rand-nth ["mobile" "web" "embedded"])
-               date-deadline (time/plus date-updated estimated-length)
-               bounty {:standard-bounty/id bounty-id
-                       :standard-bounty/platform platform
-                       :standard-bounty/deadline (time-coerce/to-long date-deadline)}]
-           (<? (ethlance-db/add-bounty conn (merge job bounty))))
-
-         :ethlance-job
-         (let [ethlance-job-id job-id
-               ethlance-job {:ethlance-job/id ethlance-job-id
+                :job/token-type token-type
+                :job/token-amount token-amount
+                :job/language-id language}
+           ethlance-job-id job-id
+           ethlance-job {:ethlance-job/id ethlance-job-id
                              :ethlance-job/estimated-lenght (time/in-millis estimated-length)
                              :ethlance-job/max-number-of-candidates (rand-int 10)
                              :ethlance-job/invitation-only? (rand-nth [true false])
                              :ethlance-job/required-availability (rand-nth [true false])
                              :ethlance-job/hire-address nil
                              :ethlance-job/bid-option 1}]
-           (<? (ethlance-db/add-ethlance-job conn (merge job ethlance-job)))))
-
+       (<? (ethlance-db/add-job conn (merge job ethlance-job)))
        (<? (ethlance-db/insert-row! conn :JobCreator {:job/id job-id
                                                       :user/address employer}))))))
 
@@ -200,7 +182,7 @@
 (defn generate-job-stories [conn stories-ids jobs [employer candidate _]]
   (safe-go
    (doseq [story-id stories-ids]
-     (let [{:keys [job-id job-type]} (rand-nth jobs)
+     (let [{:keys [job-id]} (rand-nth jobs)
            status  (rand-nth ["proposal pending" "active" "finished" "cancelled"])
            date-created (time/minus (time/now) (time/days (rand-int 60)))
            job-story {:job-story/id story-id
@@ -208,19 +190,12 @@
                       :job-story/status status
                       :job-story/date-created (time-coerce/to-long date-created)
                       :job-story/creator candidate}]
-
-       (case job-type
-         :standard-bounties
-         (<? (ethlance-db/add-job-story conn job-story))
-
-         :ethlance-job
-         (do
-           (<? (ethlance-db/add-ethlance-job-story conn job-story))
-           (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
-                                                                :message/text "Do you want to work with us?"
-                                                                :message/type :job-story-message
-                                                                :job-story-message/type :invitation
-                                                                :job-story/id story-id})))))))))
+       (<? (ethlance-db/add-job-story conn job-story))
+       (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
+                                                            :message/text "Do you want to work with us?"
+                                                            :message/type :job-story-message
+                                                            :job-story-message/type :invitation
+                                                            :job-story/id story-id})))))))
 
 (defn generate-disputes [conn stories-ids [employer _ _]]
   (safe-go
@@ -285,7 +260,7 @@
            user-address-map (into {} (map vector default-user-types user-addresses))
            categories (take 3 constants/categories)
            skills ["Solidity" "Clojure"]
-           jobs (map (fn [jid jtype] {:job-id jid :job-type jtype})
+           jobs (map (fn [jid] {:job-id jid})
                      (range 0 3)
                      (cycle [:standard-bounties :ethlance-job]))
            stories-ids (range 0 5)]

@@ -74,7 +74,7 @@
       offset: Int,
     ): ArbiterList
 
-    job(job_id : Int!): Job
+    job(contract: ID!): Job
 
     jobSearch(
       job_id: Int,
@@ -85,6 +85,7 @@
     ): JobList
 
     jobStory(jobStory_id: Int!): JobStory
+    jobStoryList(jobContract: ID): [JobStory]
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
@@ -99,6 +100,7 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
@@ -110,6 +112,7 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
@@ -125,6 +128,7 @@
     user_address: ID!
     user_email: String!
     user_name: String!
+    user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
@@ -145,6 +149,13 @@
    redirectUri: String!
   }
 
+  input ProposalInput {
+    contract: String!,
+    text: String!,
+    rate: Float!,
+    rateCurrencyId: String # FIXME: remove, job supports only 1 offeredValue
+  }
+
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): signInPayload!
@@ -155,7 +166,8 @@
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
     updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
-    createJobProposal(job_id: Int!, text: String!, rate: Int!, rateCurrencyId: String!): Boolean!,
+    createJobProposal(input: ProposalInput): JobStory,
+    removeJobProposal(jobStory_id: ID!): JobStory,
     replayEvents: Boolean!,
     githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
     linkedinSignUp(input: linkedinSignUpInput!): linkedinSignUpPayload!
@@ -171,6 +183,7 @@
   type updateCandidatePayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_profileImage: String
     user_githubUsername: String
     user_linkedinUsername: String
     candidate_dateUpdated: Date!
@@ -179,6 +192,7 @@
   type updateEmployerPayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_profileImage: String
     user_githubUsername: String
     user_linkedinUsername: String
     employer_dateUpdated: Date!
@@ -187,6 +201,7 @@
   type updateArbiterPayload {
     user_address: ID!
     user_dateUpdated: Date!
+    user_profileImage: String
     user_githubUsername: String
     user_linkedinUsername: String
     arbiter_dateUpdated: Date!
@@ -267,9 +282,12 @@
   type Candidate {
     \"User ID for the given candidate\"
     user_address: ID
+    user: User
 
     \"Auto Biography written by the Candidate\"
     candidate_bio: String
+
+    candidate_rating: Float
 
     \"The date when the Candidate was registered\"
     candidate_dateRegistered: Date
@@ -293,14 +311,7 @@
       offset: Int
     ): FeedbackList
 
-    candidate_ethlanceJobStories: EthlanceJobStoryList
-  }
-
-  type EthlanceJobStoryList {
-    items: [EthlanceJobStory]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
+    candidate_jobStories: JobStoryList
   }
 
   type CandidateList {
@@ -321,9 +332,11 @@
   type Employer {
     \"User ID for the given employer\"
     user_address: ID
+    user: User
 
     \"Auto Biography written by the Employer\"
     employer_bio: String
+    employer_rating: Float
 
     \"Date of Registration\"
     employer_dateRegistered: Date
@@ -337,7 +350,7 @@
       offset: Int
     ): FeedbackList
 
-    employer_ethlanceJobStories: EthlanceJobStoryList
+    employer_jobStories: JobStoryList
   }
 
   type EmployerList {
@@ -357,23 +370,18 @@
 
   type Arbiter {
     user_address: ID
-
+    user: User
     arbiter_dateRegistered: Date
-
     arbiter_professionalTitle: String
-
     arbiter_bio: String
-
+    arbiter_rating: Float
     arbiter_feeCurrencyId: Keyword
-
     arbiter_fee: Int
-
     arbiter_feedback(
       limit: Int,
       offset: Int
     ): FeedbackList
-
-    arbiter_ethlanceJobStories: EthlanceJobStoryList
+    arbiter_jobStories: JobStoryList
   }
 
   type ArbiterList  {
@@ -390,75 +398,48 @@
   }
 
 
+  type TokenDetails {
+    tokenDetail_id: ID!
+    tokenDetail_name: String
+    tokenDetail_symbol: String
+    tokenDetail_abi: String
+  }
   # Job Types
 
-  interface Job {
+  type Job {
     job_id: Int
-    job_type: Keyword
+    job_contract: ID
     job_title: String
     job_description: String
+    job_requiredSkills: [String]
+    job_requiredExperienceLevel: String
     job_category: String
     job_status: Keyword
     job_dateCreated: Date
-    job_datePublished: Date
     job_dateUpdated: Date
-    job_token: String
-    job_tokenVersion: Int
-    job_reward: Int
-    job_acceptedArbiterAddress: ID
-    job_employerAddress: ID
 
-    job_stories(limit: Int, offset: Int): JobStoryList
-  }
+    job_tokenType: String
+    job_tokenAmount: Float
+    job_tokenAddress: String
+    job_tokenId: Int
+    tokenDetails: TokenDetails
 
-  type StandardBounty implements Job {
-    job_id: Int
-    job_type: Keyword
-    job_title: String
-    job_description: String
-    job_category: String
-    job_status: Keyword
-    job_dateCreated: Date
-    job_datePublished: Date
-    job_dateUpdated: Date
-    job_token: String
-    job_tokenVersion: Int
-    job_reward: Int
-    job_acceptedArbiterAddress: ID
-    job_employerAddress: ID
+    job_acceptedArbiterAddress: String
+    job_employerAddress: String
+    job_hireAddress: String
+
+    job_employer(contract: ID): Employer
+    job_arbiter(contract: ID): Arbiter
 
     job_stories(limit: Int, offset: Int): JobStoryList
 
-    standardBounty_id: Int
-    standardBounty_platform: String
-    standardBounty_deadline: Date
+    job_estimatedProjectLength: String
+    job_maxNumberOfCandidates: Int
+    job_invitationOnly: Boolean
+    job_requiredAvailability: String
+    job_bidOption: String
   }
 
-  type EthlanceJob implements Job {
-    job_id: Int
-    job_type: Keyword
-    job_title: String
-    job_description: String
-    job_category: String
-    job_status: Keyword
-    job_dateCreated: Date
-    job_datePublished: Date
-    job_dateUpdated: Date
-    job_token: String
-    job_tokenVersion: Int
-    job_reward: Int
-    job_acceptedArbiterAddress: ID
-    job_employerAddress: ID
-    job_stories(limit: Int, offset: Int): JobStoryList
-
-    ethlanceJob_id: Int
-    ethlanceJob_estimatedLenght: Int
-    ethlanceJob_maxNumberOfCandidates: Int
-    ethlanceJob_invitationOnly: Boolean
-    ethlanceJob_requiredAvailability: Boolean
-    ethlanceJob_hireAddress: String
-    ethlanceJob_bidOption: Int
-  }
 
   type JobList {
     items: [Job]
@@ -473,12 +454,14 @@
     dateFinished
   }
 
-  interface JobStory {
+  type JobStory {
+    jobStory_id: ID
     job_id: Int
     job: Job
-    jobStory_id: Int
+    job_contract: String
+    candidate: Candidate
     jobStory_status: Keyword
-    jobStory_candidateAddress: ID
+    jobStory_candidate: String
     jobStory_dateCreated: Date
     jobStory_dateUpdated: Date
 
@@ -489,29 +472,13 @@
 
     jobStory_invoices(limit: Int, offset: Int,): InvoiceList
 
-  }
-
-  type EthlanceJobStory implements JobStory{
-    job: EthlanceJob
-    job_id: Int
-    jobStory_id: Int
-    jobStory_status: Keyword
-    jobStory_candidateAddress: ID
-    jobStory_dateCreated: Date
-    jobStory_dateUpdated: Date
-
-    jobStory_employerFeedback: Feedback
-    jobStory_candidateFeedback: Feedback
-
-    jobStory_dispute: Dispute
-
-    jobStory_invoices(limit: Int, offset: Int): InvoiceList
-
-    ethlanceJobStory_invitationMessage: Message
-    ethlanceJobStory_proposalMessage: Message
-    ethlanceJobStory_proposalRate: Int
-    ethlanceJobStory_proposalRateCurrencyId: Int
-    ethlanceJobStory_dateCandidateAccepted: Date
+    # The below fields were ethlanceJobStory_...
+    jobStory_invitationMessage: Message
+    jobStory_proposalMessage: Message
+    jobStory_proposalRate: Int
+    jobStory_proposalRateCurrencyId: Int
+    jobStory_dateCandidateAccepted: Date
+    jobStory_dateArbiterAccepted: Date
   }
 
   type JobStoryList {

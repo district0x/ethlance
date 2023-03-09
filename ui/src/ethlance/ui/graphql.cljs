@@ -142,6 +142,11 @@
         new-value (merge old-value new-data)]
     (assoc-in db lookup new-value)))
 
+(defmethod handler :job
+  [{:keys [db]} _ xxx]
+  (log/debug "job handler" xxx)
+  {:db db})
+
 (defmethod handler :candidate
   [{:keys [db]} _ {:user/keys [address] :as candidate}]
   (log/debug "candidate handler" candidate)
@@ -198,12 +203,30 @@
          (assoc-in [:users address :user/date-updated] user-date-updated)
          (assoc-in [:arbiters address :arbiter/date-updated] arbiter-date-updated))})
 
+(defmethod handler :create-job-proposal
+  [{:keys [db fx]} _ creation-result]
+  (log/debug "create-job-proposal handler" creation-result)
+  {:db (assoc-in db [:job-stories (:job-story/id creation-result)] creation-result)})
+
+(defmethod handler :remove-job-proposal
+  [{:keys [db fx]} _ result]
+  (log/debug "remove-job-proposal handler" result)
+  {:db (assoc-in db [:job-stories (:job-story/id result)] result)})
+
+(defmethod handler :job-story-list
+  [{:keys [db fx]} _ result]
+  (log/debug "job-story-list handler" result)
+
+  {:db (reduce (fn [acc job-story]
+                 (assoc-in acc [:job-stories (:job-story/id job-story)] job-story))
+               db
+               result)})
+
 (defmethod handler :sign-in
   [{:keys [db store]} _ {:as response}]
   (log/debug "ethlance.ui.graphql :sign-in handler " response)
   {:db (assoc db :active-session response)
    :store (assoc store :active-session response)})
-
 
 (defmethod handler :api/error
   [{:keys [:db]} _ error-messages]

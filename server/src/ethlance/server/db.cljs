@@ -8,7 +8,7 @@
             [cuerdas.core :as str]
             [district.server.async-db :as db]
             [district.server.config :refer [config]]
-            [district.server.db.column-types :refer [not-nil]]
+            [district.server.db.column-types :as column-types :refer [not-nil]]
             [district.shared.async-helpers :refer [<? safe-go]]
             [honeysql.core :as sql]
             [mount.core :as mount :refer [defstate]]
@@ -131,6 +131,16 @@
      [(sql/call :primary-key :skill/id)]]
     :list-keys []}
 
+   {:table-name :TokenDetail
+    :table-columns
+    [[:token-detail/id column-types/address]
+     [:token-detail/name :text]
+     [:token-detail/symbol :text]
+     [:token-detail/abi :text]
+     ;; PK
+     [(sql/call :primary-key :token-detail/id)]
+     ]
+    :list-keys []}
    {:table-name :ArbiterCategory
     :table-columns
     [[:user/address :varchar not-nil]
@@ -178,55 +188,37 @@
    {:table-name :Job
     :table-columns
     [[:job/id :serial]
-     [:job/type :varchar not-nil]
+     [:job/contract column-types/address] ; add unique & not null constraints
+                                          ; https://github.com/seancorfield/honeysql/blob/develop/doc/clause-reference.md
+                                          ; https://github.com/district0x/d0x-libs/blob/master/server/district-server-db/src/district/server/db/column_types.cljs
+     [:job/creator column-types/address]
      [:job/title :varchar not-nil]
      [:job/description :varchar not-nil]
      [:job/category :varchar]
      [:job/status :varchar]
      [:job/date-created :bigint]
-     [:job/date-published :bigint]
      [:job/date-updated :bigint]
-     [:job/expertise-level :integer]
-     [:job/token :varchar]
-     [:job/token-version :integer]
-     [:job/reward :integer]
-     [:job/web-reference-url :varchar]
-     [:job/language-id :varchar]
+     [:job/required-experience-level :text]
+
+     ; new fields (remove previous 3 :job/{:token/token-version/reward})
+     [:job/token-type :text]
+     [:job/token-amount :bigint]
+     [:job/token-address :text]
+     [:job/token-id :integer]
+
+     ; These fields had :ethlance-job/estimated-project-length prefix
+     ; (originally from EthlanceJob table). Find places where to rename
+     [:job/estimated-project-length :text]
+     [:job/max-number-of-candidates :integer] ; TODO: remove
+     [:job/invitation-only? :bool]
+     [:job/required-availability :text]
+     [:job/hire-address :varchar]
+     [:job/bid-option :text]
+
+     [:job/language-id :varchar] ; TODO: REMOVE
      ;; PK
      [(sql/call :primary-key :job/id)]]
     :list-keys []}
-
-   {:table-name :EthlanceJob
-    :table-columns
-    [[:job/id :integer]
-     [:ethlance-job/id :integer]
-     [:ethlance-job/estimated-length :bigint]
-     [:ethlance-job/max-number-of-candidates :integer]
-     [:ethlance-job/invitation-only? :bool]
-     [:ethlance-job/required-availability :bool]
-     [:ethlance-job/hire-address :varchar]
-     [:ethlance-job/bid-option :integer]
-
-     ;; PK
-     [(sql/call :primary-key :job/id)]
-
-     ;; FK
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     ;; TODO: add to  candidate table
-     ]}
-
-   {:table-name :StandardBounty
-    :table-columns
-    [[:job/id :integer]
-     [:standard-bounty/id :integer]
-     [:standard-bounty/platform :varchar]
-     [:standard-bounty/deadline :bigint]
-     ;; PK
-     [(sql/call :primary-key :job/id)]
-
-     ;; FK
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     ]}
 
    {:table-name :JobCreator
     :table-columns
@@ -260,8 +252,7 @@
      ;; PK
      [(sql/call :primary-key :job/id :skill/id)]
      ;; FKs
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :JobArbiter
@@ -307,6 +298,7 @@
    {:table-name :JobStory
     :table-columns
     [[:job-story/id :serial]
+     [:job/contract :text]
      [:job/id :integer]
      [:job-story/status :varchar]
      [:job-story/date-created :bigint]
@@ -317,6 +309,11 @@
      [:job-story/resolved-dispute-message-id :integer]
      [:job-story/proposal-rate :integer]
      [:job-story/proposal-rate-currency-id :varchar]
+
+     ; The following used to be :ethlance-job-story/...
+     [:job-story/candidate :varchar]
+     [:job-story/date-candidate-accepted :bigint]
+
      ;; PK
      [(sql/call :primary-key :job-story/id)]
 
@@ -325,23 +322,6 @@
      [(sql/call :foreign-key :job-story/invitation-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job-story/proposal-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
-
-   {:table-name :EthlanceJobStory
-    :table-columns
-    [[:job-story/id :integer]
-     [:ethlance-job-story/invitation-message-id :integer]
-     [:ethlance-job-story/proposal-message-id :integer]
-     [:ethlance-job-story/proposal-rate :integer]
-     [:ethlance-job-story/proposal-rate-currency-id :varchar]
-     [:ethlance-job-story/candidate :varchar]
-     [:ethlance-job-story/date-candidate-accepted :bigint]
-
-     ;; PK
-     [(sql/call :primary-key :job-story/id)]
-
-     ;; FKs
-     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]]
-    }
 
    {:table-name :JobStoryMessage
     :table-columns
@@ -490,6 +470,9 @@
          (map first)
          (filter keyword?))))
 
+(defn filter-tables [table-names schema]
+  (filter #((set table-names) (:table-name %)) schema))
+
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
   [conn]
@@ -538,8 +521,7 @@
                     (first (<? (db/run! conn statement)))
                     (catch js/Error e
                       (log/error "Error executing insert statement" {:error e
-                                                                     :statement statement})
-                      #_(print-db conn)))))
+                                                                     :statement statement})))))
      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
 (defn update-row!
@@ -564,13 +546,12 @@
                         :where (concat
                                 [:and]
                                 (for [id-key (:id-keys table-schema)]
-                                  [:= id-key (get item id-key)]))}]
+                                  [:= id-key (get item id-key)]))
+                        :returning [:*]}]
          (not-empty (try
                       (<? (db/run! conn statement))
                       (catch js/Error e
-                        (log/error "Error executing update statement" {:error e
-                                                                       :statement statement})
-                        #_(print-db conn)
+                        (log/error "Error executing update statement" {:error e :statement statement})
                         (throw e))))))
      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
@@ -709,47 +690,27 @@
                     (array-map :on-conflict [:user/address]
                                :do-update-set (keys values))})))))
 
-
-(defn add-bounty [conn bounty-job]
+(defn add-skills [conn job-id skills]
   (safe-go
-   (let [job-id (-> (<? (insert-row! conn :Job (assoc bounty-job
-                                                      :job/type "standard-bounty")))
-                    :job/id)]
-     (<? (insert-row! conn :StandardBounty (assoc bounty-job :job/id job-id))))))
+    (doseq [skill skills]
+      (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
 
-(defn add-ethlance-job [conn ethlance-job]
+(defn add-job [conn job]
+  (println ">>> ethlance.server.db/add-job" job)
   (safe-go
-   (let [job-id (-> (<? (insert-row! conn :Job (assoc ethlance-job
-                                                      :job/type "ethlance-job")))
-                    :job/id)]
-     (<? (insert-row! conn :EthlanceJob (assoc ethlance-job :job/id job-id))))))
+    (let [skills (:job/required-skills job)
+          job-fields (dissoc job :job/required-skills)
+          job-id (:job/id (<? (insert-row! conn :Job job)))]
+      (add-skills conn job-id skills))))
 
-(defn get-job-id-for-bounty [conn bounty-id]
-  (safe-go
-   (let [r (-> (<? (db/get conn {:select [:job/id]
-                                 :from [[:StandardBounty :sb]]
-                                 :where [:= :sb.standard-bounty/id bounty-id]}))
-               :job/id)]
-     r)))
-
-(defn update-bounty [conn bounty-id job-data]
-  (safe-go
-   (let [job-id (<? (get-job-id-for-bounty conn bounty-id))]
-     (<? (update-row! conn :StandardBounty job-data))
-     (<? (update-row! conn :Job (assoc job-data :job/id job-id))))))
-
+; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
+;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)
 (defn get-job-id-for-ethlance-job [conn ethlance-job-id]
-  (safe-go
-   (-> (<? (db/get conn {:select [:job/id]
-                         :from [[:EthlanceJob :ej]]
-                         :where [:= :ej.ethlance-job/id ethlance-job-id]}))
-       :job/id)))
+  (safe-go ethlance-job-id))
 
-(defn update-ethlance-job [conn ethlance-job-id job-data]
+(defn update-ethlance-job [conn job-id job-data]
   (safe-go
-   (let [job-id (<? (get-job-id-for-ethlance-job conn ethlance-job-id))]
-     (<? (update-row! conn :EthlanceJob job-data))
-     (<? (update-row! conn :Job (assoc job-data :job/id job-id))))))
+  (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
 (defn update-job-story-invoice-message  [conn msg]
   (safe-go
@@ -759,16 +720,23 @@
   "Inserts a Message. Returns autoincrement id"
   [conn message]
   (safe-go
-   (println "Inserting message " message)
-
    (let [msg-id (-> (<? (insert-row! conn :Message message))
                     :message/id)
-         message (assoc message :message/id msg-id)]
+         job-story-id (or (:job-story/id message)
+                          (:job-story/id (<? (insert-row! conn :JobStory
+                                                          {:job-story/contract (:job/contract message)
+                                                           :job-story/candidate (:message/creator message)
+                                                           :job-story/date-created (:message/date-created message)
+                                                           :job-story/status "proposed"
+                                                           :job-story/proposal-message-id msg-id
+                                                           :job-story/proposal-rate (:job-story/proposal-rate message)}))))
+         message (assoc message :message/id msg-id :job-story/id job-story-id)]
      (case (:message/type message)
        :job-story-message
        (do
          (<? (insert-row! conn :JobStoryMessage (assoc message
-                                                       :message/id msg-id)))
+                                                       :message/id msg-id
+                                                       :job-story/id job-story-id)))
          (<? (case (:job-story-message/type message)
                :raise-dispute (update-row! conn :JobStory (assoc message
                                                                  :job-story/id (:job-story/id message)
@@ -776,15 +744,14 @@
                :resolve-dispute (update-row! conn :JobStory (assoc message
                                                                    :job-story/id (:job-story/id message)
                                                                    :job-story/resolved-dispute-message-id msg-id))
-               :proposal (update-row! conn :EthlanceJobStory (assoc message
-                                                                    :job-story/id (:job-story/id message)
-                                                                    :ethlance-job-story/proposal-message-id msg-id))
-               :invitation (update-row! conn :EthlanceJobStory (assoc message
-                                                                      :job-story/id (:job-story/id message)
-                                                                      :ethlance-job-story/invitation-message-id msg-id))
+               :proposal (update-row! conn :JobStory (assoc message
+                                                            :job-story/id (:job-story/id message)
+                                                            :job-story/proposal-message-id msg-id))
+               :invitation (update-row! conn :JobStory (assoc message
+                                                              :job-story/id (:job-story/id message)
+                                                              :job-story/invitation-message-id msg-id))
                :invoice (insert-row! conn :JobStoryInvoiceMessage message)
-               :feedback  (insert-row! conn :JobStoryFeedbackMessage message)
-               nil)))
+               :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
        :direct-message
        (<? (insert-row! conn :DirectMessage message))))))
@@ -794,15 +761,6 @@
   [conn job-story]
   (safe-go
    (:job-story/id (<? (insert-row! conn :JobStory job-story)))))
-
-(defn add-ethlance-job-story
-  "Inserts a EthlanceJobStory. Returns autoincrement id"
-  [conn ethlance-job-story]
-  (safe-go
-   (let [job-story-id (-> (<? (insert-row! conn :JobStory ethlance-job-story))
-                          :job-story/id)]
-     (<? (insert-row! conn :EthlanceJobStory (assoc ethlance-job-story
-                                                    :job-story/id job-story-id))))))
 
 (defn add-job-story-message [conn job-story-message]
   (safe-go
@@ -814,39 +772,21 @@
      (<? (insert-row! conn :MessageFile {:message/id message-id
                                          :file/id id})))))
 
-(defn update-ethlance-job-candidate [conn ethlance-job-id user-address]
+(defn update-job-candidate [conn job-id user-address]
   (safe-go
-   (<? (update-row! conn :EthlanceJob {:ethlance-job/id ethlance-job-id
+   (<? (update-row! conn :EthlanceJob {:ethlance-job/id job-id
                                        :ethlance-job/candidate user-address}))))
 
-(defn get-job-story-id-by-standard-bounty-id [conn bounty-id]
+(defn get-job-story-id-by-job-id [conn job-id]
   (safe-go
    (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
                           :from [[:JobStory :js]]
-                          :join [[:Job :j] [:= :js.job/id :j.job/id]
-                                 [:StandardBounty :sb] [:= :j.job/id :sb.job/id]]
-                          :where [:= :sb.standard-bounty/id bounty-id]})))))
+                          :join [[:Job :j] [:= :js.job/id :j.job/id]]
+                          :where [:= :j.job/id job-id]})))))
 
-(defn set-job-story-invoice-status-for-bounties [conn bounty-id invoice-ref-id status]
+(defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
   (safe-go
-   (let [job-story-id (<? (get-job-story-id-by-standard-bounty-id conn bounty-id))]
-     (<? (db/run! conn {:update :JobStoryInvoiceMessage
-                        :set {:invoice/status status}
-                        :where [:and
-                                [:= :job-story/id job-story-id]
-                                [:= :invoice/ref-id invoice-ref-id]]})))))
-
-(defn get-job-story-id-by-ethlance-job-id [conn ethlance-job-id]
-  (safe-go
-   (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
-                          :from [[:JobStory :js]]
-                          :join [[:Job :j] [:= :js.job/id :j.job/id]
-                                 [:EthlanceJob :ej] [:= :j.job/id :ej.job/id]]
-                          :where [:= :ej.ethlance-job/id ethlance-job-id]})))))
-
-(defn set-job-story-invoice-status-for-ethlance-job [conn ethlance-job-id invoice-id status]
-  (safe-go
-   (let [job-story-id (<? (get-job-story-id-by-ethlance-job-id conn ethlance-job-id))]
+   (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
      (<? (db/run! conn {:update :JobStoryInvoiceMessage
                         :set {:invoice/status status}
                         :where [:and
@@ -879,6 +819,20 @@
   ;; NOTE: the problem with implementing this is we don't have fee and fee-currency-id for the new ones
   (safe-go)
   )
+
+(defn get-token [conn token-address]
+  (safe-go
+    (<? (db/get conn {:select [:*]
+                          :from [:TokenDetail]
+                          :where [:= :TokenDetail.token-detail/id token-address]}))))
+
+(defn store-token-details [conn token-details]
+  (safe-go
+    (<? (insert-row! conn :TokenDetail
+                     {:token-detail/id (:address token-details)
+                      :token-detail/name (:name token-details)
+                      :token-detail/symbol (:symbol token-details)
+                      :token-detail/abi (:abi-string token-details)}))))
 
 (defn ready-state?
   []

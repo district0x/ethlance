@@ -1,29 +1,27 @@
 (ns ethlance.server.core
   (:require
+    [alphabase.base58 :as base58]
+    [alphabase.hex :as hex]
     [district.server.async-db]
-            [district.server.config :refer [config]]
-            [district.server.db.honeysql-extensions]
-            [district.server.db]
-            [district.server.logging]
-            [district.server.smart-contracts]
-            [district.server.web3-events]
-            [district.server.web3]
-            [district.shared.async-helpers :as async-helpers :refer [safe-go]]
-            [ethlance.server.db]
-            [ethlance.server.graphql.server] ; <-- this causes SHADOW_IMPORT error
-            [ethlance.server.ipfs]
-            ; [ethlance.server.syncer]
-            [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
-            [tests.graphql.generator]
-            [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
-            [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-            [ethlance.shared.utils :as shared-utils]
-            [mount.core :as mount]
-            [taoensso.timbre :refer [merge-config!] :as log]
-            ))
-
-; (defn -main [& args]
-;   (println "Running (FAKE SRC) ethlance.server.core/-main That's it"))
+    [district.server.config :refer [config]]
+    [district.server.db.honeysql-extensions]
+    [district.server.db]
+    [district.server.logging]
+    [district.server.smart-contracts]
+    [district.server.web3-events]
+    [district.server.web3]
+    [district.shared.async-helpers :as async-helpers :refer [safe-go]]
+    [ethlance.server.db]
+    [ethlance.server.graphql.server]
+    [ethlance.server.ipfs]
+    [ethlance.server.syncer]
+    [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
+    [tests.graphql.generator]
+    [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
+    [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
+    [ethlance.shared.utils :as shared-utils]
+    [mount.core :as mount]
+    [taoensso.timbre :refer [merge-config!] :as log]))
 
 (def environment (shared-utils/get-environment))
 
@@ -40,7 +38,8 @@
 
 (def default-config
   {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
-   :web3-events {:events {
+   :web3-events {:events {:ethlance/job-created [:ethlance :JobCreated]
+                          :ethlance/test-event [:ethlance :TestEvent]
                           ; TODO: replace with events from new Ethlance.sol contract (commented out to allow server to start)
                           ; :ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited]
 
@@ -77,7 +76,7 @@
                  :crash-on-event-fail? true
                  :skip-past-events-replay? true
                  :write-events-into-file? true
-                 :file-path "ethlance-events.log"}
+                 :checkpoint-file "ethlance-events.log"}
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false

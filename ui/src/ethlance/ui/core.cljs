@@ -13,6 +13,7 @@
     [district.ui.web3]
     [district0x.re-frame.web3-fx]
     [district.ui.smart-contracts]
+    [district.ui.web3-tx] ; to register effect :web3-tx-localstorage
     [ethlance.ui.config :as ui.config]
     [ethlance.ui.effects]
     [ethlance.ui.events]

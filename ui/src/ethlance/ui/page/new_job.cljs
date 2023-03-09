@@ -7,6 +7,7 @@
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
             [district.ui.web3-tx.events :as tx-events]
             [district.ui.smart-contracts.queries :as contract-queries]
+            [ethlance.ui.page.new-job.events :as new-job.events]
             [ethlance.ui.component.radio-select
              :refer
              [c-radio-secondary-element c-radio-select]]
@@ -16,7 +17,9 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.util.component :refer [<sub >evt]]
-            [re-frame.core :as re]))
+            [ethlance.ui.subscriptions :as subs]
+            [re-frame.core :as re]
+            [clojure.spec.alpha :as s]))
 
 (defn c-arbiter-for-hire
   []
@@ -29,81 +32,84 @@
     {:size :small}
     [c-button-label "Invite"]]])
 
+(defn- c-submit-button [{:keys [:on-submit :disabled?]}]
+  (let [in-progress @(re/subscribe [::subs/api-request-in-progress])
+        disabled? (or disabled? in-progress)]
+    [:div.form-submit
+     {:class (when disabled? "disabled")
+      :on-click (fn [] (when-not disabled? (>evt on-submit)))}
+     [:span "Create"]
+     [c-icon {:name :ic-arrow-right :size :smaller}]]))
+
 (defmethod page :route.job/new []
-  (let [*type (re/subscribe [:page.new-job/type])
-        *name (re/subscribe [:page.new-job/name])
+  (let [*bid-option (re/subscribe [:page.new-job/bid-option])
         *category (re/subscribe [:page.new-job/category])
-        *bid-option (re/subscribe [:page.new-job/bid-option])
-        *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
-        *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
-        *required-availability (re/subscribe [:page.new-job/required-availability])
-        *required-skills (re/subscribe [:page.new-job/required-skills])
         *description (re/subscribe [:page.new-job/description])
-        *form-of-payment (re/subscribe [:page.new-job/form-of-payment])
+        *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
+        *name (re/subscribe [:page.new-job/title])
+        *required-availability (re/subscribe [:page.new-job/required-availability])
+        *required-experience-level (re/subscribe [:page.new-job/required-experience-level])
+        *required-skills (re/subscribe [:page.new-job/required-skills])
+        *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])
+        form-values (re/subscribe [:page.new-job/form])
+
+        *token-type (re/subscribe [:page.new-job/token-type])
+        *token-amount (re/subscribe [:page.new-job/token-amount])
         *token-address (re/subscribe [:page.new-job/token-address])
-        *with-arbiter? (re/subscribe [:page.new-job/with-arbiter?])]
+        *token-id (re/subscribe [:page.new-job/token-id])
+        ]
     (fn []
-      (let [is-bounty? (= @*type :bounty)
-            with-token? (= @*form-of-payment :erc20)]
+      (let [with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
+            with-nft? (#{:erc721} @*token-type)
+            token-with-amount? (#{:erc20 :erc1155 :eth} @*token-type)
+            token-with-id? (#{:erc721 :erc1155} @*token-type)]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
-          [:div.title (if is-bounty? "New Bounty" "New Job")]
-          [:div.job-type-input
-           [c-radio-select
-            {:selection @*type
-             :on-selection #(re/dispatch [:page.new-job/set-type %])
-             :flex? true}
-            [:job [c-radio-secondary-element "Job"]]
-            [:bounty [c-radio-secondary-element "Bounty"]]]]
+          [:div.title "New job"]
           [:div.name-input
            [c-text-input
             {:placeholder "Name"
              :value @*name
-             :on-change #(re/dispatch [:page.new-job/set-name %])}]]
+             :on-change #(re/dispatch [:page.new-job/set-title %])}]]
           [:div.category-input
            [c-select-input
             {:label "Category"
              :selections (sort constants/categories)
              :selection @*category
              :on-select #(re/dispatch [:page.new-job/set-category %])}]]
-          (when-not is-bounty?
-            [:div.bid-for-radio-input.radio
-             [:div.label "Candidates Should Bid For"]
-             [c-radio-select
-              {:selection @*bid-option
-               :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
-              [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
-              [:fixed-price [c-radio-secondary-element "Fixed Price"]]]])
+          [:div.bid-for-radio-input.radio
+           [:div.label "Candidates Should Bid For"]
+           [c-radio-select
+            {:selection @*bid-option
+             :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
+            [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
+            [:fixed-price [c-radio-secondary-element "Fixed Price"]]]]
+          [:div.experience-radio-input.radio
+           [:div.label "Required Experience Level"]
+           [c-radio-select
+            {:selection @*required-experience-level
+             :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}
+            [:beginner [c-radio-secondary-element "Beginner ($)"]]
+            [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
+            [:expert [c-radio-secondary-element "Expert ($$$)"]]]]
 
-          (when-not is-bounty?
-            [:div.experience-radio-input.radio
-             [:div.label "Required Experience Level"]
-             [c-radio-select
-              {:selection @*required-experience-level
-               :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}
-              [:beginner [c-radio-secondary-element "Beginner ($)"]]
-              [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
-              [:expert [c-radio-secondary-element "Expert ($$$)"]]]])
+          [:div.project-length-radio-input.radio
+           [:div.label "Estimated Project Length"]
+           [c-radio-select
+            {:selection @*estimated-project-length
+             :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}
+            [:day [c-radio-secondary-element "Hours or Days"]]
+            [:week [c-radio-secondary-element "Weeks"]]
+            [:month [c-radio-secondary-element "Months"]]
+            [:year [c-radio-secondary-element ">6 Months"]]]]
 
-          (when-not is-bounty?
-            [:div.project-length-radio-input.radio
-             [:div.label "Estimated Project Length"]
-             [c-radio-select
-              {:selection @*estimated-project-length
-               :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}
-              [:day [c-radio-secondary-element "Hours or Days"]]
-              [:week [c-radio-secondary-element "Weeks"]]
-              [:month [c-radio-secondary-element "Months"]]
-              [:year [c-radio-secondary-element ">6 Months"]]]])
-
-          (when-not is-bounty?
-            [:div.availability-radio-input.radio
-             [:div.label "Required Availability"]
-             [c-radio-select
-              {:selection @*required-availability
-               :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}
-              [:full-time [c-radio-secondary-element "Full-Time"]]
-              [:part-time [c-radio-secondary-element "Part-Time"]]]])
+          [:div.availability-radio-input.radio
+           [:div.label "Required Availability"]
+           [c-radio-select
+            {:selection @*required-availability
+             :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}
+            [:full-time [c-radio-secondary-element "Full-Time"]]
+            [:part-time [c-radio-secondary-element "Part-Time"]]]]
 
           [:div.with-arbiter-radio-input.radio
            [:div.label "Arbiter"]
@@ -122,7 +128,7 @@
              :chip-listing @*required-skills
              :on-chip-listing-change #(re/dispatch [:page.new-job/set-required-skills %])
              :placeholder "Search Skills"
-             :allow-custom-chips? false}]]
+             :allow-custom-chips? true}]]
 
           [:div.description-text.chip
            [:div.label "Description"]
@@ -134,11 +140,17 @@
           [:div.forms-of-payment.chip
            [:div.label "Forms of Payment"]
            [c-radio-select
-            {:selection @*form-of-payment
-             :on-selection #(re/dispatch [:page.new-job/set-form-of-payment %])}
-            [:ethereum [c-radio-secondary-element "Ether"]]
-            [:erc20 [c-radio-secondary-element "Token (ERC-20)"]]]
-
+            {:selection @*token-type
+             :on-selection #(re/dispatch [:page.new-job/set-token-type %])}
+            [:eth [c-radio-secondary-element "Ether"]]
+            [:erc20 [c-radio-secondary-element "Token ERC-20"]]
+            [:erc721 [c-radio-secondary-element "NFT Token (ERC-721)"]]
+            [:erc1155 [c-radio-secondary-element "Multi-Token (ERC-1155)"]]]
+           (when token-with-amount?
+             [c-text-input
+              {:value @*token-amount
+               :on-change #(re/dispatch [:page.new-job/set-token-amount %])
+               :placeholder "Token Amount"}])
            (when with-token?
              [:div.token-address-input
               [:div.input
@@ -148,7 +160,15 @@
                  :placeholder "Token Address"}]
                [:div.token-label "SNT"]]
               ;; TODO: retrieve token logo
-              [:div.token-logo]])]]
+              [:div.token-logo]])
+           (when token-with-id?
+             [:div.token-address-input
+              [:div.input
+               [c-text-input
+                {:value @*token-id
+                 :type :number
+                 :on-change #(re/dispatch [:page.new-job/set-token-id %])
+                 :placeholder "Token ID"}]]])]]
 
          (when @*with-arbiter?
            [:div.arbiters
@@ -156,7 +176,8 @@
             [c-arbiter-for-hire]
             [c-arbiter-for-hire]])
 
-         [:div.button
-          {:on-click (fn [] (>evt [:page.new-job/create]))}
+         [c-button
+          {:on-click (fn [] (>evt [:page.new-job/create]))
+           :disabled? (not (s/valid? :page.new-job/create @form-values))}
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))

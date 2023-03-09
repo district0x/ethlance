@@ -71,80 +71,129 @@
 
 (defn prepare-jobs [story]
   {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:ethlance-job-story/date-candidate-accepted])})
+   :start-date (get-in story [:job-story/date-candidate-accepted])
+   :status (get-in story [:job :job/status])})
+
+(defn prepare-employer-jobs [story]
+  {:title (get-in story [:job :job/title])
+   :start-date (get-in story [:job-story/date-created])
+   :status (get-in story [:job :job/status])})
+
+(defn prepare-arbiter-jobs [story]
+  {:title (get-in story [:job :job/title])
+   :start-date (get-in story [:job-story/date-arbiter-accepted])
+   :status (get-in story [:job :job/status])})
+
+(defn mock-feedback-list []
+  [{:rating 1 :text "First job good" :author "Siimar Sapikas" :image-url "https://i.pravatar.cc/300?img=1"}
+   {:rating 2 :text "Second job better" :author "John Doe" :image-url "https://i.pravatar.cc/300?img=2"}
+   {:rating 3 :text "Third job best" :author "Mary Jane" :image-url "https://i.pravatar.cc/300?img=3"}
+   {:rating 4 :text "Fourth job last" :author "Siimar Sapikas" :image-url "https://i.pravatar.cc/300?img=4"}])
 
 (defn c-candidate-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
         query "query ($id: ID!) {
-                 user(user_address: $id) { user_name user_profileImage user_country user_languages }
+                 user(user_address: $id) {user_name user_profileImage user_country user_languages}
                  candidate(user_address: $id) {
-                 candidate_professionalTitle
-                 candidate_skills
-                 candidate_bio
-                 candidate_rating
-                 candidate_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
-                 candidate_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
-        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
-  (fn []
-    (let [name (get-in @results [:user :user/name])
-          location (get-in @results [:user :user/country])
-          professional-title (get-in @results [:candidate :candidate/professional-title])
-          biography (get-in @results [:candidate :candidate/bio])
-          languages (get-in @results [:user :user/languages])
-          skills (get-in @results [:user :user/skills])
-          job-activity-column-headers {:title "Title" :start-date "Created"}
-          jobs (map prepare-jobs (get-in @results [:candidate :candidate/ethlance-job-stories :items]))
-          feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
-          rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
-      [:<>
-       [:div.candidate-profile
-        [:div.title
-         [:div.profile-image
-          [c-profile-image {}]]
-         [:div.name name]
-         [:div.detail professional-title]]
-        [:div.biography biography]
-        [c-rating-box rating]
-        [:div.location location]
-        [:div.detail-listing
-         [c-tag-list "Languages" languages]
-         [c-tag-list "Skills" skills]]
-        [:div.button-listing
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
-       (c-job-activity jobs job-activity-column-headers)
-       (c-feedback-listing feedback-list)]))))
+                   candidate_professionalTitle
+                   candidate_skills
+                   candidate_bio
+                   candidate_rating
+                   candidate_feedback {
+                     items {
+                       message_id
+                       feedback_text
+                       feedback_rating
+                       feedback_fromUser {user_name}
+                       }
+                     }
+                   candidate_jobStories {
+                     items {
+                       job {job_title job_status}
+                       jobStory_dateCandidateAccepted
+                     }
+                   }
+                 }
+               }"
+        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}}])]
+    (fn []
+      (let [name (get-in @results [:user :user/name])
+            location (get-in @results [:user :user/country])
+            professional-title (get-in @results [:candidate :candidate/professional-title])
+            biography (get-in @results [:candidate :candidate/bio])
+            image-url (get-in @results [:user :user/profile-image])
+            languages (get-in @results [:user :user/languages])
+            skills (get-in @results [:user :user/skills])
+            job-activity-column-headers {:title "Title" :start-date "Created"}
+            jobs (map prepare-jobs (get-in @results [:candidate :candidate/job-stories :items]))
+            ; feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
+            feedback-list (mock-feedback-list)
+            rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
+        [:<>
+         [:div.candidate-profile
+          [:div.title
+           [:div.profile-image
+            [c-profile-image {:src image-url}]]
+           [:div.name name]
+           [:div.detail professional-title]]
+          [:div.biography biography]
+          [c-rating-box rating]
+          [:div.location location]
+          [:div.detail-listing
+           [c-tag-list "Languages" languages]
+           [c-tag-list "Skills" skills]]
+          [:div.button-listing
+           [c-button
+            {:size :normal}
+            [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+           [c-button
+            {:size :normal}
+            [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+         (c-job-activity jobs job-activity-column-headers)
+         (c-feedback-listing feedback-list)]))))
 
 (defn c-employer-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
         query "query ($id: ID!) {
                  user(user_address: $id) { user_name user_profileImage user_country user_languages }
                  employer(user_address: $id) {
-                 employer_professionalTitle
-                 employer_bio
-                 employer_rating
-                 employer_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
-                 employer_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
+                   employer_professionalTitle
+                   employer_bio
+                   employer_rating
+                   employer_feedback {
+                     items {
+                       message_id
+                       feedback_text
+                       feedback_rating
+                       feedback_fromUser {user_name user_profileImage}
+                     }
+                   }
+                   employer_jobStories {
+                     items {
+                       job {
+                         job_title
+                         job_status
+                       }
+                       jobStory_dateCreated}}}}"
         results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
+    (println ">>> ethlance.ui.page.profile/c-employer-profile" @results)
   (fn []
     (let [name (get-in @results [:user :user/name])
           location (get-in @results [:user :user/country])
           professional-title (get-in @results [:employer :employer/professional-title])
           biography (get-in @results [:employer :employer/bio])
+          image-url (get-in @results [:user :user/profile-image])
           languages (get-in @results [:user :user/languages])
           job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
-          jobs (map prepare-jobs (get-in @results [:employer :employer/ethlance-job-stories :items]))
-          feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
+          jobs (map prepare-employer-jobs (get-in @results [:employer :employer/job-stories :items]))
+          ; feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
+          feedback-list (mock-feedback-list)
           rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>
        [:div.employer-profile
         [:div.title
          [:div.profile-image
-          [c-profile-image {}]]
+          [c-profile-image {:src image-url}]]
          [:div.name name]
          [:div.detail professional-title]]
         [:div.biography biography]
@@ -172,23 +221,26 @@
                  arbiter_bio
                  arbiter_rating
                  arbiter_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name } } }
-                 arbiter_ethlanceJobStories { items { job { job_title job_status } ethlanceJobStory_dateCandidateAccepted } } } }"
-        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
+                 arbiter_jobStories { items { job { job_title job_status }
+                                              jobStory_dateArbiterAccepted } } } }"
+        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}}])]
     (fn []
       (let [name (get-in @results [:user :user/name])
             location (get-in @results [:user :user/country])
             professional-title (get-in @results [:arbiter :arbiter/professional-title])
             biography (get-in @results [:arbiter :arbiter/bio])
+            image-url (get-in @results [:user :user/profile-image])
             languages (get-in @results [:user :user/languages])
             job-activity-column-headers {:title "Title" :start-date "Created"}
-            jobs (map prepare-jobs (get-in @results [:arbiter :arbiter/ethlance-job-stories :items]))
-            feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
+            jobs (map prepare-arbiter-jobs (get-in @results [:arbiter :arbiter/job-stories :items]))
+            ; feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
+            feedback-list (mock-feedback-list)
             rating {:average (get-in @results [:arbiter :arbiter/rating]) :count (count feedback-list)}]
     [:<>
      [:div.arbiter-profile
       [:div.title
        [:div.profile-image
-        [c-profile-image {}]]
+        [c-profile-image {:src image-url}]]
        [:div.name name]
        [:div.detail professional-title]]
       [:div.biography biography]
@@ -209,6 +261,7 @@
 
 (defmethod page :route.user/profile []
   (let [{:keys [name params query]} @(re/subscribe [::router-subs/active-page])
+        user-address (:address params)
         tabs {"candidate" 0 "employer" 1 "arbiter" 2}
         default-tab (get tabs (:tab query) 0)
         navigate-to (fn [tab name params] (when name (re/dispatch [::router-events/navigate name params (merge query {:tab tab})])))
