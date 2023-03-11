@@ -390,11 +390,13 @@
       (log/debug "employer->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn- arbiter-job-stories-query [id]
+(defn- arbiter-arbitrations-query [id]
   {:select
-   [
+   [:JobArbiter.user/id
+    :JobArbiter.job/id
     [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
     [:JobArbiter.job-arbiter/fee :arbitration/fee]
+    [:JobArbiter.job-arbiter/status :arbitration/status]
     [:JobArbiter.job-arbiter/fee-currency-id :arbitration/fee-currency-id]]
    :from [:JobStory]
    :join [:Job [:= :Job.job/id :JobStory.job/id]
@@ -404,8 +406,8 @@
 (defn arbiter->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:user/id (graphql-utils/gql->clj root))
-          query (arbiter-job-stories-query address)]
-      (log/debug "arbiter->job-stories-resolver" {:address address :args args})
+          query (arbiter-arbitrations-query address)]
+      (log/debug "arbiter->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
@@ -793,6 +795,7 @@
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
                               :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
+                    :Arbitration {:job job-resolver}
 
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver

@@ -78,7 +78,7 @@
                        arbiter_fee
                        arbiter_feeCurrencyId
                        user_id
-                       user {user_country user_name user_profileImage}
+                       user {user_id user_country user_name user_profileImage}
                      }
                   }
                 }
