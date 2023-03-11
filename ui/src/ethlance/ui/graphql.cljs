@@ -129,9 +129,9 @@
   (reduce-handlers cofx values))
 
 (defmethod handler :user
-  [{:keys [db]} _ {:user/keys [address] :as user}]
+  [{:keys [db]} _ {:user/keys [id] :as user}]
   (log/debug "user handler" user)
-  {:db (assoc-in db [:users address] user)})
+  {:db (assoc-in db [:users id] user)})
 
 (defn- merge-in-changed-parts
   "Useful in cases when app-db key can get new data from
@@ -176,7 +176,7 @@
 (defmethod handler :update-candidate
   [{:keys [db]} _ {user-date-updated :user/date-updated
                    candidate-date-updated :candidate/date-updated
-                   address :user/address
+                   address :user/id
                    :as candidate}]
   (log/debug "update-candidate handler" candidate)
   {:db (-> db
@@ -186,7 +186,7 @@
 (defmethod handler :update-employer
   [{:keys [db]} _ {user-date-updated :user/date-updated
                    employer-date-updated :employer/date-updated
-                   address :user/address
+                   address :user/id
                    :as employer}]
   (log/debug "update-employer handler" employer)
   {:db (-> db
@@ -196,7 +196,7 @@
 (defmethod handler :update-arbiter
   [{:keys [db]} _ {user-date-updated :user/date-updated
                    arbiter-date-updated :arbiter/date-updated
-                   address :user/address
+                   address :user/id
                    :as arbiter}]
   (log/debug "update-arbiter handler" arbiter)
   {:db (-> db

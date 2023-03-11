@@ -48,8 +48,8 @@
     (let [user-address (accounts-queries/active-account db)]
       {:dispatch [::graphql/query {:query
                                    "query InitialQuery($address: ID!) {
-                                      user(user_address: $address) {
-                                        user_address
+                                      user(user_id: $address) {
+                                        user_id
                                         user_name
                                         user_email
                                         user_githubUsername
@@ -58,8 +58,8 @@
                                         user_languages
                                         user_profileImage
                                       }
-                                      candidate(user_address: $address) {
-                                        user_address
+                                      candidate(user_id: $address) {
+                                        user_id
                                         candidate_professionalTitle
                                         candidate_rate
                                         candidate_rateCurrencyId
@@ -67,13 +67,13 @@
                                         candidate_bio
                                         candidate_categories
                                       }
-                                      employer(user_address: $address) {
-                                        user_address
+                                      employer(user_id: $address) {
+                                        user_id
                                         employer_professionalTitle
                                         employer_bio
                                       }
-                                      arbiter(user_address: $address) {
-                                        user_address
+                                      arbiter(user_id: $address) {
+                                        user_id
                                         arbiter_bio
                                         arbiter_professionalTitle
                                         arbiter_fee
@@ -98,14 +98,14 @@
       {:dispatch [::graphql/query {:query
                                    "mutation GithubSignUp($githubSignUpInput: githubSignUpInput!) {
                                       githubSignUp(input: $githubSignUpInput) {
-                                        user_address
+                                        user_id
                                         user_name
                                         user_githubUsername
                                         user_email
                                         user_country
                                     }
                                   }"
-                                   :variables {:githubSignUpInput {:code code :user_address user-address}}
+                                   :variables {:githubSignUpInput {:code code :user_id user-address}}
                                    :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
 
 
@@ -126,14 +126,14 @@
       {:dispatch [::graphql/query {:query
                                    "mutation LinkedinSignUp($linkedinSignUpInput: linkedinSignUpInput!) {
                                       linkedinSignUp(input: $linkedinSignUpInput) {
-                                        user_address
+                                        user_id
                                         user_name
                                         user_linkedinUsername
                                         user_email
                                         user_country
                                     }
                                   }"
-                                   :variables {:linkedinSignUpInput {:code code :user_address user-address :redirectUri redirect-uri}}
+                                   :variables {:linkedinSignUpInput {:code code :user_id user-address :redirectUri redirect-uri}}
                                    :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
 
 (re/reg-event-fx
@@ -166,13 +166,13 @@
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateCandidate($candidateInput: CandidateInput!) {
                                       updateCandidate(input: $candidateInput) {
-                                        user_address
+                                        user_id
                                         user_profileImage
                                         user_dateUpdated
                                         candidate_dateUpdated
                                     }
                                   }"
-                                   :variables {:candidateInput {:user_address user-address
+                                   :variables {:candidateInput {:user_id user-address
                                                                 :user_email email
                                                                 :user_name name
                                                                 :user_country country
@@ -202,13 +202,13 @@
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateEmployer($employerInput: EmployerInput!) {
                                       updateEmployer(input: $employerInput) {
-                                        user_address
+                                        user_id
                                         user_profileImage
                                         user_dateUpdated
                                         employer_dateUpdated
                                     }
                                   }"
-                                   :variables {:employerInput {:user_address user-address
+                                   :variables {:employerInput {:user_id user-address
                                                                :user_email email
                                                                :user_name name
                                                                :user_githubUsername github-username
@@ -236,13 +236,13 @@
       {:dispatch [::graphql/query {:query
                                    "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
                                       updateArbiter(input: $arbiterInput) {
-                                        user_address
+                                        user_id
                                         user_profileImage
                                         user_dateUpdated
                                         arbiter_dateUpdated
                                     }
                                   }"
-                                   :variables {:arbiterInput {:user_address user-address
+                                   :variables {:arbiterInput {:user_id user-address
                                                               :user_email email
                                                               :user_name name
                                                               :user_githubUsername github-username

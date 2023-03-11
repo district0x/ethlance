@@ -33,7 +33,7 @@
    (doseq [address user-addresses language languages]
      (let [[speaks? _] (shuffle [true false])]
        (when speaks?
-         (<? (ethlance-db/insert-row! conn :UserLanguage {:user/address address
+         (<? (ethlance-db/insert-row! conn :UserLanguage {:user/id address
                                                           :language/id language})))))))
 
 (defn generate-categories [conn categories [_ candidate arbiter]]
@@ -41,10 +41,10 @@
    (doseq [category categories]
      (<? (ethlance-db/insert-row! conn :Category {:category/id category}))
 
-     (<? (ethlance-db/insert-row! conn :CandidateCategory {:user/address candidate
+     (<? (ethlance-db/insert-row! conn :CandidateCategory {:user/id candidate
                                                            :category/id category}))
 
-     (<? (ethlance-db/insert-row! conn :ArbiterCategory {:user/address arbiter
+     (<? (ethlance-db/insert-row! conn :ArbiterCategory {:user/id arbiter
                                                          :category/id category})))))
 
 (defn generate-skills [conn skills [_ candidate arbiter]]
@@ -52,10 +52,10 @@
    (doseq [skill skills]
      (<? (ethlance-db/insert-row! conn :Skill {:skill/id skill}))
 
-     (<? (ethlance-db/insert-row! conn :CandidateSkill {:user/address candidate
+     (<? (ethlance-db/insert-row! conn :CandidateSkill {:user/id candidate
                                                         :skill/id skill}))
 
-     (<? (ethlance-db/insert-row! conn :ArbiterSkill {:user/address arbiter
+     (<? (ethlance-db/insert-row! conn :ArbiterSkill {:user/id arbiter
                                                       :skill/id skill})))))
 
 (defn generate-users [conn user-addresses]
@@ -71,7 +71,7 @@
            from (rand-int 100)
            bio (subs lorem from (+ 100 from))
            [professional-title _] (shuffle ["Dr" "Md" "PhD" "Mgr" "Master of Wine and Whisky"])]
-       (<? (ethlance-db/insert-row! conn :Users {:user/address address
+       (<? (ethlance-db/insert-row! conn :Users {:user/id address
                                                  :user/type (case address-owner
                                                               "EMPLOYER" :employer
                                                               "CANDIDATE" :candidate
@@ -84,18 +84,18 @@
                                                  :user/date-updated date-registered}))
 
        (when (= "EMPLOYER" address-owner)
-         (<? (ethlance-db/insert-row! conn :Employer {:user/address address
+         (<? (ethlance-db/insert-row! conn :Employer {:user/id address
                                                       :employer/bio bio
                                                       :employer/professional-title professional-title})))
 
        (when (= "CANDIDATE" address-owner)
-         (<? (ethlance-db/insert-row! conn :Candidate {:user/address address
+         (<? (ethlance-db/insert-row! conn :Candidate {:user/id address
                                                        :candidate/rate (rand-int 200)
                                                        :candidate/rate-currency-id currency
                                                        :candidate/bio bio
                                                        :candidate/professional-title professional-title})))
        (when (= "ARBITER" address-owner)
-         (<? (ethlance-db/insert-row! conn :Arbiter {:user/address address
+         (<? (ethlance-db/insert-row! conn :Arbiter {:user/id address
                                                      :arbiter/bio bio
                                                      :arbiter/professional-title professional-title
                                                      :arbiter/fee (rand-int 200)
@@ -145,7 +145,7 @@
                              :ethlance-job/bid-option 1}]
        (<? (ethlance-db/add-job conn (merge job ethlance-job)))
        (<? (ethlance-db/insert-row! conn :JobCreator {:job/id job-id
-                                                      :user/address employer}))))))
+                                                      :user/id employer}))))))
 
 (defn generate-job-arbiters [conn job-ids [_ _ arbiter]]
   (safe-go
@@ -154,7 +154,7 @@
            fee (rand-int 200)
            fee-currency-id (rand-nth ["EUR" "USD"])
            arbiter {:job/id job-id
-                    :user/address arbiter
+                    :user/id arbiter
                     :job-arbiter/fee fee
                     :job-arbiter/fee-currency-id fee-currency-id
                     :job-arbiter/status status}]
@@ -242,7 +242,7 @@
                                                           :job-story-message/type :feedback
                                                           :job-story/id story-id
                                                           :feedback/rating (rand-int 5)
-                                                          :user/address candidate})))
+                                                          :user/id candidate})))
 
      ;; feedback from the candidate to the employer
      (<? (ethlance-db/add-message conn (generate-message {:message/creator candidate
@@ -250,7 +250,7 @@
                                                           :job-story-message/type :feedback
                                                           :job-story/id story-id
                                                           :feedback/rating (rand-int 5)
-                                                          :user/address employer}))))))
+                                                          :user/id employer}))))))
 (defn generate-dev-data
   ([conn] (generate-dev-data conn {}))
   ([conn provided-addresses]

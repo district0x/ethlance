@@ -22,7 +22,7 @@
      (log/info "No access-token header present in request")
 
      access-token
-     (let [user {:user/address (aget (parse-jwt access-token sign-in-secret) "userAddress")}]
+     (let [user {:user/id (aget (parse-jwt access-token sign-in-secret) "userAddress")}]
        user)
 
      :else (log/info "Invalid access-token header"))))

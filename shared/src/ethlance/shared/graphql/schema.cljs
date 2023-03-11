@@ -27,10 +27,10 @@
 
   type Query {
 
-    user(user_address : ID!): User
+    user(user_id : ID!): User
 
     userSearch(
-      user_address: ID,
+      user_id: ID,
       user_name: String,
       orderBy: UserListOrderBy
       orderDirection: OrderDirection,
@@ -38,10 +38,10 @@
       offset: Int,
     ): UserList
 
-    candidate(user_address: ID!): Candidate
+    candidate(user_id: ID!): Candidate
 
     candidateSearch(
-      user_address: ID,
+      user_id: ID,
       categoriesAnd: [String],
       categoriesOr: [String],
       skillsAnd: [String],
@@ -53,10 +53,10 @@
       offset: Int,
     ): CandidateList
 
-    employer(user_address : ID!): Employer
+    employer(user_id : ID!): Employer
 
     employerSearch(
-      user_address: ID,
+      user_id: ID,
       professionalTitle: String,
       orderBy: EmployerListOrderBy,
       orderDirection: OrderDirection,
@@ -64,10 +64,10 @@
       offset: Int,
     ): EmployerList
 
-    arbiter(user_address : ID!): Arbiter
+    arbiter(user_id : ID!): Arbiter
 
     arbiterSearch(
-      user_address: ID,
+      user_id: ID,
       orderBy: ArbiterListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -97,7 +97,7 @@
   # Input types
 
   input EmployerInput {
-    user_address: ID!
+    user_id: ID!
     user_email: String!
     user_name: String!
     user_profileImage: String
@@ -109,7 +109,7 @@
   }
 
   input CandidateInput {
-    user_address: ID!
+    user_id: ID!
     user_email: String!
     user_name: String!
     user_profileImage: String
@@ -125,7 +125,7 @@
   }
 
   input ArbiterInput {
-    user_address: ID!
+    user_id: ID!
     user_email: String!
     user_name: String!
     user_profileImage: String
@@ -139,12 +139,12 @@
   }
 
   input githubSignUpInput {
-   user_address: ID!
+   user_id: ID!
    code: String!
   }
 
   input linkedinSignUpInput {
-   user_address: ID!
+   user_id: ID!
    code: String!
    redirectUri: String!
   }
@@ -177,11 +177,11 @@
 
   type signInPayload {
     jwt: String!
-    user_address: String!
+    user_id: String!
   }
 
   type updateCandidatePayload {
-    user_address: ID!
+    user_id: ID!
     user_dateUpdated: Date!
     user_profileImage: String
     user_githubUsername: String
@@ -190,7 +190,7 @@
   }
 
   type updateEmployerPayload {
-    user_address: ID!
+    user_id: ID!
     user_dateUpdated: Date!
     user_profileImage: String
     user_githubUsername: String
@@ -199,7 +199,7 @@
   }
 
   type updateArbiterPayload {
-    user_address: ID!
+    user_id: ID!
     user_dateUpdated: Date!
     user_profileImage: String
     user_githubUsername: String
@@ -208,7 +208,7 @@
   }
 
   type githubSignUpPayload {
-    user_address: ID!
+    user_id: ID!
     user_name: String
     user_githubUsername: String
     user_email: String
@@ -216,7 +216,7 @@
   }
 
   type linkedinSignUpPayload {
-    user_address: ID!
+    user_id: ID!
     user_name: String
     user_linkedinUsername: String
     user_email: String
@@ -228,7 +228,7 @@
   type User {
 
     \"Ethereum Address Corresponding to this Registered User.\"
-    user_address: ID
+    user_id: ID
 
     \"Two Letter Country Code\"
     user_country: String
@@ -281,7 +281,7 @@
 
   type Candidate {
     \"User ID for the given candidate\"
-    user_address: ID
+    user_id: ID
     user: User
 
     \"Auto Biography written by the Candidate\"
@@ -331,7 +331,7 @@
 
   type Employer {
     \"User ID for the given employer\"
-    user_address: ID
+    user_id: ID
     user: User
 
     \"Auto Biography written by the Employer\"
@@ -369,7 +369,7 @@
   # Arbiter Types
 
   type Arbiter {
-    user_address: ID
+    user_id: ID
     user: User
     arbiter_dateRegistered: Date
     arbiter_professionalTitle: String
@@ -381,7 +381,20 @@
       limit: Int,
       offset: Int
     ): FeedbackList
-    arbiter_jobStories: JobStoryList
+    arbitrations: ArbitrationList
+  }
+
+  type Arbitration {
+    user_id: ID
+    job_id: String
+    job: Job
+  }
+
+  type ArbitrationList  {
+    items: [Arbitration]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
   }
 
   type ArbiterList  {
@@ -407,8 +420,7 @@
   # Job Types
 
   type Job {
-    job_id: Int
-    job_contract: ID
+    job_id: ID
     job_title: String
     job_description: String
     job_requiredSkills: [String]
@@ -456,9 +468,8 @@
 
   type JobStory {
     jobStory_id: ID
-    job_id: Int
+    job_id: String
     job: Job
-    job_contract: String
     candidate: Candidate
     jobStory_status: Keyword
     jobStory_candidate: String

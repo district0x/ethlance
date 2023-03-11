@@ -71,7 +71,6 @@
   ([conn-or-chan query-str values]
    (safe-go
      (let [conn (if (= js/Promise (type conn-or-chan)) (<! conn-or-chan) conn-or-chan)
-           _ (println ">> conn is" conn)
            res (<! (.query conn query-str (clj->js (or values []))))]
        (->> (js->clj (.-rows res))
             (map #(map-keys transform-result-keys-fn %)))))))
@@ -131,16 +130,16 @@
     (safe-go
      (let [conn (<? (get-connection))
            res (<? (run! conn {:create-table [:usr :if-not-exists]
-                               :with-columns [[[:user/address :varchar]
+                               :with-columns [[[:user/id :varchar]
                                                [:user/type :varchar]
 
                                                ;; PK
-                                               [(sql/call :primary-key :user/address)]]]}))]))
+                                               [(sql/call :primary-key :user/id)]]]}))]))
 
     (safe-go
      (let [conn (<? (get-connection))]
        (run! conn {:insert-into :usr
-                   :columns [:user/address :user/type]
+                   :columns [:user/id :user/type]
                    :values [["address1" "type1"]]})))
 
     (safe-go

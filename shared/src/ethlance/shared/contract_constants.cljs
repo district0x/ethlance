@@ -6,7 +6,6 @@
   (get token-types (keyword type) :not-found))
 
 (defn enum-val->token-type [enum-val]
-  (println ">>> enum-val->token-type" enum-val (type enum-val))
   (get (clojure.set/map-invert token-types) enum-val :not-found))
 
 (def operation-type {:one-step-job-creation 0 :two-step-job-creation 1 :add-funds 2})

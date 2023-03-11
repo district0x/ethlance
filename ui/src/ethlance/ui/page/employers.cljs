@@ -97,7 +97,7 @@
            [[:employer-search
              {:limit @*limit
               :offset @*offset}
-             [[:items [:user/address
+             [[:items [:user/id
                        :employer/bio
                        :employer/professional-title]]
               :total-count

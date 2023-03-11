@@ -1,5 +1,6 @@
 (ns ethlance.ui.page.job-detail
   (:require [district.ui.component.page :refer [page]]
+            [district.format :as format]
             [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.component.carousel
              :refer
@@ -40,9 +41,9 @@
            :disabled disabled?
            :value @token-amount
            :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]
-         [:div
+         [:a {:href (token-utils/address->token-info-url token-address) :target "_blank"}
          [:label token-symbol]
-         [:label (str "(" token-name ")")]]]))))
+         [:label (str "(" (or token-name (name token-type)) ")")]]]))))
 
 (defmethod page :route.job/detail []
   (fn []
@@ -51,7 +52,6 @@
           job-query "query ($contract: ID!) {
                    job(contract: $contract) {
                      job_id
-                     job_contract
                      job_title
                      job_description
                      job_requiredSkills
@@ -70,14 +70,14 @@
 
                      job_employer(contract: $contract) {
                        employer_rating
-                       user_address
+                       user_id
                        user {user_country user_name user_profileImage}
                      }
                      job_arbiter(contract: $contract) {
                        arbiter_rating
                        arbiter_fee
                        arbiter_feeCurrencyId
-                       user_address
+                       user_id
                        user {user_country user_name user_profileImage}
                      }
                   }
@@ -98,13 +98,13 @@
           *required-skills (:job/required-skills results)
 
           *employer-name (get-in results [:job/employer :user :user/name])
-          *employer-address (get-in results [:job/employer :user/address])
+          *employer-address (get-in results [:job/employer :user/id])
           *employer-rating (get-in results [:job/employer :employer/rating])
           *employer-country (get-in results [:job/employer :user :user/country])
           *employer-profile-image (get-in results [:job/employer :user :user/profile-image])
 
           *arbiter-name (get-in results [:job/arbiter :user :user/name])
-          *arbiter-address (get-in results [:job/arbiter :user/address])
+          *arbiter-address (get-in results [:job/arbiter :user/id])
           *arbiter-rating (get-in results [:job/arbiter :arbiter/rating])
           *arbiter-country (get-in results [:job/arbiter :user :user/country])
           *arbiter-profile-image (get-in results [:job/arbiter :user :user/profile-image])
@@ -181,7 +181,7 @@
                        [[:span (if (:current-user? proposal) "⭐" "")]
                         [:span (:candidate-name proposal)]
                         [:span (:rate proposal)]
-                        [:span (millis->relative-time (:created-at proposal))]
+                        [:span (format/time-ago (new js/Date (:created-at proposal)))]
                         [:span (:status proposal)]])
                      @proposals))]
         [:div.button-listing

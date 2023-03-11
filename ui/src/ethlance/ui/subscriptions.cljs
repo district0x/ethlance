@@ -33,8 +33,8 @@
   :<- [::active-session]
   :<- [::accounts-subs/active-account]
   (fn [[active-session active-account]]
-    (and (cljs-utils/not-nil? (:user/address active-session))
-         (= (:user/address active-session) active-account))))
+    (and (cljs-utils/not-nil? (:user/id active-session))
+         (= (:user/id active-session) active-account))))
 
 
 (re/reg-sub

@@ -23,9 +23,9 @@
   (fn [coeff _val]
     (let [
           query "query ($address: ID!) {
-                  candidate(user_address: $address) {user_address candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                  employer(user_address: $address) {user_address employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                  arbiter(user_address: $address) {user_address arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  candidate(user_id: $address) {user_id candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  employer(user_id: $address) {user_id employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
+                  arbiter(user_id: $address) {user_id arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
                 }"
           user-address (-> coeff :db active-page-params :address)]
       {:dispatch [::graphql/query {:query query :variables {:address user-address}}]})))

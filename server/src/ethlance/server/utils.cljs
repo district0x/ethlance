@@ -30,7 +30,6 @@
      (ipfs-files/fget (str "/ipfs/" meta-hash)
                       {:req-opts {:compress false}}
                       (fn [err content]
-                        (println ">>> ethlance.server.utils/get-ipfs-meta" {:meta-hash meta-hash :content content})
                         (cond
                           err
                           (let [err-txt "Error when retrieving metadata from ipfs"]

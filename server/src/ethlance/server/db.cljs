@@ -44,7 +44,7 @@
   ;;
   [{:table-name :Users
     :table-columns
-    [[:user/address :varchar]
+    [[:user/id column-types/address]
      [:user/email :varchar not-nil]
      [:user/name :varchar not-nil]
      [:user/country :varchar]
@@ -55,66 +55,66 @@
      [:user/linkedin-username :varchar]
      [:user/status :varchar]
      ;; PK
-     [(sql/call :primary-key :user/address)]]
+     [(sql/call :primary-key :user/id)]]
     :list-keys []}
 
    {:table-name :UserSocialAccounts
     :table-columns
-    [[:user/address :varchar]
+    [[:user/id column-types/address]
      [:user/github-username :varchar]
      [:user/linkedin-username :varchar]
      ;; PK
-     [(sql/call :primary-key :user/address)]]
+     [(sql/call :primary-key :user/id)]]
     :list-keys []}
 
    {:table-name :Candidate
     :table-columns
-    [[:user/address :varchar]
+    [[:user/id column-types/address]
      [:candidate/bio :varchar]
      [:candidate/professional-title :varchar]
      [:candidate/rate :integer not-nil]
      [:candidate/rate-currency-id :varchar not-nil]
      [:candidate/rating :real]
      ;; PK
-     [(sql/call :primary-key :user/address)]
+     [(sql/call :primary-key :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :Employer
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id column-types/address]
      [:employer/bio :varchar]
      [:employer/professional-title :varchar]
      [:employer/rating :real]
      ;; PK
-     [(sql/call :primary-key :user/address)]
+     [(sql/call :primary-key :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :Arbiter
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id column-types/address]
      [:arbiter/bio :varchar]
      [:arbiter/professional-title :varchar]
      [:arbiter/fee :integer not-nil]
      [:arbiter/fee-currency-id :varchar not-nil]
      [:arbiter/rating :real]
      ;; PK
-     [(sql/call :primary-key :user/address)]
+     [(sql/call :primary-key :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :UserLanguage
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id column-types/address]
      [:language/id :varchar not-nil]
      ;; PK
-     [(sql/call :primary-key :user/address :language/id)]
+     [(sql/call :primary-key :user/id :language/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :Category
@@ -143,54 +143,53 @@
     :list-keys []}
    {:table-name :ArbiterCategory
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id column-types/address]
      [:category/id :varchar not-nil]
      ;; PK
-     [(sql/call :primary-key :user/address :category/id)]
+     [(sql/call :primary-key :user/id :category/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :ArbiterSkill
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id :varchar not-nil]
      [:skill/id :varchar not-nil]
      ;; PK
-     [(sql/call :primary-key :user/address :skill/id)]
+     [(sql/call :primary-key :user/id :skill/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :CandidateCategory
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id :varchar not-nil]
      [:category/id :varchar not-nil]
      ;; PK
-     [(sql/call :primary-key :user/address :category/id)]
+     [(sql/call :primary-key :user/id :category/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :category/id) (sql/call :references :Category :category/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :CandidateSkill
     :table-columns
-    [[:user/address :varchar not-nil]
+    [[:user/id :varchar not-nil]
      [:skill/id :varchar not-nil]
      ;; PK
-     [(sql/call :primary-key :user/address :skill/id)]
+     [(sql/call :primary-key :user/id :skill/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :skill/id) (sql/call :references :Skill :skill/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :Job
     :table-columns
-    [[:job/id :serial]
-     [:job/contract column-types/address] ; add unique & not null constraints
-                                          ; https://github.com/seancorfield/honeysql/blob/develop/doc/clause-reference.md
-                                          ; https://github.com/district0x/d0x-libs/blob/master/server/district-server-db/src/district/server/db/column_types.cljs
+    [[:job/id column-types/address] ; add unique & not null constraints
+                                    ; https://github.com/seancorfield/honeysql/blob/develop/doc/clause-reference.md
+                                    ; https://github.com/district0x/d0x-libs/blob/master/server/district-server-db/src/district/server/db/column_types.cljs
      [:job/creator column-types/address]
      [:job/title :varchar not-nil]
      [:job/description :varchar not-nil]
@@ -222,24 +221,24 @@
 
    {:table-name :JobCreator
     :table-columns
-    [[:job/id :integer]
-     [:user/address :varchar]
+    [[:job/id column-types/address]
+     [:user/id :varchar]
      ;; PK
-     [(sql/call :primary-key :job/id :user/address)]
+     [(sql/call :primary-key :job/id :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :JobContribution
     :table-columns
-    [[:job/id :integer]
-     [:user/address :varchar]
+    [[:job/id column-types/address]
+     [:user/id :varchar]
      [:job-contribution/amount :bigint]
      [:job-contribution/id :integer]
 
      ;; PK
-     [(sql/call :primary-key :job/id :user/address)]
+     [(sql/call :primary-key :job/id :user/id)]
 
      ;; FKs
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
@@ -247,7 +246,7 @@
 
    {:table-name :JobSkill
     :table-columns
-    [[:job/id :integer]
+    [[:job/id column-types/address]
      [:skill/id :varchar]
      ;; PK
      [(sql/call :primary-key :job/id :skill/id)]
@@ -257,23 +256,23 @@
 
    {:table-name :JobArbiter
     :table-columns
-    [[:job/id :integer]
-     [:user/address :varchar]
+    [[:job/id column-types/address]
+     [:user/id :varchar]
      [:job-arbiter/fee :integer]
      [:job-arbiter/fee-currency-id :varchar]
      [:job-arbiter/status :varchar]
      [:job-arbiter/date-accepted :bigint]
      ;; PK
-     [(sql/call :primary-key :job/id :user/address)]
+     [(sql/call :primary-key :job/id :user/id)]
 
      ;; FKs
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :JobFile
     :table-columns
-    [[:job/id :integer]
+    [[:job/id column-types/address]
      [:job/file-id :integer]
 
      ;; FKs
@@ -298,8 +297,7 @@
    {:table-name :JobStory
     :table-columns
     [[:job-story/id :serial]
-     [:job/contract :text]
-     [:job/id :integer]
+     [:job/id column-types/address]
      [:job-story/status :varchar]
      [:job-story/date-created :bigint]
      [:job-story/date-updated :bigint]
@@ -359,13 +357,13 @@
     [[:job-story/id :integer not-nil]
      [:message/id :integer not-nil]
      [:feedback/rating :integer not-nil]
-     [:user/address :varchar not-nil]
+     [:user/id :varchar not-nil]
 
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
      [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :user/address) (sql/call :references :Users :user/address) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
@@ -625,7 +623,7 @@
   "Returns map suitablefor honeysql with upsert semantics to store associated model.
   Association is identified by address (foreign key)"
   [address table column values]
-  (let [fk-column :user/address
+  (let [fk-column :user/id
         value-tuples (map #(into [address %]) values)]
     {:insert-into table
      :columns [fk-column column]
@@ -636,7 +634,7 @@
 (defn- remove-old-associations
   "Deletes rows identified by address"
   [address table]
-  (let [fk-column :user/address]
+  (let [fk-column :user/id]
     {:delete-from table :where [:= fk-column address]}))
 
 (defn- add-missing-values
@@ -653,25 +651,25 @@
                         {:insert-into :Users,
                          :values [values]
                          :upsert
-                         (array-map :on-conflict [:user/address]
+                         (array-map :on-conflict [:user/id]
                                     :do-update-set (keys values))}))]
      (case type
        :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
                   (<? (db/run! conn {:insert-into :Arbiter
                                      :values [arbiter]
-                                     :upsert (array-map :on-conflict [:user/address]
+                                     :upsert (array-map :on-conflict [:user/id]
                                                         :do-update-set (keys arbiter))})))
        :employer (let [employer (select-keys user (get-table-column-names :Employer))]
                    (<? (db/run! conn {:insert-into :Employer
                                       :values [employer]
-                                      :upsert (array-map :on-conflict [:user/address]
+                                      :upsert (array-map :on-conflict [:user/id]
                                                          :do-update-set (keys employer))})))
        :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
                     (<? (db/run! conn {:insert-into :Candidate
                                        :values [candidate]
-                                       :upsert (array-map :on-conflict [:user/address]
+                                       :upsert (array-map :on-conflict [:user/id]
                                                           :do-update-set (keys candidate))}))
-                    (doseq [address [(:user/address user)]
+                    (doseq [address [(:user/id user)]
                             target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
                                     [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
                                     [nil :UserLanguage :language/id (:user/languages user)]]]
@@ -687,7 +685,7 @@
                    {:insert-into :UserSocialAccounts,
                     :values [values]
                     :upsert
-                    (array-map :on-conflict [:user/address]
+                    (array-map :on-conflict [:user/id]
                                :do-update-set (keys values))})))))
 
 (defn add-skills [conn job-id skills]
@@ -696,7 +694,6 @@
       (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
 
 (defn add-job [conn job]
-  (println ">>> ethlance.server.db/add-job" job)
   (safe-go
     (let [skills (:job/required-skills job)
           job-fields (dissoc job :job/required-skills)
@@ -724,7 +721,7 @@
                     :message/id)
          job-story-id (or (:job-story/id message)
                           (:job-story/id (<? (insert-row! conn :JobStory
-                                                          {:job-story/contract (:job/contract message)
+                                                          {:job/id (:job/id message)
                                                            :job-story/candidate (:message/creator message)
                                                            :job-story/date-created (:message/date-created message)
                                                            :job-story/status "proposed"
@@ -796,12 +793,12 @@
 (defn add-job-arbiter [conn job-id user-address]
   (safe-go
    (<? (insert-row! conn :JobArbiter {:job/id job-id
-                                      :user/address user-address}))))
+                                      :user/id user-address}))))
 
 (defn add-contribution [conn job-id contributor-address contribution-id amount]
   (safe-go
    (<? (insert-row! conn :JobContribution {:job/id job-id
-                                           :user/address contributor-address
+                                           :user/id contributor-address
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
 
