@@ -33,14 +33,14 @@
        :end-cursor end-cursor
        :has-next-page (< end-cursor total-count)})))
 
-(defn user-search-resolver [_ {:keys [:limit :offset :user/address :user/name :order-by :order-direction]
+(defn user-search-resolver [_ {:keys [:limit :offset :user/id :user/name :order-by :order-direction]
                                :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "user-search-resolver" args)
     (let [query (cond-> {:select [:*]
                          :from [:Users]}
 
-                  address (sql-helpers/merge-where [:= :Users.user/address address])
+                  id (sql-helpers/merge-where [:= :Users.user/id id])
 
                   name (sql-helpers/merge-where [:= :Users.user/user-name name])
 
@@ -50,86 +50,81 @@
                                                          (or (keyword order-direction) :asc)]]))]
       (<? (paged-query conn query limit offset)))))
 
-(defn user-resolver [_ {:keys [:user/address] :as args} _]
+(defn user-resolver [_ {:keys [:user/id] :as args} _]
   (db/with-async-resolver-conn
     conn
     (log/debug "user-resolver" args)
     (<? (db/get conn {:select [:*]
                       :from [:Users]
-                      :where [:= address :Users.user/address]}))))
+                      :where [:= id :Users.user/id]}))))
 
 (defn feedback->from-user-resolver [root _ _]
-  (let [address (:feedback/from-user-address (graphql-utils/gql->clj root))]
-    (user-resolver nil {:user/address address} nil)))
+  (let [id (:feedback/from-user-address (graphql-utils/gql->clj root))]
+    (user-resolver nil {:user/id id} nil)))
 
 (defn user->is-registered-candidate-resolver [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
       (log/debug "user->is-registered-candidate-resolver" user)
       (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
                                           :from [:Candidate]
-                                          :where [:= address :Candidate.user/address]}))))))))
+                                          :where [:= id :Candidate.user/id]}))))))))
 
 (defn user->is-registered-employer-resolver [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
       (log/debug "user->is-registered-employer-resolver" user)
       (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
                                           :from [:Employer]
-                                          :where [:= address :Employer.user/address]}))))))))
+                                          :where [:= id :Employer.user/id]}))))))))
 
 (defn user->is-registered-arbiter-resolver [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
       (log/debug "user->is-registered-arbiter-resolver" user)
       (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
                                           :from [:Arbiter]
-                                          :where [:= address :Arbiter.user/address]}))))))))
+                                          :where [:= id :Arbiter.user/id]}))))))))
 
 (defn user->languages-resolvers [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as user} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
       (log/debug "user->languages-resolvers" user)
       (map :language/id
            (<? (db/all conn {:select [:*]
                              :from [:UserLanguage]
-                             :where [:= address :UserLanguage.user/address]}))))))
+                             :where [:= id :UserLanguage.user/id]}))))))
 
 (def ^:private user-type-query
   {:select [:type]
-   :from [[{:union [{:select [:Candidate.user/address ["Candidate" :type]]
+   :from [[{:union [{:select [:Candidate.user/id ["Candidate" :type]]
                      :from [:Candidate]}
-                    {:select [:Employer.user/address ["Employer" :type]]
+                    {:select [:Employer.user/id ["Employer" :type]]
                      :from [:Employer]}
-                    {:select [:Arbiter.user/address ["Arbiter" :type]]
+                    {:select [:Arbiter.user/id ["Arbiter" :type]]
                      :from [:Arbiter]}]} :a]]})
 
-(def ^:private employer-query {:select [[:Employer.user/address :user/address]
+(def ^:private employer-query {:select [[:Employer.user/id :user/id]
                                         [:Employer.employer/professional-title :employer/professional-title]
                                         [:Employer.employer/bio :employer/bio]
                                         [:Employer.employer/rating :employer/rating]
                                         [:Users.user/date-registered :employer/date-registered]]
                                :from [:Employer]
-                               :join [:Users [:= :Users.user/address :Employer.user/address]]})
+                               :join [:Users [:= :Users.user/id :Employer.user/id]]})
 
-; (def ^:private job->employer-query {:select [[:Employer.user/address :user/address]
+; (def ^:private job->employer-query {:select [[:Employer.user/id :user/id]
 ;                                         [:Employer.employer/professional-title :employer/professional-title]
 ;                                         [:Employer.employer/bio :employer/bio]
 ;                                         [:Employer.employer/rating :employer/rating]
 ;                                         [:Users.user/date-registered :employer/date-registered]]
 ;                                :from [:Employer]
-;                                :join [:Users [:= :Users.user/address :Employer.user/address]
-;                                       :Job [:= :Job.job/creator :Employer.user/address]]})
+;                                :join [:Users [:= :Users.user/id :Employer.user/id]
+;                                       :Job [:= :Job.job/creator :Employer.user/id]]})
 
 (def ^:private job->employer-query {:select[:*]
                                     :from [:Employer]
-                                    :join [:Users [:= :Users.user/address :Employer.user/address]
-                                           :Job [:= :Job.job/creator :Employer.user/address]]})
-
-(def ^:private job->arbiter-query {:select[:*]
-                                   :from [:Arbiter]
-                                   :join [:JobArbiter [:= :JobArbiter.user/address :Arbiter.user/address]
-                                          :Job [:= :Job.job/id :JobArbiter.job/id]]})
+                                    :join [:Users [:= :Users.user/id :Employer.user/id]
+                                           :Job [:= :Job.job/creator :Employer.user/id]]})
 
 (defn job->token-details-resolver [parent args context info]
   (log/debug "job->token-details-resolver" parent)
@@ -145,10 +140,10 @@
   (log/debug "participant->user-resolver")
   (db/with-async-resolver-conn conn
     (let [clj-parent (js->clj parent)
-          user-address (get (js->clj parent :keywordize-keys) "user_address")
+          user-id (get (js->clj parent :keywordize-keys) "user_id")
           query {:select [:*]
                  :from [:Users]
-                 :where [:= :Users.user/address user-address]}
+                 :where [:= :Users.user/id user-id]}
           user-results (<? (db/get conn query))]
       user-results)))
 
@@ -156,27 +151,32 @@
   (db/with-async-resolver-conn conn
     (log/debug "job->employer-resolver contract:" (:contract args))
     (let [contract (:contract args)
-          query (sql-helpers/merge-where job->employer-query [:= contract :Job.job/contract])]
+          query (sql-helpers/merge-where job->employer-query [:= contract :Job.job/id])]
       (<? (db/get conn query)))))
+
+(def ^:private job->arbiter-query {:select[:*]
+                                   :from [:Arbiter]
+                                   :join [:JobArbiter [:= :JobArbiter.user/id :Arbiter.user/id]
+                                          :Job [:= :Job.job/id :JobArbiter.job/id]]})
 
 (defn job->arbiter-resolver [parent args context info]
   (db/with-async-resolver-conn conn
     (log/debug "job->arbiter-resolver contract:" (:contract args))
     (let [contract (:contract args)
-          query (sql-helpers/merge-where job->arbiter-query [:= contract :Job.job/contract])]
+          query (sql-helpers/merge-where job->arbiter-query [:= contract :Job.job/id])]
       (<? (db/get conn query)))))
 
-(defn employer-resolver [obj {:keys [:user/address :contract] :as args} _]
+(defn employer-resolver [obj {:keys [:user/id :contract] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
-    (<? (db/get conn (sql-helpers/merge-where employer-query [:= address :Employer.user/address])))))
+    (<? (db/get conn (sql-helpers/merge-where employer-query [:= id :Employer.user/id])))))
 
 (def ^:private user-feedback-query {:select [:Message.message/id
                                              :Job.job/id
                                              :JobStory.job-story/id
                                              :JobStoryFeedbackMessage.feedback/rating
                                              [:Message.message/creator :feedback/from-user-address]
-                                             [:JobStoryFeedbackMessage.user/address :feedback/to-user-address]
+                                             [:JobStoryFeedbackMessage.user/id :feedback/to-user-address]
                                              [:Message.message/date-created :feedback/date-created]
                                              [:Message.message/text :feedback/text]
                                              :Users.user/name]
@@ -184,12 +184,12 @@
                                     :join [:JobStory [:= :JobStoryFeedbackMessage.job-story/id :JobStory.job-story/id]
                                            :Job [:= :JobStory.job/id :Job.job/id]
                                            :Message [:= :Message.message/id :JobStoryFeedbackMessage.message/id]
-                                           :Users [:= :Users.user/address :JobStoryFeedbackMessage.user/address]]})
+                                           :Users [:= :Users.user/id :JobStoryFeedbackMessage.user/id]]})
 
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as employer} (graphql-utils/gql->clj root)
-          query (sql-helpers/merge-where user-feedback-query [:= address :JobStoryFeedbackMessage.user/address])]
+    (let [{:keys [:user/id] :as employer} (graphql-utils/gql->clj root)
+          query (sql-helpers/merge-where user-feedback-query [:= id :JobStoryFeedbackMessage.user/id])]
       (log/debug "employer->feedback-resolver" {:employer employer :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -202,7 +202,7 @@
                          ;; TODO: add to-user-type is employer when user-feedback-query is fixed
                          ))))))
 
-(def ^:private arbiter-query {:select [:Arbiter.user/address
+(def ^:private arbiter-query {:select [:Arbiter.user/id
                                        :Arbiter.arbiter/bio
                                        :Arbiter.arbiter/professional-title
                                        :Arbiter.arbiter/fee
@@ -210,21 +210,21 @@
                                        :Arbiter.arbiter/rating
                                        [:Users.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
-                              :join [:Users [:= :Users.user/address :Arbiter.user/address]]})
+                              :join [:Users [:= :Users.user/id :Arbiter.user/id]]})
 
-(defn arbiter-resolver [_ {:keys [:user/address] :as args} _]
+(defn arbiter-resolver [_ {:keys [:user/id] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "arbiter-resolver" args)
-    (<? (db/get conn (sql-helpers/merge-where arbiter-query [:= address :Arbiter.user/address])))))
+    (<? (db/get conn (sql-helpers/merge-where arbiter-query [:= id :Arbiter.user/id])))))
 
 (defn arbiter-search-resolver [_ {:keys [:limit :offset
-                                         :user/address
+                                         :user/id
                                          :order-by :order-direction]
                                   :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "arbtier-search-resolver" args)
     (let [query (cond-> arbiter-query
-                  address (sql-helpers/merge-where [:= address :Arbiter.user/address])
+                  id (sql-helpers/merge-where [:= id :Arbiter.user/id])
 
                   order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
                                                                :date-updated :user/date-updated}
@@ -234,27 +234,27 @@
 
 (defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} {:keys [conn]}]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as arbiter} (graphql-utils/gql->clj root)
-          query (sql-helpers/merge-where user-feedback-query [:= address :JobStoryFeedbackMessage.user/address])]
+    (let [{:keys [:user/id] :as arbiter} (graphql-utils/gql->clj root)
+          query (sql-helpers/merge-where user-feedback-query [:= id :JobStoryFeedbackMessage.user/id])]
       (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
       (<? (paged-query conn query limit offset)))))
 
 (defn feedback->to-user-type-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:= to-user-address :user/address])]
+          q (sql-helpers/merge-where user-type-query [:= to-user-address :user/id])]
       (log/debug "feedback->to-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
 (defn feedback->from-user-type-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:= from-user-address :user/address])]
+          q (sql-helpers/merge-where user-type-query [:= from-user-address :user/id])]
       (log/debug "feedback->from-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
 (def ^:private candidate-query
-  {:select [[:Users.user/address :user/address]
+  {:select [[:Users.user/id :user/id]
             [:Candidate.candidate/professional-title :candidate/professional-title]
             [:Candidate.candidate/bio :candidate/bio]
             [:Candidate.candidate/rate :candidate/rate]
@@ -262,22 +262,22 @@
             [:Candidate.candidate/rate-currency-id :candidate/rate-currency-id]
             [:Users.user/date-registered :candidate/date-registered]]
    :from [:Candidate]
-   :join [:Users [:ilike :Users.user/address :Candidate.user/address]]})
+   :join [:Users [:ilike :Users.user/id :Candidate.user/id]]})
 
 (defn candidate-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
     (log/debug "candidate-resolver" {:args args :raw-parent raw-parent})
-    (let [address-from-args (:user/address args)
+    (let [address-from-args (:user/id args)
           parent (graphql-utils/gql->clj raw-parent)
           address-from-parent (:job-story/candidate parent)
           address (or address-from-args address-from-parent)]
-      (<? (db/get conn (sql-helpers/merge-where candidate-query [:ilike address :Candidate.user/address]))))))
+      (<? (db/get conn (sql-helpers/merge-where candidate-query [:ilike address :Candidate.user/id]))))))
 
 
 (defn job-story->proposal-message-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
     (log/debug "job-story->proposal-message-resolver")
-    (let [address-from-args (:user/address args)
+    (let [address-from-args (:user/id args)
           parent (graphql-utils/gql->clj raw-parent)
           proposal-message-id (:job-story/proposal-message-id parent)
           proposal-message-query {:select [:*]
@@ -304,7 +304,7 @@
              all-values))
 
 (defn candidate-search-resolver [_ {:keys [:limit :offset
-                                           :user/address
+                                           :user/id
                                            :categories-and
                                            :categories-or
                                            :skills-and
@@ -317,27 +317,27 @@
     (let [query (cond-> (merge candidate-query
                                {:modifiers [:distinct]})
 
-                  address (sql-helpers/merge-where [:= :Candidate.user/address address])
+                  id (sql-helpers/merge-where [:= :Candidate.user/id id])
 
                   professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
 
                   categories-or (sql-helpers/merge-left-join :CandidateCategory
-                                                             [:= :CandidateCategory.user/address :Candidate.user/address])
+                                                             [:= :CandidateCategory.user/id :Candidate.user/id])
 
                   categories-or (sql-helpers/merge-where [:in :CandidateCategory.category/id categories-or])
 
                   categories-and (match-all {:join-table :CandidateCategory
-                                             :on-column :user/address
+                                             :on-column :user/id
                                              :column :category/id
                                              :all-values categories-and})
 
                   skills-or (sql-helpers/merge-left-join :CandidateSkill
-                                                         [:= :CandidateSkill.user/address :Candidate.user/address])
+                                                         [:= :CandidateSkill.user/id :Candidate.user/id])
 
                   skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
 
                   skills-and (match-all {:join-table :CandidateSkill
-                                         :on-column :user/address
+                                         :on-column :user/id
                                          :column :skill/id
                                          :all-values skills-and})
 
@@ -349,19 +349,19 @@
 
 (defn candidate->candidate-categories-resolver [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as candidate} (graphql-utils/gql->clj root)]
       (log/debug "candidate->candidate-categories-resolver" candidate)
       (map :category/id (<? (db/all conn {:select [:*]
                                           :from [:CandidateCategory]
-                                          :where [:= address :CandidateCategory.user/address]}))))))
+                                          :where [:= id :CandidateCategory.user/id]}))))))
 
 (defn candidate->candidate-skills-resolver [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as candidate} (graphql-utils/gql->clj root)]
       (log/debug "candidate->candidate-skills-resolver" candidate)
       (map :skill/id (<? (db/all conn {:select [:*]
                                        :from [:CandidateSkill]
-                                       :where [:= address :CandidateSkill.user/address]}))))))
+                                       :where [:= id :CandidateSkill.user/id]}))))))
 
 
 (def candidate-job-stories-query
@@ -370,7 +370,7 @@
 
 (defn candidate->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [address (:user/address (graphql-utils/gql->clj root))
+    (let [address (:user/id (graphql-utils/gql->clj root))
           query (-> candidate-job-stories-query
                   (sql-helpers/merge-where [:= address :JobStory.job-story/candidate]))]
       (log/debug "candidate->job-stories-resolver" {:address address :args args})
@@ -380,37 +380,39 @@
   {:select
    [:JobStory.*]
    :from [:JobStory]
-   :join [:Job [:= :Job.job/contract :JobStory.job/contract]]
+   :join [:Job [:= :Job.job/id :JobStory.job/id]]
    :where [:and [:= :Job.job/creator address] [:!= :JobStory.job-story/status "deleted"]]})
 
 (defn employer->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [address (:user/address (graphql-utils/gql->clj root))
+    (let [address (:user/id (graphql-utils/gql->clj root))
           query (employer-job-stories-query address)]
       (log/debug "employer->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn- arbiter-job-stories-query [address]
+(defn- arbiter-job-stories-query [id]
   {:select
-   [:JobStory.*
-    [:JobArbiter.job-arbiter/date-accepted :job-story/date-arbiter-accepted]]
+   [
+    [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
+    [:JobArbiter.job-arbiter/fee :arbitration/fee]
+    [:JobArbiter.job-arbiter/fee-currency-id :arbitration/fee-currency-id]]
    :from [:JobStory]
-   :join [:Job [:= :Job.job/contract :JobStory.job/contract]
+   :join [:Job [:= :Job.job/id :JobStory.job/id]
           :JobArbiter [:= :JobArbiter.job/id :Job.job/id]]
-   :where [:and [:= :JobArbiter.user/address address] [:!= :JobStory.job-story/status "deleted"]]})
+   :where [:and [:= :JobArbiter.user/id id] [:!= :JobStory.job-story/status "deleted"]]})
 
-(defn arbiter->job-stories-resolver [root {:keys [:limit :offset] :as args} _]
+(defn arbiter->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [address (:user/address (graphql-utils/gql->clj root))
+    (let [address (:user/id (graphql-utils/gql->clj root))
           query (arbiter-job-stories-query address)]
       (log/debug "arbiter->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/address] :as candidate} (graphql-utils/gql->clj root)
+    (let [{:keys [:user/id] :as candidate} (graphql-utils/gql->clj root)
           query (-> user-feedback-query
-                  (sql-helpers/merge-where [:= address :JobStoryFeedbackMessage.user/address]))]
+                  (sql-helpers/merge-where [:= id :JobStoryFeedbackMessage.user/id]))]
       (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -420,10 +422,10 @@
       (log/debug "job-story->candidate-feedback-resolver" {:contract contract})
       (<? (db/get conn (-> user-feedback-query
                          (sql-helpers/merge-where [:= id :JobStory.job-story/id])
-                         (sql-helpers/merge-where [:= candidate-address :JobStoryFeedbackMessage.user/address])))))))
+                         (sql-helpers/merge-where [:= candidate-address :JobStoryFeedbackMessage.user/id])))))))
 
 (defn employer-search-resolver [_ {:keys [:limit :offset
-                                          :user/address
+                                          :user/id
                                           :professional-title
                                           :order-by :order-direction]
                                    :as args} _]
@@ -431,7 +433,7 @@
     (log/debug "employer-search-resolver" args)
     (let [query (cond-> employer-query
 
-                  address (sql-helpers/merge-where [:= address :Employer.user/address])
+                  id (sql-helpers/merge-where [:= id :Employer.user/id])
 
                   professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title])
 
@@ -444,7 +446,6 @@
 (def ^:private job-query {:select [:Job.job/id
                                    :Job.job/bid-option
                                    :Job.job/category
-                                   :Job.job/contract
                                    :Job.job/creator
                                    :Job.job/date-created
                                    :Job.job/date-updated
@@ -464,20 +465,45 @@
                                    :Job.job/token-id
 
                                    [:Job.job/creator :job/employer-address]
-                                   [:JobArbiter.user/address :job/accepted-arbiter-address]]
+                                   [:JobArbiter.user/id :job/accepted-arbiter-address]]
                           :from [:Job]
                           :left-join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]]})
 
 (defn job-resolver [parent {:keys [:contract :job/id] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "job-resolver")
-    (let [contract-from-parent (:job/contract (graphql-utils/gql->clj parent))
+    (let [contract-from-parent (:job/id (graphql-utils/gql->clj parent))
           contract-from-args (:contract args)
           contract-address (or contract-from-parent contract-from-args)
-          job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/contract])))
+          job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/id])))
           skills (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id (:job/id job)]}))
           job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
       job-full)))
+
+(def ^:private job-search-query {:select [:Arbiter.user/id
+                                       :Arbiter.arbiter/bio
+                                       :Arbiter.arbiter/professional-title
+                                       :Arbiter.arbiter/fee
+                                       :Arbiter.arbiter/fee-currency-id
+                                       :Arbiter.arbiter/rating
+                                       [:Users.user/date-registered :arbiter/date-registered]]
+                              :from [:Arbiter]
+                              :join [:Users [:= :Users.user/id :Arbiter.user/id]]})
+
+(defn job-search-resolver [_ {:keys [:limit :offset
+                                         :user/id
+                                         :order-by :order-direction]
+                                  :as args} _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-search-resolver" args)
+    (let [query (cond-> job-search-query
+                  id (sql-helpers/merge-where [:= id :Arbiter.user/id])
+
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
+                                                               :date-updated :user/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :asc)]]))]
+      (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-story-query {:select [:*]
                                 :from [:JobStory]
@@ -502,7 +528,7 @@
     (let [contract (:job-contract args)
           query {:select [:*]
                  :from [:JobStory]
-                 :where [:= :JobStory.job/contract contract]}]
+                 :where [:= :JobStory.job/id contract]}]
       (<? (db/all conn query)))))
 
 (def ^:private invoice-query {:select [:JobStoryInvoiceMessage.invoice/id :JobStoryInvoiceMessage.invoice/date-paid :JobStoryInvoiceMessage.invoice/amount-requested :JobStoryInvoiceMessage.invoice/amount-paid
@@ -531,14 +557,14 @@
           user-address (authorization/recover-personal-signature data data-signature)
           jwt (authorization/create-jwt user-address sign-in-secret)]
       (log/debug "sign-in-mutation" {:input input})
-      {:jwt jwt :user/address user-address})))
+      {:jwt jwt :user/id user-address})))
 
 
 (defn send-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
   (db/with-async-resolver-tx conn
     (<? (ethlance-db/add-message conn {:message/type :proposal
                                        :message/date-created timestamp
-                                       :message/creator (:user/address current-user)
+                                       :message/creator (:user/id current-user)
                                        :message/text text}))))
 
 ; This is done by employer (invitation)
@@ -546,7 +572,7 @@
   (db/with-async-resolver-tx conn
     (<? (ethlance-db/add-message conn {:message/type :direct-message
                                        :message/date-created timestamp
-                                       :message/creator (:user/address current-user)
+                                       :message/creator (:user/id current-user)
                                        :message/text text
                                        :direct-message/receiver to}))))
 
@@ -556,7 +582,7 @@
                                        :job-story-message/type :raise-dispute
                                        :job-story/id id
                                        :message/date-created timestamp
-                                       :message/creator (:user/address current-user)
+                                       :message/creator (:user/id current-user)
                                        :message/text text}))))
 
 (defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [current-user timestamp]}]
@@ -565,7 +591,7 @@
                                        :job-story-message/type :resolve-dispute
                                        :job-story/id id
                                        :message/date-created timestamp
-                                       :message/creator (:user/address current-user)
+                                       :message/creator (:user/id current-user)
                                        :message/text "Dispute resolved"}))))
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [current-user timestamp]}]
@@ -574,15 +600,15 @@
                                        :job-story-message/type :feedback
                                        :job-story/id id
                                        :message/date-created timestamp
-                                       :message/creator (:user/address current-user)
+                                       :message/creator (:user/id current-user)
                                        :message/text "Feedback"
                                        :feedback/rating rating
-                                       :user/address to}))))
+                                       :user/id to}))))
 
 (defn update-employer-mutation [_ {:keys [input]} {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
-    (let [{:user/keys [address]} input
-          response {:user/address address
+    (let [{:user/keys [id]} input
+          response {:user/id id
                     :user/date-updated timestamp
                     :employer/date-updated timestamp}]
       (log/debug "update-employer-mutation" {:input input :response response})
@@ -593,8 +619,8 @@
 
 (defn update-candidate-mutation [_ {:keys [input]} {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
-    (let [{:user/keys [address]} input
-          response {:user/address address
+    (let [{:user/keys [id]} input
+          response {:user/id id
                     :user/date-updated timestamp
                     :candidate/date-updated timestamp}]
       (log/debug "update-candidate-mutation" {:input input :response response})
@@ -605,8 +631,8 @@
 
 (defn update-arbiter-mutation [_ {:keys [input]} {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
-    (let [{:user/keys [address]} input
-          response {:user/address address
+    (let [{:user/keys [id]} input
+          response {:user/id id
                     :user/date-updated timestamp
                     :arbiter/date-updated timestamp}]
       (log/debug "arbiter-candidate-mutation" {:input input :response response})
@@ -620,9 +646,9 @@
     (let [input (:input gql-params)
           message-params {:message/type :job-story-message
                           :job-story-message/type :proposal
-                          :job/contract (:contract input)
+                          :job/id (:contract input)
                           :message/date-created timestamp
-                          :message/creator (:user/address current-user)
+                          :message/creator (:user/id current-user)
                           :message/text (:text input)
                           :job-story/proposal-rate (:rate input)
                           :job-story/proposal-rate-currency-id (:rate-currency-id input)}]
@@ -657,13 +683,13 @@
                                          "Accept" "application/json"}})))
           {:keys [name login email location] :as gh-resp} (:data (js->clj response :keywordize-keys true))
           _ (log/debug "github response" gh-resp)
-          user {:user/address (:user/address current-user)
+          user {:user/id (:user/id current-user)
                 :user/name name
                 :user/github-username login
                 :user/email email
                 :user/country location}]
 
-      (<? (ethlance-db/upsert-user-social-accounts! conn (select-keys user [:user/address :user/github-username])))
+      (<? (ethlance-db/upsert-user-social-accounts! conn (select-keys user [:user/id :user/github-username])))
 
       user)))
 
@@ -698,12 +724,12 @@
                                              first
                                              (get "handle~"))
           _ (log/debug "linkedin response" (merge resp1 resp2))
-          user {:user/address (:user/address current-user)
+          user {:user/id (:user/id current-user)
                 :user/name (str localizedFirstName " " localizedLastName)
                 :user/linkedin-username id
                 :user/email email}]
 
-      (<? (ethlance-db/upsert-user-social-accounts! conn (select-keys user [:user/address :user/linkedin-username])))
+      (<? (ethlance-db/upsert-user-social-accounts! conn (select-keys user [:user/id :user/linkedin-username])))
 
       user)))
 
@@ -738,6 +764,7 @@
                             :arbiter arbiter-resolver
                             :arbiterSearch arbiter-search-resolver
                             :job job-resolver
+                            :jobSearch job-search-resolver
                             :jobStory job-story-resolver
                             :jobStoryList job-story-list-resolver
                             :invoice invoice-resolver}
@@ -764,7 +791,7 @@
                                :employer_jobStories employer->job-stories-resolver
                                :user participant->user-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
-                              :arbiter_jobStories arbiter->job-stories-resolver
+                              :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
 
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver

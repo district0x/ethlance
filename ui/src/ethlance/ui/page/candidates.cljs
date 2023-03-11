@@ -75,10 +75,10 @@
    [cf-candidate-search-filter]])
 
 (defn c-candidate-element
-  [{:keys [:user/address
+  [{:keys [:user/id
            :candidate/professional-title
            :candidate/skills]}]
-  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address address} {}])}
+  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address id} {}])}
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]

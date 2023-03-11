@@ -44,7 +44,6 @@
 (re/reg-event-db
   :page.new-job/auto-fill-form
   (fn [db]
-    (println ">>> :page.new-job/auto-fill-form")
     (assoc-in db [state-key] state-default)))
 
 (re/reg-event-fx :page.new-job/initialize-page initialize-page)
@@ -89,7 +88,6 @@
   (fn [{:keys [db]}]
     (let [db-job (get-in db [state-key])
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
-      (println ">>> NEW job going to IPFS" ipfs-job)
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-job])]
                    :on-success [:job-to-ipfs-success]
@@ -146,7 +144,6 @@
           invited-arbiters [] ; TODO: implement
           ipfs-response (get-in event [:event 1])
           ipfs-hash (base58->hex (get-in event [1 :Hash]))]
-      (println ">>> dispatching web3-events/send-tx Ethlance#createJob" {:ipfs-hash (get-in event [1 :Hash])})
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :ethlance)
                    :fn :createJob
@@ -163,8 +160,13 @@
 
 ; TODO: fix event/callback names in README (they don't have on-<...> prefix)
 ;         https://github.com/district0x/re-frame-web3-fx#usage
-(re/reg-event-fx :tx-hash (fn [db event]         (println ">>>>>>!!!!! tx-hash" event)))
-(re/reg-event-fx :web3-tx-localstorage (fn [db event]         (println ">>>>>>!!!!! web3-tx-localstorage" event)))
+(re/reg-event-fx
+  :tx-hash
+  (fn [db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
+
+(re/reg-event-fx
+  :web3-tx-localstorage
+  (fn [db event] (println ">>> ethlance.ui.page.new-job.events :web3-tx-localstorage" event)))
 
 (re/reg-event-db
   :create-job-tx-success

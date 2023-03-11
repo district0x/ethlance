@@ -70,22 +70,21 @@
                  _ (<! (ethlance-db/ready-state?))
                  conn (<? (async-db/get-connection))
                  users-addresses (into {} (map user-address-pairs ["CANDIDATE" "EMPLOYER" "ARBITER"]))
-                 _ (println "users-addresses" users-addresses)
                  _ (<! (generator/generate-dev-data conn users-addresses))
                  user-query (<! (run-query {:url api-endpoint
                                             :access-token access-token
-                                            :query [:user {:user/address (users-addresses "EMPLOYER")}
-                                                    [:user/address]]}))
+                                            :query [:user {:user/id (users-addresses "EMPLOYER")}
+                                                    [:user/id]]}))
 
                  user-search-query (<! (run-query {:url api-endpoint
                                                    :access-token access-token
                                                    :query [:user-search {:offset 0 :limit 3}
                                                            [:total-count
-                                                            [:items [:user/address]]]]}))
+                                                            [:items [:user/id]]]]}))
                  candidate-query (<! (run-query {:url api-endpoint
                                                  :access-token access-token
-                                                 :query [:candidate {:user/address (users-addresses "CANDIDATE")}
-                                                         [:user/address
+                                                 :query [:candidate {:user/id (users-addresses "CANDIDATE")}
+                                                         [:user/id
                                                           [:candidate/feedback [:total-count
                                                                                 [:items
                                                                                  [:job/id
@@ -98,20 +97,20 @@
                                                            :access-token access-token
                                                            :query [:candidate-search {:skills-or ["Clojure" "Travis"]}
                                                                    [:total-count
-                                                                    [:items [:user/address
+                                                                    [:items [:user/id
                                                                              :candidate/skills]]]]}))
 
                  candidate-search-query-and (<! (run-query {:url api-endpoint
                                                             :access-token access-token
                                                             :query [:candidate-search {:skills-and ["Clojure" "Java"]}
                                                                     [:total-count
-                                                                     [:items [:user/address
+                                                                     [:items [:user/id
                                                                               :candidate/skills]]]]}))
 
                  employer-query (<! (run-query {:url api-endpoint
                                                 :access-token access-token
-                                                :query [:employer {:user/address (users-addresses "EMPLOYER")}
-                                                        [:user/address
+                                                :query [:employer {:user/id (users-addresses "EMPLOYER")}
+                                                        [:user/id
                                                          [:employer/feedback [:total-count
                                                                               [:items
                                                                                [:job/id
@@ -122,8 +121,8 @@
 
                  arbiter-query (<! (run-query {:url api-endpoint
                                                :access-token access-token
-                                               :query [:arbiter {:user/address (users-addresses "ARBITER")}
-                                                       [:user/address
+                                               :query [:arbiter {:user/id (users-addresses "ARBITER")}
+                                                       [:user/id
                                                         [:arbiter/feedback [:total-count
                                                                             [:items
                                                                              [:job/id
@@ -187,12 +186,12 @@
                                                         :invoice/id
                                                         :invoice/amount-paid]]}))]
 
-             (is (= (users-addresses "EMPLOYER") (-> user-query :data :user :user/address str/trim)))
+             (is (= (users-addresses "EMPLOYER") (-> user-query :data :user :user/id str/trim)))
 
              (is (= 3 (-> user-search-query :data :user-search :total-count)))
              (is (= 3 (-> user-search-query :data :user-search :items count)))
 
-             (is (= (users-addresses "CANDIDATE") (-> candidate-query :data :candidate :user/address str/trim)))
+             (is (= (users-addresses "CANDIDATE") (-> candidate-query :data :candidate :user/id str/trim)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :total-count)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :items count)))
              (is (= "Employer" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/from-user-type)))

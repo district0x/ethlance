@@ -47,7 +47,7 @@
                  "mutation SignIn($dataSignature: String!, $data: String!) {
                     signIn(dataSignature: $dataSignature, data: $data) {
                       jwt
-                      user_address
+                      user_id
                     }
                  }"
                  :variables {:dataSignature data-signature

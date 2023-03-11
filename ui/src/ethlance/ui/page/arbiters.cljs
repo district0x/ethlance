@@ -87,8 +87,8 @@
    [cf-arbiter-search-filter]])
 
 (defn c-arbiter-element
-  [{:keys [:user/address]}]
-  [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address address} {}])}
+  [{:keys [:user/id]}]
+  [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address id} {}])}
    [:div.profile
     [:div.profile-image [c-profile-image {}]]
     [:div.name "Brian Curran"]

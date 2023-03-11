@@ -39,7 +39,7 @@
 
 
  :mutation/update-job
- {:job/address "address"
+ {:job/id "address"
   :job/title "string, max 100 chars"
   :job/description "string, max 5000 chars"
   :job/category "one of ethlance.shared.constants/categories"
@@ -51,24 +51,24 @@
 
 
  :mutation/add-job-invitation
- {:job/address "address"
-  :user/address "address"
+ {:job/id "address"
+  :user/id "address"
   :message/text "string, max 5000 chars"}
 
  :mutation/add-job-application
- {:job/address "address"
+ {:job/id "address"
   :message/text "string, max 5000 chars"}
 
  :mutation/add-job-message
- {:job/address "address"
+ {:job/id "address"
   :message/text "string, max 5000 chars"}
 
  :mutation/add-job-feedback
- {:job/address "address"
+ {:job/id "address"
   :message/text "string, max 5000 chars"}
 
  :mutation/close-job
- {:job/address "address"}
+ {:job/id "address"}
 
  :mutation/github-sign-up
  ;; Already implemented

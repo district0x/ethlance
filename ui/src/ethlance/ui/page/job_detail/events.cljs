@@ -49,8 +49,8 @@
                        jobStory_proposalRate
                        jobStory_dateCreated
                        jobStory_candidate
-                       job_contract
-                       candidate {user {user_name user_address}}
+                       job_id
+                       candidate {user {user_name user_id}}
                        jobStory_proposalMessage {message_id message_type message_text message_creator}
                      }}"
                    :variables {:input proposal}}]})))
@@ -72,8 +72,8 @@
                        jobStory_proposalRate
                        jobStory_dateCreated
                        jobStory_candidate
-                       job_contract
-                       candidate {user {user_name user_address}}
+                       job_id
+                       candidate {user {user_name user_id}}
                        jobStory_proposalMessage {message_id message_type message_text message_creator}
                      }}"
                    :variables {:jobStory_id job-story-id}}]})))
@@ -91,12 +91,12 @@
                    "query JobStoriesForProposal($jobContract: ID) {
                      jobStoryList(jobContract: $jobContract) {
                        jobStory_id
-                       job_contract
+                       job_id
                        jobStory_status
                        jobStory_proposalRate
                        jobStory_dateCreated
                        jobStory_candidate
-                       candidate {user {user_name user_address}}
+                       candidate {user {user_name user_id}}
                        jobStory_proposalMessage {message_id message_type message_text message_creator}
                      }}"
                    :variables {:jobContract contract}}]})))

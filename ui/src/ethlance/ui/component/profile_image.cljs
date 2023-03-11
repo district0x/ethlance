@@ -1,4 +1,6 @@
-(ns ethlance.ui.component.profile-image)
+(ns ethlance.ui.component.profile-image
+  (:require
+    [ethlance.ui.util.urls :as util.urls]))
 
 (def placeholder-image-url "/images/avatar-placeholder.png")
 
@@ -21,7 +23,8 @@
                     :small " small "
                     :normal ""
                     :large " large "
-                    "")]
+                    "")
+        src-url (util.urls/ipfs-hash->gateway-url src)]
     [:div.ethlance-profile-image
      {:class size-class}
-     [:img {:src (or src placeholder-image-url)}]]))
+     [:img {:src (or src-url placeholder-image-url)}]]))

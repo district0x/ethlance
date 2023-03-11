@@ -68,7 +68,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn build-ethlance-job-data-from-ipfs-object [ethlance-job-data]
-  (println ">>> build-ethlance-job-data-from-ipfs-object" ethlance-job-data)
   {:job/title (:job/title ethlance-job-data)
    :job/description (:job/description ethlance-job-data)
    :job/category (:job/category ethlance-job-data)
@@ -207,8 +206,8 @@
          offered-value (offered-vec->flat-map (first (:offered-values args)))
          token-address (:token-address offered-value)]
      (<? (ethlance-db/add-job conn
-                              (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
-                                      :job/contract (:job args)
+                              (merge {:job/id (:job args)
+                                      :job/status  "active" ;; draft -> active -> finished hiring -> closed
                                       :job/creator (:creator args)
                                       :job/date-created (:timestamp event)
                                       :job/date-updated (:timestamp event)
