@@ -16,7 +16,7 @@
              ["/jobs/contract/" :route.job/contract]
              ["/jobs/contract/:address" :route.job/contract]
              ["/jobs/detail" :route.job/detail] ; TODO: possibly to be used to poll & resolve to the last job created (if the address was unknown)
-             ["/jobs/detail/:contract" :route.job/detail]
+             ["/jobs/detail/:id" :route.job/detail]
 
              ;; Invoices
              ["/invoices/new" :route.invoice/new]

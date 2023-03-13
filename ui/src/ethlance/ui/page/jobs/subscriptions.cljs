@@ -1,7 +1,7 @@
 (ns ethlance.ui.page.jobs.subscriptions
   (:require
    [re-frame.core :as re]
-   
+
    [ethlance.ui.page.jobs.events :as jobs.events]
    [ethlance.ui.subscription.utils :as subscription.utils]))
 
@@ -25,3 +25,19 @@
 (re/reg-sub :page.jobs/payment-type (create-get-handler :payment-type))
 (re/reg-sub :page.jobs/experience-level (create-get-handler :experience-level))
 (re/reg-sub :page.jobs/country (create-get-handler :country))
+
+(re/reg-sub
+  :page.jobs/job-search-params
+  (fn [db _]
+    (let [page-state (get-in db [jobs.events/state-key] {})
+          _ (println ">>> SUBSCRIPTION :page.jobs/job-search-params" page-state)
+          filter-keys [:feedback-max-rating]
+          filter-params (reduce (fn [acc filter-key]
+                                  (let [filter-val (get-in db [jobs.events/state-key filter-key])]
+                                    (if (not (nil? filter-val))
+                                      (assoc acc filter-key filter-val)
+                                      acc)))
+                                {}
+                                filter-keys)]
+      {:search-params filter-params})
+    ))

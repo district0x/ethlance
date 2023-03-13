@@ -3,8 +3,10 @@
             [district.ui.router.effects :as router.effects]
             [ethlance.shared.constants :as constants]
             [ethlance.shared.mock :as mock]
+            [district.ui.graphql.events :as gql-events]
             [ethlance.ui.event.templates :as event.templates]
             [ethlance.ui.event.utils :as event.utils]
+            [ethlance.ui.page.jobs.graphql :as j-gql]
             [re-frame.core :as re]))
 
 ;; Page State
@@ -36,7 +38,7 @@
     {::router.effects/watch-active-page
      [{:id :page.jobs/initialize-page
        :name :route.job/jobs
-       :dispatch [:page.jobs/query-job-listing page-state]}]}))
+       :dispatch [:page.jobs/query-job-listing]}]}))
 
 (defn mock-query-job-listing
   "Event FX Handler. Perform Job Listing Query."
@@ -45,6 +47,26 @@
   (let [job-listing (mock-job-listing)]
     {:db (assoc-in db [state-key :job-listing/state] :loading)
      :dispatch [:page.jobs/-set-job-listing job-listing]}))
+
+(defn query-job-listing
+  "Event FX Handler. Perform Job Listing Query."
+  [{:keys [db]} [xx router-params]]
+  (let [page-state (get-in db [state-key])
+        filter-keys [:feedback-max-rating]
+        filter-params (reduce (fn [acc filter-key]
+                                (let [filter-val (get-in db [state-key filter-key])]
+                                  (if (not (nil? filter-val))
+                                    (assoc acc filter-key filter-val)
+                                    acc)))
+                              {}
+                              filter-keys)
+        _ (println ">>> querying with" filter-params "|" (j-gql/jobs-query {:search-params {:feedback-max-rating 5}}))
+
+        args {:search-params filter-params}]
+      {:db (assoc-in db [state-key :feedback-max-rating] 4)
+       :dispatch [::gql-events/query {:query {:queries [(j-gql/jobs-query {:search-params {:feedback-max-rating 5}})]}
+                                      :id :JobSearchQuery}]}
+      ))
 
 (defn set-job-listing
   "Event FX Handler. Set the Current Job Listing."
@@ -63,13 +85,22 @@
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
+(defn trigger-search
+  "Stores (assoc) the changed value to app-db and causes event to be dispatched
+  that queries GQL API with search params"
+  [handler-fn]
+  (fn [cofx & [event value]]
+    (println ">>> trigger-search" event "|" value)
+    {:db (:db (handler-fn cofx event value))
+     :dispatch [:page.jobs/query-job-listing]}))
+
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
-(re/reg-event-fx :page.jobs/query-job-listing mock-query-job-listing)
+(re/reg-event-fx :page.jobs/query-job-listing query-job-listing)
 (re/reg-event-fx :page.jobs/set-skills (create-assoc-handler :skills))
 (re/reg-event-fx :page.jobs/add-skill add-skill)
 (re/reg-event-fx :page.jobs/set-category (create-assoc-handler :category))
-(re/reg-event-fx :page.jobs/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
+(re/reg-event-fx :page.jobs/set-feedback-max-rating (trigger-search (event.templates/create-set-feedback-max-rating state-key)))
 (re/reg-event-fx :page.jobs/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
 (re/reg-event-fx :page.jobs/set-min-hourly-rate (event.templates/create-set-min-hourly-rate state-key))
 (re/reg-event-fx :page.jobs/set-max-hourly-rate (event.templates/create-set-max-hourly-rate state-key))

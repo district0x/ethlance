@@ -48,9 +48,9 @@
 (defmethod page :route.job/detail []
   (fn []
     (let [page-params (re/subscribe [:district.ui.router.subs/active-page-params])
-          contract-address (:contract @page-params)
+          contract-address (:id @page-params)
           job-query "query ($contract: ID!) {
-                   job(contract: $contract) {
+                   job(job_id: $contract) {
                      job_id
                      job_title
                      job_description
@@ -68,12 +68,12 @@
                      job_tokenId
                      tokenDetails {tokenDetail_id tokenDetail_name tokenDetail_symbol}
 
-                     job_employer(contract: $contract) {
+                     job_employer {
                        employer_rating
                        user_id
                        user {user_country user_name user_profileImage}
                      }
-                     job_arbiter(contract: $contract) {
+                     job_arbiter {
                        arbiter_rating
                        arbiter_fee
                        arbiter_feeCurrencyId
@@ -181,7 +181,7 @@
                        [[:span (if (:current-user? proposal) "⭐" "")]
                         [:span (:candidate-name proposal)]
                         [:span (:rate proposal)]
-                        [:span (format/time-ago (new js/Date (:created-at proposal)))]
+                        [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
                         [:span (:status proposal)]])
                      @proposals))]
         [:div.button-listing
