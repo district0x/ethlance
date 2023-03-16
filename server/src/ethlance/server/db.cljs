@@ -697,8 +697,14 @@
   (safe-go
     (let [skills (:job/required-skills job)
           job-fields (dissoc job :job/required-skills)
-          job-id (:job/id (<? (insert-row! conn :Job job)))]
-      (add-skills conn job-id skills))))
+          job-id-from-ipfs (:job/id job)
+          job-exists-query {:select [(sql/call :exists {:select [1] :from [:Job] :where [:= :Job.job/id job-id-from-ipfs]})]}
+          job-exists? (:exists (<? (db/get conn job-exists-query)))]
+      (if job-exists?
+        (log/info (str "Not adding job because already exists with :job/id " job-id-from-ipfs))
+        (do
+          (<? (insert-row! conn :Job job))
+          (add-skills conn job-id-from-ipfs skills))))))
 
 ; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
 ;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)
