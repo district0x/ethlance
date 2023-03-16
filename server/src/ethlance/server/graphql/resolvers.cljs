@@ -474,7 +474,10 @@
           job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
       job-full)))
 
-(def job-search-input (atom nil)) ; TODO: remove after debugging
+(defn job->required-skills-resolver [parent args _]
+  (db/with-async-resolver-conn conn
+    (let [job-id (:job/id (graphql-utils/gql->clj parent))]
+    (map :skill/id (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id job-id]}))))))
 
 (defn js-obj->clj-map [obj]
   (let [obj-keys (district.graphql-utils/gql->clj (js-keys obj))
@@ -482,14 +485,12 @@
         assoc-keywordized (fn [acc js-key] (assoc acc (keywordize js-key) (aget obj js-key)))]
     (reduce assoc-keywordized {} obj-keys)))
 
-(def ^:private job-search-query {:select [:*]
-                              :from [:Job]
-                              :join [:Employer [:= :Employer.user/id :Job.job/creator]]})
+(def job-search-input (atom nil)) ; TODO: remove after debugging
 
-(defn job->required-skills-resolver [parent args _]
-  (db/with-async-resolver-conn conn
-    (let [job-id (:job/id (graphql-utils/gql->clj parent))]
-    (map :skill/id (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id job-id]}))))))
+(def ^:private job-search-query {:select [:Job.*]
+                                 :from [:Job]
+                                 :join [:Employer [:= :Employer.user/id :Job.job/creator]]
+                                 :left-join [:JobStory [:= :JobStory.job/id :Job.job/id]]})
 
 (defn job-search-resolver [_ {:keys [:job/id
                                      :search-params
@@ -498,15 +499,46 @@
                                      :order-by
                                      :order-direction]
                                   :as args} _]
-
-
   (log/debug "job-search-resolver" args)
   (reset! job-search-input args)
   (db/with-async-resolver-conn conn
     (let [search-params (js-obj->clj-map search-params)
           max-rating (:feedback-max-rating search-params)
-          query (cond-> job-search-query
-                  max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating]))]
+          min-rating (:feedback-min-rating search-params)
+          skills (or (js->clj (:skills search-params)) [])
+          category (:category search-params)
+          min-hourly-rate (:min-hourly-rate search-params)
+          max-hourly-rate (:max-hourly-rate search-params)
+          min-num-feedbacks (:min-num-feedbacks search-params)
+          payment-type (:payment-type search-params)
+
+          experience-level (:experience-level search-params)
+          ordered-experience-levels ["beginner" "intermediate" "expert"]
+          suitable-levels (drop-while #(not (= experience-level %)) ordered-experience-levels)
+
+          query (cond-> (merge job-search-query {:modifiers [:distinct]})
+                  min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
+                  max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
+                  ; The case for OR-ing the skills
+                  ; (not (empty? skills)) (sql-helpers/merge-where [:in :JobSkill.skill/id skills])
+
+                  ; The case for AND-ing the skills
+                  (not (empty? skills)) (match-all {:join-table :JobSkill
+                                                    :on-column :job/id
+                                                    :column :skill/id
+                                                    :all-values skills})
+                  category (sql-helpers/merge-where [:= :Job.job/category category])
+
+                  min-hourly-rate (sql-helpers/merge-where [:<= min-hourly-rate :JobStory.job-story/proposal-rate])
+                  max-hourly-rate (sql-helpers/merge-where [:>= max-hourly-rate :JobStory.job-story/proposal-rate])
+                  min-num-feedbacks (sql-helpers/merge-where
+                                      [:<= min-num-feedbacks
+                                       {:select [(sql/call :count :*)]
+                                        :from [:JobStoryFeedbackMessage]
+                                        :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
+                  payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
+                  experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
+      (println ">>> JOB-SEARCH-QUERY" (sql/format query))
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-story-query {:select [:*]

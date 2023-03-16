@@ -24,18 +24,29 @@
 (re/reg-sub :page.jobs/min-num-feedbacks (create-get-handler :min-num-feedbacks))
 (re/reg-sub :page.jobs/payment-type (create-get-handler :payment-type))
 (re/reg-sub :page.jobs/experience-level (create-get-handler :experience-level))
-(re/reg-sub :page.jobs/country (create-get-handler :country))
 
 (re/reg-sub
   :page.jobs/job-search-params
   (fn [db _]
     (let [page-state (get-in db [jobs.events/state-key] {})
           _ (println ">>> SUBSCRIPTION :page.jobs/job-search-params" page-state)
-          filter-keys [:feedback-max-rating]
+          filter-keys [:skills
+                       :category
+                       :feedback-max-rating
+                       :feedback-min-rating
+                       :min-hourly-rate
+                       :max-hourly-rate
+                       :min-num-feedbacks
+                       :payment-type
+                       :experience-level]
           filter-params (reduce (fn [acc filter-key]
-                                  (let [filter-val (get-in db [jobs.events/state-key filter-key])]
-                                    (if (not (nil? filter-val))
-                                      (assoc acc filter-key filter-val)
+                                  (let [filter-val (get-in db [jobs.events/state-key filter-key])
+                                        set-type (type #{})
+                                        final-val (if (= set-type (type filter-val))
+                                                    (into [] filter-val)
+                                                    filter-val)]
+                                    (if (not (nil? final-val))
+                                      (assoc acc filter-key final-val)
                                       acc)))
                                 {}
                                 filter-keys)]

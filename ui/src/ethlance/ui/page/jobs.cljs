@@ -99,8 +99,7 @@
         *max-hourly-rate (re/subscribe [:page.jobs/max-hourly-rate])
         *min-num-feedbacks (re/subscribe [:page.jobs/min-num-feedbacks])
         *payment-type (re/subscribe [:page.jobs/payment-type])
-        *experience-level (re/subscribe [:page.jobs/experience-level])
-        *country (re/subscribe [:page.jobs/country])]
+        *experience-level (re/subscribe [:page.jobs/experience-level])]
     (fn []
       [:<>
        [:div.category-selector
@@ -144,28 +143,19 @@
 
        [:span.selection-label "Payment Type"]
        [c-radio-select
-        {:selection @*payment-type
-         :on-selection #(re/dispatch [:page.jobs/set-payment-type %])}
+        {:selection (keyword @*payment-type)
+         :on-selection #(re/dispatch [:page.jobs/set-payment-type (name %)])}
         [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
         [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
         [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
 
        [:span.selection-label "Experience Level"]
        [c-radio-select
-        {:selection @*experience-level
-         :on-selection #(re/dispatch [:page.jobs/set-experience-level %])}
-        [:novice [c-radio-search-filter-element "Novice ($)"]]
-        [:professional [c-radio-search-filter-element "Professional ($$)"]]
-        [:expert [c-radio-search-filter-element "Expert ($$$)"]]]
-
-       [c-select-input
-        {:label "Country"
-         :selection @*country
-         :on-select #(re/dispatch [:page.jobs/set-country %])
-         :selections constants/countries
-         :search-bar? true
-         :color :secondary
-         :default-search-text "Search Countries"}]])))
+        {:selection (keyword @*experience-level) ; FIXME: the string -> keyword shouldn't be necessary after switching to district-ui-graphql
+         :on-selection #(re/dispatch [:page.jobs/set-experience-level (name %)])} ; FIXME: the keyword -> string shouldn't be necessary after switching to district-ui-graphql
+        [:beginner [c-radio-search-filter-element "Novice ($)"]]
+        [:intermediate [c-radio-search-filter-element "Professional ($$)"]]
+        [:expert [c-radio-search-filter-element "Expert ($$$)"]]]])))
 
 
 (defn c-job-search-filter
@@ -212,10 +202,10 @@
 (defn c-job-listing []
   (let [
         ; query-params (atom {:search-params {:feedback-max-rating 5}})
-        query-params (re/subscribe [:page.jobs/job-search-params])
         ]
     (fn []
       (let [
+            query-params (re/subscribe [:page.jobs/job-search-params])
             query (j-gql/jobs-query @query-params)
             search-results @(re/subscribe [::gql/query {:queries [query]} {:id @query-params :refetch-on #{:gimme-jobs}}])
             job-listing-state (get search-results :graphql/loading?)

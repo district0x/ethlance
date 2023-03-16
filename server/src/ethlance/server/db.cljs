@@ -47,7 +47,7 @@
     [[:user/id column-types/address]
      [:user/email :varchar not-nil]
      [:user/name :varchar not-nil]
-     [:user/country :varchar]
+     [:user/country :varchar] ; FIXME: Not asked or set currently at registration. Remove?
      [:user/profile-image :varchar]
      [:user/date-registered :bigint]
      [:user/date-updated :bigint]

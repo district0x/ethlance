@@ -83,7 +83,9 @@
             {:selection @*bid-option
              :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
             [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
-            [:fixed-price [c-radio-secondary-element "Fixed Price"]]]]
+            [:fixed-price [c-radio-secondary-element "Fixed Price"]]
+            [:annual-salary [c-radio-secondary-element "Annual Salary"]]
+            ]]
           [:div.experience-radio-input.radio
            [:div.label "Required Experience Level"]
            [c-radio-select

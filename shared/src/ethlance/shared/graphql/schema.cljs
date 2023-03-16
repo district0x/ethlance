@@ -99,7 +99,15 @@
 
   input JobSearchParams {
     randomString: String
+    skills: [String]
+    category: String
     feedbackMaxRating: Int
+    feedbackMinRating: Int
+    minHourlyRate: Int
+    maxHourlyRate: Int
+    minNumFeedbacks: Int
+    paymentType: String
+    experienceLevel: String
   }
 
   input EmployerInput {

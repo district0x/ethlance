@@ -25,8 +25,7 @@
    :max-hourly-rate nil
    :min-num-feedbacks nil
    :payment-type :hourly-rate
-   :experience-level :novice
-   :country nil})
+   :experience-level :beginner})
 
 (defn mock-job-listing [& [n]]
   (mapv mock/generate-mock-job (range 1 (or n 10))))
@@ -60,13 +59,11 @@
                                     acc)))
                               {}
                               filter-keys)
-        _ (println ">>> querying with" filter-params "|" (j-gql/jobs-query {:search-params {:feedback-max-rating 5}}))
-
         args {:search-params filter-params}]
-      {:db (assoc-in db [state-key :feedback-max-rating] 4)
-       :dispatch [::gql-events/query {:query {:queries [(j-gql/jobs-query {:search-params {:feedback-max-rating 5}})]}
-                                      :id :JobSearchQuery}]}
-      ))
+      (println ">>> querying with" filter-params "|" (j-gql/jobs-query {:search-params {:feedback-max-rating 5}}))
+
+      {:dispatch [::gql-events/query {:query {:queries [(j-gql/jobs-query {:search-params {:feedback-max-rating 5}})]}
+                                      :id :JobSearchQuery}]}))
 
 (defn set-job-listing
   "Event FX Handler. Set the Current Job Listing."
@@ -107,7 +104,6 @@
 (re/reg-event-fx :page.jobs/set-min-num-feedbacks (create-assoc-handler :min-num-feedbacks parse-int))
 (re/reg-event-fx :page.jobs/set-payment-type (create-assoc-handler :payment-type))
 (re/reg-event-fx :page.jobs/set-experience-level (create-assoc-handler :experience-level))
-(re/reg-event-fx :page.jobs/set-country (create-assoc-handler :country))
 
 ;; Intermediates
 (re/reg-event-fx :page.jobs/-set-job-listing set-job-listing)

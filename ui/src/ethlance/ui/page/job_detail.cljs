@@ -218,7 +218,7 @@
 
        [:div.invoice-listing
         [:div.label "Invoices"]
-        [:div #_c-scrollable
+        [c-scrollable
          {:forceVisible true :autoHide false}
          [c-table
           {:headers ["Candidate" "Amount" "Created" "Status"]}
