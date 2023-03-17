@@ -74,10 +74,11 @@
       offset: Int,
     ): ArbiterList
 
-    job(contract: ID!): Job
+    job(job_id: ID!): Job
 
     jobSearch(
       job_id: Int,
+      searchParams: JobSearchParams,
       orderBy: JobListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -95,6 +96,19 @@
   }
 
   # Input types
+
+  input JobSearchParams {
+    randomString: String
+    skills: [String]
+    category: String
+    feedbackMaxRating: Int
+    feedbackMinRating: Int
+    minHourlyRate: Int
+    maxHourlyRate: Int
+    minNumFeedbacks: Int
+    paymentType: String
+    experienceLevel: String
+  }
 
   input EmployerInput {
     user_id: ID!
@@ -387,6 +401,10 @@
   type Arbitration {
     user_id: ID
     job_id: String
+    arbitration_dateArbiterAccepted: String
+    arbitration_fee: Int
+    arbitration_feeCurrencyId: String
+    arbitration_status: String
     job: Job
   }
 
@@ -427,8 +445,8 @@
     job_requiredExperienceLevel: String
     job_category: String
     job_status: Keyword
-    job_dateCreated: Date
-    job_dateUpdated: Date
+    job_dateCreated: Float # TODO: change back to Date after switching to district-ui-graphql
+    job_dateUpdated: Float # TODO: change back to Date after switching to district-ui-graphql
 
     job_tokenType: String
     job_tokenAmount: Float
@@ -440,10 +458,10 @@
     job_employerAddress: String
     job_hireAddress: String
 
-    job_employer(contract: ID): Employer
-    job_arbiter(contract: ID): Arbiter
+    job_employer: Employer
+    job_arbiter: Arbiter
 
-    job_stories(limit: Int, offset: Int): JobStoryList
+    jobStories(limit: Int, offset: Int): JobStoryList
 
     job_estimatedProjectLength: String
     job_maxNumberOfCandidates: Int

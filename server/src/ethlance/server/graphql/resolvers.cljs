@@ -8,6 +8,7 @@
     [ethlance.server.event-replay-queue :as replay-queue]
     [ethlance.server.graphql.authorization :as authorization]
     [ethlance.server.syncer :as syncer]
+    [oops.core]
     [honeysql.core :as sql]
     [honeysql.helpers :as sql-helpers]
     [print.foo :include-macros true]
@@ -112,15 +113,6 @@
                                :from [:Employer]
                                :join [:Users [:= :Users.user/id :Employer.user/id]]})
 
-; (def ^:private job->employer-query {:select [[:Employer.user/id :user/id]
-;                                         [:Employer.employer/professional-title :employer/professional-title]
-;                                         [:Employer.employer/bio :employer/bio]
-;                                         [:Employer.employer/rating :employer/rating]
-;                                         [:Users.user/date-registered :employer/date-registered]]
-;                                :from [:Employer]
-;                                :join [:Users [:= :Users.user/id :Employer.user/id]
-;                                       :Job [:= :Job.job/creator :Employer.user/id]]})
-
 (def ^:private job->employer-query {:select[:*]
                                     :from [:Employer]
                                     :join [:Users [:= :Users.user/id :Employer.user/id]
@@ -150,7 +142,7 @@
 (defn job->employer-resolver [parent args context info]
   (db/with-async-resolver-conn conn
     (log/debug "job->employer-resolver contract:" (:contract args))
-    (let [contract (:contract args)
+    (let [contract (:job/id (graphql-utils/gql->clj parent))
           query (sql-helpers/merge-where job->employer-query [:= contract :Job.job/id])]
       (<? (db/get conn query)))))
 
@@ -162,7 +154,7 @@
 (defn job->arbiter-resolver [parent args context info]
   (db/with-async-resolver-conn conn
     (log/debug "job->arbiter-resolver contract:" (:contract args))
-    (let [contract (:contract args)
+    (let [contract (:job/id (graphql-utils/gql->clj parent))
           query (sql-helpers/merge-where job->arbiter-query [:= contract :Job.job/id])]
       (<? (db/get conn query)))))
 
@@ -390,11 +382,13 @@
       (log/debug "employer->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn- arbiter-job-stories-query [id]
+(defn- arbiter-arbitrations-query [id]
   {:select
-   [
+   [:JobArbiter.user/id
+    :JobArbiter.job/id
     [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
     [:JobArbiter.job-arbiter/fee :arbitration/fee]
+    [:JobArbiter.job-arbiter/status :arbitration/status]
     [:JobArbiter.job-arbiter/fee-currency-id :arbitration/fee-currency-id]]
    :from [:JobStory]
    :join [:Job [:= :Job.job/id :JobStory.job/id]
@@ -404,8 +398,8 @@
 (defn arbiter->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:user/id (graphql-utils/gql->clj root))
-          query (arbiter-job-stories-query address)]
-      (log/debug "arbiter->job-stories-resolver" {:address address :args args})
+          query (arbiter-arbitrations-query address)]
+      (log/debug "arbiter->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
@@ -473,36 +467,78 @@
   (db/with-async-resolver-conn conn
     (log/debug "job-resolver")
     (let [contract-from-parent (:job/id (graphql-utils/gql->clj parent))
-          contract-from-args (:contract args)
+          contract-from-args (:job/id args)
           contract-address (or contract-from-parent contract-from-args)
           job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/id])))
           skills (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id (:job/id job)]}))
           job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
       job-full)))
 
-(def ^:private job-search-query {:select [:Arbiter.user/id
-                                       :Arbiter.arbiter/bio
-                                       :Arbiter.arbiter/professional-title
-                                       :Arbiter.arbiter/fee
-                                       :Arbiter.arbiter/fee-currency-id
-                                       :Arbiter.arbiter/rating
-                                       [:Users.user/date-registered :arbiter/date-registered]]
-                              :from [:Arbiter]
-                              :join [:Users [:= :Users.user/id :Arbiter.user/id]]})
-
-(defn job-search-resolver [_ {:keys [:limit :offset
-                                         :user/id
-                                         :order-by :order-direction]
-                                  :as args} _]
+(defn job->required-skills-resolver [parent args _]
   (db/with-async-resolver-conn conn
-    (log/debug "job-search-resolver" args)
-    (let [query (cond-> job-search-query
-                  id (sql-helpers/merge-where [:= id :Arbiter.user/id])
+    (let [job-id (:job/id (graphql-utils/gql->clj parent))]
+    (map :skill/id (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id job-id]}))))))
 
-                  order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
-                                                               :date-updated :user/date-updated}
-                                                              (graphql-utils/gql-name->kw order-by))
-                                                         (or (keyword order-direction) :asc)]]))]
+(defn js-obj->clj-map [obj]
+  (let [obj-keys (district.graphql-utils/gql->clj (js-keys obj))
+        keywordize (fn [k] (keyword (camel-snake-kebab.core/->kebab-case k)))
+        assoc-keywordized (fn [acc js-key] (assoc acc (keywordize js-key) (aget obj js-key)))]
+    (reduce assoc-keywordized {} obj-keys)))
+
+(def job-search-input (atom nil)) ; TODO: remove after debugging
+
+(def ^:private job-search-query {:select [:Job.*]
+                                 :from [:Job]
+                                 :join [:Employer [:= :Employer.user/id :Job.job/creator]]
+                                 :left-join [:JobStory [:= :JobStory.job/id :Job.job/id]]})
+
+(defn job-search-resolver [_ {:keys [:job/id
+                                     :search-params
+                                     :limit
+                                     :offset
+                                     :order-by
+                                     :order-direction]
+                                  :as args} _]
+  (log/debug "job-search-resolver" args)
+  (reset! job-search-input args)
+  (db/with-async-resolver-conn conn
+    (let [search-params (js-obj->clj-map search-params)
+          max-rating (:feedback-max-rating search-params)
+          min-rating (:feedback-min-rating search-params)
+          skills (or (js->clj (:skills search-params)) [])
+          category (:category search-params)
+          min-hourly-rate (:min-hourly-rate search-params)
+          max-hourly-rate (:max-hourly-rate search-params)
+          min-num-feedbacks (:min-num-feedbacks search-params)
+          payment-type (:payment-type search-params)
+
+          experience-level (:experience-level search-params)
+          ordered-experience-levels ["beginner" "intermediate" "expert"]
+          suitable-levels (drop-while #(not (= experience-level %)) ordered-experience-levels)
+
+          query (cond-> (merge job-search-query {:modifiers [:distinct]})
+                  min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
+                  max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
+                  ; The case for OR-ing the skills
+                  ; (not (empty? skills)) (sql-helpers/merge-where [:in :JobSkill.skill/id skills])
+
+                  ; The case for AND-ing the skills
+                  (not (empty? skills)) (match-all {:join-table :JobSkill
+                                                    :on-column :job/id
+                                                    :column :skill/id
+                                                    :all-values skills})
+                  category (sql-helpers/merge-where [:= :Job.job/category category])
+
+                  min-hourly-rate (sql-helpers/merge-where [:<= min-hourly-rate :JobStory.job-story/proposal-rate])
+                  max-hourly-rate (sql-helpers/merge-where [:>= max-hourly-rate :JobStory.job-story/proposal-rate])
+                  min-num-feedbacks (sql-helpers/merge-where
+                                      [:<= min-num-feedbacks
+                                       {:select [(sql/call :count :*)]
+                                        :from [:JobStoryFeedbackMessage]
+                                        :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
+                  payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
+                  experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
+      (println ">>> JOB-SEARCH-QUERY" (sql/format query))
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-story-query {:select [:*]
@@ -513,7 +549,7 @@
   (db/with-async-resolver-conn conn
     (let [{:keys [:job/id] :as job} (graphql-utils/gql->clj root)]
       (log/debug "job->job-stories-resolver" {:job job :args args})
-      (<? (paged-query conn (sql-helpers/merge-where job-story-query [:= id :Contract.job/id]) limit offset)))))
+      (<? (paged-query conn (sql-helpers/merge-where job-story-query [:= id :JobStory.job/id]) limit offset)))))
 
 (defn job-story-resolver [_ {job-id :job/id job-story-id :contract/id :as args} _]
   (db/with-async-resolver-conn conn
@@ -522,7 +558,7 @@
                        (sql-helpers/merge-where [:= job-id :Job.job/id])
                        (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))))))
 
-(defn job-story-list-resolver [_ args _]
+(defn job-story-list-resolver [parent args _]
   (db/with-async-resolver-conn conn
     (log/debug "job-story-list-resolver" args)
     (let [contract (:job-contract args)
@@ -768,10 +804,11 @@
                             :jobStory job-story-resolver
                             :jobStoryList job-story-list-resolver
                             :invoice invoice-resolver}
-                    :Job {:job_stories job->job-stories-resolver
+                    :Job {:jobStories job->job-stories-resolver
                           :job_employer job->employer-resolver
                           :job_arbiter job->arbiter-resolver
-                          :tokenDetails job->token-details-resolver}
+                          :tokenDetails job->token-details-resolver
+                          :job_requiredSkills job->required-skills-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver
@@ -793,6 +830,7 @@
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
                               :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
+                    :Arbitration {:job job-resolver}
 
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver

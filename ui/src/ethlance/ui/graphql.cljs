@@ -158,9 +158,9 @@
   {:db (assoc-in db [:employers address] employer)})
 
 (defmethod handler :arbiter
-  [{:keys [db]} _ {:user/keys [address] :as arbiter}]
+  [{:keys [db]} _ {:user/keys [id] :as arbiter}]
   (log/debug "arbiter handler" arbiter)
-  {:db (assoc-in db [:arbiters address] arbiter)})
+  {:db (assoc-in db [:arbiters id] arbiter)})
 
 (defmethod handler :github-sign-up
   [{:keys [db]} _ {:user/keys [address github-username] :as user}]

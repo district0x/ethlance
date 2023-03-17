@@ -18,7 +18,7 @@
   :page.job-detail/all-proposals
   (fn [db [_ queried-job-contract]]
     (let [current-user-address (get-in db [:active-session :user/id])
-          contract-from-db (get-in db [:district.ui.router :active-page :params :contract])
+          contract-from-db (get-in db [:district.ui.router :active-page :params :id])
           contract (or queried-job-contract contract-from-db)
           stories (filter #(= contract (:job/id %)) (vals (:job-stories db)))]
       (->> stories

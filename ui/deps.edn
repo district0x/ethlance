@@ -44,7 +44,7 @@
   district0x/district-ui-router-google-analytics {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
 
   district0x/district-ui-window-size {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
-  district0x/district-ui-graphql {:mvn/version "1.0.14"}
+  district0x/district-ui-graphql {:mvn/version "1.0.15"}
 
   cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
   cljsjs/graphql {:mvn/version "0.13.1-0"}
@@ -52,6 +52,7 @@
   flib/simplebar {:mvn/version "5.0.7-SNAPSHOT"}
   funcool/bide {:mvn/version "1.7.0"} ; FIXME: district.ui.router requires it but older version is included by some other library
   funcool/cuerdas {:mvn/version "2022.06.16-403"}
+  inflections/inflections {:mvn/version "0.14.1"}
 
   medley/medley {:mvn/version "1.3.0"}
   mount/mount {:mvn/version "0.1.16"}
@@ -82,8 +83,9 @@
   :local-deps
   {:override-deps
    {
-    ; district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
+    district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
     is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}
+    is.d0x/district-ui-router {:local/root "../../d0x-libs/browser/district-ui-router"}
     is.d0x/re-frame-web3-fx {:local/root "../../d0x-libs/browser/re-frame-web3-fx"}
     is.d0x/district-ui-web3-tx {:local/root "../../d0x-libs/browser/district-ui-web3-tx"}}}
   :dev

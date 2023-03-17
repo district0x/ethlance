@@ -82,6 +82,7 @@
 (defn prepare-arbitrations [arbitration]
   {:title (get-in arbitration [:job :job/title])
    :start-date (get-in arbitration [:arbitration/date-arbiter-accepted])
+   :fee (str (get-in arbitration [:arbitration/fee]) " " (get-in arbitration [:arbitration/fee-currency-id]))
    :status (get-in arbitration [:arbitration/status])})
 
 (defn mock-feedback-list []
@@ -236,15 +237,16 @@
                    arbitrations {
                      items {
                        arbitration_dateArbiterAccepted
-                       arbitration_arbiterFee
-                       arbitration_arbiterFeeCurrencyId
+                       arbitration_fee
+                       arbitration_feeCurrencyId
+                       arbitration_status
                        job {
                          job_title
                        }
                      }
                    }
-                   arbiter_jobs { items { job_title job_status job_arbiter
-                                              jobStory_dateArbiterAccepted } } } }"
+                 }
+               }"
         results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}}])
         ; query {:queries [
         ;                  [:user {:user/id (:address @page-params)}
@@ -279,7 +281,7 @@
             biography (get-in @results [:arbiter :arbiter/bio])
             image-url (get-in @results [:user :user/profile-image])
             languages (get-in @results [:user :user/languages])
-            arbitration-column-headers {:title "Title" :start-date "Hired" :fee "Fee"}
+            arbitration-column-headers {:title "Title" :start-date "Hired" :fee "Fee" :status "Status"}
             arbitrations (map prepare-arbitrations (get-in @results [:arbiter :arbitrations :items]))
             ; feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
             feedback-list (mock-feedback-list)
