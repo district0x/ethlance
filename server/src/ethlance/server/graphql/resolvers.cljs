@@ -51,13 +51,16 @@
                                                          (or (keyword order-direction) :asc)]]))]
       (<? (paged-query conn query limit offset)))))
 
-(defn user-resolver [_ {:keys [:user/id] :as args} _]
+(defn user-resolver [parent {:keys [:user/id] :as args} _]
   (db/with-async-resolver-conn
     conn
-    (log/debug "user-resolver" args)
-    (<? (db/get conn {:select [:*]
-                      :from [:Users]
-                      :where [:= id :Users.user/id]}))))
+    (let [clj-parent (graphql-utils/gql->clj parent)
+          user-id-from-parent (or (:user/id clj-parent) (:message/creator clj-parent))
+          user-id (or id user-id-from-parent)]
+      (log/debug "user-resolver" args)
+      (<? (db/get conn {:select [:*]
+                        :from [:Users]
+                        :where [:ilike user-id :Users.user/id]})))))
 
 (defn feedback->from-user-resolver [root _ _]
   (let [id (:feedback/from-user-address (graphql-utils/gql->clj root))]
@@ -276,6 +279,18 @@
                                   :from [:Message]
                                   :where [:= :Message.message/id proposal-message-id]}
           query-result (<? (db/get conn proposal-message-query))]
+      (assoc query-result :__typename "JobStoryMessage"))))
+
+(defn job-story->invitation-message-resolver [raw-parent args _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story->proposal-message-resolver")
+    (let [address-from-args (:user/id args)
+          parent (graphql-utils/gql->clj raw-parent)
+          invitation-message-id (:job-story/invitation-message-id parent)
+          invitation-message-query {:select [:*]
+                                    :from [:Message]
+                                    :where [:= :Message.message/id invitation-message-id]}
+          query-result (<? (db/get conn invitation-message-query))]
       (assoc query-result :__typename "JobStoryMessage"))))
 
 (defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
@@ -538,7 +553,6 @@
                                         :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
                   payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
                   experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
-      (println ">>> JOB-SEARCH-QUERY" (sql/format query))
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-story-query {:select [:*]
@@ -551,11 +565,10 @@
       (log/debug "job->job-stories-resolver" {:job job :args args})
       (<? (paged-query conn (sql-helpers/merge-where job-story-query [:= id :JobStory.job/id]) limit offset)))))
 
-(defn job-story-resolver [_ {job-id :job/id job-story-id :contract/id :as args} _]
+(defn job-story-resolver [_ {job-story-id :job-story/id :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "job-story-resolver" args)
     (<? (db/get conn (-> job-story-query
-                       (sql-helpers/merge-where [:= job-id :Job.job/id])
                        (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))))))
 
 (defn job-story-list-resolver [parent args _]
@@ -586,6 +599,26 @@
                   (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))]
       (log/debug "job-story->invoices-resolver" {:job-story job-story :args args})
       (<? (paged-query conn query limit offset)))))
+
+(defn job-story->dispute-creation-message-resolver [parent args _]
+  (db/with-async-resolver-conn conn
+    (let [clj-parent (graphql-utils/gql->clj parent)
+          dispute-creation-msg-id (:job-story/raised-dispute-message-id clj-parent)
+          query {:select [:Message.*]
+                 :from [:Message]
+                 :where [:= dispute-creation-msg-id :Message.message/id]}]
+      (log/debug "job-story->job-story->dispute-creation-message-resolver" {:clj-parent clj-parent})
+      (<? (db/get conn query)))))
+
+(defn job-story->dispute-resolution-message-resolver [parent args _]
+  (db/with-async-resolver-conn conn
+    (let [clj-parent (graphql-utils/gql->clj parent)
+          dispute-resolution-msg-id (:job-story/resolved-dispute-message-id clj-parent)
+          query {:select [:*]
+                 :from [:Message]
+                 :where [:= dispute-resolution-msg-id :Message.message/id]}]
+      (log/debug "job-story->job-story->dispute-resolution-message-resolver" {:clj-parent clj-parent})
+      (<? (db/get conn query)))))
 
 (defn sign-in-mutation [_ {:keys [:data :data-signature] :as input} {:keys [config]}]
   (try-catch-throw
@@ -814,7 +847,10 @@
                                :jobStory_invoices job-story->invoices-resolver
                                :job job-resolver
                                :candidate candidate-resolver
-                               :jobStory_proposalMessage job-story->proposal-message-resolver}
+                               :proposalMessage job-story->proposal-message-resolver
+                               :invitationMessage job-story->invitation-message-resolver
+                               :disputeCreationMessage job-story->dispute-creation-message-resolver
+                               :disputeResolutionMessage job-story->dispute-resolution-message-resolver}
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
@@ -835,6 +871,7 @@
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
+                    :JobStoryMessage {:creator user-resolver}
                     :Mutation {:signIn sign-in-mutation
                                :sendMessage (require-auth send-message-mutation)
                                :raiseDispute (require-auth raise-dispute-mutation)

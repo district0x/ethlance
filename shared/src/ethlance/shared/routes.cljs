@@ -14,7 +14,7 @@
              ["/jobs" :route.job/jobs]
              ["/jobs/new" :route.job/new]
              ["/jobs/contract/" :route.job/contract]
-             ["/jobs/contract/:address" :route.job/contract]
+             ["/jobs/contract/:job-story-id" :route.job/contract]
              ["/jobs/detail" :route.job/detail] ; TODO: possibly to be used to poll & resolve to the last job created (if the address was unknown)
              ["/jobs/detail/:id" :route.job/detail]
 

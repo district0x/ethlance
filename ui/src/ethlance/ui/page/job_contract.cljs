@@ -2,56 +2,113 @@
   (:require [district.parsers :refer [parse-int]]
             [district.ui.component.page :refer [page]]
             [district.ui.router.subs :as router.subs]
+            [district.ui.graphql.subs :as gql]
             [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.component.chat :refer [c-chat-log]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.rating :refer [c-rating]]
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [ethlance.ui.util.navigation :as util.navigation]
             [re-frame.core :as re]))
 
+(defn profile-link-handlers [user-type address]
+  {:on-click (util.navigation/create-handler
+               {:route :route.user/profile
+                :params {:address address}
+                :query {:tab user-type}})
+   :href (util.navigation/resolve-route
+           {:route :route.user/profile
+            :params {:address address}
+            :query {:tab user-type}})})
+
 (defn c-job-detail-table
-  [{:keys []}]
+  [{:keys [status funds employer candidate arbiter]}]
   [:div.job-detail-table
 
    [:div.name "Status"]
-   [:div.value "Active"]
+   [:div.value status]
 
    [:div.name "Funds Available"]
-   [:div.value "12,900 SNT"]
+   [:div.value (str (:amount funds) " " (:symbol funds))]
 
    [:div.name "Employer"]
-   [:div.value "Cyrus Karsan"]
+   [:a.value (profile-link-handlers :employer (:address employer)) (:name employer)]
 
    [:div.name "Candidate"]
-   [:div.value "Clement Lesaege"]
+   [:a.value (profile-link-handlers :candidate (:address candidate)) (:name candidate)]
 
    [:div.name "Arbiter"]
-   [:div.value "Keegan Quigley"]])
+   [:a.value (profile-link-handlers :arbiter (:address arbiter)) (:name arbiter)]])
 
 (defn c-header-profile
-  [{:keys []}]
+  [{:keys [title] :as details}]
   [:div.header-profile
    [:div.title "Job Contract"]
-   [:div.job-name "Finality Labs Full Stack Developer"]
+   [:div.job-name title]
    [:div.job-details
-    [c-job-detail-table {}]]])
+    [c-job-detail-table details]]])
 
-(defn c-chat [_]
-  [c-chat-log
-   [{:user-type :candidate
-     :text "Hi Johan. I’ve read the white paper and I can do the STEPS smart contract for 14 ETH and the ICO smart contract for 5 ETH.
+(defn extract-chat-messages [job-story current-user]
+  (println ">>> extract-chat-messages" job-story current-user)
+  (let [job-story-id (-> job-story :job-story :job-story/id)
+        direction (fn [viewer creator]
+                    (if (= (clojure.string/lower-case (or viewer ""))
+                           (clojure.string/lower-case (or creator "")))
+                      :sent :received))
+        add-to-details (fn [message additional-detail]
+                         (when message
+                           (assoc message :details (conj (:details message) additional-detail))))
+        common-fields (fn [job-story field details]
+                        (let [message (-> job-story field)]
+                          (when message
+                            {:id (str "dispute-creation-msg-" (-> message :message/id))
+                             :direction (direction current-user (-> message :creator :user/id))
+                             :text (-> message :message/text)
+                             :full-name (-> message :creator :user/name)
+                             :timestamp (-> message :message/date-created)
+                             :image-url (-> message :creator :user/profile-image)
+                             :details details})))
+        format-proposal-amount (fn [job-story]
+                                 (let [amount (-> job-story :job-story/proposal-rate)
+                                       token-name (-> job-story :job :token-details :token-detail/name)
+                                       token-symbol (-> job-story :job :token-details :token-detail/symbol)]
+                                   (str amount " " token-symbol " (" token-name ")")))
+        dispute-creation (-> (common-fields job-story :dispute-creation-message ["Dispute was created"]))
+        dispute-resolution (common-fields job-story :dispute-resolution-message ["Dispute was resolved"])
+        invitation (common-fields job-story :invitation-message ["Invited to job"])
+        proposal (-> (common-fields job-story :proposal-message ["Sent a job proposal"])
+                      (add-to-details ,,, (format-proposal-amount job-story)))
+        ]
+    (->> [dispute-creation dispute-resolution invitation proposal]
+         (remove nil? ,,,)
+         (sort-by :timestamp))))
 
-I am a NY based senior blockchain developer who has done work for Consensys, Status, Gitcoin, Market Protocol, and several others. I am also a smart contract auditor at solidified.io. Please feel free to reach out directly at email@gmail.com"
-     :details ["has sent job proposal" "($25/hr)"]
-     :full-name "Brian Curran"
-     :date-updated "3 Days Ago"}
+(defn c-chat [job-story-id]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        ; jobStory_invoices {items {message invoice_datePaid}}
+        ; jobStory_candidateFeedback {items {feedback_text}}
+        ; jobStory_employerFeedback {items {feedback_text}}
+        ; jobStory_arbiterFeedback {items {feedback_text}}
+        message-fields [:message/id
+                        :message/text
+                        [:creator [:user/id :user/name :user/profile-image]]
+                        :message/date-created]
+        messages-query [:job-story {:job-story/id job-story-id}
+                        [:job-story/proposal-rate
+                         [:job [:job/token-type
+                                :job/token-address
+                                [:token-details [:token-detail/id
+                                                 :token-detail/name
+                                                 :token-detail/symbol]]]]
+                         [:dispute-creation-message message-fields]
+                         [:dispute-resolution-message message-fields]
+                         [:proposal-message message-fields]
+                         [:invitation-message message-fields]]]
 
-    {:user-type :employer
-     :text "Hi Cyrus, welcome on board!"
-     :details ["Has hired Brian Curran"]
-     :full-name "Clement Lesaege"
-     :date-updated "2 Days Ago"}]])
+        messages-result @(re/subscribe [::gql/query {:queries [messages-query]}])
+        chat-messages (extract-chat-messages (:job-story messages-result) active-user)]
+    [c-chat-log chat-messages]))
 
 (defn c-employer-options []
   [c-tabular-layout
@@ -137,19 +194,44 @@ I am a NY based senior blockchain developer who has done work for Consensys, Sta
 (defmethod page :route.job/contract []
   (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
     (fn []
-      (let [job-id (-> @*active-page-params :id parse-int)
-            job-story-query
-            @(re/subscribe
-              [:gql/query
-               {:queries
-                [[:job-story
-                  {:job/id job-id}
-                  [:job/id]]]}])
-            {job-story :job-story} job-story-query]
+      (let [job-story-id (-> @*active-page-params :job-story-id parse-int)
+            result @(re/subscribe
+                      [::gql/query
+                       {:queries
+                        [[:job-story {:job-story/id job-story-id}
+                          [:job/id
+                           :job-story/id
+                           :job-story/status
+                           [:candidate [:user/id
+                                        [:user [:user/name]]]]
+                           [:job [:job/title
+                                  :job/token-type
+                                  :job/token-amount
+                                  :job/token-address
+                                  :job/token-id
+                                  [:job/employer
+                                   [:user/id
+                                    [:user [:user/name]]]]
+                                  [:job/arbiter
+                                   [:user/id
+                                    [:user [:user/name]]]]
+                                  [:token-details [:token-detail/symbol :token-detail/name]]]]]]]}])
+            job-story (:job-story result)
+            profile {:title (get-in job-story [:job :job/title])
+                     :status (get-in job-story [:job-story/status])
+                     :funds {:amount (get-in job-story [:job :job/token-amount])
+                             :name (-> job-story :job :token-details :token-detail/name)
+                             :symbol (-> job-story :job :token-details :token-detail/symbol)}
+                     :employer {:name (get-in job-story [:job :job/employer :user :user/name])
+                                :address (get-in job-story [:job :job/employer :user/id])}
+                     :candidate {:name (get-in job-story [:candidate :user :user/name])
+                                 :address (get-in job-story [:candidate :user/id])}
+                     :arbiter {:name (get-in job-story [:job :job/arbiter :user :user/name])
+                               :address (get-in job-story [:job :job/arbiter :user/id])}}]
         [c-main-layout {:container-opts {:class :job-contract-main-container}}
          [:div.header-container
-          [c-header-profile job-story]
-          [c-chat job-story]]
+          [c-header-profile profile]
+          [c-chat job-story-id]]
 
          ;; TODO: query for signed-in user's relation to the contract (guest, candidate, employer, arbiter)
          [:div.options-container

@@ -498,12 +498,14 @@
     jobStory_candidateFeedback: Feedback
 
     jobStory_dispute: Dispute
+    disputeCreationMessage: JobStoryMessage
+    disputeResolutionMessage: JobStoryMessage
+    invitationMessage: JobStoryMessage
+    proposalMessage: JobStoryMessage
 
     jobStory_invoices(limit: Int, offset: Int,): InvoiceList
 
     # The below fields were ethlanceJobStory_...
-    jobStory_invitationMessage: Message
-    jobStory_proposalMessage: Message
     jobStory_proposalRate: Int
     jobStory_proposalRateCurrencyId: Int
     jobStory_dateCandidateAccepted: Date
@@ -557,13 +559,16 @@
 
   type Dispute {
     \"Identifier for the given Job\"
-    job_id: Int
+    job_id: String
 
     \"Identifier for the given JobStory\"
-    jobStory_id: Int
+    jobStory_id: ID
 
     \"Reason for the Dispute\"
     dispute_reason: String
+
+    \"Resolution for the Dispute\"
+    dispute_resolution: String
 
     \"Date of creation\"
     dispute_dateCreated: Date
@@ -576,14 +581,14 @@
   # Feedback Types
 
   type Feedback {
-    message_id: Int!
+    message_id: ID
     job_id: Int
     jobStory_id: Int
     feedback_toUserType: Keyword
-    feedback_toUserAddress: ID
+    feedback_toUserAddress: String
     feedback_fromUser: User
     feedback_fromUserType: Keyword
-    feedback_fromUserAddress: ID
+    feedback_fromUserAddress: String
     feedback_dateCreated: Date
     feedback_rating: Int
     feedback_text: String
@@ -597,19 +602,20 @@
   }
 
   interface Message {
-    message_id: Int
+    message_id: ID
     message_text: String
     message_type: String
     message_creator: String
+    message_dateCreated: Float
   }
 
   type JobStoryMessage implements Message {
-    message_id: Int
+    message_id: ID
     message_text: String
     message_type: String
     message_creator: String
+    message_dateCreated: Float
+    creator: User
     jobStoryMessageType: String
   }
-
-
   ")
