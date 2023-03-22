@@ -12,7 +12,7 @@
   message - ethlance chat message object
   "
   [{:keys [id user-type direction text full-name timestamp details image-url]}]
-  (let [position-class (if (= :sent direction) "right" "left")
+  (let [position-class (if (= :sent direction) "left" "right")
         user-type (or user-type :candidate)
         color-class (case user-type
                       :candidate "candidate"

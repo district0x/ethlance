@@ -188,15 +188,6 @@
       (log/debug "employer->feedback-resolver" {:employer employer :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn job-story->employer-feedback-resolver [root _ _]
-  (db/with-async-resolver-conn conn
-    (let [{:keys [:job-story/id] :as job-story} (graphql-utils/gql->clj root)]
-      (log/debug "job-story->employer-feedback-resolver" {:job-story job-story})
-      (<? (db/get conn (-> user-feedback-query
-                         (sql-helpers/merge-where [:= id :JobStory.job-story/id])
-                         ;; TODO: add to-user-type is employer when user-feedback-query is fixed
-                         ))))))
-
 (def ^:private arbiter-query {:select [:Arbiter.user/id
                                        :Arbiter.arbiter/bio
                                        :Arbiter.arbiter/professional-title
@@ -230,7 +221,10 @@
 (defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} {:keys [conn]}]
   (db/with-async-resolver-conn conn
     (let [{:keys [:user/id] :as arbiter} (graphql-utils/gql->clj root)
-          query (sql-helpers/merge-where user-feedback-query [:= id :JobStoryFeedbackMessage.user/id])]
+          job-story-id 2 ; FIXME: read from params
+          query (sql-helpers/merge-where user-feedback-query [:and
+                                                              [:= id :JobStoryFeedbackMessage.user/id]
+                                                              [:= job-story-id :JobStoryFeedbackMessage.job-story/id]])]
       (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -425,13 +419,43 @@
       (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
       (<? (paged-query conn query limit offset)))))
 
+(defn job-story->employer-feedback-resolver [root _ _]
+  (db/with-async-resolver-conn conn
+    (let [{job-story-id :job-story/id} (graphql-utils/gql->clj root)
+          query (-> user-feedback-query
+                    (sql-helpers/merge-where ,,, [:= job-story-id :JobStory.job-story/id])
+                    (sql-helpers/merge-where ,,, [:and
+                                                  [:= :JobStoryFeedbackMessage.job-story/id job-story-id]
+                                                  [:= :Job.job/creator :JobStoryFeedbackMessage.user/id]]))]
+      (log/debug "job-story->employer-feedback-resolver")
+      (<? (db/all conn query)))
+    ))
+
 (defn job-story->candidate-feedback-resolver [root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:job-story/id :contract/candidate-address] :as contract} (graphql-utils/gql->clj root)]
-      (log/debug "job-story->candidate-feedback-resolver" {:contract contract})
-      (<? (db/get conn (-> user-feedback-query
-                         (sql-helpers/merge-where [:= id :JobStory.job-story/id])
-                         (sql-helpers/merge-where [:= candidate-address :JobStoryFeedbackMessage.user/id])))))))
+    (let [{job-story-id :job-story/id} (graphql-utils/gql->clj root)]
+      (log/debug "job-story->candidate-feedback-resolver")
+      (<? (db/all conn (-> user-feedback-query
+                           (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])
+                           (sql-helpers/merge-where [:= :JobStory.job-story/candidate :JobStoryFeedbackMessage.user/id])))))))
+
+(defn job-story->arbiter-feedback-resolver [root _ _]
+  (db/with-async-resolver-conn conn
+    (let [{job-story-id :job-story/id} (graphql-utils/gql->clj root)
+          query (-> user-feedback-query
+                    (sql-helpers/merge-join ,,, :JobArbiter [:= :JobArbiter.job/id :Job.job/id])
+                    (sql-helpers/merge-where ,,, [:= job-story-id :JobStory.job-story/id])
+                    (sql-helpers/merge-where ,,, [:and
+                                                  [:= :JobStoryFeedbackMessage.job-story/id job-story-id]
+                                                  [:= :JobArbiter.user/id :JobStoryFeedbackMessage.user/id]]))]
+      (log/debug "job-story->arbiter-feedback-resolver")
+      (<? (db/all conn query)))))
+
+(defn message-resolver [root args _]
+  (db/with-async-resolver-conn conn
+    (let [{message-id :message/id :as root-clj} (graphql-utils/gql->clj root)]
+          (log/debug "message-resolver" message-id root-clj)
+          (<? (db/get conn {:select [:*] :from [:Message] :where [:= :message/id message-id]})))))
 
 (defn employer-search-resolver [_ {:keys [:limit :offset
                                           :user/id
@@ -663,16 +687,42 @@
                                        :message/creator (:user/id current-user)
                                        :message/text "Dispute resolved"}))))
 
-(defn leave-feedback-mutation [_ {:keys [:job-story/id :rating :to]} {:keys [current-user timestamp]}]
+(defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
+  (println ">>> leave-feedback-mutation" {:params params :current-user current-user :timestamp timestamp})
+  ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
-    (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                       :job-story-message/type :feedback
-                                       :job-story/id id
-                                       :message/date-created timestamp
-                                       :message/creator (:user/id current-user)
-                                       :message/text "Feedback"
-                                       :feedback/rating rating
-                                       :user/id to}))))
+    (let [job-story-id id
+          current-user-id (:user/id current-user)
+          employer (<? (ethlance-db/get-employer-id-by-job-story-id conn job-story-id))
+          candidate (<? (ethlance-db/get-candidate-id-by-job-story-id conn job-story-id))
+          participants (set [employer candidate])
+          feedback-from-participants? (contains? participants current-user-id)
+          previous-status (:status (<? (db/get conn
+                                               {:select [[:JobStory.job-story/status :status]]
+                                                :from [:JobStory]
+                                                :where [:= :job-story/id job-story-id]})))
+          arbiter-feedback-before-ending? (and (not= previous-status "ended-by-feedback")
+                                               (not feedback-from-participants?))]
+
+      (println ">>> leave-feedback-mutation PARAMS:" {:previous-status previous-status
+                                                      :arbiter-feedback-before-ending? arbiter-feedback-before-ending?
+                                                      :participants participants
+                                                      :employer employer
+                                                      :candidate candidate
+                                                      :feedback-from-participants? feedback-from-participants?})
+      (when feedback-from-participants?
+       (<? (ethlance-db/update-job-story-status conn job-story-id "ended-by-feedback")))
+      (when arbiter-feedback-before-ending? (throw (js/Error. "Arbiter can't leave feedback before job contract has been ended")))
+      (<? (ethlance-db/add-message conn {:message/type :job-story-message
+                                         :job-story-message/type :feedback
+                                         :job-story/id job-story-id
+                                         :message/date-created timestamp
+                                         :message/creator current-user-id
+                                         :message/text text
+                                         :feedback/rating rating
+                                         :user/id to}))
+      true
+      )))
 
 (defn update-employer-mutation [_ {:keys [input]} {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
@@ -844,6 +894,7 @@
                           :job_requiredSkills job->required-skills-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
+                               :jobStory_arbiterFeedback job-story->arbiter-feedback-resolver
                                :jobStory_invoices job-story->invoices-resolver
                                :job job-resolver
                                :candidate candidate-resolver
@@ -870,6 +921,7 @@
 
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver
+                               :message message-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :JobStoryMessage {:creator user-resolver}
                     :Mutation {:signIn sign-in-mutation

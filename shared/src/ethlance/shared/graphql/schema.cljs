@@ -176,7 +176,7 @@
     sendMessage(to: ID, text: String): Boolean!,
     raiseDispute(jobStory_id: Int!, text: String): Boolean!,
     resolveDispute(jobStory_id: Int!): Boolean!,
-    leaveFeedback(jobStory_id: Int!, rating: Int!, to: ID!): Boolean!,
+    leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
     updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
@@ -494,8 +494,9 @@
     jobStory_dateCreated: Date
     jobStory_dateUpdated: Date
 
-    jobStory_employerFeedback: Feedback
-    jobStory_candidateFeedback: Feedback
+    jobStory_employerFeedback: [Feedback]  # This job's feedback for employer
+    jobStory_candidateFeedback: [Feedback] # This job's Feedback for candidate
+    jobStory_arbiterFeedback: [Feedback]   # This job's Feedback for arbiter
 
     jobStory_dispute: Dispute
     disputeCreationMessage: JobStoryMessage
@@ -584,6 +585,8 @@
     message_id: ID
     job_id: Int
     jobStory_id: Int
+    message: JobStoryMessage
+
     feedback_toUserType: Keyword
     feedback_toUserAddress: String
     feedback_fromUser: User

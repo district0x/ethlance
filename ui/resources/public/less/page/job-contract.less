@@ -69,18 +69,26 @@
   > .options-container {
     margin-bottom: 5em;
     > .tabular-layout > .active-page {
-      
+
       // Default Styling for input containers
       .input-container() {
         display: flex;
         flex-direction: column;
         margin: 1em 3em;
 
+        > .rating-label , > .selection-label {
+          font-weight: bold;
+        }
+
+        > .ethlance-radio-select {
+          flex-direction: row;
+        }
+
         > .label {
           font-weight: bold;
           margin: 1em 0;
         }
-        
+
         > .ethlance-textarea-input {
           margin: 1em 0;;
           border-radius: 5px;
@@ -108,18 +116,18 @@
       }
 
       > .dispute-input-container {
-        .input-container();      
+        .input-container();
       }
 
       > .feedback-input-container {
         .input-container();
-        
+
         > .rating-input {
           display: flex;
           flex-direction: row;
           align-items: center;
           margin: 1em 0;
-          
+
           > span {
             padding-left: 0.5em;
             font-size: 1.2em;

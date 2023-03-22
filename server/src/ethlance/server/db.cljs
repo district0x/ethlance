@@ -787,6 +787,25 @@
                           :join [[:Job :j] [:= :js.job/id :j.job/id]]
                           :where [:= :j.job/id job-id]})))))
 
+(defn get-candidate-id-by-job-story-id [conn job-story-id]
+  (safe-go
+   (:id (<? (db/get conn {:select [[:job-story/candidate :id]]
+                          :from [:JobStory]
+                          :where [:= :job-story/id job-story-id]})))))
+
+(defn get-employer-id-by-job-story-id [conn job-story-id]
+  (safe-go
+   (:id (<? (db/get conn {:select [[:Job.job/creator :id]]
+                          :from [:JobStory]
+                          :join [:Job [:= :Job.job/id :JobStory.job/id]]
+                          :where [:= :job-story/id job-story-id]})))))
+
+(defn update-job-story-status [conn job-story-id status]
+  (safe-go
+    (<? (db/get conn {:update :JobStory
+                      :set {:job-story/status status}
+                      :where [:= :job-story/id job-story-id]}))))
+
 (defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
   (safe-go
    (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
@@ -807,7 +826,6 @@
                                            :user/id contributor-address
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
-
 (defn refund-job-contribution [_ _ _]
   ;; [conn job-id contribution-id]
   ;; TODO: implement this, delete from the table

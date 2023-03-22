@@ -6,6 +6,7 @@
             [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
             [ethlance.ui.component.table :refer [c-table]]
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
+            [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.util.navigation :as util.navigation]
             [re-frame.core :as re]))
 
@@ -31,26 +32,42 @@
 (defn c-default-listing []
   [:<>
    [c-table
-    {:headers ["Title" "Candidate" "Rate" "Total Spent"]}
+    {:headers ["Title" "Candidate" "Rate" "Total Spent" ""]}
     [[:span "Cryptoeconomics Research Intern"]
      [:span "Keegan Quigley"]
      [:span "$30/hr"]
-     [:span "12.2 ETH"]]
+     [:span "12.2 ETH"]
+     [c-button {:style {:height "2.5em"}
+                :on-click (fn [] (println ">>> Hire button pressed"))
+                :size :small}
+      [c-button-label "Hire"]]]
 
     [[:span "Smart Contract Hacker"]
      [:span "Cyrus Karsen"]
      [:span "$25"]
-     [:span "1000 SNT"]]
+     [:span "1000 SNT"]
+     [c-button {:style {:height "2.5em"}
+                :on-click (fn [] (println ">>> Hire button pressed"))
+                :size :small}
+      [c-button-label "Hire"]]]
 
     [[:span "Interactive Developer"]
      [:span "Ari Kaplan"]
      [:span "$75"]
-     [:span "5.4 ETH"]]
+     [:span "5.4 ETH"]
+     [c-button {:style {:height "2.5em"}
+                :on-click (fn [] (println ">>> Hire button pressed"))
+                :size :small}
+      [c-button-label "Hire"]]]
 
     [[:span "Cryptoeconomics Research Intern"]
      [:span "Keegan Quigley"]
      [:span "$30/hr"]
-     [:span "12.2 ETH"]]]
+     [:span "12.2 ETH"]
+     [c-button {:style {:height "2.5em"}
+                :on-click (fn [] (println ">>> Hire button pressed"))
+                :size :small}
+      [c-button-label "Hire"]]]]
    [:div.button-listing
     [c-circle-icon-button {:name :ic-arrow-left2 :size :smaller :disabled? true}]
     [c-circle-icon-button {:name :ic-arrow-left :size :smaller :disabled? true}]
@@ -152,7 +169,10 @@
      [c-sidebar]]))
 
 (defn c-listing []
-  (let [*current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])]
+  (let [
+        ; *current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])
+        *current-sidebar-choice (atom :my-employer-job-listing)
+        ]
     (fn []
       [:div.listing
        (case @*current-sidebar-choice
