@@ -173,7 +173,7 @@
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): signInPayload!
-    sendMessage(to: ID, text: String): Boolean!,
+    sendMessage(jobStory_id: Int!, to: ID!, text: String!): Boolean!,
     raiseDispute(jobStory_id: Int!, text: String): Boolean!,
     resolveDispute(jobStory_id: Int!): Boolean!,
     leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
@@ -503,6 +503,7 @@
     disputeResolutionMessage: JobStoryMessage
     invitationMessage: JobStoryMessage
     proposalMessage: JobStoryMessage
+    directMessages: [DirectMessage]
 
     jobStory_invoices(limit: Int, offset: Int,): InvoiceList
 
@@ -610,6 +611,17 @@
     message_type: String
     message_creator: String
     message_dateCreated: Float
+  }
+
+  type DirectMessage implements Message {
+    message_id: ID
+    message_text: String
+    message_type: String
+    message_dateCreated: Float
+    message_creator: String
+    directMessage_recipient: String
+    recipient: User
+    creator: User
   }
 
   type JobStoryMessage implements Message {

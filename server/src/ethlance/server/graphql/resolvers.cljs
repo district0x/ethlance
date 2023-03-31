@@ -287,6 +287,22 @@
           query-result (<? (db/get conn invitation-message-query))]
       (assoc query-result :__typename "JobStoryMessage"))))
 
+(defn job-story->direct-messages-resolver [raw-parent args {:keys [:current-user :timestamp] :as ctx}]
+  (db/with-async-resolver-conn conn
+      (log/debug "job-story->direct-message-resolver")
+      (let [parent (graphql-utils/gql->clj raw-parent)
+            job-story-id (:job-story/id parent)
+            user-id (:user/id current-user)
+            query {:select [:*]
+                   :from [:DirectMessage]
+                   :join [:Message [:= :Message.message/id :DirectMessage.message/id]]
+                   :where [:and
+                           [:= :DirectMessage.job-story/id job-story-id]
+                           [:or
+                            [:= :DirectMessage.direct-message/recipient user-id]
+                            [:= :Message.message/creator user-id]]]}]
+        (<? (db/all conn query)))))
+
 (defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
   (reduce-kv (fn [result index value]
                (let [table-name (-> query :from first name)
@@ -653,12 +669,16 @@
       {:jwt jwt :user/id user-address})))
 
 
-(defn send-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
+(defn send-message-mutation [_ {:keys [:job-story/id :to :text]} {:keys [:current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-    (<? (ethlance-db/add-message conn {:message/type :proposal
+    (log/debug "send-message-mutation" {:id id :to to :text text :current-user current-user :timestamp timestamp})
+    (<? (ethlance-db/add-message conn {:job-story/id id
+                                       :message/type :direct-message
                                        :message/date-created timestamp
                                        :message/creator (:user/id current-user)
-                                       :message/text text}))))
+                                       :direct-message/recipient to
+                                       :message/text text}))
+    true))
 
 ; This is done by employer (invitation)
 (defn send-proposal-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
@@ -667,7 +687,7 @@
                                        :message/date-created timestamp
                                        :message/creator (:user/id current-user)
                                        :message/text text
-                                       :direct-message/receiver to}))))
+                                       :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
 
 (defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [current-user timestamp]}]
   (db/with-async-resolver-tx conn
@@ -899,6 +919,7 @@
                                :job job-resolver
                                :candidate candidate-resolver
                                :proposalMessage job-story->proposal-message-resolver
+                               :directMessages (require-auth job-story->direct-messages-resolver)
                                :invitationMessage job-story->invitation-message-resolver
                                :disputeCreationMessage job-story->dispute-creation-message-resolver
                                :disputeResolutionMessage job-story->dispute-resolution-message-resolver}
@@ -924,6 +945,7 @@
                                :message message-resolver
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :JobStoryMessage {:creator user-resolver}
+                    :DirectMessage {:creator user-resolver}
                     :Mutation {:signIn sign-in-mutation
                                :sendMessage (require-auth send-message-mutation)
                                :raiseDispute (require-auth raise-dispute-mutation)

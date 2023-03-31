@@ -24,6 +24,8 @@
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
+(re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
+(re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
 (re/reg-event-fx :page.job-contract/set-feedback-rating (create-assoc-handler :feedback-rating))
 (re/reg-event-fx :page.job-contract/set-feedback-text (create-assoc-handler :feedback-text))
 (re/reg-event-fx :page.job-contract/set-feedback-recipient (create-assoc-handler :feedback-recipient))
@@ -38,9 +40,21 @@
                         :text text
                         :rating rating
                         :to to}]
-    (println ">>> ethlance.ui.page.job-contract.events/send-feedback mutation-params" mutation-params)
     {:dispatch [::gql-events/mutation
                 {:queries [[:leave-feedback mutation-params]]
                  :id :SendEmployerFeedbackMutation}]}))
 
+(defn send-message
+  [{:keys [db]} [_event-name params]]
+  (let [job-story-id (:job-story/id params)
+        text (:text params)
+        to (:to params)
+        mutation-params {:job-story/id job-story-id
+                        :text text
+                        :to to}]
+    {:dispatch [::gql-events/mutation
+                {:queries [[:send-message mutation-params]]
+                 :id :SendDirectMessageMutation}]}))
+
 (re/reg-event-fx :page.job-contract/send-feedback send-feedback)
+(re/reg-event-fx :page.job-contract/send-message send-message)

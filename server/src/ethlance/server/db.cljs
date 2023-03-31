@@ -371,12 +371,14 @@
    {:table-name :DirectMessage
     :table-columns
     [[:message/id :integer]
-     [:direct-message/receiver :varchar]
+     [:direct-message/recipient :varchar]
      [:direct-message/read? :integer]
+     [:job-story/id :integer]
      ;; PK
      [(sql/call :primary-key :message/id)]
      ;; FKs
-     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]]
 
     :list-keys []}
 

@@ -67,7 +67,6 @@
        :details details})))
 
 (defn extract-chat-messages [job-story current-user]
-  (println ">>> extract-chat-messages" job-story current-user)
   (let [job-story-id (-> job-story :job-story :job-story/id)
         add-to-details (fn [message additional-detail]
                          (when message
@@ -89,8 +88,10 @@
                               (:job-story/employer-feedback job-story))
         employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"])
                               (:job-story/candidate-feedback job-story))
-        ]
-    (->> [dispute-creation dispute-resolution invitation proposal arbiter-feedback employer-feedback]
+        direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
+                              (:direct-messages job-story))]
+    (->> [dispute-creation dispute-resolution invitation proposal arbiter-feedback employer-feedback
+          direct-messages]
          (remove nil? ,,,)
          (flatten ,,,)
          (sort-by :timestamp)
@@ -99,9 +100,6 @@
 (defn c-chat [job-story-id]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         ; jobStory_invoices {items {message invoice_datePaid}}
-        ; jobStory_candidateFeedback {items {feedback_text}}
-        ; jobStory_employerFeedback {items {feedback_text}}
-        ; jobStory_arbiterFeedback {items {feedback_text}}
         message-fields [:message/id
                         :message/text
                         [:creator [:user/id :user/name :user/profile-image]]
@@ -124,76 +122,96 @@
                                                        [:message message-fields]]]
                          [:job-story/candidate-feedback [:message/id
                                                         [:message message-fields]]]
-                         ]]
+                         [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]]]
 
         messages-result @(re/subscribe [::gql/query {:queries [messages-query]}])
         chat-messages (extract-chat-messages (:job-story messages-result) active-user)]
     [c-chat-log chat-messages]))
 
+(defn c-feedback-panel [feedback-recipients]
+  (let [job-story-id (re/subscribe [:page.job-contract/job-story-id])
+        feedback-text (re/subscribe [:page.job-contract/feedback-text])
+        feedback-rating (re/subscribe [:page.job-contract/feedback-rating])
+        feedback-recipient (re/subscribe [:page.job-contract/feedback-recipient])
+        feedback-done? (= 0 (count (keys feedback-recipients)))]
+    (if feedback-done?
+      [:div.feedback-input-container {:style {:opacity "50%"}}
+       [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
+        "No more feedback to leave. You have already left feedback for all participants"]]
+
+      [:div.feedback-input-container
+       [:span.selection-label "Feedback for:"]
+       (into [c-radio-select
+              {:selection @feedback-recipient
+               :on-selection #(re/dispatch [:page.job-contract/set-feedback-recipient %])}]
+             (map (fn [[user-type address]]
+                    [address [c-radio-secondary-element (clojure.string/capitalize (name user-type))]])
+                  feedback-recipients))
+       [:div.rating-input
+        [c-rating {:rating @feedback-rating
+                   :on-change #(re/dispatch [:page.job-contract/set-feedback-rating %])}]]
+       [:div.label "Feedback:"]
+       [c-textarea-input {:value @feedback-text
+                          :placeholder "Feedback"
+                          :on-change #(re/dispatch [:page.job-contract/set-feedback-text %])}]
+       [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
+       [c-button {:color :primary
+                  :on-click #(re/dispatch [:page.job-contract/send-feedback
+                                           {:job-story/id job-story-id
+                                            :text @feedback-text
+                                            :rating @feedback-rating
+                                            :to @feedback-recipient}])}
+        [c-button-label "Send Feedback"]]])))
+
+(defn c-direct-message [recipients]
+  (let [text (re/subscribe [:page.job-contract/message-text])
+        recipient (re/subscribe [:page.job-contract/message-recipient])
+        job-story-id (re/subscribe [:page.job-contract/job-story-id])]
+    [:div.message-input-container
+     [:span.selection-label "Recipient:"]
+     (into [c-radio-select
+            {:selection @recipient
+             :on-selection #(re/dispatch [:page.job-contract/set-message-recipient %])}]
+           (map (fn [[user-type address]]
+                  [address [c-radio-secondary-element (clojure.string/capitalize (name user-type))]])
+                recipients))
+
+     [:div.label "Message"]
+     [c-textarea-input {:placeholder ""
+                        :value @text
+                        :on-change #(re/dispatch [:page.job-contract/set-message-text %])}]
+     [c-button {:color :primary
+                :on-click #(re/dispatch [:page.job-contract/send-message {:text @text
+                                                                          :to @recipient
+                                                                          :job-story/id @job-story-id}])}
+      [c-button-label "Send Message"]]]))
+
 (defn c-employer-options [{job-story-status :job-story/status
                            employer :employer
                            arbiter :arbiter
+                           candidate :candidate
                            current-user-role :current-user-role
                            :as message-params}]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         *active-page-params (re/subscribe [::router.subs/active-page-params])
-        job-story-id (-> @*active-page-params :job-story-id parse-int)
-        feedback-text (re/subscribe [:page.job-contract/feedback-text])
-        feedback-rating (re/subscribe [:page.job-contract/feedback-rating])
-        feedback-recipient (re/subscribe [:page.job-contract/feedback-recipient])
-        ]
-    (println ">>> feedback-recipient: " @feedback-recipient)
+        job-story-id (-> @*active-page-params :job-story-id parse-int)]
     [c-tabular-layout
      {:key "employer-tabular-layout"
-      :default-tab 2}
+      :default-tab 1}
 
      {:label "Send Message"}
-     [:div.message-input-container
-      [:div.label "Message"]
-      [c-textarea-input {:placeholder ""}]
-      [c-button {:color :primary} [c-button-label "Send Message"]]]
-
-     {:label "Raise Dispute"}
-     [:div.dispute-input-container
-      [:div.label "Dispute"]
-      [c-textarea-input {:placeholder ""}]
-      [c-button {:color :primary} [c-button-label "Raise Dispute"]]]
+     [c-direct-message (select-keys message-params [:candidate :arbiter])]
 
      {:label "Leave Feedback"}
-     [:div.feedback-input-container
-       [:span.selection-label "Feedback for:"]
-       [c-radio-select
-        {:selection @feedback-recipient
-         :on-selection #(re/dispatch [:page.job-contract/set-feedback-recipient %])}
-        (when-not (= current-user-role :candidate) [:candidate [c-radio-secondary-element "Candidate"]])
-        (when-not (= current-user-role :employer) [:employer [c-radio-secondary-element "Employer"]])
-        (when-not (= current-user-role :arbiter) [:arbiter [c-radio-secondary-element "Arbiter"]])]
-      [:div.rating-input
-       [c-rating {:rating @feedback-rating
-                  :on-change #(re/dispatch [:page.job-contract/set-feedback-rating %])}]]
-      [:div.label "Feedback:"]
-      [c-textarea-input {:value @feedback-text
-                         :placeholder "Feedback"
-                         :on-change #(re/dispatch [:page.job-contract/set-feedback-text %])}]
-      [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
-      [c-button {:color :primary
-                 :on-click #(re/dispatch [:page.job-contract/send-feedback
-                                          {:job-story/id job-story-id
-                                           :text @feedback-text
-                                           :rating @feedback-rating
-                                           :to (get message-params @feedback-recipient)}])}
-       [c-button-label "Send Feedback"]]]]))
+     [c-feedback-panel (select-keys message-params [:candidate :arbiter])]]))
 
-(defn c-candidate-options []
+(defn c-candidate-options [message-params]
   [c-tabular-layout
    {:key "employer-tabular-layout"
     :default-tab 0}
 
    {:label "Send Message"}
-   [:div.message-input-container
-    [:div.label "Message"]
-    [c-textarea-input {:placeholder ""}]
-    [c-button {:color :primary} [c-button-label "Send Message"]]]
+   [c-direct-message (select-keys message-params [:employer :arbiter])]
 
    {:label "Raise Dispute"}
    [:div.dispute-input-container
@@ -202,24 +220,15 @@
     [c-button {:color :primary} [c-button-label "Raise Dispute"]]]
 
    {:label "Leave Feedback"}
-   [:div.feedback-input-container
-    [:div.rating-input
-     [c-rating {:rating 3 :on-change (fn [])}]]
-    [:div.label "Feedback"]
-    [c-textarea-input {:placeholder ""}]
-    [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
-    [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
+   [c-feedback-panel (select-keys message-params [:employer :arbiter])]])
 
-(defn c-arbiter-options []
+(defn c-arbiter-options [message-params]
   [c-tabular-layout
    {:key "employer-tabular-layout"
     :default-tab 0}
 
    {:label "Send Message"}
-   [:div.message-input-container
-    [:div.label "Message"]
-    [c-textarea-input {:placeholder ""}]
-    [c-button {:color :primary} [c-button-label "Send Message"]]]
+   [c-direct-message (select-keys message-params [:candidate :employer])]
 
    {:label "Resolve Dispute"
     :active? true} ;; TODO: conditionally show
@@ -229,13 +238,7 @@
     [c-button {:color :primary} [c-button-label "Resolve Dispute"]]]
 
    {:label "Leave Feedback"}
-   [:div.feedback-input-container
-    [:div.rating-input
-     [c-rating {:rating 3 :on-change (fn [])}]]
-    [:div.label "Feedback"]
-    [c-textarea-input {:placeholder ""}]
-    [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
-    [c-button {:color :primary} [c-button-label "Send Feedback"]]]])
+   [c-feedback-panel (select-keys message-params [:candidate :employer])]])
 
 (defn c-guest-options [])
 
@@ -244,27 +247,25 @@
     (fn []
       (let [job-story-id (-> @*active-page-params :job-story-id parse-int)
             active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-            result @(re/subscribe
-                      [::gql/query
-                       {:queries
-                        [[:job-story {:job-story/id job-story-id}
-                          [:job/id
-                           :job-story/id
-                           :job-story/status
-                           [:candidate [:user/id
-                                        [:user [:user/name]]]]
-                           [:job [:job/title
-                                  :job/token-type
-                                  :job/token-amount
-                                  :job/token-address
-                                  :job/token-id
-                                  [:job/employer
-                                   [:user/id
-                                    [:user [:user/name]]]]
-                                  [:job/arbiter
-                                   [:user/id
-                                    [:user [:user/name]]]]
-                                  [:token-details [:token-detail/symbol :token-detail/name]]]]]]]}])
+            job-story-query [:job-story {:job-story/id job-story-id}
+                             [:job/id
+                              :job-story/id
+                              :job-story/status
+                              [:candidate [:user/id
+                                           [:user [:user/name]]]]
+                              [:job [:job/title
+                                     :job/token-type
+                                     :job/token-amount
+                                     :job/token-address
+                                     :job/token-id
+                                     [:job/employer
+                                      [:user/id
+                                       [:user [:user/name]]]]
+                                     [:job/arbiter
+                                      [:user/id
+                                       [:user [:user/name]]]]
+                                     [:token-details [:token-detail/symbol :token-detail/name]]]]]]
+            result @(re/subscribe [::gql/query {:queries [job-story-query]}])
             job-story (:job-story result)
 
             candidate-id (get-in job-story [:candidate :user/id])
@@ -282,7 +283,6 @@
                                (assoc ,,, :job-story/status (:job-story/status job-story))
                                (assoc ,,, :current-user-role current-user-role))
 
-
             profile {:title (get-in job-story [:job :job/title])
                      :status (get-in job-story [:job-story/status])
                      :funds {:amount (get-in job-story [:job :job/token-amount])
@@ -294,14 +294,13 @@
                                  :address candidate-id}
                      :arbiter {:name (get-in job-story [:job :job/arbiter :user :user/name])
                                :address arbiter-id}}]
-        (println ">>> ethlance.ui.page.job-contract" {:curent-user-role current-user-role :message-params message-params})
         [c-main-layout {:container-opts {:class :job-contract-main-container}}
          [:div.header-container
           [c-header-profile profile]
           [c-chat job-story-id]]
 
          [:div.options-container
-          (case :employer; current-user-role
+          (case current-user-role
             :employer [c-employer-options message-params]
             :candidate [c-candidate-options message-params]
             :arbiter [c-arbiter-options message-params]
