@@ -38,5 +38,4 @@
                     [:page.job-detail/initialize-page]
                     [:page.new-job/initialize-page]
                     [:page.invoices/initialize-page]
-                    [:page.new-invoice/initialize-page]
-                    ]})))
+                    [:page.new-invoice/initialize-page]]})))

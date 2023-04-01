@@ -10,6 +10,7 @@
     [district.ui.router]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
+    [district.ui.server-config]
     [district.ui.web3]
     [district0x.re-frame.web3-fx]
     [district.ui.smart-contracts]
