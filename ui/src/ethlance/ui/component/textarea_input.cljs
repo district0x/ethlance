@@ -18,7 +18,6 @@
     (fn [{:keys [default-value value on-change] :as opts}]
       (assert (not (and value default-value))
               "Component has both controlled `value` and uncontrolled `default-value` attributes set.")
-      (println ">>> ethlance.ui.component.textarea-input rendering" value)
       (let [current-value (if (contains? opts :default-value) @*current-value value)
             opts (dissoc opts :default-value :value :color :on-change)]
         [:textarea.ethlance-textarea-input

@@ -21,7 +21,7 @@
              ;; Invoices
              ["/invoices/new" :route.invoice/new]
              ["/invoices/" :route.invoice/index]
-             ["/invoices/:id" :route.invoice/index]
+             ["/invoices/:job-id/:invoice-id" :route.invoice/index]
 
              ;; Me
              ["/me" :route.me/index]

@@ -389,7 +389,7 @@
   (db/with-async-resolver-conn conn
     (let [address (:user/id (graphql-utils/gql->clj root))
           query (-> candidate-job-stories-query
-                  (sql-helpers/merge-where [:= address :JobStory.job-story/candidate]))]
+                  (sql-helpers/merge-where [:ilike address :JobStory.job-story/candidate]))]
       (log/debug "candidate->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -696,7 +696,8 @@
                                        :job-story/id id
                                        :message/date-created timestamp
                                        :message/creator (:user/id current-user)
-                                       :message/text text}))))
+                                       :message/text text}))
+    true))
 
 (defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [current-user timestamp]}]
   (db/with-async-resolver-tx conn
@@ -705,7 +706,8 @@
                                        :job-story/id id
                                        :message/date-created timestamp
                                        :message/creator (:user/id current-user)
-                                       :message/text "Dispute resolved"}))))
+                                       :message/text "Dispute resolved"}))
+    true))
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
   (println ">>> leave-feedback-mutation" {:params params :current-user current-user :timestamp timestamp})

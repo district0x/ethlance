@@ -305,7 +305,7 @@
      [:job-story/proposal-message-id :integer]
      [:job-story/raised-dispute-message-id :integer]
      [:job-story/resolved-dispute-message-id :integer]
-     [:job-story/proposal-rate :integer]
+     [:job-story/proposal-rate (sql/call :numeric (sql/inline 81) (sql/inline 3))] ; To cover the max value of Solidity's int256 (e.g. amount in ERC20) & support 3 places of precision
      [:job-story/proposal-rate-currency-id :varchar]
 
      ; The following used to be :ethlance-job-story/...
@@ -341,9 +341,6 @@
      [:invoice/amount-requested :bigint]
      [:invoice/amount-paid :bigint]
      [:invoice/date-paid :bigint]
-     [:invoice/date-work-started :bigint]
-     [:invoice/date-work-ended :bigint]
-     [:invoice/work-duration :bigint]
      [:invoice/ref-id :integer]
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
