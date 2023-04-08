@@ -1,5 +1,7 @@
 (ns ethlance.ui.component.chat
-  (:require [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+  (:require
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [district.format :as format]))
 
 ;; TODO: format 'text' into paragraphs <p>
 (defn c-chat-message
@@ -9,8 +11,9 @@
 
   message - ethlance chat message object
   "
-  [{:keys [id user-type text name date-updated details image-url]}]
-  (let [position-class (if (contains? #{:candidate :arbiter} user-type) " right " " left ")
+  [{:keys [id user-type direction text full-name timestamp details image-url]}]
+  (let [position-class (if (= :sent direction) "left" "right")
+        user-type (or user-type :candidate)
         color-class (case user-type
                       :candidate "candidate"
                       :employer "employer"
@@ -22,13 +25,14 @@
        [:div.details
         [:div.profile-image [c-profile-image {:src image-url}]]
         [:div.info-container
-         [:span.full-name {:key "detail-full-name"} name]
+         [:span.full-name {:key (str "detail-full-name-" id)} full-name]
          [:div.info-listing
           (doall
            (for [detail details]
              ^{:key (str "detail-" detail)}
              [:span.info detail]))]
-         [:span.date-updated date-updated]]]
+        ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
+         [:span.date-updated (format/time-ago (new js/Date timestamp))]]]
        [:div.text text]])))
 
 

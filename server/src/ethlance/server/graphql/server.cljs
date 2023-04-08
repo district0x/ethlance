@@ -5,6 +5,7 @@
             [district.shared.async-helpers :refer [promise->]]
             [ethlance.server.graphql.middlewares :as middlewares]
             [ethlance.server.graphql.resolvers :as resolvers]
+            [ethlance.server.ui-config :as ui-config]
             [ethlance.shared.graphql.schema :as schema]
             [ethlance.shared.utils :as shared-utils]
             [mount.core :as mount :refer [defstate]]
@@ -50,6 +51,11 @@
                                             :current-user user
                                             :timestamp timestamp}))}))]
 
+    (js-invoke app "get" "/config" (fn [req res] ; Add JSON /config endpoint for district-ui-config
+                                     (.then (ui-config/fetch-config)
+                                            (fn [config]
+                                              (.setHeader res "Access-Control-Allow-Origin", "*")
+                                              (.json res (clj->js config))))))
     (js-invoke server "applyMiddleware" (clj->js {:app app}))
     (js-invoke app "listen" (clj->js opts)
                (fn [url]

@@ -22,19 +22,20 @@
   :ethlance/initialize
   [(re/inject-cofx :store)]
   (fn [{:keys [db store]} [_ config]]
-    {:db (-> db
-           (assoc :ethlance/config config)
-           (merge (akiroz.re-frame.storage/<-store :ethlance))) ; TODO: add expiration period 30 days (preferribly UI side)
-     :dispatch-n [
-                  [:page.jobs/initialize-page]
-                  [:page.sign-up/initialize-page]
-                  [:page.candidates/initialize-page]
-                  [:page.arbiters/initialize-page]
-                  [:page.employers/initialize-page]
-                  [:page.profile/initialize-page]
-                  [:page.job-contract/initialize-page]
-                  [:page.job-detail/initialize-page]
-                  [:page.new-job/initialize-page]
-                  [:page.invoices/initialize-page]
-                  [:page.new-invoice/initialize-page]
-                  ]}))
+    (let [updated-db (-> db
+                         (assoc :ethlance/config config)
+                         (merge (akiroz.re-frame.storage/<-store :ethlance)))]
+      {:db updated-db
+       :dispatch-n [
+                    [:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
+                    [:page.jobs/initialize-page]
+                    [:page.sign-up/initialize-page]
+                    [:page.candidates/initialize-page]
+                    [:page.arbiters/initialize-page]
+                    [:page.employers/initialize-page]
+                    [:page.profile/initialize-page]
+                    [:page.job-contract/initialize-page]
+                    [:page.job-detail/initialize-page]
+                    [:page.new-job/initialize-page]
+                    [:page.invoices/initialize-page]
+                    [:page.new-invoice/initialize-page]]})))

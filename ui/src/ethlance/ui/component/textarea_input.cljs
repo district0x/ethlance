@@ -9,7 +9,7 @@
 
   opts - React Props
   "
-  [{:keys [default-value color]}]
+  [{:keys [default-value color value]}]
   (let [*current-value (r/atom default-value)
         class-color (case color
                       :primary "primary"

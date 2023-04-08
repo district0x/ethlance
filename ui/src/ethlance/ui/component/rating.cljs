@@ -54,8 +54,9 @@
   :size - The size styling of the rating component. `:normal`,
   `:default`, `:large`, `:small`. [default: `:default`].
   "
-  [{:keys [default-rating color size]
+  [{:keys [default-rating color size rating]
     :or {color :primary size :default}}]
+  (println ">>> c-rating outer: rendering" {:rating rating})
   (let [*current-default-rating (r/atom default-rating)
         color-class (case color
                       :primary "primary"
@@ -67,6 +68,7 @@
                      :large    "large")]
     (fn [{:keys [rating default-rating color on-change size]
           :or {color :primary size :default}}]
+      (println ">>> c-rating inner: re-rendering" {:rating rating})
       (let [current-rating (if default-rating @*current-default-rating rating)]
         [:div.ethlance-component-rating
          {:class [color-class size-class]}

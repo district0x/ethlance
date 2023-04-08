@@ -21,10 +21,10 @@
   is.d0x/cljs-ipfs-http-client {:mvn/version "LATEST"}
   is.d0x/cljs-solidity-sha3 {:mvn/version "LATEST"}
   is.d0x/district-parsers {:mvn/version "LATEST"}
+  is.d0x/district-server-config {:mvn/version "LATEST"}
   is.d0x/district-server-bundle {:mvn/version "LATEST"}
 
   district0x/district-graphql-utils {:mvn/version "1.0.10"}
-  district0x/district-server-config {:mvn/version "1.0.1"}
   district0x/district-server-logging {:mvn/version "1.0.6"}
   district0x/district-server-middleware-logging {:mvn/version "1.0.0"}
 

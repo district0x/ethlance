@@ -173,10 +173,10 @@
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): signInPayload!
-    sendMessage(to: ID, text: String): Boolean!,
+    sendMessage(jobStory_id: Int!, to: ID!, text: String!): Boolean!,
     raiseDispute(jobStory_id: Int!, text: String): Boolean!,
     resolveDispute(jobStory_id: Int!): Boolean!,
-    leaveFeedback(jobStory_id: Int!, rating: Int!, to: ID!): Boolean!,
+    leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
     updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
@@ -494,17 +494,21 @@
     jobStory_dateCreated: Date
     jobStory_dateUpdated: Date
 
-    jobStory_employerFeedback: Feedback
-    jobStory_candidateFeedback: Feedback
+    jobStory_employerFeedback: [Feedback]  # This job's feedback for employer
+    jobStory_candidateFeedback: [Feedback] # This job's Feedback for candidate
+    jobStory_arbiterFeedback: [Feedback]   # This job's Feedback for arbiter
 
     jobStory_dispute: Dispute
+    disputeCreationMessage: JobStoryMessage
+    disputeResolutionMessage: JobStoryMessage
+    invitationMessage: JobStoryMessage
+    proposalMessage: JobStoryMessage
+    directMessages: [DirectMessage]
 
-    jobStory_invoices(limit: Int, offset: Int,): InvoiceList
+    jobStory_invoices(limit: Int, offset: Int): InvoiceList
 
     # The below fields were ethlanceJobStory_...
-    jobStory_invitationMessage: Message
-    jobStory_proposalMessage: Message
-    jobStory_proposalRate: Int
+    jobStory_proposalRate: Float
     jobStory_proposalRateCurrencyId: Int
     jobStory_dateCandidateAccepted: Date
     jobStory_dateArbiterAccepted: Date
@@ -525,11 +529,16 @@
   # Invoice Types
 
   type Invoice {
+    id: ID # Unique composite id consisting of <job-id>-<invoice-id>
+           # Because invoice-id is only unique within Job smart contract context
+           # But one Job smart contract can have multiple JobStory DB models associated to it
     \"Identifier for the given Job\"
-    job_id: Int
+    job_id: String
 
     \"Identifier for the given JobStory\"
     jobStory_id: Int
+
+    invoice_status: String
 
     \"Identifier for the given Invoice\"
     invoice_id: Int
@@ -538,11 +547,14 @@
     invoice_datePaid: Date
 
     \"Amount of pay requested\"
-    invoice_amountRequested: Int
+    invoice_amountRequested: Float
 
     \"Amount of invoice actually paid\"
-    invoice_amountPaid: Int
+    invoice_amountPaid: Float
 
+    creationMessage: JobStoryMessage
+    disputeRaisedMessage: JobStoryMessage
+    disputeResolvedMessage: JobStoryMessage
   }
 
   type InvoiceList  {
@@ -557,13 +569,16 @@
 
   type Dispute {
     \"Identifier for the given Job\"
-    job_id: Int
+    job_id: String
 
     \"Identifier for the given JobStory\"
-    jobStory_id: Int
+    jobStory_id: ID
 
     \"Reason for the Dispute\"
     dispute_reason: String
+
+    \"Resolution for the Dispute\"
+    dispute_resolution: String
 
     \"Date of creation\"
     dispute_dateCreated: Date
@@ -576,14 +591,16 @@
   # Feedback Types
 
   type Feedback {
-    message_id: Int!
+    message_id: ID
     job_id: Int
     jobStory_id: Int
+    message: JobStoryMessage
+
     feedback_toUserType: Keyword
-    feedback_toUserAddress: ID
+    feedback_toUserAddress: String
     feedback_fromUser: User
     feedback_fromUserType: Keyword
-    feedback_fromUserAddress: ID
+    feedback_fromUserAddress: String
     feedback_dateCreated: Date
     feedback_rating: Int
     feedback_text: String
@@ -597,19 +614,31 @@
   }
 
   interface Message {
-    message_id: Int
+    message_id: ID
     message_text: String
     message_type: String
     message_creator: String
+    message_dateCreated: Float
+  }
+
+  type DirectMessage implements Message {
+    message_id: ID
+    message_text: String
+    message_type: String
+    message_dateCreated: Float
+    message_creator: String
+    directMessage_recipient: String
+    recipient: User
+    creator: User
   }
 
   type JobStoryMessage implements Message {
-    message_id: Int
+    message_id: ID
     message_text: String
     message_type: String
     message_creator: String
+    message_dateCreated: Float
+    creator: User
     jobStoryMessageType: String
   }
-
-
   ")

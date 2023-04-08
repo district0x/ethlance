@@ -305,7 +305,7 @@
      [:job-story/proposal-message-id :integer]
      [:job-story/raised-dispute-message-id :integer]
      [:job-story/resolved-dispute-message-id :integer]
-     [:job-story/proposal-rate :integer]
+     [:job-story/proposal-rate (sql/call :numeric (sql/inline 81) (sql/inline 3))] ; To cover the max value of Solidity's int256 (e.g. amount in ERC20) & support 3 places of precision
      [:job-story/proposal-rate-currency-id :varchar]
 
      ; The following used to be :ethlance-job-story/...
@@ -341,9 +341,6 @@
      [:invoice/amount-requested :bigint]
      [:invoice/amount-paid :bigint]
      [:invoice/date-paid :bigint]
-     [:invoice/date-work-started :bigint]
-     [:invoice/date-work-ended :bigint]
-     [:invoice/work-duration :bigint]
      [:invoice/ref-id :integer]
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
@@ -371,12 +368,14 @@
    {:table-name :DirectMessage
     :table-columns
     [[:message/id :integer]
-     [:direct-message/receiver :varchar]
+     [:direct-message/recipient :varchar]
      [:direct-message/read? :integer]
+     [:job-story/id :integer]
      ;; PK
      [(sql/call :primary-key :message/id)]
      ;; FKs
-     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]]
 
     :list-keys []}
 
@@ -787,6 +786,25 @@
                           :join [[:Job :j] [:= :js.job/id :j.job/id]]
                           :where [:= :j.job/id job-id]})))))
 
+(defn get-candidate-id-by-job-story-id [conn job-story-id]
+  (safe-go
+   (:id (<? (db/get conn {:select [[:job-story/candidate :id]]
+                          :from [:JobStory]
+                          :where [:= :job-story/id job-story-id]})))))
+
+(defn get-employer-id-by-job-story-id [conn job-story-id]
+  (safe-go
+   (:id (<? (db/get conn {:select [[:Job.job/creator :id]]
+                          :from [:JobStory]
+                          :join [:Job [:= :Job.job/id :JobStory.job/id]]
+                          :where [:= :job-story/id job-story-id]})))))
+
+(defn update-job-story-status [conn job-story-id status]
+  (safe-go
+    (<? (db/get conn {:update :JobStory
+                      :set {:job-story/status status}
+                      :where [:= :job-story/id job-story-id]}))))
+
 (defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
   (safe-go
    (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
@@ -807,7 +825,6 @@
                                            :user/id contributor-address
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
-
 (defn refund-job-contribution [_ _ _]
   ;; [conn job-id contribution-id]
   ;; TODO: implement this, delete from the table

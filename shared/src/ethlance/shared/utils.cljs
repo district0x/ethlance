@@ -36,3 +36,13 @@
 
 (defn millis->relative-time [millis]
   (gdate/format (new js/Date (js/parseInt millis))))
+
+(defn ilike=
+  "Makes case insensitive comparison of string representation of all arguments
+  Note!
+    1 = \"1\"
+    nil = nil
+    a = A
+  "
+  [& args]
+  (apply = (map #(clojure.string/lower-case (str %)) args)))

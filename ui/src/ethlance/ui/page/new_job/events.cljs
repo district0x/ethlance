@@ -1,16 +1,15 @@
 (ns ethlance.ui.page.new-job.events
   (:require
-    [alphabase.base58 :as base58]
     [alphabase.hex :as hex]
     [district.ui.router.effects :as router.effects]
     [district.ui.router.events :as router-events]
     [ethlance.ui.graphql :as graphql]
     [ethlance.ui.event.utils :as event.utils]
+    [ethlance.shared.utils :refer [eth->wei base58->hex]]
     [re-frame.core :as re]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
-    ["web3" :as w3]
     [ethlance.shared.contract-constants :as contract-constants]))
 
 (def state-key :page.new-job)
@@ -93,34 +92,9 @@
                    :on-success [:job-to-ipfs-success]
                    :on-error [:job-to-ipfs-failure]}})))
 
-(defn base58->hex [base58-str]
-  (->> base58-str
-    base58/decode
-    hex/encode
-    (str "0x" ,,,)))
-
-(defn to-bignum [value] (.toBN (.-utils w3) value))
-; (defn eth->wei [eth-amount] (to-bignum (* 1000000000000000000 eth-amount)))
-(defn eth->wei [eth-amount] (.toWei (.-utils w3) (str eth-amount)))
-
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
-    ; IPFS `event` param structure:
-    ;  [:job-to-ipfs-success {"Name":"blob","Hash":"QmT8k5NsMDDoeiXQz9ox5FfdCwHaf7ZYi9CZUyysXAu8TG","Size":"263"}]
-    ; [:db stat-key] structure:
-    ;   {:job/title Kaevamine,
-    ;    :job/estimated-project-length :week,
-    ;    :job/token-address "0xe13fd5ed78f1306b4c7c9c3c96fdb99cfc943c5b",
-    ;    :job/token-id 42,
-    ;    :job/token-type :erc1155,
-    ;    :job/required-experience-level :intermediate,
-    ;    :job/bid-option :hourly-rate,
-    ;    :job/description "Kaeva sygavalt ja kiiresti",
-    ;    :job/category "Customer Service",
-    ;    :job/required-availability :full-time,
-    ;    :job/required-skills #{"Translation English Spanish" "Weka"},
-    ;    :job/token-amount 2}
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
@@ -149,40 +123,41 @@
                    :fn :createJob
                    :args [creator [(clj->js offered-value)] invited-arbiters ipfs-hash]
                    :tx-opts tx-opts-with-value
-                   :tx-hash [:tx-hash]
-                   :on-tx-hash-n [[:tx-hash]]
-                   :on-tx-hash-error [:tx-hash-error]
-                   :on-tx-hash-error-n [[:tx-hash-error]]
-                   :on-tx-success [:create-job-tx-success]
-                   :on-tx-success-n [[:create-job-tx-success]]
-                   :on-tx-error [:create-job-tx-error]
-                   :on-tx-error-n [[:create-job-tx-error]]}]})))
+                   :tx-hash [::tx-hash]
+                   :on-tx-hash-n [[::tx-hash]]
+                   :on-tx-hash-error [::tx-hash-error]
+                   :on-tx-hash-error-n [[::tx-hash-error]]
+                   :on-tx-success [::create-job-tx-success]
+                   :on-tx-success-n [[::create-job-tx-success]]
+                   :on-tx-error [::create-job-tx-error]
+                   :on-tx-error-n [[::create-job-tx-error]]}]})))
 
 ; TODO: fix event/callback names in README (they don't have on-<...> prefix)
 ;         https://github.com/district0x/re-frame-web3-fx#usage
 (re/reg-event-fx
-  :tx-hash
+  ::tx-hash
   (fn [db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
 
 (re/reg-event-fx
-  :web3-tx-localstorage
+  ::web3-tx-localstorage
   (fn [db event] (println ">>> ethlance.ui.page.new-job.events :web3-tx-localstorage" event)))
 
 (re/reg-event-db
-  :create-job-tx-success
+  ::create-job-tx-success
   (fn [db [event-name tx-data]]
+    (println ">>> ethlance.ui.page.new-job.events :create-job-tx-success" tx-data)
     (re/dispatch [::router-events/navigate
                   :route.job/detail
                   {:contract (get-in tx-data
                                      [:events :Job-created :return-values :job])}])))
 
 (re/reg-event-db
-  :create-job-tx-error
+  ::create-job-tx-error
   (fn [db event]
     (println ">>> got :create-job-tx-error event:" event)))
 
 (re/reg-event-db
-  :job-to-ipfs-failure
+  ::job-to-ipfs-failure
   (fn [db event]
     (println ">>> EVENT ze-new-job-failure" event)
     db))

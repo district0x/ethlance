@@ -28,6 +28,7 @@
    {:endpoint "/api/v0"
     :host "http://host-machine:5001"
     :gateway "http://host-machine/ipfs"}
+   :server-config {:url "http://d0x-vm:6300/config" :format :json}
    :graphql
    {:schema schema
     :url "http://d0x-vm:6300/graphql"

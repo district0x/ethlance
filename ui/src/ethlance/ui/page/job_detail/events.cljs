@@ -51,7 +51,7 @@
                        jobStory_candidate
                        job_id
                        candidate {user {user_name user_id}}
-                       jobStory_proposalMessage {message_id message_type message_text message_creator}
+                       proposalMessage {message_id message_type message_text message_creator}
                      }}"
                    :variables {:input proposal}}]})))
 
@@ -74,7 +74,7 @@
                        jobStory_candidate
                        job_id
                        candidate {user {user_name user_id}}
-                       jobStory_proposalMessage {message_id message_type message_text message_creator}
+                       proposalMessage {message_id message_type message_text message_creator}
                      }}"
                    :variables {:jobStory_id job-story-id}}]})))
 
@@ -84,7 +84,7 @@
   [interceptors]
   (fn [{:keys [db]} [_ router-params]]
     (let [queried-contract-address (:contract router-params)
-          contract-from-db (get-in db [:district.ui.router :active-page :params :contract])
+          contract-from-db (get-in db [:district.ui.router :active-page :params :id])
           contract (or queried-contract-address contract-from-db)]
       {:dispatch [::graphql/query
                   {:query
@@ -97,6 +97,6 @@
                        jobStory_dateCreated
                        jobStory_candidate
                        candidate {user {user_name user_id}}
-                       jobStory_proposalMessage {message_id message_type message_text message_creator}
+                       proposalMessage {message_id message_type message_text message_creator}
                      }}"
                    :variables {:jobContract contract}}]})))

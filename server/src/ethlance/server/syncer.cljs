@@ -24,48 +24,11 @@
   :start (start)
   :stop (stop))
 
-;;;;;;;;;;;;;;;
-;; IPFS DATA ;;
-;;;;;;;;;;;;;;;
-
-;; Job metadata (EthlanceJob submission)
-;; ----------------------------------------------
-;; {:payload {:title
-;;            :description
-;;            :categories
-;;            :expertiseLevel
-;;            :ipfsFilename
-;;            :webReferenceURL
-;;            languageId
-;;            :estimatedLength
-;;            :maxNumberOfCandidates
-;;            :invitationOnly
-;;            :requiredAvailability
-;;            :ethlanceMessageId
-;;            :ethlanceJobStoryId
-;;  }
-;;  :meta {:schemaVersion}}
-
-;; Ethlance Job Invoice metadata
-;; -----------------------------
-;; {:payload {:description
-;;            :ethlanceJobStoryId
-;;            :ethlanceMessageId}
-;;  :meta {:schemaVersion}}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EthlanceIssuer events ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;; event ArbitersInvited(address[] _arbiters, uint _fee, uint _jobId, JobType _jobType);
 (defn handle-arbiters-invited [_ {:keys [args]}]
   ;; We aren't handling this now, we aren't storing invitations in the DB
   ;; we are just storing arbiters who accepted the invitation
   (log/info "Not handling event handle-arbiters-invited" args))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EthalnceJobs events ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn build-ethlance-job-data-from-ipfs-object [ethlance-job-data]
   {:job/title (:job/title ethlance-job-data)
@@ -93,16 +56,6 @@
                                       :job/token (:_token args)
                                       :job/token-version (:_token-version args)}
                                       (build-ethlance-job-data-from-ipfs-object ipfs-data)))))))
-
-;; event JobInvoice(uint _jobId, uint _invoiceId, address payable _invoiceIssuer, string _ipfsHash, address _submitter, uint _amount);
-(defn handle-job-invoice [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-job-invoice" args))
-   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))
-         job-story-id (-> ipfs-data :payload :ethlanceJobStoryId)]
-     (<? (ethlance-db/update-job-story-invoice-message conn {:job-story/id job-story-id
-                                                             :message/id (-> ipfs-data :payload :ethlanceMessageId)
-                                                             :invoice/ref-id (:_invoice-id args)})))))
 
 ;; event InvoiceAccepted(uint _jobId, uint  _invoiceId, address _approver, uint _amount);
 (defn handle-invoice-accepted [conn _ {:keys [args]}]
@@ -177,34 +130,21 @@
                                          (<? (ethlance-db/get-job-id-for-ethlance-job conn (:_job-id args)))
                                          (:_approvers args)))))
 
-
 (defn handle-job-created [conn _ {:keys [args] :as event}]
-  ; (:args event)
-  ;   {:invited-arbiters #js [],
-  ;    :creator "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0",
-  ;    :version nil,
-  ;    :timestamp 178334,
-  ;    :job-type "1",
-  ;    :offered-values #js [#js [#js [#js ["0" "0x1111111111111111111111111111111111111111"] "0"] "1000000000000"]],
-  ;    :ipfs-data "0x12204129c213954a4864af722e5160c92b158f1215c13416a1165a6ee7142371b368",
-  ;    :job-version "1",
-  ;    :job "0xB09D4faa942B31dA354c16ab92193e33dADDA6c3"}
-  ; ipfs-job-content
-  ;   {:job/title "Siimar Sapp",
-  ;    :job/description "tere hommikust",
-  ;    :job/category "Admin Support",
-  ;    :job/expertise-level :beginner,
-  ;    :job/bid-option :hourly-rate,
-  ;    :job/required-availability :full-time,
-  ;    :job/estimated-length :day,
-  ;    :job/required-skills nil}
   (safe-go
    (log/info (str ">>> Handling event job-created" args))
-   (println ">>> ipfs-data | type ipfs-data" (:ipfs-data args) (type (:ipfs-data args)))
+   (println ">>> ipfs-data | type ipfs-data" (:ipfs-data args))
    (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
          ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
          offered-value (offered-vec->flat-map (first (:offered-values args)))
-         token-address (:token-address offered-value)]
+         token-address (:token-address offered-value)
+         token-type (enum-val->token-type (:token-type offered-value))
+         ; TODO: instead of querying ETH token details via token-utils/get-token-details
+         ;       store this hard-coded value
+         eth-token-details {:address "0x0000000000000000000000000000000000000000"
+                            :name "Ether"
+                            :symbol "ETH"
+                            :abi []}]
      (<? (ethlance-db/add-job conn
                               (merge {:job/id (:job args)
                                       :job/status  "active" ;; draft -> active -> finished hiring -> closed
@@ -212,14 +152,48 @@
                                       :job/date-created (:timestamp event)
                                       :job/date-updated (:timestamp event)
 
-                                      :job/token-type (enum-val->token-type (:token-type offered-value))
+                                      :job/token-type token-type
                                       :job/token-amount (:token-amount offered-value)
                                       :job/token-address token-address
                                       :job/token-id (:token-id offered-value)}
                                      (build-ethlance-job-data-from-ipfs-object ipfs-job-content))))
-     (if (not (<? (ethlance-db/get-token conn token-address)))
+     (if (and
+           (not= :eth token-type)
+           (not (<? (ethlance-db/get-token conn token-address))))
        (let [token-details (<! (token-utils/get-token-details token-address))]
          (ethlance-db/store-token-details conn token-details))))))
+
+(defn handle-invoice-created [conn _ {:keys [args]}]
+  (safe-go
+   (log/info "Handling event handle-invoice-created")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-story-id (:job-story/id ipfs-data)
+         invoicer (:invoicer args)
+         offered-value (offered-vec->flat-map (first (:invoiced-value args)))
+         invoice-message {:job-story/id job-story-id
+                          :message/type :job-story-message
+                          :job-story-message/type :invoice
+                          :message/text (:message/text ipfs-data)
+                          :message/creator invoicer
+                          :message/date-created (.now js/Date)
+                          :invoice/status "created"
+                          :invoice/amount-requested (:token-amount offered-value)
+                          :invoice/ref-id (:invoice-id args)}]
+     (<? (ethlance-db/add-message conn invoice-message)))))
+
+(defn handle-dispute-raised [conn _ {:keys [args] :as dispute-raised-event}]
+  (safe-go
+   (log/info "Handling event dispute-raised")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-story-id (:job-story/id ipfs-data)
+         dispute-message {:job-story/id job-story-id
+                          :message/type :job-story-message
+                          :job-story-message/type :raise-dispute
+                          :message/text (:message/text ipfs-data)
+                          :message/creator (:message/creator ipfs-data)
+                          :message/date-created (.now js/Date)
+                          :invoice/status "dispute-raised"}]
+     (<? (ethlance-db/add-message conn dispute-message)))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
@@ -288,6 +262,8 @@
   (let [event-callbacks {
                          :ethlance/job-created handle-job-created
                          :ethlance/test-event handle-test-event
+                         :ethlance/invoice-created handle-invoice-created
+                         :ethlance/dispute-raised handle-dispute-raised
                          ; :ethlance-issuer/arbiters-invited handle-arbiters-invited
                          ;; EthlanceJobs
                          ; :ethlance-jobs/job-issued handle-job-issued

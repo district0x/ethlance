@@ -4,10 +4,10 @@
             [reagent.core :as r]))
 
 (defn filter-selections
-  [search-text selections]
+  [search-text selections label-fn]
   (if-not (empty? search-text)
     (->> selections
-         (filter #(string/includes? (string/lower %) (string/lower search-text))))
+         (filter #(string/includes? (string/lower (label-fn %)) (string/lower search-text))))
     selections))
 
 (defn c-select-input
@@ -59,22 +59,26 @@
         size-class (case size
                      :large "large"
                      :default nil)]
-    (fn [{:keys [label selections on-select default-selection selection color] :as opts}]
+    (fn [{:keys [label selections on-select default-selection selection color value-fn label-fn] :as opts}]
       (assert (not (and selection default-selection))
               "Component has both controlled `selection` and uncontrolled `default-selection` attributes set.")
-      (let [opts (dissoc opts
+      (let [value-fn (or value-fn identity)
+            label-fn (or label-fn identity)
+            opts (dissoc opts
                          :label :selections
                          :on-select :default-selection
                          :selection
                          :color :search-bar?
                          :default-search-text
-                         :size)
+                         :size
+                         :value-fn
+                         :label-fn)
             current-selection (if (contains? opts :default-selection) @*current-default-selection selection)]
         [:div.ethlance-select-input (merge {:class [color-class size-class]} opts)
          [:div.main
-          {:title (or current-selection label)
+          {:title (or (label-fn current-selection) label)
            :on-click #(swap! *open? not)}
-          [:span.label (or current-selection label)]
+          [:span.label (or (label-fn current-selection) label)]
           [c-icon {:class "icon"
                    :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
@@ -101,8 +105,8 @@
                         :inline? false}]])
             [:div.selection-listing
              (doall
-              (for [selection (filter-selections @*search-text selections)]
-                ^{:key (str "selection-" selection)}
+              (for [selection (filter-selections @*search-text selections label-fn)]
+                ^{:key (str "selection-" (value-fn selection))}
                 [:div.selection
                  {:on-click
                   (fn []
@@ -110,4 +114,4 @@
                     (reset! *search-text "")
                     (reset! *open? false)
                     (when on-select (on-select selection)))}
-                 selection]))]])]))))
+                 (label-fn selection)]))]])]))))
