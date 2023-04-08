@@ -505,7 +505,7 @@
     proposalMessage: JobStoryMessage
     directMessages: [DirectMessage]
 
-    jobStory_invoices(limit: Int, offset: Int,): InvoiceList
+    jobStory_invoices(limit: Int, offset: Int): InvoiceList
 
     # The below fields were ethlanceJobStory_...
     jobStory_proposalRate: Float
@@ -529,11 +529,16 @@
   # Invoice Types
 
   type Invoice {
+    id: ID # Unique composite id consisting of <job-id>-<invoice-id>
+           # Because invoice-id is only unique within Job smart contract context
+           # But one Job smart contract can have multiple JobStory DB models associated to it
     \"Identifier for the given Job\"
-    job_id: Int
+    job_id: String
 
     \"Identifier for the given JobStory\"
     jobStory_id: Int
+
+    invoice_status: String
 
     \"Identifier for the given Invoice\"
     invoice_id: Int
@@ -542,11 +547,14 @@
     invoice_datePaid: Date
 
     \"Amount of pay requested\"
-    invoice_amountRequested: Int
+    invoice_amountRequested: Float
 
     \"Amount of invoice actually paid\"
-    invoice_amountPaid: Int
+    invoice_amountPaid: Float
 
+    creationMessage: JobStoryMessage
+    disputeRaisedMessage: JobStoryMessage
+    disputeResolvedMessage: JobStoryMessage
   }
 
   type InvoiceList  {

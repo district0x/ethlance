@@ -16,6 +16,10 @@
 
 (re/reg-sub :page.job-contract/message-text (create-get-handler :message-text))
 (re/reg-sub :page.job-contract/message-recipient (create-get-handler :message-recipient))
+
+(re/reg-sub :page.job-contract/dispute-text (create-get-handler :dispute-text))
+(re/reg-sub :page.job-contract/dispute-candidate-percentage (create-get-handler :dispute-candidate-percentage))
+
 (re/reg-sub :page.job-contract/feedback-rating (create-get-handler :feedback-rating))
 (re/reg-sub :page.job-contract/feedback-text (create-get-handler :feedback-text))
 (re/reg-sub :page.job-contract/feedback-recipient (create-get-handler :feedback-recipient))

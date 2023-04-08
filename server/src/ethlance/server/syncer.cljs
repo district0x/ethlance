@@ -181,6 +181,20 @@
                           :invoice/ref-id (:invoice-id args)}]
      (<? (ethlance-db/add-message conn invoice-message)))))
 
+(defn handle-dispute-raised [conn _ {:keys [args] :as dispute-raised-event}]
+  (safe-go
+   (log/info "Handling event dispute-raised")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-story-id (:job-story/id ipfs-data)
+         dispute-message {:job-story/id job-story-id
+                          :message/type :job-story-message
+                          :job-story-message/type :raise-dispute
+                          :message/text (:message/text ipfs-data)
+                          :message/creator (:message/creator ipfs-data)
+                          :message/date-created (.now js/Date)
+                          :invoice/status "dispute-raised"}]
+     (<? (ethlance-db/add-message conn dispute-message)))))
+
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
 
@@ -249,6 +263,7 @@
                          :ethlance/job-created handle-job-created
                          :ethlance/test-event handle-test-event
                          :ethlance/invoice-created handle-invoice-created
+                         :ethlance/dispute-raised handle-dispute-raised
                          ; :ethlance-issuer/arbiters-invited handle-arbiters-invited
                          ;; EthlanceJobs
                          ; :ethlance-jobs/job-issued handle-job-issued

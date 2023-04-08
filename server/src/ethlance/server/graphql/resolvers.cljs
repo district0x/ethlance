@@ -470,8 +470,29 @@
 (defn message-resolver [root args _]
   (db/with-async-resolver-conn conn
     (let [{message-id :message/id :as root-clj} (graphql-utils/gql->clj root)]
-          (log/debug "message-resolver" message-id root-clj)
+          (log/debug "message-resolver")
           (<? (db/get conn {:select [:*] :from [:Message] :where [:= :message/id message-id]})))))
+
+(defn dispute-message-query [dispute-message-column job-story-id]
+  {:select [:Message.*]
+            :from [:JobStory]
+            :join [:JobStoryMessage [:= dispute-message-column :JobStoryMessage.message/id]
+                   :Message [:= :JobStoryMessage.message/id :Message.message/id]]
+            :where [:= :JobStory.job-story/id job-story-id]})
+
+(defn invoice->dispute-raised-message-resolver [root args _]
+  (db/with-async-resolver-conn conn
+    (let [job-story-id (:job-story/id (graphql-utils/gql->clj root))]
+          (log/debug "invoice->dispute-raised-message-resolver job-story-id:" job-story-id)
+          (<? (db/get conn (dispute-message-query
+                             :JobStory.job-story/raised-dispute-message-id job-story-id))))))
+
+(defn invoice->dispute-resolved-message-resolver [root args _]
+  (db/with-async-resolver-conn conn
+    (let [job-story-id (:job-story/id (graphql-utils/gql->clj root))]
+          (log/debug "invoice->dispute-resolved-message-resolver job-story-id:" job-story-id)
+          (<? (db/get conn (dispute-message-query
+                             :JobStory.job-story/resolved-dispute-message-id job-story-id))))))
 
 (defn employer-search-resolver [_ {:keys [:limit :offset
                                           :user/id
@@ -620,10 +641,17 @@
                  :where [:= :JobStory.job/id contract]}]
       (<? (db/all conn query)))))
 
-(def ^:private invoice-query {:select [:JobStoryInvoiceMessage.invoice/id :JobStoryInvoiceMessage.invoice/date-paid :JobStoryInvoiceMessage.invoice/amount-requested :JobStoryInvoiceMessage.invoice/amount-paid
-                                       :JobStory.job-story/id :Job.job/id]
+(def ^:private invoice-query {:select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
+                                       [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
+                                       :JobStoryInvoiceMessage.message/id
+                                       :JobStoryInvoiceMessage.invoice/status
+                                       :JobStoryInvoiceMessage.invoice/date-paid
+                                       :JobStoryInvoiceMessage.invoice/amount-requested
+                                       :JobStoryInvoiceMessage.invoice/amount-paid
+                                       :JobStory.job-story/id
+                                       :Job.job/id]
                               :from [:JobStoryInvoiceMessage]
-                              :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.contract/id]
+                              :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
 (defn invoice-resolver [_ {message-id :message/id :as args} _]
@@ -634,11 +662,13 @@
 
 (defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [{job-story-id :job-story/id :as job-story} (graphql-utils/gql->clj root)
+    (let [parsed-root (graphql-utils/gql->clj root)
+          job-story-id (:job-story/id (graphql-utils/gql->clj root))
           query (-> invoice-query
-                  (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))]
-      (log/debug "job-story->invoices-resolver" {:job-story job-story :args args})
-      (<? (paged-query conn query limit offset)))))
+                  (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))
+          result-pages (<? (paged-query conn query limit offset))]
+      (log/debug "job-story->invoices-resolver RESULT-PAGES" job-story-id " | " result-pages)
+      result-pages)))
 
 (defn job-story->dispute-creation-message-resolver [parent args _]
   (db/with-async-resolver-conn conn
@@ -948,6 +978,9 @@
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :JobStoryMessage {:creator user-resolver}
                     :DirectMessage {:creator user-resolver}
+                    :Invoice {:creationMessage message-resolver
+                              :disputeRaisedMessage invoice->dispute-raised-message-resolver
+                              :disputeResolvedMessage invoice->dispute-resolved-message-resolver}
                     :Mutation {:signIn sign-in-mutation
                                :sendMessage (require-auth send-message-mutation)
                                :raiseDispute (require-auth raise-dispute-mutation)

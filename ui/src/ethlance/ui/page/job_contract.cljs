@@ -2,6 +2,7 @@
   (:require [district.parsers :refer [parse-int]]
             [district.ui.component.page :refer [page]]
             [district.ui.router.subs :as router.subs]
+            [district.format :as format]
             [ethlance.shared.utils :refer [ilike=]]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.component.button :refer [c-button c-button-label]]
@@ -11,6 +12,7 @@
             [ethlance.ui.component.rating :refer [c-rating]]
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.util.navigation :as util.navigation]
             [re-frame.core :as re]))
 
@@ -56,7 +58,7 @@
                     (println ">>> common-chat-fields comparing" {:viewer viewer :creator creator :details details})
                     (if (ilike= viewer creator)
                       :sent :received))
-        message (-> job-story field-fn)]
+        message (field-fn job-story)]
     (when message
       {:id (str "dispute-creation-msg-" (-> message :message/id))
        :direction (direction current-user (-> message :creator :user/id))
@@ -89,9 +91,11 @@
         employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"])
                               (:job-story/candidate-feedback job-story))
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
-                              (:direct-messages job-story))]
+                              (:direct-messages job-story))
+        invoice-messages (map #(common-chat-fields current-user % identity ["Invoice created"])
+                              (map :creation-message (get-in job-story [:job-story/invoices :items])))]
     (->> [dispute-creation dispute-resolution invitation proposal arbiter-feedback employer-feedback
-          direct-messages]
+          direct-messages invoice-messages]
          (remove nil? ,,,)
          (flatten ,,,)
          (sort-by :timestamp)
@@ -122,7 +126,9 @@
                                                        [:message message-fields]]]
                          [:job-story/candidate-feedback [:message/id
                                                         [:message message-fields]]]
-                         [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]]]
+                         [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
+                         [:job-story/invoices [[:items [:id
+                                                       [:creation-message message-fields]]]] ]]]
 
         messages-result @(re/subscribe [::gql/query {:queries [messages-query]}])
         chat-messages (extract-chat-messages (:job-story messages-result) active-user)]
@@ -186,7 +192,19 @@
                                                                           :job-story/id @job-story-id}])}
       [c-button-label "Send Message"]]]))
 
-(defn c-employer-options [{job-story-status :job-story/status
+(defn c-employer-options [message-params]
+  [c-tabular-layout
+   {:key "employer-tabular-layout"
+    :default-tab 1}
+
+   {:label "Send Message"}
+   [c-direct-message (select-keys message-params [:candidate :arbiter])]
+
+   {:label "Leave Feedback"}
+   [c-feedback-panel (select-keys message-params [:candidate :arbiter])]])
+
+(defn c-candidate-options [{job-story-status :job-story/status ; TODO: take into account for limiting actions (feedback, disputes)
+                           job-id :job/id
                            employer :employer
                            arbiter :arbiter
                            candidate :candidate
@@ -194,37 +212,66 @@
                            :as message-params}]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         *active-page-params (re/subscribe [::router.subs/active-page-params])
-        job-story-id (-> @*active-page-params :job-story-id parse-int)]
+        job-story-id (-> @*active-page-params :job-story-id parse-int)
+
+        invoice-query [:job-story {:job-story/id job-story-id}
+                       [:job/id
+                        :job-story/id
+                        [:job-story/invoices [:total-count
+                                              [:items [:id
+                                                       :job/id
+                                                       :job-story/id
+                                                       :invoice/status
+                                                       :invoice/id
+                                                       :invoice/date-paid
+                                                       :invoice/amount-requested
+                                                       :invoice/amount-paid
+                                                       [:creation-message [:message/date-created]]
+                                                       [:dispute-raised-message [:message/id]]
+                                                       [:dispute-resolved-message [:message/id]]]]]]]]
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+        invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
+        latest-unpaid-invoice (->> invoices
+                                   (filter #(= "created" (:invoice/status %)) ,,,)
+                                   (sort-by #(get-in % [:creation-message :message/date-created] > ,,,))
+                                   first)
+        can-dispute? (nil? (get-in latest-unpaid-invoice [:dispute-raised-message]))
+        dispute-text (re/subscribe [:page.job-contract/dispute-text])]
     [c-tabular-layout
-     {:key "employer-tabular-layout"
-      :default-tab 1}
+     {:key "candidate-tabular-layout"
+      :default-tab 0}
 
      {:label "Send Message"}
-     [c-direct-message (select-keys message-params [:candidate :arbiter])]
+     [c-direct-message (select-keys message-params [:employer :arbiter])]
+
+     {:label "Raise Dispute"}
+     (if can-dispute?
+       [:div.dispute-input-container
+        [:div.label "Dispute"]
+        [:p "This is about the latest created, unpaid, non-disputed invoice "
+         "(ref.id " (:invoice/id latest-unpaid-invoice) ")"
+         " created " (format/time-ago (new js/Date (get-in latest-unpaid-invoice [:creation-message :message/date-created])))
+         " (" (.toString (new js/Date (get-in latest-unpaid-invoice [:creation-message :message/date-created] 0))) ")"]
+        [c-textarea-input {:placeholder "Please explain the reason of the dispute"
+                           :value @dispute-text
+                           :on-change #(re/dispatch [:page.job-contract/set-dispute-text %])}]
+        [c-button {:color :primary
+                   :on-click #(re/dispatch [:page.job-contract/raise-dispute
+                                            {:job/id job-id
+                                             :job-story/id job-story-id
+                                             :invoice/id (:invoice/id latest-unpaid-invoice)}])}
+         [c-button-label "Raise Dispute"]]]
+
+       [:div.feedback-input-container {:style {:opacity "50%"}}
+        [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
+         "You have already raised a dispute on your latest invoice. One invoice can only be disputed once"]])
 
      {:label "Leave Feedback"}
-     [c-feedback-panel (select-keys message-params [:candidate :arbiter])]]))
-
-(defn c-candidate-options [message-params]
-  [c-tabular-layout
-   {:key "employer-tabular-layout"
-    :default-tab 0}
-
-   {:label "Send Message"}
-   [c-direct-message (select-keys message-params [:employer :arbiter])]
-
-   {:label "Raise Dispute"}
-   [:div.dispute-input-container
-    [:div.label "Dispute"]
-    [c-textarea-input {:placeholder ""}]
-    [c-button {:color :primary} [c-button-label "Raise Dispute"]]]
-
-   {:label "Leave Feedback"}
-   [c-feedback-panel (select-keys message-params [:employer :arbiter])]])
+     [c-feedback-panel (select-keys message-params [:employer :arbiter])]]))
 
 (defn c-arbiter-options [message-params]
   [c-tabular-layout
-   {:key "employer-tabular-layout"
+   {:key "arbiter-tabular-layout"
     :default-tab 0}
 
    {:label "Send Message"}
@@ -280,6 +327,7 @@
                                       nil ; initial value
                                       involved-users)
             message-params (-> involved-users
+                               (assoc ,,, :job/id (:job/id job-story))
                                (assoc ,,, :job-story/status (:job-story/status job-story))
                                (assoc ,,, :current-user-role current-user-role))
 
