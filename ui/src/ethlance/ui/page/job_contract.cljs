@@ -2,6 +2,7 @@
   (:require [district.parsers :refer [parse-int]]
             [district.ui.component.page :refer [page]]
             [district.ui.router.subs :as router.subs]
+            [ethlance.shared.utils :refer [wei->eth]]
             [district.format :as format]
             [ethlance.shared.utils :refer [ilike=]]
             [district.ui.graphql.subs :as gql]
@@ -103,7 +104,6 @@
 
 (defn c-chat [job-story-id]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        ; jobStory_invoices {items {message invoice_datePaid}}
         message-fields [:message/id
                         :message/text
                         [:creator [:user/id :user/name :user/profile-image]]
@@ -235,7 +235,13 @@
                                    (filter #(= "created" (:invoice/status %)) ,,,)
                                    (sort-by #(get-in % [:creation-message :message/date-created] > ,,,))
                                    first)
-        can-dispute? (nil? (get-in latest-unpaid-invoice [:dispute-raised-message]))
+        has-invoice? (not (nil? latest-unpaid-invoice))
+        can-dispute? (and has-invoice?
+                          (nil? (get-in latest-unpaid-invoice [:dispute-raised-message])))
+        dispute-available? (and has-invoice? can-dispute?)
+        dispute-unavailable-message (if has-invoice?
+                                      "You have already raised a dispute on your latest invoice. One invoice can only be disputed once"
+                                      "Raising dispute becomes available after creating an invoice")
         dispute-text (re/subscribe [:page.job-contract/dispute-text])]
     [c-tabular-layout
      {:key "candidate-tabular-layout"
@@ -262,30 +268,115 @@
                                              :invoice/id (:invoice/id latest-unpaid-invoice)}])}
          [c-button-label "Raise Dispute"]]]
 
+       ; else: can't dispute
        [:div.feedback-input-container {:style {:opacity "50%"}}
         [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
-         "You have already raised a dispute on your latest invoice. One invoice can only be disputed once"]])
+         dispute-unavailable-message]])
 
      {:label "Leave Feedback"}
      [c-feedback-panel (select-keys message-params [:employer :arbiter])]]))
 
 (defn c-arbiter-options [message-params]
-  [c-tabular-layout
-   {:key "arbiter-tabular-layout"
-    :default-tab 0}
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])
+        job-story-id (-> @*active-page-params :job-story-id parse-int)
 
-   {:label "Send Message"}
-   [c-direct-message (select-keys message-params [:candidate :employer])]
+        invoice-query [:job-story {:job-story/id job-story-id}
+                       [:job/id
+                        [:job
+                         [:job/token-type
+                          :job/token-address
+                          :job/token-id
+                          [:token-details [:token-detail/name :token-detail/symbol]]]]
+                        :job-story/id
+                        [:job-story/invoices [:total-count
+                                              [:items [:id
+                                                       :job/id
+                                                       :job-story/id
+                                                       :invoice/status
+                                                       :invoice/id
+                                                       :invoice/date-paid
+                                                       :invoice/amount-requested
+                                                       :invoice/amount-paid
+                                                       [:creation-message [:message/date-created]]
+                                                       [:dispute-raised-message [:message/id]]
+                                                       [:dispute-resolved-message [:message/id]]]]]]]]
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+        job-id (get-in @invoice-result [:job-story :job/id])
+        job-story-id (get-in @invoice-result [:job-story :job-story/id])
+        token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
+        token-type (keyword (get-in @invoice-result [:job-story :job :job/token-type]))
+        token-address (get-in @invoice-result [:job-story :job :job/token-address])
+        token-id (get-in @invoice-result [:job-story :job :job/token-id])
+        invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
+        dispute-open? (fn [invoice]
+                        (and
+                          (not (nil? (:dispute-raised-message invoice)))
+                          (nil? (:dispute-resolved-message invoice))))
+        latest-unpaid-invoice (->> invoices
+                                   (filter #(= "created" (:invoice/status %)) ,,,)
+                                   (filter dispute-open? ,,,)
+                                   (sort-by #(get-in % [:creation-message :message/date-created] > ,,,))
+                                   first)
 
-   {:label "Resolve Dispute"
-    :active? true} ;; TODO: conditionally show
-   [:div.dispute-input-container
-    [:div.label "Dispute"]
-    [c-textarea-input {:placeholder ""}]
-    [c-button {:color :primary} [c-button-label "Resolve Dispute"]]]
+        invoice-id (:invoice/id latest-unpaid-invoice)
+        _ (println ">>> latest-unpaid-invoice" latest-unpaid-invoice)
+        dispute-candidate-percentage (re/subscribe [:page.job-contract/dispute-candidate-percentage])
+        dispute-text (re/subscribe [:page.job-contract/dispute-text])
+        candidate-invoiced-amount (get-in latest-unpaid-invoice [:invoice/amount-requested])
+        human-amount (if (= token-type :eth) (wei->eth candidate-invoiced-amount) candidate-invoiced-amount)
+        resolution-percentage (/ @dispute-candidate-percentage 100)
+        resolved-amount (.toFixed (* human-amount resolution-percentage) 3)
+        resolution-contract-amount (* candidate-invoiced-amount resolution-percentage)
+        ]
+    [c-tabular-layout
+     {:key "arbiter-tabular-layout"
+      :default-tab 0}
 
-   {:label "Leave Feedback"}
-   [c-feedback-panel (select-keys message-params [:candidate :employer])]])
+     {:label "Send Message"}
+     [c-direct-message (select-keys message-params [:candidate :employer])]
+
+     {:label "Resolve Dispute" :active? true} ;; TODO: conditionally show
+     [:div.dispute-input-container
+      [:div {:style {:gap "2em" :display "flex"}}
+       [:label "Amount (%) of the invoiced amount for the candidate"]
+       [:div
+        [c-text-input
+         {:value @dispute-candidate-percentage
+          :on-change #(re/dispatch [:page.job-contract/set-dispute-candidate-percentage %])
+          :placeholder 100
+          :min 0
+          :max 100
+          :list "percentage-markers"
+          :type :range
+          :style {:width "200px"}}]
+        [:datalist {:id "percentage-markers"
+                    :style {:display "flex"
+                            :flex-direction "column"
+                            :justify-content "space-between"
+                            :writing-mode "vertical-lr"
+                            :width "200px"}}
+         (into [:<>]
+               (map #(vector :option {:value % :label (str %) :style {:padding "0"}})
+                    (range 0 101 25)))]]
+       [:label
+        "Candidate gets: " @dispute-candidate-percentage "%"
+        " or " resolved-amount " " token-symbol " of the requested " human-amount " " token-symbol]]
+      [:div.label "Explanation:"]
+      [c-textarea-input {:placeholder "Please explain the reasoning behind the resolution"
+                         :value @dispute-text
+                         :on-change #(re/dispatch [:page.job-contract/set-dispute-text %])}]
+      [c-button {:color :primary :on-click #(re/dispatch [:page.job-contract/resolve-dispute
+                                                          {:job/id job-id
+                                                           :job-story/id job-story-id
+                                                           :invoice/id invoice-id
+                                                           :token-type token-type
+                                                           :token-amount resolution-contract-amount
+                                                           :token-address token-address
+                                                           :token-id token-id}])}
+       [c-button-label "Resolve Dispute"]]]
+
+     {:label "Leave Feedback"}
+     [c-feedback-panel (select-keys message-params [:candidate :employer])]]))
 
 (defn c-guest-options [])
 

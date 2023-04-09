@@ -94,7 +94,7 @@
           ipfs-hash (base58->hex (get-in event [1 :Hash]))]
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :job contract-address)
-                   :fn :createInvoice
+                   :fn :create-invoice
                    :args [[(clj->js offered-value)] ipfs-hash]
                    :tx-opts tx-opts
                    :tx-hash [::tx-hash]

@@ -55,6 +55,7 @@
 (re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :job/required-experience-level))
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
+(re/reg-event-fx :page.new-job/invite-arbiter (create-assoc-handler :job/invited-arbiter))
 
 (re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
 (re/reg-event-fx :page.new-job/set-token-amount (create-assoc-handler :job/token-amount))
@@ -69,7 +70,8 @@
    :job/required-experience-level :job/required-experience-level
    :job/required-availability :job/required-availability
    :job/required-skills :job/required-skills
-   :job/title :job/title})
+   :job/title :job/title
+   :job/invited-arbiter :job/invited-arbiter})
 
 (defn- db-job->ipfs-job
   "Useful for renaming map keys by reducing over a map of keyword -> keyword
@@ -95,6 +97,7 @@
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
+    (println ">>> job-to-ipfs-success" event)
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
@@ -115,7 +118,9 @@
           tx-opts-with-value (if (= token-type :eth)
                                (merge tx-opts {:value token-amount})
                                tx-opts)
-          invited-arbiters [] ; TODO: implement
+          invited-arbiters (if (:job/with-arbiter? job-fields)
+                             [(:job/invited-arbiter job-fields)]
+                             [])
           ipfs-response (get-in event [:event 1])
           ipfs-hash (base58->hex (get-in event [1 :Hash]))]
       {:dispatch [::web3-events/send-tx

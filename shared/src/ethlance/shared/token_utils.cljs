@@ -1,4 +1,3 @@
-; (ns ethlance.shared.token-utils)
 (ns ethlance.shared.token-utils
   (:require [cljs-web3-next.eth :as w3-eth]
             [cljs-web3-next.core :as w3-core]

@@ -41,6 +41,7 @@
    :web3-events {:events {:ethlance/job-created [:ethlance :JobCreated]
                           :ethlance/invoice-created [:ethlance :InvoiceCreated]
                           :ethlance/dispute-raised [:ethlance :DisputeRaised]
+                          :ethlance/dispute-resolved [:ethlance :DisputeResolved]
                           :ethlance/test-event [:ethlance :TestEvent]
                           ; TODO: replace with events from new Ethlance.sol contract (commented out to allow server to start)
                           ; :ethlance-issuer/arbiters-invited [:ethlance-issuer :ArbitersInvited]
@@ -73,8 +74,9 @@
                           ; :ethlance-jobs/job-data-changed [:ethlance-jobs :JobDataChanged]
                           ; :ethlance-jobs/candidate-accepted [:ethlance-jobs :CandidateAccepted]
                           }
-                 :from-block 1
+                 :from-block 53; (:last-processed-block (read-edn-sync "ethlance-events.log"))
                  :block-step 1000
+                 :dispatch-logging? true
                  :crash-on-event-fail? true
                  :skip-past-events-replay? true
                  :write-events-into-file? true

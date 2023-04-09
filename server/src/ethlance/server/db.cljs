@@ -692,6 +692,10 @@
     (doseq [skill skills]
       (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
 
+(defn add-job-arbiter [conn job-id user-address]
+  (safe-go
+   (<? (insert-row! conn :JobArbiter {:job/id job-id :user/id user-address}))))
+
 (defn add-job [conn job]
   (safe-go
     (let [skills (:job/required-skills job)
@@ -703,7 +707,9 @@
         (log/info (str "Not adding job because already exists with :job/id " job-id-from-ipfs))
         (do
           (<? (insert-row! conn :Job job))
-          (add-skills conn job-id-from-ipfs skills))))))
+          (add-skills conn job-id-from-ipfs skills)
+          (doseq [arbiter (:invited-arbiters job)]
+            (<? (add-job-arbiter conn job-id-from-ipfs arbiter))))))))
 
 ; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
 ;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)
@@ -814,17 +820,13 @@
                                 [:= :job-story/id job-story-id]
                                 [:= :invoice/ref-id invoice-id]]})))))
 
-(defn add-job-arbiter [conn job-id user-address]
-  (safe-go
-   (<? (insert-row! conn :JobArbiter {:job/id job-id
-                                      :user/id user-address}))))
-
 (defn add-contribution [conn job-id contributor-address contribution-id amount]
   (safe-go
    (<? (insert-row! conn :JobContribution {:job/id job-id
                                            :user/id contributor-address
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
+
 (defn refund-job-contribution [_ _ _]
   ;; [conn job-id contribution-id]
   ;; TODO: implement this, delete from the table

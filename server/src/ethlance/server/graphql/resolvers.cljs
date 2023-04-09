@@ -133,12 +133,13 @@
 
 (defn participant->user-resolver [parent args context info]
   (log/debug "participant->user-resolver")
+  (println ">>> participant->user-resolver" {:parent parent :clj-parent (js->clj parent :keywordize-keys) :gql-parent (graphql-utils/gql->clj parent)})
   (db/with-async-resolver-conn conn
-    (let [clj-parent (js->clj parent)
-          user-id (get (js->clj parent :keywordize-keys) "user_id")
+    (let [clj-parent (graphql-utils/gql->clj parent)
+          user-id (:user/id clj-parent)
           query {:select [:*]
                  :from [:Users]
-                 :where [:= :Users.user/id user-id]}
+                 :where [:ilike :Users.user/id user-id]}
           user-results (<? (db/get conn query))]
       user-results)))
 

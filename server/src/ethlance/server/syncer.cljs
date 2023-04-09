@@ -24,12 +24,6 @@
   :start (start)
   :stop (stop))
 
-;; event ArbitersInvited(address[] _arbiters, uint _fee, uint _jobId, JobType _jobType);
-(defn handle-arbiters-invited [_ {:keys [args]}]
-  ;; We aren't handling this now, we aren't storing invitations in the DB
-  ;; we are just storing arbiters who accepted the invitation
-  (log/info "Not handling event handle-arbiters-invited" args))
-
 (defn build-ethlance-job-data-from-ipfs-object [ethlance-job-data]
   {:job/title (:job/title ethlance-job-data)
    :job/description (:job/description ethlance-job-data)
@@ -44,96 +38,13 @@
    :job/required-availability (:job/required-availability ethlance-job-data)
    })
 
-;; event JobIssued(uint _jobId, address payable _creator, address payable[] _issuers, address[] _approvers, string _ipfsHash, address _token, uint _tokenVersion);
-(defn handle-job-issued [conn _ {:keys [args] :as event}]
-  (safe-go
-   (log/info (str "Handling event handle-job-issued" args))
-   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
-     (<? (ethlance-db/add-job conn
-                              (merge {:job/status  "active" ;; draft -> active -> finished hiring -> closed
-                                      :job/date-created (:timestamp event)
-                                      :job/date-updated (:timestamp event)
-                                      :job/token (:_token args)
-                                      :job/token-version (:_token-version args)}
-                                      (build-ethlance-job-data-from-ipfs-object ipfs-data)))))))
-
-;; event InvoiceAccepted(uint _jobId, uint  _invoiceId, address _approver, uint _amount);
-(defn handle-invoice-accepted [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-invoice-accepted" args))
-   (<? (ethlance-db/set-job-story-invoice-status-for-job conn (:_job-id args) (:_invoice-id args) "payed"))))
-
-;; event JobChanged(uint _jobId, address _changer, address payable[] _issuers, address payable[] _approvers, string _ipfsHash);
-(defn handle-job-changed [conn _ {:keys [args] :as event}]
-  (safe-go
-   (log/info (str "Handling event handle-job-changed" args))
-   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
-     (<? (ethlance-db/update-ethlance-job conn (:_job-id args)
-                                          (merge {:job/date-updated (:timestamp event)
-                                                  :job/token (:_token args)
-                                                  :job/token-version (:_token-version args)}
-                                                 (build-ethlance-job-data-from-ipfs-object ipfs-data)))))))
-
-;; event JobDataChanged(uint _jobId, address _changer, string _ipfsHash);
-(defn handle-job-data-changed [conn _ {:keys [args]}]
-  (log/info (str "Handling event handle-job-data-changed" args))
-  (safe-go
-   (let [job-ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:_ipfs-hash args)))]
-     (<? (ethlance-db/update-ethlance-job conn (:_jobId args) (build-ethlance-job-data-from-ipfs-object job-ipfs-data))))))
-
-;; event CandidateAccepted(uint _jobId, address _candidate);
-(defn handle-candidate-accepted [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-candidate-accepted" args))
-   (<? (ethlance-db/update-job-candidate conn (:_job-id args) (:_candidate args)))))
-
-;; event ContributionAdded(uint _jobId, uint _contributionId, address payable _contributor, uint _amount);
-(defn handle-job-contribution-added [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-job-contribution-added" args))
-   (let [job-id (<? (ethlance-db/get-job-id-for-ethlance-job conn (:_job-id args)))]
-     (<? (ethlance-db/add-contribution conn
-                                       job-id
-                                       (:_contributor args)
-                                       (:_contribution-id args)
-                                       (:_amount args))))))
-
-;; event ContributionRefunded(uint _jobId, uint _contributionId);
-(defn handle-job-contribution-refunded [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-contribution-refunded" args))
-   (<? (ethlance-db/refund-job-contribution conn
-                                            (<? (ethlance-db/get-job-id-for-ethlance-job conn (:_job-id args)))
-                                            (:_contribution-id args)))))
-
-;; event ContributionsRefunded(uint _jobId, address _issuer, uint[] _contributionIds);
-(defn handle-job-contributions-refunded [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-contributions-refunded" args))
-   (doseq [contribution-id (:_contributions-ids args)]
-     (<? (ethlance-db/refund-job-contribution conn (<? (ethlance-db/get-job-id-for-ethlance-job conn (:_job-id args)))
-                                              contribution-id)))))
-
-;; event JobDrained(uint _jobId, address _issuer, uint[] _amounts);
-(defn handle-job-drained [_ _ {:keys [args]}]
-  (log/info (str "Handling event handle-job-drained" args)))
-
-;; event JobIssuersUpdated(uint _jobId, address _changer, address payable[] _issuers);
-(defn handle-job-issuers-updated [_ _ {:keys [args]}]
-  (log/info (str "Handling event handle-job-issuers-updated" args)))
-
-;; event JobApproversUpdated(uint _jobId, address _changer, address[] _approvers);
-(defn handle-job-approvers-updated [conn _ {:keys [args]}]
-  (safe-go
-   (log/info (str "Handling event handle-job-approvers-updated" args))
-   (<? (ethlance-db/update-job-approvers conn
-                                         (<? (ethlance-db/get-job-id-for-ethlance-job conn (:_job-id args)))
-                                         (:_approvers args)))))
+(def ze-create-job-event (atom nil))
 
 (defn handle-job-created [conn _ {:keys [args] :as event}]
   (safe-go
+    (reset! ze-create-job-event event)
    (log/info (str ">>> Handling event job-created" args))
-   (println ">>> ipfs-data | type ipfs-data" (:ipfs-data args))
+   (println ">>> ipfs-data | type ipfs-data" {:ipfs-data (:ipfs-data args) :event event})
    (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
          ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
          offered-value (offered-vec->flat-map (first (:offered-values args)))
@@ -155,7 +66,8 @@
                                       :job/token-type token-type
                                       :job/token-amount (:token-amount offered-value)
                                       :job/token-address token-address
-                                      :job/token-id (:token-id offered-value)}
+                                      :job/token-id (:token-id offered-value)
+                                      :invited-arbiters (get-in args [:invited-arbiters] [])}
                                      (build-ethlance-job-data-from-ipfs-object ipfs-job-content))))
      (if (and
            (not= :eth token-type)
@@ -186,14 +98,33 @@
    (log/info "Handling event dispute-raised")
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
          job-story-id (:job-story/id ipfs-data)
+         job-id "0x0"
+         invoice-id "0x0"
          dispute-message {:job-story/id job-story-id
                           :message/type :job-story-message
                           :job-story-message/type :raise-dispute
                           :message/text (:message/text ipfs-data)
                           :message/creator (:message/creator ipfs-data)
-                          :message/date-created (.now js/Date)
-                          :invoice/status "dispute-raised"}]
+                          :message/date-created (.now js/Date)}]
+     (<? (ethlance-db/set-job-story-invoice-status-for-job conn job-id invoice-id "dispute-raised"))
      (<? (ethlance-db/add-message conn dispute-message)))))
+
+(defn handle-dispute-resolved [conn _ {:keys [args] :as dispute-resolved-event}]
+  (safe-go
+   (log/info "Handling event dispute-resolved")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-story-id (:job-story/id ipfs-data)
+         invoice-id (:invoice/id args)
+         job-id (:job/id ipfs-data)
+         resolution-message {:job-story/id job-story-id
+                             :message/type :job-story-message
+                             :job-story-message/type :resolve-dispute
+                             :message/text (:message/text ipfs-data)
+                             :message/creator (:message/creator ipfs-data)
+                             :message/date-created (.now js/Date)}]
+     (println ">>> dispute-resolved" {:args args :dispute-resolved-event dispute-resolved-event :ipfs-data ipfs-data})
+     (<? (ethlance-db/set-job-story-invoice-status-for-job conn job-id invoice-id "dispute-resolved"))
+     (<? (ethlance-db/add-message conn resolution-message)))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
@@ -264,20 +195,7 @@
                          :ethlance/test-event handle-test-event
                          :ethlance/invoice-created handle-invoice-created
                          :ethlance/dispute-raised handle-dispute-raised
-                         ; :ethlance-issuer/arbiters-invited handle-arbiters-invited
-                         ;; EthlanceJobs
-                         ; :ethlance-jobs/job-issued handle-job-issued
-                         ; :ethlance-jobs/contribution-added handle-job-contribution-added
-                         ; :ethlance-jobs/contribution-refunded handle-job-contribution-refunded
-                         ; :ethlance-jobs/contributions-refunded handle-job-contributions-refunded
-                         ; :ethlance-jobs/job-drained handle-job-drained
-                         ; :ethlance-jobs/job-invoice handle-job-invoice
-                         ; :ethlance-jobs/invoice-accepted handle-invoice-accepted
-                         ; :ethlance-jobs/job-changed handle-job-changed
-                         ; :ethlance-jobs/job-issuers-updated handle-job-issuers-updated
-                         ; :ethlance-jobs/job-approvers-updated handle-job-approvers-updated
-                         ; :ethlance-jobs/job-data-changed handle-job-data-changed
-                         ; :ethlance-jobs/candidate-accepted handle-candidate-accepted
+                         :ethlance/dispute-resolved handle-dispute-resolved
                          }
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
