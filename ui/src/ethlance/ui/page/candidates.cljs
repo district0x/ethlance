@@ -4,6 +4,7 @@
             [district.ui.component.page :refer [page]]
             [district.ui.router.events :as router-events]
             [ethlance.shared.constants :as constants]
+            [district.ui.graphql.subs :as gql]
             [ethlance.ui.component.error-message :refer [c-error-message]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
@@ -52,7 +53,8 @@
         {:selection @*payment-type
          :on-selection #(re/dispatch [:page.candidates/set-payment-type %])}
         [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
-        [:percentage [c-radio-search-filter-element "Percentage of Dispute"]]]
+        [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
+        [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
 
        [:div.country-selector
         [c-select-input
@@ -74,40 +76,56 @@
   [c-mobile-search-filter
    [cf-candidate-search-filter]])
 
-(defn c-candidate-element
-  [{:keys [:user/id
-           :candidate/professional-title
-           :candidate/skills]}]
-  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address id} {}])}
+(defn c-candidate-element [candidate]
+  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {}])}
    [:div.profile
-    [:div.profile-image [c-profile-image {}]]
-    [:div.name "Brian Curran"]
-    [:div.title (str/title professional-title)]]
-   [:div.price "$15"]
+    [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
+    [:div.name (-> candidate :user :user/name)]
+    [:div.title (str/title (-> candidate :candidate/professional-title))]]
+   [:div.price (-> candidate :candidate/rate)]
    [:div.tags
     (doall
-     (for [tag-label skills]
+     (for [tag-label (-> candidate :candidate/skills)]
        ^{:key (str "tag-" tag-label)}
        [c-tag {:on-click #(re/dispatch  [:page.candidates/add-skill tag-label])
                :title (str "Add '" tag-label "' to Search")}
         [c-tag-label tag-label]]))]
    [:div.rating
-    [c-rating {:default-rating 3}]
-    [:div.label "(4)"]]
-   [:div.location "New York, United States"]])
+    [c-rating {:rating (-> candidate :candidate/rating)}]
+    [:div.label (str "(" (-> candidate :candidate/feedback :total-count) ")")]]])
 
 
 (defn c-candidate-listing []
   (let [*limit (re/subscribe [:page.candidates/limit])
         *offset (re/subscribe [:page.candidates/offset])
-        *candidate-listing-query (atom nil)]
+        ; query-params {:search-params {:feedback-min-rating 0 :feedback-max-rating 5}}
+        query-params (re/subscribe [:page.candidates/search-params])
+        ]
     (fn []
-      (let [{candidate-search  :candidate-search
+      (println ">>> doing new query" @query-params)
+      (let [query [:candidate-search @query-params
+                   [:total-count
+                    [:items [:user/id
+                             [:user [:user/id
+                                     :user/name
+                                     :user/profile-image]]
+                             [:candidate/feedback [:total-count]]
+                             :candidate/professional-title
+                             :candidate/categories
+                             :candidate/skills
+                             :candidate/rating
+                             :candidate/rate
+                             :candidate/rate-currency-id]]]]
+            *candidate-listing-query (re/subscribe [::gql/query {:queries [query]}
+                                                    {:refetch-on #{:page.candidates/search-params-updated}}])
+            _ (println ">>>> WHOLE candidate-listing-query" @*candidate-listing-query)
+            {candidate-search  :candidate-search
              preprocessing?    :graphql/preprocessing?
              loading?          :graphql/loading?
              errors            :graphql/errors} @*candidate-listing-query
             {candidate-listing :items
              total-count       :total-count} candidate-search]
+        (println ">>> TOTAL COUNT" total-count " | " candidate-search)
         [:<>
          (cond
            ;; Errors?
@@ -132,8 +150,8 @@
          (when (seq candidate-listing)
            [c-pagination
             {:total-count total-count
-             :limit @*limit
-             :offset @*offset
+             :limit (or @*limit 20)
+             :offset (or @*offset 0)
              :set-offset-event :page.candidates/set-offset}])]))))
 
 (defmethod page :route.user/candidates []

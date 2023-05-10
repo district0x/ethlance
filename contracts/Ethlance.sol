@@ -25,42 +25,47 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   mapping(address => bool) public isJobMap; // Stores if given address is a Job proxy contract address
 
   event JobCreated(
-    address job,
-    uint jobVersion,
-    address creator,
+    address indexed job,
+    address indexed creator,
     EthlanceStructs.TokenValue[] offeredValues,
     address[] invitedArbiters,
     bytes ipfsData,
-    uint timestamp
+    uint timestamp,
+    uint jobVersion
   );
 
 
   event QuoteForArbitrationSet(
-    address job,
-    address arbiter,
+    address indexed job,
+    address indexed arbiter,
     EthlanceStructs.TokenValue[] quote,
     uint timestamp
   );
 
 
   event QuoteForArbitrationAccepted(
-    address job,
-    address arbiter,
+    address indexed job,
+    address indexed arbiter,
     uint timestamp
   );
 
 
   event CandidateAdded(
-    address job,
-    address candidate,
+    address indexed job,
+    address indexed candidate,
     bytes ipfsData,
     uint timestamp
   );
 
+  event ArbitersInvited(
+    address indexed job,
+    address[] arbiters,
+    uint timestamp
+  );
 
   event InvoiceCreated(
-    address job,
-    address invoicer,
+    address indexed job,
+    address indexed invoicer,
     uint invoiceId,
     EthlanceStructs.TokenValue[] invoicedValue,
     bytes ipfsData,
@@ -69,51 +74,54 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
 
 
   event InvoicePaid(
-    uint invoiceId,
+    address indexed job,
+    uint indexed invoiceId,
     bytes ipfsData,
     uint timestamp
   );
 
 
   event InvoiceCancelled(
-    uint invoiceId,
+    address indexed job,
+    uint indexed invoiceId,
     bytes ipfsData,
     uint timestamp
   );
 
 
   event FundsAdded(
-    address job,
-    address funder,
+    address indexed job,
+    address indexed funder,
     EthlanceStructs.TokenValue[] fundedValue,
     uint timestamp
   );
 
 
   event FundsWithdrawn(
-    address job,
-    address withdrawer,
+    address indexed job,
+    address indexed withdrawer,
     EthlanceStructs.TokenValue[] withdrawnValues,
     uint timestamp
   );
 
 
   event DisputeRaised(
-    address job,
-    uint invoiceId,
+    address indexed job,
+    uint indexed invoiceId,
     bytes ipfsData,
     uint timestamp
   );
 
 
   event DisputeResolved(
-    uint invoiceId,
+    address indexed job,
+    uint indexed invoiceId,
     EthlanceStructs.TokenValue[] _valueForInvoicer,
     bytes ipfsData,
     uint timestamp
   );
 
-  event TestEvent(uint theAnswer);
+  event TestEvent(uint indexed theAnswer);
   function emitTestEvent(uint answer) external returns(uint) {
     emit TestEvent(answer);
     return answer + 1;
@@ -189,16 +197,17 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address payable newJobPayableAddress = payable(address(uint160(newJob)));
     MutableForwarder(newJobPayableAddress).setTarget(jobProxyTarget);
 
+    // FIXME: disabled the transfer to be able to use Mainnet token addresses (e.g. USDC) while working against local testnet
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
     isJobMap[newJobPayableAddress] = true;
-    Job(newJobPayableAddress).initialize(this, _creator, _offeredValues, _invitedArbiters);
+    Job(newJobPayableAddress).initialize(this, _creator, msg.sender, _offeredValues, _invitedArbiters);
 
-    emit JobCreated(newJobPayableAddress, Job(newJobPayableAddress).version(), _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp());
+    emit JobCreated(newJobPayableAddress, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp(), Job(newJobPayableAddress).version());
 
     return newJob;
   }
 
-  function timestamp() internal returns(uint) {
+  function timestamp() internal view returns(uint) {
     return block.number;
   }
 
@@ -260,10 +269,11 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * Can only be called by {Job} contract address
    */
   function emitInvoicePaid(
+    address _job,
     uint _invoiceId,
     bytes memory _ipfsData
   ) external isJob {
-    emit Ethlance.InvoicePaid(_invoiceId, _ipfsData, timestamp());
+    emit Ethlance.InvoicePaid(_job, _invoiceId, _ipfsData, timestamp());
   }
 
 
@@ -272,10 +282,11 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * Can only be called by {Job} contract address
    */
   function emitInvoiceCanceled(
+    address _job,
     uint _invoiceId,
     bytes memory _ipfsData
   ) external isJob {
-    emit Ethlance.InvoiceCancelled(_invoiceId, _ipfsData, timestamp());
+    emit Ethlance.InvoiceCancelled(_job, _invoiceId, _ipfsData, timestamp());
   }
 
 
@@ -323,13 +334,20 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * Can only be called by {Job} contract address
    */
   function emitDisputeResolved(
+    address _job,
     uint _invoiceId,
     EthlanceStructs.TokenValue[] memory _valueForInvoicer,
     bytes memory _ipfsData
   ) external isJob {
-    emit DisputeResolved(_invoiceId, _valueForInvoicer, _ipfsData, timestamp());
+    emit DisputeResolved(_job, _invoiceId, _valueForInvoicer, _ipfsData, timestamp());
   }
 
+  function emitArbitersInvited(
+    address job,
+    address[] calldata arbiters
+  ) external isJob {
+    emit ArbitersInvited(job, arbiters, timestamp());
+  }
 
   /**
    * @dev This function is called automatically when this contract receives approval for ERC20 MiniMe token
@@ -460,7 +478,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   // TODO: how to optimize so that multiple calls to this method wouldn't
   //       redo the work multiple times (and thus spend gas) during one
   //       contract execution
-  function _decodeJobCreationData(bytes calldata _data) internal returns(OperationType, address, EthlanceStructs.TokenValue[] memory, address[] memory, bytes memory) {
+  function _decodeJobCreationData(bytes calldata _data) internal pure returns(OperationType, address, EthlanceStructs.TokenValue[] memory, address[] memory, bytes memory) {
     return abi.decode(_data[4:], (OperationType, address, EthlanceStructs.TokenValue[], address[], bytes));
   }
 

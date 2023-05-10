@@ -7,6 +7,7 @@
     [ethlance.ui.event.utils :as event.utils]
     [ethlance.shared.utils :refer [eth->wei base58->hex]]
     [re-frame.core :as re]
+            ["web3" :as w3]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
@@ -133,7 +134,6 @@
                    :on-tx-hash-error [::tx-hash-error]
                    :on-tx-hash-error-n [[::tx-hash-error]]
                    :on-tx-success [::create-job-tx-success]
-                   :on-tx-success-n [[::create-job-tx-success]]
                    :on-tx-error [::create-job-tx-error]
                    :on-tx-error-n [[::create-job-tx-error]]}]})))
 
@@ -150,19 +150,19 @@
 (re/reg-event-db
   ::create-job-tx-success
   (fn [db [event-name tx-data]]
-    (println ">>> ethlance.ui.page.new-job.events :create-job-tx-success" tx-data)
     (re/dispatch [::router-events/navigate
                   :route.job/detail
-                  {:contract (get-in tx-data
-                                     [:events :Job-created :return-values :job])}])))
+                  {:id (get-in tx-data [:events :Job-created :return-values :job])}])))
 
 (re/reg-event-db
   ::create-job-tx-error
   (fn [db event]
+    ; TODO: show something meaningful to the user
     (println ">>> got :create-job-tx-error event:" event)))
 
 (re/reg-event-db
   ::job-to-ipfs-failure
   (fn [db event]
+    ; TODO: show something meaningful to the user
     (println ">>> EVENT ze-new-job-failure" event)
     db))

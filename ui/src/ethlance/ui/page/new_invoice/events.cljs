@@ -64,12 +64,12 @@
                         :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-invoice])]
-                   :on-success [:invoice-to-ipfs-success]
-                   :on-error [:invoice-to-ipfs-failure]}})))
+                   :on-success [:invoice-to-ipfs-success ipfs-invoice]
+                   :on-error [:invoice-to-ipfs-failure ipfs-invoice]}})))
 
 (re/reg-event-fx
   :invoice-to-ipfs-success
-  (fn [cofx event]
+  (fn [cofx [_event ipfs-job ipfs-event]]
     (let [invoice-fields (get-in cofx [:db state-key])
           job-fields (-> invoice-fields :invoiced-job :job)
           contract-address (:job/id job-fields)
@@ -90,21 +90,16 @@
                           {:tokenType (contract-constants/token-type->enum-val token-type)
                            :tokenAddress token-address}}}
           tx-opts {:from creator :gas 10000000}
-          ipfs-response (get-in event [:event 1])
-          ipfs-hash (base58->hex (get-in event [1 :Hash]))]
+          ipfs-hash (-> ipfs-event :Hash base58->hex)]
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance (:db cofx) :job contract-address)
                    :fn :create-invoice
                    :args [[(clj->js offered-value)] ipfs-hash]
                    :tx-opts tx-opts
                    :tx-hash [::tx-hash]
-                   :on-tx-hash-n [[::tx-hash]]
                    :on-tx-hash-error [::tx-hash-error]
-                   :on-tx-hash-error-n [[::tx-hash-error]]
-                   :on-tx-success [::send-invoice-tx-success]
-                   :on-tx-success-n [[::send-invoice-tx-success]]
-                   :on-tx-error [::send-invoice-tx-error]
-                   :on-tx-error-n [[::send-invoice-tx-error]]}]})))
+                   :on-tx-success [::send-invoice-tx-success ipfs-job]
+                   :on-tx-error [::send-invoice-tx-error ipfs-job]}]})))
 
 (re/reg-event-db
   ::invoice-to-ipfs-failure
@@ -124,15 +119,14 @@
 
 (re/reg-event-db
   ::send-invoice-tx-success
-  (fn [db [event-name tx-data]]
+  (fn [db [event-name ipfs-job tx-data]]
     (let [web3 (web3-queries/web3 db)
           contract-instance (smart-contracts.queries/instance db :ethlance)
           raw-event (get-in tx-data [:events :0 :raw])
-          invoice-created (util.tokens/parse-event web3 contract-instance raw-event :Invoice-created)]
-      ; TODO: might have to subscribe to contract event because on test/mainnet transactions take time to be mined
-      (re/dispatch [::router-events/navigate
-                    :route.invoice/index
-                    {:job-id (:job invoice-created) :invoice-id (:invoice-id invoice-created)}]))))
+          invoice-created (util.tokens/parse-event web3 contract-instance raw-event :Invoice-created)
+          job-story-id (:job-story/id ipfs-job)]
+      (println ">>> ::send-invoice-tx-success" {:tx-data tx-data :invoice-created invoice-created :ipfs-job ipfs-job :event (get-in tx-data [:events :Invoice-created :return-values])})
+      (re/dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}]))))
 
 (re/reg-event-db
   ::send-invoice-tx-error

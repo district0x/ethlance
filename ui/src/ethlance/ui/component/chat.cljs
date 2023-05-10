@@ -55,5 +55,6 @@
   [:div.ethlance-chat-log
    (doall
     (for [message chat-listing]
-     ^{:key (str "chat-message-" (:id message))}
-     [c-chat-message message]))])
+      (do
+         ^{:key (str "chat-message-" (:id message) "-" (hash (:text message)))}
+         [c-chat-message message])))])

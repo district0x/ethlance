@@ -4,9 +4,12 @@
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
             [district.ui.graphql.events :as gql-events]
             [district.ui.web3-tx.events :as web3-events]
+            ["web3" :as w3]
             [ethlance.shared.contract-constants :as contract-constants]
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-accounts.queries :as accounts-queries]
+            [district.ui.web3.queries]
+            [district0x.re-frame.web3-fx]
             [re-frame.core :as re]))
 
 ;; Page State
@@ -29,7 +32,6 @@
 (defn create-logging-handler
   ([] (create-logging-handler ""))
   ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
-
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
 (re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
 (re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
@@ -43,7 +45,7 @@
 
 (re/reg-event-db :page.job-contract/dispute-to-ipfs-failure (create-logging-handler))
 (re/reg-event-fx :page.job-contract/tx-hash (create-logging-handler))
-(re/reg-event-db :page.job-contract/resolve-dispute-tx-error (create-logging-handler))
+(re/reg-event-db ::dispute-tx-error (create-logging-handler))
 
 (defn send-feedback
   [{:keys [db]} [_event-name params]]
@@ -55,9 +57,11 @@
                         :text text
                         :rating rating
                         :to to}]
-    {:dispatch [::gql-events/mutation
-                {:queries [[:leave-feedback mutation-params]]
-                 :id :SendEmployerFeedbackMutation}]}))
+    (println ">>> send-feedback" {:mutation-params mutation-params :params params})
+    {:fx [[:dispatch [::gql-events/mutation {:queries [[:leave-feedback mutation-params]]
+                                             :id :SendEmployerFeedbackMutation}]]
+          [:dispatch [:page.job-contract/refetch-messages]]
+          [:dispatch [:page.job-contract/clear-message-forms]]]}))
 
 (defn send-message
   [{:keys [db]} [_event-name params]]
@@ -100,23 +104,32 @@
                    :args [invoice-id ipfs-hash]
                    :tx-opts tx-opts
                    :tx-hash [::tx-hash]
-                   :on-tx-hash-n [[::tx-hash]]
                    :on-tx-hash-error [::tx-hash-error]
-                   :on-tx-hash-error-n [[::tx-hash-error]]
-                   :on-tx-success [::send-dispute-tx-success]
-                   :on-tx-success-n [[::send-dispute-tx-success]]
-                   :on-tx-error [::send-dispute-tx-error]
-                   :on-tx-error-n [[::send-dispute-tx-error]]}]})))
+                   :on-tx-success [::dispute-tx-success]
+                   :on-tx-error [::dispute-tx-error]}]})))
 
-(re/reg-event-db
-  ::raise-dispute-tx-success
-  (fn [db [event-name tx-data]]
+(defn clear-forms [db]
+  (let [field-names [:message-text
+                     :message-recipient
+                     :dispute-text
+                     :dispute-candidate-percentage
+                     :feedback-rating
+                     :feedback-text
+                     :feedback-recipient]]
+    (reduce (fn [acc field] (assoc-in acc [state-key field] nil)) db field-names)))
+
+(re/reg-event-fx
+  :page.job-contract/clear-message-forms
+  (fn [{:keys [db]}]
+    {:db (clear-forms db)}))
+
+(re/reg-event-fx
+  ::dispute-tx-success
+  (fn [{:keys [db]} [event-name tx-data]]
     ; TODO: clear & disable form
     (println ">>> ethlance.ui.page.job-contract.events ::raise-dispute-tx-success" tx-data)
-    ; (re/dispatch [::router-events/navigate
-    ;               :route.job/detail
-    ;               {:contract (get-in tx-data [:events :Job-created :return-values :job])}])
-    ))
+    {:db (clear-forms db)
+     :dispatch [:page.job-contract/refetch-messages]}))
 
 (defn send-resolve-dispute-ipfs
   [{:keys [db]} [_ {invoice-id :invoice/id
@@ -142,14 +155,11 @@
         raw-amount (:token-amount forwarded-event-data)
         token-address (:token-address forwarded-event-data)
         token-id (:token-id forwarded-event-data)
-        token-amount (if (= token-type :eth)
-                       (eth->wei raw-amount)
-                       raw-amount)
         address-placeholder "0x0000000000000000000000000000000000000000"
         token-address (if (not (= token-type :eth))
                         token-address
                         address-placeholder)
-        offered-value {:value token-amount
+        offered-value {:value (str raw-amount)
                        :token
                        {:tokenId token-id
                         :tokenContract
@@ -159,22 +169,15 @@
         tx-opts {:from creator :gas 10000000}
         ipfs-hash (base58->hex (:Hash ipfs-data))
         contract-args [invoice-id [(clj->js offered-value)] ipfs-hash]]
-    (println ">>> send-resolve-dispute-tx" {:ipfs-data ipfs-data
-                                            :ipfs-original-hash (:Hash ipfs-data)
-                                            :ipfs-hex-hash ipfs-hash
-                                            :contract-args contract-args
-                                            :tx-opts tx-opts
-                                            :instance instance})
     {:dispatch [::web3-events/send-tx
                 {:instance instance
                  :fn :resolve-dispute
                  :args contract-args
                  :tx-opts tx-opts
                  :tx-hash [:page.job-contract/tx-hash]
-                 :on-tx-hash-error [:page.job-contract/resolve-dispute-tx-error]
-                 :on-tx-success [:page.job-contract/resolve-dispute-to-ipfs-success]
-                 :on-tx-error [:page.job-contract/resolve-dispute-tx-error]
-                 }]}))
+                 :on-tx-hash-error [::dispute-tx-error]
+                 :on-tx-success [::dispute-tx-success]
+                 :on-tx-error [::dispute-tx-error]}]}))
 
 (re/reg-event-fx :page.job-contract/resolve-dispute send-resolve-dispute-ipfs)
 (re/reg-event-fx :page.job-contract/resolve-dispute-to-ipfs-success send-resolve-dispute-tx)

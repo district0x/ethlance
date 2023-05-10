@@ -34,13 +34,24 @@
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
+; TODO: extract this to reusable function (also used in page.jobs.events)
+(defn trigger-search
+  "Stores (assoc) the changed value to app-db and causes event to be dispatched
+  that queries GQL API with search params"
+  [handler-fn]
+  (fn [cofx & [event value]]
+    {:db (:db (handler-fn cofx event value))
+     :dispatch [:page.candidates/search-params-updated]}))
+
 (re/reg-event-fx :page.candidates/initialize-page initialize-page)
 (re/reg-event-fx :page.candidates/set-offset (create-assoc-handler :offset))
 (re/reg-event-fx :page.candidates/set-limit (create-assoc-handler :limit))
 (re/reg-event-fx :page.candidates/set-skills (create-assoc-handler :skills))
+
 (re/reg-event-fx :page.candidates/add-skill add-skill)
 (re/reg-event-fx :page.candidates/set-category (create-assoc-handler :category))
 (re/reg-event-fx :page.candidates/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
 (re/reg-event-fx :page.candidates/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
-(re/reg-event-fx :page.candidates/set-payment-type (create-assoc-handler :payment-type))
+; (re/reg-event-fx :page.candidates/set-payment-type (create-assoc-handler :payment-type))
+(re/reg-event-fx :page.candidates/set-payment-type (trigger-search (create-assoc-handler :payment-type)))
 (re/reg-event-fx :page.candidates/set-country (create-assoc-handler :country))

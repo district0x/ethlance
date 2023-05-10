@@ -2,8 +2,8 @@
 .shadow-cljs
 node_modules
 .cpcache
-ui/out
-server/out
+ui/out/**
+server/out/**
 yarn-error.log
 ui/resources/public/js
 ui/resources/public/css

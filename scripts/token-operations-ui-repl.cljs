@@ -17,7 +17,7 @@
 (def tx-return (atom nil))
 
 ; Mint new token
-(reset! tx-result (w3n-eth/contract-send multi-token-instance :award-item [receiver-address 100] {:from receiver-address} (fn [res] (println ">>> multi-token mint callback" res))))
+(reset! tx-result (w3n-eth/contract-send multi-token-instance :award-item [receiver-address 1000] {:from receiver-address} (fn [res] (println ">>> multi-token mint callback" res))))
 (.then @tx-result (fn [res] (reset! tx-return res)))
 (.catch @tx-result (fn [res] (reset! tx-return res)))
 

@@ -184,7 +184,13 @@
                                                                 :candidate_skills skills
                                                                 :candidate_rate (parsers/parse-int rate)
                                                                 ;; NOTE: hardcoded since UI does not allow for a different currency
-                                                                :candidate_rateCurrencyId :USD}}}]})))
+                                                                :candidate_rateCurrencyId :USD}}
+                                   :on-success [:navigate-to-profile user-address "candidate"]}]})))
+
+(re/reg-event-fx
+  :navigate-to-profile
+  (fn [cofx [_ address tab]]
+    {:dispatch [:district.ui.router.events/navigate :route.user/profile {:address address} {:tab tab}]}))
 
 (re/reg-event-fx
   :page.sign-up/update-employer
@@ -216,7 +222,8 @@
                                                                :user_languages languages
                                                                 :user_profileImage profile-image
                                                                :employer_bio bio
-                                                               :employer_professionalTitle professional-title}}}]})))
+                                                               :employer_professionalTitle professional-title}}
+                                   :on-success [:navigate-to-profile user-address "employer"]}]})))
 
 
 (re/reg-event-fx
@@ -253,7 +260,8 @@
                                                               :arbiter_professionalTitle professional-title
                                                               :arbiter_fee (js/parseInt fee)
                                                               ;; NOTE: hardcoded since UI does not allow for a different currency
-                                                              :arbiter_feeCurrencyId :USD}}}]})))
+                                                              :arbiter_feeCurrencyId :USD}}
+                                   :on-success [:navigate-to-profile user-address "arbiter"]}]})))
 
 
 (re/reg-event-fx

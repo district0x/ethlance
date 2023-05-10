@@ -24,6 +24,10 @@
   :start (start)
   :stop (stop))
 
+(defn get-timestamp
+  ([] (get-timestamp {}))
+  ([event] (.now js/Date)))
+
 (defn build-ethlance-job-data-from-ipfs-object [ethlance-job-data]
   {:job/title (:job/title ethlance-job-data)
    :job/description (:job/description ethlance-job-data)
@@ -55,13 +59,25 @@
          eth-token-details {:address "0x0000000000000000000000000000000000000000"
                             :name "Ether"
                             :symbol "ETH"
-                            :abi []}]
+                            :abi []}
+         for-the-db (merge {:job/id (:job args)
+                                       :job/status  "active" ;; draft -> active -> finished hiring -> closed
+                                       :job/creator (:creator args)
+                                       :job/date-created (:timestamp event)
+                                       :job/date-updated (:timestamp event)
+
+                                       :job/token-type token-type
+                                       :job/token-amount (:token-amount offered-value)
+                                       :job/token-address token-address
+                                       :job/token-id (:token-id offered-value)
+                                       :invited-arbiters (get-in args [:invited-arbiters] [])}
+                                      (build-ethlance-job-data-from-ipfs-object ipfs-job-content))]
      (<? (ethlance-db/add-job conn
                               (merge {:job/id (:job args)
                                       :job/status  "active" ;; draft -> active -> finished hiring -> closed
                                       :job/creator (:creator args)
-                                      :job/date-created (:timestamp event)
-                                      :job/date-updated (:timestamp event)
+                                      :job/date-created (get-timestamp event)
+                                      :job/date-updated (get-timestamp event)
 
                                       :job/token-type token-type
                                       :job/token-amount (:token-amount offered-value)
@@ -87,7 +103,7 @@
                           :job-story-message/type :invoice
                           :message/text (:message/text ipfs-data)
                           :message/creator invoicer
-                          :message/date-created (.now js/Date)
+                          :message/date-created (get-timestamp)
                           :invoice/status "created"
                           :invoice/amount-requested (:token-amount offered-value)
                           :invoice/ref-id (:invoice-id args)}]
@@ -96,35 +112,70 @@
 (defn handle-dispute-raised [conn _ {:keys [args] :as dispute-raised-event}]
   (safe-go
    (log/info "Handling event dispute-raised")
+   (println ">>> handle-dispute-raised" {:args args :dispute-raised-event dispute-raised-event})
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
-         job-story-id (:job-story/id ipfs-data)
-         job-id "0x0"
-         invoice-id "0x0"
-         dispute-message {:job-story/id job-story-id
+         job-id (:job args)
+         invoice-id (:invoice-id args)
+         job-story (<? (db/get conn {:select [:*]
+                                     :from [:JobStoryInvoiceMessage]
+                                     :join [:JobStory [:= :JobStory.job/id job-id]]
+                                     :where [:= :JobStoryInvoiceMessage.invoice/ref-id invoice-id]}))
+         _ (println ">>> handle-dispute-raised job-story" job-story)
+         dispute-message {:job-story/id (:job-story/id job-story)
                           :message/type :job-story-message
                           :job-story-message/type :raise-dispute
+                          :invoice/id invoice-id
                           :message/text (:message/text ipfs-data)
                           :message/creator (:message/creator ipfs-data)
                           :message/date-created (.now js/Date)}]
-     (<? (ethlance-db/set-job-story-invoice-status-for-job conn job-id invoice-id "dispute-raised"))
-     (<? (ethlance-db/add-message conn dispute-message)))))
+      (<? (ethlance-db/add-message conn dispute-message)))))
 
 (defn handle-dispute-resolved [conn _ {:keys [args] :as dispute-resolved-event}]
   (safe-go
    (log/info "Handling event dispute-resolved")
    (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
-         job-story-id (:job-story/id ipfs-data)
-         invoice-id (:invoice/id args)
+         ; job-id (:job args) ; FIXME: after re-deploying the contracts can use this added event field to get the job contract address (instead of relying on IPFS)
          job-id (:job/id ipfs-data)
-         resolution-message {:job-story/id job-story-id
+         invoice-id (:invoice-id args)
+         offered-value (offered-vec->flat-map (get-in args [:_value-for-invoicer 0]))
+         job-story (<? (db/get conn {:select [:*]
+                                     :from [:JobStoryInvoiceMessage]
+                                     :join [:JobStory [:= :JobStory.job/id job-id]]
+                                     :where [:= :JobStoryInvoiceMessage.invoice/ref-id invoice-id]}))
+
+         resolution-message {:job-story/id (:job-story/id job-story)
                              :message/type :job-story-message
                              :job-story-message/type :resolve-dispute
+                             :invoice/id invoice-id
+                             :invoice/amount-paid (:token-amount offered-value)
+                             :invoice/date-paid (get-timestamp)
                              :message/text (:message/text ipfs-data)
                              :message/creator (:message/creator ipfs-data)
-                             :message/date-created (.now js/Date)}]
-     (println ">>> dispute-resolved" {:args args :dispute-resolved-event dispute-resolved-event :ipfs-data ipfs-data})
-     (<? (ethlance-db/set-job-story-invoice-status-for-job conn job-id invoice-id "dispute-resolved"))
-     (<? (ethlance-db/add-message conn resolution-message)))))
+                             :message/date-created (get-timestamp)}]
+      (<? (ethlance-db/add-message conn resolution-message)))))
+
+(defn handle-candidate-added [conn _ {:keys [args] :as event}]
+  (safe-go
+   (log/info "Handling event candidate-added")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-id (:job args)
+         candidate-id (:candidate args)
+         job-story (<? (db/get conn {:select [:JobStory.job-story/id]
+                                     :from [:JobStory]
+                                     :where [:and
+                                             [:= :JobStory.job-story/candidate candidate-id]
+                                             [:= :JobStory.job/id job-id]
+                                             [:!= :JobStory.job-story/status "completed"]]
+                                     :order-by [[:job-story/date-created :desc]]}))
+         message {:job-story/id (:job-story/id job-story)
+                  :job/id job-id
+                  :message/type :job-story-message
+                  :job-story-message/type :invitation
+                  :message/text (:text ipfs-data)
+                  :message/creator (:inviter ipfs-data)
+                  :message/date-created (get-timestamp)}]
+     (println ">>> handle-candidate-added" {:candidate-id candidate-id :event event :message message})
+     (<? (ethlance-db/add-message conn message)))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
@@ -192,6 +243,7 @@
   (log/debug "Starting Syncer...")
   (let [event-callbacks {
                          :ethlance/job-created handle-job-created
+                         :ethlance/candidate-added handle-candidate-added
                          :ethlance/test-event handle-test-event
                          :ethlance/invoice-created handle-invoice-created
                          :ethlance/dispute-raised handle-dispute-raised
@@ -199,8 +251,6 @@
                          }
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
-        _ (identity event-callbacks) ; To silence clj-kondo warning during dev
-        ; callback-ids []
         callback-ids (doall (for [[event-key] event-callbacks]
                               (web3-events/register-callback! event-key dispatcher)))
         ]

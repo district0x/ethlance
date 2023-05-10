@@ -24,7 +24,7 @@
       (->> stories
            (map (fn [story]
                   {:current-user? (= (clojure.string/lower-case current-user-address)
-                                     (clojure.string/lower-case (get-in story [:candidate :user :user/id])))
+                                     (clojure.string/lower-case (get-in story [:candidate :user :user/id] "")))
                    :job-story/id (:job-story/id story)
                    :candidate-name (get-in story [:candidate :user :user/name])
                    :rate (get-in story [:job-story/proposal-rate])

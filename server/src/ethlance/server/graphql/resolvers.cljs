@@ -19,6 +19,12 @@
 (def axios (js/require "axios"))
 (def querystring (js/require "querystring"))
 
+(defn js-obj->clj-map [obj]
+  (let [obj-keys (district.graphql-utils/gql->clj (js-keys obj))
+        keywordize (fn [k] (keyword (camel-snake-kebab.core/->kebab-case k)))
+        assoc-keywordized (fn [acc js-key] (assoc acc (keywordize js-key) (aget obj js-key)))]
+    (reduce assoc-keywordized {} obj-keys)))
+
 (defn- paged-query
   [conn query limit offset]
   (safe-go
@@ -323,18 +329,23 @@
 
 (defn candidate-search-resolver [_ {:keys [:limit :offset
                                            :user/id
-                                           :categories-and
-                                           :categories-or
-                                           :skills-and
-                                           :skills-or
-                                           :professional-title
+                                           :search-params
                                            :order-by :order-direction]
                                     :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "candidate-search-resolver" {:args args})
-    (let [query (cond-> (merge candidate-query
-                               {:modifiers [:distinct]})
+    (let [search-params (js-obj->clj-map search-params)
+          categories-and (:categories-and search-params)
+          categories-or (:categories-or search-params)
+          skills-and (:skills-and search-params)
+          skills-or (:skills-or search-params)
+          min-rating (:feedback-min-rating search-params)
+          max-rating (:feedback-max-rating search-params)
+          professional-title (:professional-title search-params)
 
+          query (cond-> (merge candidate-query {:modifiers [:distinct]})
+                  min-rating (sql-helpers/merge-where [:<= min-rating :Candidate.candidate/rating])
+                  max-rating (sql-helpers/merge-where [:>= max-rating :Candidate.candidate/rating])
                   id (sql-helpers/merge-where [:= :Candidate.user/id id])
 
                   professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
@@ -454,7 +465,7 @@
       (log/debug "job-story->candidate-feedback-resolver")
       (<? (db/all conn (-> user-feedback-query
                            (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])
-                           (sql-helpers/merge-where [:= :JobStory.job-story/candidate :JobStoryFeedbackMessage.user/id])))))))
+                           (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate :JobStoryFeedbackMessage.user/id])))))))
 
 (defn job-story->arbiter-feedback-resolver [root _ _]
   (db/with-async-resolver-conn conn
@@ -474,26 +485,35 @@
           (log/debug "message-resolver")
           (<? (db/get conn {:select [:*] :from [:Message] :where [:= :message/id message-id]})))))
 
-(defn dispute-message-query [dispute-message-column job-story-id]
+(defn dispute-message-query [job-story-id invoice-id invoice-dispute-message-column]
   {:select [:Message.*]
-            :from [:JobStory]
-            :join [:JobStoryMessage [:= dispute-message-column :JobStoryMessage.message/id]
-                   :Message [:= :JobStoryMessage.message/id :Message.message/id]]
-            :where [:= :JobStory.job-story/id job-story-id]})
+            :from [:JobStoryInvoiceMessage]
+            :join [:Message [:= invoice-dispute-message-column :Message.message/id]]
+            :where [:and
+                    [:= :JobStoryInvoiceMessage.job-story/id job-story-id]
+                    [:= :JobStoryInvoiceMessage.invoice/ref-id invoice-id]
+                    ]})
 
 (defn invoice->dispute-raised-message-resolver [root args _]
   (db/with-async-resolver-conn conn
-    (let [job-story-id (:job-story/id (graphql-utils/gql->clj root))]
+    (let [root-obj (graphql-utils/gql->clj root)
+          job-story-id (:job-story/id root-obj)
+          invoice-id (:invoice/id root-obj)
+          invoice-message-column :JobStoryInvoiceMessage.invoice/dispute-raised-message-id
+          message-id (:message/id root-obj)] ; :invoice/id 0, :message/id 71, :job-story/id 10
           (log/debug "invoice->dispute-raised-message-resolver job-story-id:" job-story-id)
-          (<? (db/get conn (dispute-message-query
-                             :JobStory.job-story/raised-dispute-message-id job-story-id))))))
+          (<? (db/get conn (dispute-message-query job-story-id invoice-id invoice-message-column)))
+          )))
 
 (defn invoice->dispute-resolved-message-resolver [root args _]
   (db/with-async-resolver-conn conn
-    (let [job-story-id (:job-story/id (graphql-utils/gql->clj root))]
+    (let [root-obj (graphql-utils/gql->clj root)
+          job-story-id (:job-story/id root-obj)
+          invoice-id (:invoice/id root-obj)
+          invoice-message-column :JobStoryInvoiceMessage.invoice/dispute-resolved-message-id
+          message-id (:message/id root-obj)] ; :invoice/id 0, :message/id 71, :job-story/id 10
           (log/debug "invoice->dispute-resolved-message-resolver job-story-id:" job-story-id)
-          (<? (db/get conn (dispute-message-query
-                             :JobStory.job-story/resolved-dispute-message-id job-story-id))))))
+          (<? (db/get conn (dispute-message-query job-story-id invoice-id invoice-message-column))))))
 
 (defn employer-search-resolver [_ {:keys [:limit :offset
                                           :user/id
@@ -556,12 +576,6 @@
     (let [job-id (:job/id (graphql-utils/gql->clj parent))]
     (map :skill/id (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id job-id]}))))))
 
-(defn js-obj->clj-map [obj]
-  (let [obj-keys (district.graphql-utils/gql->clj (js-keys obj))
-        keywordize (fn [k] (keyword (camel-snake-kebab.core/->kebab-case k)))
-        assoc-keywordized (fn [acc js-key] (assoc acc (keywordize js-key) (aget obj js-key)))]
-    (reduce assoc-keywordized {} obj-keys)))
-
 (def job-search-input (atom nil)) ; TODO: remove after debugging
 
 (def ^:private job-search-query {:select [:Job.*]
@@ -587,6 +601,7 @@
           min-hourly-rate (:min-hourly-rate search-params)
           max-hourly-rate (:max-hourly-rate search-params)
           min-num-feedbacks (:min-num-feedbacks search-params)
+          creator (:creator search-params)
           payment-type (:payment-type search-params)
 
           experience-level (:experience-level search-params)
@@ -596,6 +611,8 @@
           query (cond-> (merge job-search-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
+                  creator (sql-helpers/merge-where [:ilike creator :Job.job/creator])
+
                   ; The case for OR-ing the skills
                   ; (not (empty? skills)) (sql-helpers/merge-where [:in :JobSkill.skill/id skills])
 
@@ -642,7 +659,8 @@
                  :where [:= :JobStory.job/id contract]}]
       (<? (db/all conn query)))))
 
-(def ^:private invoice-query {:select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
+(def ^:private invoice-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
+                              :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
                                        :JobStoryInvoiceMessage.message/id
                                        :JobStoryInvoiceMessage.invoice/status
@@ -671,25 +689,15 @@
       (log/debug "job-story->invoices-resolver RESULT-PAGES" job-story-id " | " result-pages)
       result-pages)))
 
-(defn job-story->dispute-creation-message-resolver [parent args _]
+(defn job->invoices-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (let [clj-parent (graphql-utils/gql->clj parent)
-          dispute-creation-msg-id (:job-story/raised-dispute-message-id clj-parent)
-          query {:select [:Message.*]
-                 :from [:Message]
-                 :where [:= dispute-creation-msg-id :Message.message/id]}]
-      (log/debug "job-story->job-story->dispute-creation-message-resolver" {:clj-parent clj-parent})
-      (<? (db/get conn query)))))
-
-(defn job-story->dispute-resolution-message-resolver [parent args _]
-  (db/with-async-resolver-conn conn
-    (let [clj-parent (graphql-utils/gql->clj parent)
-          dispute-resolution-msg-id (:job-story/resolved-dispute-message-id clj-parent)
-          query {:select [:*]
-                 :from [:Message]
-                 :where [:= dispute-resolution-msg-id :Message.message/id]}]
-      (log/debug "job-story->job-story->dispute-resolution-message-resolver" {:clj-parent clj-parent})
-      (<? (db/get conn query)))))
+    (let [parsed-root (graphql-utils/gql->clj root)
+          job-id (:job/id (graphql-utils/gql->clj root))
+          query (-> invoice-query
+                  (sql-helpers/merge-where [:= job-id :Job.job/id]))
+          result-pages (<? (paged-query conn query limit offset))]
+      (log/debug "job->invoices-resolver RESULT-PAGES" job-id " | " result-pages)
+      result-pages)))
 
 (defn sign-in-mutation [_ {:keys [:data :data-signature] :as input} {:keys [config]}]
   (try-catch-throw
@@ -719,26 +727,6 @@
                                        :message/creator (:user/id current-user)
                                        :message/text text
                                        :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
-
-(defn raise-dispute-mutation [_ {:keys [:job-story/id :text]} {:keys [current-user timestamp]}]
-  (db/with-async-resolver-tx conn
-    (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                       :job-story-message/type :raise-dispute
-                                       :job-story/id id
-                                       :message/date-created timestamp
-                                       :message/creator (:user/id current-user)
-                                       :message/text text}))
-    true))
-
-(defn resolve-dispute-mutation [_ {:keys [:job-story/id]} {:keys [current-user timestamp]}]
-  (db/with-async-resolver-tx conn
-    (<? (ethlance-db/add-message conn {:message/type :job-story-message
-                                       :job-story-message/type :resolve-dispute
-                                       :job-story/id id
-                                       :message/date-created timestamp
-                                       :message/creator (:user/id current-user)
-                                       :message/text "Dispute resolved"}))
-    true))
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
   (println ">>> leave-feedback-mutation" {:params params :current-user current-user :timestamp timestamp})
@@ -944,6 +932,7 @@
                           :job_employer job->employer-resolver
                           :job_arbiter job->arbiter-resolver
                           :tokenDetails job->token-details-resolver
+                          :invoices job->invoices-resolver
                           :job_requiredSkills job->required-skills-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
@@ -953,9 +942,7 @@
                                :candidate candidate-resolver
                                :proposalMessage job-story->proposal-message-resolver
                                :directMessages (require-auth job-story->direct-messages-resolver)
-                               :invitationMessage job-story->invitation-message-resolver
-                               :disputeCreationMessage job-story->dispute-creation-message-resolver
-                               :disputeResolutionMessage job-story->dispute-resolution-message-resolver}
+                               :invitationMessage job-story->invitation-message-resolver}
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
@@ -984,8 +971,6 @@
                               :disputeResolvedMessage invoice->dispute-resolved-message-resolver}
                     :Mutation {:signIn sign-in-mutation
                                :sendMessage (require-auth send-message-mutation)
-                               :raiseDispute (require-auth raise-dispute-mutation)
-                               :resolveDispute (require-auth resolve-dispute-mutation)
                                :leaveFeedback (require-auth leave-feedback-mutation)
                                ;; TODO : do require auth
                                :updateEmployer (require-auth update-employer-mutation)
