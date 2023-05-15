@@ -42,11 +42,7 @@
 
     candidateSearch(
       user_id: ID,
-      categoriesAnd: [String],
-      categoriesOr: [String],
-      skillsAnd: [String],
-      skillsOr: [String],
-      professionalTitle: String,
+      searchParams: CandidateSearchParams
       orderBy: CandidateListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -99,6 +95,7 @@
 
   input JobSearchParams {
     randomString: String
+    creator: String
     skills: [String]
     category: String
     feedbackMaxRating: Int
@@ -108,6 +105,18 @@
     minNumFeedbacks: Int
     paymentType: String
     experienceLevel: String
+  }
+
+  input CandidateSearchParams {
+    feedbackMinRating: Int
+    feedbackMaxRating: Int
+    paymentType: String
+
+    categoriesAnd: [String]
+    categoriesOr: [String]
+    skillsAnd: [String]
+    skillsOr: [String]
+    professionalTitle: String
   }
 
   input EmployerInput {
@@ -174,8 +183,6 @@
 
     signIn(dataSignature: String!, data: String!): signInPayload!
     sendMessage(jobStory_id: Int!, to: ID!, text: String!): Boolean!,
-    raiseDispute(jobStory_id: Int!, text: String): Boolean!,
-    resolveDispute(jobStory_id: Int!): Boolean!,
     leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
@@ -462,6 +469,7 @@
     job_arbiter: Arbiter
 
     jobStories(limit: Int, offset: Int): JobStoryList
+    invoices(limit: Int, offset: Int): InvoiceList
 
     job_estimatedProjectLength: String
     job_maxNumberOfCandidates: Int
@@ -499,8 +507,7 @@
     jobStory_arbiterFeedback: [Feedback]   # This job's Feedback for arbiter
 
     jobStory_dispute: Dispute
-    disputeCreationMessage: JobStoryMessage
-    disputeResolutionMessage: JobStoryMessage
+
     invitationMessage: JobStoryMessage
     proposalMessage: JobStoryMessage
     directMessages: [DirectMessage]

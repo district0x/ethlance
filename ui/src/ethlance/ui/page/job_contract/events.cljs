@@ -4,8 +4,12 @@
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
             [district.ui.graphql.events :as gql-events]
             [district.ui.web3-tx.events :as web3-events]
+            ["web3" :as w3]
+            [ethlance.shared.contract-constants :as contract-constants]
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-accounts.queries :as accounts-queries]
+            [district.ui.web3.queries]
+            [district0x.re-frame.web3-fx]
             [re-frame.core :as re]))
 
 ;; Page State
@@ -25,8 +29,9 @@
 ;; Registered Events
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
-
-;; TODO: switch based on dev environment
+(defn create-logging-handler
+  ([] (create-logging-handler ""))
+  ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
 (re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
 (re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
@@ -38,6 +43,10 @@
 (re/reg-event-fx :page.job-contract/set-feedback-text (create-assoc-handler :feedback-text))
 (re/reg-event-fx :page.job-contract/set-feedback-recipient (create-assoc-handler :feedback-recipient))
 
+(re/reg-event-db :page.job-contract/dispute-to-ipfs-failure (create-logging-handler))
+(re/reg-event-fx :page.job-contract/tx-hash (create-logging-handler))
+(re/reg-event-db ::dispute-tx-error (create-logging-handler))
+
 (defn send-feedback
   [{:keys [db]} [_event-name params]]
   (let [job-story-id (:job-story/id params)
@@ -48,9 +57,11 @@
                         :text text
                         :rating rating
                         :to to}]
-    {:dispatch [::gql-events/mutation
-                {:queries [[:leave-feedback mutation-params]]
-                 :id :SendEmployerFeedbackMutation}]}))
+    (println ">>> send-feedback" {:mutation-params mutation-params :params params})
+    {:fx [[:dispatch [::gql-events/mutation {:queries [[:leave-feedback mutation-params]]
+                                             :id :SendEmployerFeedbackMutation}]]
+          [:dispatch [:page.job-contract/refetch-messages]]
+          [:dispatch [:page.job-contract/clear-message-forms]]]}))
 
 (defn send-message
   [{:keys [db]} [_event-name params]]
@@ -73,25 +84,19 @@
     (println ">>> ethlance.ui.page.job-contract.events/raise-dispute to ipfs: " event)
     {:ipfs/call {:func "add"
                  :args [(js/Blob. [ipfs-dispute])]
-                 :on-success [::dispute-to-ipfs-success ipfs-dispute]
-                 :on-error [::dispute-to-ipfs-failure invoice-id]}}))
+                 :on-success [:page.job-contract/raise-dispute-to-ipfs-success ipfs-dispute]
+                 :on-error [:page.job-contract/dispute-to-ipfs-failure invoice-id]}}))
 
-(re/reg-event-db
-  ::dispute-to-ipfs-failure
-  (fn [db event]
-    (println ">>> EVENT ::dispute-to-ipfs-failure" event)
-    db))
 
 (re/reg-event-fx
-  ::dispute-to-ipfs-success
+  :page.job-contract/raise-dispute-to-ipfs-success
   (fn [{:keys [db]} [_ dispute-details ipfs-event]]
     (let [creator (:message/creator dispute-details)
           ipfs-hash (base58->hex (:Hash ipfs-event))
           invoice-id (:invoice/id dispute-details)
           job-contract-address (:job/id dispute-details)
-          tx-opts {:from creator :gas 10000000}
-          ]
-      (println ">>> ethlance.ui.page.job-contract.events ::dispute-to-ipfs-success"
+          tx-opts {:from creator :gas 10000000}]
+      (println ">>> ethlance.ui.page.job-contract.events ::raise-dispute-to-ipfs-success"
                {:creator creator :ipfs-event ipfs-event :ipfs-hash ipfs-hash :job-contract job-contract-address})
        {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance db :job job-contract-address)
@@ -99,45 +104,83 @@
                    :args [invoice-id ipfs-hash]
                    :tx-opts tx-opts
                    :tx-hash [::tx-hash]
-                   :on-tx-hash-n [[::tx-hash]]
                    :on-tx-hash-error [::tx-hash-error]
-                   :on-tx-hash-error-n [[::tx-hash-error]]
-                   :on-tx-success [::send-dispute-tx-success]
-                   :on-tx-success-n [[::send-dispute-tx-success]]
-                   :on-tx-error [::send-dispute-tx-error]
-                   :on-tx-error-n [[::send-dispute-tx-error]]}]})))
+                   :on-tx-success [::dispute-tx-success]
+                   :on-tx-error [::dispute-tx-error]}]})))
 
+(defn clear-forms [db]
+  (let [field-names [:message-text
+                     :message-recipient
+                     :dispute-text
+                     :dispute-candidate-percentage
+                     :feedback-rating
+                     :feedback-text
+                     :feedback-recipient]]
+    (reduce (fn [acc field] (assoc-in acc [state-key field] nil)) db field-names)))
 
 (re/reg-event-fx
-  ::tx-hash
-  (fn [db event] (println ">>> ethlance.ui.page.job-contract.events ::tx-hash" event)))
+  :page.job-contract/clear-message-forms
+  (fn [{:keys [db]}]
+    {:db (clear-forms db)}))
 
-(re/reg-event-db
-  ::raise-dispute-tx-success
-  (fn [db [event-name tx-data]]
+(re/reg-event-fx
+  ::dispute-tx-success
+  (fn [{:keys [db]} [event-name tx-data]]
     ; TODO: clear & disable form
     (println ">>> ethlance.ui.page.job-contract.events ::raise-dispute-tx-success" tx-data)
-    ; (re/dispatch [::router-events/navigate
-    ;               :route.job/detail
-    ;               {:contract (get-in tx-data [:events :Job-created :return-values :job])}])
-    ))
+    {:db (clear-forms db)
+     :dispatch [:page.job-contract/refetch-messages]}))
 
-(re/reg-event-db
-  ::create-job-tx-error
-  (fn [db event]
-    (println ">>> got :create-job-tx-error event:" event)))
+(defn send-resolve-dispute-ipfs
+  [{:keys [db]} [_ {invoice-id :invoice/id
+                    job-id :job/id
+                    job-story-id :job-story/id
+                    :as event}]]
+  (let [ipfs-dispute {:message/text (get-in db [state-key :dispute-text])
+                      :message/creator (accounts-queries/active-account db)
+                      :job/id job-id
+                      :job-story/id job-story-id
+                      :invoice/id invoice-id}]
+    (println ">>> ethlance.ui.page.job-contract.events/raise-dispute to ipfs: " event)
+    {:ipfs/call {:func "add"
+                 :args [(js/Blob. [ipfs-dispute])]
+                 :on-success [:page.job-contract/resolve-dispute-to-ipfs-success event]
+                 :on-error [:page.job-contract/dispute-to-ipfs-failure event]}}))
 
-; TODO: probably can be removed - raising the dispute happens via Ethereum Tx &
-;       event syncing on the server side
-; (defn raise-dispute
-;   [{:keys [db]} [_event-name params]]
-;   (let [job-story-id (:job-story/id params)
-;         text (:text params)
-;         mutation-params {:job-story/id job-story-id :text text}]
-;     {:dispatch [::gql-events/mutation
-;                 {:queries [[:raise-dispute mutation-params]]
-;                  :id :RaiseDisputeMutation}]}))
+(defn send-resolve-dispute-tx [cofx [_event-name forwarded-event-data ipfs-data]]
+  (let [creator (accounts-queries/active-account (:db cofx))
+        job-address (:job/id forwarded-event-data)
+        invoice-id (:invoice/id forwarded-event-data)
+        token-type (:token-type forwarded-event-data)
+        raw-amount (:token-amount forwarded-event-data)
+        token-address (:token-address forwarded-event-data)
+        token-id (:token-id forwarded-event-data)
+        address-placeholder "0x0000000000000000000000000000000000000000"
+        token-address (if (not (= token-type :eth))
+                        token-address
+                        address-placeholder)
+        offered-value {:value (str raw-amount)
+                       :token
+                       {:tokenId token-id
+                        :tokenContract
+                        {:tokenType (contract-constants/token-type->enum-val token-type)
+                         :tokenAddress token-address}}}
+        instance (contract-queries/instance (:db cofx) :job job-address)
+        tx-opts {:from creator :gas 10000000}
+        ipfs-hash (base58->hex (:Hash ipfs-data))
+        contract-args [invoice-id [(clj->js offered-value)] ipfs-hash]]
+    {:dispatch [::web3-events/send-tx
+                {:instance instance
+                 :fn :resolve-dispute
+                 :args contract-args
+                 :tx-opts tx-opts
+                 :tx-hash [:page.job-contract/tx-hash]
+                 :on-tx-hash-error [::dispute-tx-error]
+                 :on-tx-success [::dispute-tx-success]
+                 :on-tx-error [::dispute-tx-error]}]}))
 
+(re/reg-event-fx :page.job-contract/resolve-dispute send-resolve-dispute-ipfs)
+(re/reg-event-fx :page.job-contract/resolve-dispute-to-ipfs-success send-resolve-dispute-tx)
 (re/reg-event-fx :page.job-contract/send-message send-message)
 (re/reg-event-fx :page.job-contract/raise-dispute raise-dispute)
 (re/reg-event-fx :page.job-contract/send-feedback send-feedback)

@@ -67,17 +67,20 @@
           coll))
 
 (defn reduce-handlers
-  [cofx response]
+  [cofx response result-events]
   (do-reduce-handlers cofx
                       (fn [fxs [k v]]
-                        (handler fxs k v))
+                        (handler fxs k v result-events))
                       response))
 
 (re/reg-event-fx
   ::response
   [(re/inject-cofx :store)]
-  (fn [cofx [_ response]]
-    (reduce-handlers cofx response)))
+  (fn [cofx [_ response result-events]]
+    (let [handlers-result (reduce-handlers cofx response result-events)]
+      (if (empty? result-events)
+        handlers-result
+        (assoc handlers-result :dispatch result-events)))))
 
 (re/reg-event-db
   ::request-finished
@@ -99,7 +102,7 @@
 
 (re/reg-event-fx
   ::query
-  (fn [{:keys [db]} [_ {:keys [query variables]}]]
+  (fn [{:keys [db]} [_ {:keys [query variables on-success]}]]
     (let [url (get-in db [:ethlance/config :graphql :url])
           access-token (get-in db [:active-session :jwt])
           params (clj->js {:url url
@@ -117,16 +120,16 @@
                          (>evt [::response {:api/error (map :message (gql->clj (.-errors (.-data response))))}])
                          (doseq [message (map :message (gql->clj (.-errors (.-data response))))]
                            (>evt [::events/show {:message message}]))
-                         (>evt [::response (gql->clj (.-data (.-data response)))]))
+                         (>evt [::response (gql->clj (.-data (.-data response))) on-success]))
                        (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
       {::query [params callback]})))
 
 (defmethod handler :default
-  [cofx k values]
+  [cofx k values & [result-events]]
   ;; NOTE: this is the default handler that is intented for queries and mutations
   ;; that have nothing to do besides reducing over their response values
   (log/debug "default handler" {:k k})
-  (reduce-handlers cofx values))
+  (reduce-handlers cofx values result-events))
 
 (defmethod handler :user
   [{:keys [db]} _ {:user/keys [id] :as user}]
@@ -148,14 +151,14 @@
   {:db db})
 
 (defmethod handler :candidate
-  [{:keys [db]} _ {:user/keys [address] :as candidate}]
+  [{:keys [db]} _ {:user/keys [id] :as candidate}]
   (log/debug "candidate handler" candidate)
-  {:db (merge-in-changed-parts db [:candidates address] candidate)})
+  {:db (merge-in-changed-parts db [:candidates id] candidate)})
 
 (defmethod handler :employer
-  [{:keys [db]} _ {:user/keys [address] :as employer}]
+  [{:keys [db]} _ {:user/keys [id] :as employer}]
   (log/debug "employer handler" employer)
-  {:db (assoc-in db [:employers address] employer)})
+  {:db (assoc-in db [:employers id] employer)})
 
 (defmethod handler :arbiter
   [{:keys [db]} _ {:user/keys [id] :as arbiter}]

@@ -11,7 +11,7 @@
              :job/bid-option
              :job/estimated-project-length
              :job/required-availability
-             :job/dateCreated
+             :job/date-created
              :job/required-skills
              [:job-stories [:total-count]]
 

@@ -46,3 +46,5 @@
   "
   [& args]
   (apply = (map #(clojure.string/lower-case (str %)) args)))
+
+(def ilike!= (comp not ilike=))

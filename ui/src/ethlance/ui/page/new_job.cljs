@@ -5,6 +5,7 @@
             [ethlance.ui.component.icon :refer [c-icon]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [district.ui.graphql.subs :as gql]
             [district.ui.web3-tx.events :as tx-events]
             [district.ui.smart-contracts.queries :as contract-queries]
             [ethlance.ui.page.new-job.events :as new-job.events]
@@ -22,15 +23,24 @@
             [clojure.spec.alpha :as s]))
 
 (defn c-arbiter-for-hire
-  []
-  [:div.arbiter-for-hire
-   [c-profile-image {}]
-   [:div.name "Brian Curran"]
-   [c-rating {:default-rating 3}]
-   [:div.price "$10"]
-   [c-button
-    {:size :small}
-    [c-button-label "Invite"]]])
+  [arbiter]
+  (let [invited-arbiter (re/subscribe [:page.new-job/invited-arbiter])]
+    [:div.arbiter-for-hire
+     [c-profile-image {:src (-> arbiter :user :user/profile-image)}]
+     [:div.name (-> arbiter :user :user/name)]
+     [c-rating {:rating (-> arbiter :arbiter/rating)}]
+     [:div.price (-> arbiter :arbiter/fee)]
+     (if-not (= @invited-arbiter (:user/id arbiter))
+       [c-button
+        {:size :small
+         :on-click #(re/dispatch [:page.new-job/invite-arbiter (:user/id arbiter)])}
+        [c-button-label "Invite"]]
+
+       [c-button
+        {:size :small
+         :color :warning
+         :on-click #(re/dispatch [:page.new-job/invite-arbiter nil])}
+        [c-button-label "Uninvite"]])]))
 
 (defn- c-submit-button [{:keys [:on-submit :disabled?]}]
   (let [in-progress @(re/subscribe [::subs/api-request-in-progress])
@@ -42,7 +52,18 @@
      [c-icon {:name :ic-arrow-right :size :smaller}]]))
 
 (defmethod page :route.job/new []
-  (let [*bid-option (re/subscribe [:page.new-job/bid-option])
+  (let [arbiters-query [:arbiter-search
+                        [[:items [:user/id
+                                  [:user [:user/id
+                                          :user/name
+                                          :user/profile-image]]
+                                   :arbiter/bio
+                                   :arbiter/professional-title
+                                   :arbiter/rating
+                                   :arbiter/fee
+                                   :arbiter/fee-currency-id]]]]
+        arbiters-result (re/subscribe [::gql/query {:queries [arbiters-query]}])
+        *bid-option (re/subscribe [:page.new-job/bid-option])
         *category (re/subscribe [:page.new-job/category])
         *description (re/subscribe [:page.new-job/description])
         *estimated-project-length (re/subscribe [:page.new-job/estimated-project-length])
@@ -56,10 +77,10 @@
         *token-type (re/subscribe [:page.new-job/token-type])
         *token-amount (re/subscribe [:page.new-job/token-amount])
         *token-address (re/subscribe [:page.new-job/token-address])
-        *token-id (re/subscribe [:page.new-job/token-id])
-        ]
+        *token-id (re/subscribe [:page.new-job/token-id])]
     (fn []
-      (let [with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
+      (let [arbiters (get-in @arbiters-result [:arbiter-search :items])
+            with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
             with-nft? (#{:erc721} @*token-type)
             token-with-amount? (#{:erc20 :erc1155 :eth} @*token-type)
             token-with-id? (#{:erc721 :erc1155} @*token-type)]
@@ -174,9 +195,9 @@
 
          (when @*with-arbiter?
            [:div.arbiters
-            [c-arbiter-for-hire]
-            [c-arbiter-for-hire]
-            [c-arbiter-for-hire]])
+            (for [arbiter arbiters]
+              ^{:key (str "arbiter-" (:user/id arbiter))}
+              [c-arbiter-for-hire arbiter])])
 
          [c-button
           {:on-click (fn [] (>evt [:page.new-job/create]))

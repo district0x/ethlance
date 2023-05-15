@@ -66,6 +66,7 @@
            [:input
             {:type "number"
              :min 0
+             :step 0.01
              :value @*invoice-amount
              :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount (-> % .-target .-value)])}]
            [:div.post-label token-symbol]]

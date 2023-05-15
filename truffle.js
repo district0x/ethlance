@@ -49,6 +49,15 @@ module.exports = {
       network_id: '*'
     },
 
+    hardhat: {
+      host: 'localhost',
+      port: 8545,
+      gas: 6e6, // gas limit
+      gasPrice: 20e9, // 20 gwei, default for ganache
+      network_id: '*'
+    },
+
+
     hostia: { // Truffle Ganache GUI app running on host machine
       host: "192.168.32.1",     // Localhost (default: none)
       port: 7545,               // Standard Ethereum port (default: none)

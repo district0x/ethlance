@@ -19,7 +19,7 @@
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.util.navigation :as util.navigation]
             [ethlance.ui.util.tokens :as token-utils]
-            [ethlance.shared.utils :refer [millis->relative-time]]
+            [ethlance.shared.utils :refer [millis->relative-time ilike!=]]
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
 
@@ -45,45 +45,108 @@
          [:label token-symbol]
          [:label (str "(" (or token-name (name token-type)) ")")]]]))))
 
+(defn c-invoice-listing [contract-address]
+  (let [invoices-query [:job {:job/id contract-address}
+                        [[:token-details [:token-detail/id
+                                          :token-detail/name
+                                          :token-detail/symbol]]
+                         [:invoices [:total-count
+                                     [:items [:id
+                                              :job/id
+                                              :job-story/id
+                                              :invoice/status
+                                              :invoice/amount-requested
+                                              :invoice/amount-paid
+                                              [:creation-message [:message/id
+                                                                  :message/date-created
+                                                                  [:creator [:user/id
+                                                                             :user/name
+                                                                             :user/profile-image]]]]]]]]]]
+        result @(re/subscribe [::gql/query {:queries [invoices-query]}])
+        job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
+        token->human-amount (fn [amount token-symbol]
+                              (if (= token-symbol "ETH") (shared-utils/wei->eth amount) amount))
+        invoices (map (fn [invoice]
+                        {:name (get-in invoice [:creation-message :creator :user/name])
+                         :amount (str (token->human-amount (get-in invoice [:invoice/amount-requested]) job-token-symbol) " " job-token-symbol)
+                         :timestamp (format/time-ago (new js/Date (get-in invoice [:creation-message :message/date-created])))
+                         :status (get-in invoice [:invoice/status])})
+                      (-> result :job :invoices :items))]
+    [:div.invoice-listing
+          [:div.label "Invoices"]
+          (into [c-table {:headers ["Candidate" "Amount" "Created" "Status"]}]
+                (map (fn [invoice]
+                       [[:span (:name invoice)]
+                        [:span (:amount invoice)]
+                        [:span (:timestamp invoice)]
+                        [:span (:status invoice)]])
+                     invoices))]))
+
+(defn c-employer-feedback [contract-address]
+  (let [feedback-query [:job {:job/id contract-address}
+                        [[:job/employer
+                          [[:employer/feedback
+                            [:total-count
+                             [:items [:feedback/rating
+                                      :feedback/text
+                                      :feedback/date-created
+                                      [:feedback/from-user [:user/name
+                                                            :user/profile-image]]]]]]]]]]
+        result @(re/subscribe [::gql/query {:queries [feedback-query]}])
+        feedback-raw (get-in result [:job :job/employer :employer/feedback :items])
+
+        feedback (map (fn [feedback]
+                        {:id (:message/id feedback)
+                         :rating (:feedback/rating feedback)
+                         :text (:feedback/text feedback)
+                         :author (-> feedback :feedback/from-user :user/name)
+                         :image-url (-> feedback :feedback/from-user :user/profile-image)})
+                      feedback-raw)]
+    [:div.feedback-listing
+        [:div.label "Feedback for employer"]
+        (if (empty? feedback)
+          [:label "No feedback yet for this employer"]
+          (into [c-carousel-old {}] (map #(c-feedback-slide %) feedback)))]))
+
 (defmethod page :route.job/detail []
   (fn []
     (let [page-params (re/subscribe [:district.ui.router.subs/active-page-params])
           contract-address (:id @page-params)
-          job-query "query ($contract: ID!) {
-                   job(job_id: $contract) {
-                     job_id
-                     job_title
-                     job_description
-                     job_requiredSkills
-                     job_category
-                     job_status
-                     job_requiredExperienceLevel
-                     job_requiredAvailability
-                     job_bidOption
-                     job_estimatedProjectLength
+          active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+          job-query [:job {:job/id contract-address}
+                     [:job/id
+                      :job/title
+                      :job/description
+                      :job/required-skills
+                      :job/category
+                      :job/status
+                      :job/required-experience-level
+                      :job/required-availability
+                      :job/bid-option
+                      :job/estimated-project-length
 
-                     job_tokenType
-                     job_tokenAmount
-                     job_tokenAddress
-                     job_tokenId
-                     tokenDetails {tokenDetail_id tokenDetail_name tokenDetail_symbol}
+                      :job/token-type
+                      :job/token-amount
+                      :job/token-address
+                      :job/token-id
 
-                     job_employer {
-                       employer_rating
-                       user_id
-                       user {user_country user_name user_profileImage}
-                     }
-                     job_arbiter {
-                       arbiter_rating
-                       arbiter_fee
-                       arbiter_feeCurrencyId
-                       user_id
-                       user {user_id user_country user_name user_profileImage}
-                     }
-                  }
-                }
-                "
-          query-results (re/subscribe [::gql/query job-query {:variables {:contract contract-address}}])
+                      [:token-details [:token-detail/id
+                                       :token-detail/name
+                                       :token-detail/symbol]]
+                      [:job/employer [:employer/rating
+                                      :user/id
+                                      [:user [:user/country
+                                              :user/name
+                                              :user/profile-image]]]]
+                      [:job/arbiter [:arbiter/rating
+                                     :arbiter/fee
+                                     :arbiter/fee-currency-id
+                                     :user/id
+                                     [:user [:user/id
+                                             :user/country
+                                             :user/name
+                                             :user/profile-image]]]]]]
+          query-results (re/subscribe [::gql/query {:queries [job-query]}])
           results (:job @query-results)
 
           *title (:job/title results)
@@ -95,6 +158,7 @@
                            (:job/status results)
                            (:job/required-experience-level results)
                            (:job/bid-option results)])
+          *bid-option (:job/bid-option results)
           *required-skills (:job/required-skills results)
 
           *employer-name (get-in results [:job/employer :user :user/name])
@@ -109,7 +173,8 @@
           *arbiter-country (get-in results [:job/arbiter :user :user/country])
           *arbiter-profile-image (get-in results [:job/arbiter :user :user/profile-image])
           *arbiter-fee (get-in results [:job/arbiter :arbiter/fee])
-          *arbiter-fee-currency (-> (get-in results [:job/arbiter :arbiter/fee-currency-id] "")
+          *arbiter-fee-currency (-> (get-in results [:job/arbiter :arbiter/fee-currency-id])
+                                    (or ,,, "")
                                     name
                                     clojure.string/upper-case)
 
@@ -146,8 +211,8 @@
           [:div.amount (str *job-token-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
          [:div.profiles
           [:a.employer-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
-                                                                            :params {:address *employer-address}
-                                                                            :query {:tab :employer}})
+                                                                          :params {:address *employer-address}
+                                                                          :query {:tab :employer}})
                                  :href (util.navigation/resolve-route {:route :route.user/profile
                                                                        :params {:address *employer-address}
                                                                        :query {:tab :employer}})}
@@ -198,6 +263,7 @@
                           :token-address *job-token-address
                           :token-name *token-detail-name
                           :token-symbol *token-detail-symbol}]
+         [:label "The amount is for payment type: " (str *bid-option)]
          [:div.description-input
           [c-textarea-input
            {:disabled my-proposal?
@@ -213,39 +279,8 @@
          (if (not my-proposal?)
            [c-button {:on-click (fn [] (>evt [:page.job-proposal/send contract-address]))
                       :size :small}
-            [c-button-label "Send"]])
-         ]]
+            [c-button-label "Send"]])]]
 
-       [:div.invoice-listing
-        [:div.label "Invoices"]
-        [c-scrollable
-         {:forceVisible true :autoHide false}
-         [c-table
-          {:headers ["Candidate" "Amount" "Created" "Status"]}
-          [[:span "Giacomo Guilizzoni"]
-           [:span "120 SNT"]
-           [:span "5 Days Ago"]
-           [:span "Full Payment"]]]]
-        [:div.button-listing
-         [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]
+       [c-invoice-listing contract-address]
 
-       [:div.feedback-listing
-        [:div.label "Feedback"]
-
-        [c-carousel-old {}
-         [c-feedback-slide {:rating 1}]
-         [c-feedback-slide {:rating 2}]
-         [c-feedback-slide {:rating 3}]
-         [c-feedback-slide {:rating 4}]
-         [c-feedback-slide {:rating 5}]]
-
-        [c-carousel {}
-         [c-feedback-slide {:rating 1}]
-         [c-feedback-slide {:rating 2}]
-         [c-feedback-slide {:rating 3}]
-         [c-feedback-slide {:rating 4}]
-         [c-feedback-slide {:rating 5}]
-         ]]])))
+       [c-employer-feedback contract-address]])))

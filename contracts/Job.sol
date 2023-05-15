@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.12;
 pragma experimental ABIEncoderV2;
 
 import "./EthlanceStructs.sol";
@@ -75,6 +75,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    */
   function initialize(
     Ethlance _ethlance,
+    address _sender, // Need to pass it manually because called from Ethlance, msg.sender will be Ethlance address
+                     // msg.origin is unsafe: https://ethereum.stackexchange.com/a/200
     address _creator,
     EthlanceStructs.TokenValue[] calldata _offeredValues,
     address[] calldata _invitedArbiters
@@ -86,10 +88,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     ethlance = _ethlance;
     creator = _creator;
-    for(uint i = 0; i < _invitedArbiters.length; i++) { invitedArbiters.add(_invitedArbiters[i]); }
-
+    inviteArbiters(_sender, _invitedArbiters);
     _recordAddedFunds(creator, _offeredValues);
   }
+
 
   /**
    * @dev Sets quote for arbitration requested by arbiter for his services
@@ -111,6 +113,22 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(_quote.length == 1, "Exactly 1 quote is required");
     arbiterQuotes[msg.sender] = _quote[0];
     ethlance.emitQuoteForArbitrationSet(address(this), msg.sender, _quote);
+  }
+
+
+  function inviteArbiters(
+    address _sender,
+    address[] calldata _invitedArbiters
+  ) public {
+    string memory message = string.concat("Only job creator is allowed to add arbiters ", "sender: ", EthlanceStructs.toString(_sender), " <-> creator: ", EthlanceStructs.toString(creator));
+    require(isCallerJobCreator(_sender), message);
+    // require(isCallerJobCreator(msg.sender), "Only job creator is allowed to add arbiters".concat("sender: ", EthlanceStructs.toString(msg.sender), " <-> creator: ", creator));
+
+    for(uint i = 0; i < _invitedArbiters.length; i++) {
+      require(acceptedArbiter == address(0) || acceptedArbiter == _invitedArbiters[i], "Another arbiter had been accepted before. Only 1 can be accepted.");
+      invitedArbiters.add(_invitedArbiters[i]);
+    }
+    ethlance.emitArbitersInvited(address(this), _invitedArbiters);
   }
 
   /**
@@ -163,6 +181,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     bytes memory _ipfsData
   ) external {
     require(msg.sender == creator, "Only job creator can add candidates");
+    // TODO: add check that candidate cant be same as arbiter or employer (creator)
+    require(_candidate != creator, "Candidate can't be the same address as creator (employer)");
+    require(_candidate != acceptedArbiter, "Candidate can't be the same address as acceptedArbiter");
     require(invitedCandidates.contains(_candidate) == false, "Candidate already added. Can't add duplicates");
     invitedCandidates.add(_candidate);
     ethlance.emitCandidateAdded(address(this), address(_candidate), _ipfsData);
@@ -231,7 +252,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     invoice.paid = true;
     invoices[_invoiceId] = invoice;
-    ethlance.emitInvoicePaid(_invoiceId, _ipfsData);
+    ethlance.emitInvoicePaid(address(this), _invoiceId, _ipfsData);
   }
 
 
@@ -255,7 +276,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(invoice.cancelled != true, "The invoice was already cancelled");
     require(invoice.paid != true, "The invoice was already paid and so can't be cancelled");
     invoice.cancelled = true;
-    ethlance.emitInvoiceCanceled(_invoiceId, _ipfsData);
+    ethlance.emitInvoiceCanceled(address(this), _invoiceId, _ipfsData);
   }
 
 
@@ -303,7 +324,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     _recordAddedFunds(msg.sender, _tokenValues);
   }
 
-  function _generateDepositId(address depositor, EthlanceStructs.TokenValue memory tokenValue) internal returns(bytes32) {
+  function _generateDepositId(address depositor, EthlanceStructs.TokenValue memory tokenValue)
+  internal pure returns(bytes32) {
     return keccak256(abi.encodePacked(
       depositor,
       tokenValue.token.tokenContract.tokenType,
@@ -384,7 +406,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
   }
 
-  function _hasUnpaidInvoices() internal returns(bool) {
+  function _hasUnpaidInvoices() internal view returns(bool) {
     for(uint i = 0; i < lastInvoiceIndex; i++) {
       Invoice memory invoice = invoices[i];
       if (invoice.paid == false && invoice.cancelled == false) {
@@ -394,7 +416,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return false;
   }
 
-  function _noUnresolvedDisputes() internal returns(bool) {
+  function _noUnresolvedDisputes() internal view returns(bool) {
     bool allResolved = true;
     for(uint i = 0; i < disputeIds.length; i++) {
       allResolved = allResolved && disputes[disputeIds[i]].resolved ;
@@ -500,7 +522,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     Dispute memory dispute = disputes[_invoiceId];
     require(dispute.creator != address(0), "The dispute to resolve didn't exist");
     require(dispute.resolved == false, "Can only resolve dispute once");
-    require(invitedArbiters.contains(msg.sender), "Only invited arbitor can resolve disputes");
+    require(acceptedArbiter == msg.sender, "Only accepted arbitor can resolve disputes");
     dispute.resolved = true;
 
     Invoice memory invoice = invoices[_invoiceId];
@@ -513,7 +535,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     disputes[_invoiceId] = dispute;
     invoices[_invoiceId] = invoice;
-    ethlance.emitDisputeResolved(_invoiceId, _valueForInvoicer, _ipfsData);
+    ethlance.emitDisputeResolved(address(this), _invoiceId, _valueForInvoicer, _ipfsData);
   }
 
 
@@ -540,7 +562,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
                                                                 uint invoiceId) public payable {}
 
 
-  function _decodeTokenCallbackData(bytes calldata _data) internal returns(TargetMethod, address, EthlanceStructs.TokenValue[] memory, uint) {
+  function _decodeTokenCallbackData(bytes calldata _data) internal pure returns(TargetMethod, address, EthlanceStructs.TokenValue[] memory, uint) {
     return abi.decode(_data[4:], (TargetMethod, address, EthlanceStructs.TokenValue[], uint));
   }
 
@@ -605,7 +627,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256[] calldata _ids,
     uint256[] calldata _values,
     bytes calldata _data
-  ) public override returns (bytes4) {
+  ) public pure override returns (bytes4) {
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
 
@@ -618,7 +640,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   ) external payable {
   }
 
-  function supportsInterface(bytes4 interfaceId) external override view returns (bool) {
+  function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
     return interfaceId == type(IERC20).interfaceId ||
       interfaceId == type(IERC721).interfaceId ||
       interfaceId == type(IERC1155).interfaceId ||
@@ -626,11 +648,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       interfaceId == type(IERC1155Receiver).interfaceId;
   }
 
-  function isAmongstInvitedArbiters(address account) internal returns (bool) {
+  function isAmongstInvitedArbiters(address account) internal view returns (bool) {
     return invitedArbiters.contains(account);
   }
 
-  function isCallerJobCreator(address account) internal returns (bool) {
+  function isCallerJobCreator(address account) internal view returns (bool) {
     return account == creator;
   }
 }

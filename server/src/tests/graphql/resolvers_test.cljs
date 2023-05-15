@@ -21,6 +21,7 @@
 (def access-token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQWRkcmVzcyI6IjB4NGMzZjEzODk4OTEzZjE1ZjEyZjkwMmQ2NDgwMTc4NDg0MDYzYTZmYiIsImlhdCI6MTU4ODA5NTQxNn0.qGvidhMxes5rjXWvQf32n1vNSepGr3F3-voItByYBpU")
 
 (def secret-token "SECRET")
+(def test-db-name "ethlance-test")
 
 (defn set-up-db-and-graphql-api []
   (async done
@@ -30,7 +31,7 @@
                  (-> (mount/with-args {:config {:default {:graphql {:sign-in-secret secret-token}}}
                                        :district/db {:user "ethlanceuser"
                                                      :host "localhost"
-                                                     :database "ethlance"
+                                                     :database test-db-name
                                                      :password "pass"
                                                      :port 5432}
                                        :ethlance/db {:resync? true}

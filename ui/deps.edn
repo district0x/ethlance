@@ -84,6 +84,8 @@
   :local-deps
   {:override-deps
    {
+
+    is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}
     district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
     is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}
     is.d0x/district-ui-router {:local/root "../../d0x-libs/browser/district-ui-router"}

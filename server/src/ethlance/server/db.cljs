@@ -303,8 +303,6 @@
      [:job-story/date-updated :bigint]
      [:job-story/invitation-message-id :integer]
      [:job-story/proposal-message-id :integer]
-     [:job-story/raised-dispute-message-id :integer]
-     [:job-story/resolved-dispute-message-id :integer]
      [:job-story/proposal-rate (sql/call :numeric (sql/inline 81) (sql/inline 3))] ; To cover the max value of Solidity's int256 (e.g. amount in ERC20) & support 3 places of precision
      [:job-story/proposal-rate-currency-id :varchar]
 
@@ -325,6 +323,7 @@
     :table-columns
     [[:job-story/id :integer]
      [:message/id :integer]
+     [:job-story-message/type :text]
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
@@ -342,11 +341,15 @@
      [:invoice/amount-paid :bigint]
      [:invoice/date-paid :bigint]
      [:invoice/ref-id :integer]
+     [:invoice/dispute-raised-message-id :integer]
+     [:invoice/dispute-resolved-message-id :integer]
      ;; PK
      [(sql/call :primary-key :job-story/id :message/id)]
      ;; FKs
      [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
-     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :invoice/dispute-raised-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :invoice/dispute-resolved-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :JobStoryFeedbackMessage
@@ -692,6 +695,10 @@
     (doseq [skill skills]
       (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
 
+(defn add-job-arbiter [conn job-id user-address]
+  (safe-go
+   (<? (insert-row! conn :JobArbiter {:job/id job-id :user/id user-address}))))
+
 (defn add-job [conn job]
   (safe-go
     (let [skills (:job/required-skills job)
@@ -703,7 +710,9 @@
         (log/info (str "Not adding job because already exists with :job/id " job-id-from-ipfs))
         (do
           (<? (insert-row! conn :Job job))
-          (add-skills conn job-id-from-ipfs skills))))))
+          (add-skills conn job-id-from-ipfs skills)
+          (doseq [arbiter (:invited-arbiters job)]
+            (<? (add-job-arbiter conn job-id-from-ipfs arbiter))))))))
 
 ; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
 ;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)
@@ -713,6 +722,14 @@
 (defn update-ethlance-job [conn job-id job-data]
   (safe-go
   (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
+
+(defn get-invoice-message [conn job-story-id invoice-id]
+  (safe-go
+    (<? (db/get conn {:select [:*]
+                      :from [:JobStoryInvoiceMessage]
+                      :where [:and
+                              [:= :job-story/id job-story-id]
+                              [:= :invoice/ref-id invoice-id]]}))))
 
 (defn update-job-story-invoice-message  [conn msg]
   (safe-go
@@ -724,14 +741,21 @@
   (safe-go
    (let [msg-id (-> (<? (insert-row! conn :Message message))
                     :message/id)
+         story-status (case (:job-story-message/type message)
+                        :proposal "proposal"
+                        :invitation "invitation"
+                        "created")
+         job-story-common-fields {:job/id (:job/id message)
+                                  :job-story/candidate (:message/creator message)
+                                  :job-story/date-created (:message/date-created message)
+                                  :job-story/status story-status
+                                  :job-story/proposal-rate (:job-story/proposal-rate message)}
+         job-story-params (case (:job-story-message/type message)
+                            :proposal (assoc job-story-common-fields :job-story/proposal-message-id msg-id)
+                            :invitation (assoc job-story-common-fields :job-story/invitation-message-id msg-id)
+                            job-story-common-fields)
          job-story-id (or (:job-story/id message)
-                          (:job-story/id (<? (insert-row! conn :JobStory
-                                                          {:job/id (:job/id message)
-                                                           :job-story/candidate (:message/creator message)
-                                                           :job-story/date-created (:message/date-created message)
-                                                           :job-story/status "proposed"
-                                                           :job-story/proposal-message-id msg-id
-                                                           :job-story/proposal-rate (:job-story/proposal-rate message)}))))
+                          (:job-story/id (<? (insert-row! conn :JobStory job-story-params))))
          message (assoc message :message/id msg-id :job-story/id job-story-id)]
      (case (:message/type message)
        :job-story-message
@@ -740,12 +764,24 @@
                                                        :message/id msg-id
                                                        :job-story/id job-story-id)))
          (<? (case (:job-story-message/type message)
-               :raise-dispute (update-row! conn :JobStory (assoc message
-                                                                 :job-story/id (:job-story/id message)
-                                                                 :job-story/raised-dispute-message-id msg-id))
-               :resolve-dispute (update-row! conn :JobStory (assoc message
-                                                                   :job-story/id (:job-story/id message)
-                                                                   :job-story/resolved-dispute-message-id msg-id))
+               :raise-dispute
+               (update-job-story-invoice-message conn {:job-story/id job-story-id
+                                                       :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                       :invoice/dispute-raised-message-id msg-id
+                                                       :invoice/status "dispute-raised"})
+
+               :resolve-dispute
+               (do
+                 (println ">>> add-message :resolve-dispute" {:message message
+                                                              :job-story/id job-story-id
+                                                              :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                              :invoice/dispute-resolved-message-id msg-id
+                                                              :invoice/status "dispute-resolved"
+                                                              })
+                 (update-job-story-invoice-message conn {:job-story/id job-story-id
+                                                         :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                         :invoice/dispute-resolved-message-id msg-id
+                                                         :invoice/status "dispute-resolved"}))
                :proposal (update-row! conn :JobStory (assoc message
                                                             :job-story/id (:job-story/id message)
                                                             :job-story/proposal-message-id msg-id))
@@ -756,7 +792,8 @@
                :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
        :direct-message
-       (<? (insert-row! conn :DirectMessage message))))))
+       (<? (insert-row! conn :DirectMessage message)))
+     msg-id)))
 
 (defn add-job-story
   "Inserts a JobStory. Returns autoincrement id"
@@ -784,7 +821,7 @@
    (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
                           :from [[:JobStory :js]]
                           :join [[:Job :j] [:= :js.job/id :j.job/id]]
-                          :where [:= :j.job/id job-id]})))))
+                          :where [:ilike :j.job/id job-id]})))))
 
 (defn get-candidate-id-by-job-story-id [conn job-story-id]
   (safe-go
@@ -807,17 +844,16 @@
 
 (defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
   (safe-go
-   (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
-     (<? (db/run! conn {:update :JobStoryInvoiceMessage
-                        :set {:invoice/status status}
-                        :where [:and
-                                [:= :job-story/id job-story-id]
-                                [:= :invoice/ref-id invoice-id]]})))))
-
-(defn add-job-arbiter [conn job-id user-address]
-  (safe-go
-   (<? (insert-row! conn :JobArbiter {:job/id job-id
-                                      :user/id user-address}))))
+    (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
+      (println ">>> set-job-story-invoice-status-for-job" {:job-story-id job-story-id
+                                                           :job-id job-id
+                                                           :invoice-id invoice-id
+                                                           :status status})
+      (<? (db/run! conn {:update :JobStoryInvoiceMessage
+                         :set {:invoice/status status}
+                         :where [:and
+                                 [:= :job-story/id job-story-id]
+                                 [:= :invoice/ref-id invoice-id]]})))))
 
 (defn add-contribution [conn job-id contributor-address contribution-id amount]
   (safe-go
@@ -825,6 +861,7 @@
                                            :user/id contributor-address
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
+
 (defn refund-job-contribution [_ _ _]
   ;; [conn job-id contribution-id]
   ;; TODO: implement this, delete from the table

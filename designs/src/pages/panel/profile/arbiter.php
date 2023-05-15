@@ -16,7 +16,7 @@
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                     </p>
                 </div>
-            
+
                 <div class="box-persons flex">
                     <div class="person">
                         <div class="ident">
@@ -114,7 +114,7 @@
                         </div>
                     </div>
                 </div>
-            </div>                       
+            </div>
             <div class="bar"><span class="drag"></span></div>
         </div>
         <div class="paging">
@@ -128,7 +128,7 @@
     <div class="box-content box-shadow center padding-top">
         <div class="title-slider">
             <h2 class="orange-title">Feedback</h2>
-            <span class="subtitle-purple">Smart Contract Hacker</span>
+            <span class="subtitle-purple">Not a job for the faint-hearted</span>
         </div>
         <div class="feedback">
             <div class="slider">
@@ -144,9 +144,9 @@
                                         <span class="active"></span>
                                         <span></span>
                                         <span></span>
-                                    </div> 
-                                    <p>“Real and reliable customer! Instant payment! Loves cats!”</p>
-                                    <h4>Brian Curran</h4>                                                                       
+                                    </div>
+                                    <p>“First. Real and reliable customer! Instant payment! Loves cats!”</p>
+                                    <h4>John Doe</h4>
                                 </div>
                             </div>
                         </div>
@@ -162,9 +162,9 @@
                                         <span class="active"></span>
                                         <span></span>
                                         <span></span>
-                                    </div> 
-                                    <p>“Real and reliable customer! Instant payment! Loves cats!”</p>
-                                    <h4>Brian Curran</h4>                                                                       
+                                    </div>
+                                    <p>“Second. Real and reliable customer! Instant payment! Loves cats!”</p>
+                                    <h4>Mary Jane</h4>
                                 </div>
                             </div>
                         </div>
@@ -180,9 +180,9 @@
                                         <span class="active"></span>
                                         <span></span>
                                         <span></span>
-                                    </div> 
-                                    <p>“Real and reliable customer! Instant payment! Loves cats!”</p>
-                                    <h4>Brian Curran</h4>                                                                       
+                                    </div>
+                                    <p>“Third. Real and reliable customer! Instant payment! Loves cats!”</p>
+                                    <h4>Brian Curran</h4>
                                 </div>
                             </div>
                         </div>

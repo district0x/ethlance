@@ -82,3 +82,45 @@ Anyone is welcome to contribute to the ethlance project, here are some brief gui
   https://github.com/madvas/ethlance.git`) master before pushing  (`git pull --rebase upstream master`)
 * Make changes in a separate well-named branch in your forked repo
   like `improve-readme`
+
+# Overview of workflows
+
+Here's a brief overview of the sequence of actions that different user types can take to create, find and arbiter jobs.
+
+1. User arrives to the home page
+  - http://d0x-vm:6500
+  - picks which profile to create (freelancer = candidate, employer, arbiter)
+2. This takes the user to the sign-up page
+  - http://d0x-vm:6500/me/sign-up?tab=candidate
+  - user fills in details for the roles they want to participate (candidate, employer, arbiter)
+3. **Employer** (having first filled in employer data)
+  - http://d0x-vm:6500/jobs/new
+  - user can create new job by filling in the form
+  - creating a new job requires sending a signed transaction together with the initial funds
+  - smart contract method `Ethlance#createJob` is called and a new copy of `Job` contract gets deployed
+4. In case the employer invited arbiters during job creation `/jobs/new`
+  - First: **arbiter** must send their quote (how much they want for their service for this job)
+    + ... where can they do it (one or more pages)?
+    + script helper: `tx-workflow-fns-server-repl/set-quote-for-arbitration`
+  - Second: **employer** must accept the quote
+    + ... where can they do it (one or more pages)?
+    + script helper: `tx-workflow-fns-server-repl/accept-quote-for-arbitration`
+5. **Employer** can now invite candidates to participate in the new job
+  - **NB!** implement & provide link
+  - results in `Job#addCandidate` contract send
+    + script helper: `tx-workflow-fns-server-repl/add-candidate`
+6. **Candidate** can search for available jobs
+  - http://d0x-vm:6500/jobs
+7. **Candidate** chooses a job of interest from search results. To work on it, needs to send proposal
+  - http://d0x-vm:6500/jobs/detail/0x1A2f3f7739A52F5bDCc909A8d42e96Cd8f9f4D30
+  - as a result `JobStory` is created (DB model to track this user's interaction with this job)
+8. All users can view job contract page at
+  - http://d0x-vm:6500/jobs/contract/1
+  - send messages(all), raise disputes(candidate), resolve disputes(arbiter), leave feedback(all)
+9. **Candidate** can create invoices (for any of their jobs)
+  - http://d0x-vm:6500/invoices/new
+10. **Candidate** can then raise dispute
+  - after raising dispute, arbiter can resolve it on the same page (http://d0x-vm:6500/invoices/new)
+    + resolving dispute results in tokens getting transferred according to the resolution amount
+11. **Employer** can pay invoices
+  - ... (add link, implement if needed)

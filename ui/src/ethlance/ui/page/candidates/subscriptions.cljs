@@ -20,3 +20,27 @@
 (re/reg-sub :page.candidates/feedback-min-rating (create-get-handler :feedback-min-rating))
 (re/reg-sub :page.candidates/payment-type (create-get-handler :payment-type))
 (re/reg-sub :page.candidates/country (create-get-handler :country))
+
+(re/reg-sub
+  :page.candidates/search-params
+  (fn [db _]
+    (let [page-state (get-in db [candidates.events/state-key] {})
+          filter-keys [:skills
+                       :category
+                       :feedback-max-rating
+                       :feedback-min-rating
+                       :payment-type]
+          filter-params (reduce (fn [acc filter-key]
+                                  (let [filter-val (get-in db [candidates.events/state-key filter-key])
+                                        set-type (type #{})
+                                        final-val (if (= set-type (type filter-val))
+                                                    (into [] filter-val)
+                                                    filter-val)]
+                                    (if (not (nil? final-val))
+                                      (assoc acc filter-key final-val)
+                                      acc)))
+                                {}
+                                filter-keys)]
+      (println ">>> page.candidates/search-params" filter-params)
+      {:search-params filter-params})
+    ))

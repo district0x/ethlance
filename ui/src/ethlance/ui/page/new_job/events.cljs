@@ -7,6 +7,7 @@
     [ethlance.ui.event.utils :as event.utils]
     [ethlance.shared.utils :refer [eth->wei base58->hex]]
     [re-frame.core :as re]
+            ["web3" :as w3]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
@@ -55,6 +56,7 @@
 (re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :job/required-experience-level))
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
+(re/reg-event-fx :page.new-job/invite-arbiter (create-assoc-handler :job/invited-arbiter))
 
 (re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
 (re/reg-event-fx :page.new-job/set-token-amount (create-assoc-handler :job/token-amount))
@@ -69,7 +71,8 @@
    :job/required-experience-level :job/required-experience-level
    :job/required-availability :job/required-availability
    :job/required-skills :job/required-skills
-   :job/title :job/title})
+   :job/title :job/title
+   :job/invited-arbiter :job/invited-arbiter})
 
 (defn- db-job->ipfs-job
   "Useful for renaming map keys by reducing over a map of keyword -> keyword
@@ -95,6 +98,7 @@
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
+    (println ">>> job-to-ipfs-success" event)
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
@@ -115,7 +119,9 @@
           tx-opts-with-value (if (= token-type :eth)
                                (merge tx-opts {:value token-amount})
                                tx-opts)
-          invited-arbiters [] ; TODO: implement
+          invited-arbiters (if (:job/with-arbiter? job-fields)
+                             [(:job/invited-arbiter job-fields)]
+                             [])
           ipfs-response (get-in event [:event 1])
           ipfs-hash (base58->hex (get-in event [1 :Hash]))]
       {:dispatch [::web3-events/send-tx
@@ -128,7 +134,6 @@
                    :on-tx-hash-error [::tx-hash-error]
                    :on-tx-hash-error-n [[::tx-hash-error]]
                    :on-tx-success [::create-job-tx-success]
-                   :on-tx-success-n [[::create-job-tx-success]]
                    :on-tx-error [::create-job-tx-error]
                    :on-tx-error-n [[::create-job-tx-error]]}]})))
 
@@ -145,19 +150,19 @@
 (re/reg-event-db
   ::create-job-tx-success
   (fn [db [event-name tx-data]]
-    (println ">>> ethlance.ui.page.new-job.events :create-job-tx-success" tx-data)
     (re/dispatch [::router-events/navigate
                   :route.job/detail
-                  {:contract (get-in tx-data
-                                     [:events :Job-created :return-values :job])}])))
+                  {:id (get-in tx-data [:events :Job-created :return-values :job])}])))
 
 (re/reg-event-db
   ::create-job-tx-error
   (fn [db event]
+    ; TODO: show something meaningful to the user
     (println ">>> got :create-job-tx-error event:" event)))
 
 (re/reg-event-db
   ::job-to-ipfs-failure
   (fn [db event]
+    ; TODO: show something meaningful to the user
     (println ">>> EVENT ze-new-job-failure" event)
     db))
