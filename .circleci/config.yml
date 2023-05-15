@@ -14,7 +14,7 @@ jobs:
         environment:
           POSTGRES_PASSWORD: pass
           POSTGRES_USER: ethlanceuser
-          POSTGRES_DB: ethlance
+          POSTGRES_DB: ethlance-test
     steps:
       - checkout
       - restore_cache:
