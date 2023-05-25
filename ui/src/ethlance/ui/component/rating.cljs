@@ -56,7 +56,6 @@
   "
   [{:keys [default-rating color size rating]
     :or {color :primary size :default}}]
-  (println ">>> c-rating outer: rendering" {:rating rating})
   (let [*current-default-rating (r/atom default-rating)
         color-class (case color
                       :primary "primary"
