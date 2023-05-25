@@ -2,7 +2,6 @@
   (:require [district.parsers :refer [parse-int]]
             [district.ui.router.effects :as router.effects]
             [ethlance.shared.constants :as constants]
-            [ethlance.shared.mock :as mock]
             [district.ui.graphql.events :as gql-events]
             [ethlance.ui.event.templates :as event.templates]
             [ethlance.ui.event.utils :as event.utils]
@@ -27,9 +26,6 @@
    :payment-type :hourly-rate
    :experience-level :beginner})
 
-(defn mock-job-listing [& [n]]
-  (mapv mock/generate-mock-job (range 1 (or n 10))))
-
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
@@ -39,17 +35,9 @@
        :name :route.job/jobs
        :dispatch [:page.jobs/query-job-listing]}]}))
 
-(defn mock-query-job-listing
-  "Event FX Handler. Perform Job Listing Query."
-  [{:keys [db]} _]
-  ;;TODO: mock up + production graphql
-  (let [job-listing (mock-job-listing)]
-    {:db (assoc-in db [state-key :job-listing/state] :loading)
-     :dispatch [:page.jobs/-set-job-listing job-listing]}))
-
 (defn query-job-listing
   "Event FX Handler. Perform Job Listing Query."
-  [{:keys [db]} [xx router-params]]
+  [{:keys [db]} [_ router-params]]
   (let [page-state (get-in db [state-key])
         filter-keys [:feedback-max-rating]
         filter-params (reduce (fn [acc filter-key]
@@ -60,10 +48,7 @@
                               {}
                               filter-keys)
         args {:search-params filter-params}]
-      (println ">>> querying with" filter-params "|" (j-gql/jobs-query {:search-params {:feedback-max-rating 5}}))
-
-      {:dispatch [::gql-events/query {:query {:queries [(j-gql/jobs-query {:search-params {:feedback-max-rating 5}})]}
-                                      :id :JobSearchQuery}]}))
+      {:dispatch [::gql-events/query {:query {:queries [(j-gql/jobs-query {:search-params {:feedback-max-rating 5}})]}}]}))
 
 (defn set-job-listing
   "Event FX Handler. Set the Current Job Listing."

@@ -611,6 +611,8 @@
           query (cond-> (merge job-search-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
+                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
+
                   creator (sql-helpers/merge-where [:ilike creator :Job.job/creator])
 
                   ; The case for OR-ing the skills

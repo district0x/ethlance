@@ -24,7 +24,6 @@
     (clojure.string/join " " (map clojure.string/capitalize name-parts))))
 
 (defn has-active-session? []
-  (println "ethlance.ui.events/has-active-session? " (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
   (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
 
 (defn c-main-layout

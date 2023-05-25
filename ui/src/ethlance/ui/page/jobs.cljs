@@ -100,6 +100,7 @@
         *min-num-feedbacks (re/subscribe [:page.jobs/min-num-feedbacks])
         *payment-type (re/subscribe [:page.jobs/payment-type])
         *experience-level (re/subscribe [:page.jobs/experience-level])]
+    (re/dispatch [:page.jobs/set-feedback-max-rating 5])
     (fn []
       [:<>
        [:div.category-selector
@@ -200,36 +201,27 @@
 
 
 (defn c-job-listing []
-  (let [
-        ; query-params (atom {:search-params {:feedback-max-rating 5}})
-        ]
-    (fn []
-      (let [
-            query-params (re/subscribe [:page.jobs/job-search-params])
-            query (j-gql/jobs-query @query-params)
-            search-results @(re/subscribe [::gql/query {:queries [query]} {:id @query-params :refetch-on #{:gimme-jobs}}])
-            job-listing-state (get search-results :graphql/loading?)
-            loading? (contains? #{:start :loading} job-listing-state)
-            job-listing (get-in (first search-results) [:job-search :items])
-            debug-obj {:query query :query-params query-params :search-results search-results :job-listing job-listing}
-            ]
-        (println ">>> ethlance.ui.page.jobs DEBUG: " debug-obj)
-        [:<>
-         (cond
-           ;; Is the job listing loading?
-           loading?
-           [c-loading-spinner]
+  (fn []
+    (let [query-params (re/subscribe [:page.jobs/job-search-params])
+          query (j-gql/jobs-query @query-params)
+          search-results @(re/subscribe [::gql/query {:queries [query]} {:id @query-params :refetch-on #{:gimme-jobs}}])
+          job-listing-state (get search-results :graphql/loading?)
+          loading? (contains? #{:start :loading} job-listing-state)
+          job-listing (get-in (first search-results) [:job-search :items])]
+      [:<>
+       (cond
+         ;; Is the job listing loading?
+         loading?
+         [c-loading-spinner]
 
-           ;; Is the job listing empty?
-           (empty? job-listing)
-           [:div.empty-listing  "No Jobs"
-            [:pre {:style {:font-family "monospace"}} (with-out-str (cljs.pprint/pprint debug-obj))]] ; [:div.empty-listing "No Jobs"]
-
-           :else
-           (doall
-             (for [job job-listing]
-               ^{:key (str "job-" (:job/id job))}
-               [c-job-element job])))]))))
+         ;; Is the job listing empty?
+         (empty? job-listing)
+         [:div.empty-listing  "No jobs found for these search parameters"]
+         :else
+         (doall
+           (for [job job-listing]
+             ^{:key (str "job-" (:job/id job))}
+             [c-job-element job])))])))
 
 (defmethod page :route.job/jobs []
   (let [*skills (re/subscribe [:page.jobs/skills])]

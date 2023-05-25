@@ -34,7 +34,7 @@
   :<- [::accounts-subs/active-account]
   (fn [[active-session active-account]]
     (and (cljs-utils/not-nil? (:user/id active-session))
-         (= (:user/id active-session) active-account))))
+         (ethlance.shared.utils/ilike= (:user/id active-session) active-account))))
 
 
 (re/reg-sub
