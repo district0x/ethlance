@@ -195,7 +195,8 @@
           my-proposal (re/subscribe [:page.job-detail/my-proposal])
           my-job-story-id (:job-story/id @my-proposal)
           my-proposal? (not (nil? @my-proposal))
-          my-proposal-withdrawable? (and @my-proposal (= "proposed" (:status @my-proposal)))]
+          can-send-proposals? (and (not my-proposal?) (ilike!= active-user *employer-address))
+          my-proposal-withdrawable? (and @my-proposal (= "proposal" (:status @my-proposal)))]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
         [:div.main
@@ -228,7 +229,7 @@
                               :href (util.navigation/resolve-route {:route :route.user/profile
                                                                     :params {:address *arbiter-address}
                                                                     :query {:tab :arbiter}})}
-           [:div.header  "Arbiter"]
+           [:div.header "Arbiter"]
            [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
            [:div.name *arbiter-name]
            [:div.rating [c-rating {:rating *arbiter-rating}]]
@@ -254,9 +255,10 @@
          [c-circle-icon-button {:name :ic-arrow-left :size :small}]
          [c-circle-icon-button {:name :ic-arrow-right :size :small}]
          [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
+
         [:div.proposal-form
          [:div.label "Send Proposal"]
-         [c-token-values {:disabled? (not (nil? @my-proposal)) ; my-proposal?
+         [c-token-values {:disabled? (not can-send-proposals?)
                           :token-type *job-token-type
                           :token-amount *proposal-token-amount
                           :token-id *job-token-id
@@ -266,7 +268,7 @@
          [:label "The amount is for payment type: " (str *bid-option)]
          [:div.description-input
           [c-textarea-input
-           {:disabled my-proposal?
+           {:disabled (not can-send-proposals?)
             :placeholder "Proposal Description"
             :value (if my-proposal? (:message @my-proposal) @*proposal-text)
             :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
@@ -274,10 +276,11 @@
          (if my-proposal-withdrawable?
            [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
                       :size :small}
-            [c-button-label "Remove"]]
-           )
+            [c-button-label "Remove"]])
          (if (not my-proposal?)
-           [c-button {:on-click (fn [] (>evt [:page.job-proposal/send contract-address]))
+           [c-button {:style (when (not can-send-proposals?) {:background :gray})
+                      :on-click (fn []
+                                  (when can-send-proposals? (>evt [:page.job-proposal/send contract-address])))
                       :size :small}
             [c-button-label "Send"]])]]
 
