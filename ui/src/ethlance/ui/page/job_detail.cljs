@@ -23,27 +23,26 @@
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
 
-(defn c-token-values [opts]
-  (fn [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name]}]
-    (let [token-type (keyword token-type)
-          step (if (= token-type :eth) 0.001 1)]
-      (cond
-        (= :erc721 token-type)
-        [:div "The payment will be NFT (ERC721)"]
+(defn c-token-values [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name] :as opts}]
+  (let [token-type (keyword token-type)
+        step (if (= token-type :eth) 0.001 1)]
+    (cond
+      (= :erc721 token-type)
+      [:div "The payment will be NFT (ERC721)"]
 
-       (#{:eth :erc1155 :erc20} token-type)
-        [:div.amount-input
-         [c-text-input
-          {:placeholder "Token amount"
-           :step step
-           :type :number
-           :default-value nil
-           :disabled disabled?
-           :value @token-amount
-           :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]
-         [:a {:href (token-utils/address->token-info-url token-address) :target "_blank"}
-         [:label token-symbol]
-         [:label (str "(" (or token-name (name token-type)) ")")]]]))))
+     (#{:eth :erc1155 :erc20} token-type)
+      [:div.amount-input
+       [c-text-input
+        {:placeholder "Token amount"
+         :step step
+         :type :number
+         :default-value nil
+         :disabled disabled?
+         :value token-amount
+         :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]
+       [:a {:href (token-utils/address->token-info-url token-address) :target "_blank"}
+       [:label token-symbol]
+       [:label (str "(" (or token-name (name token-type)) ")")]]])))
 
 (defn c-invoice-listing [contract-address]
   (let [invoices-query [:job {:job/id contract-address}
@@ -146,7 +145,7 @@
                                              :user/country
                                              :user/name
                                              :user/profile-image]]]]]]
-          query-results (re/subscribe [::gql/query {:queries [job-query]}])
+          query-results (re/subscribe [::gql/query {:queries [job-query] :refetch-on :create-proposal-success}])
           results (:job @query-results)
 
           *title (:job/title results)
@@ -196,7 +195,7 @@
           my-job-story-id (:job-story/id @my-proposal)
           my-proposal? (not (nil? @my-proposal))
           can-send-proposals? (and (not my-proposal?) (ilike!= active-user *employer-address))
-          my-proposal-withdrawable? (and @my-proposal (= "proposal" (:status @my-proposal)))]
+          my-proposal-withdrawable? (and @my-proposal (= :proposal (:status @my-proposal)))]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
         [:div.main
@@ -260,7 +259,7 @@
          [:div.label "Send Proposal"]
          [c-token-values {:disabled? (not can-send-proposals?)
                           :token-type *job-token-type
-                          :token-amount *proposal-token-amount
+                          :token-amount (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
                           :token-id *job-token-id
                           :token-address *job-token-address
                           :token-name *token-detail-name

@@ -793,7 +793,7 @@
 
        :direct-message
        (<? (insert-row! conn :DirectMessage message)))
-     msg-id)))
+     {:job-story/id job-story-id :message/id msg-id})))
 
 (defn add-job-story
   "Inserts a JobStory. Returns autoincrement id"

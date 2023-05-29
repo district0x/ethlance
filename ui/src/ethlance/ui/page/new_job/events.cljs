@@ -3,7 +3,6 @@
     [alphabase.hex :as hex]
     [district.ui.router.effects :as router.effects]
     [district.ui.router.events :as router-events]
-    [ethlance.ui.graphql :as graphql]
     [ethlance.ui.event.utils :as event.utils]
     [ethlance.shared.utils :refer [eth->wei base58->hex]]
     [re-frame.core :as re]
