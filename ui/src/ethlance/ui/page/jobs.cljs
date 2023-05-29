@@ -107,6 +107,8 @@
         [c-select-input
          {:selection @*category
           :color :secondary
+          :label-fn first
+          :value-fn second
           :selections constants/categories-with-default
           :on-select #(re/dispatch [:page.jobs/set-category %])}]]
 

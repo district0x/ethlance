@@ -29,9 +29,8 @@
   :page.jobs/job-search-params
   (fn [db _]
     (let [page-state (get-in db [jobs.events/state-key] {})
-          _ (println ">>> SUBSCRIPTION :page.jobs/job-search-params" page-state)
           filter-keys [:skills
-                       :category
+                       [:category first]
                        :feedback-max-rating
                        :feedback-min-rating
                        :min-hourly-rate
@@ -40,8 +39,11 @@
                        :payment-type
                        :experience-level]
           filter-params (reduce (fn [acc filter-key]
-                                  (let [filter-val (get-in db [jobs.events/state-key filter-key])
+                                  (let [raw-filter-val (get-in db [jobs.events/state-key filter-key])
                                         set-type (type #{})
+                                        filter-val (if (vector? raw-filter-val)
+                                                     ((second raw-filter-val) (first raw-filter-val))
+                                                     raw-filter-val)
                                         final-val (if (= set-type (type filter-val))
                                                     (into [] filter-val)
                                                     filter-val)]
@@ -50,5 +52,4 @@
                                       acc)))
                                 {}
                                 filter-keys)]
-      {:search-params filter-params})
-    ))
+      {:search-params filter-params})))

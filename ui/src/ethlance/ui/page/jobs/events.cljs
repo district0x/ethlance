@@ -11,26 +11,23 @@
 ;; Page State
 (def state-key :page.jobs)
 (def state-default
-  {:job-listing/max-per-page 10
-   :job-listing/state :start
-   :job-listing []
-
-   ;; Job Listing Query Parameters
+  {; Job Listing Query Parameters
    :skills #{}
-   :category constants/category-default
-   :feedback-min-rating 1
+   :category ["All Categories" nil]; constants/category-default
+   :feedback-min-rating nil
    :feedback-max-rating 5
    :min-hourly-rate nil
    :max-hourly-rate nil
    :min-num-feedbacks nil
-   :payment-type :hourly-rate
-   :experience-level :beginner})
+   :payment-type nil
+   :experience-level nil})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
   (let [page-state (get db state-key)]
-    {::router.effects/watch-active-page
+    {:db (assoc-in db [state-key] state-default)
+     ::router.effects/watch-active-page
      [{:id :page.jobs/initialize-page
        :name :route.job/jobs
        :dispatch [:page.jobs/query-job-listing]}]}))
@@ -49,13 +46,6 @@
                               filter-keys)
         args {:search-params filter-params}]
       {:dispatch [::gql-events/query {:query {:queries [(j-gql/jobs-query {:search-params {:feedback-max-rating 5}})]}}]}))
-
-(defn set-job-listing
-  "Event FX Handler. Set the Current Job Listing."
-  [{:keys [db]} [_ job-listing]]
-  {:db (-> db
-           (assoc-in [state-key :job-listing/state] :done)
-           (assoc-in [state-key :job-listing] job-listing))})
 
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."
@@ -89,6 +79,3 @@
 (re/reg-event-fx :page.jobs/set-min-num-feedbacks (create-assoc-handler :min-num-feedbacks parse-int))
 (re/reg-event-fx :page.jobs/set-payment-type (create-assoc-handler :payment-type))
 (re/reg-event-fx :page.jobs/set-experience-level (create-assoc-handler :experience-level))
-
-;; Intermediates
-(re/reg-event-fx :page.jobs/-set-job-listing set-job-listing)
