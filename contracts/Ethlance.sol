@@ -200,7 +200,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     // FIXME: disabled the transfer to be able to use Mainnet token addresses (e.g. USDC) while working against local testnet
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
     isJobMap[newJobPayableAddress] = true;
-    Job(newJobPayableAddress).initialize(this, _creator, msg.sender, _offeredValues, _invitedArbiters);
+    Job(newJobPayableAddress).initialize(this, _creator, _offeredValues, _invitedArbiters);
 
     emit JobCreated(newJobPayableAddress, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp(), Job(newJobPayableAddress).version());
 

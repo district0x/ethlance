@@ -542,9 +542,7 @@
                                    :Job.job/date-updated
                                    :Job.job/description
                                    :Job.job/estimated-project-length
-                                   :Job.job/hire-address
                                    :Job.job/invitation-only?
-                                   :Job.job/max-number-of-candidates
                                    :Job.job/required-experience-level
                                    :Job.job/required-availability
                                    :Job.job/status
@@ -611,6 +609,8 @@
           query (cond-> (merge job-search-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
+                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
+
                   creator (sql-helpers/merge-where [:ilike creator :Job.job/creator])
 
                   ; The case for OR-ing the skills
@@ -803,7 +803,7 @@
 
 (defn create-job-proposal-mutation [_ gql-params {:keys [current-user timestamp]}]
   (db/with-async-resolver-conn conn
-    (let [input (:input gql-params)
+    (let [input (js-obj->clj-map (:input gql-params))
           message-params {:message/type :job-story-message
                           :job-story-message/type :proposal
                           :job/id (:contract input)
@@ -811,8 +811,9 @@
                           :message/creator (:user/id current-user)
                           :message/text (:text input)
                           :job-story/proposal-rate (:rate input)
-                          :job-story/proposal-rate-currency-id (:rate-currency-id input)}]
-      (first (<? (ethlance-db/add-message conn message-params))))))
+                          :job-story/proposal-rate-currency-id (:rate-currency-id input)}
+          job-story-id (:job-story/id (<? (ethlance-db/add-message conn message-params)))]
+      (<? (db/get conn {:select [:*] :from [:JobStory] :where [:= :job-story/id  job-story-id]})))))
 
 
 (defn remove-job-proposal-mutation [_ gql-params {:keys [current-user timestamp]}]

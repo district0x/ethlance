@@ -138,7 +138,6 @@
            ethlance-job-id job-id
            ethlance-job {:ethlance-job/id ethlance-job-id
                              :ethlance-job/estimated-lenght (time/in-millis estimated-length)
-                             :ethlance-job/max-number-of-candidates (rand-int 10)
                              :ethlance-job/invitation-only? (rand-nth [true false])
                              :ethlance-job/required-availability (rand-nth [true false])
                              :ethlance-job/hire-address nil

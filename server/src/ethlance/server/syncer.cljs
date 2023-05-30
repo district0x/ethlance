@@ -37,16 +37,23 @@
    :job/language-id nil; TODO: where does it come from
    :job/bid-option (:job/bid-option ethlance-job-data)
    :job/estimated-project-length (:job/estimated-project-length ethlance-job-data)
-   :job/max-number-of-candidates nil ; TODO: where does it come from
    :job/invitation-only? nil ; TODO: where does it come from
    :job/required-availability (:job/required-availability ethlance-job-data)
    })
 
-(def ze-create-job-event (atom nil))
+(defn ensure-db-token-details [token-type token-address conn]
+  (safe-go
+    (let [eth-token-details {:address "0x0000000000000000000000000000000000000000"
+                             :name "Ether"
+                             :symbol "ETH"
+                             :abi []}]
+      (if (not (<? (ethlance-db/get-token conn token-address)))
+        (if (= :eth token-type)
+          (ethlance-db/store-token-details conn eth-token-details)
+          (ethlance-db/store-token-details conn (<! (token-utils/get-token-details token-address))))))))
 
 (defn handle-job-created [conn _ {:keys [args] :as event}]
   (safe-go
-    (reset! ze-create-job-event event)
    (log/info (str ">>> Handling event job-created" args))
    (println ">>> ipfs-data | type ipfs-data" {:ipfs-data (:ipfs-data args) :event event})
    (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
@@ -54,12 +61,6 @@
          offered-value (offered-vec->flat-map (first (:offered-values args)))
          token-address (:token-address offered-value)
          token-type (enum-val->token-type (:token-type offered-value))
-         ; TODO: instead of querying ETH token details via token-utils/get-token-details
-         ;       store this hard-coded value
-         eth-token-details {:address "0x0000000000000000000000000000000000000000"
-                            :name "Ether"
-                            :symbol "ETH"
-                            :abi []}
          for-the-db (merge {:job/id (:job args)
                                        :job/status  "active" ;; draft -> active -> finished hiring -> closed
                                        :job/creator (:creator args)
@@ -85,11 +86,7 @@
                                       :job/token-id (:token-id offered-value)
                                       :invited-arbiters (get-in args [:invited-arbiters] [])}
                                      (build-ethlance-job-data-from-ipfs-object ipfs-job-content))))
-     (if (and
-           (not= :eth token-type)
-           (not (<? (ethlance-db/get-token conn token-address))))
-       (let [token-details (<! (token-utils/get-token-details token-address))]
-         (ethlance-db/store-token-details conn token-details))))))
+     (ensure-db-token-details token-type token-address conn))))
 
 (defn handle-invoice-created [conn _ {:keys [args]}]
   (safe-go

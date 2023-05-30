@@ -18,6 +18,9 @@
     [re-frame.core :as re]
     [akiroz.re-frame.storage]))
 
+(defn has-active-session? []
+  (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
+
 (re/reg-event-fx
   :ethlance/initialize
   [(re/inject-cofx :store)]
@@ -26,8 +29,7 @@
                          (assoc :ethlance/config config)
                          (merge (akiroz.re-frame.storage/<-store :ethlance)))]
       {:db updated-db
-       :dispatch-n [
-                    [:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
+       :dispatch-n [[:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
                     [:page.jobs/initialize-page]
                     [:page.sign-up/initialize-page]
                     [:page.candidates/initialize-page]

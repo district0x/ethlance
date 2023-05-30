@@ -22,7 +22,6 @@
         profile-image (subscribe [:page.sign-up/update-user-profile-image])
         active-account-has-session? (subscribe [::ethlance-subs/active-account-has-session?])]
     (fn []
-      (println "ACTIVE ACCOUNT HAS SESSION?" @active-account-has-session?)
       [:div.main-navigation-bar
        [c-ethlance-logo
         {:color :white

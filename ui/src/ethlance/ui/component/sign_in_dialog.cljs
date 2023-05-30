@@ -6,7 +6,7 @@
    ;; re-frame Prerequisites
    [ethlance.ui.component.modal.subscriptions]
    [ethlance.ui.events]
-  
+
    ;; Ethlance Components
    [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.component.button :refer [c-button c-button-label]]
@@ -34,13 +34,14 @@
         [c-modal
          {:class "animation-fade-in-fast"}
          [:div.sign-in-dialog
-          [c-icon 
+          [c-icon
            {:name :close
             :on-click close!
             :class "close-button"
             :color :secondary
             :title "Close Dialog"}]
-          [:img.sign-in-dialog {:src "/images/svg/sign_in_dialog.svg"}]
+          ; FIXME: Get actual image. The current one is placeholder and displaces the design
+          ; [:img.sign-in-dialog {:src "/images/svg/sign_in_dialog.svg"}]
           [:h1 "Sign In and Verify Address"]
           [:p "After clicking \"Continue\", a wallet dialogue will prompt you to verify your unique address."]
           [:p "Once you verify, you will be signed in to the network."]

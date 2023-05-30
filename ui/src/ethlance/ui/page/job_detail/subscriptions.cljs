@@ -28,7 +28,7 @@
                    :job-story/id (:job-story/id story)
                    :candidate-name (get-in story [:candidate :user :user/name])
                    :rate (get-in story [:job-story/proposal-rate])
-                   :message (get-in story [:job-story/proposal-message :message/text])
+                   :message (get-in story [:proposal-message :message/text])
                    :created-at (js/parseInt (get-in story [:job-story/date-created]))
                    :status (get-in story [:job-story/status])}))
            ; Keeps the current-user's proposal at the top of the list
@@ -39,7 +39,7 @@
   :page.job-detail/active-proposals
   :<- [:page.job-detail/all-proposals]
   (fn [proposals _]
-    (filter #(not= "deleted" (:status %)) proposals)))
+    (filter #(not= :deleted (:status %)) proposals)))
 
 (defn seek
   "Returns first item from coll for which (pred item) returns true.
@@ -57,5 +57,5 @@
   :<- [:page.job-detail/all-proposals]
   (fn [proposals _]
     (->> proposals
-         (filter #(not= "deleted" (:status %)) ,,,)
+         (filter #(not= :deleted (:status %)) ,,,)
          (seek :current-user? ,,,))))

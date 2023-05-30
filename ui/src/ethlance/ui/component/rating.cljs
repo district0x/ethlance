@@ -56,7 +56,6 @@
   "
   [{:keys [default-rating color size rating]
     :or {color :primary size :default}}]
-  (println ">>> c-rating outer: rendering" {:rating rating})
   (let [*current-default-rating (r/atom default-rating)
         color-class (case color
                       :primary "primary"
@@ -68,19 +67,27 @@
                      :large    "large")]
     (fn [{:keys [rating default-rating color on-change size]
           :or {color :primary size :default}}]
-      (println ">>> c-rating inner: re-rendering" {:rating rating})
-      (let [current-rating (if default-rating @*current-default-rating rating)]
+      (let [current-rating (if default-rating @*current-default-rating rating)
+            no-rating nil
+            min-rating 1
+            max-rating 5]
         [:div.ethlance-component-rating
          {:class [color-class size-class]}
          (doall
-          (for [i (range 1 6)]
-            ^{:key i}
-            [c-star {:active? (<= i current-rating)
-                     :color color
-                     :size size
-                     :index i
-                     :on-change
-                     (when on-change
-                       (fn [index]
-                         (reset! *current-default-rating index)
-                         (on-change index)))}]))]))))
+           (for [i (range min-rating (+ max-rating 1))]
+             ^{:key i}
+             [c-star {:active? (<= i current-rating)
+                      :color color
+                      :size size
+                      :index i
+                      :on-change
+                      (if on-change
+                        (fn [index]
+                          (let [toggleable (if (and
+                                                 (= @*current-default-rating index)
+                                                 (= index min-rating))
+                                             nil
+                                             index)]
+                            (reset! *current-default-rating toggleable)
+                            (on-change toggleable)))
+                        identity)}]))]))))

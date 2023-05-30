@@ -75,8 +75,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    */
   function initialize(
     Ethlance _ethlance,
-    address _sender, // Need to pass it manually because called from Ethlance, msg.sender will be Ethlance address
-                     // msg.origin is unsafe: https://ethereum.stackexchange.com/a/200
     address _creator,
     EthlanceStructs.TokenValue[] calldata _offeredValues,
     address[] calldata _invitedArbiters
@@ -88,8 +86,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     ethlance = _ethlance;
     creator = _creator;
-    inviteArbiters(_sender, _invitedArbiters);
-    _recordAddedFunds(creator, _offeredValues);
+    inviteArbiters(_creator, _invitedArbiters);
+    _recordAddedFunds(_creator, _offeredValues);
   }
 
 

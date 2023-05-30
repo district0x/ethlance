@@ -2,7 +2,13 @@
   (:require
     [re-frame.core :as re]
     [cljs-web3-next.helpers :as web3-helpers]
+    [ethlance.shared.utils :refer [wei->eth]]
     [cljs-web3-next.eth :as w3-eth]))
+
+(defn human-amount [amount token-type]
+  (case (keyword token-type)
+    :eth (wei->eth amount)
+    amount))
 
 (defn address->token-info-url [address]
   (str "https://ethplorer.io/address/" address))

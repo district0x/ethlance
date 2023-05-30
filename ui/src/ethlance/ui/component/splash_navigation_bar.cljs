@@ -4,14 +4,19 @@
             [reagent.core :as r]))
 
 (defn c-splash-navigation-link
-  [{:keys [name route *hover]}]
-  [:div.splash-navigation-link
-   {:on-mouse-enter #(reset! *hover name)
-    :on-mouse-leave #(reset! *hover nil)}
-   [:a {:href (util.navigation/resolve-route {:route route})
-        :title name
-        :on-click (util.navigation/create-handler {:route route})
-        :class [(when (or (not @*hover) (= @*hover name)) "show-underline")]} name]])
+  [{:keys [name route href *hover]}]
+  (let [navigation
+        (if href
+          {:href href}
+          {:href (util.navigation/resolve-route {:route route})
+           :on-click (util.navigation/create-handler {:route route})})]
+    [:div.splash-navigation-link
+     {:on-mouse-enter #(reset! *hover name)
+      :on-mouse-leave #(reset! *hover nil)}
+     [:a (merge
+           {:title name :class [(when (or (not @*hover) (= @*hover name)) "show-underline")]}
+           navigation)
+      name]]))
 
 (defn c-splash-navigation-bar []
   (let [*hover (r/atom nil)]
@@ -31,4 +36,4 @@
         [c-splash-navigation-link
          {:*hover *hover
           :name "How it Works"
-          :route :route.misc/how-it-works}]]])))
+          :href "#how-it-works"}]]])))

@@ -1,7 +1,7 @@
 (ns ethlance.ui.page.job-detail.events
   (:require [district.ui.router.effects :as router.effects]
             [ethlance.ui.event.utils :as event.utils]
-            [ethlance.ui.graphql :as graphql]
+            [ethlance.shared.utils :refer [eth->wei]]
             [district.ui.web3-accounts.queries :as accounts-queries]
             [re-frame.core :as re]))
 
@@ -30,6 +30,22 @@
 (re/reg-event-fx :page.job-detail/set-proposal-token-amount (create-assoc-handler :job/proposal-token-amount))
 (re/reg-event-fx :page.job-detail/set-proposal-text (create-assoc-handler :job/proposal-text))
 
+(def job-story-requested-fields
+  [:job-story/id
+   :job/id
+   :job-story/status
+   :job-story/proposal-rate
+   :job-story/date-created
+   :job-story/candidate
+   [:candidate
+    [:user/id
+     [:user [:user/id :user/name]]]]
+   [:proposal-message
+    [:message/id
+     :message/type
+     :message/text
+     :message/creator]]])
+
 (re/reg-event-fx
   :page.job-proposal/send
   [interceptors]
@@ -39,21 +55,11 @@
           token-amount (get-in db [state-key :job/proposal-token-amount])
           proposal {:contract contract-address
                     :text text
-                    :rate token-amount}]
-      {:dispatch [::graphql/query
-                  {:query
-                   "mutation SendProposalMessage($input: ProposalInput) {
-                     createJobProposal(input: $input) {
-                       jobStory_id
-                       jobStory_status
-                       jobStory_proposalRate
-                       jobStory_dateCreated
-                       jobStory_candidate
-                       job_id
-                       candidate {user {user_name user_id}}
-                       proposalMessage {message_id message_type message_text message_creator}
-                     }}"
-                   :variables {:input proposal}}]})))
+                    :rate (js/parseFloat (eth->wei token-amount))}]
+      {:dispatch [:district.ui.graphql.events/mutation
+                  {:queries [[:create-job-proposal {:input proposal}
+                              job-story-requested-fields]]
+                   :on-success [:page.job-detail/fetch-proposals]}]})))
 
 (re/reg-event-fx
   :page.job-proposal/remove
@@ -63,21 +69,10 @@
       {:db (-> db
                (assoc-in ,,, [state-key :job/proposal-token-amount] nil)
                (assoc-in ,,, [state-key :job/proposal-text] nil))
-       :dispatch [::graphql/query
-                  {:query
-                   "mutation RemoveProposal($jobStory_id: ID!) {
-                     removeJobProposal(jobStory_id: $jobStory_id) {
-                       jobStory_id
-                       jobStory_status
-                       jobStory_proposalRate
-                       jobStory_dateCreated
-                       jobStory_candidate
-                       job_id
-                       candidate {user {user_name user_id}}
-                       proposalMessage {message_id message_type message_text message_creator}
-                     }}"
-                   :variables {:jobStory_id job-story-id}}]})))
-
+       :dispatch [:district.ui.graphql.events/mutation
+                  {:queries [[:remove-job-proposal {:job-story/id job-story-id}
+                              job-story-requested-fields]]
+                   :on-success [:page.job-detail/fetch-proposals]}]})))
 
 (re/reg-event-fx
   :page.job-detail/fetch-proposals
@@ -86,17 +81,27 @@
     (let [queried-contract-address (:contract router-params)
           contract-from-db (get-in db [:district.ui.router :active-page :params :id])
           contract (or queried-contract-address contract-from-db)]
-      {:dispatch [::graphql/query
-                  {:query
-                   "query JobStoriesForProposal($jobContract: ID) {
-                     jobStoryList(jobContract: $jobContract) {
-                       jobStory_id
-                       job_id
-                       jobStory_status
-                       jobStory_proposalRate
-                       jobStory_dateCreated
-                       jobStory_candidate
-                       candidate {user {user_name user_id}}
-                       proposalMessage {message_id message_type message_text message_creator}
-                     }}"
-                   :variables {:jobContract contract}}]})))
+      {:dispatch [:district.ui.graphql.events/query!
+                  {:queries
+                   [[:job-story-list {:job-contract contract}
+                     job-story-requested-fields]]
+                  :on-success [:proposal-stories-success]
+                  :on-error [:proposal-stories-error]}]})))
+
+(re/reg-event-fx
+  :proposal-stories-success
+  [interceptors]
+  (fn [{:keys [db]} data]
+    (let [stories (some :job-story-list data)
+          id-mapped (reduce
+                      (fn [acc job-story]
+                      (assoc acc (:job-story/id job-story) job-story))
+                      {}
+                      stories)]
+    {:db (assoc db :job-stories id-mapped)})))
+
+(re/reg-event-fx
+  :proposal-stories-error
+  [interceptors]
+  (fn [{:keys [db]} error]
+    (merge db [:page.job-detail :graphql-error] error)))

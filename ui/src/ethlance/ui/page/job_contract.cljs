@@ -2,7 +2,7 @@
   (:require [district.parsers :refer [parse-int]]
             [district.ui.component.page :refer [page]]
             [district.ui.router.subs :as router.subs]
-            [ethlance.shared.utils :refer [wei->eth]]
+            [ethlance.ui.util.tokens :as tokens]
             [district.format :as format]
             [ethlance.shared.utils :refer [ilike=]]
             [district.ui.graphql.subs :as gql]
@@ -251,7 +251,7 @@
         token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
         token-type (keyword (get-in @invoice-result [:job-story :job :job/token-type]))
         candidate-invoiced-amount (get-in latest-unpaid-invoice [:invoice/amount-requested])
-        human-amount (if (= token-type :eth) (wei->eth candidate-invoiced-amount) candidate-invoiced-amount)
+        human-amount (tokens/human-amount candidate-invoiced-amount token-type)
 
         has-invoice? (not (nil? latest-unpaid-invoice))
         can-dispute? (and has-invoice?
@@ -339,7 +339,7 @@
         dispute-candidate-percentage (re/subscribe [:page.job-contract/dispute-candidate-percentage])
         dispute-text (re/subscribe [:page.job-contract/dispute-text])
         candidate-invoiced-amount (get-in latest-disputed-invoice [:invoice/amount-requested])
-        human-amount (if (= token-type :eth) (wei->eth candidate-invoiced-amount) candidate-invoiced-amount)
+        human-amount (tokens/human-amount candidate-invoiced-amount token-type)
         resolution-percentage (/ @dispute-candidate-percentage 100)
         resolved-amount (.toFixed (* human-amount resolution-percentage) 3)
         resolution-contract-amount (* candidate-invoiced-amount resolution-percentage)
@@ -452,9 +452,7 @@
 
             token-type (keyword (get-in job-story [:job :job/token-type]))
             raw-amount (get-in job-story [:job :job/token-amount])
-            human-amount (if (= token-type :eth)
-                           (wei->eth raw-amount)
-                           raw-amount)
+            human-amount (tokens/human-amount raw-amount token-type)
             profile {:title (get-in job-story [:job :job/title])
                      :status (get-in job-story [:job-story/status])
                      :funds {:amount human-amount

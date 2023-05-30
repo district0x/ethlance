@@ -11,6 +11,7 @@
              [c-mobile-navigation-bar]]
             [district.ui.router.subs :as router.subs]
             [re-frame.core :as re]
+            [akiroz.re-frame.storage]
             [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog] :as sidi]))
 
 (defn page-title-from-route-name
@@ -21,6 +22,9 @@
         name-part-from-route-name(name route-name)
         name-parts (flatten [app-name ":" name-parts-from-route-ns name-part-from-route-name])]
     (clojure.string/join " " (map clojure.string/capitalize name-parts))))
+
+(defn has-active-session? []
+  (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
 
 (defn c-main-layout
   "The main layout of each page in the ethlance ui.
@@ -35,8 +39,12 @@
   that contains the child component.
   "
   []
-  (let [active-page (re/subscribe [::router.subs/active-page-name])]
+  (let [active-page (re/subscribe [::router.subs/active-page-name])
+        has-active-session? (re/subscribe [:ethlance.ui.subscriptions/active-account-has-session?])]
     (fn [{:keys [container-opts] :as opts} & children]
+      (if @has-active-session?
+        (re/dispatch [:modal/close :ethlance.ui.component.sign-in-dialog/sign-in])
+        (re/dispatch [:modal/open :ethlance.ui.component.sign-in-dialog/sign-in]))
       (set! (.-title js/document) (page-title-from-route-name @active-page))
       (let [opts (dissoc opts :container-opts)]
         [:div.main-layout

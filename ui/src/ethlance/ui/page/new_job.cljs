@@ -28,8 +28,8 @@
     [:div.arbiter-for-hire
      [c-profile-image {:src (-> arbiter :user :user/profile-image)}]
      [:div.name (-> arbiter :user :user/name)]
-     [c-rating {:rating (-> arbiter :arbiter/rating)}]
-     [:div.price (-> arbiter :arbiter/fee)]
+     [c-rating {:rating (-> arbiter :arbiter/rating) :default-rating nil}]
+     [:div.price "$" (-> arbiter :arbiter/fee)]
      (if-not (= @invited-arbiter (:user/id arbiter))
        [c-button
         {:size :small
@@ -170,10 +170,12 @@
             [:erc721 [c-radio-secondary-element "NFT Token (ERC-721)"]]
             [:erc1155 [c-radio-secondary-element "Multi-Token (ERC-1155)"]]]
            (when token-with-amount?
-             [c-text-input
-              {:value @*token-amount
-               :on-change #(re/dispatch [:page.new-job/set-token-amount %])
-               :placeholder "Token Amount"}])
+             [:div.token-address-input
+              [c-text-input
+               {:value @*token-amount
+                :on-change #(re/dispatch [:page.new-job/set-token-amount %])
+                :placeholder "Token Amount"}]
+              [:div.token-label "(amount)"]])
            (when with-token?
              [:div.token-address-input
               [:div.input
@@ -181,7 +183,7 @@
                 {:value @*token-address
                  :on-change #(re/dispatch [:page.new-job/set-token-address %])
                  :placeholder "Token Address"}]
-               [:div.token-label "SNT"]]
+               [:div.token-label "(address)"]]
               ;; TODO: retrieve token logo
               [:div.token-logo]])
            (when token-with-id?
@@ -191,7 +193,8 @@
                 {:value @*token-id
                  :type :number
                  :on-change #(re/dispatch [:page.new-job/set-token-id %])
-                 :placeholder "Token ID"}]]])]]
+                 :placeholder "Token ID"}]
+               [:div.token-label "(token ID)"]]])]]
 
          (when @*with-arbiter?
            [:div.arbiters

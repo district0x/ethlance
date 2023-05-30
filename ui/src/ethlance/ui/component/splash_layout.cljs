@@ -221,7 +221,7 @@
           ", a collective of decentralized marketplaces and
          communities."]]]]]]
 
-    [:div.checkout.content-center
+    [:div#how-it-works.checkout.content-center
      [:h3 "Check Out"]
      [:h2 "How Ethlance Works"]
      ;; TODO: owl listing component
@@ -252,9 +252,7 @@
          :href (util.navigation/resolve-route {:route :route.misc/about})}
         [:span "About Us"]]
        [:a
-        {:title "How it Works"
-         :on-click (util.navigation/create-handler {:route :route.misc/how-it-works})
-         :href (util.navigation/resolve-route {:route :route.misc/how-it-works})}
+        {:title "How it Works" :href "#how-it-works"}
         [:span "How it Works"]]
        [:a {:href "https://blog.district0x.io/"} "Blog"]]
       [:div.listing

@@ -5118,4 +5118,4 @@
 
 
 (def categories-with-default
-  (concat [category-default] categories))
+  (conj (map #(vector % %) categories) ["All Categories" nil]))

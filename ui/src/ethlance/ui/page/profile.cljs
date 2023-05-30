@@ -242,7 +242,6 @@
           job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
           jobs (map prepare-employer-jobs (get-in @results [:employer :employer/job-stories :items]))
           feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
-          ; feedback-list (mock-feedback-list)
           rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>
        [:div.employer-profile
