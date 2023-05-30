@@ -129,12 +129,9 @@
                    :args [creator [(clj->js offered-value)] invited-arbiters ipfs-hash]
                    :tx-opts tx-opts-with-value
                    :tx-hash [::tx-hash]
-                   :on-tx-hash-n [[::tx-hash]]
                    :on-tx-hash-error [::tx-hash-error]
-                   :on-tx-hash-error-n [[::tx-hash-error]]
                    :on-tx-success [::create-job-tx-success]
-                   :on-tx-error [::create-job-tx-error]
-                   :on-tx-error-n [[::create-job-tx-error]]}]})))
+                   :on-tx-error [::create-job-tx-error]}]})))
 
 ; TODO: fix event/callback names in README (they don't have on-<...> prefix)
 ;         https://github.com/district0x/re-frame-web3-fx#usage
