@@ -542,9 +542,7 @@
                                    :Job.job/date-updated
                                    :Job.job/description
                                    :Job.job/estimated-project-length
-                                   :Job.job/hire-address
                                    :Job.job/invitation-only?
-                                   :Job.job/max-number-of-candidates
                                    :Job.job/required-experience-level
                                    :Job.job/required-availability
                                    :Job.job/status

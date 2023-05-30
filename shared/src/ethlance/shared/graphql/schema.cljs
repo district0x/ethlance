@@ -463,7 +463,6 @@
 
     job_acceptedArbiterAddress: String
     job_employerAddress: String
-    job_hireAddress: String
 
     job_employer: Employer
     job_arbiter: Arbiter

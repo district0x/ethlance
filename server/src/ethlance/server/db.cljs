@@ -208,10 +208,8 @@
      ; These fields had :ethlance-job/estimated-project-length prefix
      ; (originally from EthlanceJob table). Find places where to rename
      [:job/estimated-project-length :text]
-     [:job/max-number-of-candidates :integer] ; TODO: remove
      [:job/invitation-only? :bool]
      [:job/required-availability :text]
-     [:job/hire-address :varchar]
      [:job/bid-option :text]
 
      [:job/language-id :varchar] ; TODO: REMOVE
