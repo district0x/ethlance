@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.job-detail.events
   (:require [district.ui.router.effects :as router.effects]
             [ethlance.ui.event.utils :as event.utils]
+            [ethlance.shared.utils :refer [eth->wei]]
             [district.ui.web3-accounts.queries :as accounts-queries]
             [re-frame.core :as re]))
 
@@ -31,13 +32,19 @@
 
 (def job-story-requested-fields
   [:job-story/id
+   :job/id
    :job-story/status
    :job-story/proposal-rate
    :job-story/date-created
-   :job/id
+   :job-story/candidate
    [:candidate
     [:user/id
-     [:user [:user/id :user/name]]]]])
+     [:user [:user/id :user/name]]]]
+   [:proposal-message
+    [:message/id
+     :message/type
+     :message/text
+     :message/creator]]])
 
 (re/reg-event-fx
   :page.job-proposal/send
@@ -48,12 +55,11 @@
           token-amount (get-in db [state-key :job/proposal-token-amount])
           proposal {:contract contract-address
                     :text text
-                    :rate token-amount}]
+                    :rate (js/parseFloat (eth->wei token-amount))}]
       {:dispatch [:district.ui.graphql.events/mutation
                   {:queries [[:create-job-proposal {:input proposal}
                               job-story-requested-fields]]
                    :on-success [:page.job-detail/fetch-proposals]}]})))
-
 
 (re/reg-event-fx
   :page.job-proposal/remove
@@ -78,20 +84,7 @@
       {:dispatch [:district.ui.graphql.events/query!
                   {:queries
                    [[:job-story-list {:job-contract contract}
-                     [:job-story/id
-                      :job/id
-                      :job-story/status
-                      :job-story/proposal-rate
-                      :job-story/date-created
-                      :job-story/candidate
-                      [:candidate
-                       [:user/id
-                        [:user [:user/id :user/name]]]]
-                      [:proposal-message
-                       [:message/id
-                        :message/type
-                        :message/text
-                        :message/creator]]]]]
+                     job-story-requested-fields]]
                   :on-success [:proposal-stories-success]
                   :on-error [:proposal-stories-error]}]})))
 

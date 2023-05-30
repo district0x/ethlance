@@ -245,7 +245,7 @@
                 (map (fn [proposal]
                        [[:span (if (:current-user? proposal) "⭐" "")]
                         [:span (:candidate-name proposal)]
-                        [:span (:rate proposal)]
+                        [:span (token-utils/human-amount (:rate proposal) *job-token-type)]
                         [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
                         [:span (:status proposal)]])
                      @proposals))]
