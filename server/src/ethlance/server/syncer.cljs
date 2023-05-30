@@ -37,7 +37,6 @@
    :job/language-id nil; TODO: where does it come from
    :job/bid-option (:job/bid-option ethlance-job-data)
    :job/estimated-project-length (:job/estimated-project-length ethlance-job-data)
-   :job/max-number-of-candidates nil ; TODO: where does it come from
    :job/invitation-only? nil ; TODO: where does it come from
    :job/required-availability (:job/required-availability ethlance-job-data)
    })
