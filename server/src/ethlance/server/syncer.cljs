@@ -164,14 +164,14 @@
                                              [:= :JobStory.job/id job-id]
                                              [:!= :JobStory.job-story/status "completed"]]
                                      :order-by [[:job-story/date-created :desc]]}))
-         message {:job-story/id (:job-story/id job-story)
+         job-story-message-type (:job-story-message/type ipfs-data)
+         message {:job-story/id (:job-story/id ipfs-data)
                   :job/id job-id
                   :message/type :job-story-message
-                  :job-story-message/type :invitation
+                  :job-story-message/type job-story-message-type
                   :message/text (:text ipfs-data)
-                  :message/creator (:inviter ipfs-data)
+                  :message/creator (:message/creator ipfs-data)
                   :message/date-created (get-timestamp)}]
-     (println ">>> handle-candidate-added" {:candidate-id candidate-id :event event :message message})
      (<? (ethlance-db/add-message conn message)))))
 
 (defn handle-test-event [& args]

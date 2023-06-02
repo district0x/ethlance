@@ -171,7 +171,7 @@
 (defn employer-resolver [obj {:keys [:user/id :contract] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
-    (<? (db/get conn (sql-helpers/merge-where employer-query [:= id :Employer.user/id])))))
+    (<? (db/get conn (sql-helpers/merge-where employer-query [:ilike id :Employer.user/id])))))
 
 (def ^:private user-feedback-query {:select [:Message.message/id
                                              :Job.job/id
