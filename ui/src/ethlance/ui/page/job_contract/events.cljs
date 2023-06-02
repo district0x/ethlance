@@ -69,7 +69,6 @@
                         :text text
                         :rating rating
                         :to to}]
-    (println ">>> send-feedback" {:mutation-params mutation-params :params params})
     {:fx [[:dispatch [::gql-events/mutation {:queries [[:leave-feedback mutation-params]]
                                              :id :SendEmployerFeedbackMutation}]]
           [:dispatch [:page.job-contract/refetch-messages]]

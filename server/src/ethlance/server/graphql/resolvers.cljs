@@ -282,6 +282,21 @@
           query-result (<? (db/get conn proposal-message-query))]
       (assoc query-result :__typename "JobStoryMessage"))))
 
+(defn job-story->proposal-accepted-message-resolver [raw-parent args _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story->proposal-accepted-message-resolver")
+    (let [address-from-args (:user/id args)
+          parent (graphql-utils/gql->clj raw-parent)
+          job-story-id (:job-story/id parent)
+          query {:select [:*]
+                          :from [:JobStoryMessage]
+                          :join [:Message [:= :Message.message/id :JobStoryMessage.message/id]]
+                          :where [:and
+                                  [:= :JobStoryMessage.job-story/id job-story-id]
+                                  [:= :JobStoryMessage.job-story-message/type "accept-proposal"]]}
+          query-result (<? (db/get conn query))]
+      (assoc query-result :__typename "JobStoryMessage"))))
+
 (defn job-story->invitation-message-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
     (log/debug "job-story->proposal-message-resolver")
@@ -292,6 +307,21 @@
                                     :from [:Message]
                                     :where [:= :Message.message/id invitation-message-id]}
           query-result (<? (db/get conn invitation-message-query))]
+      (assoc query-result :__typename "JobStoryMessage"))))
+
+(defn job-story->invitation-accepted-message-resolver [raw-parent args _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story-invitation-accepted-message-resolver")
+    (let [address-from-args (:user/id args)
+          parent (graphql-utils/gql->clj raw-parent)
+          job-story-id (:job-story/id parent)
+          query {:select [:*]
+                          :from [:JobStoryMessage]
+                          :join [:Message [:= :Message.message/id :JobStoryMessage.message/id]]
+                          :where [:and
+                                  [:= :JobStoryMessage.job-story/id job-story-id]
+                                  [:= :JobStoryMessage.job-story-message/type "accept-invitation"]]}
+          query-result (<? (db/get conn query))]
       (assoc query-result :__typename "JobStoryMessage"))))
 
 (defn job-story->direct-messages-resolver [raw-parent args {:keys [:current-user :timestamp] :as ctx}]
@@ -942,8 +972,10 @@
                                :job job-resolver
                                :candidate candidate-resolver
                                :proposalMessage job-story->proposal-message-resolver
+                               :proposalAcceptedMessage job-story->proposal-accepted-message-resolver
                                :directMessages (require-auth job-story->direct-messages-resolver)
-                               :invitationMessage job-story->invitation-message-resolver}
+                               :invitationMessage job-story->invitation-message-resolver
+                               :invitationAcceptedMessage job-story->invitation-accepted-message-resolver}
                     :User {:user_languages user->languages-resolvers
                            :user_isRegisteredCandidate user->is-registered-candidate-resolver
                            :user_isRegisteredEmployer user->is-registered-employer-resolver

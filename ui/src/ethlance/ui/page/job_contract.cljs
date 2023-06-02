@@ -79,15 +79,19 @@
                          (when message
                            (assoc message :details (conj (:details message) additional-detail))))
         format-proposal-amount (fn [job-story]
-                                 (let [amount (-> job-story :job-story/proposal-rate)
+                                 (let [amount (tokens/human-amount
+                                                (-> job-story :job-story/proposal-rate)
+                                                (-> job-story :job :job/token-type))
                                        token-name (-> job-story :job :token-details :token-detail/name)
                                        token-symbol (-> job-story :job :token-details :token-detail/symbol)]
                                    (str amount " " token-symbol " (" token-name ")")))
         common-fields (partial common-chat-fields current-user job-story)
 
-        invitation (common-fields :invitation-message ["Invited to job"])
+        invitation (common-fields :invitation-message ["Invited to a job"])
+        invitation-accepted (common-fields :invitation-accepted-message ["Accepted invitation to a job"])
         proposal (-> (common-fields :proposal-message ["Sent a job proposal"])
                       (add-to-details ,,, (format-proposal-amount job-story)))
+        proposal-accepted (common-fields :proposal-accepted-message ["Accepted proposal for a job"])
         arbiter-feedback (map #(common-chat-fields current-user % :message ["Feedback for arbiter"])
                               (:job-story/arbiter-feedback job-story))
         employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for employer"])
@@ -102,7 +106,10 @@
                               (map :dispute-raised-message (get-in job-story [:job-story/invoices :items])))
         dispute-resolution (map #(common-chat-fields current-user % identity ["Dispute was resolved"])
                                 (map :dispute-resolved-message (get-in job-story [:job-story/invoices :items])))]
-    (->> [dispute-creation dispute-resolution invitation proposal arbiter-feedback employer-feedback
+    (->> [dispute-creation dispute-resolution
+          invitation invitation-accepted
+          proposal proposal-accepted
+          arbiter-feedback employer-feedback
           direct-messages invoice-messages]
          (remove nil? ,,,)
          (flatten ,,,)
@@ -125,7 +132,9 @@
                                                  :token-detail/name
                                                  :token-detail/symbol]]]]
                          [:proposal-message message-fields]
+                         [:proposal-accepted-message message-fields]
                          [:invitation-message message-fields]
+                         [:invitation-accepted-message message-fields]
 
                          [:job-story/arbiter-feedback [:message/id
                                                        [:message message-fields]]]
@@ -204,15 +213,27 @@
 (defn c-accept-proposal-message [message-params]
   (let [text (re/subscribe [:page.job-contract/accept-proposal-message-text])
         proposal-data (assoc (select-keys message-params [:job/id :job-story/id :candidate :employer])
-                             :text @text)]
-    [:div.message-input-container
-     [:div.label "Message"]
-     [c-textarea-input {:placeholder ""
-                        :value @text
-                        :on-change #(re/dispatch [:page.job-contract/set-accept-proposal-message-text %])}]
-     [c-button {:color :primary
-                :on-click #(re/dispatch [:page.job-contract/accept-proposal proposal-data])}
-      [c-button-label "Accept Proposal"]]]))
+                             :text @text)
+        query [:job-story {:job-story/id (:job-story/id message-params)}
+               [:job-story/id
+                [:proposal-message [:message/id]]
+                :job-story/status]]
+        result (re/subscribe [::gql/query {:queries [query]}
+                              {:refetch-on #{:page.job-contract/refetch-messages}}])
+
+        can-accept? (= :proposal (:job-story/status message-params))]
+    (if can-accept?
+      [:div.message-input-container
+       [:div.label "Message"]
+       [c-textarea-input {:placeholder ""
+                          :value @text
+                          :on-change #(re/dispatch [:page.job-contract/set-accept-proposal-message-text %])}]
+       [c-button {:color :primary
+                  :on-click #(re/dispatch [:page.job-contract/accept-proposal proposal-data])}
+        [c-button-label "Accept Proposal"]]]
+
+      [:div.message-input-container
+        [c-information "No proposals to accept"]])))
 
 (defn c-employer-options [message-params]
   [c-tabular-layout

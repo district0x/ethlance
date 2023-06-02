@@ -508,7 +508,9 @@
     jobStory_dispute: Dispute
 
     invitationMessage: JobStoryMessage
+    invitationAcceptedMessage: JobStoryMessage
     proposalMessage: JobStoryMessage
+    proposalAcceptedMessage: JobStoryMessage
     directMessages: [DirectMessage]
 
     jobStory_invoices(limit: Int, offset: Int): InvoiceList
