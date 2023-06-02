@@ -46,10 +46,12 @@
   :page.profile/send-invitation
   (fn [{:keys [db]} [_ invitation-data]]
     (let [
-          ipfs-invitation {:job/id (:job invitation-data)
+          ipfs-invitation {:job-story-message/type :invitation
+                           :job/id (:job invitation-data)
                            :candidate (:candidate invitation-data)
+                           :employer (:employer invitation-data)
                            :text (:text invitation-data)
-                           :inviter (:inviter invitation-data)}]
+                           :message/creator (:inviter invitation-data)}]
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-invitation])]
                    :on-success [:invitation-to-ipfs-success ipfs-invitation]

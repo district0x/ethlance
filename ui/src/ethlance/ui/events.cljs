@@ -31,6 +31,7 @@
       {:db updated-db
        :dispatch-n [[:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
                     [:page.jobs/initialize-page]
+                    [:page.me/initialize-page]
                     [:page.sign-up/initialize-page]
                     [:page.candidates/initialize-page]
                     [:page.arbiters/initialize-page]

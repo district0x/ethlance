@@ -516,7 +516,7 @@
     # The below fields were ethlanceJobStory_...
     jobStory_proposalRate: Float
     jobStory_proposalRateCurrencyId: Int
-    jobStory_dateCandidateAccepted: Date
+    jobStory_dateContractActive: Date
     jobStory_dateArbiterAccepted: Date
   }
 

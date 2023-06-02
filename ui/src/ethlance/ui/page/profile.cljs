@@ -126,7 +126,7 @@
 
 (defn prepare-jobs [story]
   {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-candidate-accepted])
+   :start-date (get-in story [:job-story/date-contract-active])
    :status (get-in story [:job :job/status])})
 
 (defn prepare-employer-jobs [story]
@@ -166,7 +166,7 @@
                    candidate_jobStories {
                      items {
                        job {job_title job_status}
-                       jobStory_dateCandidateAccepted
+                       jobStory_dateContractActive
                      }
                    }
                  }
