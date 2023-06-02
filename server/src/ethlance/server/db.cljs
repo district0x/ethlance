@@ -337,6 +337,7 @@
      [:invoice/status :varchar]
      [:invoice/amount-requested :bigint]
      [:invoice/amount-paid :bigint]
+     [:invoice/date-requested :bigint]
      [:invoice/date-paid :bigint]
      [:invoice/ref-id :integer]
      [:invoice/dispute-raised-message-id :integer]

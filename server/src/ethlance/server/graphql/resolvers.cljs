@@ -695,6 +695,7 @@
                                        :JobStoryInvoiceMessage.message/id
                                        :JobStoryInvoiceMessage.invoice/status
                                        :JobStoryInvoiceMessage.invoice/date-paid
+                                       :JobStoryInvoiceMessage.invoice/date-requested
                                        :JobStoryInvoiceMessage.invoice/amount-requested
                                        :JobStoryInvoiceMessage.invoice/amount-paid
                                        :JobStory.job-story/id

@@ -554,6 +554,9 @@
     \"Date the invoice was paid\"
     invoice_datePaid: Date
 
+    \"Date the invoice was requested\"
+    invoice_dateRequested: Date
+
     \"Amount of pay requested\"
     invoice_amountRequested: Float
 

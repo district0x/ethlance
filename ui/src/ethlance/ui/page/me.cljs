@@ -72,6 +72,11 @@
 (defn formatted-date [get-date-field data]
   (format/format-date (t-coerce/from-long (get-date-field data))))
 
+(defn link-params [{:keys [route params]}]
+  {:on-click (util.navigation/create-handler {:route route
+                                              :params params})
+   :href (util.navigation/resolve-route {:route route
+                                         :params params})})
 (defn c-table-listing
   "Produces tabl ewith headers
 
@@ -81,11 +86,15 @@
 
   Example:
     (c-table-listing [{:title \"Name\" :source :user/name}] [{:user/name \"John Doe\"}])"
-  [headers rows]
+  [headers rows & [link-params-fn]]
   [:<>
    (into [c-table {:headers (map :title headers)}]
-         (map (fn [row]
-                (map (fn [header] [:span ((:source header) row)]) headers))
+         (mapv (fn [row]
+                (mapv (fn [header]
+                       (if (nil? link-params-fn)
+                         [:span ((:source header) row)]
+                         [:a (link-params (link-params-fn row)) [:span ((:source header) row)]]))
+                     headers))
                rows))
    [:div.button-listing
     [c-circle-icon-button {:name :ic-arrow-left2 :size :smaller :disabled? true}]
@@ -138,18 +147,19 @@
                                     " " (-> job :token-details :token-detail/symbol)))
         jobs-table [{:title "Job Title" :source :job/title}
                     {:title "Remuneration" :source remuneration}
-                    {:title "Created at" :source (partial formatted-date :job/date-created)}]]
+                    {:title "Created at" :source (partial formatted-date :job/date-created)}]
+        job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
     :default-tab 0}
 
    {:label "Active Jobs"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table active-jobs]]
+    [c-table-listing jobs-table active-jobs job-link-fn]]
 
    {:label "Finished Jobs"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table finished-jobs]]]))
+    [c-table-listing jobs-table finished-jobs job-link-fn]]]))
 
 (defn c-my-employer-contract-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -171,26 +181,27 @@
         user-name-fn (fn [job] (get-in job [:candidate :user :user/name]))
         jobs-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
                     {:title "Candidate" :source user-name-fn}
-                    {:title "Created at" :source (partial formatted-date :job-story/date-created)}]]
+                    {:title "Created at" :source (partial formatted-date :job-story/date-created)}]
+        contract-link-fn (fn [job] {:route :route.job/contract :params {:job-story-id (:job-story/id job)}})]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
     :default-tab 0}
 
    {:label "Invitations"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :invitation)]]
+    [c-table-listing jobs-table (filter-by-status jobs :invitation) contract-link-fn]]
 
    {:label "Pending Proposals"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :proposal)]]
+    [c-table-listing jobs-table (filter-by-status jobs :proposal) contract-link-fn]]
 
    {:label "Active Contracts"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :active)]]
+    [c-table-listing jobs-table (filter-by-status jobs :active) contract-link-fn]]
 
    {:label "Finished Contracts"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :finished)]]]))
+    [c-table-listing jobs-table (filter-by-status jobs :finished) contract-link-fn]]]))
 
 (defn c-my-employer-invoice-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -198,47 +209,56 @@
                    [:total-count
                     [:items [:job/id
                              :job/title
+                             :job/token-type
                              [:invoices
                               [:total-count
                                [:items [:id
                                         :job/id
                                         :invoice/status
                                         :invoice/id
-                                        :invoice/date-paid
                                         :invoice/amount-requested
+                                        :invoice/date-requested
+                                        :invoice/date-paid
                                         :invoice/amount-paid
                                         [:creation-message
                                          [:message/id
+                                          :message/date-created
                                           [:creator [:user/name]]]]]]]]
                              [:token-details [:token-detail/id
                                               :token-detail/name
                                               :token-detail/symbol]]]]]]
         jobs-result @(re/subscribe [::gql/query {:queries [query]}])
-        jobs (get-in jobs-result [:employer :employer/job-stories :items])
-        filter-by-status (fn [jobs status] (filter #(=  (:job-story/status %)) jobs))
-        pending-invoices (reduce (fn [invoices job]
-                                   (reduce (fn [invoices invoice]
-                                             (if (nil? (:invoice/date-paid invoice))
-                                               (into invoices (assoc invoice :job-title (:job/title job)))
-                                               invoices))
-                                           invoices (get-in job [:invoices :items])))
-                                 [] jobs)
+        _ (println ">>> jobs-result" jobs-result)
+        jobs-with-invoices (filter #(> (get-in % [:invoices :total-count]) 0) (get-in jobs-result [:job-search :items]))
+        _ (println ">>> jobs " jobs-with-invoices)
+        invoices (reduce (fn [invoices job]
+                           (reduce (fn [invoices invoice]
+                                     (if (nil? (:invoice/date-paid invoice))
+                                       (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details])))
+                                       invoices))
+                                   invoices (get-in job [:invoices :items])))
+                         [] jobs-with-invoices)
+        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
         user-name-fn (fn [invoice] (get-in invoice [:creation-message :creator :user/name]))
         invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
-        jobs-table [{:title "Job Title" :source #(get-in % [:job-title])}
-                    {:title "Candidate" :source user-name-fn}
-                    {:title "Created at" :source invoice-date-created-fn}]]
+        amount-requested-fn (fn [invoice]
+                              (str (tokens/human-amount (:invoice/amount-requested invoice) (:job/token-type invoice))
+                                    " " (-> invoice :token-details :token-detail/symbol)))
+        table [{:title "Job Title" :source #(get-in % [:job/title])}
+               {:title "Candidate" :source user-name-fn}
+               {:title "Amount Requested" :source amount-requested-fn}
+               {:title "Created at" :source invoice-date-created-fn}]]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
     :default-tab 0}
 
    {:label "Pending Invoices"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table pending-invoices]]
+    [c-table-listing table (filter-by-status invoices "created")]]
 
    {:label "Paid Invoices"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table pending-invoices]]]))
+    [c-table-listing table (filter-by-status invoices "paid")]]]))
 
 (defn c-my-employer-dispute-listing []
   [:div.not-implemented "Not Implemented - Employer - My Disputes"])

@@ -101,6 +101,7 @@
                           :message/text (:message/text ipfs-data)
                           :message/creator invoicer
                           :message/date-created (get-timestamp)
+                          :invoice/date-requested (get-timestamp)
                           :invoice/status "created"
                           :invoice/amount-requested (:token-amount offered-value)
                           :invoice/ref-id (:invoice-id args)}]
