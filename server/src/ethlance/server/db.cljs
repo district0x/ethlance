@@ -745,13 +745,14 @@
                         :invitation "invitation"
                         "created")
          job-story-common-fields {:job/id (:job/id message)
-                                  :job-story/candidate (:message/creator message)
                                   :job-story/date-created (:message/date-created message)
                                   :job-story/status story-status
                                   :job-story/proposal-rate (:job-story/proposal-rate message)}
          job-story-params (case (:job-story-message/type message)
-                            :proposal (assoc job-story-common-fields :job-story/proposal-message-id msg-id)
-                            :invitation (assoc job-story-common-fields :job-story/invitation-message-id msg-id)
+                            :proposal (merge job-story-common-fields {:job-story/proposal-message-id msg-id
+                                                                      :job-story/candidate (:candidate message)})
+                            :invitation (merge job-story-common-fields {:job-story/invitation-message-id msg-id
+                                                                        :job-story/candidate (:candidate message)})
                             job-story-common-fields)
          job-story-id (or (:job-story/id message)
                           (:job-story/id (<? (insert-row! conn :JobStory job-story-params))))
@@ -769,18 +770,11 @@
                                                        :invoice/dispute-raised-message-id msg-id
                                                        :invoice/status "dispute-raised"})
 
-               :resolve-dispute
-               (do
-                 (println ">>> add-message :resolve-dispute" {:message message
-                                                              :job-story/id job-story-id
-                                                              :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                              :invoice/dispute-resolved-message-id msg-id
-                                                              :invoice/status "dispute-resolved"
-                                                              })
-                 (update-job-story-invoice-message conn {:job-story/id job-story-id
-                                                         :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                         :invoice/dispute-resolved-message-id msg-id
-                                                         :invoice/status "dispute-resolved"}))
+               :resolve-dispute (update-job-story-invoice-message conn
+                                                                  {:job-story/id job-story-id
+                                                                   :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                                   :invoice/dispute-resolved-message-id msg-id
+                                                                   :invoice/status "dispute-resolved"})
                :proposal (update-row! conn :JobStory (assoc message
                                                             :job-story/id (:job-story/id message)
                                                             :job-story/proposal-message-id msg-id))

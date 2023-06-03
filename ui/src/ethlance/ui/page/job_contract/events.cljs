@@ -32,6 +32,7 @@
 (defn create-logging-handler
   ([] (create-logging-handler ""))
   ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
+
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
 (re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
 (re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
@@ -127,12 +128,12 @@
   :page.job-contract/accept-proposal
   (fn [{:keys [db]} [_ proposal-data]]
     (println ">>> EVENT accept-proposal" proposal-data)
-    (let [to-ipfs {:message/creator (:employer proposal-data)
+    (let [to-ipfs {:candidate (:candidate proposal-data)
+                   :employer (:employer proposal-data)
                    :job-story-message/type :accept-proposal
                    :job-story/id (:job-story/id proposal-data)
                    :job/id (:job/id proposal-data)
-                   :candidate (:candidate proposal-data)
-                   :employer (:employer proposal-data)
+                   :message/creator (:employer proposal-data)
                    :text (:text proposal-data)}]
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [to-ipfs])]

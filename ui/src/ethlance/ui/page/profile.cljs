@@ -14,6 +14,7 @@
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [district.ui.router.subs :as router-subs]
             [district.ui.router.events :as router-events]
+            [ethlance.shared.utils :refer [ilike=]]
             [district.format :as format]
             [cljsjs.graphql]
             [clojure.string :as string]
@@ -59,45 +60,53 @@
                               :job/date-created
 
                               [:job-stories [[:items [:job-story/id
+                                                      [:invitation-message [:message/id]]
+                                                      [:proposal-message [:message/id]]
                                                       [:candidate [:user/id]]]]]]]]]]
         result @(re/subscribe [::gql/query
                                {:queries [jobs-query]}
                                {:id :JobsWithStoriesForInvitationDropdown
                                 :refetch-on [:ethlance.ui.page.profile.events/send-invitation-tx-success]}])
         all-jobs (get-in (first result) [:job-search :items] [])
+        existing-relation (fn [job]
+                            (cond
+                              (some #(get-in % [:invitation-message :message/id]) (-> job :job-stories :items))
+                              " (you already invited this candidate)"
+                              (some #(get-in % [:proposal-message :message/id]) (-> job :job-stories :items))
+                              " (candidate already proposed)"))
         jobs (sort-by :job/date-created #(compare %2 %1)
                       (reduce (fn [acc job]
-                        (if (some #(= candidate-address (-> % :candidate :user/id)) (-> job :job-stories :items))
-                          (conj acc (merge job {:job/title (str (:job/title job) " (already invited)")
-                                                :already-invited? true}))
+                        (if (some #(ilike= candidate-address (-> % :candidate :user/id)) (-> job :job-stories :items))
+                          (conj acc (merge job {:comment (existing-relation job)
+                                                :job-story-exists? true}))
                           (conj acc job)))
                       []
                       all-jobs))
         job-for-invitation (re/subscribe [:page.profile/job-for-invitation])
         invitation-text (re/subscribe [:page.profile/invitation-text])
         preselected-job (or @job-for-invitation (first jobs))
-        already-invited? (:already-invited? preselected-job)]
+        job-story-exists? (:job-story-exists? preselected-job)]
     [:div.job-listing
       [:div.title "Invite to a job"]
       [c-select-input
        {:selections jobs
         :value-fn :job/id
-        :label-fn :job/title
+        :label-fn #(str (:job/title %) (:comment %))
         :selection preselected-job
         :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
       [c-textarea-input {:value @invitation-text
-                         :disabled already-invited?
+                         :disabled job-story-exists?
                          :placeholder "Briefly describe to what and why you're inviting the candidate"
                          :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
       [c-button {:color :primary
-                 :disabled? already-invited?
+                 :disabled? job-story-exists?
                  :on-click (fn []
-                             (when-not already-invited?
+                             (when-not job-story-exists?
                                (re/dispatch [:page.profile/send-invitation
                                             {:candidate candidate-address
                                              :text @invitation-text
                                              :job preselected-job
-                                             :inviter active-user}])))}
+                                             :employer active-user}])))}
         [c-button-label "Invite"]]]))
 
 (defn c-rating-box [rating]

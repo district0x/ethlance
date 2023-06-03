@@ -46,12 +46,12 @@
   :page.profile/send-invitation
   (fn [{:keys [db]} [_ invitation-data]]
     (let [
-          ipfs-invitation {:job-story-message/type :invitation
-                           :job/id (:job invitation-data)
-                           :candidate (:candidate invitation-data)
+          ipfs-invitation {:candidate (:candidate invitation-data)
                            :employer (:employer invitation-data)
-                           :text (:text invitation-data)
-                           :message/creator (:inviter invitation-data)}]
+                           :job-story-message/type :invitation
+                           :job/id (get-in invitation-data [:job :job/id])
+                           :message/creator (:employer invitation-data)
+                           :text (:text invitation-data)}]
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-invitation])]
                    :on-success [:invitation-to-ipfs-success ipfs-invitation]
@@ -61,7 +61,7 @@
   :invitation-to-ipfs-success
   (fn [{:keys [db]} [_event ipfs-invitation ipfs-event]]
     (println ">>> :invitation-to-ipfs-success" _event ipfs-invitation ipfs-event)
-    (let [creator (:inviter ipfs-invitation)
+    (let [creator (:employer ipfs-invitation)
           ipfs-hash (base58->hex (:Hash ipfs-event))
           job-contract-address (:job/id ipfs-invitation)
           candidate (:candidate ipfs-invitation)
@@ -75,6 +75,11 @@
                    :on-tx-hash-error [::tx-hash-error]
                    :on-tx-success [::send-invitation-tx-success]
                    :on-tx-error [::send-invitation-tx-failure]}]})))
+
+(re/reg-event-db
+  ::tx-hash-error
+  (fn [db event]
+    (println ">>>ui.page.profile ::tx-hash-error" event)))
 
 (re/reg-event-db
   ::invitation-to-ipfs-failure

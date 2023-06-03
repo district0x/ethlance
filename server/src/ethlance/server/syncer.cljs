@@ -168,6 +168,7 @@
          job-story-message-type (:job-story-message/type ipfs-data)
          message {:job-story/id (:job-story/id ipfs-data)
                   :job/id job-id
+                  :candidate (:candidate ipfs-data)
                   :message/type :job-story-message
                   :job-story-message/type job-story-message-type
                   :message/text (:text ipfs-data)
