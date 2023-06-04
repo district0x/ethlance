@@ -182,7 +182,7 @@
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): signInPayload!
-    sendMessage(jobStory_id: Int!, to: ID!, text: String!): Boolean!,
+    sendMessage(jobStory_id: Int!, to: ID!, text: String!, jobStoryMessage_type: Keyword, message_type: Keyword): Boolean!,
     leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,

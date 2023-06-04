@@ -739,16 +739,22 @@
       {:jwt jwt :user/id user-address})))
 
 
-(defn send-message-mutation [_ {:keys [:job-story/id :to :text]} {:keys [:current-user :timestamp]}]
+(defn send-message-mutation [_ message-params {:keys [:current-user :timestamp]}]
   (db/with-async-resolver-tx conn
-    (log/debug "send-message-mutation" {:id id :to to :text text :current-user current-user :timestamp timestamp})
-    (<? (ethlance-db/add-message conn {:job-story/id id
-                                       :message/type :direct-message
-                                       :message/date-created timestamp
-                                       :message/creator (:user/id current-user)
-                                       :direct-message/recipient to
-                                       :message/text text}))
-    true))
+    (log/debug "send-message-mutation" )
+    (let [job-story-id (:job-story/id message-params)
+          recipient (:to message-params)
+          text (:text message-params)
+          job-story-message-type (graphql-utils/gql-name->kw (:job-story-message/type message-params))
+          message-type (or (graphql-utils/gql-name->kw (:message/type message-params)) :direct-message)]
+      (<? (ethlance-db/add-message conn {:job-story/id job-story-id
+                                         :message/type message-type
+                                         :job-story-message/type job-story-message-type
+                                         :message/date-created timestamp
+                                         :message/creator (:user/id current-user)
+                                         :direct-message/recipient recipient
+                                         :message/text text}))
+      true)))
 
 ; This is done by employer (invitation)
 (defn send-proposal-message-mutation [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]

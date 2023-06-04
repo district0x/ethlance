@@ -235,6 +235,21 @@
       [:div.message-input-container
         [c-information "No proposals to accept"]])))
 
+(defn c-accept-invitation [message-params]
+  (let [text (re/subscribe [:page.job-contract/accept-invitation-message-text])
+        job-story-id (re/subscribe [:page.job-contract/job-story-id])]
+    [:div.message-input-container
+     [:div.label "Message"]
+     [c-textarea-input {:placeholder ""
+                        :value @text
+                        :on-change #(re/dispatch [:page.job-contract/set-accept-invitation-message-text %])}]
+     [c-button {:color :primary
+                :on-click #(re/dispatch [:page.job-contract/accept-invitation
+                                         {:text @text
+                                          :to (:employer message-params)
+                                          :job-story/id @job-story-id}])}
+      [c-button-label "Accept Invitation"]]]))
+
 (defn c-employer-options [message-params]
   [c-tabular-layout
    {:key "employer-tabular-layout"
@@ -302,6 +317,9 @@
     [c-tabular-layout
      {:key "candidate-tabular-layout"
       :default-tab 0}
+
+     {:label "Accept invitation"}
+     [c-accept-invitation message-params]
 
      {:label "Send Message"}
      [c-direct-message (select-keys message-params [:employer :arbiter])]

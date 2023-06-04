@@ -37,7 +37,10 @@
 (re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
 (re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
 
-(re/reg-event-fx :page.job-contract/set-accept-proposal-message-text (create-assoc-handler :accept-proposal-message-text))
+(re/reg-event-fx :page.job-contract/set-accept-proposal-message-text
+                 (create-assoc-handler :accept-proposal-message-text))
+(re/reg-event-fx :page.job-contract/set-accept-invitation-message-text
+                 (create-assoc-handler :accept-invitation-message-text))
 
 (re/reg-event-fx :page.job-contract/set-dispute-text (create-assoc-handler :dispute-text))
 (re/reg-event-fx :page.job-contract/set-dispute-candidate-percentage (create-assoc-handler :dispute-candidate-percentage))
@@ -57,7 +60,9 @@
                      :dispute-candidate-percentage
                      :feedback-rating
                      :feedback-text
-                     :feedback-recipient]]
+                     :feedback-recipient
+                     :accept-invitation-message-text
+                     :accept-proposal-message-text]]
     (reduce (fn [acc field] (assoc-in acc [state-key field] nil)) db field-names)))
 
 (defn send-feedback
@@ -84,6 +89,22 @@
                         :text text
                         :to to}]
     (println ">>> sending message mutation-params" mutation-params)
+    {:db (clear-forms db)
+     :fx [[:dispatch [::gql-events/mutation
+                      {:queries [[:send-message mutation-params]]
+                       :id :SendDirectMessageMutation}]]
+          [:dispatch [:page.job-contract/refetch-messages]]]}))
+
+(defn accept-invitation
+  [{:keys [db]} [_event-name params]]
+  (let [job-story-id (:job-story/id params)
+        text (:text params)
+        to (:to params)
+        mutation-params {:job-story/id job-story-id
+                         :job-story-message/type :accept-invitation
+                         :message/type :job-story-message
+                         :text text
+                         :to to}]
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation
                       {:queries [[:send-message mutation-params]]
@@ -241,5 +262,6 @@
 (re/reg-event-fx :page.job-contract/resolve-dispute send-resolve-dispute-ipfs)
 (re/reg-event-fx :page.job-contract/resolve-dispute-to-ipfs-success send-resolve-dispute-tx)
 (re/reg-event-fx :page.job-contract/send-message send-message)
+(re/reg-event-fx :page.job-contract/accept-invitation accept-invitation)
 (re/reg-event-fx :page.job-contract/raise-dispute raise-dispute)
 (re/reg-event-fx :page.job-contract/send-feedback send-feedback)

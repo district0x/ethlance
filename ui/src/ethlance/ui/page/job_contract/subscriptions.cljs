@@ -18,6 +18,7 @@
 (re/reg-sub :page.job-contract/message-recipient (create-get-handler :message-recipient))
 
 (re/reg-sub :page.job-contract/accept-proposal-message-text (create-get-handler :accept-proposal-message-text))
+(re/reg-sub :page.job-contract/accept-invitation-message-text (create-get-handler :accept-invitation-message-text))
 
 (re/reg-sub :page.job-contract/dispute-text (create-get-handler :dispute-text))
 (re/reg-sub :page.job-contract/dispute-candidate-percentage (create-get-handler :dispute-candidate-percentage))
