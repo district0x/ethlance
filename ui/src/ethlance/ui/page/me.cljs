@@ -1,8 +1,5 @@
 (ns ethlance.ui.page.me
   (:require [district.ui.component.page :refer [page]]
-            [district.format :as format]
-            [cljs-time.core :as t-core]
-            [cljs-time.coerce :as t-coerce]
             [district.ui.router.subs :as router.subs]
             [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -11,6 +8,7 @@
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
             [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.util.navigation :as util.navigation]
+            [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.tokens :as tokens]
             [re-frame.core :as re]))
@@ -65,12 +63,6 @@
     [c-circle-icon-button {:name :ic-arrow-left :size :smaller :disabled? true}]
     [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
     [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
-
-(defn relative-ago [get-date-field data]
-  (format/time-ago (t-core/minus (t-core/now) (t-coerce/from-long (get-date-field data)))))
-
-(defn formatted-date [get-date-field data]
-  (format/format-date (t-coerce/from-long (get-date-field data))))
 
 (defn link-params [{:keys [route params]}]
   {:on-click (util.navigation/create-handler {:route route

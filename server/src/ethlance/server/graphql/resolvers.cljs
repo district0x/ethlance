@@ -674,11 +674,14 @@
       (log/debug "job->job-stories-resolver" {:job job :args args})
       (<? (paged-query conn (sql-helpers/merge-where job-story-query [:= id :JobStory.job/id]) limit offset)))))
 
-(defn job-story-resolver [_ {job-story-id :job-story/id :as args} _]
+(defn job-story-resolver [root args _]
   (db/with-async-resolver-conn conn
     (log/debug "job-story-resolver" args)
-    (<? (db/get conn (-> job-story-query
-                       (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))))))
+    (let [job-story-from-root (:job-story/id (graphql-utils/gql->clj root))
+          job-story-from-args (:job-story/id args)
+          job-story-id (or job-story-from-args job-story-from-root)]
+      (<? (db/get conn (-> job-story-query
+                           (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])))))))
 
 (defn job-story-list-resolver [parent args _]
   (db/with-async-resolver-conn conn
@@ -704,11 +707,13 @@
                               :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
-(defn invoice-resolver [_ {message-id :message/id :as args} _]
+(defn invoice-resolver [_ {invoice-id :invoice/id  job-id :job/id :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "invoice-resolver" {:args args})
     (<? (db/get conn (-> invoice-query
-                       (sql-helpers/merge-where [:= message-id :JobStoryInvoiceMessage.message/id]))))))
+                       (sql-helpers/merge-where [:and
+                                                 [:= job-id :Job.job/id]
+                                                 [:= invoice-id :JobStoryInvoiceMessage.invoice/ref-id]]))))))
 
 (defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
@@ -789,7 +794,7 @@
                                                       :candidate candidate
                                                       :feedback-from-participants? feedback-from-participants?})
       (when feedback-from-participants?
-       (<? (ethlance-db/update-job-story-status conn job-story-id "ended-by-feedback")))
+       (<? (ethlance-db/update-job-story-status conn job-story-id "finished")))
       (when arbiter-feedback-before-ending? (throw (js/Error. "Arbiter can't leave feedback before job contract has been ended")))
       (<? (ethlance-db/add-message conn {:message/type :job-story-message
                                          :job-story-message/type :feedback
@@ -964,13 +969,13 @@
                             :job job-resolver
                             :jobSearch job-search-resolver
                             :jobStory job-story-resolver
-                            :jobStoryList job-story-list-resolver
-                            :invoice invoice-resolver}
+                            :jobStoryList job-story-list-resolver}
                     :Job {:jobStories job->job-stories-resolver
                           :job_employer job->employer-resolver
                           :job_arbiter job->arbiter-resolver
                           :tokenDetails job->token-details-resolver
                           :invoices job->invoices-resolver
+                          :invoice invoice-resolver
                           :job_requiredSkills job->required-skills-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
@@ -1006,7 +1011,8 @@
                                :feedback_fromUserType feedback->from-user-type-resolver}
                     :JobStoryMessage {:creator user-resolver}
                     :DirectMessage {:creator user-resolver}
-                    :Invoice {:creationMessage message-resolver
+                    :Invoice {:jobStory job-story-resolver
+                              :creationMessage message-resolver
                               :disputeRaisedMessage invoice->dispute-raised-message-resolver
                               :disputeResolvedMessage invoice->dispute-resolved-message-resolver}
                     :Mutation {:signIn sign-in-mutation

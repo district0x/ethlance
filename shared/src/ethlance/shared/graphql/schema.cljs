@@ -88,7 +88,7 @@
     dispute(jobStory_id: Int!): Dispute
 
     \"Retrieve the Invoice Data defined by the invoice message id\"
-    invoice(message_id: Int!): Invoice
+    invoice(invoice_id: Int!): Invoice
   }
 
   # Input types
@@ -469,6 +469,7 @@
 
     jobStories(limit: Int, offset: Int): JobStoryList
     invoices(limit: Int, offset: Int): InvoiceList
+    invoice(invoice_id: Int!, job_id: String!): Invoice
 
     job_estimatedProjectLength: String
     job_maxNumberOfCandidates: Int
@@ -545,6 +546,7 @@
 
     \"Identifier for the given JobStory\"
     jobStory_id: Int
+    jobStory: JobStory
 
     invoice_status: String
 
