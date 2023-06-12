@@ -30,18 +30,24 @@
           query [:job {:job/id contract-address}
                  [:job/token-type
                   :job/title
-                  [:job/employer [:employer/rating
-                                  [:employer/feedback [:total-count]]
-                                  [:user [:user/name :user/country :user/profile-image]]]]
-                  [:job/arbiter [:arbiter/rating
-                                  [:arbiter/feedback [:total-count]]
-                                  [:user [:user/name :user/country :user/profile-image]]]]
-                  [:token-details [:token-detail/id
-                                    :token-detail/name
-                                    :token-detail/symbol]]
+                  [:job/employer
+                   [:user/id
+                    :employer/rating
+                    [:employer/feedback [:total-count]]
+                    [:user [:user/name :user/country :user/profile-image]]]]
+                  [:job/arbiter
+                   [:user/id
+                    :arbiter/rating
+                    [:arbiter/feedback [:total-count]]
+                    [:user [:user/name :user/country :user/profile-image]]]]
+                  [:token-details
+                   [:token-detail/id
+                    :token-detail/name
+                    :token-detail/symbol]]
                   [:invoice {:invoice/id invoice-id :job/id contract-address}
                    [:id
                     :job/id
+                    :invoice/id
                     :job-story/id
                     :invoice/status
                     :invoice/amount-requested
@@ -49,15 +55,17 @@
                     [:job-story
                      [:job-story/id
                       [:candidate
-                       [:candidate/rating
+                       [:user/id
+                        :candidate/rating
                         [:candidate/feedback [:total-count]]
                         [:user [:user/name
                                :user/country
                                :user/profile-image]]]]]]
                     [:creation-message
-                     [:message/date-created]]]]]]
+                     [:message/id :message/date-created]]]]]]
 
-          result @(re/subscribe [::gql/query {:queries [query]}])
+          result @(re/subscribe [::gql/query {:queries [query]}
+                                 {:refetch-on #{:page.invoices/refetch-invoice}}])
 
           job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
           job (:job result)
@@ -66,6 +74,13 @@
           employer (get-in job [:job/employer])
           arbiter (get-in job [:job/arbiter])
           candidate (get-in invoice [:job-story :candidate])
+
+          invoice-to-pay {:job/id contract-address
+                          :invoice-id (:invoice/id invoice)
+                          :invoice-message-id (get-in invoice [:creation-message :message/id])
+                          :job-story/id (:job-story/id invoice)
+                          :payer (:user/id employer)
+                          :receiver (:user/id candidate)}
 
           info-panel [["Hours Worked" "???"] ; TODO: currently entered at invoice creation but not recorded to the DB. Shoulr it?
                       ["Invoiced Amount" (str (tokens/human-amount (:invoice/amount-requested invoice) (:job/token-type job)) " " job-token-symbol)]
@@ -89,6 +104,6 @@
         [:div.ethlance-table
          [:table
           (into [:tbody] (map (fn [[label content]] [:tr [:th label] [:td content]]) info-panel))]]]
-       [:div.button
+       [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}
         [:span "Pay Invoice"]
         [c-icon {:name :ic-arrow-right :size :small :color :white}]]])))

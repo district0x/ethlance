@@ -107,6 +107,18 @@
                           :invoice/ref-id (:invoice-id args)}]
      (<? (ethlance-db/add-message conn invoice-message)))))
 
+(defn handle-invoice-paid [conn _ {:keys [args]}]
+  (safe-go
+   (log/info "Handling event handle-invoice-paid")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-story-id (:job-story/id ipfs-data)
+         invoicer (:invoicer args)
+         invoice-message {:job-story/id (:job-story/id ipfs-data)
+                          :message/id (:invoice-message-id ipfs-data)
+                          :invoice/date-paid (get-timestamp)
+                          :invoice/status "paid"}]
+     (<? (ethlance-db/update-job-story-invoice-message conn invoice-message)))))
+
 (defn handle-dispute-raised [conn _ {:keys [args] :as dispute-raised-event}]
   (safe-go
    (log/info "Handling event dispute-raised")
@@ -245,6 +257,7 @@
                          :ethlance/candidate-added handle-candidate-added
                          :ethlance/test-event handle-test-event
                          :ethlance/invoice-created handle-invoice-created
+                         :ethlance/invoice-paid handle-invoice-paid
                          :ethlance/dispute-raised handle-dispute-raised
                          :ethlance/dispute-resolved handle-dispute-resolved
                          }

@@ -32,38 +32,6 @@
                        nil)}
           label]]))))
 
-(defn c-default-listing []
-  [:<>
-   [c-table
-    {:headers ["Title" "Candidate" "Rate" "Total Spent" ""]}
-    [[:span "Cryptoeconomics Research Intern"]
-     [:span "Keegan Quigley"]
-     [:span "$30/hr"]
-     [:span "12.2 ETH"]]
-
-    [[:span "Smart Contract Hacker"]
-     [:span "Cyrus Karsen"]
-     [:span "$25"]
-     [:span "1000 SNT"]
-     ]
-
-    [[:span "Interactive Developer"]
-     [:span "Ari Kaplan"]
-     [:span "$75"]
-     [:span "5.4 ETH"]
-     ]
-
-    [[:span "Cryptoeconomics Research Intern"]
-     [:span "Keegan Quigley"]
-     [:span "$30/hr"]
-     [:span "12.2 ETH"]
-     ]]
-   [:div.button-listing
-    [c-circle-icon-button {:name :ic-arrow-left2 :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-left :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
-
 (defn link-params [{:keys [route params]}]
   {:on-click (util.navigation/create-handler {:route route
                                               :params params})
@@ -94,30 +62,6 @@
     [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
     [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
 
-(defn c-my-employer-job-listing-example []
-  [c-tabular-layout
-   {:key "my-employer-job-tab-listing"
-    :default-tab 0}
-
-   {:label "Invitations"}
-   [:div.listing.my-employer-job-listing
-    [c-default-listing]]
-
-   {:label "Pending Proposals"}
-   [:div.listing
-    [c-default-listing]]
-
-   {:label "Active Contracts"}
-   [:div.listing
-    [c-default-listing]]
-
-   {:label "Finished Contracts"}
-   [:div.listing
-    [c-default-listing]]
-
-   {:label "Canceled Contracts"}
-   [:div.listing
-    [c-default-listing]]])
 
 (defn c-my-employer-job-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -225,9 +169,7 @@
         _ (println ">>> jobs " jobs-with-invoices)
         invoices (reduce (fn [invoices job]
                            (reduce (fn [invoices invoice]
-                                     (if (nil? (:invoice/date-paid invoice))
-                                       (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details])))
-                                       invoices))
+                                     (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details]))))
                                    invoices (get-in job [:invoices :items])))
                          [] jobs-with-invoices)
         filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
