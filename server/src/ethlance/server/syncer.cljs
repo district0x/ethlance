@@ -114,10 +114,18 @@
          job-story-id (:job-story/id ipfs-data)
          invoicer (:invoicer args)
          invoice-message {:job-story/id (:job-story/id ipfs-data)
-                          :message/id (:invoice-message-id ipfs-data)
+                          :invoice/id (or (:invoice/id ipfs-data) (:invoice-id ipfs-data))
+                          :message/type :job-story-message
+                          :job-story-message/type :payment
+                          :message/creator (:payer ipfs-data)
+                          :message/date-created (get-timestamp)
+                          :message/text "Invoice paid"
+                          :invoice/hours-worked (:invoice/hours-worked ipfs-data)
+                          :invoice/hourly-rate (:invoice/hourly-rate ipfs-data)
                           :invoice/date-paid (get-timestamp)
                           :invoice/status "paid"}]
-     (<? (ethlance-db/update-job-story-invoice-message conn invoice-message)))))
+
+     (<? (ethlance-db/add-message conn invoice-message)))))
 
 (defn handle-dispute-raised [conn _ {:keys [args] :as dispute-raised-event}]
   (safe-go

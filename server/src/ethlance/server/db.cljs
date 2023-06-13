@@ -335,11 +335,14 @@
      [:job-story/id :integer]
      [:message/id :integer]
      [:invoice/status :varchar]
+     [:invoice/hours-worked :integer]
+     [:invoice/hourly-rate :integer]
      [:invoice/amount-requested :bigint]
      [:invoice/amount-paid :bigint]
      [:invoice/date-requested :bigint]
      [:invoice/date-paid :bigint]
      [:invoice/ref-id :integer]
+     [:invoice/payment-message-id :integer]
      [:invoice/dispute-raised-message-id :integer]
      [:invoice/dispute-resolved-message-id :integer]
      ;; PK
@@ -347,6 +350,7 @@
      ;; FKs
      [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :invoice/payment-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :invoice/dispute-raised-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :invoice/dispute-resolved-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
@@ -790,6 +794,11 @@
                                                                      :job-story/id (:job-story/id message)
                                                                      :job-story/date-contract-active (:message/date-created message)))
                :invoice (insert-row! conn :JobStoryInvoiceMessage message)
+               :payment (update-job-story-invoice-message conn
+                                                          {:job-story/id job-story-id
+                                                           :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                           :invoice/payment-message-id msg-id
+                                                           :invoice/status "paid"})
                :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
        :direct-message

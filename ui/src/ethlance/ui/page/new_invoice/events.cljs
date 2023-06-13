@@ -59,6 +59,7 @@
   (fn [{:keys [db]}]
     (let [db-invoice (get-in db [state-key])
           ipfs-invoice {:invoice/hours-worked (:hours-worked db-invoice)
+                        :invoice/hourly-rate (:hourly-rate db-invoice)
                         :message/text (:message db-invoice)
                         :job/id (-> db-invoice :invoiced-job :job/id)
                         :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]

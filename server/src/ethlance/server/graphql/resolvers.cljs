@@ -524,25 +524,14 @@
                     [:= :JobStoryInvoiceMessage.invoice/ref-id invoice-id]
                     ]})
 
-(defn invoice->dispute-raised-message-resolver [root args _]
-  (db/with-async-resolver-conn conn
+(defn invoice->sub-message-resolver [invoice-message-column root args _]
+ (db/with-async-resolver-conn conn
     (let [root-obj (graphql-utils/gql->clj root)
           job-story-id (:job-story/id root-obj)
           invoice-id (:invoice/id root-obj)
-          invoice-message-column :JobStoryInvoiceMessage.invoice/dispute-raised-message-id
-          message-id (:message/id root-obj)] ; :invoice/id 0, :message/id 71, :job-story/id 10
-          (log/debug "invoice->dispute-raised-message-resolver job-story-id:" job-story-id)
-          (<? (db/get conn (dispute-message-query job-story-id invoice-id invoice-message-column)))
-          )))
-
-(defn invoice->dispute-resolved-message-resolver [root args _]
-  (db/with-async-resolver-conn conn
-    (let [root-obj (graphql-utils/gql->clj root)
-          job-story-id (:job-story/id root-obj)
-          invoice-id (:invoice/id root-obj)
-          invoice-message-column :JobStoryInvoiceMessage.invoice/dispute-resolved-message-id
-          message-id (:message/id root-obj)] ; :invoice/id 0, :message/id 71, :job-story/id 10
-          (log/debug "invoice->dispute-resolved-message-resolver job-story-id:" job-story-id)
+          invoice-message-column (keyword :JobStoryInvoiceMessage.invoice invoice-message-column)
+          message-id (:message/id root-obj)]
+          (log/debug (str "invoice->sub-message-resolver for " invoice-message-column " job-story-id:") job-story-id)
           (<? (db/get conn (dispute-message-query job-story-id invoice-id invoice-message-column))))))
 
 (defn employer-search-resolver [_ {:keys [:limit :offset
@@ -1013,8 +1002,9 @@
                     :DirectMessage {:creator user-resolver}
                     :Invoice {:jobStory job-story-resolver
                               :creationMessage message-resolver
-                              :disputeRaisedMessage invoice->dispute-raised-message-resolver
-                              :disputeResolvedMessage invoice->dispute-resolved-message-resolver}
+                              :paymentMessage (partial invoice->sub-message-resolver :payment-message-id)
+                              :disputeRaisedMessage (partial invoice->sub-message-resolver :dispute-raised-message-id)
+                              :disputeResolvedMessage (partial invoice->sub-message-resolver :dispute-resolved-message-id)}
                     :Mutation {:signIn sign-in-mutation
                                :sendMessage (require-auth send-message-mutation)
                                :leaveFeedback (require-auth leave-feedback-mutation)

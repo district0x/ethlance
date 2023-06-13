@@ -59,11 +59,11 @@
    [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
     text]])
 
-(defn common-chat-fields [current-user job-story field-fn details]
+(defn common-chat-fields [current-user entity field-fn details]
   (let [direction (fn [viewer creator]
                     (if (ilike= viewer creator)
                       :sent :received))
-        message (field-fn job-story)]
+        message (field-fn entity)]
     (when message
       {:id (str "dispute-creation-msg-" (-> message :message/id))
        :direction (direction current-user (-> message :creator :user/id))
@@ -71,7 +71,19 @@
        :full-name (-> message :creator :user/name)
        :timestamp (-> message :message/date-created)
        :image-url (-> message :creator :user/profile-image)
-       :details details})))
+       :details (map (fn [detail-or-fn]
+                       (if (fn? detail-or-fn)
+                         (detail-or-fn entity)
+                         detail-or-fn))
+                     details)})))
+
+(defn invoice-detail [job-story amount-field invoice]
+  (let [amount (tokens/human-amount
+                 (-> invoice :invoice/amount-requested)
+                 (-> job-story :job :job/token-type))
+        token-name (-> job-story :job :token-details :token-detail/name)
+        token-symbol (-> job-story :job :token-details :token-detail/symbol)]
+    (str amount " " token-symbol " (" token-name ")")))
 
 (defn extract-chat-messages [job-story current-user]
   (let [job-story-id (-> job-story :job-story :job-story/id)
@@ -87,21 +99,27 @@
                                    (str amount " " token-symbol " (" token-name ")")))
         common-fields (partial common-chat-fields current-user job-story)
 
-        invitation (common-fields :invitation-message ["Invited to a job"])
-        invitation-accepted (common-fields :invitation-accepted-message ["Accepted invitation to a job"])
-        proposal (-> (common-fields :proposal-message ["Sent a job proposal"])
+        invitation (common-fields :invitation-message ["Sent job invitation"])
+        invitation-accepted (common-fields :invitation-accepted-message ["Accepted invitation"])
+        proposal (-> (common-fields :proposal-message ["Sent job proposal"])
                       (add-to-details ,,, (format-proposal-amount job-story)))
-        proposal-accepted (common-fields :proposal-accepted-message ["Accepted proposal for a job"])
+        proposal-accepted (common-fields :proposal-accepted-message ["Accepted proposal"])
         arbiter-feedback (map #(common-chat-fields current-user % :message ["Feedback for arbiter"])
                               (:job-story/arbiter-feedback job-story))
         employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for employer"])
                               (:job-story/employer-feedback job-story))
-        employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"])
+        candidate-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"])
                               (:job-story/candidate-feedback job-story))
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
                               (:direct-messages job-story))
-        invoice-messages (map #(common-chat-fields current-user % identity ["Invoice created"])
-                              (map :creation-message (get-in job-story [:job-story/invoices :items])))
+        invoice-messages (map #(common-chat-fields current-user % :creation-message
+                                                   [(fn [invoice] (str "Invoice #" (:invoice/id invoice) " created"))
+                                                    (partial invoice-detail job-story :invoice/amount-requested)])
+                              (get-in job-story [:job-story/invoices :items]))
+        payment-messages (map #(common-chat-fields current-user % :payment-message
+                                                   [(fn [invoice] (str "Invoice #" (:invoice/id invoice) " paid"))
+                                                    (partial invoice-detail job-story :invoice/amount-paid)])
+                              (get-in job-story [:job-story/invoices :items]))
         dispute-creation (map #(common-chat-fields current-user % identity ["Dispute was created"])
                               (map :dispute-raised-message (get-in job-story [:job-story/invoices :items])))
         dispute-resolution (map #(common-chat-fields current-user % identity ["Dispute was resolved"])
@@ -109,8 +127,9 @@
     (->> [dispute-creation dispute-resolution
           invitation invitation-accepted
           proposal proposal-accepted
-          arbiter-feedback employer-feedback
-          direct-messages invoice-messages]
+          arbiter-feedback employer-feedback candidate-feedback
+          direct-messages
+          invoice-messages payment-messages]
          (remove nil? ,,,)
          (flatten ,,,)
          (remove nil?)
@@ -144,9 +163,13 @@
                                                         [:message message-fields]]]
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
                          [:job-story/invoices [[:items [:id
-                                                       [:creation-message message-fields]
-                                                       [:dispute-raised-message message-fields]
-                                                       [:dispute-resolved-message message-fields]]]] ]]]
+                                                        :invoice/id
+                                                        :invoice/amount-requested
+                                                        :invoice/amount-paid
+                                                        [:creation-message message-fields]
+                                                        [:payment-message message-fields]
+                                                        [:dispute-raised-message message-fields]
+                                                        [:dispute-resolved-message message-fields]]]] ]]]
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])]

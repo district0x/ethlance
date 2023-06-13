@@ -566,6 +566,7 @@
     invoice_amountPaid: Float
 
     creationMessage: JobStoryMessage
+    paymentMessage: JobStoryMessage
     disputeRaisedMessage: JobStoryMessage
     disputeResolvedMessage: JobStoryMessage
   }
