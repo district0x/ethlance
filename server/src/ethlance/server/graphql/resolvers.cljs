@@ -690,6 +690,8 @@
                                        :JobStoryInvoiceMessage.invoice/date-requested
                                        :JobStoryInvoiceMessage.invoice/amount-requested
                                        :JobStoryInvoiceMessage.invoice/amount-paid
+                                       :JobStoryInvoiceMessage.invoice/hours-worked
+                                       :JobStoryInvoiceMessage.invoice/hourly-rate
                                        :JobStory.job-story/id
                                        :Job.job/id]
                               :from [:JobStoryInvoiceMessage]

@@ -52,6 +52,8 @@
                     :invoice/status
                     :invoice/amount-requested
                     :invoice/amount-paid
+                    :invoice/hours-worked
+                    :invoice/hourly-rate
                     [:job-story
                      [:job-story/id
                       [:candidate
@@ -82,13 +84,11 @@
                           :payer (:user/id employer)
                           :receiver (:user/id candidate)}
 
-          info-panel [["Hours Worked" "???"] ; TODO: currently entered at invoice creation but not recorded to the DB. Shoulr it?
+          invoice-payable? (not= "paid" (get-in invoice [:invoice/status]))
+          info-panel [["Hours Worked" (get-in invoice [:invoice/hours-worked])]
                       ["Invoiced Amount" (str (tokens/human-amount (:invoice/amount-requested invoice) (:job/token-type job)) " " job-token-symbol)]
-                      ["Hourly Rate" "???"]
-                      ["Worked Started" "???"]
-                      ["Worked Work Finished" "???"]
-                      ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]
-          ]
+                      ["Hourly Rate" (get-in invoice [:invoice/hourly-rate])]
+                      ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]]
       [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
        [:div.title "Invoice"]
        [:a.sub-title
@@ -104,6 +104,10 @@
         [:div.ethlance-table
          [:table
           (into [:tbody] (map (fn [[label content]] [:tr [:th label] [:td content]]) info-panel))]]]
-       [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}
-        [:span "Pay Invoice"]
-        [c-icon {:name :ic-arrow-right :size :small :color :white}]]])))
+
+       (if invoice-payable?
+         [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}
+           [:span "Pay Invoice"]
+            [c-icon {:name :ic-arrow-right :size :small :color :white}]]
+         [:div.button {:style {:background-color :gray}}
+           [:span "Invoice Paid"]])])))

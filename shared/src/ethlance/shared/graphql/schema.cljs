@@ -565,6 +565,9 @@
     \"Amount of invoice actually paid\"
     invoice_amountPaid: Float
 
+    invoice_hoursWorked: Int
+    invoice_hourlyRate: Int
+
     creationMessage: JobStoryMessage
     paymentMessage: JobStoryMessage
     disputeRaisedMessage: JobStoryMessage
