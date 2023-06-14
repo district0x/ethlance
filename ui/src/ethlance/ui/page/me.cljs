@@ -13,23 +13,22 @@
             [ethlance.ui.util.tokens :as tokens]
             [re-frame.core :as re]))
 
-(defn c-nav-sidebar-element [label location]
-  (let [*current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])
-        *active-page (re/subscribe [::router.subs/active-page])]
+(defn c-nav-sidebar-element [label id-value]
+  (let [*active-page (re/subscribe [::router.subs/active-page])]
     (fn []
       (let [{active-page :name
              active-params :param
              active-query :query} @*active-page
-            updated-query (assoc (or active-query {}) :sidebar (name location))]
+            updated-query (-> (or active-query {})
+                              (assoc  :sidebar id-value)
+                              (dissoc :section))
+            *current-sidebar-choice (keyword (:sidebar active-query))]
         [:div.nav-element
          [:a.link
           {:title (str "Navigate to '" label "'")
-           :class [(when (= @*current-sidebar-choice location) "active")]
+           :class [(when (= *current-sidebar-choice id-value) "active")]
            :href (util.navigation/resolve-route {:route active-page :params active-params :query updated-query})
-           :on-click (fn [e]
-                       (re/dispatch [:page.me/change-sidebar-choice location])
-                       (.preventDefault e)
-                       nil)}
+           :on-click (util.navigation/create-handler {:route active-page :params active-params :query updated-query})}
           label]]))))
 
 (defn link-params [{:keys [route params]}]
@@ -164,9 +163,7 @@
                                               :token-detail/name
                                               :token-detail/symbol]]]]]]
         jobs-result @(re/subscribe [::gql/query {:queries [query]}])
-        _ (println ">>> jobs-result" jobs-result)
         jobs-with-invoices (filter #(> (get-in % [:invoices :total-count]) 0) (get-in jobs-result [:job-search :items]))
-        _ (println ">>> jobs " jobs-with-invoices)
         invoices (reduce (fn [invoices job]
                            (reduce (fn [invoices invoice]
                                      (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details]))))
@@ -181,21 +178,91 @@
         table [{:title "Job Title" :source #(get-in % [:job/title])}
                {:title "Candidate" :source user-name-fn}
                {:title "Amount Requested" :source amount-requested-fn}
-               {:title "Created at" :source invoice-date-created-fn}]]
+               {:title "Created at" :source invoice-date-created-fn}]
+        invoice-link-fn (fn [invoice]
+                          {:route :route.invoice/index
+                           :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
     :default-tab 0}
 
    {:label "Pending Invoices"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "created")]]
+    [c-table-listing table (filter-by-status invoices "created") invoice-link-fn]]
 
    {:label "Paid Invoices"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "paid")]]]))
+    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]]))
 
 (defn c-my-employer-dispute-listing []
-  [:div.not-implemented "Not Implemented - Employer - My Disputes"])
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        query [:job-search {:search-params {:creator active-user}}
+                   [:total-count
+                    [:items [:job/id
+                             :job/title
+                             :job/token-type
+                             [:invoices
+                              [:total-count
+                               [:items [:id
+                                        :job/id
+                                        :job-story/id
+                                        :invoice/status
+                                        :invoice/id
+                                        :invoice/amount-requested
+                                        :invoice/date-requested
+                                        :invoice/date-paid
+                                        :invoice/amount-paid
+                                        [:dispute-raised-message [:message/id
+                                                                  :message/text
+                                                                  [:creator [:user/name]]]]
+                                        [:dispute-resolved-message [:message/id
+                                                                    :message/text
+                                                                    [:creator [:user/name]]]]
+                                        ]]]]
+                             [:token-details [:token-detail/id
+                                              :token-detail/name
+                                              :token-detail/symbol]]]]]]
+        jobs-result @(re/subscribe [::gql/query {:queries [query]}])
+        jobs-with-invoices (filter #(> (get-in % [:invoices :total-count]) 0) (get-in jobs-result [:job-search :items]))
+        invoices (reduce (fn [invoices job]
+                           (reduce (fn [invoices invoice]
+                                     (if (not (nil? (get-in invoice [:dispute-raised-message :message/id])))
+                                       (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details])))
+                                       invoices))
+                                   invoices (get-in job [:invoices :items])))
+                         [] jobs-with-invoices)
+        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
+        candidate-name-fn (fn [invoice] (get-in invoice [:dispute-raised-message :creator :user/name]))
+        arbiter-name-fn (fn [invoice] (get-in invoice [:dispute-resolved-message :creator :user/name]))
+        invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
+        amount-fn (fn [amount-source invoice]
+                              (str (tokens/human-amount (amount-source invoice) (:job/token-type invoice))
+                                    " " (-> invoice :token-details :token-detail/symbol)))
+        truncated-dispute-fn (fn [text-source invoice]
+                               (let [text (get-in invoice [text-source :message/text])
+                                     max-chars 20]
+                                 (str (subs text 0 (min (count text) max-chars)) "...")))
+        open-table [{:title "Job Title" :source #(get-in % [:job/title])}
+                    {:title "Candidate" :source candidate-name-fn}
+                    {:title "Requested amount" :source (partial amount-fn :invoice/amount-requested)}
+                    {:title "Dispute text" :source (partial truncated-dispute-fn :dispute-raised-message)}
+                    {:title "Date raised" :source invoice-date-created-fn}]
+        resolved-table [{:title "Job Title" :source #(get-in % [:job/title])}
+                        {:title "Arbiter" :source arbiter-name-fn}
+                        {:title "Resolution text" :source (partial truncated-dispute-fn :dispute-resolved-message)}
+                        {:title "Received amount" :source (partial amount-fn :invoice/amount-paid)}
+                        {:title "Date resolved" :source invoice-date-created-fn}] ]
+  [c-tabular-layout
+   {:key "my-employer-job-tab-listing"
+    :default-tab 0}
+
+   {:label "Open Disputes"}
+   [:div.listing.my-employer-job-listing
+    [c-table-listing open-table (filter-by-status invoices "created")]]
+
+   {:label "Resolved Disputes"}
+   [:div.listing.my-employer-job-listing
+    [c-table-listing resolved-table (filter-by-status invoices "paid")]]]))
 
 ;;
 ;; Candidate Sections
@@ -259,29 +326,37 @@
 
 (defn c-listing []
   (let [
-        *current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])
+        ; *current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])
+        active-page (re/subscribe [::router.subs/active-page])
         ]
+
     (fn []
-      [:div.listing
-       (case @*current-sidebar-choice
-         ;; Employer
-         :my-employer-job-listing [c-my-employer-job-listing]
-         :my-employer-contract-listing [c-my-employer-contract-listing]
-         :my-employer-invoice-listing [c-my-employer-invoice-listing]
-         :my-employer-dispute-listing [c-my-employer-dispute-listing]
+      (let [{page :name
+             params :param
+             query :query} @active-page
+            *current-sidebar-choice (or (keyword (:sidebar query)) :my-employer-job-listing)
+            ]
+        (println ">>> c-listing" @active-page)
+        [:div.listing
+         (case *current-sidebar-choice
+           ;; Employer
+           :my-employer-job-listing [c-my-employer-job-listing]
+           :my-employer-contract-listing [c-my-employer-contract-listing]
+           :my-employer-invoice-listing [c-my-employer-invoice-listing]
+           :my-employer-dispute-listing [c-my-employer-dispute-listing]
 
-         ;; Candidate
-         :my-candidate-job-listing [c-my-candidate-job-listing]
-         :my-candidate-contract-listing [c-my-candidate-contract-listing]
-         :my-candidate-invoice-listing [c-my-candidate-invoice-listing]
-         :my-candidate-dispute-listing [c-my-candidate-dispute-listing]
+           ;; Candidate
+           :my-candidate-job-listing [c-my-candidate-job-listing]
+           :my-candidate-contract-listing [c-my-candidate-contract-listing]
+           :my-candidate-invoice-listing [c-my-candidate-invoice-listing]
+           :my-candidate-dispute-listing [c-my-candidate-dispute-listing]
 
-         ;; Arbiter
-         :my-arbiter-job-listing [c-my-arbiter-job-listing]
-         :my-arbiter-contract-listing [c-my-arbiter-contract-listing]
-         :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
+           ;; Arbiter
+           :my-arbiter-job-listing [c-my-arbiter-job-listing]
+           :my-arbiter-contract-listing [c-my-arbiter-contract-listing]
+           :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
 
-         (throw (ex-info "Unable to determine sidebar choice" @*current-sidebar-choice)))])))
+           (throw (ex-info "Unable to determine sidebar choice" *current-sidebar-choice)))]))))
 
 (defmethod page :route.me/index []
   (fn []
