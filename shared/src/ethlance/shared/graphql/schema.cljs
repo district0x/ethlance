@@ -89,6 +89,7 @@
 
     \"Retrieve the Invoice Data defined by the invoice message id\"
     invoice(invoice_id: Int!): Invoice
+    invoiceSearch(candidate: String, employer: String): InvoiceList
   }
 
   # Input types
@@ -332,7 +333,7 @@
       offset: Int
     ): FeedbackList
 
-    candidate_jobStories: JobStoryList
+    jobStories: JobStoryList
   }
 
   type CandidateList {
@@ -371,7 +372,7 @@
       offset: Int
     ): FeedbackList
 
-    employer_jobStories: JobStoryList
+    jobStories: JobStoryList
   }
 
   type EmployerList {

@@ -172,7 +172,7 @@
                        feedback_fromUser {user_name user_profileImage}
                        }
                      }
-                   candidate_jobStories {
+                   jobStories {
                      items {
                        job {job_title job_status}
                        jobStory_dateContractActive
@@ -233,7 +233,7 @@
                        feedback_fromUser {user_name user_profileImage}
                      }
                    }
-                   employer_jobStories {
+                   jobStories {
                      items {
                        job {
                          job_title
@@ -249,7 +249,7 @@
           image-url (get-in @results [:user :user/profile-image])
           languages (get-in @results [:user :user/languages])
           job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
-          jobs (map prepare-employer-jobs (get-in @results [:employer :employer/job-stories :items]))
+          jobs (map prepare-employer-jobs (get-in @results [:employer :job-stories :items]))
           feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
           rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>

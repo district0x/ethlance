@@ -96,23 +96,9 @@
    [:div.listing.my-employer-job-listing
     [c-table-listing jobs-table finished-jobs job-link-fn]]]))
 
-(defn c-my-employer-contract-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        query [:employer {:user/id active-user}
-               [:user/id
-                [:employer/job-stories
-                 [:total-count
-                  [:items [:job/id
-                           :job-story/id
-                           :job-story/status
-                           :job-story/date-created
-                           :job-story/proposal-rate
-                           [:candidate
-                            [:user/id
-                             [:user [:user/name]]]]
-                           [:job [:job/title]]]]]]]]
-        jobs @(re/subscribe [::gql/query {:queries [query]}])
-        filter-by-status (fn [jobs status] (filter #(= status (:job-story/status %)) (get-in jobs [:employer :employer/job-stories :items])))
+(defn c-contract-listing [query results-getter]
+  (let [jobs @(re/subscribe [::gql/query {:queries [query]}])
+        filter-by-status (fn [jobs status] (filter #(= status (:job-story/status %)) (results-getter jobs)))
         user-name-fn (fn [job] (get-in job [:candidate :user :user/name]))
         jobs-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
                     {:title "Candidate" :source user-name-fn}
@@ -138,44 +124,43 @@
    [:div.listing.my-employer-job-listing
     [c-table-listing jobs-table (filter-by-status jobs :finished) contract-link-fn]]]))
 
-(defn c-my-employer-invoice-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        query [:job-search {:search-params {:creator active-user}}
-                   [:total-count
-                    [:items [:job/id
-                             :job/title
-                             :job/token-type
-                             [:invoices
-                              [:total-count
-                               [:items [:id
-                                        :job/id
-                                        :invoice/status
-                                        :invoice/id
-                                        :invoice/amount-requested
-                                        :invoice/date-requested
-                                        :invoice/date-paid
-                                        :invoice/amount-paid
-                                        [:creation-message
-                                         [:message/id
-                                          :message/date-created
-                                          [:creator [:user/name]]]]]]]]
-                             [:token-details [:token-detail/id
-                                              :token-detail/name
-                                              :token-detail/symbol]]]]]]
-        jobs-result @(re/subscribe [::gql/query {:queries [query]}])
-        jobs-with-invoices (filter #(> (get-in % [:invoices :total-count]) 0) (get-in jobs-result [:job-search :items]))
-        invoices (reduce (fn [invoices job]
-                           (reduce (fn [invoices invoice]
-                                     (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details]))))
-                                   invoices (get-in job [:invoices :items])))
-                         [] jobs-with-invoices)
+(defn c-invoice-listing [query-params]
+  (let [query [:invoice-search query-params
+               [:total-count
+                [:items
+                 [:id
+                  :job/id
+                  [:job-story
+                   [:job-story/id
+                    [:job
+                     [:job/id
+                      :job/title
+                      :job/token-type
+                      [:token-details
+                       [:token-detail/id
+                        :token-detail/name
+                        :token-detail/symbol]]]]]]
+                  :invoice/status
+                  :invoice/id
+                  :invoice/amount-requested
+                  :invoice/date-requested
+                  :invoice/date-paid
+                  :invoice/amount-paid
+                  [:creation-message
+                   [:message/id
+                    :message/date-created
+                    [:creator [:user/id
+                               :user/name]]]]]]]]
+        result @(re/subscribe [::gql/query {:queries [query]}])
+        invoices (get-in result [:invoice-search :items])
         filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
         user-name-fn (fn [invoice] (get-in invoice [:creation-message :creator :user/name]))
         invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
         amount-requested-fn (fn [invoice]
-                              (str (tokens/human-amount (:invoice/amount-requested invoice) (:job/token-type invoice))
-                                    " " (-> invoice :token-details :token-detail/symbol)))
-        table [{:title "Job Title" :source #(get-in % [:job/title])}
+                              (str (tokens/human-amount (:invoice/amount-requested invoice)
+                                                        (get-in invoice [:job-story :job :job/token-type]))
+                                    " " (get-in invoice [:job-story :job :token-details :token-detail/symbol])))
+        table [{:title "Job Title" :source #(get-in % [:job-story :job :job/title])}
                {:title "Candidate" :source user-name-fn}
                {:title "Amount Requested" :source amount-requested-fn}
                {:title "Created at" :source invoice-date-created-fn}]
@@ -192,7 +177,29 @@
 
    {:label "Paid Invoices"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]]))
+    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]])
+                   )
+(defn c-my-employer-contract-listing []
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        results-getter (fn [results] (get-in results [:employer :job-stories :items]))
+        query [:employer {:user/id active-user}
+               [:user/id
+                [:job-stories
+                 [:total-count
+                  [:items [:job/id
+                           :job-story/id
+                           :job-story/status
+                           :job-story/date-created
+                           :job-story/proposal-rate
+                           [:candidate
+                            [:user/id
+                             [:user [:user/name]]]]
+                           [:job [:job/title]]]]]]]]]
+    [c-contract-listing query results-getter]))
+
+(defn c-my-employer-invoice-listing []
+  (let [employer (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
+    [c-invoice-listing {:employer employer}]))
 
 (defn c-my-employer-dispute-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -268,14 +275,27 @@
 ;; Candidate Sections
 ;;
 
-(defn c-my-candidate-job-listing []
-  [:div.not-implemented "Not Implemented - Candidate - My Jobs"])
-
 (defn c-my-candidate-contract-listing []
-  [:div.not-implemented "Not Implemented - Candidate - My Contracts"])
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        results-getter (fn [results] (get-in results [:candidate :job-stories :items]))
+        query [:candidate {:user/id active-user}
+               [:user/id
+                [:job-stories
+                 [:total-count
+                  [:items [:job/id
+                           :job-story/id
+                           :job-story/status
+                           :job-story/date-created
+                           :job-story/proposal-rate
+                           [:candidate
+                            [:user/id
+                             [:user [:user/name]]]]
+                           [:job [:job/title]]]]]]]]]
+    [c-contract-listing query results-getter]))
 
 (defn c-my-candidate-invoice-listing []
-  [:div.not-implemented "Not Implemented - Candidate - My Invoices"])
+  (let [candidate (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
+    [c-invoice-listing {:candidate candidate}]))
 
 (defn c-my-candidate-dispute-listing []
   [:div.not-implemented "Not Implemented - Candidate - My Disputes"])
@@ -285,9 +305,6 @@
 ;;
 
 (defn c-my-arbiter-job-listing []
-  [:div.not-implemented "Not Implemented - Arbiter - My Jobs"])
-
-(defn c-my-arbiter-contract-listing []
   [:div.not-implemented "Not Implemented - Arbiter - My Contracts"])
 
 (defn c-my-arbiter-dispute-listing []
@@ -298,24 +315,21 @@
   (fn []
     [:div.sidebar
      [:div.section
-      [:div.label "Employer"]
+      [:div.label "As Employer"]
       [c-nav-sidebar-element "My Jobs" :my-employer-job-listing]
       [c-nav-sidebar-element "My Contracts" :my-employer-contract-listing]
       [c-nav-sidebar-element "My Invoices" :my-employer-invoice-listing]
       [c-nav-sidebar-element "My Disputes" :my-employer-dispute-listing]]
 
      [:div.section
-      [:div.label "Candidate"]
-      [c-nav-sidebar-element "My Jobs" :my-candidate-job-listing]
+      [:div.label "As Candidate"]
       [c-nav-sidebar-element "My Contracts" :my-candidate-contract-listing]
       [c-nav-sidebar-element "My Invoices" :my-candidate-invoice-listing]
       [c-nav-sidebar-element "My Disputes" :my-candidate-dispute-listing]]
 
      [:div.section
-      [:div.label "Arbiter"]
+      [:div.label "As Arbiter"]
       [c-nav-sidebar-element "My Jobs" :my-arbiter-job-listing]
-      [c-nav-sidebar-element "My Contracts" :my-arbiter-contract-listing]
-      [c-nav-sidebar-element "My Invoices" :my-arbiter-invoice-listing]
       [c-nav-sidebar-element "My Disputes" :my-arbiter-dispute-listing]]]))
 
 (defn c-mobile-navigation
@@ -334,9 +348,7 @@
       (let [{page :name
              params :param
              query :query} @active-page
-            *current-sidebar-choice (or (keyword (:sidebar query)) :my-employer-job-listing)
-            ]
-        (println ">>> c-listing" @active-page)
+            *current-sidebar-choice (or (keyword (:sidebar query)) :my-employer-job-listing)]
         [:div.listing
          (case *current-sidebar-choice
            ;; Employer
@@ -346,14 +358,12 @@
            :my-employer-dispute-listing [c-my-employer-dispute-listing]
 
            ;; Candidate
-           :my-candidate-job-listing [c-my-candidate-job-listing]
            :my-candidate-contract-listing [c-my-candidate-contract-listing]
            :my-candidate-invoice-listing [c-my-candidate-invoice-listing]
            :my-candidate-dispute-listing [c-my-candidate-dispute-listing]
 
            ;; Arbiter
            :my-arbiter-job-listing [c-my-arbiter-job-listing]
-           :my-arbiter-contract-listing [c-my-arbiter-contract-listing]
            :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
 
            (throw (ex-info "Unable to determine sidebar choice" *current-sidebar-choice)))]))))

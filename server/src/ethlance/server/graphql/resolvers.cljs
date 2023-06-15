@@ -698,6 +698,14 @@
                               :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
+(defn invoice-search-resolver [_ {:keys [:employer :candidate :limit :offset] :as args} _]
+  (db/with-async-resolver-conn conn
+    (log/debug "invoice-search-resolver" {:args args})
+    (let [query (cond-> invoice-query
+                  employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
+                  candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate]))]
+      (<? (paged-query conn query limit offset)))))
+
 (defn invoice-resolver [_ {invoice-id :invoice/id  job-id :job/id :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "invoice-resolver" {:args args})
@@ -960,7 +968,8 @@
                             :job job-resolver
                             :jobSearch job-search-resolver
                             :jobStory job-story-resolver
-                            :jobStoryList job-story-list-resolver}
+                            :jobStoryList job-story-list-resolver
+                            :invoiceSearch invoice-search-resolver}
                     :Job {:jobStories job->job-stories-resolver
                           :job_employer job->employer-resolver
                           :job_arbiter job->arbiter-resolver
@@ -986,10 +995,10 @@
                     :Candidate {:candidate_feedback candidate->feedback-resolver
                                 :candidate_categories candidate->candidate-categories-resolver
                                 :candidate_skills candidate->candidate-skills-resolver
-                                :candidate_jobStories candidate->job-stories-resolver
+                                :jobStories candidate->job-stories-resolver
                                 :user participant->user-resolver}
                     :Employer {:employer_feedback employer->feedback-resolver
-                               :employer_jobStories employer->job-stories-resolver
+                               :jobStories employer->job-stories-resolver
                                :user participant->user-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
                               :arbitrations arbiter->arbitrations-resolver
