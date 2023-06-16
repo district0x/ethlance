@@ -86,6 +86,7 @@
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
+    disputeSearch(arbiter: String, candidate: String, employer: String): DisputeList
 
     \"Retrieve the Invoice Data defined by the invoice message id\"
     invoice(invoice_id: Int!): Invoice
@@ -586,11 +587,23 @@
   # Dispute Types
 
   type Dispute {
+    id: ID
+    invoice_id: String
     \"Identifier for the given Job\"
     job_id: String
 
+    job: Job
+    jobStory: JobStory
+
+    candidate: Candidate
+    employer: Employer
+    arbiter: Arbiter
+
+    invoice_amountRequested: Float
+    invoice_amountPaid: Float
+
     \"Identifier for the given JobStory\"
-    jobStory_id: ID
+    jobStory_id: Int
 
     \"Reason for the Dispute\"
     dispute_reason: String
@@ -603,9 +616,14 @@
 
     \"Date when the dispute was resolved\"
     dispute_dateResolved: Date
-
   }
 
+  type DisputeList  {
+    items: [Dispute]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
   # Feedback Types
 
   type Feedback {

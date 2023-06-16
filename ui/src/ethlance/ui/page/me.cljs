@@ -177,8 +177,75 @@
 
    {:label "Paid Invoices"}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]])
-                   )
+    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]]))
+
+(defn c-dispute-listing [user-type]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        ; Hard-coded user addresses for testing to avoid account switching
+        users {:candidate "0x6dFA8c7DD1658387D170a2F9F34452C6f873fB9e"
+               :employer "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0"
+               :arbiter "0x2edd65Db76A4c02E851702CAc5E51b77Dc721cf0"}
+        query [:dispute-search {user-type (get users user-type)}
+               [:total-count
+                [:items [:id
+                         :invoice/id
+                         :dispute/reason
+                         :dispute/resolution
+                         :dispute/date-created
+                         :dispute/date-resolved
+
+                         :invoice/amount-requested
+                         :invoice/amount-paid
+                         [:candidate
+                          [[:user [:user/id :user/name]]]]
+                         [:employer
+                          [[:user [:user/id :user/name]]]]
+                         [:arbiter
+                          [[:user [:user/id :user/name]]]]
+                         [:job
+                          [:job/title
+                           :job/token-type
+                           [:token-details
+                            [:token-detail/id
+                             :token-detail/name
+                             :token-detail/symbol]]]]]]]]
+        disputes-result @(re/subscribe [::gql/query {:queries [query]}])
+        disputes (get-in  disputes-result [:dispute-search :items])
+        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
+        candidate-name-fn (fn [invoice] (get-in invoice [:candidate :user :user/name]))
+        arbiter-name-fn (fn [invoice] (get-in invoice [:arbiter :user :user/name]))
+        arbiter-name-fn (fn [invoice] (get-in invoice [:dispute-resolved-message :creator :user/name]))
+        dispute-date-created-fn (partial formatted-date #(get-in % [:dispute/date-created]))
+        dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
+        amount-fn (fn [amount-source invoice]
+                              (str (tokens/human-amount (amount-source invoice) (get-in invoice [:job :job/token-type]))
+                                    " " (get-in invoice [:job :token-details :token-detail/symbol])))
+        truncated-dispute-fn (fn [text-source invoice]
+                               (let [text (get-in invoice [text-source])
+                                     max-chars 20]
+                                 (str (subs text 0 (min (count text) max-chars)) "...")))
+        open-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
+                    {:title "Candidate" :source candidate-name-fn}
+                    {:title "Requested amount" :source (partial amount-fn :invoice/amount-requested)}
+                    {:title "Reason" :source (partial truncated-dispute-fn :dispute/reason)}
+                    {:title "Date raised" :source dispute-date-created-fn}]
+        resolved-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
+                        {:title "Arbiter" :source arbiter-name-fn}
+                        {:title "Resolution" :source (partial truncated-dispute-fn :dispute/resolution)}
+                        {:title "Received amount" :source (partial amount-fn :invoice/amount-paid)}
+                        {:title "Date resolved" :source dispute-date-resolved-fn}]]
+  [c-tabular-layout
+   {:key "my-employer-job-tab-listing"
+    :default-tab 0}
+
+   {:label "Open Disputes"}
+   [:div.listing.my-employer-job-listing
+    [c-table-listing open-table (filter #(nil? (:dispute/date-resolved %)) disputes)]]
+
+   {:label "Resolved Disputes"}
+   [:div.listing.my-employer-job-listing
+    [c-table-listing resolved-table (filter #(not (nil? (:dispute/date-resolved %))) disputes)]]]))
+
 (defn c-my-employer-contract-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         results-getter (fn [results] (get-in results [:employer :job-stories :items]))
@@ -202,74 +269,7 @@
     [c-invoice-listing {:employer employer}]))
 
 (defn c-my-employer-dispute-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        query [:job-search {:search-params {:creator active-user}}
-                   [:total-count
-                    [:items [:job/id
-                             :job/title
-                             :job/token-type
-                             [:invoices
-                              [:total-count
-                               [:items [:id
-                                        :job/id
-                                        :job-story/id
-                                        :invoice/status
-                                        :invoice/id
-                                        :invoice/amount-requested
-                                        :invoice/date-requested
-                                        :invoice/date-paid
-                                        :invoice/amount-paid
-                                        [:dispute-raised-message [:message/id
-                                                                  :message/text
-                                                                  [:creator [:user/name]]]]
-                                        [:dispute-resolved-message [:message/id
-                                                                    :message/text
-                                                                    [:creator [:user/name]]]]
-                                        ]]]]
-                             [:token-details [:token-detail/id
-                                              :token-detail/name
-                                              :token-detail/symbol]]]]]]
-        jobs-result @(re/subscribe [::gql/query {:queries [query]}])
-        jobs-with-invoices (filter #(> (get-in % [:invoices :total-count]) 0) (get-in jobs-result [:job-search :items]))
-        invoices (reduce (fn [invoices job]
-                           (reduce (fn [invoices invoice]
-                                     (if (not (nil? (get-in invoice [:dispute-raised-message :message/id])))
-                                       (conj invoices (merge invoice (select-keys job [:job/title :job/token-type :token-details])))
-                                       invoices))
-                                   invoices (get-in job [:invoices :items])))
-                         [] jobs-with-invoices)
-        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
-        candidate-name-fn (fn [invoice] (get-in invoice [:dispute-raised-message :creator :user/name]))
-        arbiter-name-fn (fn [invoice] (get-in invoice [:dispute-resolved-message :creator :user/name]))
-        invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
-        amount-fn (fn [amount-source invoice]
-                              (str (tokens/human-amount (amount-source invoice) (:job/token-type invoice))
-                                    " " (-> invoice :token-details :token-detail/symbol)))
-        truncated-dispute-fn (fn [text-source invoice]
-                               (let [text (get-in invoice [text-source :message/text])
-                                     max-chars 20]
-                                 (str (subs text 0 (min (count text) max-chars)) "...")))
-        open-table [{:title "Job Title" :source #(get-in % [:job/title])}
-                    {:title "Candidate" :source candidate-name-fn}
-                    {:title "Requested amount" :source (partial amount-fn :invoice/amount-requested)}
-                    {:title "Dispute text" :source (partial truncated-dispute-fn :dispute-raised-message)}
-                    {:title "Date raised" :source invoice-date-created-fn}]
-        resolved-table [{:title "Job Title" :source #(get-in % [:job/title])}
-                        {:title "Arbiter" :source arbiter-name-fn}
-                        {:title "Resolution text" :source (partial truncated-dispute-fn :dispute-resolved-message)}
-                        {:title "Received amount" :source (partial amount-fn :invoice/amount-paid)}
-                        {:title "Date resolved" :source invoice-date-created-fn}] ]
-  [c-tabular-layout
-   {:key "my-employer-job-tab-listing"
-    :default-tab 0}
-
-   {:label "Open Disputes"}
-   [:div.listing.my-employer-job-listing
-    [c-table-listing open-table (filter-by-status invoices "created")]]
-
-   {:label "Resolved Disputes"}
-   [:div.listing.my-employer-job-listing
-    [c-table-listing resolved-table (filter-by-status invoices "paid")]]]))
+  (c-dispute-listing :employer))
 
 ;;
 ;; Candidate Sections
@@ -298,7 +298,7 @@
     [c-invoice-listing {:candidate candidate}]))
 
 (defn c-my-candidate-dispute-listing []
-  [:div.not-implemented "Not Implemented - Candidate - My Disputes"])
+  [c-dispute-listing :candidate])
 
 ;;
 ;; Arbiter Sections
@@ -308,7 +308,7 @@
   [:div.not-implemented "Not Implemented - Arbiter - My Contracts"])
 
 (defn c-my-arbiter-dispute-listing []
-  [:div.not-implemented "Not Implemented - Arbiter - My Disputes"])
+  [c-dispute-listing :arbiter])
 
 (defn c-sidebar
   []
@@ -339,11 +339,7 @@
      [c-sidebar]]))
 
 (defn c-listing []
-  (let [
-        ; *current-sidebar-choice (re/subscribe [:page.me/current-sidebar-choice])
-        active-page (re/subscribe [::router.subs/active-page])
-        ]
-
+  (let [active-page (re/subscribe [::router.subs/active-page])]
     (fn []
       (let [{page :name
              params :param

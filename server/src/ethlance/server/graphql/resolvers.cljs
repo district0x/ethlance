@@ -114,10 +114,7 @@
                     {:select [:Arbiter.user/id ["Arbiter" :type]]
                      :from [:Arbiter]}]} :a]]})
 
-(def ^:private employer-query {:select [[:Employer.user/id :user/id]
-                                        [:Employer.employer/professional-title :employer/professional-title]
-                                        [:Employer.employer/bio :employer/bio]
-                                        [:Employer.employer/rating :employer/rating]
+(def ^:private employer-query {:select [:Employer.*
                                         [:Users.user/date-registered :employer/date-registered]]
                                :from [:Employer]
                                :join [:Users [:= :Users.user/id :Employer.user/id]]})
@@ -139,7 +136,6 @@
 
 (defn participant->user-resolver [parent args context info]
   (log/debug "participant->user-resolver")
-  (println ">>> participant->user-resolver" {:parent parent :clj-parent (js->clj parent :keywordize-keys) :gql-parent (graphql-utils/gql->clj parent)})
   (db/with-async-resolver-conn conn
     (let [clj-parent (graphql-utils/gql->clj parent)
           user-id (:user/id clj-parent)
@@ -168,10 +164,16 @@
           query (sql-helpers/merge-where job->arbiter-query [:= contract :Job.job/id])]
       (<? (db/get conn query)))))
 
-(defn employer-resolver [obj {:keys [:user/id :contract] :as args} _]
+(defn employer-resolver [raw-parent {:keys [:user/id ] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
-    (<? (db/get conn (sql-helpers/merge-where employer-query [:ilike id :Employer.user/id])))))
+    (let [address-from-args (:user/id args)
+          parent (graphql-utils/gql->clj raw-parent)
+          address-from-parent (or
+                                (:employer/id parent)
+                                (:job/creator parent))
+          address (or address-from-args address-from-parent)]
+      (<? (db/get conn (sql-helpers/merge-where employer-query [:ilike address :Employer.user/id]))))))
 
 (def ^:private user-feedback-query {:select [:Message.message/id
                                              :Job.job/id
@@ -195,20 +197,19 @@
       (log/debug "employer->feedback-resolver" {:employer employer :args args})
       (<? (paged-query conn query limit offset)))))
 
-(def ^:private arbiter-query {:select [:Arbiter.user/id
-                                       :Arbiter.arbiter/bio
-                                       :Arbiter.arbiter/professional-title
-                                       :Arbiter.arbiter/fee
-                                       :Arbiter.arbiter/fee-currency-id
-                                       :Arbiter.arbiter/rating
+(def ^:private arbiter-query {:select [:Arbiter.*
                                        [:Users.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
                               :join [:Users [:= :Users.user/id :Arbiter.user/id]]})
 
-(defn arbiter-resolver [_ {:keys [:user/id] :as args} _]
+(defn arbiter-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
     (log/debug "arbiter-resolver" args)
-    (<? (db/get conn (sql-helpers/merge-where arbiter-query [:= id :Arbiter.user/id])))))
+    (let [address-from-args (:user/id args)
+          parent (graphql-utils/gql->clj raw-parent)
+          address-from-parent (:arbiter/id parent)
+          address (or address-from-args address-from-parent)]
+      (<? (db/get conn (sql-helpers/merge-where arbiter-query [:ilike address :Arbiter.user/id]))))))
 
 (defn arbiter-search-resolver [_ {:keys [:limit :offset
                                          :user/id
@@ -265,7 +266,9 @@
     (log/debug "candidate-resolver" {:args args :raw-parent raw-parent})
     (let [address-from-args (:user/id args)
           parent (graphql-utils/gql->clj raw-parent)
-          address-from-parent (:job-story/candidate parent)
+          address-from-parent (or
+                                (:candidate/id parent)
+                                (:job-story/candidate parent))
           address (or address-from-args address-from-parent)]
       (<? (db/get conn (sql-helpers/merge-where candidate-query [:ilike address :Candidate.user/id]))))))
 
@@ -692,6 +695,8 @@
                                        :JobStoryInvoiceMessage.invoice/amount-paid
                                        :JobStoryInvoiceMessage.invoice/hours-worked
                                        :JobStoryInvoiceMessage.invoice/hourly-rate
+                                       :JobStoryInvoiceMessage.invoice/dispute-raised-message-id
+                                       :JobStoryInvoiceMessage.invoice/dispute-resolved-message-id
                                        :JobStory.job-story/id
                                        :Job.job/id]
                               :from [:JobStoryInvoiceMessage]
@@ -713,6 +718,41 @@
                        (sql-helpers/merge-where [:and
                                                  [:= job-id :Job.job/id]
                                                  [:= invoice-id :JobStoryInvoiceMessage.invoice/ref-id]]))))))
+
+(def ^:private dispute-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
+                              :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
+                                       [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
+                                       :JobStoryInvoiceMessage.message/id
+                                       :Job.job/id
+                                       :JobStory.job-story/id
+
+                                       :JobStoryInvoiceMessage.invoice/amount-requested
+                                       :JobStoryInvoiceMessage.invoice/amount-paid
+
+                                       [:JobStory.job-story/candidate :candidate/id]
+                                       [:Job.job/creator :employer/id]
+                                       [:JobArbiter.user/id :arbiter/id]
+
+                                       [:raised-message.message/text :dispute/reason]
+                                       [:resolved-message.message/text :dispute/resolution]
+                                       [:raised-message.message/date-created :dispute/date-created]
+                                       [:resolved-message.message/date-created :dispute/date-resolved]
+                                       ]
+                              :from [:JobStoryInvoiceMessage]
+                              :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]
+                                     :Job [:= :Job.job/id :JobStory.job/id]
+                                     :JobArbiter [:ilike :Job.job/id :JobArbiter.job/id]
+                                     [:Message :raised-message] [:= :raised-message.message/id :JobStoryInvoiceMessage.invoice/dispute-raised-message-id]]
+                              :left-join [[:Message :resolved-message] [:= :resolved-message.message/id :JobStoryInvoiceMessage.invoice/dispute-resolved-message-id]]})
+
+(defn dispute-search-resolver [_ {:keys [:arbiter :employer :candidate :limit :offset] :as args} _]
+  (db/with-async-resolver-conn conn
+    (log/debug "invoice-search-resolver" {:args args})
+    (let [query (cond-> dispute-query
+                  employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
+                  candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
+                  arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter]))]
+      (<? (paged-query conn query limit offset)))))
 
 (defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
@@ -969,7 +1009,8 @@
                             :jobSearch job-search-resolver
                             :jobStory job-story-resolver
                             :jobStoryList job-story-list-resolver
-                            :invoiceSearch invoice-search-resolver}
+                            :invoiceSearch invoice-search-resolver
+                            :disputeSearch dispute-search-resolver}
                     :Job {:jobStories job->job-stories-resolver
                           :job_employer job->employer-resolver
                           :job_arbiter job->arbiter-resolver
@@ -1004,6 +1045,11 @@
                               :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
                     :Arbitration {:job job-resolver}
+                    :Dispute {:job job-resolver
+                              :jobStory job-story-resolver
+                              :candidate candidate-resolver
+                              :employer employer-resolver
+                              :arbiter arbiter-resolver}
 
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver
