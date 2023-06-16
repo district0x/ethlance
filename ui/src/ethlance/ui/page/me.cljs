@@ -61,10 +61,9 @@
     [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
     [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
 
-
-(defn c-my-employer-job-listing []
+(defn c-job-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        job-query [:job-search {:search-params {:creator active-user}}
+        job-query [:job-search {:search-params {user-type active-user}}
                    [:total-count
                     [:items [:job/id
                              :job/title
@@ -95,6 +94,9 @@
    {:label "Finished Jobs"}
    [:div.listing.my-employer-job-listing
     [c-table-listing jobs-table finished-jobs job-link-fn]]]))
+
+(defn c-my-employer-job-listing []
+  [c-job-listing :creator])
 
 (defn c-contract-listing [query results-getter]
   (let [jobs @(re/subscribe [::gql/query {:queries [query]}])
@@ -305,7 +307,7 @@
 ;;
 
 (defn c-my-arbiter-job-listing []
-  [:div.not-implemented "Not Implemented - Arbiter - My Contracts"])
+  [c-job-listing :arbiter])
 
 (defn c-my-arbiter-dispute-listing []
   [c-dispute-listing :arbiter])

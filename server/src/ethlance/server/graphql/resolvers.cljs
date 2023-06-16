@@ -596,12 +596,11 @@
     (let [job-id (:job/id (graphql-utils/gql->clj parent))]
     (map :skill/id (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id job-id]}))))))
 
-(def job-search-input (atom nil)) ; TODO: remove after debugging
-
 (def ^:private job-search-query {:select [:Job.*]
                                  :from [:Job]
                                  :join [:Employer [:= :Employer.user/id :Job.job/creator]]
-                                 :left-join [:JobStory [:= :JobStory.job/id :Job.job/id]]})
+                                 :left-join [:JobStory [:= :JobStory.job/id :Job.job/id]
+                                             :JobArbiter [:ilike :JobArbiter.job/id :Job.job/id]]})
 
 (defn job-search-resolver [_ {:keys [:job/id
                                      :search-params
@@ -611,7 +610,6 @@
                                      :order-direction]
                                   :as args} _]
   (log/debug "job-search-resolver" args)
-  (reset! job-search-input args)
   (db/with-async-resolver-conn conn
     (let [search-params (js-obj->clj-map search-params)
           max-rating (:feedback-max-rating search-params)
@@ -622,6 +620,7 @@
           max-hourly-rate (:max-hourly-rate search-params)
           min-num-feedbacks (:min-num-feedbacks search-params)
           creator (:creator search-params)
+          arbiter (:arbiter search-params)
           payment-type (:payment-type search-params)
 
           experience-level (:experience-level search-params)
@@ -634,6 +633,7 @@
                   (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
 
                   creator (sql-helpers/merge-where [:ilike creator :Job.job/creator])
+                  arbiter (sql-helpers/merge-where [:ilike arbiter :JobArbiter.user/id])
 
                   ; The case for OR-ing the skills
                   ; (not (empty? skills)) (sql-helpers/merge-where [:in :JobSkill.skill/id skills])
