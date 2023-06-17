@@ -41,6 +41,7 @@
    :web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
    :web3-events {:events {:ethlance/job-created [:ethlance :JobCreated]
                           :ethlance/invoice-created [:ethlance :InvoiceCreated]
+                          :ethlance/invoice-paid [:ethlance :InvoicePaid]
                           :ethlance/dispute-raised [:ethlance :DisputeRaised]
                           :ethlance/dispute-resolved [:ethlance :DisputeResolved]
                           :ethlance/candidate-added [:ethlance :CandidateAdded]

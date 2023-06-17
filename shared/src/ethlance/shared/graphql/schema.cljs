@@ -86,9 +86,11 @@
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
+    disputeSearch(arbiter: String, candidate: String, employer: String): DisputeList
 
     \"Retrieve the Invoice Data defined by the invoice message id\"
-    invoice(message_id: Int!): Invoice
+    invoice(invoice_id: Int!): Invoice
+    invoiceSearch(candidate: String, employer: String): InvoiceList
   }
 
   # Input types
@@ -96,6 +98,7 @@
   input JobSearchParams {
     randomString: String
     creator: String
+    arbiter: String
     skills: [String]
     category: String
     feedbackMaxRating: Int
@@ -182,7 +185,7 @@
   type Mutation {
 
     signIn(dataSignature: String!, data: String!): signInPayload!
-    sendMessage(jobStory_id: Int!, to: ID!, text: String!): Boolean!,
+    sendMessage(jobStory_id: Int!, to: ID!, text: String!, jobStoryMessage_type: Keyword, message_type: Keyword): Boolean!,
     leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
     updateEmployer(input: EmployerInput!): updateEmployerPayload!,
     updateCandidate(input: CandidateInput!): updateCandidatePayload!,
@@ -332,7 +335,7 @@
       offset: Int
     ): FeedbackList
 
-    candidate_jobStories: JobStoryList
+    jobStories: JobStoryList
   }
 
   type CandidateList {
@@ -371,7 +374,7 @@
       offset: Int
     ): FeedbackList
 
-    employer_jobStories: JobStoryList
+    jobStories: JobStoryList
   }
 
   type EmployerList {
@@ -469,6 +472,7 @@
 
     jobStories(limit: Int, offset: Int): JobStoryList
     invoices(limit: Int, offset: Int): InvoiceList
+    invoice(invoice_id: Int!, job_id: String!): Invoice
 
     job_estimatedProjectLength: String
     job_maxNumberOfCandidates: Int
@@ -508,7 +512,9 @@
     jobStory_dispute: Dispute
 
     invitationMessage: JobStoryMessage
+    invitationAcceptedMessage: JobStoryMessage
     proposalMessage: JobStoryMessage
+    proposalAcceptedMessage: JobStoryMessage
     directMessages: [DirectMessage]
 
     jobStory_invoices(limit: Int, offset: Int): InvoiceList
@@ -516,7 +522,7 @@
     # The below fields were ethlanceJobStory_...
     jobStory_proposalRate: Float
     jobStory_proposalRateCurrencyId: Int
-    jobStory_dateCandidateAccepted: Date
+    jobStory_dateContractActive: Date
     jobStory_dateArbiterAccepted: Date
   }
 
@@ -543,6 +549,7 @@
 
     \"Identifier for the given JobStory\"
     jobStory_id: Int
+    jobStory: JobStory
 
     invoice_status: String
 
@@ -552,13 +559,20 @@
     \"Date the invoice was paid\"
     invoice_datePaid: Date
 
+    \"Date the invoice was requested\"
+    invoice_dateRequested: Date
+
     \"Amount of pay requested\"
     invoice_amountRequested: Float
 
     \"Amount of invoice actually paid\"
     invoice_amountPaid: Float
 
+    invoice_hoursWorked: Int
+    invoice_hourlyRate: Int
+
     creationMessage: JobStoryMessage
+    paymentMessage: JobStoryMessage
     disputeRaisedMessage: JobStoryMessage
     disputeResolvedMessage: JobStoryMessage
   }
@@ -574,11 +588,23 @@
   # Dispute Types
 
   type Dispute {
+    id: ID
+    invoice_id: String
     \"Identifier for the given Job\"
     job_id: String
 
+    job: Job
+    jobStory: JobStory
+
+    candidate: Candidate
+    employer: Employer
+    arbiter: Arbiter
+
+    invoice_amountRequested: Float
+    invoice_amountPaid: Float
+
     \"Identifier for the given JobStory\"
-    jobStory_id: ID
+    jobStory_id: Int
 
     \"Reason for the Dispute\"
     dispute_reason: String
@@ -591,9 +617,14 @@
 
     \"Date when the dispute was resolved\"
     dispute_dateResolved: Date
-
   }
 
+  type DisputeList  {
+    items: [Dispute]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
   # Feedback Types
 
   type Feedback {

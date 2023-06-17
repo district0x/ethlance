@@ -242,9 +242,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint _invoiceId,
     bytes memory _ipfsData
   ) public {
-    require(msg.sender == creator);
+    require(msg.sender == creator, "Only job creator can pay invoice");
     Invoice memory invoice = invoices[_invoiceId];
-    require(invoice.paid == false);
+    require(invoice.paid == false, "Invoice already paid");
 
     EthlanceStructs.transferTokenValue(invoice.item, address(this), invoice.issuer);
 

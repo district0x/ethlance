@@ -101,9 +101,30 @@
                           :message/text (:message/text ipfs-data)
                           :message/creator invoicer
                           :message/date-created (get-timestamp)
+                          :invoice/date-requested (get-timestamp)
                           :invoice/status "created"
                           :invoice/amount-requested (:token-amount offered-value)
                           :invoice/ref-id (:invoice-id args)}]
+     (<? (ethlance-db/add-message conn invoice-message)))))
+
+(defn handle-invoice-paid [conn _ {:keys [args]}]
+  (safe-go
+   (log/info "Handling event handle-invoice-paid")
+   (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
+         job-story-id (:job-story/id ipfs-data)
+         invoicer (:invoicer args)
+         invoice-message {:job-story/id (:job-story/id ipfs-data)
+                          :invoice/id (or (:invoice/id ipfs-data) (:invoice-id ipfs-data))
+                          :message/type :job-story-message
+                          :job-story-message/type :payment
+                          :message/creator (:payer ipfs-data)
+                          :message/date-created (get-timestamp)
+                          :message/text "Invoice paid"
+                          :invoice/hours-worked (:invoice/hours-worked ipfs-data)
+                          :invoice/hourly-rate (:invoice/hourly-rate ipfs-data)
+                          :invoice/date-paid (get-timestamp)
+                          :invoice/status "paid"}]
+
      (<? (ethlance-db/add-message conn invoice-message)))))
 
 (defn handle-dispute-raised [conn _ {:keys [args] :as dispute-raised-event}]
@@ -164,14 +185,15 @@
                                              [:= :JobStory.job/id job-id]
                                              [:!= :JobStory.job-story/status "completed"]]
                                      :order-by [[:job-story/date-created :desc]]}))
-         message {:job-story/id (:job-story/id job-story)
+         job-story-message-type (:job-story-message/type ipfs-data)
+         message {:job-story/id (:job-story/id ipfs-data)
                   :job/id job-id
+                  :candidate (:candidate ipfs-data)
                   :message/type :job-story-message
-                  :job-story-message/type :invitation
+                  :job-story-message/type job-story-message-type
                   :message/text (:text ipfs-data)
-                  :message/creator (:inviter ipfs-data)
+                  :message/creator (:message/creator ipfs-data)
                   :message/date-created (get-timestamp)}]
-     (println ">>> handle-candidate-added" {:candidate-id candidate-id :event event :message message})
      (<? (ethlance-db/add-message conn message)))))
 
 (defn handle-test-event [& args]
@@ -243,6 +265,7 @@
                          :ethlance/candidate-added handle-candidate-added
                          :ethlance/test-event handle-test-event
                          :ethlance/invoice-created handle-invoice-created
+                         :ethlance/invoice-paid handle-invoice-paid
                          :ethlance/dispute-raised handle-dispute-raised
                          :ethlance/dispute-resolved handle-dispute-resolved
                          }

@@ -150,7 +150,7 @@
   :jobStory_proposalMessageId 74,
   :jobStory_dateUpdated nil,
   :job_contract "0x15DeA784613B57a5427069d76f2b3E182ba44687",
-  :jobStory_dateCandidateAccepted nil})
+  :jobStory_dateContractActive nil})
 
 ; Detect if row exists
 (in-ns 'ethlance.server.graphql.resolvers)

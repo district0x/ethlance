@@ -306,7 +306,7 @@
 
      ; The following used to be :ethlance-job-story/...
      [:job-story/candidate :varchar]
-     [:job-story/date-candidate-accepted :bigint]
+     [:job-story/date-contract-active :bigint]
 
      ;; PK
      [(sql/call :primary-key :job-story/id)]
@@ -335,10 +335,14 @@
      [:job-story/id :integer]
      [:message/id :integer]
      [:invoice/status :varchar]
+     [:invoice/hours-worked :integer]
+     [:invoice/hourly-rate :integer]
      [:invoice/amount-requested :bigint]
      [:invoice/amount-paid :bigint]
+     [:invoice/date-requested :bigint]
      [:invoice/date-paid :bigint]
      [:invoice/ref-id :integer]
+     [:invoice/payment-message-id :integer]
      [:invoice/dispute-raised-message-id :integer]
      [:invoice/dispute-resolved-message-id :integer]
      ;; PK
@@ -346,6 +350,7 @@
      ;; FKs
      [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
+     [(sql/call :foreign-key :invoice/payment-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :invoice/dispute-raised-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :invoice/dispute-resolved-message-id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
@@ -744,13 +749,14 @@
                         :invitation "invitation"
                         "created")
          job-story-common-fields {:job/id (:job/id message)
-                                  :job-story/candidate (:message/creator message)
                                   :job-story/date-created (:message/date-created message)
                                   :job-story/status story-status
                                   :job-story/proposal-rate (:job-story/proposal-rate message)}
          job-story-params (case (:job-story-message/type message)
-                            :proposal (assoc job-story-common-fields :job-story/proposal-message-id msg-id)
-                            :invitation (assoc job-story-common-fields :job-story/invitation-message-id msg-id)
+                            :proposal (merge job-story-common-fields {:job-story/proposal-message-id msg-id
+                                                                      :job-story/candidate (:candidate message)})
+                            :invitation (merge job-story-common-fields {:job-story/invitation-message-id msg-id
+                                                                        :job-story/candidate (:candidate message)})
                             job-story-common-fields)
          job-story-id (or (:job-story/id message)
                           (:job-story/id (<? (insert-row! conn :JobStory job-story-params))))
@@ -768,25 +774,31 @@
                                                        :invoice/dispute-raised-message-id msg-id
                                                        :invoice/status "dispute-raised"})
 
-               :resolve-dispute
-               (do
-                 (println ">>> add-message :resolve-dispute" {:message message
-                                                              :job-story/id job-story-id
-                                                              :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                              :invoice/dispute-resolved-message-id msg-id
-                                                              :invoice/status "dispute-resolved"
-                                                              })
-                 (update-job-story-invoice-message conn {:job-story/id job-story-id
-                                                         :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                         :invoice/dispute-resolved-message-id msg-id
-                                                         :invoice/status "dispute-resolved"}))
+               :resolve-dispute (update-job-story-invoice-message conn
+                                                                  {:job-story/id job-story-id
+                                                                   :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                                   :invoice/dispute-resolved-message-id msg-id
+                                                                   :invoice/status "dispute-resolved"})
                :proposal (update-row! conn :JobStory (assoc message
                                                             :job-story/id (:job-story/id message)
                                                             :job-story/proposal-message-id msg-id))
                :invitation (update-row! conn :JobStory (assoc message
                                                               :job-story/id (:job-story/id message)
                                                               :job-story/invitation-message-id msg-id))
+               :accept-proposal (update-row! conn :JobStory (assoc message
+                                                                   :job-story/status "active"
+                                                                   :job-story/id (:job-story/id message)
+                                                                   :job-story/date-contract-active (:message/date-created message)))
+               :accept-invitation (update-row! conn :JobStory (assoc message
+                                                                     :job-story/status "active"
+                                                                     :job-story/id (:job-story/id message)
+                                                                     :job-story/date-contract-active (:message/date-created message)))
                :invoice (insert-row! conn :JobStoryInvoiceMessage message)
+               :payment (update-job-story-invoice-message conn
+                                                          {:job-story/id job-story-id
+                                                           :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                           :invoice/payment-message-id msg-id
+                                                           :invoice/status "paid"})
                :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
        :direct-message

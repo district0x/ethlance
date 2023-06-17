@@ -32,9 +32,15 @@
 (defn create-logging-handler
   ([] (create-logging-handler ""))
   ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
+
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
 (re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
 (re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
+
+(re/reg-event-fx :page.job-contract/set-accept-proposal-message-text
+                 (create-assoc-handler :accept-proposal-message-text))
+(re/reg-event-fx :page.job-contract/set-accept-invitation-message-text
+                 (create-assoc-handler :accept-invitation-message-text))
 
 (re/reg-event-fx :page.job-contract/set-dispute-text (create-assoc-handler :dispute-text))
 (re/reg-event-fx :page.job-contract/set-dispute-candidate-percentage (create-assoc-handler :dispute-candidate-percentage))
@@ -47,6 +53,18 @@
 (re/reg-event-fx :page.job-contract/tx-hash (create-logging-handler))
 (re/reg-event-db ::dispute-tx-error (create-logging-handler))
 
+(defn clear-forms [db]
+  (let [field-names [:message-text
+                     :message-recipient
+                     :dispute-text
+                     :dispute-candidate-percentage
+                     :feedback-rating
+                     :feedback-text
+                     :feedback-recipient
+                     :accept-invitation-message-text
+                     :accept-proposal-message-text]]
+    (reduce (fn [acc field] (assoc-in acc [state-key field] nil)) db field-names)))
+
 (defn send-feedback
   [{:keys [db]} [_event-name params]]
   (let [job-story-id (:job-story/id params)
@@ -57,7 +75,6 @@
                         :text text
                         :rating rating
                         :to to}]
-    (println ">>> send-feedback" {:mutation-params mutation-params :params params})
     {:fx [[:dispatch [::gql-events/mutation {:queries [[:leave-feedback mutation-params]]
                                              :id :SendEmployerFeedbackMutation}]]
           [:dispatch [:page.job-contract/refetch-messages]]
@@ -71,11 +88,31 @@
         mutation-params {:job-story/id job-story-id
                         :text text
                         :to to}]
-    {:dispatch [::gql-events/mutation
-                {:queries [[:send-message mutation-params]]
-                 :id :SendDirectMessageMutation}]}))
+    (println ">>> sending message mutation-params" mutation-params)
+    {:db (clear-forms db)
+     :fx [[:dispatch [::gql-events/mutation
+                      {:queries [[:send-message mutation-params]]
+                       :id :SendDirectMessageMutation}]]
+          [:dispatch [:page.job-contract/refetch-messages]]]}))
 
-(defn raise-dispute [{:keys [db]} [_ {invoice-id :invoice/id job-id :job/id job-story-id :job-story/id :as event}]]
+(defn accept-invitation
+  [{:keys [db]} [_event-name params]]
+  (let [job-story-id (:job-story/id params)
+        text (:text params)
+        to (:to params)
+        mutation-params {:job-story/id job-story-id
+                         :job-story-message/type :accept-invitation
+                         :message/type :job-story-message
+                         :text text
+                         :to to}]
+    {:db (clear-forms db)
+     :fx [[:dispatch [::gql-events/mutation
+                      {:queries [[:send-message mutation-params]]
+                       :id :SendDirectMessageMutation}]]
+          [:dispatch [:page.job-contract/refetch-messages]]]}))
+
+(defn raise-dispute [{:keys [db]}
+                     [_ {invoice-id :invoice/id job-id :job/id job-story-id :job-story/id :as event}]]
   (let [ipfs-dispute {:message/text (get-in db [state-key :dispute-text])
                       :message/creator (accounts-queries/active-account db)
                       :job/id job-id
@@ -108,15 +145,58 @@
                    :on-tx-success [::dispute-tx-success]
                    :on-tx-error [::dispute-tx-error]}]})))
 
-(defn clear-forms [db]
-  (let [field-names [:message-text
-                     :message-recipient
-                     :dispute-text
-                     :dispute-candidate-percentage
-                     :feedback-rating
-                     :feedback-text
-                     :feedback-recipient]]
-    (reduce (fn [acc field] (assoc-in acc [state-key field] nil)) db field-names)))
+(re/reg-event-fx
+  :page.job-contract/accept-proposal
+  (fn [{:keys [db]} [_ proposal-data]]
+    (println ">>> EVENT accept-proposal" proposal-data)
+    (let [to-ipfs {:candidate (:candidate proposal-data)
+                   :employer (:employer proposal-data)
+                   :job-story-message/type :accept-proposal
+                   :job-story/id (:job-story/id proposal-data)
+                   :job/id (:job/id proposal-data)
+                   :message/creator (:employer proposal-data)
+                   :text (:text proposal-data)}]
+      {:ipfs/call {:func "add"
+                   :args [(js/Blob. [to-ipfs])]
+                   :on-success [:accept-proposal-to-ipfs-success to-ipfs]
+                   :on-error [:accept-proposal-to-ipfs-failure to-ipfs]}})
+    ))
+
+(re/reg-event-fx
+  :accept-proposal-to-ipfs-success
+  (fn [{:keys [db]} [_event ipfs-accept ipfs-event]]
+    (println ">>> :accept-proposal-to-ipfs-success" _event ipfs-accept ipfs-event)
+    (let [creator (:employer ipfs-accept)
+          ipfs-hash (base58->hex (:Hash ipfs-event))
+          job-contract-address (:job/id ipfs-accept)
+          candidate (:candidate ipfs-accept)
+          tx-opts {:from creator :gas 10000000}]
+       {:dispatch [::web3-events/send-tx
+                  {:instance (contract-queries/instance db :job job-contract-address)
+                   :fn :add-candidate
+                   :args [candidate ipfs-hash]
+                   :tx-opts tx-opts
+                   :tx-hash [::tx-hash]
+                   :on-tx-hash-error [::tx-hash-error]
+                   :on-tx-success [::accept-proposal-tx-success]
+                   :on-tx-error [::accept-proposal-tx-failure]}]})))
+
+(re/reg-event-fx
+  ::accept-proposal-to-ipfs-failure
+  (fn [{:keys [db]} event]
+    (println ">>> :invitation-to-ipfs-failure" event)))
+
+(re/reg-event-fx
+  ::accept-proposal-tx-success
+  (fn [{:keys [db]} event]
+    (println ">>> ::send-invitation-tx-success" event)
+    {:db (clear-forms db)
+     :fx [[:dispatch [:page.job-contract/refetch-messages]]]}))
+
+(re/reg-event-fx
+  ::accept-proposal-tx-failure
+  (fn [{:keys [db]} event]
+    (println ">>> ::send-invitation-tx-failure" event)))
 
 (re/reg-event-fx
   :page.job-contract/clear-message-forms
@@ -129,7 +209,7 @@
     ; TODO: clear & disable form
     (println ">>> ethlance.ui.page.job-contract.events ::raise-dispute-tx-success" tx-data)
     {:db (clear-forms db)
-     :dispatch [:page.job-contract/refetch-messages]}))
+     :fx [[:dispatch [:page.job-contract/refetch-messages]]]}))
 
 (defn send-resolve-dispute-ipfs
   [{:keys [db]} [_ {invoice-id :invoice/id
@@ -182,5 +262,6 @@
 (re/reg-event-fx :page.job-contract/resolve-dispute send-resolve-dispute-ipfs)
 (re/reg-event-fx :page.job-contract/resolve-dispute-to-ipfs-success send-resolve-dispute-tx)
 (re/reg-event-fx :page.job-contract/send-message send-message)
+(re/reg-event-fx :page.job-contract/accept-invitation accept-invitation)
 (re/reg-event-fx :page.job-contract/raise-dispute raise-dispute)
 (re/reg-event-fx :page.job-contract/send-feedback send-feedback)
