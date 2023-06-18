@@ -29,27 +29,24 @@
   :page.jobs/job-search-params
   (fn [db _]
     (let [page-state (get-in db [jobs.events/state-key] {})
-          filter-keys [:skills
-                       [:category first]
-                       :feedback-max-rating
-                       :feedback-min-rating
-                       :min-hourly-rate
-                       :max-hourly-rate
-                       :min-num-feedbacks
-                       :payment-type
-                       :experience-level]
-          filter-params (reduce (fn [acc filter-key]
-                                  (let [raw-filter-val (get-in db [jobs.events/state-key filter-key])
-                                        set-type (type #{})
-                                        filter-val (if (vector? raw-filter-val)
-                                                     ((second raw-filter-val) (first raw-filter-val))
-                                                     raw-filter-val)
-                                        final-val (if (= set-type (type filter-val))
-                                                    (into [] filter-val)
-                                                    filter-val)]
-                                    (if (not (nil? final-val))
-                                      (assoc acc filter-key final-val)
-                                      acc)))
+          filters [[:skills #(into [] %)]
+                   [:category second]
+                   [:feedback-max-rating]
+                   [:feedback-min-rating]
+                   [:min-hourly-rate]
+                   [:max-hourly-rate]
+                   [:min-num-feedbacks]
+                   [:payment-type]
+                   [:experience-level]]
+          filter-params (reduce (fn [acc [filter-key & transformers]]
+                                  (let [filter-val (reduce #(%2 %1)
+                                                           (get-in db [jobs.events/state-key filter-key])
+                                                           (or transformers []))]
+                                    (if (or (nil? filter-val) ; Don't add nil or empty collections to the search
+                                            (and (sequential? filter-val)
+                                                 (empty? filter-val)))
+                                      acc
+                                      (assoc acc filter-key filter-val))))
                                 {}
-                                filter-keys)]
+                                filters)]
       {:search-params filter-params})))

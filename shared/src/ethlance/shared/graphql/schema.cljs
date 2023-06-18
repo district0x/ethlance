@@ -96,7 +96,6 @@
   # Input types
 
   input JobSearchParams {
-    randomString: String
     creator: String
     arbiter: String
     skills: [String]

@@ -1,5 +1,4 @@
-(ns ethlance.ui.page.jobs.graphql
-  (:require ))
+(ns ethlance.ui.page.jobs.graphql)
 
 (defn jobs-query [query-params]
   [:job-search query-params
@@ -13,6 +12,13 @@
              :job/required-availability
              :job/date-created
              :job/required-skills
+
+             :job/token-type
+             :job/token-amount
+             [:token-details [:token-detail/id
+                              :token-detail/name
+                              :token-detail/symbol]]
+
              [:job-stories [:total-count]]
 
              [:job/employer
@@ -27,7 +33,5 @@
                :arbiter/rating
                [:user [:user/name
                       :user/country]]
-               [:arbiter/feedback [:total-count]]]]
-
-             ]]]])
+               [:arbiter/feedback [:total-count]]]]]]]])
 

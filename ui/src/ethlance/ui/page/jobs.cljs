@@ -13,6 +13,7 @@
             [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.util.tokens :as tokens]
             [ethlance.ui.component.mobile-search-filter
              :refer
              [c-mobile-search-filter]]
@@ -53,8 +54,7 @@
         rating (get-in arbiter [:employer/rating])
         rating-count (get-in arbiter [:arbiter/feedback :total-count])
         country (get-in arbiter [:user :user/country])
-        address (get-in arbiter [:user/id])
-        ]
+        address (get-in arbiter [:user/id])]
     [:div.user-detail.arbiter
      {:on-click (util.navigation/create-handler {:route :route.user/profile
                                                  :params {:address address}
@@ -70,15 +70,22 @@
      [:div.location country]]))
 
 (defn c-job-detail-table
-  [{:job/keys [bid-option required-experience-level estimated-project-length required-availability]}]
+  [{:job/keys [bid-option required-experience-level estimated-project-length required-availability] :as job}]
   (let [experience-level (keyword required-experience-level)
         formatted-experience-level (case experience-level
                                      :beginner "Novice ($)"
                                      :intermediate "Professional ($$)"
-                                     :expert "Expert ($$$)")]
+                                     :expert "Expert ($$$)")
+        amount (str
+                 (tokens/human-amount (:job/token-amount job) (:job/token-type job))
+                 " "
+                 (get-in job [:token-details :token-detail/symbol]) " (" (get-in job [:token-details :token-detail/name]) ")")]
     [:div.job-detail-table
      [:div.name "Payment Type"]
      [:div.value (str/title bid-option)]
+
+     [:div.name "Funds available"]
+     [:div.value amount]
 
      [:div.name "Experience Level"]
      [:div.value formatted-experience-level]
@@ -181,9 +188,9 @@
         ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
         relative-ago (format/time-ago (new js/Date date-created))
         pluralized-proposals (inflections/pluralize proposals-count "proposal")]
-    [:div.job-element {:on-click (fn [event]
-                                    (re/dispatch [::router-events/navigate :route.job/detail {:id id}]))}
-     [:div.title title]
+    [:div.job-element
+     [:div.title {:on-click (fn [event] (re/dispatch [::router-events/navigate :route.job/detail {:id id}]))}
+      title]
      [:div.description description]
      [:div.date (str "Posted " relative-ago " | " pluralized-proposals)]
      [:div.tags
@@ -206,7 +213,8 @@
   (fn []
     (let [query-params (re/subscribe [:page.jobs/job-search-params])
           query (j-gql/jobs-query @query-params)
-          search-results @(re/subscribe [::gql/query {:queries [query]} {:id @query-params :refetch-on #{:gimme-jobs}}])
+          search-results @(re/subscribe [::gql/query {:queries [query]}
+                                         {:id @query-params}])
           job-listing-state (get search-results :graphql/loading?)
           loading? (contains? #{:start :loading} job-listing-state)
           job-listing (get-in (first search-results) [:job-search :items])]
