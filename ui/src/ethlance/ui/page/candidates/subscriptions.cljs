@@ -1,7 +1,7 @@
 (ns ethlance.ui.page.candidates.subscriptions
   (:require
    [re-frame.core :as re]
-
+   [ethlance.ui.util.graphql :as graphql-util]
    [ethlance.ui.page.candidates.events :as candidates.events]
    [ethlance.ui.subscription.utils :as subscription.utils]))
 
@@ -23,25 +23,14 @@
 (re/reg-sub
   :page.candidates/search-params
   (fn [db _]
-    (let [page-state (get-in db [candidates.events/state-key] {})
-          filters [[:skills #(into [] %)]
-                   [:category second]
-                   [:feedback-max-rating]
-                   [:feedback-min-rating]
-                   [:min-hourly-rate]
-                   [:max-hourly-rate]
-                   [:min-num-feedbacks]
-                   [:country]]
-          filter-params (reduce (fn [acc [filter-key & transformers]]
-                                  (let [filter-val (reduce #(%2 %1)
-                                                           (get-in db [candidates.events/state-key filter-key])
-                                                           (or transformers []))]
-                                    (if (or (nil? filter-val) ; Don't add nil or empty collections to the search
-                                            (and (sequential? filter-val)
-                                                 (empty? filter-val)))
-                                      acc
-                                      (assoc acc filter-key filter-val))))
-                                {}
-                                filters)]
-      {:search-params filter-params})
-    ))
+    {:search-params
+     (graphql-util/prepare-search-params
+       (get-in db [candidates.events/state-key] {})
+       [[:skills #(into [] %)]
+        [:category second]
+        [:feedback-max-rating]
+        [:feedback-min-rating]
+        [:min-hourly-rate]
+        [:max-hourly-rate]
+        [:min-num-feedbacks]
+        [:country]])}))

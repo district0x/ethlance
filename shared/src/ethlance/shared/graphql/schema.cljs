@@ -64,6 +64,7 @@
 
     arbiterSearch(
       user_id: ID,
+      searchParams: ArbiterSearchParams
       orderBy: ArbiterListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -114,6 +115,17 @@
     feedbackMaxRating: Int
     paymentType: Keyword
 
+    category: String
+    skills: [String]
+    country: String
+  }
+
+  input ArbiterSearchParams {
+    feedbackMinRating: Int
+    feedbackMaxRating: Int
+    minHourlyRate: Int
+    maxHourlyRate: Int
+    minNumFeedbacks: Int
     category: String
     skills: [String]
     country: String
@@ -398,6 +410,8 @@
     arbiter_rating: Float
     arbiter_feeCurrencyId: Keyword
     arbiter_fee: Int
+    arbiter_skills: [String]
+    arbiter_categories: [String]
     arbiter_feedback(
       limit: Int,
       offset: Int

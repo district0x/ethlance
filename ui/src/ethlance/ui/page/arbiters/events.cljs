@@ -11,21 +11,19 @@
   {:offset 0
    :limit 10
    :skills #{}
-   :category constants/category-default
-   :feedback-min-rating 1
+   :category ["All Categories" nil]
+   :feedback-min-rating nil
    :feedback-max-rating 5
    :min-hourly-rate nil
    :max-hourly-rate nil
    :min-num-feedbacks nil
    :country nil})
 
+
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  [{:keys []} _]
-  {::router.effects/watch-active-page
-   [{:id :page.arbiters/initialize-page
-     :name :route.user/candidates
-     :dispatch []}]})
+  [{:keys [db]} _]
+  {:db (assoc-in db [state-key] state-default)})
 
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."

@@ -71,7 +71,7 @@
    [cf-candidate-search-filter]])
 
 (defn c-candidate-element [candidate]
-  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {}])}
+  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {:tab "candidate"}])}
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
     [:div.name (-> candidate :user :user/name)]
@@ -92,11 +92,8 @@
 (defn c-candidate-listing []
   (let [*limit (re/subscribe [:page.candidates/limit])
         *offset (re/subscribe [:page.candidates/offset])
-        ; query-params {:search-params {:feedback-min-rating 0 :feedback-max-rating 5}}
-        query-params (re/subscribe [:page.candidates/search-params])
-        ]
+        query-params (re/subscribe [:page.candidates/search-params])]
     (fn []
-      (println ">>> doing new query" @query-params)
       (let [query [:candidate-search @query-params
                    [:total-count
                     [:items [:user/id
@@ -111,15 +108,13 @@
                              :candidate/rating
                              :candidate/rate
                              :candidate/rate-currency-id]]]]
-            *candidate-listing-query (re/subscribe [::gql/query {:queries [query]}
-                                                    {:id @query-params}])
+            *candidate-listing-query (re/subscribe [::gql/query {:queries [query]} {:id @query-params}])
             {candidate-search  :candidate-search
              preprocessing?    :graphql/preprocessing?
              loading?          :graphql/loading?
              errors            :graphql/errors} @*candidate-listing-query
             {candidate-listing :items
              total-count       :total-count} candidate-search]
-        (println ">>> TOTAL COUNT" total-count " | " candidate-search)
         [:<>
          (cond
            ;; Errors?
