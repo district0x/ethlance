@@ -10,19 +10,15 @@
   {:offset 0
    :limit 10
    :skills #{}
-   :category constants/category-default
-   :feedback-min-rating 1
+   :category ["All Categories" nil]
+   :feedback-min-rating nil
    :feedback-max-rating 5
-   :payment-type :fixed-price
    :country nil})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  [{:keys []} _]
-  {::router.effects/watch-active-page
-   [{:id :page.candidates/initialize-page
-     :name :route.user/candidates
-     :dispatch []}]})
+  [{:keys [db]} _]
+  {:db (assoc-in db [state-key] state-default)})
 
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."
@@ -34,15 +30,6 @@
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
-; TODO: extract this to reusable function (also used in page.jobs.events)
-(defn trigger-search
-  "Stores (assoc) the changed value to app-db and causes event to be dispatched
-  that queries GQL API with search params"
-  [handler-fn]
-  (fn [cofx & [event value]]
-    {:db (:db (handler-fn cofx event value))
-     :dispatch [:page.candidates/search-params-updated]}))
-
 (re/reg-event-fx :page.candidates/initialize-page initialize-page)
 (re/reg-event-fx :page.candidates/set-offset (create-assoc-handler :offset))
 (re/reg-event-fx :page.candidates/set-limit (create-assoc-handler :limit))
@@ -52,6 +39,4 @@
 (re/reg-event-fx :page.candidates/set-category (create-assoc-handler :category))
 (re/reg-event-fx :page.candidates/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
 (re/reg-event-fx :page.candidates/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
-; (re/reg-event-fx :page.candidates/set-payment-type (create-assoc-handler :payment-type))
-(re/reg-event-fx :page.candidates/set-payment-type (trigger-search (create-assoc-handler :payment-type)))
 (re/reg-event-fx :page.candidates/set-country (create-assoc-handler :country))

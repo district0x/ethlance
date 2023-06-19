@@ -251,13 +251,7 @@
       (:type (<? (db/get conn q))))))
 
 (def ^:private candidate-query
-  {:select [[:Users.user/id :user/id]
-            [:Candidate.candidate/professional-title :candidate/professional-title]
-            [:Candidate.candidate/bio :candidate/bio]
-            [:Candidate.candidate/rate :candidate/rate]
-            [:Candidate.candidate/rating :candidate/rating]
-            [:Candidate.candidate/rate-currency-id :candidate/rate-currency-id]
-            [:Users.user/date-registered :candidate/date-registered]]
+  {:select [:Candidate.*]
    :from [:Candidate]
    :join [:Users [:ilike :Users.user/id :Candidate.user/id]]})
 
@@ -366,22 +360,25 @@
                                            :order-by :order-direction]
                                     :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug "candidate-search-resolver" {:args args})
+    (log/debug "candidate-search-resolver")
     (let [search-params (js-obj->clj-map search-params)
-          categories-and (:categories-and search-params)
-          categories-or (:categories-or search-params)
-          skills-and (:skills-and search-params)
-          skills-or (:skills-or search-params)
+          _ (println ">>> candidate-search-resolver search-params" search-params)
+          categories-and (when (:category search-params) [(:category search-params)])
+          categories-or nil
+          skills-and (or (js->clj (:skills search-params)) [])
+          skills-or nil
           min-rating (:feedback-min-rating search-params)
           max-rating (:feedback-max-rating search-params)
-          professional-title (:professional-title search-params)
+          country (:country search-params)
+
 
           query (cond-> (merge candidate-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Candidate.candidate/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Candidate.candidate/rating])
+                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Candidate.candidate/rating])
                   id (sql-helpers/merge-where [:= :Candidate.user/id id])
 
-                  professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
+                  country (sql-helpers/merge-where [:= country :Users.user/country])
 
                   categories-or (sql-helpers/merge-left-join :CandidateCategory
                                                              [:= :CandidateCategory.user/id :Candidate.user/id])
@@ -398,7 +395,7 @@
 
                   skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
 
-                  skills-and (match-all {:join-table :CandidateSkill
+                  (not (empty? skills-and)) (match-all {:join-table :CandidateSkill
                                          :on-column :user/id
                                          :column :skill/id
                                          :all-values skills-and})

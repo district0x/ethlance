@@ -5,6 +5,7 @@
             [district.ui.router.events :as router-events]
             [ethlance.shared.constants :as constants]
             [district.ui.graphql.subs :as gql]
+            [ethlance.ui.util.tokens :as tokens]
             [ethlance.ui.component.error-message :refer [c-error-message]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
@@ -29,7 +30,6 @@
   (let [*category (re/subscribe [:page.candidates/category])
         *feedback-max-rating (re/subscribe [:page.candidates/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.candidates/feedback-min-rating])
-        *payment-type (re/subscribe [:page.candidates/payment-type])
         *country (re/subscribe [:page.candidates/country])]
     (fn []
       [:<>
@@ -37,6 +37,8 @@
         [c-select-input
          {:selection @*category
           :color :secondary
+          :label-fn first
+          :value-fn second
           :selections constants/categories-with-default
           :on-select #(re/dispatch [:page.candidates/set-category %])}]]
 
@@ -47,14 +49,6 @@
        [:span.rating-label "Max. Rating"]
        [c-rating {:rating @*feedback-max-rating :color :white :size :small
                   :on-change #(re/dispatch [:page.candidates/set-feedback-max-rating %])}]
-
-       [:span.selection-label "Payment Type"]
-       [c-radio-select
-        {:selection @*payment-type
-         :on-selection #(re/dispatch [:page.candidates/set-payment-type %])}
-        [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
-        [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
-        [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
 
        [:div.country-selector
         [c-select-input
@@ -81,8 +75,8 @@
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
     [:div.name (-> candidate :user :user/name)]
-    [:div.title (str/title (-> candidate :candidate/professional-title))]]
-   [:div.price (-> candidate :candidate/rate)]
+    [:div.title (str/title (-> candidate :candidate/professional-title)) (str " (" (-> candidate :user :user/country) ")")]]
+   [:div.price (tokens/human-currency-amount (-> candidate :candidate/rate-currency-id) (-> candidate :candidate/rate))]
    [:div.tags
     (doall
      (for [tag-label (-> candidate :candidate/skills)]
@@ -108,6 +102,7 @@
                     [:items [:user/id
                              [:user [:user/id
                                      :user/name
+                                     :user/country
                                      :user/profile-image]]
                              [:candidate/feedback [:total-count]]
                              :candidate/professional-title
@@ -117,8 +112,7 @@
                              :candidate/rate
                              :candidate/rate-currency-id]]]]
             *candidate-listing-query (re/subscribe [::gql/query {:queries [query]}
-                                                    {:refetch-on #{:page.candidates/search-params-updated}}])
-            _ (println ">>>> WHOLE candidate-listing-query" @*candidate-listing-query)
+                                                    {:id @query-params}])
             {candidate-search  :candidate-search
              preprocessing?    :graphql/preprocessing?
              loading?          :graphql/loading?

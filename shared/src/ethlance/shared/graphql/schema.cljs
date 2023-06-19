@@ -112,13 +112,11 @@
   input CandidateSearchParams {
     feedbackMinRating: Int
     feedbackMaxRating: Int
-    paymentType: String
+    paymentType: Keyword
 
-    categoriesAnd: [String]
-    categoriesOr: [String]
-    skillsAnd: [String]
-    skillsOr: [String]
-    professionalTitle: String
+    category: String
+    skills: [String]
+    country: String
   }
 
   input EmployerInput {

@@ -10,6 +10,12 @@
     :eth (wei->eth amount)
     amount))
 
+(defn human-currency-amount [currency-id amount]
+  (case currency-id
+    :usd (str "$ " amount)
+    :eur (str amount " €")
+    amount))
+
 (defn address->token-info-url [address]
   (str "https://ethplorer.io/address/" address))
 

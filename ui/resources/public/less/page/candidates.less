@@ -2,8 +2,13 @@
 
 #candidates() {
   .search-filter-content {
-    > .category-selector , > .country-selector {
+    > .category-selector {
       margin: 1.5em 0;
+    }
+
+    > .country-selector {
+      margin: 1.5em 0;
+      height: 25em;
     }
 
     > .rating-label , > .selection-label {
@@ -45,7 +50,7 @@
 
         margin: 2em;
         max-width: 100vw;
-        
+
         @media #media[tablet-query] {
           margin: 1.5em;
         }
