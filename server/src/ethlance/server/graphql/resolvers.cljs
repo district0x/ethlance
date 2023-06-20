@@ -236,7 +236,6 @@
   (db/with-async-resolver-conn conn
     (log/debug "arbiter-search-resolver" args)
     (let [search-params (js-obj->clj-map search-params)
-          _ (println ">>> arbiter-search-resolver search-params" search-params)
           categories-and (when (:category search-params) [(:category search-params)])
           categories-or nil ; Not used, switch form ...-and if want this behaviour
           skills-and (or (js->clj (:skills search-params)) [])
@@ -408,7 +407,6 @@
   (db/with-async-resolver-conn conn
     (log/debug "candidate-search-resolver")
     (let [search-params (js-obj->clj-map search-params)
-          _ (println ">>> candidate-search-resolver search-params" search-params)
           categories-and (when (:category search-params) [(:category search-params)])
           categories-or nil
           skills-and (or (js->clj (:skills search-params)) [])
@@ -522,7 +520,8 @@
 
 (defn- arbiter-arbitrations-query [id]
   {:select
-   [:JobArbiter.user/id
+   [[:JobStory.job-story/id :id]
+    :JobArbiter.user/id
     :JobArbiter.job/id
     [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
     [:JobArbiter.job-arbiter/fee :arbitration/fee]
@@ -878,7 +877,6 @@
                                        :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
-  (println ">>> leave-feedback-mutation" {:params params :current-user current-user :timestamp timestamp})
   ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
     (let [job-story-id id
@@ -894,12 +892,6 @@
           arbiter-feedback-before-ending? (and (not= previous-status "ended-by-feedback")
                                                (not feedback-from-participants?))]
 
-      (println ">>> leave-feedback-mutation PARAMS:" {:previous-status previous-status
-                                                      :arbiter-feedback-before-ending? arbiter-feedback-before-ending?
-                                                      :participants participants
-                                                      :employer employer
-                                                      :candidate candidate
-                                                      :feedback-from-participants? feedback-from-participants?})
       (when feedback-from-participants?
        (<? (ethlance-db/update-job-story-status conn job-story-id "finished")))
       (when arbiter-feedback-before-ending? (throw (js/Error. "Arbiter can't leave feedback before job contract has been ended")))

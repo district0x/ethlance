@@ -18,6 +18,7 @@
             [district.format :as format]
             [cljsjs.graphql]
             [clojure.string :as string]
+            [ethlance.ui.util.dates :as util.dates]
             [district.graphql-utils :as utils]
             [district.ui.graphql.subs :as gql]
             [re-frame.core :as re]))
@@ -28,7 +29,7 @@
 
 (defn- format-date-looking-column [column value]
   (if (string/ends-with? (name column) "-date")
-    (format/format-datetime (utils/gql-date->date value))
+    (util.dates/formatted-date value)
     value))
 
 (defn c-job-activity-row [job column-names]
@@ -133,10 +134,10 @@
    :image-url (-> item :feedback/from-user :user/profile-image)
    :author (get-in item [:feedback/from-user :user/name])})
 
-(defn prepare-jobs [story]
+(defn prepare-candidate-jobs [story]
   {:title (get-in story [:job :job/title])
    :start-date (get-in story [:job-story/date-contract-active])
-   :status (get-in story [:job :job/status])})
+   :status (get-in story [:job-story/status])})
 
 (defn prepare-employer-jobs [story]
   {:title (get-in story [:job :job/title])
@@ -145,15 +146,9 @@
 
 (defn prepare-arbitrations [arbitration]
   {:title (get-in arbitration [:job :job/title])
-   :start-date (get-in arbitration [:arbitration/date-arbiter-accepted])
+   :start-date (get-in arbitration [:arbitration/date-arbiter-accepted]) ;
    :fee (str (get-in arbitration [:arbitration/fee]) " " (get-in arbitration [:arbitration/fee-currency-id]))
    :status (get-in arbitration [:arbitration/status])})
-
-(defn mock-feedback-list []
-  [{:rating 1 :text "First job good" :author "Siimar Sapikas" :image-url "https://i.pravatar.cc/300?img=1"}
-   {:rating 2 :text "Second job better" :author "John Doe" :image-url "https://i.pravatar.cc/300?img=2"}
-   {:rating 3 :text "Third job best" :author "Mary Jane" :image-url "https://i.pravatar.cc/300?img=3"}
-   {:rating 4 :text "Fourth job last" :author "Siimar Sapikas" :image-url "https://i.pravatar.cc/300?img=4"}])
 
 (defn c-candidate-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
@@ -176,6 +171,7 @@
                      items {
                        job {job_title job_status}
                        jobStory_dateContractActive
+                       jobStory_status
                      }
                    }
                  }
@@ -189,8 +185,8 @@
             image-url (get-in @results [:user :user/profile-image])
             languages (get-in @results [:user :user/languages])
             skills (get-in @results [:candidate :candidate/skills])
-            job-activity-column-headers {:title "Title" :start-date "Created"}
-            jobs (map prepare-jobs (get-in @results [:candidate :candidate/job-stories :items]))
+            job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
+            jobs (map prepare-candidate-jobs (get-in @results [:candidate :job-stories :items]))
             feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
             rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
         [:<>
@@ -277,29 +273,37 @@
 
 (defn c-arbiter-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
-        query "query ($id: ID!) {
-                 user(user_id: $id) { user_name user_profileImage user_country user_languages }
-                 arbiter(user_id: $id) {
-                   arbiter_professionalTitle
-                   arbiter_bio
-                   arbiter_rating
-                   arbiter_fee
-                   arbiter_feeCurrencyId
-                   arbiter_feedback { items { message_id feedback_text feedback_rating feedback_fromUser { user_name user_profileImage} } }
-                   arbitrations {
-                     items {
-                       arbitration_dateArbiterAccepted
-                       arbitration_fee
-                       arbitration_feeCurrencyId
-                       arbitration_status
-                       job {
-                         job_title
-                       }
-                     }
-                   }
-                 }
-               }"
-        results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}}])]
+        query [:arbiter {:user/id (:address @page-params)}
+               [:arbiter/professional-title
+                :arbiter/bio
+                :arbiter/rating
+                :arbiter/fee
+                :arbiter/fee-currency-id
+                [:user
+                 [:user/name
+                  :user/profile-image
+                  :user/country
+                  :user/languages]]
+                [:arbitrations
+                 [:total-count
+                  [:items
+                   [:id
+                    :arbitration/date-arbiter-accepted
+                   :arbitration/fee
+                   :arbitration/fee-currency-id
+                   :arbitration/status
+                   [:job
+                    [:job/title]]]]]]
+                [:arbiter/feedback
+                 [:total-count
+                  [:items
+                  [:message/id
+                   :feedback/text
+                   :feedback/rating
+                   [:feedback/from-user
+                    [:user/name
+                     :user/profile-image]]]]]]]]
+        results (re/subscribe [::gql/query {:queries [query]}])]
     (fn []
       (let [name (get-in @results [:user :user/name])
             location (get-in @results [:user :user/country])

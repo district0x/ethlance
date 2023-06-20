@@ -422,9 +422,10 @@
   }
 
   type Arbitration {
-    user_id: ID
+    id: ID
+    user_id: String
     job_id: String
-    arbitration_dateArbiterAccepted: String
+    arbitration_dateArbiterAccepted: Float
     arbitration_fee: Int
     arbitration_feeCurrencyId: String
     arbitration_status: String
