@@ -114,17 +114,19 @@
     feedbackMinRating: Int
     feedbackMaxRating: Int
     paymentType: Keyword
-
     category: String
     skills: [String]
+    minHourlyRate: Int
+    maxHourlyRate: Int
+    minNumFeedbacks: Int
     country: String
   }
 
   input ArbiterSearchParams {
     feedbackMinRating: Int
     feedbackMaxRating: Int
-    minHourlyRate: Int
-    maxHourlyRate: Int
+    minFee: Int
+    maxFee: Int
     minNumFeedbacks: Int
     category: String
     skills: [String]

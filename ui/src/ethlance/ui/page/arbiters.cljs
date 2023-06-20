@@ -26,8 +26,8 @@
   (let [*category (re/subscribe [:page.arbiters/category])
         *feedback-max-rating (re/subscribe [:page.arbiters/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.arbiters/feedback-min-rating])
-        *min-hourly-rate (re/subscribe [:page.arbiters/min-hourly-rate])
-        *max-hourly-rate (re/subscribe [:page.arbiters/max-hourly-rate])
+        *min-fee (re/subscribe [:page.arbiters/min-fee])
+        *max-fee (re/subscribe [:page.arbiters/max-fee])
         *min-num-feedbacks (re/subscribe [:page.arbiters/min-num-feedbacks])
         *country (re/subscribe [:page.arbiters/country])]
     (fn []
@@ -49,20 +49,20 @@
                   :on-change #(re/dispatch [:page.arbiters/set-feedback-max-rating %])}]
 
        [c-currency-input
-        {:placeholder "Min. Hourly Rate"
+        {:placeholder "Min. Fee"
          :currency-type ::enum.currency/usd
          :color :secondary
          :min 0
-         :value @*min-hourly-rate
-         :on-change #(re/dispatch [:page.arbiters/set-min-hourly-rate %])}]
+         :value @*min-fee
+         :on-change #(re/dispatch [:page.arbiters/set-min-fee %])}]
 
        [c-currency-input
-        {:placeholder "Max. Hourly Rate"
+        {:placeholder "Max. Fee"
          :currency-type ::enum.currency/usd
          :color :secondary
          :min 0
-         :value @*max-hourly-rate
-         :on-change #(re/dispatch [:page.arbiters/set-max-hourly-rate %])}]
+         :value @*max-fee
+         :on-change #(re/dispatch [:page.arbiters/set-max-fee %])}]
 
        [:div.feedback-input
         [c-text-input

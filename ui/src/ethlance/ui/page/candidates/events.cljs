@@ -1,5 +1,6 @@
 (ns ethlance.ui.page.candidates.events
   (:require [district.ui.router.effects :as router.effects]
+            [district.parsers :refer [parse-int]]
             [ethlance.shared.constants :as constants]
             [ethlance.ui.event.templates :as event.templates]
             [ethlance.ui.event.utils :as event.utils]
@@ -39,4 +40,7 @@
 (re/reg-event-fx :page.candidates/set-category (create-assoc-handler :category))
 (re/reg-event-fx :page.candidates/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
 (re/reg-event-fx :page.candidates/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
+(re/reg-event-fx :page.candidates/set-min-hourly-rate (event.templates/create-set-min-hourly-rate state-key))
+(re/reg-event-fx :page.candidates/set-max-hourly-rate (event.templates/create-set-max-hourly-rate state-key))
+(re/reg-event-fx :page.candidates/set-min-num-feedbacks (create-assoc-handler :min-num-feedbacks parse-int))
 (re/reg-event-fx :page.candidates/set-country (create-assoc-handler :country))

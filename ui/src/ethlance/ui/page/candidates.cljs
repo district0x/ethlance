@@ -6,6 +6,8 @@
             [ethlance.shared.constants :as constants]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.tokens :as tokens]
+            [ethlance.shared.enumeration.currency-type :as enum.currency]
+            [ethlance.ui.component.currency-input :refer [c-currency-input]]
             [ethlance.ui.component.error-message :refer [c-error-message]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
@@ -22,6 +24,7 @@
             [ethlance.ui.component.search-input :refer [c-chip-search-input]]
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+            [ethlance.ui.component.text-input :refer [c-text-input]]
             [re-frame.core :as re]))
 
 (defn cf-candidate-search-filter
@@ -30,6 +33,9 @@
   (let [*category (re/subscribe [:page.candidates/category])
         *feedback-max-rating (re/subscribe [:page.candidates/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.candidates/feedback-min-rating])
+        *min-hourly-rate (re/subscribe [:page.candidates/min-hourly-rate])
+        *max-hourly-rate (re/subscribe [:page.candidates/max-hourly-rate])
+        *min-num-feedbacks (re/subscribe [:page.candidates/min-num-feedbacks])
         *country (re/subscribe [:page.candidates/country])]
     (fn []
       [:<>
@@ -49,6 +55,30 @@
        [:span.rating-label "Max. Rating"]
        [c-rating {:rating @*feedback-max-rating :color :white :size :small
                   :on-change #(re/dispatch [:page.candidates/set-feedback-max-rating %])}]
+
+       [c-currency-input
+        {:placeholder "Min. Hourly Rate"
+         :currency-type ::enum.currency/usd
+         :color :secondary
+         :min 0
+         :value @*min-hourly-rate
+         :on-change #(re/dispatch [:page.candidates/set-min-hourly-rate %])}]
+
+       [c-currency-input
+        {:placeholder "Max. Hourly Rate"
+         :currency-type ::enum.currency/usd
+         :color :secondary
+         :min 0
+         :value @*max-hourly-rate
+         :on-change #(re/dispatch [:page.candidates/set-max-hourly-rate %])}]
+
+       [:div.feedback-input
+        [c-text-input
+         {:placeholder "Number of Feedbacks"
+          :color :secondary
+          :type :number :min 0
+          :value @*min-num-feedbacks
+          :on-change #(re/dispatch [:page.candidates/set-min-num-feedbacks %])}]]
 
        [:div.country-selector
         [c-select-input

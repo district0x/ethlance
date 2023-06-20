@@ -14,8 +14,8 @@
    :category ["All Categories" nil]
    :feedback-min-rating nil
    :feedback-max-rating 5
-   :min-hourly-rate nil
-   :max-hourly-rate nil
+   :min-fee nil
+   :max-fee nil
    :min-num-feedbacks nil
    :country nil})
 
@@ -43,7 +43,7 @@
 (re/reg-event-fx :page.arbiters/set-category (create-assoc-handler :category))
 (re/reg-event-fx :page.arbiters/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
 (re/reg-event-fx :page.arbiters/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
-(re/reg-event-fx :page.arbiters/set-min-hourly-rate (event.templates/create-set-min-hourly-rate state-key))
-(re/reg-event-fx :page.arbiters/set-max-hourly-rate (event.templates/create-set-max-hourly-rate state-key))
+(re/reg-event-fx :page.arbiters/set-min-fee (create-assoc-handler :min-fee parse-int))
+(re/reg-event-fx :page.arbiters/set-max-fee (create-assoc-handler :max-fee parse-int))
 (re/reg-event-fx :page.arbiters/set-min-num-feedbacks (create-assoc-handler :min-num-feedbacks parse-int))
 (re/reg-event-fx :page.arbiters/set-country (create-assoc-handler :country))

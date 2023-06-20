@@ -243,6 +243,9 @@
           skills-or nil ; Not used, switch form ...-and if want this behaviour
           min-rating (:feedback-min-rating search-params)
           max-rating (:feedback-max-rating search-params)
+          min-fee (:min-fee search-params)
+          max-fee (:max-fee search-params)
+          min-num-feedbacks (:min-num-feedbacks search-params)
           country (:country search-params)
 
           query (cond-> (merge arbiter-query {:modifiers [:distinct]})
@@ -267,6 +270,13 @@
                                                          [:= :ArbiterSkill.user/id :Arbiter.user/id])
 
                   skills-or (sql-helpers/merge-where [:in :ArbiterSkill.skill/id skills-or])
+                  min-fee (sql-helpers/merge-where [:>= :Arbiter.arbiter/fee min-fee])
+                  max-fee (sql-helpers/merge-where [:<= :Arbiter.arbiter/fee max-fee])
+                  min-num-feedbacks (sql-helpers/merge-where
+                                      [:<= min-num-feedbacks
+                                       {:select [(sql/call :count :*)]
+                                        :from [:JobStoryFeedbackMessage]
+                                        :where [:= :JobStoryFeedbackMessage.user/id :Arbiter.user/id]}])
 
                   (not (empty? skills-and)) (match-all {:join-table :ArbiterSkill
                                          :on-column :user/id
@@ -405,6 +415,9 @@
           skills-or nil
           min-rating (:feedback-min-rating search-params)
           max-rating (:feedback-max-rating search-params)
+          min-hourly (:min-hourly-rate search-params)
+          max-hourly (:max-hourly-rate search-params)
+          min-num-feedbacks (:min-num-feedbacks search-params)
           country (:country search-params)
 
           query (cond-> (merge candidate-query {:modifiers [:distinct]})
@@ -429,6 +442,13 @@
                                                          [:= :CandidateSkill.user/id :Candidate.user/id])
 
                   skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
+                  min-hourly (sql-helpers/merge-where [:>= :Candidate.candidate/rate min-hourly])
+                  max-hourly (sql-helpers/merge-where [:<= :Candidate.candidate/rate max-hourly])
+                  min-num-feedbacks (sql-helpers/merge-where
+                                      [:<= min-num-feedbacks
+                                       {:select [(sql/call :count :*)]
+                                        :from [:JobStoryFeedbackMessage]
+                                        :where [:= :JobStoryFeedbackMessage.user/id :Candidate.user/id]}])
 
                   (not (empty? skills-and)) (match-all {:join-table :CandidateSkill
                                          :on-column :user/id
