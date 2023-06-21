@@ -20,7 +20,7 @@
    :min-num-feedbacks nil
    :payment-type nil
    :offset 0
-   :limit 4
+   :limit 10
    :experience-level nil})
 
 (defn initialize-page

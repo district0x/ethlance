@@ -8,11 +8,12 @@
 
 (re/reg-sub :page.job-detail/proposal-token-amount (create-get-handler :job/proposal-token-amount))
 (re/reg-sub :page.job-detail/proposal-text (create-get-handler :job/proposal-text))
-
+(re/reg-sub :page.job-detail/proposal-offset (create-get-handler :proposal-offset))
+(re/reg-sub :page.job-detail/proposal-limit (create-get-handler :proposal-limit))
 (re/reg-sub
-  :page.job-detail/job-stories-updated
-  (fn [db query-v]
-    (vals (get-in db [:job-stories]))))
+  :page.job-detail/proposal-total-count
+  (fn [db]
+    (get-in db [job-detail.events/state-key :proposal-total-count])))
 
 (re/reg-sub
   :page.job-detail/all-proposals
@@ -39,7 +40,9 @@
   :page.job-detail/active-proposals
   :<- [:page.job-detail/all-proposals]
   (fn [proposals _]
-    (filter #(not= :deleted (:status %)) proposals)))
+    (filter #(and
+               (not (nil? (get % :job-story/proposal-message-id)))
+               (not= :deleted (:status %))) proposals)))
 
 (defn seek
   "Returns first item from coll for which (pred item) returns true.

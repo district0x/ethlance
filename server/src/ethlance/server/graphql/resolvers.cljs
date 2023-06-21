@@ -751,6 +751,18 @@
                  :where [:= :JobStory.job/id contract]}]
       (<? (db/all conn query)))))
 
+(defn job-story-search-resolver [_ args _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story-search-resolver" args)
+    (let [contract (:job/id args)
+          query {:select [:*]
+                 :from [:JobStory]
+                 :where [:= :JobStory.job/id contract]}
+          limit (:limit args)
+          offset (:offset args)]
+      (<? (paged-query conn query limit offset)))))
+
+
 (def ^:private invoice-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
                               :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
@@ -1069,6 +1081,7 @@
                             :jobSearch job-search-resolver
                             :jobStory job-story-resolver
                             :jobStoryList job-story-list-resolver
+                            :jobStorySearch job-story-search-resolver
                             :invoiceSearch invoice-search-resolver
                             :disputeSearch dispute-search-resolver}
                     :Job {:jobStories job->job-stories-resolver

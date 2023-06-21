@@ -15,6 +15,7 @@
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [ethlance.ui.component.pagination :as pagination]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.util.navigation :as util.navigation]
@@ -107,6 +108,82 @@
           [:label "No feedback yet for this employer"]
           (into [c-carousel-old {}] (map #(c-feedback-slide %) feedback)))]))
 
+(defn c-proposals-section [job]
+  (let [contract-address (:job/id job)
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        raw-token-amount (get-in job [:job/token-amount])
+
+        *bid-option (:job/bid-option job)
+        *job-token-type (get-in job [:job/token-type])
+        *job-token-id (get-in job [:job/token-id])
+        *job-token-address (get-in job [:job/token-address])
+        *job-token-amount (if (= (str *job-token-type) "eth")
+                            (shared-utils/wei->eth raw-token-amount)
+                            raw-token-amount)
+        *token-detail-name (get-in job [:token-details :token-detail/name])
+        *token-detail-symbol (get-in job [:token-details :token-detail/symbol])
+        *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
+        *proposal-text (re/subscribe [:page.job-detail/proposal-text])
+
+        proposals (re/subscribe [:page.job-detail/active-proposals])
+        my-proposal (re/subscribe [:page.job-detail/my-proposal])
+
+        proposal-limit @(re/subscribe [:page.job-detail/proposal-limit])
+        proposal-total-count @(re/subscribe [:page.job-detail/proposal-total-count])
+        proposal-offset @(re/subscribe [:page.job-detail/proposal-offset])
+
+        my-job-story-id (:job-story/id @my-proposal)
+        my-proposal? (not (nil? @my-proposal))
+        *employer-address (get-in job [:job/employer :user/id])
+        can-send-proposals? (and (not my-proposal?) (ilike!= active-user *employer-address))
+        my-proposal-withdrawable? (and @my-proposal (= :proposal (:status @my-proposal)))]
+    [:div.proposal-listing
+     [:div.label "Proposals"]
+      [c-scrollable
+       {:forceVisible true :autoHide false}
+        (into [c-table {:headers ["" "Candidate" "Rate" "Created" "Status"]}]
+              (map (fn [proposal]
+                     [[:span (if (:current-user? proposal) "⭐" "")]
+                      [:span (:candidate-name proposal)]
+                      [:span (token-utils/human-amount (:rate proposal) *job-token-type)]
+                      [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
+                      [:span (:status proposal)]])
+                   @proposals))]
+
+      [pagination/c-pagination-ends
+       {:total-count proposal-total-count
+        :limit proposal-limit
+        :offset proposal-offset
+        :set-offset-event :page.job-detail/set-proposal-offset}]
+
+      [:div.proposal-form
+       [:div.label "Send Proposal"]
+       [c-token-values {:disabled? (not can-send-proposals?)
+                        :token-type *job-token-type
+                        :token-amount (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
+                        :token-id *job-token-id
+                        :token-address *job-token-address
+                        :token-name *token-detail-name
+                        :token-symbol *token-detail-symbol}]
+       [:label "The amount is for payment type: " (str *bid-option)]
+       [:div.description-input
+        [c-textarea-input
+         {:disabled (not can-send-proposals?)
+          :placeholder "Proposal Description"
+          :value (if my-proposal? (:message @my-proposal) @*proposal-text)
+          :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
+
+       (if my-proposal-withdrawable?
+         [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
+                    :size :small}
+          [c-button-label "Remove"]])
+       (if (not my-proposal?)
+         [c-button {:style (when (not can-send-proposals?) {:background :gray})
+                    :on-click (fn []
+                                (when can-send-proposals? (>evt [:page.job-proposal/send contract-address])))
+                    :size :small}
+          [c-button-label "Send"]])]]))
+
 (defmethod page :route.job/detail []
   (fn []
     (let [page-params (re/subscribe [:district.ui.router.subs/active-page-params])
@@ -157,7 +234,6 @@
                            (:job/status results)
                            (:job/required-experience-level results)
                            (:job/bid-option results)])
-          *bid-option (:job/bid-option results)
           *required-skills (:job/required-skills results)
 
           *employer-name (get-in results [:job/employer :user :user/name])
@@ -187,15 +263,7 @@
           *token-detail-name (get-in results [:token-details :token-detail/name])
           *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
 
-          *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
-          *proposal-text (re/subscribe [:page.job-detail/proposal-text])
-
-          proposals (re/subscribe [:page.job-detail/active-proposals])
-          my-proposal (re/subscribe [:page.job-detail/my-proposal])
-          my-job-story-id (:job-story/id @my-proposal)
-          my-proposal? (not (nil? @my-proposal))
-          can-send-proposals? (and (not my-proposal?) (ilike!= active-user *employer-address))
-          my-proposal-withdrawable? (and @my-proposal (= :proposal (:status @my-proposal)))]
+          ]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
         [:div.main
@@ -237,51 +305,8 @@
         [:div.side
          [:div.label *posted-time]
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])]]
-       [:div.proposal-listing
-        [:div.label "Proposals"]
-        [c-scrollable
-         {:forceVisible true :autoHide false}
-          (into [c-table {:headers ["" "Candidate" "Rate" "Created" "Status"]}]
-                (map (fn [proposal]
-                       [[:span (if (:current-user? proposal) "⭐" "")]
-                        [:span (:candidate-name proposal)]
-                        [:span (token-utils/human-amount (:rate proposal) *job-token-type)]
-                        [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
-                        [:span (:status proposal)]])
-                     @proposals))]
-        [:div.button-listing
-         [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-         [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
 
-        [:div.proposal-form
-         [:div.label "Send Proposal"]
-         [c-token-values {:disabled? (not can-send-proposals?)
-                          :token-type *job-token-type
-                          :token-amount (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
-                          :token-id *job-token-id
-                          :token-address *job-token-address
-                          :token-name *token-detail-name
-                          :token-symbol *token-detail-symbol}]
-         [:label "The amount is for payment type: " (str *bid-option)]
-         [:div.description-input
-          [c-textarea-input
-           {:disabled (not can-send-proposals?)
-            :placeholder "Proposal Description"
-            :value (if my-proposal? (:message @my-proposal) @*proposal-text)
-            :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
-
-         (if my-proposal-withdrawable?
-           [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
-                      :size :small}
-            [c-button-label "Remove"]])
-         (if (not my-proposal?)
-           [c-button {:style (when (not can-send-proposals?) {:background :gray})
-                      :on-click (fn []
-                                  (when can-send-proposals? (>evt [:page.job-proposal/send contract-address])))
-                      :size :small}
-            [c-button-label "Send"]])]]
+       [c-proposals-section results]
 
        [c-invoice-listing contract-address]
 

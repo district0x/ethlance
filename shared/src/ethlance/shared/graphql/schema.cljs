@@ -84,6 +84,7 @@
 
     jobStory(jobStory_id: Int!): JobStory
     jobStoryList(jobContract: ID): [JobStory]
+    jobStorySearch(job_id: ID!, limit: Int, offset: Int): JobStoryList
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
