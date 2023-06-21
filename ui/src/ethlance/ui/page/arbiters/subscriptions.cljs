@@ -27,7 +27,8 @@
 (re/reg-sub
   :page.arbiters/search-params
   (fn [db _]
-    {:search-params
+    {:offset (get-in db [arbiters.events/state-key :offset])
+     :limit (get-in db [arbiters.events/state-key :limit])  :search-params
      (graphql-util/prepare-search-params
        (get-in db [arbiters.events/state-key] {})
        [[:skills #(into [] %)]
