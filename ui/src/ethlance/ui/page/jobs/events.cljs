@@ -5,7 +5,6 @@
             [district.ui.graphql.events :as gql-events]
             [ethlance.ui.event.templates :as event.templates]
             [ethlance.ui.event.utils :as event.utils]
-            [ethlance.ui.page.jobs.graphql :as j-gql]
             [re-frame.core :as re]))
 
 ;; Page State
@@ -20,6 +19,8 @@
    :max-hourly-rate nil
    :min-num-feedbacks nil
    :payment-type nil
+   :offset 0
+   :limit 4
    :experience-level nil})
 
 (defn initialize-page
@@ -39,6 +40,8 @@
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
 ;; TODO: switch based on dev environment
+(re/reg-event-fx :page.jobs/set-offset (create-assoc-handler :offset))
+(re/reg-event-fx :page.jobs/set-limit (create-assoc-handler :limit))
 (re/reg-event-fx :page.jobs/initialize-page initialize-page)
 (re/reg-event-fx :page.jobs/set-skills (create-assoc-handler :skills))
 (re/reg-event-fx :page.jobs/add-skill add-skill)

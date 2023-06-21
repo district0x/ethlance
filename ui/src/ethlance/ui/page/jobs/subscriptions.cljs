@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as re]
 
+   [ethlance.ui.util.graphql :as util.graphql]
    [ethlance.ui.page.jobs.events :as jobs.events]
    [ethlance.ui.subscription.utils :as subscription.utils]))
 
@@ -13,6 +14,8 @@
 ;; Registered Subscriptions
 ;;
 
+(re/reg-sub :page.jobs/offset (create-get-handler :offset))
+(re/reg-sub :page.jobs/limit (create-get-handler :limit))
 (re/reg-sub :page.jobs/job-listing (create-get-handler :job-listing))
 (re/reg-sub :page.jobs/job-listing-state (create-get-handler :job-listing/state))
 (re/reg-sub :page.jobs/skills (create-get-handler :skills))
@@ -38,15 +41,7 @@
                    [:min-num-feedbacks]
                    [:payment-type]
                    [:experience-level]]
-          filter-params (reduce (fn [acc [filter-key & transformers]]
-                                  (let [filter-val (reduce #(%2 %1)
-                                                           (get-in db [jobs.events/state-key filter-key])
-                                                           (or transformers []))]
-                                    (if (or (nil? filter-val) ; Don't add nil or empty collections to the search
-                                            (and (sequential? filter-val)
-                                                 (empty? filter-val)))
-                                      acc
-                                      (assoc acc filter-key filter-val))))
-                                {}
-                                filters)]
-      {:search-params filter-params})))
+          filter-params (util.graphql/prepare-search-params page-state filters)]
+      {:search-params filter-params
+       :offset (:offset page-state)
+       :limit (:limit page-state)})))
