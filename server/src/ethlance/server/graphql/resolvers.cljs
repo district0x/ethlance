@@ -40,6 +40,23 @@
        :end-cursor end-cursor
        :has-next-page (< end-cursor total-count)})))
 
+(defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
+  (reduce-kv (fn [result index value]
+               (let [table-name (-> query :from first name)
+                     alias (str "c" index)
+                     on-column-name (name on-column)
+                     on-column-namespace (namespace on-column)
+                     column-name (name column)
+                     column-namespace (namespace column)]
+                 (sql-helpers/merge-join result
+                                         [join-table (keyword alias)]
+                                         [:and
+                                          [:= (keyword (str alias "." on-column-namespace) on-column-name)
+                                           (keyword (str table-name "." on-column-namespace) on-column-name)]
+                                          [:= value (keyword (str alias "." column-namespace) column-name)]])))
+             query
+             all-values))
+
 (defn user-search-resolver [_ {:keys [:limit :offset :user/id :user/name :order-by :order-direction]
                                :as args} _]
   (db/with-async-resolver-conn conn
@@ -213,14 +230,59 @@
 
 (defn arbiter-search-resolver [_ {:keys [:limit :offset
                                          :user/id
+                                         :search-params
                                          :order-by :order-direction]
                                   :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug "arbtier-search-resolver" args)
-    (let [query (cond-> arbiter-query
-                  id (sql-helpers/merge-where [:= id :Arbiter.user/id])
+    (log/debug "arbiter-search-resolver" args)
+    (let [search-params (js-obj->clj-map search-params)
+          categories-and (when (:category search-params) [(:category search-params)])
+          categories-or nil ; Not used, switch form ...-and if want this behaviour
+          skills-and (or (js->clj (:skills search-params)) [])
+          skills-or nil ; Not used, switch form ...-and if want this behaviour
+          min-rating (:feedback-min-rating search-params)
+          max-rating (:feedback-max-rating search-params)
+          min-fee (:min-fee search-params)
+          max-fee (:max-fee search-params)
+          min-num-feedbacks (:min-num-feedbacks search-params)
+          country (:country search-params)
 
-                  order-by (sql-helpers/merge-order-by [[(get {:date-created :user/date-created
+          query (cond-> (merge arbiter-query {:modifiers [:distinct]})
+                  min-rating (sql-helpers/merge-where [:<= min-rating :Arbiter.arbiter/rating])
+                  max-rating (sql-helpers/merge-where [:>= max-rating :Arbiter.arbiter/rating])
+                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
+                  id (sql-helpers/merge-where [:ilike :Arbiter.user/id id])
+
+                  country (sql-helpers/merge-where [:= country :Users.user/country])
+
+                  categories-or (sql-helpers/merge-left-join :ArbiterCategory
+                                                             [:= :ArbiterCategory.user/id :Arbiter.user/id])
+
+                  categories-or (sql-helpers/merge-where [:in :ArbiterCategory.category/id categories-or])
+
+                  categories-and (match-all {:join-table :ArbiterCategory
+                                             :on-column :user/id
+                                             :column :category/id
+                                             :all-values categories-and})
+
+                  skills-or (sql-helpers/merge-left-join :ArbiterSkill
+                                                         [:= :ArbiterSkill.user/id :Arbiter.user/id])
+
+                  skills-or (sql-helpers/merge-where [:in :ArbiterSkill.skill/id skills-or])
+                  min-fee (sql-helpers/merge-where [:>= :Arbiter.arbiter/fee min-fee])
+                  max-fee (sql-helpers/merge-where [:<= :Arbiter.arbiter/fee max-fee])
+                  min-num-feedbacks (sql-helpers/merge-where
+                                      [:<= min-num-feedbacks
+                                       {:select [(sql/call :count :*)]
+                                        :from [:JobStoryFeedbackMessage]
+                                        :where [:= :JobStoryFeedbackMessage.user/id :Arbiter.user/id]}])
+
+                  (not (empty? skills-and)) (match-all {:join-table :ArbiterSkill
+                                         :on-column :user/id
+                                         :column :skill/id
+                                         :all-values skills-and})
+
+                  order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
                                                                :date-updated :user/date-updated}
                                                               (graphql-utils/gql-name->kw order-by))
                                                          (or (keyword order-direction) :asc)]]))]
@@ -251,13 +313,7 @@
       (:type (<? (db/get conn q))))))
 
 (def ^:private candidate-query
-  {:select [[:Users.user/id :user/id]
-            [:Candidate.candidate/professional-title :candidate/professional-title]
-            [:Candidate.candidate/bio :candidate/bio]
-            [:Candidate.candidate/rate :candidate/rate]
-            [:Candidate.candidate/rating :candidate/rating]
-            [:Candidate.candidate/rate-currency-id :candidate/rate-currency-id]
-            [:Users.user/date-registered :candidate/date-registered]]
+  {:select [:Candidate.*]
    :from [:Candidate]
    :join [:Users [:ilike :Users.user/id :Candidate.user/id]]})
 
@@ -343,45 +399,32 @@
                             [:= :Message.message/creator user-id]]]}]
         (<? (db/all conn query)))))
 
-(defn- match-all [query {:keys [:join-table :on-column :column :all-values]}]
-  (reduce-kv (fn [result index value]
-               (let [table-name (-> query :from first name)
-                     alias (str "c" index)
-                     on-column-name (name on-column)
-                     on-column-namespace (namespace on-column)
-                     column-name (name column)
-                     column-namespace (namespace column)]
-                 (sql-helpers/merge-join result
-                                         [join-table (keyword alias)]
-                                         [:and
-                                          [:= (keyword (str alias "." on-column-namespace) on-column-name)
-                                           (keyword (str table-name "." on-column-namespace) on-column-name)]
-                                          [:= value (keyword (str alias "." column-namespace) column-name)]])))
-             query
-             all-values))
-
 (defn candidate-search-resolver [_ {:keys [:limit :offset
                                            :user/id
                                            :search-params
                                            :order-by :order-direction]
                                     :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug "candidate-search-resolver" {:args args})
+    (log/debug "candidate-search-resolver")
     (let [search-params (js-obj->clj-map search-params)
-          categories-and (:categories-and search-params)
-          categories-or (:categories-or search-params)
-          skills-and (:skills-and search-params)
-          skills-or (:skills-or search-params)
+          categories-and (when (:category search-params) [(:category search-params)])
+          categories-or nil
+          skills-and (or (js->clj (:skills search-params)) [])
+          skills-or nil
           min-rating (:feedback-min-rating search-params)
           max-rating (:feedback-max-rating search-params)
-          professional-title (:professional-title search-params)
+          min-hourly (:min-hourly-rate search-params)
+          max-hourly (:max-hourly-rate search-params)
+          min-num-feedbacks (:min-num-feedbacks search-params)
+          country (:country search-params)
 
           query (cond-> (merge candidate-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Candidate.candidate/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Candidate.candidate/rating])
+                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Candidate.candidate/rating])
                   id (sql-helpers/merge-where [:= :Candidate.user/id id])
 
-                  professional-title (sql-helpers/merge-where [:= professional-title :Candidate.candidate/professional-title])
+                  country (sql-helpers/merge-where [:= country :Users.user/country])
 
                   categories-or (sql-helpers/merge-left-join :CandidateCategory
                                                              [:= :CandidateCategory.user/id :Candidate.user/id])
@@ -397,8 +440,15 @@
                                                          [:= :CandidateSkill.user/id :Candidate.user/id])
 
                   skills-or (sql-helpers/merge-where [:in :CandidateSkill.skill/id skills-or])
+                  min-hourly (sql-helpers/merge-where [:>= :Candidate.candidate/rate min-hourly])
+                  max-hourly (sql-helpers/merge-where [:<= :Candidate.candidate/rate max-hourly])
+                  min-num-feedbacks (sql-helpers/merge-where
+                                      [:<= min-num-feedbacks
+                                       {:select [(sql/call :count :*)]
+                                        :from [:JobStoryFeedbackMessage]
+                                        :where [:= :JobStoryFeedbackMessage.user/id :Candidate.user/id]}])
 
-                  skills-and (match-all {:join-table :CandidateSkill
+                  (not (empty? skills-and)) (match-all {:join-table :CandidateSkill
                                          :on-column :user/id
                                          :column :skill/id
                                          :all-values skills-and})
@@ -424,6 +474,22 @@
       (map :skill/id (<? (db/all conn {:select [:*]
                                        :from [:CandidateSkill]
                                        :where [:= id :CandidateSkill.user/id]}))))))
+
+(defn participant->categories-resolver [participant-table root _ _]
+  (db/with-async-resolver-conn conn
+    (let [{:keys [:user/id] :as participant} (graphql-utils/gql->clj root)]
+      (log/debug "participant->categories-resolver" participant)
+      (map :category/id (<? (db/all conn {:select [:*]
+                                          :from [participant-table]
+                                          :where [:= id (keyword (str (name participant-table) ".user") :id)]}))))))
+
+(defn participant->skills-resolver [participant-table root _ _]
+  (db/with-async-resolver-conn conn
+    (let [{:keys [:user/id] :as participant} (graphql-utils/gql->clj root)]
+      (log/debug "participant->skills-resolver" participant)
+      (map :skill/id (<? (db/all conn {:select [:*]
+                                       :from [participant-table]
+                                       :where [:= id (keyword (str (name participant-table) ".user") :id)]}))))))
 
 
 (def candidate-job-stories-query
@@ -454,7 +520,8 @@
 
 (defn- arbiter-arbitrations-query [id]
   {:select
-   [:JobArbiter.user/id
+   [[:JobStory.job-story/id :id]
+    :JobArbiter.user/id
     :JobArbiter.job/id
     [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
     [:JobArbiter.job-arbiter/fee :arbitration/fee]
@@ -810,7 +877,6 @@
                                        :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
 
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
-  (println ">>> leave-feedback-mutation" {:params params :current-user current-user :timestamp timestamp})
   ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
     (let [job-story-id id
@@ -826,12 +892,6 @@
           arbiter-feedback-before-ending? (and (not= previous-status "ended-by-feedback")
                                                (not feedback-from-participants?))]
 
-      (println ">>> leave-feedback-mutation PARAMS:" {:previous-status previous-status
-                                                      :arbiter-feedback-before-ending? arbiter-feedback-before-ending?
-                                                      :participants participants
-                                                      :employer employer
-                                                      :candidate candidate
-                                                      :feedback-from-participants? feedback-from-participants?})
       (when feedback-from-participants?
        (<? (ethlance-db/update-job-story-status conn job-story-id "finished")))
       (when arbiter-feedback-before-ending? (throw (js/Error. "Arbiter can't leave feedback before job contract has been ended")))
@@ -1034,14 +1094,16 @@
                            :user_isRegisteredEmployer user->is-registered-employer-resolver
                            :user_isRegisteredArbiter user->is-registered-arbiter-resolver}
                     :Candidate {:candidate_feedback candidate->feedback-resolver
-                                :candidate_categories candidate->candidate-categories-resolver
-                                :candidate_skills candidate->candidate-skills-resolver
+                                :candidate_categories (partial participant->categories-resolver :CandidateCategory)
+                                :candidate_skills (partial participant->skills-resolver :CandidateSkill)
                                 :jobStories candidate->job-stories-resolver
                                 :user participant->user-resolver}
                     :Employer {:employer_feedback employer->feedback-resolver
                                :jobStories employer->job-stories-resolver
                                :user participant->user-resolver}
                     :Arbiter {:arbiter_feedback arbiter->feedback-resolver
+                              :arbiter_categories (partial participant->categories-resolver :ArbiterCategory)
+                              :arbiter_skills (partial participant->skills-resolver :ArbiterSkill)
                               :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
                     :Arbitration {:job job-resolver}

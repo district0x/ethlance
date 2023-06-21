@@ -112,13 +112,20 @@
                               (:job-story/candidate-feedback job-story))
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
                               (:direct-messages job-story))
+        invoice-link (fn [invoice]
+                       (let [params {:route :route.invoice/index
+                                     :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}}]
+                       [:a {:on-click (util.navigation/create-handler params) :href (util.navigation/resolve-route params)}
+                        "View invoice details"]))
         invoice-messages (map #(common-chat-fields current-user % :creation-message
                                                    [(fn [invoice] (str "Invoice #" (:invoice/id invoice) " created"))
-                                                    (partial invoice-detail job-story :invoice/amount-requested)])
+                                                    (partial invoice-detail job-story :invoice/amount-requested)
+                                                    invoice-link])
                               (get-in job-story [:job-story/invoices :items]))
         payment-messages (map #(common-chat-fields current-user % :payment-message
                                                    [(fn [invoice] (str "Invoice #" (:invoice/id invoice) " paid"))
-                                                    (partial invoice-detail job-story :invoice/amount-paid)])
+                                                    (partial invoice-detail job-story :invoice/amount-paid)
+                                                    invoice-link])
                               (get-in job-story [:job-story/invoices :items]))
         dispute-creation (map #(common-chat-fields current-user % identity ["Dispute was created"])
                               (map :dispute-raised-message (get-in job-story [:job-story/invoices :items])))
@@ -164,6 +171,8 @@
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
                          [:job-story/invoices [[:items [:id
                                                         :invoice/id
+                                                        :job-story/id
+                                                        :job/id
                                                         :invoice/amount-requested
                                                         :invoice/amount-paid
                                                         [:creation-message message-fields]

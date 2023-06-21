@@ -64,6 +64,7 @@
 
     arbiterSearch(
       user_id: ID,
+      searchParams: ArbiterSearchParams
       orderBy: ArbiterListOrderBy,
       orderDirection: OrderDirection,
       limit: Int,
@@ -96,7 +97,6 @@
   # Input types
 
   input JobSearchParams {
-    randomString: String
     creator: String
     arbiter: String
     skills: [String]
@@ -113,13 +113,24 @@
   input CandidateSearchParams {
     feedbackMinRating: Int
     feedbackMaxRating: Int
-    paymentType: String
+    paymentType: Keyword
+    category: String
+    skills: [String]
+    minHourlyRate: Int
+    maxHourlyRate: Int
+    minNumFeedbacks: Int
+    country: String
+  }
 
-    categoriesAnd: [String]
-    categoriesOr: [String]
-    skillsAnd: [String]
-    skillsOr: [String]
-    professionalTitle: String
+  input ArbiterSearchParams {
+    feedbackMinRating: Int
+    feedbackMaxRating: Int
+    minFee: Int
+    maxFee: Int
+    minNumFeedbacks: Int
+    category: String
+    skills: [String]
+    country: String
   }
 
   input EmployerInput {
@@ -401,6 +412,8 @@
     arbiter_rating: Float
     arbiter_feeCurrencyId: Keyword
     arbiter_fee: Int
+    arbiter_skills: [String]
+    arbiter_categories: [String]
     arbiter_feedback(
       limit: Int,
       offset: Int
@@ -409,9 +422,10 @@
   }
 
   type Arbitration {
-    user_id: ID
+    id: ID
+    user_id: String
     job_id: String
-    arbitration_dateArbiterAccepted: String
+    arbitration_dateArbiterAccepted: Float
     arbitration_fee: Int
     arbitration_feeCurrencyId: String
     arbitration_status: String

@@ -2,6 +2,7 @@
   (:require [district.ui.component.page :refer [page]]
             [district.ui.router.events :as router-events]
             [ethlance.shared.constants :as constants]
+            [ethlance.ui.util.tokens :as tokens]
             [ethlance.shared.enumeration.currency-type :as enum.currency]
             [ethlance.ui.component.currency-input :refer [c-currency-input]]
             [ethlance.ui.component.error-message :refer [c-error-message]]
@@ -18,14 +19,15 @@
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.component.text-input :refer [c-text-input]]
+            [district.ui.graphql.subs :as gql]
             [re-frame.core :as re]))
 
 (defn cf-arbiter-search-filter []
   (let [*category (re/subscribe [:page.arbiters/category])
         *feedback-max-rating (re/subscribe [:page.arbiters/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.arbiters/feedback-min-rating])
-        *min-hourly-rate (re/subscribe [:page.arbiters/min-hourly-rate])
-        *max-hourly-rate (re/subscribe [:page.arbiters/max-hourly-rate])
+        *min-fee (re/subscribe [:page.arbiters/min-fee])
+        *max-fee (re/subscribe [:page.arbiters/max-fee])
         *min-num-feedbacks (re/subscribe [:page.arbiters/min-num-feedbacks])
         *country (re/subscribe [:page.arbiters/country])]
     (fn []
@@ -34,6 +36,8 @@
         [c-select-input
          {:selection @*category
           :color :secondary
+          :label-fn first
+          :value-fn second
           :selections constants/categories-with-default
           :on-select #(re/dispatch [:page.arbiters/set-category %])}]]
        [:span.rating-label "Min. Rating"]
@@ -45,20 +49,20 @@
                   :on-change #(re/dispatch [:page.arbiters/set-feedback-max-rating %])}]
 
        [c-currency-input
-        {:placeholder "Min. Hourly Rate"
+        {:placeholder "Min. Fee"
          :currency-type ::enum.currency/usd
          :color :secondary
          :min 0
-         :value @*min-hourly-rate
-         :on-change #(re/dispatch [:page.arbiters/set-min-hourly-rate %])}]
+         :value @*min-fee
+         :on-change #(re/dispatch [:page.arbiters/set-min-fee %])}]
 
        [c-currency-input
-        {:placeholder "Max. Hourly Rate"
+        {:placeholder "Max. Fee"
          :currency-type ::enum.currency/usd
          :color :secondary
          :min 0
-         :value @*max-hourly-rate
-         :on-change #(re/dispatch [:page.arbiters/set-max-hourly-rate %])}]
+         :value @*max-fee
+         :on-change #(re/dispatch [:page.arbiters/set-max-fee %])}]
 
        [:div.feedback-input
         [c-text-input
@@ -87,37 +91,54 @@
    [cf-arbiter-search-filter]])
 
 (defn c-arbiter-element
-  [{:keys [:user/id]}]
-  [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address id} {}])}
+  [{:keys [:user/id] :as arbiter}]
+  [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address id} {:tab "arbiter"}])}
    [:div.profile
-    [:div.profile-image [c-profile-image {}]]
-    [:div.name "Brian Curran"]
-    [:div.title "Content Creator, Web Developer, Blockchain Analyst"]]
-   [:div.price "$15"]
+    [:div.profile-image [c-profile-image {:src (-> arbiter :user :user/profile-image)}]]
+    [:div.name (get-in arbiter [:user :user/name])]]
+   [:div.price (tokens/human-currency-amount (-> arbiter :arbiter/fee-currency-id)
+                                             (-> arbiter :arbiter/fee))]
    [:div.tags
     (doall
-     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+     (for [tag-label (get-in arbiter [:skills])]
        ^{:key (str "tag-" tag-label)}
        [c-tag {:on-click #(re/dispatch [:page.arbiters/add-skill tag-label])
                :title (str "Add '" tag-label "' to Search")}
         [c-tag-label tag-label]]))]
    [:div.rating
-    [c-rating {:default-rating 3}]
-    [:div.label "(4)"]]
-   [:div.location "New York, United States"]])
+    [c-rating {:rating (-> arbiter :arbiter/rating)}]
+    [:div.label (str "(" (-> arbiter :arbiter/feedback :total-count) ")")]]
+   [:div.location (get-in arbiter [:user :user/country])]])
 
 
 (defn c-arbiter-listing []
-  (let [*arbiter-listing-query (atom nil)
-        *limit (re/subscribe [:page.arbiters/limit])
-        *offset (re/subscribe [:page.arbiters/offset])]
+  (let [query-params (re/subscribe [:page.arbiters/search-params])
+        ]
     (fn []
-      (let [{arbiter-search   :arbiter-search
+      (let [query [:arbiter-search @query-params
+                   [:total-count
+                    [:items [:user/id
+                             [:user [:user/id
+                                     :user/name
+                                     :user/country
+                                     :user/profile-image]]
+                             [:arbiter/feedback [:total-count]]
+                             :arbiter/categories
+                             :arbiter/skills
+                             :arbiter/rating
+                             :arbiter/fee
+                             :arbiter/fee-currency-id]]]]
+            results (re/subscribe [::gql/query {:queries [query]} {:id @query-params}])
+            _ (println ">>> arbiter-listing-query" @results)
+            *limit (re/subscribe [:page.arbiters/limit])
+            *offset (re/subscribe [:page.arbiters/offset])
+            {arbiter-search   :arbiter-search
              preprocessing?   :graphql/preprocessing?
              loading?         :graphql/loading?
-             errors           :graphql/errors} @*arbiter-listing-query
+             errors           :graphql/errors} @results
             {arbiter-listing  :items
              total-count      :total-count} arbiter-search]
+        (println ">>> results" {:results @results :arbiter-listing arbiter-listing})
         [:<>
          (cond
            ;; Errors?

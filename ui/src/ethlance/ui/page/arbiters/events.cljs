@@ -11,21 +11,19 @@
   {:offset 0
    :limit 10
    :skills #{}
-   :category constants/category-default
-   :feedback-min-rating 1
+   :category ["All Categories" nil]
+   :feedback-min-rating nil
    :feedback-max-rating 5
-   :min-hourly-rate nil
-   :max-hourly-rate nil
+   :min-fee nil
+   :max-fee nil
    :min-num-feedbacks nil
    :country nil})
 
+
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  [{:keys []} _]
-  {::router.effects/watch-active-page
-   [{:id :page.arbiters/initialize-page
-     :name :route.user/candidates
-     :dispatch []}]})
+  [{:keys [db]} _]
+  {:db (assoc-in db [state-key] state-default)})
 
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."
@@ -45,7 +43,7 @@
 (re/reg-event-fx :page.arbiters/set-category (create-assoc-handler :category))
 (re/reg-event-fx :page.arbiters/set-feedback-max-rating (event.templates/create-set-feedback-max-rating state-key))
 (re/reg-event-fx :page.arbiters/set-feedback-min-rating (event.templates/create-set-feedback-min-rating state-key))
-(re/reg-event-fx :page.arbiters/set-min-hourly-rate (event.templates/create-set-min-hourly-rate state-key))
-(re/reg-event-fx :page.arbiters/set-max-hourly-rate (event.templates/create-set-max-hourly-rate state-key))
+(re/reg-event-fx :page.arbiters/set-min-fee (create-assoc-handler :min-fee parse-int))
+(re/reg-event-fx :page.arbiters/set-max-fee (create-assoc-handler :max-fee parse-int))
 (re/reg-event-fx :page.arbiters/set-min-num-feedbacks (create-assoc-handler :min-num-feedbacks parse-int))
 (re/reg-event-fx :page.arbiters/set-country (create-assoc-handler :country))

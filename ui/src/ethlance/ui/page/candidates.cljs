@@ -5,6 +5,9 @@
             [district.ui.router.events :as router-events]
             [ethlance.shared.constants :as constants]
             [district.ui.graphql.subs :as gql]
+            [ethlance.ui.util.tokens :as tokens]
+            [ethlance.shared.enumeration.currency-type :as enum.currency]
+            [ethlance.ui.component.currency-input :refer [c-currency-input]]
             [ethlance.ui.component.error-message :refer [c-error-message]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
@@ -21,6 +24,7 @@
             [ethlance.ui.component.search-input :refer [c-chip-search-input]]
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+            [ethlance.ui.component.text-input :refer [c-text-input]]
             [re-frame.core :as re]))
 
 (defn cf-candidate-search-filter
@@ -29,7 +33,9 @@
   (let [*category (re/subscribe [:page.candidates/category])
         *feedback-max-rating (re/subscribe [:page.candidates/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.candidates/feedback-min-rating])
-        *payment-type (re/subscribe [:page.candidates/payment-type])
+        *min-hourly-rate (re/subscribe [:page.candidates/min-hourly-rate])
+        *max-hourly-rate (re/subscribe [:page.candidates/max-hourly-rate])
+        *min-num-feedbacks (re/subscribe [:page.candidates/min-num-feedbacks])
         *country (re/subscribe [:page.candidates/country])]
     (fn []
       [:<>
@@ -37,6 +43,8 @@
         [c-select-input
          {:selection @*category
           :color :secondary
+          :label-fn first
+          :value-fn second
           :selections constants/categories-with-default
           :on-select #(re/dispatch [:page.candidates/set-category %])}]]
 
@@ -48,13 +56,29 @@
        [c-rating {:rating @*feedback-max-rating :color :white :size :small
                   :on-change #(re/dispatch [:page.candidates/set-feedback-max-rating %])}]
 
-       [:span.selection-label "Payment Type"]
-       [c-radio-select
-        {:selection @*payment-type
-         :on-selection #(re/dispatch [:page.candidates/set-payment-type %])}
-        [:fixed-price [c-radio-search-filter-element "Fixed Price"]]
-        [:hourly-rate [c-radio-search-filter-element "Hourly Rate"]]
-        [:annual-salary [c-radio-search-filter-element "Annual Salary"]]]
+       [c-currency-input
+        {:placeholder "Min. Hourly Rate"
+         :currency-type ::enum.currency/usd
+         :color :secondary
+         :min 0
+         :value @*min-hourly-rate
+         :on-change #(re/dispatch [:page.candidates/set-min-hourly-rate %])}]
+
+       [c-currency-input
+        {:placeholder "Max. Hourly Rate"
+         :currency-type ::enum.currency/usd
+         :color :secondary
+         :min 0
+         :value @*max-hourly-rate
+         :on-change #(re/dispatch [:page.candidates/set-max-hourly-rate %])}]
+
+       [:div.feedback-input
+        [c-text-input
+         {:placeholder "Number of Feedbacks"
+          :color :secondary
+          :type :number :min 0
+          :value @*min-num-feedbacks
+          :on-change #(re/dispatch [:page.candidates/set-min-num-feedbacks %])}]]
 
        [:div.country-selector
         [c-select-input
@@ -77,12 +101,12 @@
    [cf-candidate-search-filter]])
 
 (defn c-candidate-element [candidate]
-  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {}])}
+  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {:tab "candidate"}])}
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
     [:div.name (-> candidate :user :user/name)]
-    [:div.title (str/title (-> candidate :candidate/professional-title))]]
-   [:div.price (-> candidate :candidate/rate)]
+    [:div.title (str/title (-> candidate :candidate/professional-title)) (str " (" (-> candidate :user :user/country) ")")]]
+   [:div.price (tokens/human-currency-amount (-> candidate :candidate/rate-currency-id) (-> candidate :candidate/rate))]
    [:div.tags
     (doall
      (for [tag-label (-> candidate :candidate/skills)]
@@ -98,16 +122,14 @@
 (defn c-candidate-listing []
   (let [*limit (re/subscribe [:page.candidates/limit])
         *offset (re/subscribe [:page.candidates/offset])
-        ; query-params {:search-params {:feedback-min-rating 0 :feedback-max-rating 5}}
-        query-params (re/subscribe [:page.candidates/search-params])
-        ]
+        query-params (re/subscribe [:page.candidates/search-params])]
     (fn []
-      (println ">>> doing new query" @query-params)
       (let [query [:candidate-search @query-params
                    [:total-count
                     [:items [:user/id
                              [:user [:user/id
                                      :user/name
+                                     :user/country
                                      :user/profile-image]]
                              [:candidate/feedback [:total-count]]
                              :candidate/professional-title
@@ -116,16 +138,13 @@
                              :candidate/rating
                              :candidate/rate
                              :candidate/rate-currency-id]]]]
-            *candidate-listing-query (re/subscribe [::gql/query {:queries [query]}
-                                                    {:refetch-on #{:page.candidates/search-params-updated}}])
-            _ (println ">>>> WHOLE candidate-listing-query" @*candidate-listing-query)
+            *candidate-listing-query (re/subscribe [::gql/query {:queries [query]} {:id @query-params}])
             {candidate-search  :candidate-search
              preprocessing?    :graphql/preprocessing?
              loading?          :graphql/loading?
              errors            :graphql/errors} @*candidate-listing-query
             {candidate-listing :items
              total-count       :total-count} candidate-search]
-        (println ">>> TOTAL COUNT" total-count " | " candidate-search)
         [:<>
          (cond
            ;; Errors?
