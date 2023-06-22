@@ -27,6 +27,7 @@
                   {:current-user? (= (clojure.string/lower-case current-user-address)
                                      (clojure.string/lower-case (get-in story [:candidate :user :user/id] "")))
                    :job-story/id (:job-story/id story)
+                   :proposal-message (get-in story [:proposal-message])
                    :candidate-name (get-in story [:candidate :user :user/name])
                    :rate (get-in story [:job-story/proposal-rate])
                    :message (get-in story [:proposal-message :message/text])
@@ -41,7 +42,7 @@
   :<- [:page.job-detail/all-proposals]
   (fn [proposals _]
     (filter #(and
-               (not (nil? (get % :job-story/proposal-message-id)))
+               (not (nil? (get % :proposal-message)))
                (not= :deleted (:status %))) proposals)))
 
 (defn seek

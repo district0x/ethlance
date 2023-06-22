@@ -753,13 +753,26 @@
                  :where [:= :JobStory.job/id contract]}]
       (<? (db/all conn query)))))
 
-(defn job-story-search-resolver [_ args _]
+(defn job-story-search-resolver [_ {:keys [:search-params
+                                           :limit
+                                           :offset
+                                           :order-by
+                                           :order-direction] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "job-story-search-resolver" args)
-    (let [contract (:job/id args)
-          query {:select [:*]
-                 :from [:JobStory]
-                 :where [:= :JobStory.job/id contract]}
+    (let [search-params (js-obj->clj-map search-params)
+          job-id (:job search-params)
+          candidate-id (:candidate search-params)
+          employer-id (:employer search-params)
+          status (:status search-params)
+          base-query {:select [:JobStory.*]
+                      :from [:JobStory]
+                      :join [:Job [:= :Job.job/id :JobStory.job/id]]}
+          query (cond-> base-query
+                  job-id (sql-helpers/merge-where [:ilike :JobStory.job/id job-id])
+                  employer-id (sql-helpers/merge-where [:ilike :Job.job/creator employer-id])
+                  candidate-id (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate-id])
+                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status]))
           limit (:limit args)
           offset (:offset args)]
       (<? (paged-query conn query limit offset)))))

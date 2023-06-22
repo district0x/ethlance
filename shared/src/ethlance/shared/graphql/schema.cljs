@@ -84,7 +84,7 @@
 
     jobStory(jobStory_id: Int!): JobStory
     jobStoryList(jobContract: ID): [JobStory]
-    jobStorySearch(job_id: ID!, limit: Int, offset: Int): JobStoryList
+    jobStorySearch(searchParams: JobStorySearchParams, limit: Int, offset: Int): JobStoryList
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
@@ -109,6 +109,13 @@
     minNumFeedbacks: Int
     paymentType: String
     experienceLevel: String
+    status: Keyword
+  }
+
+  input JobStorySearchParams {
+    job: String
+    candidate: String
+    employer: String
     status: Keyword
   }
 

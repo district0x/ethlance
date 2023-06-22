@@ -101,7 +101,7 @@
                     {:title "Remuneration" :source remuneration}
                     {:title "Created at" :source (partial formatted-date :job/date-created)}]
         job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})
-        pagination {:total-count (get-in result [:job-search :total-count]) ; FIXME: not correct, as the jobs are queried once but filtered in UI
+        pagination {:total-count (get-in result [:job-search :total-count])
                     :limit limit
                     :offset offset}
         user->section {:employer :my-employer-job-listing
@@ -122,33 +122,60 @@
 (defn c-my-employer-job-listing []
   [c-job-listing :creator])
 
-(defn c-contract-listing [query results-getter]
-  (let [jobs @(re/subscribe [::gql/query {:queries [query]}])
-        filter-by-status (fn [jobs status] (filter #(= status (:job-story/status %)) (results-getter jobs)))
+(defn c-contract-listing [user-type user-address]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "invitation")
+        tab-to-index {"invitation" 0 "proposal" 1 "active" 2 "finished" 3}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+
+        query [:job-story-search {:search-params {user-type user-address :status tab}
+                                  :limit limit :offset offset}
+               [:total-count
+                [:items [:job/id
+                         :job-story/id
+                         :job-story/status
+                         :job-story/date-created
+                         :job-story/proposal-rate
+                         [:candidate
+                          [:user/id
+                           [:user [:user/name]]]]
+                         [:job [:job/title]]]]]]
+        result @(re/subscribe [::gql/query {:queries [query]}])
+        pagination {:total-count (get-in result [:job-story-search :total-count])
+                    :limit limit
+                    :offset offset}
+        jobs (get-in result [:job-story-search :items])
         user-name-fn (fn [job] (get-in job [:candidate :user :user/name]))
         jobs-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
                     {:title "Candidate" :source user-name-fn}
                     {:title "Created at" :source (partial formatted-date :job-story/date-created)}]
-        contract-link-fn (fn [job] {:route :route.job/contract :params {:job-story-id (:job-story/id job)}})]
+        contract-link-fn (fn [job] {:route :route.job/contract :params {:job-story-id (:job-story/id job)}})
+        user->section {:employer :my-employer-contract-listing
+                       :creator :my-employer-contract-listing
+                       :candidate :my-candidate-contract-listing
+                       :arbiter :my-arbiter-contract-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Invitations"}
+   {:label "Invitations" :on-click (tab-navigate-handler (user->section user-type) :invitation)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :invitation) contract-link-fn]]
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]
 
-   {:label "Pending Proposals"}
+   {:label "Pending Proposals" :on-click (tab-navigate-handler (user->section user-type) :proposal)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :proposal) contract-link-fn]]
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]
 
-   {:label "Active Contracts"}
+   {:label "Active Contracts" :on-click (tab-navigate-handler (user->section user-type) :active)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :active) contract-link-fn]]
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]
 
-   {:label "Finished Contracts"}
+   {:label "Finished Contracts" :on-click (tab-navigate-handler (user->section user-type) :finished)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :finished) contract-link-fn]]]))
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]]))
 
 (defn c-invoice-listing [query-params]
   (let [query [:invoice-search query-params
@@ -273,22 +300,8 @@
     [c-table-listing resolved-table (filter #(not (nil? (:dispute/date-resolved %))) disputes)]]]))
 
 (defn c-my-employer-contract-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        results-getter (fn [results] (get-in results [:employer :job-stories :items]))
-        query [:employer {:user/id active-user}
-               [:user/id
-                [:job-stories
-                 [:total-count
-                  [:items [:job/id
-                           :job-story/id
-                           :job-story/status
-                           :job-story/date-created
-                           :job-story/proposal-rate
-                           [:candidate
-                            [:user/id
-                             [:user [:user/name]]]]
-                           [:job [:job/title]]]]]]]]]
-    [c-contract-listing query results-getter]))
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
+    [c-contract-listing :employer active-user]))
 
 (defn c-my-employer-invoice-listing []
   (let [employer (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
@@ -302,22 +315,8 @@
 ;;
 
 (defn c-my-candidate-contract-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        results-getter (fn [results] (get-in results [:candidate :job-stories :items]))
-        query [:candidate {:user/id active-user}
-               [:user/id
-                [:job-stories
-                 [:total-count
-                  [:items [:job/id
-                           :job-story/id
-                           :job-story/status
-                           :job-story/date-created
-                           :job-story/proposal-rate
-                           [:candidate
-                            [:user/id
-                             [:user [:user/name]]]]
-                           [:job [:job/title]]]]]]]]]
-    [c-contract-listing query results-getter]))
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
+    [c-contract-listing :candidate active-user]))
 
 (defn c-my-candidate-invoice-listing []
   (let [candidate (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]

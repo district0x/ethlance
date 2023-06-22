@@ -88,7 +88,7 @@
           contract (or queried-contract-address contract-from-db)]
       {:dispatch [:district.ui.graphql.events/query!
                   {:queries
-                   [[:job-story-search {:job/id contract
+                   [[:job-story-search {:search-params {:job contract}
                                         :limit (get-in db [state-key :proposal-limit])
                                         :offset (get-in db [state-key :proposal-offset])}
                      [:total-count

@@ -78,11 +78,6 @@
           next-offset (if (>= next-offset total-count) offset next-offset)
           first-offset 0
           last-offset (* (- num-pages 1) limit)]
-      ; [:div.button-listing
-      ;  [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-      ;  [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-      ;  [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-      ;  [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]
       [:div.button-listing
        [c-circle-icon-button
         {:name :ic-arrow-left2
