@@ -1,7 +1,9 @@
 (ns ethlance.ui.page.me
   (:require [district.ui.component.page :refer [page]]
             [district.ui.router.subs :as router.subs]
+            [district.ui.router.events :as router.events]
             [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [ethlance.ui.component.pagination :refer [c-pagination-ends]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
             [ethlance.ui.component.table :refer [c-table]]
@@ -21,7 +23,7 @@
              active-query :query} @*active-page
             updated-query (-> (or active-query {})
                               (assoc  :sidebar id-value)
-                              (dissoc :section))
+                              (dissoc :tab))
             *current-sidebar-choice (keyword (:sidebar active-query))]
         [:div.nav-element
          [:a.link
@@ -45,25 +47,42 @@
 
   Example:
     (c-table-listing [{:title \"Name\" :source :user/name}] [{:user/name \"John Doe\"}])"
-  [headers rows & [link-params-fn]]
-  [:<>
-   (into [c-table {:headers (map :title headers)}]
-         (mapv (fn [row]
-                (mapv (fn [header]
-                       (if (nil? link-params-fn)
-                         [:span ((:source header) row)]
-                         [:a (link-params (link-params-fn row)) [:span ((:source header) row)]]))
-                     headers))
-               rows))
-   [:div.button-listing
-    [c-circle-icon-button {:name :ic-arrow-left2 :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-left :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
+  [headers rows & [link-params-fn paging]]
+
+  (let [total-count (:total-count paging)
+        limit (:limit paging)
+        offset (:offset paging)]
+    [:<>
+     (into [c-table {:headers (map :title headers)}]
+           (mapv (fn [row]
+                  (mapv (fn [header]
+                         (if (nil? link-params-fn)
+                           [:span ((:source header) row)]
+                           [:a (link-params (link-params-fn row)) [:span ((:source header) row)]]))
+                       headers))
+                 rows))
+     [c-pagination-ends
+      {:total-count total-count
+       :limit limit
+       :offset offset
+       :set-offset-event :page.me/set-pagination-offset}]]))
+
+(defn tab-navigate-handler [sidebar tab]
+  (fn []
+    (re/dispatch [::router.events/navigate
+                  :route.me/index
+                  {}
+                  {:sidebar sidebar :tab tab}])))
 
 (defn c-job-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        job-query [:job-search {:search-params {user-type active-user}}
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "active")
+        tab-to-index {"active" 0 "finished" 1}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+        job-query [:job-search {:search-params {user-type active-user :status tab} :limit limit :offset offset}
                    [:total-count
                     [:items [:job/id
                              :job/title
@@ -74,26 +93,31 @@
                              [:token-details [:token-detail/id
                                               :token-detail/name
                                               :token-detail/symbol]]]]]]
-        jobs @(re/subscribe [::gql/query {:queries [job-query]}])
-        active-jobs (filter #(= :active (:job/status %)) (get-in jobs [:job-search :items]))
-        finished-jobs (filter #(= :finished (:job/status %)) (get-in jobs [:job-search :items]))
+        result @(re/subscribe [::gql/query {:queries [job-query]}])
+        jobs (get-in result [:job-search :items])
         remuneration (fn [job] (str (tokens/human-amount (:job/token-amount job) (:job/token-type job))
                                     " " (-> job :token-details :token-detail/symbol)))
         jobs-table [{:title "Job Title" :source :job/title}
                     {:title "Remuneration" :source remuneration}
                     {:title "Created at" :source (partial formatted-date :job/date-created)}]
-        job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})]
+        job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})
+        pagination {:total-count (get-in result [:job-search :total-count]) ; FIXME: not correct, as the jobs are queried once but filtered in UI
+                    :limit limit
+                    :offset offset}
+        user->section {:employer :my-employer-job-listing
+                       :creator :my-employer-job-listing
+                       :arbiter :my-arbiter-job-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Active Jobs"}
+   {:label "Active Jobs" :on-click (tab-navigate-handler (user->section user-type) :active)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table active-jobs job-link-fn]]
+    [c-table-listing jobs-table jobs job-link-fn pagination]]
 
-   {:label "Finished Jobs"}
+   {:label "Finished Jobs" :on-click (tab-navigate-handler (user->section user-type) :finished)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table finished-jobs job-link-fn]]]))
+    [c-table-listing jobs-table jobs job-link-fn pagination]]]))
 
 (defn c-my-employer-job-listing []
   [c-job-listing :creator])

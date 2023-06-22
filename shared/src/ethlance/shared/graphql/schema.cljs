@@ -109,6 +109,7 @@
     minNumFeedbacks: Int
     paymentType: String
     experienceLevel: String
+    status: Keyword
   }
 
   input CandidateSearchParams {

@@ -689,6 +689,7 @@
           creator (:creator search-params)
           arbiter (:arbiter search-params)
           payment-type (:payment-type search-params)
+          status (:status search-params)
 
           experience-level (:experience-level search-params)
           ordered-experience-levels ["beginner" "intermediate" "expert"]
@@ -720,6 +721,7 @@
                                         :from [:JobStoryFeedbackMessage]
                                         :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
                   payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
+                  status (sql-helpers/merge-where [:= :Job.job/status status])
                   experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
       (<? (paged-query conn query limit offset)))))
 
