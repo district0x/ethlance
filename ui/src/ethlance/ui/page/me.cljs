@@ -186,7 +186,7 @@
         limit @(re/subscribe [:page.me/pagination-limit])
         offset @(re/subscribe [:page.me/pagination-offset])
 
-        query [:invoice-search {user-type user-address :status tab}
+        query [:invoice-search {user-type user-address :status tab :limit limit :offset offset}
                [:total-count
                 [:items
                  [:id
@@ -239,19 +239,22 @@
 
    {:label "Pending Invoices" :on-click (tab-navigate-handler (user->section user-type) :pending)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table invoices invoice-link-fn]]
+    [c-table-listing table invoices invoice-link-fn pagination]]
 
    {:label "Paid Invoices" :on-click (tab-navigate-handler (user->section user-type) :paid)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table invoices invoice-link-fn]]]))
+    [c-table-listing table invoices invoice-link-fn pagination]]]))
 
 (defn c-dispute-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        ; Hard-coded user addresses for testing to avoid account switching
-        users {:candidate "0x6dFA8c7DD1658387D170a2F9F34452C6f873fB9e"
-               :employer "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0"
-               :arbiter "0x2edd65Db76A4c02E851702CAc5E51b77Dc721cf0"}
-        query [:dispute-search {user-type (get users user-type)}
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "dispute-raised")
+        tab-to-index {"dispute-raised" 0 "dispute-resolved" 1}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+
+        query [:dispute-search {user-type active-user :status tab :limit limit :offset offset}
                [:total-count
                 [:items [:id
                          :invoice/id
@@ -259,6 +262,8 @@
                          :dispute/resolution
                          :dispute/date-created
                          :dispute/date-resolved
+                         :dispute/status
+                         :job-story/id
 
                          :invoice/amount-requested
                          :invoice/amount-paid
@@ -276,20 +281,25 @@
                              :token-detail/name
                              :token-detail/symbol]]]]]]]]
         disputes-result @(re/subscribe [::gql/query {:queries [query]}])
+        pagination {:total-count (get-in disputes-result [:dispute-search :total-count])
+                    :limit limit
+                    :offset offset}
         disputes (get-in  disputes-result [:dispute-search :items])
-        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
         candidate-name-fn (fn [invoice] (get-in invoice [:candidate :user :user/name]))
         arbiter-name-fn (fn [invoice] (get-in invoice [:arbiter :user :user/name]))
         arbiter-name-fn (fn [invoice] (get-in invoice [:dispute-resolved-message :creator :user/name]))
         dispute-date-created-fn (partial formatted-date #(get-in % [:dispute/date-created]))
         dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
+        contract-link-fn (fn [dispute] {:route :route.job/contract :params {:job-story-id (:job-story/id dispute)}})
         amount-fn (fn [amount-source invoice]
                               (str (tokens/human-amount (amount-source invoice) (get-in invoice [:job :job/token-type]))
                                     " " (get-in invoice [:job :token-details :token-detail/symbol])))
         truncated-dispute-fn (fn [text-source invoice]
-                               (let [text (get-in invoice [text-source])
+                               (let [text (get-in invoice [text-source] "")
                                      max-chars 20]
-                                 (str (subs text 0 (min (count text) max-chars)) "...")))
+                                 (if (empty? text)
+                                   ""
+                                   (str (subs text 0 (min (count text) max-chars)) "..."))))
         open-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
                     {:title "Candidate" :source candidate-name-fn}
                     {:title "Requested amount" :source (partial amount-fn :invoice/amount-requested)}
@@ -299,18 +309,23 @@
                         {:title "Arbiter" :source arbiter-name-fn}
                         {:title "Resolution" :source (partial truncated-dispute-fn :dispute/resolution)}
                         {:title "Received amount" :source (partial amount-fn :invoice/amount-paid)}
-                        {:title "Date resolved" :source dispute-date-resolved-fn}]]
+                        {:title "Date resolved" :source dispute-date-resolved-fn}]
+        user->section {:employer :my-employer-dispute-listing
+                       :candidate :my-candidate-dispute-listing
+                       :arbiter :my-arbiter-dispute-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Open Disputes"}
+   {:label "Open Disputes"
+    :on-click (tab-navigate-handler (user->section user-type) :dispute-raised)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing open-table (filter #(nil? (:dispute/date-resolved %)) disputes)]]
+    [c-table-listing open-table disputes contract-link-fn pagination]]
 
-   {:label "Resolved Disputes"}
+   {:label "Resolved Disputes"
+    :on-click (tab-navigate-handler (user->section user-type) :dispute-resolved)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing resolved-table (filter #(not (nil? (:dispute/date-resolved %))) disputes)]]]))
+    [c-table-listing resolved-table disputes contract-link-fn pagination]]]))
 
 (defn c-my-employer-contract-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]

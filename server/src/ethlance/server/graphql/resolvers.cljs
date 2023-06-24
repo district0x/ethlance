@@ -826,6 +826,7 @@
 
                                        :JobStoryInvoiceMessage.invoice/amount-requested
                                        :JobStoryInvoiceMessage.invoice/amount-paid
+                                       [:JobStoryInvoiceMessage.invoice/status :dispute/status]
 
                                        [:JobStory.job-story/candidate :candidate/id]
                                        [:Job.job/creator :employer/id]
@@ -843,13 +844,14 @@
                                      [:Message :raised-message] [:= :raised-message.message/id :JobStoryInvoiceMessage.invoice/dispute-raised-message-id]]
                               :left-join [[:Message :resolved-message] [:= :resolved-message.message/id :JobStoryInvoiceMessage.invoice/dispute-resolved-message-id]]})
 
-(defn dispute-search-resolver [_ {:keys [:arbiter :employer :candidate :limit :offset] :as args} _]
+(defn dispute-search-resolver [_ {:keys [:arbiter :employer :candidate :status :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug "invoice-search-resolver" {:args args})
+    (log/debug "dispute-search-resolver" {:args args})
     (let [query (cond-> dispute-query
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
                   candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
-                  arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter]))]
+                  arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter])
+                  status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]

@@ -88,7 +88,7 @@
 
     \"Retrieve the Dispute Data defined by the dispute index\"
     dispute(jobStory_id: Int!): Dispute
-    disputeSearch(arbiter: String, candidate: String, employer: String): DisputeList
+    disputeSearch(arbiter: String, candidate: String, employer: String, status: Keyword, limit: Int, offset: Int): DisputeList
 
     \"Retrieve the Invoice Data defined by the invoice message id\"
     invoice(invoice_id: Int!): Invoice
@@ -628,6 +628,8 @@
 
     \"Identifier for the given JobStory\"
     jobStory_id: Int
+
+    dispute_status: String
 
     \"Reason for the Dispute\"
     dispute_reason: String
