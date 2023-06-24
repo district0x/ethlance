@@ -177,8 +177,16 @@
    [:div.listing.my-employer-job-listing
     [c-table-listing jobs-table jobs contract-link-fn pagination]]]))
 
-(defn c-invoice-listing [query-params]
-  (let [query [:invoice-search query-params
+(defn c-invoice-listing [user-type user-address]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "pending")
+        tab-to-index {"pending" 0 "paid" 1}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+
+        query [:invoice-search {user-type user-address :status tab}
                [:total-count
                 [:items
                  [:id
@@ -205,8 +213,10 @@
                     [:creator [:user/id
                                :user/name]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [query]}])
+        pagination {:total-count (get-in result [:invoice-search :total-count])
+                    :limit limit
+                    :offset offset}
         invoices (get-in result [:invoice-search :items])
-        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
         user-name-fn (fn [invoice] (get-in invoice [:creation-message :creator :user/name]))
         invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
         amount-requested-fn (fn [invoice]
@@ -216,21 +226,24 @@
         table [{:title "Job Title" :source #(get-in % [:job-story :job :job/title])}
                {:title "Candidate" :source user-name-fn}
                {:title "Amount Requested" :source amount-requested-fn}
-               {:title "Created at" :source invoice-date-created-fn}]
+               {:title "Created at" :source invoice-date-created-fn}
+               {:title "Status" :source #(get-in % [:invoice/status])}]
         invoice-link-fn (fn [invoice]
                           {:route :route.invoice/index
-                           :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})]
+                           :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})
+        user->section {:employer :my-employer-invoice-listing
+                       :candidate :my-candidate-invoice-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Pending Invoices"}
+   {:label "Pending Invoices" :on-click (tab-navigate-handler (user->section user-type) :pending)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "created") invoice-link-fn]]
+    [c-table-listing table invoices invoice-link-fn]]
 
-   {:label "Paid Invoices"}
+   {:label "Paid Invoices" :on-click (tab-navigate-handler (user->section user-type) :paid)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]]))
+    [c-table-listing table invoices invoice-link-fn]]]))
 
 (defn c-dispute-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -305,7 +318,7 @@
 
 (defn c-my-employer-invoice-listing []
   (let [employer (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
-    [c-invoice-listing {:employer employer}]))
+    [c-invoice-listing :employer employer]))
 
 (defn c-my-employer-dispute-listing []
   (c-dispute-listing :employer))
@@ -320,7 +333,7 @@
 
 (defn c-my-candidate-invoice-listing []
   (let [candidate (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
-    [c-invoice-listing {:candidate candidate}]))
+    [c-invoice-listing :candidate candidate]))
 
 (defn c-my-candidate-dispute-listing []
   [c-dispute-listing :candidate])

@@ -92,7 +92,7 @@
 
     \"Retrieve the Invoice Data defined by the invoice message id\"
     invoice(invoice_id: Int!): Invoice
-    invoiceSearch(candidate: String, employer: String): InvoiceList
+    invoiceSearch(candidate: String, employer: String, status: Keyword, limit: Int, offset: Int): InvoiceList
   }
 
   # Input types

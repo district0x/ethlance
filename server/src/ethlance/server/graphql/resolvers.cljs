@@ -797,12 +797,16 @@
                               :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
-(defn invoice-search-resolver [_ {:keys [:employer :candidate :limit :offset] :as args} _]
+(defn invoice-search-resolver [_ {:keys [:employer :candidate :status :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "invoice-search-resolver" {:args args})
-    (let [query (cond-> invoice-query
+    (let [statuses (case status
+                     "paid" ["paid" "dispute-resolved"]
+                     "pending" ["created" "dispute-raised"])
+          query (cond-> invoice-query
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
-                  candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate]))]
+                  candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
+                  status (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status statuses]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn invoice-resolver [_ {invoice-id :invoice/id  job-id :job/id :as args} _]
