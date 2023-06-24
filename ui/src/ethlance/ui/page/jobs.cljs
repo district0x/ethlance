@@ -3,6 +3,7 @@
   (:require [cuerdas.core :as str]
             [district.format :as format]
             [district.ui.component.page :refer [page]]
+            [ethlance.ui.component.pagination :refer [c-pagination]]
             [district.ui.router.events :as router-events]
             [inflections.core :as inflections]
             [district.ui.graphql.subs :as gql]
@@ -25,7 +26,6 @@
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.component.text-input :refer [c-text-input]]
-            [ethlance.ui.page.jobs.graphql :as j-gql]
             [re-frame.core :as re]))
 
 (defn c-user-employer-detail
@@ -212,12 +212,47 @@
 (defn c-job-listing []
   (fn []
     (let [query-params (re/subscribe [:page.jobs/job-search-params])
-          query (j-gql/jobs-query @query-params)
+          query [:job-search @query-params
+                 [:total-count
+                  [:items [:job/id
+                           :job/title
+                           :job/description
+                           :job/required-experience-level
+                           :job/bid-option
+                           :job/estimated-project-length
+                           :job/required-availability
+                           :job/date-created
+                           :job/required-skills
+
+                           :job/token-type
+                           :job/token-amount
+                           [:token-details [:token-detail/id
+                                            :token-detail/name
+                                            :token-detail/symbol]]
+
+                           [:job-stories [:total-count]]
+
+                           [:job/employer
+                            [:user/id
+                             :employer/rating
+                             [:user [:user/name
+                                    :user/country]]
+                             [:employer/feedback [:total-count]]]]
+
+                           [:job/arbiter
+                            [:user/id
+                             :arbiter/rating
+                             [:user [:user/name
+                                    :user/country]]
+                             [:arbiter/feedback [:total-count]]]]]]]]
           search-results @(re/subscribe [::gql/query {:queries [query]}
                                          {:id @query-params}])
           job-listing-state (get search-results :graphql/loading?)
           loading? (contains? #{:start :loading} job-listing-state)
-          job-listing (get-in (first search-results) [:job-search :items])]
+          job-listing (get-in (first search-results) [:job-search :items])
+          total-count (get-in (first search-results) [:job-search :total-count])
+          *limit (re/subscribe [:page.jobs/limit])
+          *offset (re/subscribe [:page.jobs/offset])]
       [:<>
        (cond
          ;; Is the job listing loading?
@@ -231,7 +266,14 @@
          (doall
            (for [job job-listing]
              ^{:key (str "job-" (:job/id job))}
-             [c-job-element job])))])))
+             [c-job-element job])))
+
+       (when (seq job-listing)
+           [c-pagination
+            {:total-count total-count
+             :limit (or @*limit 10)
+             :offset (or @*offset 0)
+             :set-offset-event :page.jobs/set-offset}])])))
 
 (defmethod page :route.job/jobs []
   (let [*skills (re/subscribe [:page.jobs/skills])]

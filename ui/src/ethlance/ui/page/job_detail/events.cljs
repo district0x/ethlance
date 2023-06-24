@@ -8,17 +8,21 @@
 ;; Page State
 (def state-key :page.job-detail)
 (def state-default
-  {})
+  {:proposal-offset 0
+   :proposal-limit 3})
 
 (def interceptors [re/trim-v])
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  []
-  {::router.effects/watch-active-page
-   [{:id :page.job-detail/initialize-page
-     :name :route.job/detail
-     :dispatch [:page.job-detail/fetch-proposals]}]})
+  [{:keys [db]}]
+  (let [page-state (get db state-key)]
+    {::router.effects/watch-active-page
+     [{:id :page.job-detail/initialize-page
+       :name :route.job/detail
+       :dispatch [:page.job-detail/fetch-proposals]
+       }]
+     :db (assoc-in db [state-key] state-default)}))
 
 ;;
 ;; Registered Events
@@ -29,6 +33,7 @@
 (re/reg-event-fx :page.job-detail/initialize-page initialize-page)
 (re/reg-event-fx :page.job-detail/set-proposal-token-amount (create-assoc-handler :job/proposal-token-amount))
 (re/reg-event-fx :page.job-detail/set-proposal-text (create-assoc-handler :job/proposal-text))
+(re/reg-event-fx :page.job-detail/set-proposal-offset (create-assoc-handler :proposal-offset))
 
 (def job-story-requested-fields
   [:job-story/id
@@ -83,8 +88,11 @@
           contract (or queried-contract-address contract-from-db)]
       {:dispatch [:district.ui.graphql.events/query!
                   {:queries
-                   [[:job-story-list {:job-contract contract}
-                     job-story-requested-fields]]
+                   [[:job-story-search {:search-params {:job contract}
+                                        :limit (get-in db [state-key :proposal-limit])
+                                        :offset (get-in db [state-key :proposal-offset])}
+                     [:total-count
+                      [:items job-story-requested-fields]]]]
                   :on-success [:proposal-stories-success]
                   :on-error [:proposal-stories-error]}]})))
 
@@ -92,16 +100,19 @@
   :proposal-stories-success
   [interceptors]
   (fn [{:keys [db]} data]
-    (let [stories (some :job-story-list data)
+    (let [result (some :job-story-search data)
+          stories (get-in result [:items])
           id-mapped (reduce
                       (fn [acc job-story]
                       (assoc acc (:job-story/id job-story) job-story))
                       {}
                       stories)]
-    {:db (assoc db :job-stories id-mapped)})))
+      {:db (-> db
+               (assoc ,,, :job-stories id-mapped)
+               (assoc-in ,,, [state-key :proposal-total-count] (:total-count result)))})))
 
 (re/reg-event-fx
   :proposal-stories-error
   [interceptors]
   (fn [{:keys [db]} error]
-    (merge db [:page.job-detail :graphql-error] error)))
+    (merge db [state-key :graphql-error] error)))

@@ -689,6 +689,7 @@
           creator (:creator search-params)
           arbiter (:arbiter search-params)
           payment-type (:payment-type search-params)
+          status (:status search-params)
 
           experience-level (:experience-level search-params)
           ordered-experience-levels ["beginner" "intermediate" "expert"]
@@ -720,6 +721,7 @@
                                         :from [:JobStoryFeedbackMessage]
                                         :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
                   payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
+                  status (sql-helpers/merge-where [:= :Job.job/status status])
                   experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
       (<? (paged-query conn query limit offset)))))
 
@@ -751,6 +753,31 @@
                  :where [:= :JobStory.job/id contract]}]
       (<? (db/all conn query)))))
 
+(defn job-story-search-resolver [_ {:keys [:search-params
+                                           :limit
+                                           :offset
+                                           :order-by
+                                           :order-direction] :as args} _]
+  (db/with-async-resolver-conn conn
+    (log/debug "job-story-search-resolver" args)
+    (let [search-params (js-obj->clj-map search-params)
+          job-id (:job search-params)
+          candidate-id (:candidate search-params)
+          employer-id (:employer search-params)
+          status (:status search-params)
+          base-query {:select [:JobStory.*]
+                      :from [:JobStory]
+                      :join [:Job [:= :Job.job/id :JobStory.job/id]]}
+          query (cond-> base-query
+                  job-id (sql-helpers/merge-where [:ilike :JobStory.job/id job-id])
+                  employer-id (sql-helpers/merge-where [:ilike :Job.job/creator employer-id])
+                  candidate-id (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate-id])
+                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status]))
+          limit (:limit args)
+          offset (:offset args)]
+      (<? (paged-query conn query limit offset)))))
+
+
 (def ^:private invoice-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
                               :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
@@ -770,12 +797,16 @@
                               :join [:JobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]
                                      :Job [:= :Job.job/id :JobStory.job/id]]})
 
-(defn invoice-search-resolver [_ {:keys [:employer :candidate :limit :offset] :as args} _]
+(defn invoice-search-resolver [_ {:keys [:employer :candidate :status :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "invoice-search-resolver" {:args args})
-    (let [query (cond-> invoice-query
+    (let [statuses (case status
+                     "paid" ["paid" "dispute-resolved"]
+                     "pending" ["created" "dispute-raised"])
+          query (cond-> invoice-query
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
-                  candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate]))]
+                  candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
+                  status (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status statuses]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn invoice-resolver [_ {invoice-id :invoice/id  job-id :job/id :as args} _]
@@ -795,6 +826,7 @@
 
                                        :JobStoryInvoiceMessage.invoice/amount-requested
                                        :JobStoryInvoiceMessage.invoice/amount-paid
+                                       [:JobStoryInvoiceMessage.invoice/status :dispute/status]
 
                                        [:JobStory.job-story/candidate :candidate/id]
                                        [:Job.job/creator :employer/id]
@@ -812,13 +844,14 @@
                                      [:Message :raised-message] [:= :raised-message.message/id :JobStoryInvoiceMessage.invoice/dispute-raised-message-id]]
                               :left-join [[:Message :resolved-message] [:= :resolved-message.message/id :JobStoryInvoiceMessage.invoice/dispute-resolved-message-id]]})
 
-(defn dispute-search-resolver [_ {:keys [:arbiter :employer :candidate :limit :offset] :as args} _]
+(defn dispute-search-resolver [_ {:keys [:arbiter :employer :candidate :status :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
-    (log/debug "invoice-search-resolver" {:args args})
+    (log/debug "dispute-search-resolver" {:args args})
     (let [query (cond-> dispute-query
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
                   candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
-                  arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter]))]
+                  arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter])
+                  status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]
@@ -1069,6 +1102,7 @@
                             :jobSearch job-search-resolver
                             :jobStory job-story-resolver
                             :jobStoryList job-story-list-resolver
+                            :jobStorySearch job-story-search-resolver
                             :invoiceSearch invoice-search-resolver
                             :disputeSearch dispute-search-resolver}
                     :Job {:jobStories job->job-stories-resolver

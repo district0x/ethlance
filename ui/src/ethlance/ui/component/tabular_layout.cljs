@@ -61,10 +61,10 @@
              ^{:key (str "tab-" index)}
              [:div.tab
               {:class (when (= @*active-tab-index index) "active")
-               :on-click (fn []
+               :on-click (fn [event]
                            (reset! *active-tab-index index)
                            (when on-click
-                             (on-click)))}
+                             (on-click event)))}
               [:span.label label]]))]
 
          [:div.mobile-tab-listing

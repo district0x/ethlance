@@ -1,7 +1,9 @@
 (ns ethlance.ui.page.me
   (:require [district.ui.component.page :refer [page]]
             [district.ui.router.subs :as router.subs]
+            [district.ui.router.events :as router.events]
             [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [ethlance.ui.component.pagination :refer [c-pagination-ends]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
             [ethlance.ui.component.table :refer [c-table]]
@@ -21,7 +23,7 @@
              active-query :query} @*active-page
             updated-query (-> (or active-query {})
                               (assoc  :sidebar id-value)
-                              (dissoc :section))
+                              (dissoc :tab))
             *current-sidebar-choice (keyword (:sidebar active-query))]
         [:div.nav-element
          [:a.link
@@ -45,25 +47,42 @@
 
   Example:
     (c-table-listing [{:title \"Name\" :source :user/name}] [{:user/name \"John Doe\"}])"
-  [headers rows & [link-params-fn]]
-  [:<>
-   (into [c-table {:headers (map :title headers)}]
-         (mapv (fn [row]
-                (mapv (fn [header]
-                       (if (nil? link-params-fn)
-                         [:span ((:source header) row)]
-                         [:a (link-params (link-params-fn row)) [:span ((:source header) row)]]))
-                     headers))
-               rows))
-   [:div.button-listing
-    [c-circle-icon-button {:name :ic-arrow-left2 :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-left :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-right :size :smaller :disabled? true}]
-    [c-circle-icon-button {:name :ic-arrow-right2 :size :smaller :disabled? true}]]])
+  [headers rows & [link-params-fn paging]]
+
+  (let [total-count (:total-count paging)
+        limit (:limit paging)
+        offset (:offset paging)]
+    [:<>
+     (into [c-table {:headers (map :title headers)}]
+           (mapv (fn [row]
+                  (mapv (fn [header]
+                         (if (nil? link-params-fn)
+                           [:span ((:source header) row)]
+                           [:a (link-params (link-params-fn row)) [:span ((:source header) row)]]))
+                       headers))
+                 rows))
+     [c-pagination-ends
+      {:total-count total-count
+       :limit limit
+       :offset offset
+       :set-offset-event :page.me/set-pagination-offset}]]))
+
+(defn tab-navigate-handler [sidebar tab]
+  (fn []
+    (re/dispatch [::router.events/navigate
+                  :route.me/index
+                  {}
+                  {:sidebar sidebar :tab tab}])))
 
 (defn c-job-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        job-query [:job-search {:search-params {user-type active-user}}
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "active")
+        tab-to-index {"active" 0 "finished" 1}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+        job-query [:job-search {:search-params {user-type active-user :status tab} :limit limit :offset offset}
                    [:total-count
                     [:items [:job/id
                              :job/title
@@ -74,60 +93,100 @@
                              [:token-details [:token-detail/id
                                               :token-detail/name
                                               :token-detail/symbol]]]]]]
-        jobs @(re/subscribe [::gql/query {:queries [job-query]}])
-        active-jobs (filter #(= :active (:job/status %)) (get-in jobs [:job-search :items]))
-        finished-jobs (filter #(= :finished (:job/status %)) (get-in jobs [:job-search :items]))
+        result @(re/subscribe [::gql/query {:queries [job-query]}])
+        jobs (get-in result [:job-search :items])
         remuneration (fn [job] (str (tokens/human-amount (:job/token-amount job) (:job/token-type job))
                                     " " (-> job :token-details :token-detail/symbol)))
         jobs-table [{:title "Job Title" :source :job/title}
                     {:title "Remuneration" :source remuneration}
                     {:title "Created at" :source (partial formatted-date :job/date-created)}]
-        job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})]
+        job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})
+        pagination {:total-count (get-in result [:job-search :total-count])
+                    :limit limit
+                    :offset offset}
+        user->section {:employer :my-employer-job-listing
+                       :creator :my-employer-job-listing
+                       :arbiter :my-arbiter-job-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Active Jobs"}
+   {:label "Active Jobs" :on-click (tab-navigate-handler (user->section user-type) :active)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table active-jobs job-link-fn]]
+    [c-table-listing jobs-table jobs job-link-fn pagination]]
 
-   {:label "Finished Jobs"}
+   {:label "Finished Jobs" :on-click (tab-navigate-handler (user->section user-type) :finished)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table finished-jobs job-link-fn]]]))
+    [c-table-listing jobs-table jobs job-link-fn pagination]]]))
 
 (defn c-my-employer-job-listing []
   [c-job-listing :creator])
 
-(defn c-contract-listing [query results-getter]
-  (let [jobs @(re/subscribe [::gql/query {:queries [query]}])
-        filter-by-status (fn [jobs status] (filter #(= status (:job-story/status %)) (results-getter jobs)))
+(defn c-contract-listing [user-type user-address]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "invitation")
+        tab-to-index {"invitation" 0 "proposal" 1 "active" 2 "finished" 3}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+
+        query [:job-story-search {:search-params {user-type user-address :status tab}
+                                  :limit limit :offset offset}
+               [:total-count
+                [:items [:job/id
+                         :job-story/id
+                         :job-story/status
+                         :job-story/date-created
+                         :job-story/proposal-rate
+                         [:candidate
+                          [:user/id
+                           [:user [:user/name]]]]
+                         [:job [:job/title]]]]]]
+        result @(re/subscribe [::gql/query {:queries [query]}])
+        pagination {:total-count (get-in result [:job-story-search :total-count])
+                    :limit limit
+                    :offset offset}
+        jobs (get-in result [:job-story-search :items])
         user-name-fn (fn [job] (get-in job [:candidate :user :user/name]))
         jobs-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
                     {:title "Candidate" :source user-name-fn}
                     {:title "Created at" :source (partial formatted-date :job-story/date-created)}]
-        contract-link-fn (fn [job] {:route :route.job/contract :params {:job-story-id (:job-story/id job)}})]
+        contract-link-fn (fn [job] {:route :route.job/contract :params {:job-story-id (:job-story/id job)}})
+        user->section {:employer :my-employer-contract-listing
+                       :creator :my-employer-contract-listing
+                       :candidate :my-candidate-contract-listing
+                       :arbiter :my-arbiter-contract-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Invitations"}
+   {:label "Invitations" :on-click (tab-navigate-handler (user->section user-type) :invitation)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :invitation) contract-link-fn]]
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]
 
-   {:label "Pending Proposals"}
+   {:label "Pending Proposals" :on-click (tab-navigate-handler (user->section user-type) :proposal)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :proposal) contract-link-fn]]
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]
 
-   {:label "Active Contracts"}
+   {:label "Active Contracts" :on-click (tab-navigate-handler (user->section user-type) :active)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :active) contract-link-fn]]
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]
 
-   {:label "Finished Contracts"}
+   {:label "Finished Contracts" :on-click (tab-navigate-handler (user->section user-type) :finished)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing jobs-table (filter-by-status jobs :finished) contract-link-fn]]]))
+    [c-table-listing jobs-table jobs contract-link-fn pagination]]]))
 
-(defn c-invoice-listing [query-params]
-  (let [query [:invoice-search query-params
+(defn c-invoice-listing [user-type user-address]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "pending")
+        tab-to-index {"pending" 0 "paid" 1}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+
+        query [:invoice-search {user-type user-address :status tab :limit limit :offset offset}
                [:total-count
                 [:items
                  [:id
@@ -154,8 +213,10 @@
                     [:creator [:user/id
                                :user/name]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [query]}])
+        pagination {:total-count (get-in result [:invoice-search :total-count])
+                    :limit limit
+                    :offset offset}
         invoices (get-in result [:invoice-search :items])
-        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
         user-name-fn (fn [invoice] (get-in invoice [:creation-message :creator :user/name]))
         invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
         amount-requested-fn (fn [invoice]
@@ -165,29 +226,35 @@
         table [{:title "Job Title" :source #(get-in % [:job-story :job :job/title])}
                {:title "Candidate" :source user-name-fn}
                {:title "Amount Requested" :source amount-requested-fn}
-               {:title "Created at" :source invoice-date-created-fn}]
+               {:title "Created at" :source invoice-date-created-fn}
+               {:title "Status" :source #(get-in % [:invoice/status])}]
         invoice-link-fn (fn [invoice]
                           {:route :route.invoice/index
-                           :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})]
+                           :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})
+        user->section {:employer :my-employer-invoice-listing
+                       :candidate :my-candidate-invoice-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Pending Invoices"}
+   {:label "Pending Invoices" :on-click (tab-navigate-handler (user->section user-type) :pending)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "created") invoice-link-fn]]
+    [c-table-listing table invoices invoice-link-fn pagination]]
 
-   {:label "Paid Invoices"}
+   {:label "Paid Invoices" :on-click (tab-navigate-handler (user->section user-type) :paid)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing table (filter-by-status invoices "paid") invoice-link-fn]]]))
+    [c-table-listing table invoices invoice-link-fn pagination]]]))
 
 (defn c-dispute-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        ; Hard-coded user addresses for testing to avoid account switching
-        users {:candidate "0x6dFA8c7DD1658387D170a2F9F34452C6f873fB9e"
-               :employer "0x0935D2ec65144343df67Bd3c7399c37Beb1bBce0"
-               :arbiter "0x2edd65Db76A4c02E851702CAc5E51b77Dc721cf0"}
-        query [:dispute-search {user-type (get users user-type)}
+        url-query @(re/subscribe [::router.subs/active-page-query])
+        tab (or (:tab url-query) "dispute-raised")
+        tab-to-index {"dispute-raised" 0 "dispute-resolved" 1}
+        tab-index (get tab-to-index tab 0)
+        limit @(re/subscribe [:page.me/pagination-limit])
+        offset @(re/subscribe [:page.me/pagination-offset])
+
+        query [:dispute-search {user-type active-user :status tab :limit limit :offset offset}
                [:total-count
                 [:items [:id
                          :invoice/id
@@ -195,6 +262,8 @@
                          :dispute/resolution
                          :dispute/date-created
                          :dispute/date-resolved
+                         :dispute/status
+                         :job-story/id
 
                          :invoice/amount-requested
                          :invoice/amount-paid
@@ -212,20 +281,25 @@
                              :token-detail/name
                              :token-detail/symbol]]]]]]]]
         disputes-result @(re/subscribe [::gql/query {:queries [query]}])
+        pagination {:total-count (get-in disputes-result [:dispute-search :total-count])
+                    :limit limit
+                    :offset offset}
         disputes (get-in  disputes-result [:dispute-search :items])
-        filter-by-status (fn [invoices status] (filter #(= status (:invoice/status %)) invoices))
         candidate-name-fn (fn [invoice] (get-in invoice [:candidate :user :user/name]))
         arbiter-name-fn (fn [invoice] (get-in invoice [:arbiter :user :user/name]))
         arbiter-name-fn (fn [invoice] (get-in invoice [:dispute-resolved-message :creator :user/name]))
         dispute-date-created-fn (partial formatted-date #(get-in % [:dispute/date-created]))
         dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
+        contract-link-fn (fn [dispute] {:route :route.job/contract :params {:job-story-id (:job-story/id dispute)}})
         amount-fn (fn [amount-source invoice]
                               (str (tokens/human-amount (amount-source invoice) (get-in invoice [:job :job/token-type]))
                                     " " (get-in invoice [:job :token-details :token-detail/symbol])))
         truncated-dispute-fn (fn [text-source invoice]
-                               (let [text (get-in invoice [text-source])
+                               (let [text (get-in invoice [text-source] "")
                                      max-chars 20]
-                                 (str (subs text 0 (min (count text) max-chars)) "...")))
+                                 (if (empty? text)
+                                   ""
+                                   (str (subs text 0 (min (count text) max-chars)) "..."))))
         open-table [{:title "Job Title" :source #(get-in % [:job :job/title])}
                     {:title "Candidate" :source candidate-name-fn}
                     {:title "Requested amount" :source (partial amount-fn :invoice/amount-requested)}
@@ -235,40 +309,31 @@
                         {:title "Arbiter" :source arbiter-name-fn}
                         {:title "Resolution" :source (partial truncated-dispute-fn :dispute/resolution)}
                         {:title "Received amount" :source (partial amount-fn :invoice/amount-paid)}
-                        {:title "Date resolved" :source dispute-date-resolved-fn}]]
+                        {:title "Date resolved" :source dispute-date-resolved-fn}]
+        user->section {:employer :my-employer-dispute-listing
+                       :candidate :my-candidate-dispute-listing
+                       :arbiter :my-arbiter-dispute-listing}]
   [c-tabular-layout
    {:key "my-employer-job-tab-listing"
-    :default-tab 0}
+    :default-tab tab-index}
 
-   {:label "Open Disputes"}
+   {:label "Open Disputes"
+    :on-click (tab-navigate-handler (user->section user-type) :dispute-raised)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing open-table (filter #(nil? (:dispute/date-resolved %)) disputes)]]
+    [c-table-listing open-table disputes contract-link-fn pagination]]
 
-   {:label "Resolved Disputes"}
+   {:label "Resolved Disputes"
+    :on-click (tab-navigate-handler (user->section user-type) :dispute-resolved)}
    [:div.listing.my-employer-job-listing
-    [c-table-listing resolved-table (filter #(not (nil? (:dispute/date-resolved %))) disputes)]]]))
+    [c-table-listing resolved-table disputes contract-link-fn pagination]]]))
 
 (defn c-my-employer-contract-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        results-getter (fn [results] (get-in results [:employer :job-stories :items]))
-        query [:employer {:user/id active-user}
-               [:user/id
-                [:job-stories
-                 [:total-count
-                  [:items [:job/id
-                           :job-story/id
-                           :job-story/status
-                           :job-story/date-created
-                           :job-story/proposal-rate
-                           [:candidate
-                            [:user/id
-                             [:user [:user/name]]]]
-                           [:job [:job/title]]]]]]]]]
-    [c-contract-listing query results-getter]))
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
+    [c-contract-listing :employer active-user]))
 
 (defn c-my-employer-invoice-listing []
   (let [employer (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
-    [c-invoice-listing {:employer employer}]))
+    [c-invoice-listing :employer employer]))
 
 (defn c-my-employer-dispute-listing []
   (c-dispute-listing :employer))
@@ -278,26 +343,12 @@
 ;;
 
 (defn c-my-candidate-contract-listing []
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        results-getter (fn [results] (get-in results [:candidate :job-stories :items]))
-        query [:candidate {:user/id active-user}
-               [:user/id
-                [:job-stories
-                 [:total-count
-                  [:items [:job/id
-                           :job-story/id
-                           :job-story/status
-                           :job-story/date-created
-                           :job-story/proposal-rate
-                           [:candidate
-                            [:user/id
-                             [:user [:user/name]]]]
-                           [:job [:job/title]]]]]]]]]
-    [c-contract-listing query results-getter]))
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
+    [c-contract-listing :candidate active-user]))
 
 (defn c-my-candidate-invoice-listing []
   (let [candidate (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
-    [c-invoice-listing {:candidate candidate}]))
+    [c-invoice-listing :candidate candidate]))
 
 (defn c-my-candidate-dispute-listing []
   [c-dispute-listing :candidate])

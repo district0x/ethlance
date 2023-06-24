@@ -26,7 +26,9 @@
 (re/reg-sub
   :page.candidates/search-params
   (fn [db _]
-    {:search-params
+    {:offset (get-in db [candidates.events/state-key :offset])
+     :limit (get-in db [candidates.events/state-key :limit])
+     :search-params
      (graphql-util/prepare-search-params
        (get-in db [candidates.events/state-key] {})
        [[:skills #(into [] %)]
