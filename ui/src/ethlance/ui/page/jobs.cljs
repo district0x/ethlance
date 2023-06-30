@@ -9,6 +9,7 @@
             [district.ui.graphql.subs :as gql]
             [ethlance.shared.constants :as constants]
             [ethlance.shared.enumeration.currency-type :as enum.currency]
+            [ethlance.ui.component.info-message :refer [c-info-message]]
             [ethlance.ui.util.navigation :as util.navigation]
             [ethlance.ui.component.currency-input :refer [c-currency-input]]
             [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
@@ -261,7 +262,7 @@
 
          ;; Is the job listing empty?
          (empty? job-listing)
-         [:div.empty-listing  "No jobs found for these search parameters"]
+         [c-info-message  "No jobs found for these search parameters"]
          :else
          (doall
            (for [job job-listing]
