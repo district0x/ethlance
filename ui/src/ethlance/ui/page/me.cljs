@@ -59,11 +59,13 @@
        [c-info-message "There are no items to show"]
        (into [c-table {:headers (map :title headers)}]
              (mapv (fn [row]
-                    (mapv (fn [header]
-                           (if (nil? link-params-fn)
-                             [:span ((:source header) row)]
-                             [:a (link-params (link-params-fn row)) [:span ((:source header) row)]]))
-                         headers))
+                     {:row-link (link-params (link-params-fn row))
+                      :row-cells (mapv (fn [header]
+                                         (if (nil? link-params-fn)
+                                           [:span ((:source header) row)]
+                                           [:a (link-params (link-params-fn row))
+                                            [:span ((:source header) row)]]))
+                                       headers)})
                    rows)))
      [c-pagination-ends
       {:total-count total-count

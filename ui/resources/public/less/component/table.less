@@ -7,6 +7,13 @@
   > table {
     width: 100%;
     text-align: left;
+    > tbody > tr.clickable {
+        cursor: pointer;
+        &:hover {
+          background-blend-mode: darken;
+          background-color: #color[offwhite2];
+        }
+      }
     > tbody > tr {
       > th {
         font-weight: 700;
