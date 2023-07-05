@@ -80,6 +80,11 @@
                   {}
                   {:sidebar sidebar :tab tab}])))
 
+(defn spinner-until-data-ready [loading-states component-when-loading-finished]
+  (if (not-every? false? loading-states)
+    [c-loading-spinner]
+    component-when-loading-finished))
+
 (defn c-job-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         url-query @(re/subscribe [::router.subs/active-page-query])
@@ -114,22 +119,21 @@
         user->section {:employer :my-employer-job-listing
                        :creator :my-employer-job-listing
                        :arbiter :my-arbiter-job-listing}]
-    (cond
-      (or loading? processing?)
-      [c-loading-spinner]
+    [c-tabular-layout
+     {:key "my-employer-job-tab-listing"
+      :default-tab tab-index}
 
-      :else
-      [c-tabular-layout
-        {:key "my-employer-job-tab-listing"
-         :default-tab tab-index}
+     {:label "Active Jobs" :on-click (tab-navigate-handler (user->section user-type) :active)}
+     (spinner-until-data-ready
+       [loading? processing?]
+       [:div.listing.my-employer-job-listing
+        [c-table-listing jobs-table jobs job-link-fn pagination]])
 
-        {:label "Active Jobs" :on-click (tab-navigate-handler (user->section user-type) :active)}
-        [:div.listing.my-employer-job-listing
-         [c-table-listing jobs-table jobs job-link-fn pagination]]
-
-        {:label "Finished Jobs" :on-click (tab-navigate-handler (user->section user-type) :finished)}
-        [:div.listing.my-employer-job-listing
-         [c-table-listing jobs-table jobs job-link-fn pagination]]] )))
+     {:label "Finished Jobs" :on-click (tab-navigate-handler (user->section user-type) :finished)}
+     (spinner-until-data-ready
+       [loading? processing?]
+       [:div.listing.my-employer-job-listing
+        [c-table-listing jobs-table jobs job-link-fn pagination]])]))
 
 (defn c-my-employer-job-listing []
   [c-job-listing :creator])
@@ -170,30 +174,33 @@
                        :creator :my-employer-contract-listing
                        :candidate :my-candidate-contract-listing
                        :arbiter :my-arbiter-contract-listing}]
-    (cond
-      (or loading? processing?)
-      [c-loading-spinner]
+    [c-tabular-layout
+     {:key "my-employer-job-tab-listing"
+      :default-tab tab-index}
 
-      :else
-      [c-tabular-layout
-       {:key "my-employer-job-tab-listing"
-        :default-tab tab-index}
-
-       {:label "Invitations" :on-click (tab-navigate-handler (user->section user-type) :invitation)}
+     {:label "Invitations" :on-click (tab-navigate-handler (user->section user-type) :invitation)}
+     (spinner-until-data-ready
+       [loading? processing?]
        [:div.listing.my-employer-job-listing
-        [c-table-listing jobs-table jobs contract-link-fn pagination]]
+        [c-table-listing jobs-table jobs contract-link-fn pagination]])
 
-       {:label "Pending Proposals" :on-click (tab-navigate-handler (user->section user-type) :proposal)}
+     {:label "Pending Proposals" :on-click (tab-navigate-handler (user->section user-type) :proposal)}
+     (spinner-until-data-ready
+       [loading? processing?]
        [:div.listing.my-employer-job-listing
-        [c-table-listing jobs-table jobs contract-link-fn pagination]]
+        [c-table-listing jobs-table jobs contract-link-fn pagination]])
 
-       {:label "Active Contracts" :on-click (tab-navigate-handler (user->section user-type) :active)}
+     {:label "Active Contracts" :on-click (tab-navigate-handler (user->section user-type) :active)}
+     (spinner-until-data-ready
+       [loading? processing?]
        [:div.listing.my-employer-job-listing
-        [c-table-listing jobs-table jobs contract-link-fn pagination]]
+        [c-table-listing jobs-table jobs contract-link-fn pagination]])
 
-       {:label "Finished Contracts" :on-click (tab-navigate-handler (user->section user-type) :finished)}
+     {:label "Finished Contracts" :on-click (tab-navigate-handler (user->section user-type) :finished)}
+     (spinner-until-data-ready
+       [loading? processing?]
        [:div.listing.my-employer-job-listing
-        [c-table-listing jobs-table jobs contract-link-fn pagination]]])))
+        [c-table-listing jobs-table jobs contract-link-fn pagination]])]))
 
 (defn c-invoice-listing [user-type user-address]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -252,22 +259,21 @@
                            :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})
         user->section {:employer :my-employer-invoice-listing
                        :candidate :my-candidate-invoice-listing}]
-    (cond
-      (or loading? processing?)
-      [c-loading-spinner]
+    [c-tabular-layout
+     {:key "my-employer-job-tab-listing"
+      :default-tab tab-index}
 
-      :else
-      [c-tabular-layout
-       {:key "my-employer-job-tab-listing"
-        :default-tab tab-index}
+     {:label "Pending Invoices" :on-click (tab-navigate-handler (user->section user-type) :pending)}
+     (spinner-until-data-ready
+       [loading? processing?]
+       [:div.listing.my-employer-job-listing
+        [c-table-listing table invoices invoice-link-fn pagination]])
 
-        {:label "Pending Invoices" :on-click (tab-navigate-handler (user->section user-type) :pending)}
-        [:div.listing.my-employer-job-listing
-         [c-table-listing table invoices invoice-link-fn pagination]]
-
-        {:label "Paid Invoices" :on-click (tab-navigate-handler (user->section user-type) :paid)}
-        [:div.listing.my-employer-job-listing
-         [c-table-listing table invoices invoice-link-fn pagination]]])))
+     {:label "Paid Invoices" :on-click (tab-navigate-handler (user->section user-type) :paid)}
+     (spinner-until-data-ready
+       [loading? processing?]
+       [:div.listing.my-employer-job-listing
+        [c-table-listing table invoices invoice-link-fn pagination]])]))
 
 (defn c-dispute-listing [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -338,24 +344,23 @@
         user->section {:employer :my-employer-dispute-listing
                        :candidate :my-candidate-dispute-listing
                        :arbiter :my-arbiter-dispute-listing}]
-    (cond
-      (or loading? processing?)
-      [c-loading-spinner]
+    [c-tabular-layout
+     {:key "my-employer-job-tab-listing"
+      :default-tab tab-index}
 
-      :else
-      [c-tabular-layout
-       {:key "my-employer-job-tab-listing"
-        :default-tab tab-index}
-
-       {:label "Open Disputes"
-        :on-click (tab-navigate-handler (user->section user-type) :dispute-raised)}
+     {:label "Open Disputes"
+      :on-click (tab-navigate-handler (user->section user-type) :dispute-raised)}
+     (spinner-until-data-ready
+       [loading? processing?]
        [:div.listing.my-employer-job-listing
-        [c-table-listing open-table disputes contract-link-fn pagination]]
+        [c-table-listing open-table disputes contract-link-fn pagination]])
 
-       {:label "Resolved Disputes"
-        :on-click (tab-navigate-handler (user->section user-type) :dispute-resolved)}
+     {:label "Resolved Disputes"
+      :on-click (tab-navigate-handler (user->section user-type) :dispute-resolved)}
+     (spinner-until-data-ready
+       [loading? processing?]
        [:div.listing.my-employer-job-listing
-        [c-table-listing resolved-table disputes contract-link-fn pagination]]])))
+        [c-table-listing resolved-table disputes contract-link-fn pagination]])]))
 
 (defn c-my-employer-contract-listing []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]

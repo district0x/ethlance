@@ -12,8 +12,6 @@
     (log/info (str message " : " details))
     (fn []
       [:div.info-message
-       [:div.logo
-        [:img {:src "/images/svg/ethlance_spinner.svg"}]] ;; FIXME
        [:div.message message]
        (when details
          [:div.show-button
