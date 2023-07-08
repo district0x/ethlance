@@ -531,6 +531,7 @@
     jobStory_employerFeedback: [Feedback]  # This job's feedback for employer
     jobStory_candidateFeedback: [Feedback] # This job's Feedback for candidate
     jobStory_arbiterFeedback: [Feedback]   # This job's Feedback for arbiter
+    feedbacks: [Feedback]
 
     jobStory_dispute: Dispute
 
@@ -540,7 +541,7 @@
     proposalAcceptedMessage: JobStoryMessage
     directMessages: [DirectMessage]
 
-    jobStory_invoices(limit: Int, offset: Int): InvoiceList
+    jobStory_invoices(statuses: [Keyword], limit: Int, offset: Int): InvoiceList
 
     # The below fields were ethlanceJobStory_...
     jobStory_proposalRate: Float
@@ -658,11 +659,14 @@
     jobStory_id: Int
     message: JobStoryMessage
 
+    feedback_toUser: User
     feedback_toUserType: Keyword
     feedback_toUserAddress: String
+
     feedback_fromUser: User
     feedback_fromUserType: Keyword
     feedback_fromUserAddress: String
+
     feedback_dateCreated: Date
     feedback_rating: Int
     feedback_text: String
