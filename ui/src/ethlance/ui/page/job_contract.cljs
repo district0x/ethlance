@@ -178,15 +178,13 @@
                                                         [:creation-message message-fields]
                                                         [:payment-message message-fields]
                                                         [:dispute-raised-message message-fields]
-                                                        [:dispute-resolved-message message-fields]]]] ]]]
+                                                        [:dispute-resolved-message message-fields]]]]]]]
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])]
     (fn [job-story-id]
       (let [chat-messages (extract-chat-messages (:job-story @messages-result) active-user)]
-        [c-chat-log (take 2 chat-messages)]))))
-
-; (defn c-length-checked-submit [{:keys [min-length input]}])
+        [c-chat-log chat-messages]))))
 
 (defn c-feedback-panel [feedbacker feedback-recipients]
   (let [job-story-id (re/subscribe [:page.job-contract/job-story-id])
@@ -399,19 +397,28 @@
                           :job/token-address
                           :job/token-id
                           [:token-details [:token-detail/name :token-detail/symbol]]]]
-                        [:job-story/invoices [:total-count
-                                              [:items [:id
-                                                       :job/id
-                                                       :job-story/id
-                                                       :invoice/status
-                                                       :invoice/id
-                                                       :invoice/date-paid
-                                                       :invoice/amount-requested
-                                                       :invoice/amount-paid
-                                                       [:creation-message [:message/date-created]]
-                                                       [:dispute-raised-message [:message/id :message/text]]
-                                                       [:dispute-resolved-message [:message/id :message/text]]]]]]]]
+                        [:invitation-message [:message/id]]
+                        [:invitation-accepted-message [:message/id]]
+                        [:job-story/invoices
+                         [:total-count
+                          [:items [:id
+                                   :job/id
+                                   :job-story/id
+                                   :invoice/status
+                                   :invoice/id
+                                   :invoice/date-paid
+                                   :invoice/amount-requested
+                                   :invoice/amount-paid
+                                   [:creation-message [:message/date-created]]
+                                   [:dispute-raised-message [:message/id :message/text]]
+                                   [:dispute-resolved-message [:message/id :message/text]]]]]]]]
         invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+
+        invitation-message (get-in @invoice-result [:job-story :invitation-message])
+        invitation-accepted-message (get-in @invoice-result [:job-story :invitation-accepted-message])
+        invitation-to-accept? (and
+                                (not (nil? invitation-message))
+                                (nil? invitation-accepted-message))
         invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
         latest-unpaid-invoice (->> invoices
                                    (filter #(= "created" (:invoice/status %)) ,,,)
@@ -435,7 +442,12 @@
       :default-tab 0}
 
      {:label "Accept invitation"}
-     [c-accept-invitation message-params]
+     (if invitation-to-accept?
+       [c-accept-invitation message-params]
+       [:div.message-input-container
+        [c-information "No invitations to accept"]]
+       )
+
 
      {:label "Send Message"}
      [c-direct-message (select-keys message-params [:employer :arbiter])]
@@ -480,18 +492,20 @@
                           [:token-details [:token-detail/name :token-detail/symbol]]]]
                         [:job-story/employer-feedback [:message/id]]
                         [:job-story/candidate-feedback [:message/id]]
-                        [:job-story/invoices [:total-count
-                                              [:items [:id
-                                                       :job/id
-                                                       :job-story/id
-                                                       :invoice/status
-                                                       :invoice/id
-                                                       :invoice/date-paid
-                                                       :invoice/amount-requested
-                                                       :invoice/amount-paid
-                                                       [:creation-message [:message/date-created]]
-                                                       [:dispute-raised-message [:message/id]]
-                                                       [:dispute-resolved-message [:message/id]]]]]]]]
+                        [:job-story/invoices
+                         [:total-count
+                          [:items
+                           [:id
+                            :job/id
+                            :job-story/id
+                            :invoice/status
+                            :invoice/id
+                            :invoice/date-paid
+                            :invoice/amount-requested
+                            :invoice/amount-paid
+                            [:creation-message [:message/date-created]]
+                            [:dispute-raised-message [:message/id]]
+                            [:dispute-resolved-message [:message/id]]]]]]]]
         invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
         job-id (get-in @invoice-result [:job-story :job/id])
         job-story-id (get-in @invoice-result [:job-story :job-story/id])
@@ -500,13 +514,15 @@
         token-address (get-in @invoice-result [:job-story :job :job/token-address])
         token-id (get-in @invoice-result [:job-story :job :job/token-id])
         invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
-        dispute-open? (fn [invoice] (not (nil? (:dispute-raised-message invoice))))
+        dispute-open? (fn [invoice] (and
+                                     (not (nil? (:dispute-raised-message invoice)))
+                                     (nil? (:dispute-resolved-message invoice))))
         latest-disputed-invoice (->> invoices
-                                   ; (filter #(= "dispute-raised" (:invoice/status %)) ,,,)
-                                   (filter dispute-open? ,,,)
-                                   (sort-by #(get-in % [:creation-message :message/date-created]) > ,,,)
-                                   first)
-        dispute-to-resolve? (nil? (:dispute-resolved-message latest-disputed-invoice))
+                                     (filter dispute-open? ,,,)
+                                     (sort-by #(get-in % [:creation-message :message/date-created]) > ,,,)
+                                     first)
+        dispute-to-resolve? (not (nil? latest-disputed-invoice))
+
         invoice-id (:invoice/id latest-disputed-invoice)
         dispute-candidate-percentage (re/subscribe [:page.job-contract/dispute-candidate-percentage])
         dispute-text (re/subscribe [:page.job-contract/dispute-text])
@@ -567,7 +583,7 @@
          [c-button-label "Resolve Dispute"]]]
 
        ; Else
-       [c-information (str "The latest invoice ref.id " invoice-id " doesn't have open dispute to resolve")])
+       [c-information "There are no invoices with unresolved disputes for this job story"])
 
      {:label "Leave Feedback"}
      (if feedback-available-for-arbiter?

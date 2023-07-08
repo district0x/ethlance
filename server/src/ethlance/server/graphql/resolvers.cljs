@@ -254,7 +254,9 @@
           query (cond-> (merge arbiter-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Arbiter.arbiter/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Arbiter.arbiter/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
+                  (and
+                    (contains? search-params :min-rating)
+                    (nil? min-rating)) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
                   id (sql-helpers/merge-where [:ilike :Arbiter.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
