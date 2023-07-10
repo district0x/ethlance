@@ -18,7 +18,6 @@
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
-  (println ">>> initializing :page.me")
   (let [page-state (get db state-key)]
     {:db (assoc-in db [state-key] state-default)}))
 

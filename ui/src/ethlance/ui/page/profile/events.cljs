@@ -9,17 +9,20 @@
             [re-frame.core :as re]))
 
 ;; Page State
-(def state-key :page.profiles)
+(def state-key :page.profile)
 (def state-default
-  {})
+  {:pagination-limit 5
+   :pagination-offset 0})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  []
-  {::router.effects/watch-active-page
-   [{:id :page.profile/initialize-page
-     :name :route.user/profile
-     :dispatch []}]})
+  [{:keys [db]} _]
+  (let [page-state (get db state-key)]
+    {::router.effects/watch-active-page
+     [{:id :page.profile/initialize-page
+       :name :route.user/profile
+       :dispatch []}]
+       :db (assoc-in db [state-key] state-default)}))
 
 (re/reg-event-fx
   :query-profile-page-data
@@ -41,6 +44,7 @@
 (re/reg-event-fx :page.profile/initialize-page initialize-page)
 (re/reg-event-fx :page.profile/set-job-for-invitation (create-assoc-handler :job-for-invitation))
 (re/reg-event-fx :page.profile/set-invitation-text (create-assoc-handler :invitation-text))
+(re/reg-event-fx :page.profile/set-pagination-offset (create-assoc-handler :pagination-offset))
 
 (re/reg-event-fx
   :page.profile/send-invitation

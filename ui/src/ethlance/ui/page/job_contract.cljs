@@ -213,11 +213,6 @@
                   [:feedback/to-user [:user/id :user/name]]]]]]
         results @(re/subscribe [::gql/query {:queries [query]}])
         feedbacks (get-in results [:job-story :feedbacks])
-        ; FIXME: Remove. Left here for testing
-        ; feedbacks [{:feedback/from-user-type "Candidate"
-        ;             :feedback/to-user-type "Employer"}
-        ;            {:feedback/from-user-type "Candidate"
-        ;             :feedback/to-user-type "Arbiter"}]
         open-invoices (get-in results [:job-story :job-story/invoices :items])
         participants {:employer (get-in results [:job-story :job :job/employer :user])
                       :candidate (get-in results [:job-story :candidate :user])

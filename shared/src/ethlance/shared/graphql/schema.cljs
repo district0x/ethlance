@@ -427,7 +427,7 @@
       limit: Int,
       offset: Int
     ): FeedbackList
-    arbitrations: ArbitrationList
+    arbitrations(limit: Int, offset: Int): ArbitrationList
   }
 
   type Arbitration {
