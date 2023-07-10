@@ -223,9 +223,8 @@
                       :candidate (get-in results [:job-story :candidate :user])
                       :arbiter (get-in results [:job-story :job :job/arbiter :user])}
 
-        type->kw (fn [s] (keyword (clojure.string/lower-case s)))
-        normalized-feedback-users (map (fn [fb] [(type->kw (:feedback/from-user-type fb))
-                                                 (type->kw (:feedback/to-user-type fb))])
+        normalized-feedback-users (map (fn [fb] [(:feedback/from-user-type fb)
+                                                 (:feedback/to-user-type fb)])
                                        feedbacks)
         feedback-between? (fn [participants feedbacks from to]
                             (some #(= % [from to]) feedbacks))

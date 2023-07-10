@@ -307,14 +307,14 @@
 (defn feedback->to-user-type-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:= to-user-address :user/id])]
+          q (sql-helpers/merge-where user-type-query [:ilike to-user-address :user/id])]
       (log/debug "feedback->to-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
 (defn feedback->from-user-type-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:= from-user-address :user/id])]
+          q (sql-helpers/merge-where user-type-query [:ilike from-user-address :user/id])]
       (log/debug "feedback->from-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
@@ -930,10 +930,10 @@
   ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
     (let [job-story-id id
-          current-user-id (:user/id current-user)
+          current-user-id (clojure.string/lower-case (:user/id current-user))
           employer (<? (ethlance-db/get-employer-id-by-job-story-id conn job-story-id))
           candidate (<? (ethlance-db/get-candidate-id-by-job-story-id conn job-story-id))
-          participants (set [employer candidate])
+          participants (set (map clojure.string/lower-case [employer candidate]))
           feedback-from-participants? (contains? participants current-user-id)
           previous-status (:status (<? (db/get conn
                                                {:select [[:JobStory.job-story/status :status]]
