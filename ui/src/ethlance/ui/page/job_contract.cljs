@@ -178,7 +178,7 @@
                                                         [:creation-message message-fields]
                                                         [:payment-message message-fields]
                                                         [:dispute-raised-message message-fields]
-                                                        [:dispute-resolved-message message-fields]]]] ]]]
+                                                        [:dispute-resolved-message message-fields]]]]]]]
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])]
@@ -186,38 +186,114 @@
       (let [chat-messages (extract-chat-messages (:job-story @messages-result) active-user)]
         [c-chat-log chat-messages]))))
 
-(defn c-feedback-panel [feedback-recipients]
+(defn c-feedback-panel [feedbacker feedback-recipients]
   (let [job-story-id (re/subscribe [:page.job-contract/job-story-id])
         feedback-text (re/subscribe [:page.job-contract/feedback-text])
         feedback-rating (re/subscribe [:page.job-contract/feedback-rating])
         feedback-recipient (re/subscribe [:page.job-contract/feedback-recipient])
-        feedback-done? (= 0 (count (keys feedback-recipients)))]
-    (if feedback-done?
-      [c-information "No more feedback to leave. You have already left feedback for all participants"]
 
-      [:div.feedback-input-container
-       [:span.selection-label "Feedback for:"]
-       (into [c-radio-select
-              {:selection @feedback-recipient
-               :on-selection #(re/dispatch [:page.job-contract/set-feedback-recipient %])}]
-             (map (fn [[user-type address]]
-                    [address [c-radio-secondary-element (clojure.string/capitalize (name user-type))]])
-                  feedback-recipients))
-       [:div.rating-input
-        [c-rating {:rating @feedback-rating
-                   :on-change #(re/dispatch [:page.job-contract/set-feedback-rating %])}]]
-       [:div.label "Feedback:"]
-       [c-textarea-input {:value @feedback-text
-                          :placeholder "Feedback"
-                          :on-change #(re/dispatch [:page.job-contract/set-feedback-text %])}]
-       [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."]
-       [c-button {:color :primary
-                  :on-click #(re/dispatch [:page.job-contract/send-feedback
-                                           {:job-story/id @job-story-id
-                                            :text @feedback-text
-                                            :rating @feedback-rating
-                                            :to @feedback-recipient}])}
-        [c-button-label "Send Feedback"]]])))
+        user-fields [:user [:user/id :user/name]]
+        query [:job-story {:job-story/id @job-story-id}
+               [:job-story/id
+                [:candidate
+                 [user-fields]]
+                [:job
+                 [:job/id
+                  [:job/employer
+                   [user-fields]]
+                  [:job/arbiter
+                   [user-fields]]]]
+                [:job-story/invoices {:statuses [:dispute-raised :created]}
+                 [[:items
+                   [:id]]]]
+                [:feedbacks
+                 [:feedback/from-user-type
+                  :feedback/to-user-type
+                  [:feedback/from-user [:user/id :user/name]]
+                  [:feedback/to-user [:user/id :user/name]]]]]]
+        results @(re/subscribe [::gql/query {:queries [query]}])
+        feedbacks (get-in results [:job-story :feedbacks])
+        open-invoices (get-in results [:job-story :job-story/invoices :items])
+        participants {:employer (get-in results [:job-story :job :job/employer :user])
+                      :candidate (get-in results [:job-story :candidate :user])
+                      :arbiter (get-in results [:job-story :job :job/arbiter :user])}
+
+        normalized-feedback-users (map (fn [fb] [(:feedback/from-user-type fb)
+                                                 (:feedback/to-user-type fb)])
+                                       feedbacks)
+        feedback-between? (fn [participants feedbacks from to]
+                            (some #(= % [from to]) feedbacks))
+        given-feedback? (partial feedback-between? participants normalized-feedback-users)
+        feedback-receiver-role (case feedbacker
+                                 :employer
+                                 (cond
+                                   (not (given-feedback? :employer :candidate))
+                                   :candidate
+
+                                   (and
+                                     (given-feedback? :employer :candidate)
+                                     (not (given-feedback? :employer :arbiter)))
+                                   :arbiter)
+
+                                 :candidate
+                                 (cond
+                                   (not (given-feedback? :candidate :employer))
+                                   :employer
+
+                                   (and
+                                     (given-feedback? :candidate :employer)
+                                     (not (given-feedback? :candidate :arbiter)))
+                                   :arbiter)
+
+                                 :arbiter
+                                 (cond
+                                   (or
+                                     (given-feedback? :employer :candidate feedbacks)
+                                     (given-feedback? :candidate :employer feedbacks))
+                                   (if (given-feedback? :arbiter :candidate feedbacks)
+                                     :employer
+                                     :candidate)))
+
+        open-invoices? (not (empty? open-invoices))
+        can-give-feedback? (and
+                             (not (nil? feedback-receiver-role))
+                             (empty? open-invoices))
+        all-feedbacks-done? (and (empty? open-invoices)
+                                 (nil? feedback-receiver-role))
+
+        new-feedback-recipients (dissoc participants feedbacker)
+        next-feedback-receiver (get participants feedback-receiver-role)]
+    [:div.feedback-input-container
+     (when open-invoices?
+       [c-information "There are still open invoices. Feedback can be given after they're closed"])
+
+     (when all-feedbacks-done?
+       [c-information "No more feedback to leave. You have already left feedback for all participants"])
+
+     (when can-give-feedback?
+       [:<>
+        [:span.selection-label "Feedback for:"]
+        [:span.note (str (:user/name next-feedback-receiver) " (" (name feedback-receiver-role) ")")]
+        (when (and
+                (not (= :arbiter feedbacker))
+                (#{:candidate :employer} feedback-receiver-role))
+          [:span.note "Note, by leaving feedback, you will end this contract, which means no more invoices can be sent."])
+
+        [:div.rating-input
+         [c-rating {:rating @feedback-rating
+                    :on-change #(re/dispatch [:page.job-contract/set-feedback-rating %])}]]
+        [:div.label "Feedback:"]
+        [c-textarea-input {:value @feedback-text
+                           :placeholder "Feedback"
+                           :on-change #(re/dispatch [:page.job-contract/set-feedback-text %])}]
+
+        [c-button {:color :primary
+                   :on-click #(re/dispatch [:page.job-contract/send-feedback
+                                            {:job-story/id @job-story-id
+                                             :text @feedback-text
+                                             :rating @feedback-rating
+                                             :to (:user/id next-feedback-receiver)}])}
+         [c-button-label "Send Feedback"]]])]))
 
 (defn c-direct-message [recipients]
   (let [text (re/subscribe [:page.job-contract/message-text])
@@ -294,7 +370,7 @@
    [c-accept-proposal-message message-params]
 
    {:label "Leave Feedback"}
-   [c-feedback-panel (select-keys message-params [:candidate :arbiter])]])
+   [c-feedback-panel :employer (select-keys message-params [:candidate :arbiter])]])
 
 (defn c-candidate-options [{job-story-status :job-story/status ; TODO: take into account for limiting actions (feedback, disputes)
                            job-id :job/id
@@ -315,19 +391,28 @@
                           :job/token-address
                           :job/token-id
                           [:token-details [:token-detail/name :token-detail/symbol]]]]
-                        [:job-story/invoices [:total-count
-                                              [:items [:id
-                                                       :job/id
-                                                       :job-story/id
-                                                       :invoice/status
-                                                       :invoice/id
-                                                       :invoice/date-paid
-                                                       :invoice/amount-requested
-                                                       :invoice/amount-paid
-                                                       [:creation-message [:message/date-created]]
-                                                       [:dispute-raised-message [:message/id :message/text]]
-                                                       [:dispute-resolved-message [:message/id :message/text]]]]]]]]
+                        [:invitation-message [:message/id]]
+                        [:invitation-accepted-message [:message/id]]
+                        [:job-story/invoices
+                         [:total-count
+                          [:items [:id
+                                   :job/id
+                                   :job-story/id
+                                   :invoice/status
+                                   :invoice/id
+                                   :invoice/date-paid
+                                   :invoice/amount-requested
+                                   :invoice/amount-paid
+                                   [:creation-message [:message/date-created]]
+                                   [:dispute-raised-message [:message/id :message/text]]
+                                   [:dispute-resolved-message [:message/id :message/text]]]]]]]]
         invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+
+        invitation-message (get-in @invoice-result [:job-story :invitation-message])
+        invitation-accepted-message (get-in @invoice-result [:job-story :invitation-accepted-message])
+        invitation-to-accept? (and
+                                (not (nil? invitation-message))
+                                (nil? invitation-accepted-message))
         invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
         latest-unpaid-invoice (->> invoices
                                    (filter #(= "created" (:invoice/status %)) ,,,)
@@ -351,7 +436,12 @@
       :default-tab 0}
 
      {:label "Accept invitation"}
-     [c-accept-invitation message-params]
+     (if invitation-to-accept?
+       [c-accept-invitation message-params]
+       [:div.message-input-container
+        [c-information "No invitations to accept"]]
+       )
+
 
      {:label "Send Message"}
      [c-direct-message (select-keys message-params [:employer :arbiter])]
@@ -379,7 +469,7 @@
        [c-information dispute-unavailable-message])
 
      {:label "Leave Feedback"}
-     [c-feedback-panel (select-keys message-params [:employer :arbiter])]]))
+     [c-feedback-panel :candidate (select-keys message-params [:employer :arbiter])]]))
 
 (defn c-arbiter-options [message-params]
   (let [*active-page-params (re/subscribe [::router.subs/active-page-params])
@@ -396,18 +486,20 @@
                           [:token-details [:token-detail/name :token-detail/symbol]]]]
                         [:job-story/employer-feedback [:message/id]]
                         [:job-story/candidate-feedback [:message/id]]
-                        [:job-story/invoices [:total-count
-                                              [:items [:id
-                                                       :job/id
-                                                       :job-story/id
-                                                       :invoice/status
-                                                       :invoice/id
-                                                       :invoice/date-paid
-                                                       :invoice/amount-requested
-                                                       :invoice/amount-paid
-                                                       [:creation-message [:message/date-created]]
-                                                       [:dispute-raised-message [:message/id]]
-                                                       [:dispute-resolved-message [:message/id]]]]]]]]
+                        [:job-story/invoices
+                         [:total-count
+                          [:items
+                           [:id
+                            :job/id
+                            :job-story/id
+                            :invoice/status
+                            :invoice/id
+                            :invoice/date-paid
+                            :invoice/amount-requested
+                            :invoice/amount-paid
+                            [:creation-message [:message/date-created]]
+                            [:dispute-raised-message [:message/id]]
+                            [:dispute-resolved-message [:message/id]]]]]]]]
         invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
         job-id (get-in @invoice-result [:job-story :job/id])
         job-story-id (get-in @invoice-result [:job-story :job-story/id])
@@ -416,13 +508,15 @@
         token-address (get-in @invoice-result [:job-story :job :job/token-address])
         token-id (get-in @invoice-result [:job-story :job :job/token-id])
         invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
-        dispute-open? (fn [invoice] (not (nil? (:dispute-raised-message invoice))))
+        dispute-open? (fn [invoice] (and
+                                     (not (nil? (:dispute-raised-message invoice)))
+                                     (nil? (:dispute-resolved-message invoice))))
         latest-disputed-invoice (->> invoices
-                                   ; (filter #(= "dispute-raised" (:invoice/status %)) ,,,)
-                                   (filter dispute-open? ,,,)
-                                   (sort-by #(get-in % [:creation-message :message/date-created]) > ,,,)
-                                   first)
-        dispute-to-resolve? (nil? (:dispute-resolved-message latest-disputed-invoice))
+                                     (filter dispute-open? ,,,)
+                                     (sort-by #(get-in % [:creation-message :message/date-created]) > ,,,)
+                                     first)
+        dispute-to-resolve? (not (nil? latest-disputed-invoice))
+
         invoice-id (:invoice/id latest-disputed-invoice)
         dispute-candidate-percentage (re/subscribe [:page.job-contract/dispute-candidate-percentage])
         dispute-text (re/subscribe [:page.job-contract/dispute-text])
@@ -483,11 +577,11 @@
          [c-button-label "Resolve Dispute"]]]
 
        ; Else
-       [c-information (str "The latest invoice ref.id " invoice-id " doesn't have open dispute to resolve")])
+       [c-information "There are no invoices with unresolved disputes for this job story"])
 
      {:label "Leave Feedback"}
      (if feedback-available-for-arbiter?
-       [c-feedback-panel (select-keys message-params [:candidate :employer])]
+       [c-feedback-panel :arbiter (select-keys message-params [:candidate :employer])]
        [c-information "Leaving feedback becomes available after employer or candidate have given their feedback (and thus terminated the job contract)"])]))
 
 (defn c-guest-options [])

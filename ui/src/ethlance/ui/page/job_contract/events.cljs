@@ -88,7 +88,6 @@
         mutation-params {:job-story/id job-story-id
                         :text text
                         :to to}]
-    (println ">>> sending message mutation-params" mutation-params)
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation
                       {:queries [[:send-message mutation-params]]
@@ -118,7 +117,6 @@
                       :job/id job-id
                       :job-story/id job-story-id
                       :invoice/id invoice-id}]
-    (println ">>> ethlance.ui.page.job-contract.events/raise-dispute to ipfs: " event)
     {:ipfs/call {:func "add"
                  :args [(js/Blob. [ipfs-dispute])]
                  :on-success [:page.job-contract/raise-dispute-to-ipfs-success ipfs-dispute]
@@ -133,8 +131,6 @@
           invoice-id (:invoice/id dispute-details)
           job-contract-address (:job/id dispute-details)
           tx-opts {:from creator :gas 10000000}]
-      (println ">>> ethlance.ui.page.job-contract.events ::raise-dispute-to-ipfs-success"
-               {:creator creator :ipfs-event ipfs-event :ipfs-hash ipfs-hash :job-contract job-contract-address})
        {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance db :job job-contract-address)
                    :fn :raiseDispute
@@ -148,7 +144,6 @@
 (re/reg-event-fx
   :page.job-contract/accept-proposal
   (fn [{:keys [db]} [_ proposal-data]]
-    (println ">>> EVENT accept-proposal" proposal-data)
     (let [to-ipfs {:candidate (:candidate proposal-data)
                    :employer (:employer proposal-data)
                    :job-story-message/type :accept-proposal
@@ -159,13 +154,11 @@
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [to-ipfs])]
                    :on-success [:accept-proposal-to-ipfs-success to-ipfs]
-                   :on-error [:accept-proposal-to-ipfs-failure to-ipfs]}})
-    ))
+                   :on-error [:accept-proposal-to-ipfs-failure to-ipfs]}})))
 
 (re/reg-event-fx
   :accept-proposal-to-ipfs-success
   (fn [{:keys [db]} [_event ipfs-accept ipfs-event]]
-    (println ">>> :accept-proposal-to-ipfs-success" _event ipfs-accept ipfs-event)
     (let [creator (:employer ipfs-accept)
           ipfs-hash (base58->hex (:Hash ipfs-event))
           job-contract-address (:job/id ipfs-accept)

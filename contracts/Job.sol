@@ -36,7 +36,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   using EnumerableSet for EnumerableSet.AddressSet;
   EnumerableSet.AddressSet internal invitedArbiters;
   EnumerableSet.AddressSet internal invitedCandidates;
-  address acceptedArbiter;
+  address public acceptedArbiter;
 
   struct Dispute {
     uint invoiceId;

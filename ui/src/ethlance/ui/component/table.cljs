@@ -30,6 +30,15 @@
     [:span \"$25\"]
     [:span \"5 Days Ago\"]
     [:span \"Pending\"]]]
+
+  ## Clickable (link) rows
+
+  To have the whole row clickable, instead of passing nested vector, pass a vector of maps such that
+  [
+   ;; Row 0
+   {:row-link {:href \"http://...\" :on-click (fn [] ..something that causes navigation... )}
+    :row-cells [[:span \"First cell\" \"Second cell\" etc]]}
+  ]
   "
   [{:keys [headers]} & rows]
   [:div.ethlance-table
@@ -42,8 +51,18 @@
          [:th header]))]
      (doall
       (for [[i row] (map-indexed vector rows)]
-        ^{:key (str "row-" i)}
-        [:tr
-         (for [[i elem] (map-indexed vector row)]
-           ^{:key (str "elem-" i)}
-           [:td elem])]))]]])
+        (if (map? row)
+
+          ^{:key (str "row-" i)}
+          [:tr.clickable (:row-link row)
+           (for [[i elem] (map-indexed vector (:row-cells row))]
+             ^{:key (str "elem-" i)}
+             [:td elem])]
+
+          ^{:key (str "row-" i)}
+          [:tr
+           (for [[i elem] (map-indexed vector row)]
+             ^{:key (str "elem-" i)}
+             [:td elem])]
+          )
+        ))]]])

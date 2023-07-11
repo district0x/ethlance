@@ -52,7 +52,7 @@
      [c-icon {:name :ic-arrow-right :size :smaller}]]))
 
 (defmethod page :route.job/new []
-  (let [arbiters-query [:arbiter-search
+  (let [arbiters-query [:arbiter-search {:limit 1000}
                         [[:items [:user/id
                                   [:user [:user/id
                                           :user/name

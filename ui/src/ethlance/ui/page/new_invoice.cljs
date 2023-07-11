@@ -10,30 +10,42 @@
 (defmethod page :route.invoice/new []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         query [:candidate {:user/id active-user}
-               [[:candidate/job-stories [:total-count
-                                         [:items [:job-story/id
-                                                  :job/id
-                                                  [:job [:job/id
-                                                         :job/title
-                                                         :job/token-address
-                                                         :job/token-amount
-                                                         :job/token-type
-                                                         :job/token-id
-                                                         [:token-details [:token-detail/id
-                                                                          :token-detail/name
-                                                                          :token-detail/symbol]]]]]]]]]]
+               [:user/id
+                [:job-stories
+                 [:total-count
+                  [:items
+                   [:job-story/id
+                    :job/id
+                    :job-story/date-created
+                    [:job
+                     [:job/id
+                      :job/title
+                      :job/token-address
+                      :job/token-amount
+                      :job/token-type
+                      :job/token-id
+                      [:token-details
+                       [:token-detail/id
+                        :token-detail/name
+                        :token-detail/symbol]]]]]]]]]]
         search-results (re/subscribe [::gql/query {:queries [query]}
-                                       {:id :CandidateJobStoriesForInvoice
-                                        :refetch-on [:page.new-invoice/set-invoiced-job]}])
-        *invoiced-job (re/subscribe [:page.new-invoice/invoiced-job])
-        *hours-worked (re/subscribe [:page.new-invoice/hours-worked])
-        *hourly-rate (re/subscribe [:page.new-invoice/hourly-rate])
-        *invoice-amount (re/subscribe [:page.new-invoice/invoice-amount])
-        *message (re/subscribe [:page.new-invoice/message])
-        job-token (re/subscribe [:page.new-invoice/job-token])
-        estimated-usd (re/subscribe [:page.new-invoice/estimated-usd])]
+                                       { :id :CandidateJobStoriesForInvoice
+                                        :refetch-on [:page.new-invoice/set-invoiced-job]}])]
     (fn []
-      (let [*job-listing (-> @search-results first :candidate :candidate/job-stories :items)
+      (let [*invoiced-job (re/subscribe [:page.new-invoice/invoiced-job])
+            *hours-worked (re/subscribe [:page.new-invoice/hours-worked])
+            *hourly-rate (re/subscribe [:page.new-invoice/hourly-rate])
+            *invoice-amount (re/subscribe [:page.new-invoice/invoice-amount])
+            *message (re/subscribe [:page.new-invoice/message])
+            job-token (re/subscribe [:page.new-invoice/job-token])
+            estimated-usd (re/subscribe [:page.new-invoice/estimated-usd])
+            *job-listing (->> @search-results
+                              first
+                              :candidate
+                              :job-stories
+                              :items
+                              (sort-by :job-story/date-created ,,,)
+                              reverse)
             token-symbol (-> @job-token :symbol (or ,,, "") name)]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
          [:div.title "New Invoice"]

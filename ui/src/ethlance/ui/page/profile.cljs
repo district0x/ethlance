@@ -12,6 +12,7 @@
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [ethlance.ui.component.pagination :refer [c-pagination-ends]]
             [district.ui.router.subs :as router-subs]
             [district.ui.router.events :as router-events]
             [ethlance.shared.utils :refer [ilike=]]
@@ -35,20 +36,81 @@
 (defn c-job-activity-row [job column-names]
   (map #(conj [] :span (format-date-looking-column % (get job %))) column-names))
 
-(defn c-job-activity [jobs keys-headers]
-  (let [headers (map last keys-headers)
-        column-names (map first keys-headers)]
+(defn prepare-candidate-jobs [story]
+  {:title (get-in story [:job :job/title])
+   :start-date (get-in story [:job-story/date-contract-active])
+   :status (get-in story [:job-story/status])})
+
+(defn c-job-activity [user-role]
+  (let [keys-headers {:title "Title" :start-date "Created" :status "Status"}
+        headers (map last keys-headers)
+        column-names (map first keys-headers)
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        limit @(re/subscribe [:page.profile/pagination-limit])
+        offset @(re/subscribe [:page.profile/pagination-offset])
+        query [:job-story-search {:search-params {user-role active-user} :limit limit :offset offset}
+               [:total-count
+                [:items
+                 [:job-story/date-contract-active
+                  :job-story/status
+                  [:job
+                   [:job/title
+                    :job/status]]]]]]
+        results @(re/subscribe [::gql/query {:queries [query]}])
+        total-count (get-in results [:job-story-search :total-count])
+        jobs (map prepare-candidate-jobs (get-in results [:job-story-search :items]))]
     [:div.job-listing
       [:div.title "Job Activity"]
       [c-scrollable
        {:forceVisible true :autoHide false}
        (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) jobs))]
 
-      [:div.button-listing
-       [c-circle-icon-button {:name :ic-arrow-left2 :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-left :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right :size :small}]
-       [c-circle-icon-button {:name :ic-arrow-right2 :size :small}]]]))
+       [c-pagination-ends
+        {:total-count total-count
+         :limit limit
+         :offset offset
+         :set-offset-event :page.profile/set-pagination-offset}]]))
+
+(defn prepare-arbitrations [arbitration]
+  {:title (get-in arbitration [:job :job/title])
+   :start-date (get-in arbitration [:arbitration/date-arbiter-accepted]) ;
+   :fee (str (get-in arbitration [:arbitration/fee]) " " (get-in arbitration [:arbitration/fee-currency-id]))
+   :status (get-in arbitration [:arbitration/status])})
+
+(defn c-arbitration-activity []
+  (let [keys-headers {:title "Title" :start-date "Hired" :fee "Fee" :status "Status"}
+        headers (map last keys-headers)
+        column-names (map first keys-headers)
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        limit @(re/subscribe [:page.profile/pagination-limit])
+        offset @(re/subscribe [:page.profile/pagination-offset])
+        query [:arbiter {:user/id active-user}
+               [
+                [:arbitrations {:limit limit :offset offset}
+                 [:total-count
+                  [:items
+                   [:id
+                    :arbitration/date-arbiter-accepted
+                   :arbitration/fee
+                   :arbitration/fee-currency-id
+                   :arbitration/status
+                   [:job
+                    [:job/title]]]]]]]]
+        results @(re/subscribe [::gql/query {:queries [query]}])
+        total-count (get-in results [:arbiter :arbitrations :total-count])
+        arbitrations (map prepare-arbitrations (get-in results [:arbiter :arbitrations :items]))
+        ]
+    [:div.job-listing
+      [:div.title "Arbitrations"]
+      [c-scrollable
+       {:forceVisible true :autoHide false}
+       (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) arbitrations))]
+
+       [c-pagination-ends
+        {:total-count total-count
+         :limit limit
+         :offset offset
+         :set-offset-event :page.profile/set-pagination-offset}]]))
 
 (defn c-invite-to-jobs []
   (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
@@ -134,21 +196,10 @@
    :image-url (-> item :feedback/from-user :user/profile-image)
    :author (get-in item [:feedback/from-user :user/name])})
 
-(defn prepare-candidate-jobs [story]
-  {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-contract-active])
-   :status (get-in story [:job-story/status])})
-
 (defn prepare-employer-jobs [story]
   {:title (get-in story [:job :job/title])
    :start-date (get-in story [:job-story/date-created])
    :status (get-in story [:job :job/status])})
-
-(defn prepare-arbitrations [arbitration]
-  {:title (get-in arbitration [:job :job/title])
-   :start-date (get-in arbitration [:arbitration/date-arbiter-accepted]) ;
-   :fee (str (get-in arbitration [:arbitration/fee]) " " (get-in arbitration [:arbitration/fee-currency-id]))
-   :status (get-in arbitration [:arbitration/status])})
 
 (defn c-candidate-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
@@ -165,13 +216,6 @@
                        feedback_text
                        feedback_rating
                        feedback_fromUser {user_name user_profileImage}
-                       }
-                     }
-                   jobStories {
-                     items {
-                       job {job_title job_status}
-                       jobStory_dateContractActive
-                       jobStory_status
                      }
                    }
                  }
@@ -185,8 +229,6 @@
             image-url (get-in @results [:user :user/profile-image])
             languages (get-in @results [:user :user/languages])
             skills (get-in @results [:candidate :candidate/skills])
-            job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
-            jobs (map prepare-candidate-jobs (get-in @results [:candidate :job-stories :items]))
             feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
             rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
         [:<>
@@ -209,7 +251,7 @@
            [c-button
             {:size :normal}
             [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
-         (c-job-activity jobs job-activity-column-headers)
+         (c-job-activity :candidate)
          [c-invite-to-jobs]
          (c-feedback-listing professional-title feedback-list)]))))
 
@@ -229,13 +271,8 @@
                        feedback_fromUser {user_name user_profileImage}
                      }
                    }
-                   jobStories {
-                     items {
-                       job {
-                         job_title
-                         job_status
-                       }
-                       jobStory_dateCreated}}}}"
+                }
+              }"
         results (re/subscribe [::gql/query query {:variables {:id (:address @page-params)}} ])]
   (fn []
     (let [name (get-in @results [:user :user/name])
@@ -244,8 +281,6 @@
           biography (get-in @results [:employer :employer/bio])
           image-url (get-in @results [:user :user/profile-image])
           languages (get-in @results [:user :user/languages])
-          job-activity-column-headers {:title "Title" :start-date "Created" :status "Status"}
-          jobs (map prepare-employer-jobs (get-in @results [:employer :job-stories :items]))
           feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
           rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>
@@ -268,7 +303,7 @@
           {:size :normal}
           [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-       (c-job-activity jobs job-activity-column-headers)
+       (c-job-activity :employer)
        (c-feedback-listing professional-title feedback-list)]))))
 
 (defn c-arbiter-profile []
@@ -284,16 +319,6 @@
                   :user/profile-image
                   :user/country
                   :user/languages]]
-                [:arbitrations
-                 [:total-count
-                  [:items
-                   [:id
-                    :arbitration/date-arbiter-accepted
-                   :arbitration/fee
-                   :arbitration/fee-currency-id
-                   :arbitration/status
-                   [:job
-                    [:job/title]]]]]]
                 [:arbiter/feedback
                  [:total-count
                   [:items
@@ -311,8 +336,6 @@
             biography (get-in @results [:arbiter :arbiter/bio])
             image-url (get-in @results [:user :user/profile-image])
             languages (get-in @results [:user :user/languages])
-            arbitration-column-headers {:title "Title" :start-date "Hired" :fee "Fee" :status "Status"}
-            arbitrations (map prepare-arbitrations (get-in @results [:arbiter :arbitrations :items]))
             feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
             rating {:average (get-in @results [:arbiter :arbiter/rating]) :count (count feedback-list)}]
     [:<>
@@ -335,7 +358,7 @@
         {:size :normal}
         [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-     (c-job-activity arbitrations arbitration-column-headers)
+     (c-arbitration-activity)
      (c-feedback-listing professional-title feedback-list)]))))
 
 (defmethod page :route.user/profile []

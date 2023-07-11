@@ -89,6 +89,10 @@
   (let [id (:feedback/from-user-address (graphql-utils/gql->clj root))]
     (user-resolver nil {:user/id id} nil)))
 
+(defn feedback->to-user-resolver [root _ _]
+  (let [id (:feedback/to-user-address (graphql-utils/gql->clj root))]
+    (user-resolver nil {:user/id id} nil)))
+
 (defn user->is-registered-candidate-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
@@ -250,7 +254,9 @@
           query (cond-> (merge arbiter-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Arbiter.arbiter/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Arbiter.arbiter/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
+                  (and
+                    (contains? search-params :min-rating)
+                    (nil? min-rating)) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
                   id (sql-helpers/merge-where [:ilike :Arbiter.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
@@ -301,14 +307,14 @@
 (defn feedback->to-user-type-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:= to-user-address :user/id])]
+          q (sql-helpers/merge-where user-type-query [:ilike to-user-address :user/id])]
       (log/debug "feedback->to-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
 (defn feedback->from-user-type-resolver [root _ _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:= from-user-address :user/id])]
+          q (sql-helpers/merge-where user-type-query [:ilike from-user-address :user/id])]
       (log/debug "feedback->from-user-type-resolver" feedback)
       (:type (<? (db/get conn q))))))
 
@@ -577,6 +583,15 @@
                                                   [:= :JobStoryFeedbackMessage.job-story/id job-story-id]
                                                   [:= :JobArbiter.user/id :JobStoryFeedbackMessage.user/id]]))]
       (log/debug "job-story->arbiter-feedback-resolver")
+      (<? (db/all conn query)))))
+
+(defn job-story->feedbacks-resolver [root _ _]
+  (db/with-async-resolver-conn conn
+    (let [{job-story-id :job-story/id} (graphql-utils/gql->clj root)
+          query (-> user-feedback-query
+                    (sql-helpers/merge-where ,,, [:= job-story-id :JobStory.job-story/id])
+                    (sql-helpers/merge-where ,,, [:= :JobStoryFeedbackMessage.job-story/id job-story-id]))]
+      (log/debug "job-story->feedbacks-resolver job-story-id" job-story-id)
       (<? (db/all conn query)))))
 
 (defn message-resolver [root args _]
@@ -854,14 +869,16 @@
                   status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status]))]
       (<? (paged-query conn query limit offset)))))
 
-(defn job-story->invoices-resolver [root {:keys [:limit :offset] :as args} _]
+(defn job-story->invoices-resolver [root {:keys [:statuses :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [parsed-root (graphql-utils/gql->clj root)
           job-story-id (:job-story/id (graphql-utils/gql->clj root))
-          query (-> invoice-query
-                  (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id]))
+          snake-statuses (map camel-snake-kebab.core/->kebab-case statuses)
+          query (cond-> invoice-query
+                  job-story-id (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])
+                  statuses (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status snake-statuses]))
           result-pages (<? (paged-query conn query limit offset))]
-      (log/debug "job-story->invoices-resolver RESULT-PAGES" job-story-id " | " result-pages)
+      (log/debug "job-story->invoices-resolver RESULT-PAGES" job-story-id " | statuses" statuses)
       result-pages)))
 
 (defn job->invoices-resolver [root {:keys [:limit :offset] :as args} _]
@@ -913,10 +930,10 @@
   ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
     (let [job-story-id id
-          current-user-id (:user/id current-user)
+          current-user-id (clojure.string/lower-case (:user/id current-user))
           employer (<? (ethlance-db/get-employer-id-by-job-story-id conn job-story-id))
           candidate (<? (ethlance-db/get-candidate-id-by-job-story-id conn job-story-id))
-          participants (set [employer candidate])
+          participants (set (map clojure.string/lower-case [employer candidate]))
           feedback-from-participants? (contains? participants current-user-id)
           previous-status (:status (<? (db/get conn
                                                {:select [[:JobStory.job-story/status :status]]
@@ -1115,6 +1132,7 @@
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
                                :jobStory_arbiterFeedback job-story->arbiter-feedback-resolver
+                               :feedbacks job-story->feedbacks-resolver
                                :jobStory_invoices job-story->invoices-resolver
                                :job job-resolver
                                :candidate candidate-resolver
@@ -1148,9 +1166,10 @@
                               :arbiter arbiter-resolver}
 
                     :Feedback {:feedback_toUserType feedback->to-user-type-resolver
+                               :feedback_toUser feedback->to-user-resolver
+                               :feedback_fromUserType feedback->from-user-type-resolver
                                :feedback_fromUser feedback->from-user-resolver
-                               :message message-resolver
-                               :feedback_fromUserType feedback->from-user-type-resolver}
+                               :message message-resolver}
                     :JobStoryMessage {:creator user-resolver}
                     :DirectMessage {:creator user-resolver}
                     :Invoice {:jobStory job-story-resolver
