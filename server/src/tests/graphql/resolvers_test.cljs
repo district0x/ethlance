@@ -94,16 +94,9 @@
                                                                                   :feedback/from-user-type
                                                                                   :feedback/rating]]]]]]}))
 
-                 candidate-search-query-or (<! (run-query {:url api-endpoint
-                                                           :access-token access-token
-                                                           :query [:candidate-search {:skills-or ["Clojure" "Travis"]}
-                                                                   [:total-count
-                                                                    [:items [:user/id
-                                                                             :candidate/skills]]]]}))
-
                  candidate-search-query-and (<! (run-query {:url api-endpoint
                                                             :access-token access-token
-                                                            :query [:candidate-search {:skills-and ["Clojure" "Java"]}
+                                                            :query [:candidate-search {:search-params {:skills ["Clojure" "Java"]}}
                                                                     [:total-count
                                                                      [:items [:user/id
                                                                               :candidate/skills]]]]}))
@@ -198,7 +191,6 @@
              (is (= "Employer" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/from-user-type)))
              (is (= "Candidate" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/to-user-type)))
 
-             (is (= #{"Clojure" "Solidity"} (-> candidate-search-query-or :data :candidate-search :items first :candidate/skills set)))
              (is (= 0 (-> candidate-search-query-and :data :candidate-search :total-count)))
 
              (is (every? #(= "Employer" %) (-> employer-query :data :employer :employer/feedback :items (#(map :feedback/to-user-type %)) )))
@@ -237,7 +229,7 @@
 
              (done)))))
 
-#_(deftest test-mutations
+(deftest test-mutations
     (async done
            (go
              (let [api-endpoint "http://localhost:4000/graphql"

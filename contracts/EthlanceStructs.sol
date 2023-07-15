@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@ganache/console.log/console.sol";
 
 library EthlanceStructs {
   enum TokenType {
@@ -74,8 +75,6 @@ library EthlanceStructs {
   }
 
   function transferETH(TokenValue memory tokenValue, address payable to) public {
-    // Is the following restriction necessary? Wouldn't the tx fail anyway if there wasn't enough ETH in the contract
-    // require(msg.value >= tokenValue.value, "Transaction must contain >= of ETH vs that defined in the offer");
     to.transfer(tokenValue.value); // If more was included in msg.value, the reminder stays in the calling contract
   }
 

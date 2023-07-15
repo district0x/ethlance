@@ -49,6 +49,13 @@ module.exports = {
       network_id: '*'
     },
 
+    "ganache-test": {
+      host: 'localhost',
+      port: 8550,
+      gas: 6e6, // gas limit
+      gasPrice: 20e9, // 20 gwei, default for ganache
+      network_id: '*'
+    },
     hardhat: {
       host: 'localhost',
       port: 8545,
