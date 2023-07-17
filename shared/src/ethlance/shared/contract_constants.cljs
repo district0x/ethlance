@@ -2,8 +2,11 @@
 
 (def token-types {:eth 0 :erc20 1 :erc721 2 :erc1155 3})
 
-(defn token-type->enum-val [type]
-  (get token-types (keyword type) :not-found))
+(defn token-type->enum-val [token-type]
+  (let [str-token-type (if (keyword? token-type)
+                         (name token-type)
+                         (str token-type))]
+    (get token-types (keyword (clojure.string/lower-case str-token-type)) :not-found)))
 
 (defn enum-val->token-type [enum-val]
   (get (clojure.set/map-invert token-types) enum-val :not-found))

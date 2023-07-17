@@ -196,6 +196,29 @@
                   :message/date-created (get-timestamp)}]
      (<? (ethlance-db/add-message conn message)))))
 
+(defn handle-quote-for-arbitration-set [conn _ {:keys [args] :as event}]
+  (safe-go
+    (log/info (str ">>> Handling event quote-for-arbitration-set" args))
+    (let [quoted-value (offered-vec->flat-map (first (:quote args)))
+          token-type (enum-val->token-type (:token-type quoted-value))
+          for-the-db {:job/id (:job args)
+                      :user/id (:arbiter args)
+                      :job-arbiter/fee (:token-amount quoted-value)
+                      :job-arbiter/fee-currency-id (if (keyword? token-type)
+                                                     (name token-type)
+                                                     (str token-type))
+                      :job-arbiter/date-accepted (get-timestamp)
+                      :job-arbiter/status "quote-set"}]
+      (<? (ethlance-db/update-arbitration conn for-the-db)))))
+
+(defn handle-quote-for-arbitration-accepted [conn _ {:keys [args] :as event}]
+  (safe-go
+    (log/info (str ">>> Handling event quote-for-arbitration-accepted" args))
+    (let [for-the-db {:job/id (:job args)
+                      :user/id (:arbiter args)
+                      :job-arbiter/status "accepted"}]
+      (<? (ethlance-db/update-arbitration conn for-the-db)))))
+
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
 
@@ -268,6 +291,8 @@
                          :ethlance/invoice-paid handle-invoice-paid
                          :ethlance/dispute-raised handle-dispute-raised
                          :ethlance/dispute-resolved handle-dispute-resolved
+                         :ethlance/quote-for-arbitration-set handle-quote-for-arbitration-set
+                         :ethlance/quote-for-arbitration-accepted handle-quote-for-arbitration-accepted
                          }
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)

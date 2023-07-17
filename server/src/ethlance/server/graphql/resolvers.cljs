@@ -228,7 +228,7 @@
     (log/debug "arbiter-resolver" args)
     (let [address-from-args (:user/id args)
           parent (graphql-utils/gql->clj raw-parent)
-          address-from-parent (:arbiter/id parent)
+          address-from-parent (or (:arbiter/id parent) (:user/id parent))
           address (or address-from-args address-from-parent)]
       (<? (db/get conn (sql-helpers/merge-where arbiter-query [:ilike address :Arbiter.user/id]))))))
 
@@ -524,25 +524,32 @@
       (log/debug "employer->job-stories-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn- arbiter-arbitrations-query [id]
+(def arbitrations-query
   {:select
-   [[:JobStory.job-story/id :id]
+   [[(sql/call :concat :Job.job/id (sql/raw "'-'") :JobArbiter.user/id) :id]
     :JobArbiter.user/id
     :JobArbiter.job/id
     [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
     [:JobArbiter.job-arbiter/fee :arbitration/fee]
     [:JobArbiter.job-arbiter/status :arbitration/status]
     [:JobArbiter.job-arbiter/fee-currency-id :arbitration/fee-currency-id]]
-   :from [:JobStory]
-   :join [:Job [:= :Job.job/id :JobStory.job/id]
-          :JobArbiter [:= :JobArbiter.job/id :Job.job/id]]
-   :where [:and [:= :JobArbiter.user/id id] [:!= :JobStory.job-story/status "deleted"]]})
+   :from [:Job]
+   :join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]]})
 
 (defn arbiter->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:user/id (graphql-utils/gql->clj root))
-          query (arbiter-arbitrations-query address)]
+          query (-> arbitrations-query
+                    (sql-helpers/merge-where [:ilike :JobArbiter.user/id address]) )]
       (log/debug "arbiter->arbitrations-resolver" {:address address :args args})
+      (<? (paged-query conn query limit offset)))))
+
+(defn job->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
+  (db/with-async-resolver-conn conn
+    (let [address (:job/id (graphql-utils/gql->clj root))
+          query (-> arbitrations-query
+                    (sql-helpers/merge-where [:ilike :Job.job/id address]) )]
+      (log/debug "job->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
 (defn candidate->feedback-resolver [root {:keys [:limit :offset] :as args} _]
@@ -1125,6 +1132,7 @@
                     :Job {:jobStories job->job-stories-resolver
                           :job_employer job->employer-resolver
                           :job_arbiter job->arbiter-resolver
+                          :arbitrations job->arbitrations-resolver
                           :tokenDetails job->token-details-resolver
                           :invoices job->invoices-resolver
                           :invoice invoice-resolver
@@ -1158,7 +1166,8 @@
                               :arbiter_skills (partial participant->skills-resolver :ArbiterSkill)
                               :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
-                    :Arbitration {:job job-resolver}
+                    :Arbitration {:job job-resolver
+                                  :arbiter arbiter-resolver}
                     :Dispute {:job job-resolver
                               :jobStory job-story-resolver
                               :candidate candidate-resolver
