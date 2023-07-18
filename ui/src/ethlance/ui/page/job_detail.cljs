@@ -243,7 +243,8 @@
         arbitrations (get-in result [:job :arbitrations :items])
         total-count (get-in result [:job :arbitrations :total-count])
 
-        token-amount @(re/subscribe [:page.job-detail/arbitration-token-amount])
+        token-amount (re/subscribe [:page.job-detail/arbitration-token-amount])
+        token-amount-usd (re/subscribe [:page.job-detail/arbitration-token-amount-usd])
         arbitration-by-current-user (first (filter #(ilike= active-user (get-in % [:arbiter :user/id])) arbitrations))
         quote-set? (= "quote-set" (:arbitration/status arbitration-by-current-user))
         invited? (= "invited" (:arbitration/status arbitration-by-current-user))
@@ -305,16 +306,24 @@
               :type :number
               :default-value nil
               :disabled (not invited?)
-              :value token-amount
+              :value @token-amount
               :on-change #(re/dispatch [:page.job-detail/set-arbitration-token-amount (js/parseFloat %)])}]
             [:label "ETH (Ether)"]]
+
+           [:div
+            [c-text-input
+             {:placeholder "USD amount"
+              :type :number
+              :disabled true
+              :value @token-amount-usd}]
+            [:label "USD"]]
 
             [c-button {:style (when quote-set? {:background :gray})
                       :on-click (fn []
                                   (when invited? (>evt [:page.job-detail/set-quote-for-arbitration
                                                            {:job/id job-address
                                                             :user/id active-user
-                                                            :job-arbiter/fee token-amount
+                                                            :job-arbiter/fee @token-amount
                                                             :job-arbiter/fee-currency-id :ETH}])))
                       :size :small}
             [c-button-label "Accept"]]]
