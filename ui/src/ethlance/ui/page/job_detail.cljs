@@ -185,6 +185,38 @@
                     :size :small}
           [c-button-label "Send"]])]]))
 
+(defn c-participant-info [participant-type user-id]
+  (let [rating-kw (keyword participant-type :rating)
+        query [participant-type {:user/id user-id}
+               [rating-kw
+                :user/id
+                [:user
+                 [:user/id
+                  :user/country
+                  :user/name
+                  :user/profile-image]]]]
+        results (if user-id
+                 @(re/subscribe [::gql/query {:queries [query]}])
+                 {})
+        *arbiter-name (get-in results [participant-type :user :user/name])
+        *arbiter-address (get-in results [participant-type :user/id])
+        *arbiter-rating (get-in results [participant-type :arbiter/rating])
+        *arbiter-country (get-in results [participant-type :user :user/country])
+        *arbiter-profile-image (get-in results [participant-type :user :user/profile-image])]
+    [:a.arbiter-detail {:on-click (util.navigation/create-handler
+                                    {:route :route.user/profile
+                                     :params {:address *arbiter-address}
+                                     :query {:tab participant-type}})
+                        :href (util.navigation/resolve-route
+                                {:route :route.user/profile
+                                 :params {:address *arbiter-address}
+                                 :query {:tab participant-type}})}
+            [:div.header (clojure.string/capitalize (name participant-type))]
+            [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
+            [:div.name *arbiter-name]
+            [:div.rating [c-rating {:rating *arbiter-rating}]]
+            [:div.location *arbiter-country]]))
+
 (defn c-arbitrations-section [job-address active-user]
   (let [limit @(re/subscribe [:page.job-detail/arbitrations-limit])
         offset @(re/subscribe [:page.job-detail/arbitrations-offset])
@@ -245,7 +277,8 @@
                       [:span (when (:arbitration/date-arbiter-accepted arbitration)
                                (format/time-ago (new js/Date (:arbitration/date-arbiter-accepted arbitration))))]
                       [:span (:arbitration/status arbitration)]
-                      (if (not arbiter-accepted?)
+                      (if (and (= "quote-set" (:arbitration/status arbitration))
+                               (not arbiter-accepted?))
                         [:div.button.primary.active.small
                          {:style {:height "2em"}
                           :on-click #(re/dispatch [:page.job-detail/set-arbitration-to-accept arbitration])}
@@ -324,8 +357,10 @@
               [c-button-label "Accept"]])]
 
           [:div.proposal-form
-           [:div.label "Accept arbiter quote"]
-           [c-info-message "You have already accepted arbiter for this job"]])
+           [c-participant-info :arbiter job-arbiter] ; TODO: Fix styling
+           ; [:div.label "Accept arbiter quote"]
+           ; [c-info-message "You have already accepted arbiter for this job"]
+           ])
 
         :other
         [:div.proposal-form])]))
@@ -355,19 +390,8 @@
                       [:token-details [:token-detail/id
                                        :token-detail/name
                                        :token-detail/symbol]]
-                      [:job/employer [:employer/rating
-                                      :user/id
-                                      [:user [:user/country
-                                              :user/name
-                                              :user/profile-image]]]]
-                      [:job/arbiter [:arbiter/rating
-                                     :arbiter/fee
-                                     :arbiter/fee-currency-id
-                                     :user/id
-                                     [:user [:user/id
-                                             :user/country
-                                             :user/name
-                                             :user/profile-image]]]]]]
+                      [:job/employer [:user/id]]
+                      [:job/arbiter [:user/id]]]]
           query-results (re/subscribe [::gql/query {:queries [job-query] :refetch-on :create-proposal-success}])
           results (:job @query-results)
 
@@ -382,22 +406,9 @@
                            (:job/bid-option results)])
           *required-skills (:job/required-skills results)
 
-          *employer-name (get-in results [:job/employer :user :user/name])
-          *employer-address (get-in results [:job/employer :user/id])
-          *employer-rating (get-in results [:job/employer :employer/rating])
-          *employer-country (get-in results [:job/employer :user :user/country])
-          *employer-profile-image (get-in results [:job/employer :user :user/profile-image])
-
-          *arbiter-name (get-in results [:job/arbiter :user :user/name])
-          *arbiter-address (get-in results [:job/arbiter :user/id])
-          *arbiter-rating (get-in results [:job/arbiter :arbiter/rating])
-          *arbiter-country (get-in results [:job/arbiter :user :user/country])
-          *arbiter-profile-image (get-in results [:job/arbiter :user :user/profile-image])
-          *arbiter-fee (get-in results [:job/arbiter :arbiter/fee])
-          *arbiter-fee-currency (-> (get-in results [:job/arbiter :arbiter/fee-currency-id])
-                                    (or ,,, "")
-                                    name
-                                    clojure.string/upper-case)
+          employer-id (get-in results [:job/employer :user/id])
+          arbiter-id (get-in results [:job/arbiter :user/id])
+          has-accepted-arbiter? (not (nil? (get-in results [:job/arbiter])))
 
           raw-token-amount (get-in results [:job/token-amount])
           *job-token-type (get-in results [:job/token-type])
@@ -422,30 +433,8 @@
           [:div.label "Available Funds"]
           [:div.amount (str *job-token-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
          [:div.profiles
-          [:a.employer-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
-                                                                          :params {:address *employer-address}
-                                                                          :query {:tab :employer}})
-                                 :href (util.navigation/resolve-route {:route :route.user/profile
-                                                                       :params {:address *employer-address}
-                                                                       :query {:tab :employer}})}
-           [:div.header "Employer"]
-           [:div.profile-image [c-profile-image {:src *employer-profile-image}]]
-           [:div.name *employer-name]
-           [:div.rating [c-rating {:rating *employer-rating}]]
-           [:div.location *employer-country]
-           [:div.fee ""]]
-          [:a.arbiter-detail {:on-click (util.navigation/create-handler {:route :route.user/profile
-                                                                         :params {:address *arbiter-address}
-                                                                         :query {:tab :arbiter}})
-                              :href (util.navigation/resolve-route {:route :route.user/profile
-                                                                    :params {:address *arbiter-address}
-                                                                    :query {:tab :arbiter}})}
-           [:div.header "Arbiter"]
-           [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
-           [:div.name *arbiter-name]
-           [:div.rating [c-rating {:rating *arbiter-rating}]]
-           [:div.location *arbiter-country]
-           [:div.fee (str *arbiter-fee " " *arbiter-fee-currency)]]]]
+          [c-participant-info :employer employer-id]
+          (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
         [:div.side
          [:div.label *posted-time]
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])]]

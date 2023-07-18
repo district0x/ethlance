@@ -182,7 +182,9 @@
   (db/with-async-resolver-conn conn
     (log/debug "job->arbiter-resolver contract:" (:contract args))
     (let [contract (:job/id (graphql-utils/gql->clj parent))
-          query (sql-helpers/merge-where job->arbiter-query [:= contract :Job.job/id])]
+          query (sql-helpers/merge-where job->arbiter-query [:and
+                                                             [:= contract :Job.job/id]
+                                                             [:= "accepted" :JobArbiter.job-arbiter/status]])]
       (<? (db/get conn query)))))
 
 (defn employer-resolver [raw-parent {:keys [:user/id ] :as args} _]
