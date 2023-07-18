@@ -19,6 +19,7 @@
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.subscriptions :as subs]
+            [ethlance.ui.util.navigation :as navigation]
             [re-frame.core :as re]
             [clojure.spec.alpha :as s]))
 
@@ -51,7 +52,7 @@
      [:span "Create"]
      [c-icon {:name :ic-arrow-right :size :smaller}]]))
 
-(defmethod page :route.job/new []
+(defn c-job-creation-form []
   (let [arbiters-query [:arbiter-search {:limit 1000}
                         [[:items [:user/id
                                   [:user [:user/id
@@ -207,3 +208,20 @@
            :disabled? (not (s/valid? :page.new-job/create @form-values))}
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))
+
+(defn c-invite-to-create-employer-profile [user-id]
+  [c-main-layout {:container-opts {:class :new-job-main-container}}
+   [:div "Set up your employer profile to be able to create new jobs"]
+   [:div.button
+    {:on-click (navigation/create-handler {:route :route.me/sign-up :query {:tab "employer"}})}
+    "Go to employer profile page"]])
+
+(defmethod page :route.job/new []
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        query [:employer {:user/id active-user}
+               [:employer/bio]]
+        result @(re/subscribe [::gql/query {:queries [query]}])
+        has-employer-profile? (not (nil? (get-in result [:employer :employer/bio])))]
+    (if has-employer-profile?
+      [c-job-creation-form]
+      [c-invite-to-create-employer-profile])))

@@ -4,7 +4,8 @@
 
 
 (def icon-listing
-  {:about {:src "/images/icons/ethlance-about-icon.svg"}
+  {:new-job {:src "/images/icons/ethlance-star-icon-white.svg"}
+   :about {:src "/images/icons/ethlance-about-icon.svg"}
    :arbiters {:src "/images/icons/ethlance-arbiters-icon.svg"}
    :candidates {:src "/images/icons/ethlance-candidates-icon.svg"}
    :close {:src {:default "/images/svg/close.svg"
@@ -67,7 +68,7 @@
 
   :size - The size of the SVG icon. `:x-small`, `:small`, `:normal`,
   `:large`. [default: `:normal`]
-  
+
   :inline? - If true, the given SVG icon will be inlined within the
   DOM. [default: `true`]
 
@@ -89,7 +90,7 @@
              inline? true}
         :as props}]
     (let [props (dissoc props :name :color :size :inline?)
-          
+
           color-class (case color
                         :primary "primary"
                         :secondary "secondary"
@@ -104,10 +105,10 @@
                            :small [16 16]
                            :normal [24 24]
                            :large [32 32])
-          
+
           src (icon-src name color)
           style (-> icon-listing name :style)]
-      
+
       (assert src (str "Given icon does not exist. Name: " name " Color: " color))
       [:div.ethlance-icon (merge props {:style (or style {})})
        (if-not inline?

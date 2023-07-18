@@ -29,6 +29,7 @@
 
 (defn c-mobile-navigation-menu []
   [:div.mobile-navigation-menu
+   [c-menu-item {:name :new-job :label "New Job" :route :route.job/new}]
    [c-menu-item {:name :jobs :label "Jobs" :route :route.job/jobs}]
    [c-menu-item {:name :candidates :label "Candidates" :route :route.user/candidates}]
    [c-menu-item {:name :arbiters :label "Arbiters" :route :route.user/arbiters}]
