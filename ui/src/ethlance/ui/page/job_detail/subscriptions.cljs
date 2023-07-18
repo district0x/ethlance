@@ -2,6 +2,7 @@
   (:require
     [ethlance.ui.page.job-detail.events :as job-detail.events]
     [re-frame.core :as re]
+    [district.ui.conversion-rates.subs :as rates-subs]
     [ethlance.ui.subscription.utils :as subscription.utils]))
 
 (def create-get-handler #(subscription.utils/create-get-handler job-detail.events/state-key %))
@@ -10,6 +11,20 @@
 (re/reg-sub :page.job-detail/proposal-text (create-get-handler :job/proposal-text))
 (re/reg-sub :page.job-detail/proposal-offset (create-get-handler :proposal-offset))
 (re/reg-sub :page.job-detail/proposal-limit (create-get-handler :proposal-limit))
+
+(re/reg-sub :page.job-detail/arbitration-to-accept (create-get-handler :arbitration-to-accept))
+
+(re/reg-sub :page.job-detail/arbitration-token-amount (create-get-handler :arbitration-token-amount))
+(re/reg-sub :page.job-detail/arbitrations-offset (create-get-handler :arbitrations-offset))
+(re/reg-sub :page.job-detail/arbitrations-limit (create-get-handler :arbitrations-limit))
+
+(re/reg-sub
+  :page.job-detail/arbitration-token-amount-usd
+  :<- [:page.job-detail/arbitration-token-amount]
+  :<- [::rates-subs/conversion-rate :ETH :USD]
+  (fn [[eth-amount eth-usd-rate] _]
+    (.round js/Math (* eth-amount eth-usd-rate))))
+
 (re/reg-sub
   :page.job-detail/proposal-total-count
   (fn [db]

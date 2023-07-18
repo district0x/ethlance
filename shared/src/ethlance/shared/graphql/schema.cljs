@@ -435,10 +435,11 @@
     user_id: String
     job_id: String
     arbitration_dateArbiterAccepted: Float
-    arbitration_fee: Int
+    arbitration_fee: Float
     arbitration_feeCurrencyId: String
     arbitration_status: String
     job: Job
+    arbiter: Arbiter
   }
 
   type ArbitrationList  {
@@ -493,6 +494,8 @@
     job_employer: Employer
     job_arbiter: Arbiter
 
+
+    arbitrations(limit: Int, offset: Int): ArbitrationList
     jobStories(limit: Int, offset: Int): JobStoryList
     invoices(limit: Int, offset: Int): InvoiceList
     invoice(invoice_id: Int!, job_id: String!): Invoice

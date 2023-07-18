@@ -265,7 +265,7 @@
         next-feedback-receiver (get participants feedback-receiver-role)]
     [:div.feedback-input-container
      (when open-invoices?
-       [c-information "There are still open invoices. Feedback can be given after they're closed"])
+       [c-information "There are still unpaid invoices. Feedback can be given after they have been paid"])
 
      (when all-feedbacks-done?
        [c-information "No more feedback to leave. You have already left feedback for all participants"])

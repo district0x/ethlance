@@ -23,4 +23,15 @@
            :optimizations :none
            ;; needs to be set to false to report correct status code in CI
            :autorun false
+           :compiler-options {:source-map true}
+           :closure-defines {goog.DEBUG true}}
+
+          :test-repl
+          {:target :node-script
+           :main tests.repl/-main
+           :output-dir "out/"
+           :output-to "out/test-repl.js"
+           :optimizations :none
+           :source-map true
+           :source-map-timestamp true
            :closure-defines {goog.DEBUG true}}}}

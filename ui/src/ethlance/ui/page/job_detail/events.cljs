@@ -2,6 +2,10 @@
   (:require [district.ui.router.effects :as router.effects]
             [ethlance.ui.event.utils :as event.utils]
             [ethlance.shared.utils :refer [eth->wei]]
+            [district.ui.web3-tx.events :as web3-events]
+            [ethlance.shared.contract-constants :as contract-constants]
+            [district.ui.smart-contracts.queries :as contract-queries]
+            [ethlance.shared.utils :refer [eth->wei base58->hex]]
             [district.ui.web3-accounts.queries :as accounts-queries]
             [re-frame.core :as re]))
 
@@ -9,7 +13,9 @@
 (def state-key :page.job-detail)
 (def state-default
   {:proposal-offset 0
-   :proposal-limit 3})
+   :proposal-limit 3
+   :arbitrations-offset 0
+   :arbitrations-limit 3})
 
 (def interceptors [re/trim-v])
 
@@ -28,12 +34,20 @@
 ;; Registered Events
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
+(defn create-logging-handler
+  ([] (create-logging-handler ""))
+  ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.job-detail/initialize-page initialize-page)
 (re/reg-event-fx :page.job-detail/set-proposal-token-amount (create-assoc-handler :job/proposal-token-amount))
 (re/reg-event-fx :page.job-detail/set-proposal-text (create-assoc-handler :job/proposal-text))
 (re/reg-event-fx :page.job-detail/set-proposal-offset (create-assoc-handler :proposal-offset))
+
+(re/reg-event-fx :page.job-detail/set-arbitration-to-accept (create-assoc-handler :arbitration-to-accept))
+
+(re/reg-event-fx :page.job-detail/set-arbitrations-offset (create-assoc-handler :arbitrations-offset))
+(re/reg-event-fx :page.job-detail/set-arbitration-token-amount (create-assoc-handler :arbitration-token-amount))
 
 (def job-story-requested-fields
   [:job-story/id
@@ -116,3 +130,92 @@
   [interceptors]
   (fn [{:keys [db]} error]
     (merge db [state-key :graphql-error] error)))
+
+
+(defn send-arbitration-data-to-ipfs
+  [{:keys [db]} [_ event]]
+  (let [ipfs-arbitration (select-keys event
+                                      [:job/id
+                                       :user/id
+                                       :job-arbiter/fee
+                                       :job-arbiter/fee-currency-id])]
+    (println ">>> ethlance.ui.page.job-detail.events/send-arbitration-data-to-ipfs to ipfs: " event)
+    {:ipfs/call {:func "add"
+                 :args [(js/Blob. [ipfs-arbitration])]
+                 :on-success [:page.job-detail/arbitration-to-ipfs-success event]
+                 :on-error [:page.job-detail/arbitration-to-ipfs-failure event]}}))
+
+(defn set-quote-for-arbitration-tx [cofx [_event-name forwarded-event-data ipfs-data]]
+  (let [job-address (:job/id forwarded-event-data)
+        arbiter-address (:user/id forwarded-event-data)
+        token-type (:job-arbiter/fee-currency-id forwarded-event-data)
+        amount-in-wei (eth->wei (:job-arbiter/fee forwarded-event-data))
+        not-used-token-id 0
+        address-placeholder "0x0000000000000000000000000000000000000000"
+        offered-value {:value amount-in-wei
+                       :token
+                       {:tokenId not-used-token-id
+                        :tokenContract
+                        {:tokenType (contract-constants/token-type->enum-val token-type)
+                         :tokenAddress address-placeholder}}}
+        instance (contract-queries/instance (:db cofx) :job job-address)
+        tx-opts {:from arbiter-address :gas 10000000}
+        ipfs-hash (base58->hex (:Hash ipfs-data))
+        ; TODO: decide if sending to IPFS would serve for anything or all the
+        ;       information involved is already in the contract & QuoteForArbitrationEvent
+        contract-args [[(clj->js offered-value)]]]
+    {:dispatch [::web3-events/send-tx
+                {:instance instance
+                 :fn :set-quote-for-arbitration
+                 :args contract-args
+                 :tx-opts tx-opts
+                 :tx-hash [::arbitration-tx-hash]
+                 :on-tx-hash-error [::set-quote-for-arbitration-tx-hash-error]
+                 :on-tx-success [:page.job-detail/arbitration-tx-success]
+                 :on-tx-error [::set-quote-for-arbitration-tx-error]}]}))
+
+(defn accept-quote-for-arbitration-tx [cofx [_event-name forwarded-event-data]]
+  (let [job-address (:job/id forwarded-event-data)
+        arbiter-address (:user/id forwarded-event-data)
+        employer-address (:employer forwarded-event-data)
+        token-type (:job-arbiter/fee-currency-id forwarded-event-data)
+        amount-in-wei (:job-arbiter/fee forwarded-event-data)
+        not-used-token-id 0
+        address-placeholder "0x0000000000000000000000000000000000000000"
+        offered-value {:value amount-in-wei
+                       :token
+                       {:tokenId not-used-token-id
+                        :tokenContract
+                        {:tokenType (contract-constants/token-type->enum-val token-type)
+                         :tokenAddress address-placeholder}}}
+        instance (contract-queries/instance (:db cofx) :job job-address)
+        tx-opts {:from employer-address :gas 10000000}
+        contract-args [arbiter-address [(clj->js offered-value)]]]
+    (println ">>> accept-quote-for-arbitration-tx" contract-args tx-opts)
+    {:dispatch [::web3-events/send-tx
+                {:instance instance
+                 :fn :accept-quote-for-arbitration
+                 :args contract-args
+                 :tx-opts tx-opts
+                 :tx-hash [::arbitration-tx-hash]
+                 :on-tx-hash-error [::accept-quote-for-arbitration-tx-hash-error]
+                 :on-tx-success [:page.job-detail/arbitration-tx-success]
+                 :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
+
+(re/reg-event-fx :page.job-detail/set-quote-for-arbitration send-arbitration-data-to-ipfs)
+(re/reg-event-fx :page.job-detail/accept-quote-for-arbitration accept-quote-for-arbitration-tx)
+(re/reg-event-fx :page.job-detail/arbitration-to-ipfs-success set-quote-for-arbitration-tx)
+(re/reg-event-db :page.job-detail/arbitration-to-ipfs-failure (create-logging-handler))
+
+(re/reg-event-fx ::arbitration-tx-hash (create-logging-handler))
+(re/reg-event-fx ::set-quote-for-arbitration-tx-hash-error (create-logging-handler))
+(re/reg-event-fx ::set-quote-for-arbitration-tx-error (create-logging-handler))
+
+(re/reg-event-fx ::accept-quote-for-arbitration-tx-hash-error (create-logging-handler))
+(re/reg-event-fx ::accept-quote-for-arbitration-tx-error (create-logging-handler))
+
+(re/reg-event-fx
+  :page.job-detail/arbitration-tx-success
+  (fn [cofx event]
+    (println ">>> ::set-quote-for-arbitration-tx-success" event)
+    {:fx [[:dispatch [:page.job-details/arbitrations-updated]]]}))

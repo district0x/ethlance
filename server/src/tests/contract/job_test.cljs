@@ -335,7 +335,7 @@
 
                ; 6. B can withdraw their contributed ETH
                (let [balance-before (js/parseInt (<! (web3-eth/get-balance @web3 contributor-b)))
-                     _ (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [contributor-b-offer] {:from contributor-b}))
+                     _ (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [contributor-b-offer] {:from contributor-b :output :receipt-or-error}))
                      balance-after (js/parseInt (<! (web3-eth/get-balance @web3 contributor-b)))
                      balance-change (- balance-after balance-before)
                      allowed-error-pct 0.03]; Allow 3% difference due to gas fees
@@ -394,8 +394,22 @@
                      employer-withdraw-amounts [(merge employer-contribution-a {:value 2})]
                      sponsor-withdraw-amounts [(merge employer-contribution-a {:value 1})]
                      dispute-resolve-by-rando-tx (<! (smart-contracts/contract-send [:job job-address] :resolve-dispute [invoice-id worker-withdraw-amounts "0x0"] {:from worker}))
-                     _ (<! (smart-contracts/contract-send [:job job-address] :resolve-dispute [invoice-id worker-withdraw-amounts "0x0"] {:from arbiter}))
-                     withdraw-employer-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [employer-withdraw-amounts] {:from employer}))
+
+                     invite-arbiter-tx (<! (smart-contracts/contract-send [:job job-address] :invite-arbiters [employer [arbiter]] {:from employer}))
+                     [arbiter-quote arbiter-funding-tx-opts] (fund-in-eth 0.001)
+
+                     set-quote-for-arbitration-tx (<! (smart-contracts/contract-send
+                                                        [:job job-address]
+                                                         :set-quote-for-arbitration
+                                                         [(clj->js arbiter-quote)]
+                                                         {:from arbiter :output :receipt-or-error}))
+                     accept-arbiter-quote-tx (<! (smart-contracts/contract-send
+                                                   [:job job-address]
+                                                   :accept-quote-for-arbitration
+                                                   [arbiter (clj->js arbiter-quote)]
+                                                   (merge arbiter-funding-tx-opts {:gas 200000 :from employer :output :receipt-or-error})))
+                     arbiter-resolves-tx (<! (smart-contracts/contract-send [:job job-address] :resolve-dispute [invoice-id worker-withdraw-amounts "0x0"] {:from arbiter}))
+                     withdraw-employer-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [employer-withdraw-amounts] {:from employer :output :receipt-or-error}))
                      withdraw-sponsor-tx (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [sponsor-withdraw-amounts] {:from sponsor}))
 
                      withdraw-employer-event (<! (smart-contracts/contract-event-in-tx :ethlance :FundsWithdrawn withdraw-employer-tx))

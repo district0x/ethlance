@@ -256,7 +256,7 @@
     :table-columns
     [[:job/id column-types/address]
      [:user/id :varchar]
-     [:job-arbiter/fee :integer]
+     [:job-arbiter/fee :bigint]
      [:job-arbiter/fee-currency-id :varchar]
      [:job-arbiter/status :varchar]
      [:job-arbiter/date-accepted :bigint]
@@ -700,7 +700,11 @@
 
 (defn add-job-arbiter [conn job-id user-address]
   (safe-go
-   (<? (insert-row! conn :JobArbiter {:job/id job-id :user/id user-address}))))
+   (<? (insert-row! conn :JobArbiter {:job/id job-id :user/id user-address :job-arbiter/status "invited"}))))
+
+(defn update-arbitration [conn params]
+  (safe-go
+   (<? (update-row! conn :JobArbiter params))))
 
 (defn add-job [conn job]
   (safe-go

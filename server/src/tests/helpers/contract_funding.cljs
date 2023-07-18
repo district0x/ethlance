@@ -4,7 +4,7 @@
             [district.server.web3 :refer [web3]]
             [ethlance.server.contract.ethlance :as ethlance]
             [ethlance.shared.contract-constants :as contract-constants]
-            [ethlance.shared.smart-contracts-dev :as addresses]
+            [ethlance.shared.smart-contracts-qa :as addresses]
             [district.server.smart-contracts :as smart-contracts]
             [cljs.core.async :refer [<! go]]
             [cljs.core.async.impl.channels :refer [ManyToManyChannel]]

@@ -7,6 +7,7 @@ import "./Ethlance.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@ganache/console.log/console.sol";
 
 
 /**
@@ -103,7 +104,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * Emits {QuoteForArbitrationSet} event
    */
   function setQuoteForArbitration(
-    EthlanceStructs.TokenValue[] memory _quote
+    EthlanceStructs.TokenValue[] calldata _quote
   ) external {
     // Currently allowing & requiring single TokenValue, leaving the interface
     // backwards-compatible in case me support more in the future.
@@ -151,10 +152,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   function acceptQuoteForArbitration(
     address _arbiter,
     EthlanceStructs.TokenValue[] memory _transferredValue
-  ) public {
+  ) public payable {
     require(acceptedArbiter == address(0) || acceptedArbiter == _arbiter, "Another arbiter had been accepted before. Only 1 can be accepted.");
-    require(isAmongstInvitedArbiters(_arbiter));
-    require(isCallerJobCreator(msg.sender));
+    require(isAmongstInvitedArbiters(_arbiter), "Arbiter to be accepted must be amongst invited arbiters");
+    require(isCallerJobCreator(msg.sender), "Only job creator (employer) can accept quote for arbitration");
     require(_transferredValue.length == 1, "Currently only 1 _transferredValue is supported at a time");
     require(EthlanceStructs.tokenValuesEqual(_transferredValue[0], arbiterQuotes[_arbiter]), "Accepted TokenValue must match exactly the value quoted by arbiter");
 
@@ -634,8 +635,12 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * @dev This function is called automatically when this contract receives ETH
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
-  receive(
-  ) external payable {
+  receive() external payable {
+    console.log("Job#receive called");
+  }
+
+  fallback() external payable {
+    console.log("Job#fallback called");
   }
 
   function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
@@ -652,5 +657,21 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   function isCallerJobCreator(address account) internal view returns (bool) {
     return account == creator;
+  }
+
+  // Debugging helpers
+  function setToArray(EnumerableSet.AddressSet storage set) internal view returns (address[] memory) {
+    address[] memory result = new address[](EnumerableSet.length(set));
+    for (uint i = 0; i < EnumerableSet.length(set); i++)
+      result[i] = EnumerableSet.at(set, i);
+    return result;
+  }
+
+  function getInvitedArbiters() public view returns (address[] memory) {
+    return setToArray(invitedArbiters);
+  }
+
+  function getInvitedCandidates() public returns (address[] memory) {
+    return setToArray(invitedCandidates);
   }
 }
