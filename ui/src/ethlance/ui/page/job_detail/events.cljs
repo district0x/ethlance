@@ -202,6 +202,21 @@
                  :on-tx-success [:page.job-detail/arbitration-tx-success]
                  :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
 
+(defn end-job-tx [cofx [_event-name event-data]]
+  (let [job-address (:job/id event-data)
+        employer-address (:employer event-data)
+        instance (contract-queries/instance (:db cofx) :job job-address)
+        tx-opts {:from employer-address :gas 10000000}]
+    {:dispatch [::web3-events/send-tx
+                {:instance instance
+                 :fn :end-job
+                 :args []
+                 :tx-opts tx-opts
+                 :tx-hash [::arbitration-tx-hash]
+                 :on-tx-hash-error [::end-job-tx-hash-error]
+                 :on-tx-success [:page.job-detail/end-job-tx-success]
+                 :on-tx-error [::end-job-tx-error]}]}))
+
 (re/reg-event-fx :page.job-detail/set-quote-for-arbitration send-arbitration-data-to-ipfs)
 (re/reg-event-fx :page.job-detail/accept-quote-for-arbitration accept-quote-for-arbitration-tx)
 (re/reg-event-fx :page.job-detail/arbitration-to-ipfs-success set-quote-for-arbitration-tx)
@@ -214,8 +229,16 @@
 (re/reg-event-fx ::accept-quote-for-arbitration-tx-hash-error (create-logging-handler))
 (re/reg-event-fx ::accept-quote-for-arbitration-tx-error (create-logging-handler))
 
+(re/reg-event-fx :page.job-detail/end-job end-job-tx)
+(re/reg-event-fx ::end-job-tx-hash-error (create-logging-handler))
+(re/reg-event-fx ::end-job-tx-error (create-logging-handler))
+
 (re/reg-event-fx
   :page.job-detail/arbitration-tx-success
   (fn [cofx event]
-    (println ">>> ::set-quote-for-arbitration-tx-success" event)
-    {:fx [[:dispatch [:page.job-details/arbitrations-updated]]]}))
+    {:fx [[:dispatch [:page.job-detail/arbitrations-updated]]]}))
+
+(re/reg-event-fx
+  :page.job-detail/end-job-tx-success
+  (fn [cofx event]
+    {:fx [[:dispatch [:page.job-detail/job-updated]]]}))

@@ -535,3 +535,36 @@
                  (is (= (int job-final-balance) 0) "After withdrawing ")
                  (is (= worker-token-change 5)))
                (done))))))
+
+
+(deftest ending-job
+  (testing "Job (w/o arbiter) gets created, funded and ended without any invoices or disputes"
+    (async done
+           (go
+             (let [[_owner employer worker contributor] (<! (web3-eth/accounts @web3))
+                   employer-balance-before (<? (web3-eth/get-balance @web3 employer))
+                   employer-added-eth 0.1
+                   job-data (<! (create-initialized-job [(partial fund-in-eth employer-added-eth)]))
+                   employer-balance-after-creating-job (<? (web3-eth/get-balance @web3 employer))
+                   job-address (:job job-data)
+
+                   contributor-added-eth 0.2
+                   [contributor-amount _extra] (fund-in-eth contributor-added-eth)
+                   _ (<! (smart-contracts/contract-send [:job job-address]
+                                                        :add-funds
+                                                        [contributor-amount]
+                                                        (merge {:from contributor} _extra)))
+                   contributor-balance-after-funding (<? (web3-eth/get-balance @web3 contributor))
+
+                   end-job-tx (<! (smart-contracts/contract-send
+                                    [:job job-address] :end-job [] {:from employer :output :receipt-or-error}))
+
+                   employer-balance-final (wei->eth (<? (web3-eth/get-balance @web3 employer)))
+                   contributor-balance-final (wei->eth (<? (web3-eth/get-balance @web3 contributor)))
+                   job-balance-after (<? (web3-eth/get-balance @web3 job-address))
+                   job-ended-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobEnded end-job-tx))]
+               (is (approx= 0.01 employer-added-eth (- employer-balance-final employer-balance-after-creating-job)))
+               (is (approx= 0.01 contributor-added-eth (- contributor-balance-final contributor-balance-after-funding)))
+               (is (not (nil? job-ended-event)) "JobEnded gets emitted")
+               (is (= 0 (int job-balance-after)) "Job ETH balance will be zero"))
+             (done)))))

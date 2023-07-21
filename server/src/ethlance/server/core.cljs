@@ -47,6 +47,7 @@
                           :ethlance/candidate-added [:ethlance :CandidateAdded]
                           :ethlance/quote-for-arbitration-set [:ethlance :QuoteForArbitrationSet]
                           :ethlance/quote-for-arbitration-accepted [:ethlance :QuoteForArbitrationAccepted]
+                          :ethlance/job-ended [:ethlance :JobEnded]
                           :ethlance/test-event [:ethlance :TestEvent]
                           }
                  :from-block 0 ; 53; (:last-processed-block (read-edn-sync "ethlance-events.log"))

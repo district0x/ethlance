@@ -48,21 +48,26 @@
 
 (defn c-invoice-listing [contract-address]
   (let [invoices-query [:job {:job/id contract-address}
-                        [[:token-details [:token-detail/id
-                                          :token-detail/name
-                                          :token-detail/symbol]]
-                         [:invoices [:total-count
-                                     [:items [:id
-                                              :job/id
-                                              :job-story/id
-                                              :invoice/status
-                                              :invoice/amount-requested
-                                              :invoice/amount-paid
-                                              [:creation-message [:message/id
-                                                                  :message/date-created
-                                                                  [:creator [:user/id
-                                                                             :user/name
-                                                                             :user/profile-image]]]]]]]]]]
+                        [[:token-details
+                          [:token-detail/id
+                           :token-detail/name
+                           :token-detail/symbol]]
+                         [:invoices
+                          [:total-count
+                           [:items
+                            [:id
+                             :job/id
+                             :job-story/id
+                             :invoice/status
+                             :invoice/amount-requested
+                             :invoice/amount-paid
+                             [:creation-message
+                              [:message/id
+                               :message/date-created
+                               [:creator
+                                [:user/id
+                                 :user/name
+                                 :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [invoices-query]}])
         job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
         token->human-amount (fn [amount token-symbol]
@@ -390,6 +395,7 @@
                       :job/required-availability
                       :job/bid-option
                       :job/estimated-project-length
+                      :job/date-created
 
                       :job/token-type
                       :job/token-amount
@@ -401,18 +407,24 @@
                                        :token-detail/symbol]]
                       [:job/employer [:user/id]]
                       [:job/arbiter [:user/id]]]]
-          query-results (re/subscribe [::gql/query {:queries [job-query] :refetch-on :create-proposal-success}])
+          query-results (re/subscribe [::gql/query {:queries [job-query]} {:refetch-on #{:page.job-detail/job-updated}}])
           results (:job @query-results)
 
           *title (:job/title results)
           *description (:job/description results)
           *sub-title (:job/category results)
           *experience (:job/required-experience-level results)
-          *posted-time "Posted 7 Days Ago"
+          job-creation-time (.fromTimestamp goog.date.DateTime (:job/date-created results))
+          *posted-time (str "Posted "
+                            (format/time-ago job-creation-time)
+                            " ("
+                            (format/format-local-date job-creation-time)
+                            ")")
+          job-status (:job/status results)
           *job-info-tags (remove nil? [(:job/estimated-project-length results)
-                           (:job/status results)
-                           (:job/required-experience-level results)
-                           (:job/bid-option results)])
+                                       job-status
+                                       (:job/required-experience-level results)
+                                       (:job/bid-option results)])
           *required-skills (:job/required-skills results)
 
           employer-id (get-in results [:job/employer :user/id])
@@ -446,7 +458,14 @@
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
         [:div.side
          [:div.label *posted-time]
-         (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])]]
+         (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])
+         (when (not= :ended job-status)
+           [:div
+            [:div.button.primary.active
+             {:on-click #(re/dispatch [:page.job-detail/end-job {:job/id contract-address :employer employer-id}])}
+             [:div.button-label "End job"]]
+            [:div "Job can be ended given there are no unresolved disputes and unpaid invoices"]
+            [:div "Ending the job will withdraw all funds"]])]]
 
        [c-proposals-section results]
        [c-arbitrations-section contract-address active-user]

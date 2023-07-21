@@ -121,6 +121,11 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     uint timestamp
   );
 
+  event JobEnded(
+    address indexed job,
+    uint timestamp
+  );
+
   event TestEvent(uint indexed theAnswer);
   function emitTestEvent(uint answer) external returns(uint) {
     emit TestEvent(answer);
@@ -347,6 +352,11 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address[] calldata arbiters
   ) external isJob {
     emit ArbitersInvited(job, arbiters, timestamp());
+  }
+
+
+  function emitJobEnded(address job) external isJob {
+    emit JobEnded(job, timestamp());
   }
 
   /**

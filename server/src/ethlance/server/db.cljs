@@ -721,12 +721,7 @@
           (doseq [arbiter (:invited-arbiters job)]
             (<? (add-job-arbiter conn job-id-from-ipfs arbiter))))))))
 
-; TODO: remove because 1) jobs are addressed via creator address or job contract adddress
-;                      2) EthlanceJob doesn't exist (merged with Job after removing bounties)
-(defn get-job-id-for-ethlance-job [conn ethlance-job-id]
-  (safe-go ethlance-job-id))
-
-(defn update-ethlance-job [conn job-id job-data]
+(defn update-job [conn job-id job-data]
   (safe-go
   (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
@@ -875,21 +870,6 @@
                                            :user/id contributor-address
                                            :job-contribution/amount amount
                                            :job-contribution/id contribution-id}))))
-
-(defn refund-job-contribution [_ _ _]
-  ;; [conn job-id contribution-id]
-  ;; TODO: implement this, delete from the table
-  (safe-go)
-  )
-
-(defn update-job-approvers [_ _ _]
-  ;; [conn job-id approvers-addresses]
-  ;; TODO: implement this
-  ;; we can grab the current ones, remove the ones that shouldn't be there
-  ;; delete all from db and insert the calculated ones again
-  ;; NOTE: the problem with implementing this is we don't have fee and fee-currency-id for the new ones
-  (safe-go)
-  )
 
 (defn get-token [conn token-address]
   (safe-go
