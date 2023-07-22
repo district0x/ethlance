@@ -7,10 +7,10 @@
 (def blur-delay-ms 200)
 
 (defn filter-selections
-  [search-text selections]
+  [search-text selections label-fn]
   (if (and (seq search-text) (seq selections))
     (->> selections
-         (filter #(string/includes? (string/lower %) (string/lower search-text)))
+         (filter #(string/includes? (string/lower (label-fn %)) (string/lower search-text)))
          vec)
     nil))
 
@@ -32,8 +32,7 @@
       (= index 0) (last xs)
       :else (get xs (dec index)))))
 
-(defn c-chip
-  [{:keys [on-close]} label]
+(defn c-chip [{:keys [on-close]} label]
   [:div.ethlance-chip
    {:title label}
    [:span.label label]
@@ -113,13 +112,17 @@
        :reagent-render
        (fn [{:keys [chip-listing
                     auto-suggestion-listing
+                    label-fn
+                    value-fn
                     on-chip-listing-change
                     allow-custom-chips?
                     search-icon?
                     placeholder
                     display-listing-on-focus?]
              :or {search-icon? true
-                  placeholder "Search Tags"}
+                  placeholder "Search Tags"
+                  label-fn identity
+                  value-fn identity}
              :as opts}]
          (let [;; Local Function for handling updates
                -update-chip-listing
@@ -134,11 +137,11 @@
              :class (when-not search-icon? "no-search-icon")}
             [:div.search-container
              (doall
-               (for [chip-label current-chip-listing]
-                 ^{:key (str "chip-" chip-label)}
+               (for [chip current-chip-listing]
+                 ^{:key (str "chip-" (value-fn chip))}
                  [c-chip
-                  {:on-close #(-update-chip-listing (disj current-chip-listing chip-label))}
-                  chip-label]))
+                  {:on-close #(-update-chip-listing (disj current-chip-listing chip))}
+                  (label-fn chip)]))
              [:input.search-input
               {:type "text"
                :value @*search-text
@@ -154,6 +157,7 @@
                          (-update-chip-listing (conj current-chip-listing @*active-suggestion))
                          (reset! *search-text "")
                          (reset! *active-suggestion nil))
+
                        (and (> (count @*search-text) 0) allow-custom-chips?)
                        (do
                          (-update-chip-listing (conj current-chip-listing @*search-text))
@@ -161,14 +165,14 @@
                          (reset! *active-suggestion nil)))
 
                      "arrowdown"
-                     (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+                     (let [suggestions (filter-selections @*search-text auto-suggestion-listing label-fn)]
                        (if @*active-suggestion
                          (let [next-active (next-element suggestions @*active-suggestion)]
                            (reset! *active-suggestion next-active))
                          (reset! *active-suggestion (first suggestions))))
 
                      "arrowup"
-                     (let [suggestions (filter-selections @*search-text auto-suggestion-listing)]
+                     (let [suggestions (filter-selections @*search-text auto-suggestion-listing label-fn)]
                        (if @*active-suggestion
                          (let [previous-active (previous-element suggestions @*active-suggestion)]
                            (reset! *active-suggestion previous-active))
@@ -186,17 +190,17 @@
               [:div.search-button [c-icon {:name :search :size :normal :inline? false}]])
 
             (let [auto-suggestion-listing (apply (partial disj (set auto-suggestion-listing)) current-chip-listing)
-                  suggestions (or (filter-selections @*search-text auto-suggestion-listing) auto-suggestion-listing)]
+                  suggestions (or (filter-selections @*search-text auto-suggestion-listing label-fn) auto-suggestion-listing)]
               (when (or (seq @*search-text) (and display-listing-on-focus? @*input-focused?))
                 [:div.dropdown
                  [:div.suggestion-listing
                   (doall
                     (for [suggestion suggestions]
-                      ^{:key (str "suggestion-" suggestion)}
+                      ^{:key (str "suggestion-" (value-fn suggestion))}
                       [:div.suggestion
                        {:class (when (= @*active-suggestion suggestion) "active")
                         :on-click (fn []
                                     (-update-chip-listing (set (concat current-chip-listing [suggestion])))
                                     (reset! *search-text "")
                                     (reset! *active-suggestion nil))}
-                       suggestion]))]]))]))})))
+                       (label-fn suggestion)]))]]))]))})))

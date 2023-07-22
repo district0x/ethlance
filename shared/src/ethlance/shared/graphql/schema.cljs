@@ -140,6 +140,7 @@
     category: String
     skills: [String]
     country: String
+    name: String
   }
 
   input EmployerInput {

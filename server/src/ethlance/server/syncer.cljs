@@ -219,6 +219,14 @@
                       :job-arbiter/status "accepted"}]
       (<? (ethlance-db/update-arbitration conn for-the-db)))))
 
+(defn handle-arbiters-invited [conn _ {:keys [args] :as event}]
+  (safe-go
+    (log/info (str ">>> Handling event ArbitersInvited" args))
+    (let [job-id (:job args)
+          arbiters (:arbiters args)]
+      (doseq [arbiter arbiters]
+        (<? (ethlance-db/add-job-arbiter conn job-id arbiter))))))
+
 
 (defn handle-job-ended [conn _ {:keys [args] :as event}]
   (safe-go
@@ -303,6 +311,7 @@
                          :ethlance/quote-for-arbitration-set handle-quote-for-arbitration-set
                          :ethlance/quote-for-arbitration-accepted handle-quote-for-arbitration-accepted
                          :ethlance/job-ended handle-job-ended
+                         :ethlance/arbiters-invited handle-arbiters-invited
                          }
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)

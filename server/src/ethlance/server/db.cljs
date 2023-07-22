@@ -78,7 +78,7 @@
      ;; PK
      [(sql/call :primary-key :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE ON UPDATE CASCADE")]]
     :list-keys []}
 
    {:table-name :Employer
@@ -90,7 +90,7 @@
      ;; PK
      [(sql/call :primary-key :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE ON UPDATE CASCADE")]]
     :list-keys []}
 
    {:table-name :Arbiter
@@ -104,7 +104,7 @@
      ;; PK
      [(sql/call :primary-key :user/id)]
      ;; FKs
-     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE")]]
+     [(sql/call :foreign-key :user/id) (sql/call :references :Users :user/id) (sql/raw "ON DELETE CASCADE ON UPDATE CASCADE")]]
     :list-keys []}
 
    {:table-name :UserLanguage

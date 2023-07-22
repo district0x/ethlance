@@ -252,13 +252,12 @@
           max-fee (:max-fee search-params)
           min-num-feedbacks (:min-num-feedbacks search-params)
           country (:country search-params)
+          user-name (:name search-params)
 
           query (cond-> (merge arbiter-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Arbiter.arbiter/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Arbiter.arbiter/rating])
-                  (and
-                    (contains? search-params :min-rating)
-                    (nil? min-rating)) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
+                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
                   id (sql-helpers/merge-where [:ilike :Arbiter.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
@@ -290,6 +289,7 @@
                                          :column :skill/id
                                          :all-values skills-and})
 
+                  user-name (sql-helpers/merge-where [:ilike :Users.user/name (sql/raw (str "'%" user-name "%'")) ])
                   order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
                                                                :date-updated :user/date-updated}
                                                               (graphql-utils/gql-name->kw order-by))
