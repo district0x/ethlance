@@ -38,7 +38,11 @@
     (let [current-user-address (get-in db [:active-session :user/id])
           contract-from-db (get-in db [:district.ui.router :active-page :params :id])
           contract (or queried-job-contract contract-from-db)
-          stories (filter #(= contract (:job/id %)) (vals (:job-stories db)))]
+          with-proposal-for-this-job? (fn [story]
+                                        (and
+                                          (= contract (:job/id story))
+                                          (not (nil? (story :proposal-message)))))
+          stories (filter with-proposal-for-this-job? (vals (:job-stories db)))]
       (->> stories
            (map (fn [story]
                   {:current-user? (= (clojure.string/lower-case current-user-address)

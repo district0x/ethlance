@@ -116,7 +116,7 @@
           (into [c-carousel-old {}] (map #(c-feedback-slide %) feedback)))]))
 
 (defn c-proposals-section [job]
-  (let [contract-address (:job/id job)
+  (let [contract-address (:id @(re/subscribe [:district.ui.router.subs/active-page-params]))
         active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         raw-token-amount (get-in job [:job/token-amount])
 
@@ -143,7 +143,20 @@
         my-proposal? (not (nil? @my-proposal))
         *employer-address (get-in job [:job/employer :user/id])
         can-send-proposals? (and (not my-proposal?) (ilike!= active-user *employer-address))
-        my-proposal-withdrawable? (and @my-proposal (= :proposal (:status @my-proposal)))]
+        my-proposal-withdrawable? (and @my-proposal (= :proposal (:status @my-proposal)))
+
+
+        user-query [:user {:user/id active-user}
+               [:user/is-registered-candidate]]
+        arbiter-query [:job {:job/id contract-address}
+                       [[:arbitrations
+                         [[:items
+                           [:user/id]]]]]]
+        result @(re/subscribe [::gql/query {:queries [user-query arbiter-query]}])
+        candidate-role? (and
+                          (get-in result [:user :user/is-registered-candidate])
+                          (not (ilike= active-user *employer-address))
+                          (not (some #(ilike= active-user (:user/id %)) (get-in result [:job :arbitrations :items]))))]
     [:div.proposal-listing
      [:div.label "Proposals"]
       [c-scrollable
@@ -163,33 +176,36 @@
         :offset proposal-offset
         :set-offset-event :page.job-detail/set-proposal-offset}]
 
-      [:div.proposal-form
-       [:div.label "Send Proposal"]
-       [c-token-values {:disabled? (not can-send-proposals?)
-                        :token-type *job-token-type
-                        :token-amount (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
-                        :token-id *job-token-id
-                        :token-address *job-token-address
-                        :token-name *token-detail-name
-                        :token-symbol *token-detail-symbol}]
-       [:label "The amount is for payment type: " (str *bid-option)]
-       [:div.description-input
-        [c-textarea-input
-         {:disabled (not can-send-proposals?)
-          :placeholder "Proposal Description"
-          :value (if my-proposal? (:message @my-proposal) @*proposal-text)
-          :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
+      (if candidate-role?
+        [:div.proposal-form
+         [:div.label "Send Proposal"]
+         [c-token-values {:disabled? (not can-send-proposals?)
+                          :token-type *job-token-type
+                          :token-amount (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
+                          :token-id *job-token-id
+                          :token-address *job-token-address
+                          :token-name *token-detail-name
+                          :token-symbol *token-detail-symbol}]
+         [:label "The amount is for payment type: " (str *bid-option)]
+         [:div.description-input
+          [c-textarea-input
+           {:disabled (not can-send-proposals?)
+            :placeholder "Proposal Description"
+            :value (if my-proposal? (:message @my-proposal) @*proposal-text)
+            :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
 
-       (if my-proposal-withdrawable?
-         [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
-                    :size :small}
-          [c-button-label "Remove"]])
-       (if (not my-proposal?)
-         [c-button {:style (when (not can-send-proposals?) {:background :gray})
-                    :on-click (fn []
-                                (when can-send-proposals? (>evt [:page.job-proposal/send contract-address])))
-                    :size :small}
-          [c-button-label "Send"]])]]))
+         (if my-proposal-withdrawable?
+           [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
+                      :size :small}
+            [c-button-label "Remove"]])
+         (if (not my-proposal?)
+           [c-button {:style (when (not can-send-proposals?) {:background :gray})
+                      :on-click (fn []
+                                  (when can-send-proposals? (>evt [:page.job-proposal/send contract-address])))
+                      :size :small}
+            [c-button-label "Send"]])]
+
+        [:div.proposal-form])]))
 
 (defn c-participant-info [participant-type user-id]
   (let [rating-kw (keyword participant-type :rating)
