@@ -544,6 +544,9 @@
           unresolved-disputes (filter #(= "dispute-raised" (:invoice/status %)) invoices)
           has-unpaid-invoices? (not (empty? unpaid-invoices))
           has-unresolved-disputes? (not (empty? unresolved-disputes))
+          show-end-job? (and
+                          (ilike= employer-id active-user)
+                          (not= :ended job-status))
           can-end-job? (not (or has-unpaid-invoices? has-unresolved-disputes?))]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
@@ -564,7 +567,7 @@
         [:div.side
          [:div.label *posted-time]
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])
-         (when (not= :ended job-status)
+         (when show-end-job?
            [:div
             [:div.button.primary.active
              {:style (when (or has-unpaid-invoices? has-unresolved-disputes?) {:background :gray})
