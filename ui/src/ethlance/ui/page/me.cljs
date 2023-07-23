@@ -11,7 +11,7 @@
             [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.util.navigation :as util.navigation]
+            [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
             [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.tokens :as tokens]
@@ -35,11 +35,6 @@
            :on-click (util.navigation/create-handler {:route active-page :params active-params :query updated-query})}
           label]]))))
 
-(defn link-params [{:keys [route params]}]
-  {:on-click (util.navigation/create-handler {:route route
-                                              :params params})
-   :href (util.navigation/resolve-route {:route route
-                                         :params params})})
 (defn c-table-listing
   "Produces tabl ewith headers
 

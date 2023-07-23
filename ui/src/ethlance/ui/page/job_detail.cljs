@@ -20,7 +20,7 @@
             [ethlance.ui.component.pagination :as pagination]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.component :refer [<sub >evt]]
-            [ethlance.ui.util.navigation :as util.navigation]
+            [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
             [ethlance.ui.util.tokens :as token-utils]
             [ethlance.shared.utils :refer [millis->relative-time ilike!= ilike=]]
             [ethlance.shared.utils :as shared-utils]
@@ -480,6 +480,13 @@
                       [:token-details [:token-detail/id
                                        :token-detail/name
                                        :token-detail/symbol]]
+                      [:invoices
+                       [[:items
+                         [:id
+                          :invoice/id
+                          :job/id
+                          :job-story/id
+                          :invoice/status]]]]
                       [:job/employer [:user/id]]
                       [:job/arbiter [:user/id]]]]
           query-results (re/subscribe [::gql/query {:queries [job-query]} {:refetch-on #{:page.job-detail/job-updated}}])
@@ -514,7 +521,14 @@
                               (shared-utils/wei->eth raw-token-amount)
                               raw-token-amount)
           *token-detail-name (get-in results [:token-details :token-detail/name])
-          *token-detail-symbol (get-in results [:token-details :token-detail/symbol])]
+          *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
+
+          invoices (get-in results [:invoices :items])
+          unpaid-invoices (filter #(= "open" (:invoice/status %)) invoices)
+          unresolved-disputes (filter #(= "dispute-raised" (:invoice/status %)) invoices)
+          has-unpaid-invoices? (not (empty? unpaid-invoices))
+          has-unresolved-disputes? (not (empty? unresolved-disputes))
+          can-end-job? (not (or has-unpaid-invoices? has-unresolved-disputes?))]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [:div.header
         [:div.main
@@ -537,10 +551,29 @@
          (when (not= :ended job-status)
            [:div
             [:div.button.primary.active
-             {:on-click #(re/dispatch [:page.job-detail/end-job {:job/id contract-address :employer employer-id}])}
+             {:style (when (or has-unpaid-invoices? has-unresolved-disputes?) {:background :gray})
+              :on-click (fn []
+                          (when can-end-job?
+                            (re/dispatch [:page.job-detail/end-job {:job/id contract-address :employer employer-id}])))}
              [:div.button-label "End job"]]
-            [:div "Job can be ended given there are no unresolved disputes and unpaid invoices"]
-            [:div "Ending the job will withdraw all funds"]])]]
+            (when has-unpaid-invoices?
+              [c-info-message "Job has unpaid invoices"
+               [:ul
+                (for [invoice unpaid-invoices]
+                  ^{:key (:id invoice)}
+                  [:li [:a (link-params {:route :route.invoice/index
+                                         :params {:invoice-id (:invoice/id invoice) :job-id (:job/id invoice)}})
+                    (str "Invoice #" (:invoice/id invoice))]])]])
+            (when has-unresolved-disputes?
+              [c-info-message  "Job has unresolved disputes"
+               [:ul
+                (for [invoice unresolved-disputes]
+                  ^{:key (:id invoice)}
+                  [:li [:a (link-params {:route :route.job/contract
+                                         :params {:job-story-id (:job-story/id invoice)}})
+                    (str "Dispute #" (:invoice/id invoice))]])]])
+
+            (when can-end-job? [:div "Ending the job will return all remaining funds to who contributed them"])])]]
 
        [c-proposals-section results]
        [c-arbitrations-section contract-address active-user]
