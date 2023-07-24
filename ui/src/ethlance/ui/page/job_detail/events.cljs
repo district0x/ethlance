@@ -15,7 +15,8 @@
   {:proposal-offset 0
    :proposal-limit 3
    :arbitrations-offset 0
-   :arbitrations-limit 3})
+   :arbitrations-limit 3
+   :selected-arbiters #{}})
 
 (def interceptors [re/trim-v])
 
@@ -44,10 +45,20 @@
 (re/reg-event-fx :page.job-detail/set-proposal-text (create-assoc-handler :job/proposal-text))
 (re/reg-event-fx :page.job-detail/set-proposal-offset (create-assoc-handler :proposal-offset))
 
-(re/reg-event-fx :page.job-detail/set-arbitration-to-accept (create-assoc-handler :arbitration-to-accept))
+; (re/reg-event-fx :page.job-detail/set-arbitration-to-accept (create-assoc-handler :arbitration-to-accept))
 
 (re/reg-event-fx :page.job-detail/set-arbitrations-offset (create-assoc-handler :arbitrations-offset))
 (re/reg-event-fx :page.job-detail/set-arbitration-token-amount (create-assoc-handler :arbitration-token-amount))
+
+(re/reg-event-db
+  :page.job-detail/set-arbitration-to-accept
+  (fn [db [_ arbitration]]
+    (let [db-path [:page.job-detail :arbitration-to-accept]
+          previous-selection (get-in db db-path)
+          toggled-value (if (= previous-selection arbitration)
+                          nil
+                          arbitration)]
+      (assoc-in db db-path toggled-value))))
 
 (def job-story-requested-fields
   [:job-story/id
@@ -139,7 +150,6 @@
                                        :user/id
                                        :job-arbiter/fee
                                        :job-arbiter/fee-currency-id])]
-    (println ">>> ethlance.ui.page.job-detail.events/send-arbitration-data-to-ipfs to ipfs: " event)
     {:ipfs/call {:func "add"
                  :args [(js/Blob. [ipfs-arbitration])]
                  :on-success [:page.job-detail/arbitration-to-ipfs-success event]
@@ -191,7 +201,6 @@
         instance (contract-queries/instance (:db cofx) :job job-address)
         tx-opts {:from employer-address :gas 10000000}
         contract-args [arbiter-address [(clj->js offered-value)]]]
-    (println ">>> accept-quote-for-arbitration-tx" contract-args tx-opts)
     {:dispatch [::web3-events/send-tx
                 {:instance instance
                  :fn :accept-quote-for-arbitration
@@ -201,6 +210,38 @@
                  :on-tx-hash-error [::accept-quote-for-arbitration-tx-hash-error]
                  :on-tx-success [:page.job-detail/arbitration-tx-success]
                  :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
+
+(defn invite-arbiters [cofx [_event-name event-data]]
+  (let [job-address (:job/id event-data)
+        arbiter-addresses (:arbiters event-data)
+        employer-address (:employer event-data)
+        instance (contract-queries/instance (:db cofx) :job job-address)
+        tx-opts {:from employer-address :gas 10000000}
+        contract-args [employer-address arbiter-addresses]]
+     {:dispatch [::web3-events/send-tx
+                {:instance instance
+                 :fn :invite-arbiters
+                 :args contract-args
+                 :tx-opts tx-opts
+                 :tx-hash [::arbitration-tx-hash]
+                 :on-tx-hash-error [::invite-arbiters-tx-hash-error]
+                 :on-tx-success [:page.job-detail/arbitration-tx-success]
+                 :on-tx-error [::invite-arbiters-tx-error]}]}))
+
+(defn end-job-tx [cofx [_event-name event-data]]
+  (let [job-address (:job/id event-data)
+        employer-address (:employer event-data)
+        instance (contract-queries/instance (:db cofx) :job job-address)
+        tx-opts {:from employer-address :gas 10000000}]
+    {:dispatch [::web3-events/send-tx
+                {:instance instance
+                 :fn :end-job
+                 :args []
+                 :tx-opts tx-opts
+                 :tx-hash [::arbitration-tx-hash]
+                 :on-tx-hash-error [::end-job-tx-hash-error]
+                 :on-tx-success [:page.job-detail/end-job-tx-success]
+                 :on-tx-error [::end-job-tx-error]}]}))
 
 (re/reg-event-fx :page.job-detail/set-quote-for-arbitration send-arbitration-data-to-ipfs)
 (re/reg-event-fx :page.job-detail/accept-quote-for-arbitration accept-quote-for-arbitration-tx)
@@ -214,8 +255,26 @@
 (re/reg-event-fx ::accept-quote-for-arbitration-tx-hash-error (create-logging-handler))
 (re/reg-event-fx ::accept-quote-for-arbitration-tx-error (create-logging-handler))
 
+(re/reg-event-fx :page.job-detail/end-job end-job-tx)
+(re/reg-event-fx ::end-job-tx-hash-error (create-logging-handler))
+(re/reg-event-fx ::end-job-tx-error (create-logging-handler))
+
+(re/reg-event-fx :page.job-detail/invite-arbiters invite-arbiters)
+(re/reg-event-fx ::invite-arbiters-tx-error (create-logging-handler))
+(re/reg-event-fx ::invite-arbiters-tx-hash-error (create-logging-handler))
+
 (re/reg-event-fx
   :page.job-detail/arbitration-tx-success
   (fn [cofx event]
-    (println ">>> ::set-quote-for-arbitration-tx-success" event)
-    {:fx [[:dispatch [:page.job-details/arbitrations-updated]]]}))
+    {:db (assoc-in (:db cofx) [state-key] state-default)
+     :fx [[:dispatch [:page.job-detail/arbitrations-updated]]]}))
+
+(re/reg-event-db
+  :page.job-detail/set-selected-arbiters
+  (fn [db [_ selection]]
+    (assoc-in db [state-key :selected-arbiters] selection)))
+
+(re/reg-event-fx
+  :page.job-detail/end-job-tx-success
+  (fn [cofx event]
+    {:fx [[:dispatch [:page.job-detail/job-updated]]]}))

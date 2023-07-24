@@ -32,6 +32,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     EthlanceStructs.TokenValue tokenValue;
   }
   bytes32[] depositIds; // To allow looking up and listing all deposits
+  EnumerableSet.AddressSet internal depositors;
 
   mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;
   using EnumerableSet for EnumerableSet.AddressSet;
@@ -306,6 +307,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
         Deposit memory deposit = Deposit(_funder, tv);
         deposits[depositId] = deposit;
         depositIds.push(depositId);
+        depositors.add(_funder);
+
       } else {
         // There was a deposit before of that token from the depositor
         // Record added funds
@@ -387,10 +390,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    */
   function withdrawFunds(
     EthlanceStructs.TokenValue[] memory _toBeWithdrawn
-  ) external {
+  ) external hasNoOutstandingPayments {
     require(_toBeWithdrawn.length == 1, "Currently only possible to withdraw single TokenValue at a time");
-    require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
-    require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
     EthlanceStructs.TokenValue memory withdrawnValue = _toBeWithdrawn[0];
 
     _executeWithdraw(msg.sender, withdrawnValue);
@@ -403,6 +404,20 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       _executeWithdraw(msg.sender, withdrawAmounts[i]);
     }
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
+  }
+
+
+  function endJob() external hasNoOutstandingPayments {
+    // EthlanceStructs.TokenValue[] memory withdrawAmounts = maxWithdrawableAmounts(msg.sender);
+    bytes32 depositId;
+    for(uint i = 0; i < depositors.length(); i++) {
+      address depositor = depositors.at(i);
+      EthlanceStructs.TokenValue[] memory depositAmounts = maxWithdrawableAmounts(depositor);
+      for (uint j = 0; j < depositAmounts.length; j++) {
+        _executeWithdraw(depositor, depositAmounts[j]);
+      }
+    }
+    ethlance.emitJobEnded(address(this));
   }
 
   function _hasUnpaidInvoices() internal view returns(bool) {
@@ -673,5 +688,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   function getInvitedCandidates() public returns (address[] memory) {
     return setToArray(invitedCandidates);
+  }
+
+  modifier hasNoOutstandingPayments {
+    require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
+    require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
+    _;
   }
 }

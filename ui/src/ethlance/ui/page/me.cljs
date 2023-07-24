@@ -11,7 +11,7 @@
             [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.util.navigation :as util.navigation]
+            [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
             [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.tokens :as tokens]
@@ -35,11 +35,6 @@
            :on-click (util.navigation/create-handler {:route active-page :params active-params :query updated-query})}
           label]]))))
 
-(defn link-params [{:keys [route params]}]
-  {:on-click (util.navigation/create-handler {:route route
-                                              :params params})
-   :href (util.navigation/resolve-route {:route route
-                                         :params params})})
 (defn c-table-listing
   "Produces tabl ewith headers
 
@@ -90,10 +85,16 @@
         url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "active")
         tab-to-index {"active" 0 "finished" 1}
+        ; Currently nothing sets the job status as finished (only job-story status)
+        ; Withdrawing all funds (on job details page) sets job to "ended" status
+        ; Alternatively the :status search param could accept array
+        status-search-param (if (= tab "finished") "ended" tab)
         tab-index (get tab-to-index tab 0)
         limit @(re/subscribe [:page.me/pagination-limit])
         offset @(re/subscribe [:page.me/pagination-offset])
-        job-query [:job-search {:search-params {user-type active-user :status tab} :limit limit :offset offset}
+        job-query [:job-search {:search-params {user-type active-user
+                                                :status status-search-param}
+                                :limit limit :offset offset}
                    [:total-count
                     [:items [:job/id
                              :job/title

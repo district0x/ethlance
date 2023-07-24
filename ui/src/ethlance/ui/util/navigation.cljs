@@ -40,3 +40,8 @@
 (defn url-encode
   [string]
   (some-> string str (js/encodeURIComponent) (.replace "+" "%20")))
+
+
+(defn link-params [{:keys [route params]}]
+  {:on-click (create-handler {:route route :params params})
+   :href (resolve-route {:route route :params params})})
