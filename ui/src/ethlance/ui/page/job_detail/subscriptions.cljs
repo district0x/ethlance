@@ -19,6 +19,9 @@
 (re/reg-sub :page.job-detail/arbitrations-limit (create-get-handler :arbitrations-limit))
 
 (re/reg-sub :page.job-detail/selected-arbiters (create-get-handler :selected-arbiters))
+(re/reg-sub :page.job-detail/show-invite-arbiters (create-get-handler :show-invite-arbiters))
+
+(re/reg-sub :page.job-detail/job-arbiter-idle (create-get-handler :job-arbiter-idle))
 
 (re/reg-sub
   :page.job-detail/arbitration-token-amount-usd

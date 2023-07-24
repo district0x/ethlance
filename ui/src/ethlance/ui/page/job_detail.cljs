@@ -417,7 +417,12 @@
         employer-address (get-in result [:job :job/employer-address])
 
         arbiter-accepted? (= "accepted" (:arbitration/status job-arbitration))
-        arbiter-selected? (not (nil? arbitration-to-accept))]
+        arbiter-selected? (not (nil? arbitration-to-accept))
+        show-invite-arbiters? @(re/subscribe [:page.job-detail/show-invite-arbiters])
+        arbiter-idle? @(re/subscribe [:page.job-detail/job-arbiter-idle])]
+    ; TODO: remove after figuring out why at events/initialize DB doesn't have web3 and contract-instance
+    ; setTimeout is because dispatching at first render web3 ist not ready and causes errors
+    (js/setTimeout #(re/dispatch [:page.job-detail/fetch-job-arbiter-status]) 1000)
     [:div.proposal-listing
      [:div.label "Arbitrations"]
       [c-scrollable
@@ -430,9 +435,10 @@
                       [:span (when (:arbitration/date-arbiter-accepted arbitration)
                                (format/time-ago (new js/Date (:arbitration/date-arbiter-accepted arbitration))))]
                       [:span (:arbitration/status arbitration)]
-                      (if (and (= "quote-set" (:arbitration/status arbitration))
-                               (not arbiter-accepted?)
-                               (= viewer-role :employer))
+                      (cond
+                        (and (= "quote-set" (:arbitration/status arbitration))
+                             (or (not arbiter-accepted?) arbiter-idle?)
+                             (= viewer-role :employer))
                         [:div.button.primary.active.small
                          {:style {:height "2em" :background (if (ilike= arbitration-to-accept arbitration)
                                                               "orange"
@@ -441,8 +447,14 @@
                          [:div.button-label (if (ilike= arbitration-to-accept arbitration)
                                                               "Selected"
                                                               "Select")]]
+                        (= "invited" (:arbitration/status arbitration))
+                        [:div "(waiting arbiter to set quote)"]
 
-                        [:div "(waiting to set quote)"])])
+                        (= "quote-set" (:arbitration/status arbitration))
+                        [:div "(waiting employer to accept)"]
+
+                        :else
+                        [:div ""])])
                    arbitrations))]
 
       [pagination/c-pagination-ends
@@ -456,14 +468,20 @@
         [c-set-arbiter-quote arbitration-by-current-user]
 
         :employer
-        (if arbiter-accepted?
+        (if (and arbiter-accepted? (not show-invite-arbiters?))
           [:div.proposal-form
            [c-participant-info :arbiter job-arbiter] ; TODO: Fix styling
-           ; [:div.label "Accept arbiter quote"]
-           ; [c-info-message "You have already accepted arbiter for this job"]
-           ]
+           (when arbiter-idle?
+             [c-info-message
+              "Idle arbiter"
+              [:div
+               "This arbiter has unresolved dispute for more than 30 days. You can accept new one to replace him"
+               [:div.button.primary.active
+                {:on-click (fn [] (re/dispatch [:page.job-detail/set-show-invite-arbiters true]))}
+                [:div.button-label "Invite arbiters"]]]])]
 
-          (if arbiter-selected?
+          (if (and arbiter-selected?
+                   (not show-invite-arbiters?))
             [c-accept-arbiter-quote]
             [c-invite-arbiters job-address]))
 

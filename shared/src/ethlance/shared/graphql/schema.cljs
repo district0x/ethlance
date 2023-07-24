@@ -489,7 +489,7 @@
     job_tokenId: Int
     tokenDetails: TokenDetails
 
-    job_acceptedArbiterAddress: String
+    job_acceptedArbiterAddress: String # To be removed. Implementation incorrect. job_arbiter
     job_employerAddress: String
 
     job_employer: Employer

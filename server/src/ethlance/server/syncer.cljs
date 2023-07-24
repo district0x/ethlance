@@ -214,10 +214,19 @@
 (defn handle-quote-for-arbitration-accepted [conn _ {:keys [args] :as event}]
   (safe-go
     (log/info (str ">>> Handling event quote-for-arbitration-accepted" args))
-    (let [for-the-db {:job/id (:job args)
-                      :user/id (:arbiter args)
-                      :job-arbiter/status "accepted"}]
-      (<? (ethlance-db/update-arbitration conn for-the-db)))))
+    (let [arbiter-id (:arbiter args)
+          job-id (:job args)
+          new-accepted-arbiter {:job/id job-id
+                                :user/id arbiter-id
+                                :job-arbiter/status "accepted"}
+          previous-accepted-query {:select [:JobArbiter.job/id :JobArbiter.user/id]
+                                   :from [:JobArbiter]
+                                   :where [:and [:ilike :JobArbiter.job/id job-id]
+                                           [:= :JobArbiter.job-arbiter/status "accepted"]]}
+          previous-accepted-arbiter (<? (db/get conn previous-accepted-query))]
+      (println ">>> replacing arbiter" {:previous previous-accepted-arbiter :new new-accepted-arbiter})
+      (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :JobArbiter.job-arbiter/status "replaced")))
+      (<? (ethlance-db/update-arbitration conn new-accepted-arbiter)))))
 
 (defn handle-arbiters-invited [conn _ {:keys [args] :as event}]
   (safe-go

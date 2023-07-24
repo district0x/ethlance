@@ -19,6 +19,7 @@ import "@ganache/console.log/console.sol";
 
 contract Job is IERC721Receiver, IERC1155Receiver {
   uint public constant version = 1; // current version of {Job} smart-contract
+  uint public constant ARBITER_IDLE_TIMEOUT = 30 days;
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
   address public creator;
@@ -44,6 +45,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint invoiceId;
     address creator;
     EthlanceStructs.TokenValue resolution;
+    uint raisedAt;
     bool resolved;
   }
   mapping (uint => Dispute) public disputes;
@@ -122,13 +124,25 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   ) public {
     string memory message = string.concat("Only job creator is allowed to add arbiters ", "sender: ", EthlanceStructs.toString(_sender), " <-> creator: ", EthlanceStructs.toString(creator));
     require(isCallerJobCreator(_sender), message);
-    // require(isCallerJobCreator(msg.sender), "Only job creator is allowed to add arbiters".concat("sender: ", EthlanceStructs.toString(msg.sender), " <-> creator: ", creator));
 
     for(uint i = 0; i < _invitedArbiters.length; i++) {
-      require(acceptedArbiter == address(0) || acceptedArbiter == _invitedArbiters[i], "Another arbiter had been accepted before. Only 1 can be accepted.");
       invitedArbiters.add(_invitedArbiters[i]);
     }
     ethlance.emitArbitersInvited(address(this), _invitedArbiters);
+  }
+
+  function isAcceptedArbiterIdle() public view returns (bool) {
+    return isAcceptedArbiterIdle(block.timestamp);
+  }
+
+  function isAcceptedArbiterIdle(uint timeNow) public view returns (bool) {
+    for(uint i = 0; i < disputeIds.length; i++) {
+      if(disputes[disputeIds[i]].resolved == false &&
+         (timeNow - disputes[disputeIds[i]].raisedAt) > ARBITER_IDLE_TIMEOUT) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -137,12 +151,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It transfers the value to the arbiter's address
    *
    * This function is not meant to be called directly, but via token received callbacks
-   *
-   * Requirements:
-   * - Can only be called by job creator
-   * - `_arbiter` must be among arbiters who already set their quotes
-   * - `_transferredValue` must match quote requested by an arbiter
-   * - Only 1 arbiter can be accepted. Further accepts should revert.
    *
    * Emits {QuoteForArbitrationAccepted} event
    */
@@ -154,7 +162,14 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     address _arbiter,
     EthlanceStructs.TokenValue[] memory _transferredValue
   ) public payable {
-    require(acceptedArbiter == address(0) || acceptedArbiter == _arbiter, "Another arbiter had been accepted before. Only 1 can be accepted.");
+    // Allow re-assigning accepted arbiter after 30 days since raising dispute (remains unresolved)
+    // NB! Check syncer implementation to be correct if this event comes in again
+    // Generate feedback from part of employer stating "This arbiter got replaced due to inactivity > 30 days of open dispute"
+    require(true
+            || acceptedArbiter == address(0)
+            || acceptedArbiter == _arbiter
+            || isAcceptedArbiterIdle(block.timestamp),
+            "Another arbiter (non-idle) had been accepted before. Only 1 can be accepted.");
     require(isAmongstInvitedArbiters(_arbiter), "Arbiter to be accepted must be amongst invited arbiters");
     require(isCallerJobCreator(msg.sender), "Only job creator (employer) can accept quote for arbitration");
     require(_transferredValue.length == 1, "Currently only 1 _transferredValue is supported at a time");
@@ -509,7 +524,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       }
     }
     require(previousDisputeFound == false, "Can't raise dispute for same invoice more than once.");
-    Dispute memory dispute = Dispute(_invoiceId, msg.sender, invoice.item, false);
+    Dispute memory dispute = Dispute(_invoiceId, msg.sender, invoice.item, block.timestamp, false);
     disputes[_invoiceId] = dispute;
     disputeIds.push(_invoiceId);
     ethlance.emitDisputeRaised(address(this), _invoiceId, _ipfsData);

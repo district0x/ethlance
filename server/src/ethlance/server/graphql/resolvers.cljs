@@ -223,7 +223,7 @@
 (def ^:private arbiter-query {:select [:Arbiter.*
                                        [:Users.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
-                              :join [:Users [:= :Users.user/id :Arbiter.user/id]]})
+                              :join [:Users [:ilike :Users.user/id :Arbiter.user/id]]})
 
 (defn arbiter-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
@@ -257,7 +257,8 @@
           query (cond-> (merge arbiter-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Arbiter.arbiter/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Arbiter.arbiter/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
+                  (and (nil? min-rating)
+                       (not (nil? max-rating))) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
                   id (sql-helpers/merge-where [:ilike :Arbiter.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
@@ -429,7 +430,8 @@
           query (cond-> (merge candidate-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Candidate.candidate/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Candidate.candidate/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Candidate.candidate/rating])
+                  (and (nil? min-rating)
+                       (not (nil? max-rating))) (sql-helpers/merge-where :or [:= nil :Candidate.candidate/rating])
                   id (sql-helpers/merge-where [:= :Candidate.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
@@ -722,7 +724,8 @@
           query (cond-> (merge job-search-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
+                  (and (nil? min-rating)
+                       (not (nil? max-rating))) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
 
                   creator (sql-helpers/merge-where [:ilike creator :Job.job/creator])
                   arbiter (sql-helpers/merge-where [:ilike arbiter :JobArbiter.user/id])
