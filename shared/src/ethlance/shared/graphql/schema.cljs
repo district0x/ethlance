@@ -143,26 +143,22 @@
     name: String
   }
 
-  input EmployerInput {
-    user_id: ID!
+  input UserInput {
+    user_id: ID
     user_email: String!
     user_name: String!
     user_profileImage: String
     user_githubUsername: String
     user_country: String!
     user_languages: [String!]
+  }
+
+  input EmployerInput {
     employer_bio: String!
     employer_professionalTitle: String!
   }
 
   input CandidateInput {
-    user_id: ID!
-    user_email: String!
-    user_name: String!
-    user_profileImage: String
-    user_githubUsername: String
-    user_country: String!
-    user_languages: [String!]
     candidate_bio: String!
     candidate_professionalTitle: String!
     candidate_categories: [String!]
@@ -172,13 +168,6 @@
   }
 
   input ArbiterInput {
-    user_id: ID!
-    user_email: String!
-    user_name: String!
-    user_profileImage: String
-    user_githubUsername: String
-    user_country: String!
-    user_languages: [String!]
     arbiter_bio: String!
     arbiter_professionalTitle: String!
     arbiter_feeCurrencyId: Keyword!
@@ -204,13 +193,10 @@
   }
 
   type Mutation {
-
     signIn(dataSignature: String!, data: String!): signInPayload!
     sendMessage(jobStory_id: Int!, to: ID!, text: String!, jobStoryMessage_type: Keyword, message_type: Keyword): Boolean!,
     leaveFeedback(jobStory_id: Int!, text: String, rating: Int!, to: ID!): Boolean!,
-    updateEmployer(input: EmployerInput!): updateEmployerPayload!,
-    updateCandidate(input: CandidateInput!): updateCandidatePayload!,
-    updateArbiter(input: ArbiterInput!): updateArbiterPayload!,
+    updateUser(user_id: String!, user: UserInput, candidate: CandidateInput, employer: EmployerInput, arbiter: ArbiterInput): User,
     createJobProposal(input: ProposalInput): JobStory,
     removeJobProposal(jobStory_id: ID!): JobStory,
     replayEvents: Boolean!,

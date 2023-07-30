@@ -12,14 +12,6 @@
     (get-in db [sign-up.events/state-key :user/profile-image])))
 
 (re/reg-sub
-  :page.sign-up/update-user-profile-image
-  (fn [query-v]
-    [(re/subscribe [:page.sign-up/user-profile-image])
-     (re/subscribe [::ethlance-subs/active-user])])
-  (fn [[image-from-form active-user] query]
-    (util.urls/ipfs-hash->gateway-url (or image-from-form (:user/profile-image active-user)))))
-
-(re/reg-sub
   :page.sign-up/form
   (fn [db]
     (get db sign-up.events/state-key)))

@@ -5,7 +5,6 @@
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-tx.events :as web3-events]
-            [ethlance.ui.graphql :as graphql]
             [re-frame.core :as re]))
 
 ;; Page State
@@ -23,18 +22,6 @@
        :name :route.user/profile
        :dispatch []}]
        :db (assoc-in db [state-key] state-default)}))
-
-(re/reg-event-fx
-  :query-profile-page-data
-  (fn [coeff _val]
-    (let [
-          query "query ($address: ID!) {
-                  candidate(user_id: $address) {user_id candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                  employer(user_id: $address) {user_id employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                  arbiter(user_id: $address) {user_id arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                }"
-          user-address (-> coeff :db active-page-params :address)]
-      {:dispatch [::graphql/query {:query query :variables {:address user-address}}]})))
 
 ;;
 ;; Registered Events

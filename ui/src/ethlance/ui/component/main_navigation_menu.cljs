@@ -5,6 +5,7 @@
    [ethlance.ui.component.icon :refer [c-icon]]
    [ethlance.ui.subscriptions :as ethlance-subs]
    [ethlance.ui.util.navigation :as util.navigation]
+    [district.ui.graphql.subs :as gql]
    [re-frame.core :as re :refer [subscribe]]
    ))
 
@@ -27,15 +28,23 @@
   "Main Navigation Menu seen while the ethlance website is in desktop-mode."
   []
   (fn []
-    (let [active-user (subscribe [::ethlance-subs/active-user])
-          active-account (subscribe [::accounts-subs/active-account])]
+    (let [
+          active-account @(re/subscribe [::accounts-subs/active-account])
+          active-session @(re/subscribe [::ethlance-subs/active-session])
+          active-user-id (or (:user/id active-session) active-account)
+          query [:user {:user/id active-user-id}
+                 [:user/id
+                  :user/name
+                  :user/profile-image]]
+          result (re/subscribe [::gql/query {:queries [query]}])
+          active-user (get-in @result [:user])]
       [:div.main-navigation-menu
        [c-menu-item {:name :new-job :label "New Job" :route :route.job/new}]
        [c-menu-item {:name :jobs :label "Jobs" :route :route.job/jobs}]
        [c-menu-item {:name :candidates :label "Candidates" :route :route.user/candidates}]
        [c-menu-item {:name :arbiters :label "Arbiters" :route :route.user/arbiters}]
        [c-menu-item {:name :about :label "About" :route :route.misc/about}]
-       (when (and @active-account (not @active-user))
+       (when (and active-account (not active-user))
         [c-menu-item {:name :sign-up :label "Sign Up" :route :route.me/sign-up}])
-       (when @active-user
+       (when active-user
         [c-menu-item {:name :my-activity :label "My Activity" :route :route.me/index}])])))

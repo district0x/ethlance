@@ -649,39 +649,93 @@
   [table values]
   {:insert-into table :values (map vector values) :on-conflict nil :do-nothing []})
 
-(defn upsert-user! [conn {:user/keys [type] :as user}]
+(defn update-associated-values [conn user-id [pk-table target-table column values]]
   (safe-go
-   (let [values (select-keys user (get-table-column-names :Users))
-         _ (<? (db/run! conn
-                        {:insert-into :Users,
-                         :values [values]
-                         :upsert
-                         (array-map :on-conflict [:user/id]
-                                    :do-update-set (keys values))}))]
-     (case type
-       :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
-                  (<? (db/run! conn {:insert-into :Arbiter
-                                     :values [arbiter]
-                                     :upsert (array-map :on-conflict [:user/id]
-                                                        :do-update-set (keys arbiter))})))
-       :employer (let [employer (select-keys user (get-table-column-names :Employer))]
-                   (<? (db/run! conn {:insert-into :Employer
-                                      :values [employer]
-                                      :upsert (array-map :on-conflict [:user/id]
-                                                         :do-update-set (keys employer))})))
-       :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
-                    (<? (db/run! conn {:insert-into :Candidate
-                                       :values [candidate]
-                                       :upsert (array-map :on-conflict [:user/id]
-                                                          :do-update-set (keys candidate))}))
-                    (doseq [address [(:user/id user)]
-                            target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
-                                    [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
-                                    [nil :UserLanguage :language/id (:user/languages user)]]]
-                      (let [[pk-table table column values] target]
-                        (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
-                        (<? (db/run! conn (remove-old-associations address table)))
-                        (<? (db/run! conn (add-new-associations address table column values))))))))))
+    (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
+    (<? (db/run! conn (remove-old-associations user-id target-table)))
+    (<? (db/run! conn (add-new-associations user-id target-table column values)))))
+
+(defn upsert-user [conn user]
+  (let [values (select-keys user (get-table-column-names :Users))
+        target [nil :UserLanguage :language/id (:user/languages user)]]
+    (safe-go
+      (<? (db/run! conn
+                   {:insert-into :Users,
+                    :values [values]
+                    :upsert
+                    (array-map :on-conflict [:user/id]
+                               :do-update-set (keys values))})))
+    (update-associated-values conn (:user/id user) target)))
+
+(defn upsert-candidate [conn user]
+  (let [candidate (select-keys user (get-table-column-names :Candidate))]
+    (safe-go
+      (<? (db/run! conn {:insert-into :Candidate
+                         :values [candidate]
+                         :upsert (array-map :on-conflict [:user/id]
+                                            :do-update-set (keys candidate))}))
+      (doseq [address [(:user/id user)]
+              target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
+                      [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
+                      ]]
+        (update-associated-values conn address target)))))
+
+(defn upsert-employer [conn user]
+  (safe-go
+    (let [employer (select-keys user (get-table-column-names :Employer))]
+      (<? (db/run! conn {:insert-into :Employer
+                         :values [employer]
+                         :upsert (array-map :on-conflict [:user/id]
+                                            :do-update-set (keys employer))})))))
+
+(defn upsert-arbiter [conn user]
+  (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
+    (safe-go
+      (<? (db/run! conn {:insert-into :Arbiter
+                         :values [arbiter]
+                         :upsert (array-map :on-conflict [:user/id]
+                                            :do-update-set (keys arbiter))})))))
+
+(defn upsert-user! [conn {:keys [user candidate employer arbiter]}]
+  (safe-go
+    (when user (upsert-user conn user))
+    (when candidate (upsert-candidate conn candidate))
+    (when employer (upsert-employer conn employer))
+    (when arbiter (upsert-employer conn arbiter))))
+
+; (defn upsert-user! [conn {:user/keys [type] :as user}]
+;   (safe-go
+;    (let [values (select-keys user (get-table-column-names :Users))
+;          _ (<? (db/run! conn
+;                         {:insert-into :Users,
+;                          :values [values]
+;                          :upsert
+;                          (array-map :on-conflict [:user/id]
+;                                     :do-update-set (keys values))}))]
+;      (case type
+;        :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
+;                   (<? (db/run! conn {:insert-into :Arbiter
+;                                      :values [arbiter]
+;                                      :upsert (array-map :on-conflict [:user/id]
+;                                                         :do-update-set (keys arbiter))})))
+;        :employer (let [employer (select-keys user (get-table-column-names :Employer))]
+;                    (<? (db/run! conn {:insert-into :Employer
+;                                       :values [employer]
+;                                       :upsert (array-map :on-conflict [:user/id]
+;                                                          :do-update-set (keys employer))})))
+;        :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
+;                     (<? (db/run! conn {:insert-into :Candidate
+;                                        :values [candidate]
+;                                        :upsert (array-map :on-conflict [:user/id]
+;                                                           :do-update-set (keys candidate))}))
+;                     (doseq [address [(:user/id user)]
+;                             target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
+;                                     [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
+;                                     [nil :UserLanguage :language/id (:user/languages user)]]]
+;                       (let [[pk-table table column values] target]
+;                         (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
+;                         (<? (db/run! conn (remove-old-associations address table)))
+;                         (<? (db/run! conn (add-new-associations address table column values))))))))))
 
 (defn upsert-user-social-accounts! [conn user-social-accounts]
   (safe-go

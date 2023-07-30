@@ -5,11 +5,14 @@
     [district.ui.web3-accounts.events :as accounts-events]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [ethlance.ui.event.utils :as event.utils]
-    [ethlance.ui.graphql :as graphql]
+    [district.ui.graphql.events :as gql-events]
     [ethlance.ui.util.component :refer [>evt]]
     [re-frame.core :as re]))
 
 (def state-key :page.sign-up)
+(def state-default
+  {:candidate/rate-currency-id :USD
+   :arbiter/fee-currency-id :USD})
 
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
 
@@ -32,109 +35,16 @@
 
 (def interceptors [re/trim-v])
 
-
 (re/reg-event-fx
   :page.sign-up/initialize-page
-  (fn []
-    {:forward-events
-     {:register ::accounts-loaded?
-      :events #{::accounts-events/accounts-changed}
-      :dispatch-to [:page.sign-up/initial-query]}}))
-
-(re/reg-event-fx
-  :page.sign-up/initial-query
-  [interceptors]
   (fn [{:keys [db]}]
-    (let [user-address (accounts-queries/active-account db)]
-      {:dispatch [::graphql/query {:query
-                                   "query InitialQuery($address: ID!) {
-                                      user(user_id: $address) {
-                                        user_id
-                                        user_name
-                                        user_email
-                                        user_githubUsername
-                                        user_country
-                                        user_isRegisteredCandidate
-                                        user_languages
-                                        user_profileImage
-                                      }
-                                      candidate(user_id: $address) {
-                                        user_id
-                                        candidate_professionalTitle
-                                        candidate_rate
-                                        candidate_rateCurrencyId
-                                        candidate_skills
-                                        candidate_bio
-                                        candidate_categories
-                                      }
-                                      employer(user_id: $address) {
-                                        user_id
-                                        employer_professionalTitle
-                                        employer_bio
-                                      }
-                                      arbiter(user_id: $address) {
-                                        user_id
-                                        arbiter_bio
-                                        arbiter_professionalTitle
-                                        arbiter_fee
-                                      }
-                                    }"
-                                   :variables {:address user-address}}]})))
+    {:db (assoc-in db [state-key] state-default)
+     ; :forward-events
+     ; {:register ::accounts-loaded?
+     ;  :events #{::accounts-events/accounts-changed}
+     ;  :dispatch-to [:page.sign-up/initial-query]}
+     }))
 
-(re/reg-event-fx
-  :page.sign-up/send-github-verification-code
-  [interceptors]
-  (fn [_ [code]]
-    {:forward-events
-     {:register ::initial-query?
-      :events #{:page.sign-up/initial-query}
-      :dispatch-to [:page.sign-up/github-sign-up code]}}))
-
-(re/reg-event-fx
-  :page.sign-up/github-sign-up
-  [interceptors]
-  (fn [{:keys [db]} [code]]
-    (let [user-address (accounts-queries/active-account db)]
-      {:dispatch [::graphql/query {:query
-                                   "mutation GithubSignUp($githubSignUpInput: githubSignUpInput!) {
-                                      githubSignUp(input: $githubSignUpInput) {
-                                        user_id
-                                        user_name
-                                        user_githubUsername
-                                        user_email
-                                        user_country
-                                    }
-                                  }"
-                                   :variables {:githubSignUpInput {:code code :user_id user-address}}
-                                   :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
-
-
-(re/reg-event-fx
-  :page.sign-up/send-linkedin-verification-code
-  [interceptors]
-  (fn [_ [code redirect-uri]]
-    {:forward-events
-     {:register ::initial-query?
-      :events #{:page.sign-up/initial-query}
-      :dispatch-to [:page.sign-up/linkedin-sign-up code redirect-uri]}}))
-
-(re/reg-event-fx
-  :page.sign-up/linkedin-sign-up
-  [interceptors]
-  (fn [{:keys [db]} [code redirect-uri]]
-    (let [user-address (accounts-queries/active-account db)]
-      {:dispatch [::graphql/query {:query
-                                   "mutation LinkedinSignUp($linkedinSignUpInput: linkedinSignUpInput!) {
-                                      linkedinSignUp(input: $linkedinSignUpInput) {
-                                        user_id
-                                        user_name
-                                        user_linkedinUsername
-                                        user_email
-                                        user_country
-                                    }
-                                  }"
-                                   :variables {:linkedinSignUpInput {:code code :user_id user-address :redirectUri redirect-uri}}
-                                   :on-success #(>evt [::unregister-initial-query-forwarder])}]})))
 
 (re/reg-event-fx
   ::unregister-initial-query-forwarder
@@ -144,125 +54,100 @@
 (defn- fallback-data [db section address]
   (merge (get-in db [:users address]) (get-in db [section address])))
 
+(def user-fields
+  [:user/id
+   :user/email
+   :user/country
+   :user/name
+   :user/languages
+   :user/profile-image
+   ; :user/github-code
+   ; :user/linkedin-code
+   ; :user/linkedin-redirect-uri
+   ])
+
+(def candidate-fields
+  [:candidate/professional-title
+   :candidate/rate
+   :candidate/categories
+   :candidate/bio
+   :candidate/skills
+   :candidate/rate-currency-id])
+
+(def employer-fields
+  [:employer/professional-title
+   :employer/bio])
+
+(def arbiter-fields
+  [:arbiter/professional-title
+   :arbiter/bio
+   :arbiter/fee
+   :arbiter/fee-currency-id])
+
+(defn remove-nil-vals-from-map [input-map]
+  (reduce (fn [acc [k v]]
+            (if (nil? v)
+              acc
+              (assoc acc k v)))
+          {}
+          input-map))
+
 (re/reg-event-fx
   :page.sign-up/update-candidate
   [interceptors]
-  (fn [{:keys [db]}]
+  (fn [{:keys [db]} [form]]
+    (println ">>> update-candidate FORM" form)
     (let [user-address (accounts-queries/active-account db)
-          {:keys [:user/email
-                  :user/country
-                  :user/name
-                  :user/languages
-                  :user/profile-image
-                  ; :user/github-code
-                  ; :user/linkedin-code
-                  ; :user/linkedin-redirect-uri
-                  :candidate/professional-title
-                  :candidate/rate
-                  :candidate/categories
-                  :candidate/bio
-                  :candidate/skills
-                  ]} (merge (fallback-data db :candidates user-address) (get-in db [state-key]))]
-      {:dispatch [::graphql/query {:query
-                                   "mutation UpdateCandidate($candidateInput: CandidateInput!) {
-                                      updateCandidate(input: $candidateInput) {
-                                        user_id
-                                        user_profileImage
-                                        user_dateUpdated
-                                        candidate_dateUpdated
-                                    }
-                                  }"
-                                   :variables {:candidateInput {:user_id user-address
-                                                                :user_email email
-                                                                :user_name name
-                                                                :user_country country
-                                                                :user_languages languages
-                                                                :user_profileImage profile-image
-                                                                :candidate_bio bio
-                                                                :candidate_professionalTitle professional-title
-                                                                :candidate_categories categories
-                                                                :candidate_skills skills
-                                                                :candidate_rate (parsers/parse-int rate)
-                                                                ;; NOTE: hardcoded since UI does not allow for a different currency
-                                                                :candidate_rateCurrencyId :USD}}
-                                   :on-success [:navigate-to-profile user-address "candidate"]}]})))
+          set->vec (fn [v] (if (set? v) (vec v) v))
+          user-params (update-vals
+                        (remove-nil-vals-from-map (select-keys form user-fields))
+                        set->vec)
+          candidate-params (remove-nil-vals-from-map (select-keys form candidate-fields))
+          query [:update-user
+                 {:user/id user-address :user user-params :candidate candidate-params}
+                 [:user/id]]]
+      {:dispatch [::gql-events/mutation
+                  {:queries [query]
+                   :on-success [:navigate-to-profile user-address "candidate"]}]})))
+
+(re/reg-event-fx
+  :page.sign-up/update-employer
+  [interceptors]
+  (fn [{:keys [db]} [form]]
+    (let [user-address (accounts-queries/active-account db)
+          set->vec (fn [v] (if (set? v) (vec v) v))
+          user-params (update-vals
+                        (remove-nil-vals-from-map (select-keys form user-fields))
+                        set->vec)
+          employer-params (remove-nil-vals-from-map (select-keys form employer-fields))
+          query [:update-user
+                 {:user/id user-address :user user-params :employer employer-params}
+                 [:user/id]]]
+      {:dispatch [::gql-events/mutation
+                  {:queries [query]
+                   :on-success [:navigate-to-profile user-address "employer"]}]})))
+
+(re/reg-event-fx
+  :page.sign-up/update-arbiter
+  [interceptors]
+  (fn [{:keys [db]} [form]]
+    (let [user-address (accounts-queries/active-account db)
+          set->vec (fn [v] (if (set? v) (vec v) v))
+          user-params (update-vals
+                        (remove-nil-vals-from-map (select-keys form user-fields))
+                        set->vec)
+          arbiter-params (remove-nil-vals-from-map (select-keys form arbiter-fields))
+          query [:update-user
+                 {:user/id user-address :user user-params :arbiter arbiter-params}
+                 [:user/id]]]
+      {:dispatch [::gql-events/mutation
+                  {:queries [query]
+                   :on-success [:navigate-to-profile user-address "arbiter"]}]})))
 
 (re/reg-event-fx
   :navigate-to-profile
   (fn [cofx [_ address tab]]
     {:dispatch [:district.ui.router.events/navigate :route.user/profile {:address address} {:tab tab}]}))
-
-(re/reg-event-fx
-  :page.sign-up/update-employer
-  [interceptors]
-  (fn [{:keys [db]}]
-    (let [user-address (accounts-queries/active-account db)
-          {:keys [:user/name
-                  :user/email
-                  :user/languages
-                  :user/profile-image
-                  :user/github-username
-                  :user/country
-                  :employer/professional-title
-                  :employer/bio] :as u-data} (merge (fallback-data db :employers user-address) (get-in db [state-key]))]
-      {:dispatch [::graphql/query {:query
-                                   "mutation UpdateEmployer($employerInput: EmployerInput!) {
-                                      updateEmployer(input: $employerInput) {
-                                        user_id
-                                        user_profileImage
-                                        user_dateUpdated
-                                        employer_dateUpdated
-                                    }
-                                  }"
-                                   :variables {:employerInput {:user_id user-address
-                                                               :user_email email
-                                                               :user_name name
-                                                               :user_githubUsername github-username
-                                                               :user_country country
-                                                               :user_languages languages
-                                                                :user_profileImage profile-image
-                                                               :employer_bio bio
-                                                               :employer_professionalTitle professional-title}}
-                                   :on-success [:navigate-to-profile user-address "employer"]}]})))
-
-
-(re/reg-event-fx
-  :page.sign-up/update-arbiter
-  [interceptors]
-  (fn [{:keys [db]}]
-    (let [user-address (accounts-queries/active-account db)
-          {:keys [:user/name
-                  :user/email
-                  :user/languages
-                  :user/profile-image
-                  :user/github-username
-                  :user/country
-                  :arbiter/professional-title
-                  :arbiter/bio
-                  :arbiter/fee]} (merge (fallback-data db :arbiters user-address) (get-in db [state-key]))]
-      {:dispatch [::graphql/query {:query
-                                   "mutation UpdateArbiter($arbiterInput: ArbiterInput!) {
-                                      updateArbiter(input: $arbiterInput) {
-                                        user_id
-                                        user_profileImage
-                                        user_dateUpdated
-                                        arbiter_dateUpdated
-                                    }
-                                  }"
-                                   :variables {:arbiterInput {:user_id user-address
-                                                              :user_email email
-                                                              :user_name name
-                                                              :user_githubUsername github-username
-                                                              :user_country country
-                                                              :user_languages languages
-                                                              :user_profileImage profile-image
-                                                              :arbiter_bio bio
-                                                              :arbiter_professionalTitle professional-title
-                                                              :arbiter_fee (js/parseInt fee)
-                                                              ;; NOTE: hardcoded since UI does not allow for a different currency
-                                                              :arbiter_feeCurrencyId :USD}}
-                                   :on-success [:navigate-to-profile user-address "arbiter"]}]})))
-
 
 (re/reg-event-fx
   :page.sign-up/upload-user-image

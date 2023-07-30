@@ -232,25 +232,29 @@
             feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
             rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
         [:<>
-         [:div.candidate-profile
-          [:div.title
-           [:div.profile-image
-            [c-profile-image {:src image-url}]]
-           [:div.name name]
-           [:div.detail professional-title]]
-          [:div.biography biography]
-          [c-rating-box rating]
-          [:div.location location]
-          [:div.detail-listing
-           [c-tag-list "Languages" languages]
-           [c-tag-list "Skills" skills]]
-          [:div.button-listing
-           [c-button
-            {:size :normal}
-            [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-           [c-button
-            {:size :normal}
-            [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+         (if (not (nil? biography))
+           [:div.candidate-profile
+            [:div.title
+             [:div.profile-image
+              [c-profile-image {:src image-url}]]
+             [:div.name name]
+             [:div.detail professional-title]]
+            [:div.biography biography]
+            [c-rating-box rating]
+            [:div.location location]
+            [:div.detail-listing
+             [c-tag-list "Languages" languages]
+             [c-tag-list "Skills" skills]]
+            [:div.button-listing
+             [c-button
+              {:size :normal}
+              [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+             [c-button
+              {:size :normal}
+              [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+           [:div.candidate-profile
+            [:div "This user has not set up their candidate profile"]])
          (c-job-activity :candidate)
          [c-invite-to-jobs]
          (c-feedback-listing professional-title feedback-list)]))))
@@ -284,24 +288,28 @@
           feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
           rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>
-       [:div.employer-profile
-        [:div.title
-         [:div.profile-image
-          [c-profile-image {:src image-url}]]
-         [:div.name name]
-         [:div.detail professional-title]]
-        [:div.biography biography]
-        [c-rating-box rating]
-        [:div.location location]
-        [:div.detail-listing
-         [c-tag-list "Languages" languages]]
-        [:div.button-listing
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+       (if (not (nil? biography))
+         [:div.employer-profile
+          [:div.title
+           [:div.profile-image
+            [c-profile-image {:src image-url}]]
+           [:div.name name]
+           [:div.detail professional-title]]
+          [:div.biography biography]
+          [c-rating-box rating]
+          [:div.location location]
+          [:div.detail-listing
+           [c-tag-list "Languages" languages]]
+          [:div.button-listing
+           [c-button
+            {:size :normal}
+            [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+           [c-button
+            {:size :normal}
+            [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+         [:div.employer-profile
+          [:div "This user has not set up their employer profile"]])
 
        (c-job-activity :employer)
        (c-feedback-listing professional-title feedback-list)]))))
@@ -330,33 +338,37 @@
                      :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])]
     (fn []
-      (let [name (get-in @results [:user :user/name])
-            location (get-in @results [:user :user/country])
+      (let [name (get-in @results [:arbiter :user :user/name])
+            location (get-in @results [:arbiter :user :user/country])
             professional-title (get-in @results [:arbiter :arbiter/professional-title])
             biography (get-in @results [:arbiter :arbiter/bio])
-            image-url (get-in @results [:user :user/profile-image])
-            languages (get-in @results [:user :user/languages])
+            image-url (get-in @results [:arbiter :user :user/profile-image])
+            languages (get-in @results [:arbiter :user :user/languages])
             feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
             rating {:average (get-in @results [:arbiter :arbiter/rating]) :count (count feedback-list)}]
     [:<>
-     [:div.arbiter-profile
-      [:div.title
-       [:div.profile-image
-        [c-profile-image {:src image-url}]]
-       [:div.name name]
-       [:div.detail professional-title]]
-      [:div.biography biography]
-      [c-rating-box rating]
-      [:div.location location]
-      [:div.detail-listing
-       [c-tag-list "Languages" languages]]
-      [:div.button-listing
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+     (if (not (nil? biography))
+       [:div.arbiter-profile
+        [:div.title
+         [:div.profile-image
+          [c-profile-image {:src image-url}]]
+         [:div.name name]
+         [:div.detail professional-title]]
+        [:div.biography biography]
+        [c-rating-box rating]
+        [:div.location location]
+        [:div.detail-listing
+         [c-tag-list "Languages" languages]]
+        [:div.button-listing
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+       [:div.candidate-profile
+        [:div "This user has not set up their candidate profile"]])
 
      (c-arbitration-activity)
      (c-feedback-listing professional-title feedback-list)]))))

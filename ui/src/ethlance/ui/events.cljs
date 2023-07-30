@@ -27,7 +27,7 @@
   (fn [{:keys [db store]} [_ config]]
     (let [updated-db (-> db
                          (assoc :ethlance/config config)
-                         (merge (akiroz.re-frame.storage/<-store :ethlance)))]
+                         (assoc :active-session (select-keys (akiroz.re-frame.storage/<-store :ethlance) [:jwt :user/id])))]
       {:db updated-db
        :dispatch-n [[:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
                     [:page.jobs/initialize-page]

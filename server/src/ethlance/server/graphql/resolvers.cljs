@@ -21,7 +21,7 @@
 
 (defn js-obj->clj-map [obj]
   (let [obj-keys (district.graphql-utils/gql->clj (js-keys obj))
-        keywordize (fn [k] (keyword (camel-snake-kebab.core/->kebab-case k)))
+        keywordize (fn [k] (graphql-utils/gql-name->kw k)) ; "user_someThing" => :user/some-thing
         assoc-keywordized (fn [acc js-key] (assoc acc (keywordize js-key) (aget obj js-key)))]
     (reduce assoc-keywordized {} obj-keys)))
 
@@ -187,7 +187,7 @@
                                                              [:= "accepted" :JobArbiter.job-arbiter/status]])]
       (<? (db/get conn query)))))
 
-(defn employer-resolver [raw-parent {:keys [:user/id ] :as args} _]
+(defn employer-resolver [raw-parent {:keys [:user/id] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
     (let [address-from-args (:user/id args)
@@ -968,41 +968,29 @@
       true
       )))
 
-(defn update-employer-mutation [_ {:keys [input]} {:keys [timestamp]}]
+(defn update-user-mutation [_ params {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
-    (let [{:user/keys [id]} input
-          response {:user/id id
-                    :user/date-updated timestamp
-                    :employer/date-updated timestamp}]
-      (log/debug "update-employer-mutation" {:input input :response response})
-      (<? (ethlance-db/upsert-user! conn (-> input
-                                             (assoc :user/type :employer)
-                                             (merge response))))
-      response)))
+    (let [user-id (:user/id params)
+          user (js-obj->clj-map (:user params))
+          candidate (js-obj->clj-map (:candidate params))
+          employer (js-obj->clj-map (:employer params))
+          arbiter (js-obj->clj-map (:arbiter params))
+          upsert-args (cond-> {}
+                        (not (empty? user))
+                        (assoc ,,, :user (assoc user :user/id user-id))
 
-(defn update-candidate-mutation [_ {:keys [input]} {:keys [timestamp]}]
-  (db/with-async-resolver-tx conn
-    (let [{:user/keys [id]} input
-          response {:user/id id
-                    :user/date-updated timestamp
-                    :candidate/date-updated timestamp}]
-      (log/debug "update-candidate-mutation" {:input input :response response})
-      (<? (ethlance-db/upsert-user! conn (-> input
-                                             (assoc :user/type :candidate)
-                                             (merge response))))
-      response)))
 
-(defn update-arbiter-mutation [_ {:keys [input]} {:keys [timestamp]}]
-  (db/with-async-resolver-tx conn
-    (let [{:user/keys [id]} input
-          response {:user/id id
-                    :user/date-updated timestamp
-                    :arbiter/date-updated timestamp}]
-      (log/debug "arbiter-candidate-mutation" {:input input :response response})
-      (<? (ethlance-db/upsert-user! conn (-> input
-                                             (assoc :user/type :arbiter)
-                                             (merge response))))
-      response)))
+                        (not (empty? candidate))
+                        (assoc ,,, :candidate (assoc candidate :user/id user-id))
+
+                        (not (empty? employer))
+                        (assoc ,,, :employer (assoc employer :user/id user-id))
+
+                        (not (empty? arbiter))
+                        (assoc ,,, :arbiter (assoc arbiter :user/id user-id)))]
+      (log/debug "update-user-mutation")
+      (<? (ethlance-db/upsert-user! conn upsert-args))
+      (<? (db/get conn {:select [:*] :from [:Users] :where [:= :user/id  user-id]})))))
 
 (defn create-job-proposal-mutation [_ gql-params {:keys [current-user timestamp]}]
   (db/with-async-resolver-conn conn
@@ -1195,9 +1183,7 @@
                                :sendMessage (require-auth send-message-mutation)
                                :leaveFeedback (require-auth leave-feedback-mutation)
                                ;; TODO : do require auth
-                               :updateEmployer (require-auth update-employer-mutation)
-                               :updateCandidate (require-auth (validate-input update-candidate-mutation))
-                               :updateArbiter (require-auth update-arbiter-mutation)
+                               :updateUser (require-auth update-user-mutation)
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :removeJobProposal (require-auth remove-job-proposal-mutation)
                                :replayEvents replay-events
