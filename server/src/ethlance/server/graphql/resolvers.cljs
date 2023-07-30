@@ -799,7 +799,11 @@
                   job-id (sql-helpers/merge-where [:ilike :JobStory.job/id job-id])
                   employer-id (sql-helpers/merge-where [:ilike :Job.job/creator employer-id])
                   candidate-id (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate-id])
-                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status]))
+                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status])
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :job-story/date-created
+                                                               :date-updated :job-story/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :asc)]]))
           limit (:limit args)
           offset (:offset args)]
       (<? (paged-query conn query limit offset)))))

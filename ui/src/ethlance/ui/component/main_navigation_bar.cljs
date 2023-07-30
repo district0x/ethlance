@@ -17,38 +17,35 @@
 (defn c-main-navigation-bar
   "Main Navigation bar seen while the site is in desktop-mode."
   []
-  (let [active-account @(re/subscribe [::accounts-subs/active-account])
-        active-session @(re/subscribe [::ethlance-subs/active-session])
-        active-user-id (or (:user/id active-session) active-account)
-        balance-eth (re/subscribe [::balances-subs/active-account-balance])
-        query [:user {:user/id active-user-id}
-               [:user/id
-                :user/name
-                :user/profile-image]]
-        result (re/subscribe [::gql/query {:queries [query]}])
-
-        ; (util.urls/ipfs-hash->gateway-url (or image-from-form (:user/profile-image active-user)))
-        profile-image (get-in @result [:user :user/profile-image])
-        active-account-has-session? (re/subscribe [::ethlance-subs/active-account-has-session?])]
+  (let [active-account (re/subscribe [::accounts-subs/active-account])
+        active-session (re/subscribe [::ethlance-subs/active-session])
+        balance-eth (re/subscribe [::balances-subs/active-account-balance])]
     (fn []
-      [:div.main-navigation-bar
-       [c-ethlance-logo
-        {:color :white
-         :size :small
-         :title "Go to Home Page"
-         :on-click (util.navigation/create-handler {:route :route/home})
-         :href (util.navigation/resolve-route {:route :route/home})
-         :inline? false}]
-       [:div.profile
-        (when (not (:graphql/loading? result))
-          [c-profile-image {:size :small :src (get-in @result [:user :user/profile-image])}])
-        [:div.name
-         (cond
-           (not (nil? (:user @result))) (get-in @result [:user :user/name])
-           active-user-id (format/truncate active-account 12)
-           :else "Wallet not connected")]]
-       (let [eth-balance (web3-utils/wei->eth-number (or @balance-eth 0))]
-         [:div.account-balances
-          [:div.token-value (format/format-eth eth-balance)]
-          [:div.usd-value (-> @(re/subscribe [::conversion-subs/convert :ETH :USD eth-balance])
-                            (format/format-currency {:currency "USD"}))]])])))
+      (let [active-user-id (or (:user/id @active-session) @active-account)
+            query [:user {:user/id active-user-id}
+                   [:user/id
+                    :user/name
+                    :user/profile-image]]
+            result (re/subscribe [::gql/query {:queries [query]}])
+            profile-image (get-in @result [:user :user/profile-image])
+            eth-balance (web3-utils/wei->eth-number (or @balance-eth 0))]
+        [:div.main-navigation-bar
+         [c-ethlance-logo
+          {:color :white
+           :size :small
+           :title "Go to Home Page"
+           :on-click (util.navigation/create-handler {:route :route/home})
+           :href (util.navigation/resolve-route {:route :route/home})
+           :inline? false}]
+         [:div.profile
+          (when (not (:graphql/loading? @result))
+            [c-profile-image {:size :small :src (get-in @result [:user :user/profile-image])}])
+          [:div.name
+           (cond
+             (not (nil? (:user @result))) (get-in @result [:user :user/name])
+             active-user-id (format/truncate @active-account 12)
+             :else "Wallet not connected")]]
+          [:div.account-balances
+            [:div.token-value (format/format-eth eth-balance)]
+            [:div.usd-value (-> @(re/subscribe [::conversion-subs/convert :ETH :USD eth-balance])
+                              (format/format-currency {:currency "USD"}))]]]))))

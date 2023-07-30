@@ -12,6 +12,7 @@
             [ethlance.server.ipfs :as ipfs]
             [ethlance.server.utils :as server-utils]
             [ethlance.shared.utils :as shared-utils]
+            [honeysql.core :as sql]
             [ethlance.shared.contract-constants :refer [offered-vec->flat-map
                                                         enum-val->token-type]]
             [ethlance.shared.token-utils :as token-utils]
@@ -234,7 +235,14 @@
     (let [job-id (:job args)
           arbiters (:arbiters args)]
       (doseq [arbiter arbiters]
-        (<? (ethlance-db/add-job-arbiter conn job-id arbiter))))))
+        ; Guard against error of adding same arbitrer more than once (can be invited multiple times)
+        (if (not (:exists (<? (db/get conn {:select [(sql/call :exists {:select [1]
+                                                                        :from [:JobArbiter]
+                                                                        :where [:and
+                                                                                [:ilike :JobArbiter.job/id job-id]
+                                                                                [:ilike :JobArbiter.user/id arbiter]]})]}))))
+          (<? (ethlance-db/add-job-arbiter conn job-id arbiter))
+          (println ">>> handle-arbiters-invited Avoided adding duplicate" {:job job-id :arbiter arbiter}))))))
 
 
 (defn handle-job-ended [conn _ {:keys [args] :as event}]

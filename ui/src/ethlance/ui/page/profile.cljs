@@ -38,7 +38,7 @@
 
 (defn prepare-candidate-jobs [story]
   {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-contract-active])
+   :start-date (get-in story [:job-story/date-created])
    :status (get-in story [:job-story/status])})
 
 (defn c-job-activity [user-role]
@@ -48,10 +48,15 @@
         active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         limit @(re/subscribe [:page.profile/pagination-limit])
         offset @(re/subscribe [:page.profile/pagination-offset])
-        query [:job-story-search {:search-params {user-role active-user} :limit limit :offset offset}
+        query [:job-story-search {:search-params {user-role active-user}
+                                  :limit limit
+                                  :offset offset
+                                  :order-by :date-created
+                                  :order-direction :desc}
                [:total-count
                 [:items
                  [:job-story/date-contract-active
+                  :job-story/date-created
                   :job-story/status
                   [:job
                    [:job/title
@@ -112,7 +117,7 @@
          :offset offset
          :set-offset-event :page.profile/set-pagination-offset}]]))
 
-(defn c-invite-to-jobs []
+(defn c-invite-candidate []
   (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
         candidate-address (:address params)
 
@@ -129,7 +134,7 @@
         result @(re/subscribe [::gql/query
                                {:queries [jobs-query]}
                                {:id :JobsWithStoriesForInvitationDropdown
-                                :refetch-on [:ethlance.ui.page.profile.events/send-invitation-tx-success]}])
+                                :refetch-on [:ethlance.ui.page.profile.events/invite-candidate-tx-success]}])
         all-jobs (get-in (first result) [:job-search :items] [])
         existing-relation (fn [job]
                             (cond
@@ -165,7 +170,7 @@
                  :disabled? job-story-exists?
                  :on-click (fn []
                              (when-not job-story-exists?
-                               (re/dispatch [:page.profile/send-invitation
+                               (re/dispatch [:page.profile/invite-candidate
                                             {:candidate candidate-address
                                              :text @invitation-text
                                              :job preselected-job
@@ -256,7 +261,7 @@
            [:div.candidate-profile
             [:div "This user has not set up their candidate profile"]])
          (c-job-activity :candidate)
-         [c-invite-to-jobs]
+         [c-invite-candidate]
          (c-feedback-listing professional-title feedback-list)]))))
 
 (defn c-employer-profile []
@@ -314,6 +319,58 @@
        (c-job-activity :employer)
        (c-feedback-listing professional-title feedback-list)]))))
 
+(defn c-invite-arbiter []
+  (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
+        invitee-address (:address params)
+
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        jobs-query [:job-search {:search-params {:creator active-user} :order-by :dateCreated}
+                    [[:items [:job/id
+                              :job/title
+                              :job/date-created
+                              [:arbitrations
+                               [[:items
+                                 [:arbitration/status
+                                  [:arbiter [:user/id]]]]]]]]]]
+        result @(re/subscribe [::gql/query
+                               {:queries [jobs-query]}
+                               {:id :JobsWithStoriesForInvitationDropdown
+                                :refetch-on [:ethlance.ui.page.profile.events/invite-arbiter-tx-success]}])
+        all-jobs (get-in (first result) [:job-search :items] [])
+        jobs (sort-by :job/date-created #(compare %2 %1)
+                      (reduce (fn [acc job]
+                        (if (some #(ilike= invitee-address (-> % :arbiter :user/id)) (-> job :arbitrations :items))
+                          acc ; To show them in the list: (conj acc (merge job {:comment "(already invited)" :job-story-exists? true}))
+                          (conj acc job)))
+                      []
+                      all-jobs))
+        job-for-invitation (re/subscribe [:page.profile/job-for-invitation])
+        invitation-text (re/subscribe [:page.profile/invitation-text])
+        preselected-job (or @job-for-invitation (first jobs))
+        job-story-exists? (:job-story-exists? preselected-job)]
+    [:div.job-listing
+      [:div.title "Invite Arbiter"]
+      [c-select-input
+       {:selections jobs
+        :value-fn :job/id
+        :label-fn #(str (:job/title %) (:comment %))
+        :selection preselected-job
+        :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
+      [c-textarea-input {:value @invitation-text
+                         :disabled job-story-exists?
+                         :placeholder "Briefly describe to what and why you're inviting the arbiter"
+                         :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
+      [c-button {:color :primary
+                 :disabled? job-story-exists?
+                 :on-click (fn []
+                             (when-not job-story-exists?
+                               (re/dispatch [:page.profile/invite-arbiter
+                                            {:arbiter invitee-address
+                                             :text @invitation-text
+                                             :job preselected-job
+                                             :employer active-user}])))}
+        [c-button-label "Invite"]]]))
+
 (defn c-arbiter-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
         query [:arbiter {:user/id (:address @page-params)}
@@ -369,7 +426,7 @@
 
        [:div.candidate-profile
         [:div "This user has not set up their candidate profile"]])
-
+     [c-invite-arbiter]
      (c-arbitration-activity)
      (c-feedback-listing professional-title feedback-list)]))))
 
