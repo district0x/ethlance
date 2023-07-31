@@ -45,10 +45,11 @@
   (let [keys-headers {:title "Title" :start-date "Created" :status "Status"}
         headers (map last keys-headers)
         column-names (map first keys-headers)
-        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        active-page @(re/subscribe [::router-subs/active-page])
+        user-address (get-in active-page [:params :address])
         limit @(re/subscribe [:page.profile/pagination-limit])
         offset @(re/subscribe [:page.profile/pagination-offset])
-        query [:job-story-search {:search-params {user-role active-user}
+        query [:job-story-search {:search-params {user-role user-address}
                                   :limit limit
                                   :offset offset
                                   :order-by :date-created
@@ -86,10 +87,11 @@
   (let [keys-headers {:title "Title" :start-date "Hired" :fee "Fee" :status "Status"}
         headers (map last keys-headers)
         column-names (map first keys-headers)
-        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        active-page @(re/subscribe [::router-subs/active-page])
+        user-address (get-in active-page [:params :address])
         limit @(re/subscribe [:page.profile/pagination-limit])
         offset @(re/subscribe [:page.profile/pagination-offset])
-        query [:arbiter {:user/id active-user}
+        query [:arbiter {:user/id user-address}
                [
                 [:arbitrations {:limit limit :offset offset}
                  [:total-count
