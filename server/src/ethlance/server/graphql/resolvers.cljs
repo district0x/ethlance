@@ -749,7 +749,11 @@
                                         :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
                   payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
                   status (sql-helpers/merge-where [:= :Job.job/status status])
-                  experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
+                  experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels])
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :job/date-created
+                                                               :date-updated :job/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :desc)]]))]
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-story-query {:select [:*]
@@ -803,13 +807,14 @@
                   order-by (sql-helpers/merge-order-by [[(get {:date-created :job-story/date-created
                                                                :date-updated :job-story/date-updated}
                                                               (graphql-utils/gql-name->kw order-by))
-                                                         (or (keyword order-direction) :asc)]]))
+                                                         (or (keyword order-direction) :desc)]]))
           limit (:limit args)
           offset (:offset args)]
       (<? (paged-query conn query limit offset)))))
 
 
-(def ^:private invoice-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
+(def ^:private invoice-query {; FIXME: supposedly the distinct was to avoid duplication but doesn't seem necessary
+                              ; :modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
                               :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
                                        :JobStoryInvoiceMessage.message/id
@@ -837,7 +842,8 @@
           query (cond-> invoice-query
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
                   candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
-                  status (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status statuses]))]
+                  status (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status statuses])
+                  true (sql-helpers/merge-order-by [[:invoice/date-requested :desc]]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn invoice-resolver [_ {invoice-id :invoice/id  job-id :job/id :as args} _]
@@ -848,7 +854,10 @@
                                                  [:= job-id :Job.job/id]
                                                  [:= invoice-id :JobStoryInvoiceMessage.invoice/ref-id]]))))))
 
-(def ^:private dispute-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
+(def ^:private dispute-query {:modifiers [:distinct-on
+                                          :JobStory.job-story/id
+                                          :JobStoryInvoiceMessage.invoice/ref-id
+                                          :JobStoryInvoiceMessage.invoice/date-requested]
                               :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
                                        :JobStoryInvoiceMessage.message/id
@@ -882,7 +891,8 @@
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
                   candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
                   arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter])
-                  status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status]))]
+                  status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status])
+                  true (sql-helpers/merge-order-by [[:JobStoryInvoiceMessage.invoice/date-requested :desc]]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn job-story->invoices-resolver [root {:keys [:statuses :limit :offset] :as args} _]

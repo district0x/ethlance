@@ -94,7 +94,9 @@
         offset @(re/subscribe [:page.me/pagination-offset])
         job-query [:job-search {:search-params {user-type active-user
                                                 :status status-search-param}
-                                :limit limit :offset offset}
+                                :limit limit
+                                :offset offset
+                                :order-by :date-created}
                    [:total-count
                     [:items [:job/id
                              :job/title
@@ -149,7 +151,9 @@
         offset @(re/subscribe [:page.me/pagination-offset])
 
         query [:job-story-search {:search-params {user-type user-address :status tab}
-                                  :limit limit :offset offset}
+                                  :limit limit
+                                  :offset offset
+                                  :order-by :date-created}
                [:total-count
                 [:items [:job/id
                          :job-story/id
