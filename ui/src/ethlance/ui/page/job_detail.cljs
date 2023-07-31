@@ -322,9 +322,7 @@
                            {:job/id job-address
                             :employer employer-address
                             :arbiters (map :user/id @selected-arbiters)}])))}
-     [c-button-label "Invite"]]]
-    )
-  )
+     [c-button-label "Invite"]]]))
 
 (defn c-set-arbiter-quote [arbitration-by-current-user]
   (let [token-amount (re/subscribe [:page.job-detail/arbitration-token-amount])
@@ -428,7 +426,11 @@
        {:forceVisible true :autoHide false}
         (into [c-table {:headers ["" "Arbiter" "Rate" "Accepted at" "Status" ""]}]
               (map (fn [arbitration]
-                     [[:span (if (ilike= active-user (get-in arbitration [:arbiter :user/id])) "⭐" "")]
+                     [[:span (cond
+                               (ilike= active-user (get-in arbitration [:arbiter :user/id]))
+                               "⭐"
+                               (= "accepted" (get-in arbitration [:arbitration/status]))
+                               "✅")]
                       [:span (get-in arbitration [:arbiter :user :user/name])]
                       [:span (str (token-utils/human-amount (:arbitration/fee arbitration) :eth) " ETH")]
                       [:span (when (:arbitration/date-arbiter-accepted arbitration)
@@ -447,10 +449,10 @@
                                                               "Selected"
                                                               "Select")]]
                         (= "invited" (:arbitration/status arbitration))
-                        [:div "(waiting arbiter to set quote)"]
+                        [:div "(arbiter to set quote)"]
 
                         (= "quote-set" (:arbitration/status arbitration))
-                        [:div "(waiting employer to accept)"]
+                        [:div "(employer to accept)"]
 
                         :else
                         [:div ""])])

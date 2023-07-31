@@ -226,7 +226,8 @@
                                            [:= :JobArbiter.job-arbiter/status "accepted"]]}
           previous-accepted-arbiter (<? (db/get conn previous-accepted-query))]
       (println ">>> replacing arbiter" {:previous previous-accepted-arbiter :new new-accepted-arbiter})
-      (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :JobArbiter.job-arbiter/status "replaced")))
+      (when previous-accepted-arbiter
+        (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :JobArbiter.job-arbiter/status "replaced"))))
       (<? (ethlance-db/update-arbitration conn new-accepted-arbiter)))))
 
 (defn handle-arbiters-invited [conn _ {:keys [args] :as event}]
