@@ -339,20 +339,19 @@
        [:div.amount-input
         [c-text-input
          {:placeholder "Token amount"
-          :step 0.001
           :type :number
-          :default-value nil
           :disabled (not invited?)
           :value @token-amount
           :on-change #(re/dispatch [:page.job-detail/set-arbitration-token-amount (js/parseFloat %)])}]
         [:label "ETH (Ether)"]]
 
-       [:div
+       [:div.amount-input
         [c-text-input
          {:placeholder "USD amount"
           :type :number
-          :disabled true
-          :value @token-amount-usd}]
+          :disabled (not invited?)
+          :value @token-amount-usd
+          :on-change #(re/dispatch [:page.job-detail/set-arbitration-token-amount-usd (js/parseFloat %)])}]
         [:label "USD"]]
 
         [c-button

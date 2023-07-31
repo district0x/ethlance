@@ -1,9 +1,14 @@
 (ns ethlance.ui.util.tokens
   (:require
     [re-frame.core :as re]
+    [clojure.math]
     [cljs-web3-next.helpers :as web3-helpers]
     [ethlance.shared.utils :refer [wei->eth]]
     [cljs-web3-next.eth :as w3-eth]))
+
+(defn round [decimals amount]
+  (let [multiplier (clojure.math/pow 10 decimals)]
+    (/ (.round js/Math (* multiplier amount)) multiplier)))
 
 (defn human-amount [amount token-type]
   (case (keyword token-type)

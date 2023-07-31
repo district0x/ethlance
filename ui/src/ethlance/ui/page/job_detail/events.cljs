@@ -1,8 +1,10 @@
 (ns ethlance.ui.page.job-detail.events
   (:require [district.ui.router.effects :as router.effects]
             [district.ui.router.queries :as router.queries]
+            [district.ui.conversion-rates.queries :as conversion-rates.queries]
             [district.ui.web3.queries :as web3.queries]
             [ethlance.ui.event.utils :as event.utils]
+            [ethlance.ui.util.tokens :as util.tokens]
             [ethlance.shared.utils :refer [eth->wei]]
             [district.ui.web3-tx.events :as web3-events]
             [ethlance.shared.contract-constants :as contract-constants]
@@ -51,10 +53,23 @@
 (re/reg-event-fx :page.job-detail/set-proposal-text (create-assoc-handler :job/proposal-text))
 (re/reg-event-fx :page.job-detail/set-proposal-offset (create-assoc-handler :proposal-offset))
 
-; (re/reg-event-fx :page.job-detail/set-arbitration-to-accept (create-assoc-handler :arbitration-to-accept))
-
 (re/reg-event-fx :page.job-detail/set-arbitrations-offset (create-assoc-handler :arbitrations-offset))
-(re/reg-event-fx :page.job-detail/set-arbitration-token-amount (create-assoc-handler :arbitration-token-amount))
+
+(re/reg-event-db
+  :page.job-detail/set-arbitration-token-amount
+  (fn [db [_ token-amount]]
+    (-> db
+        (assoc-in ,,, [state-key :arbitration-token-amount] token-amount)
+        (assoc-in ,,, [state-key :arbitration-token-amount-usd]
+                  (util.tokens/round 2 (* token-amount (conversion-rates.queries/conversion-rate db :ETH :USD)))))))
+
+(re/reg-event-db
+  :page.job-detail/set-arbitration-token-amount-usd
+  (fn [db [_ usd-amount]]
+    (-> db
+        (assoc-in ,,, [state-key :arbitration-token-amount-usd] usd-amount)
+        (assoc-in ,,, [state-key :arbitration-token-amount]
+                  (util.tokens/round 4 (* usd-amount (conversion-rates.queries/conversion-rate db :USD :ETH)))))))
 
 (re/reg-event-fx :page.job-detail/set-show-invite-arbiters (create-assoc-handler :show-invite-arbiters))
 

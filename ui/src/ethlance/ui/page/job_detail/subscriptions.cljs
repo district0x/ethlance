@@ -14,7 +14,6 @@
 
 (re/reg-sub :page.job-detail/arbitration-to-accept (create-get-handler :arbitration-to-accept))
 
-(re/reg-sub :page.job-detail/arbitration-token-amount (create-get-handler :arbitration-token-amount))
 (re/reg-sub :page.job-detail/arbitrations-offset (create-get-handler :arbitrations-offset))
 (re/reg-sub :page.job-detail/arbitrations-limit (create-get-handler :arbitrations-limit))
 
@@ -25,10 +24,17 @@
 
 (re/reg-sub
   :page.job-detail/arbitration-token-amount-usd
-  :<- [:page.job-detail/arbitration-token-amount]
-  :<- [::rates-subs/conversion-rate :ETH :USD]
-  (fn [[eth-amount eth-usd-rate] _]
-    (.round js/Math (* eth-amount eth-usd-rate))))
+  (fn [db _]
+    (if (js/isNaN (get-in db [job-detail.events/state-key :arbitration-token-amount-usd]))
+      ""
+      (get-in db [job-detail.events/state-key :arbitration-token-amount-usd]))))
+
+(re/reg-sub
+  :page.job-detail/arbitration-token-amount
+  (fn [db _]
+    (if (js/isNaN (get-in db [job-detail.events/state-key :arbitration-token-amount]))
+      ""
+      (get-in db [job-detail.events/state-key :arbitration-token-amount]))))
 
 (re/reg-sub
   :page.job-detail/proposal-total-count
