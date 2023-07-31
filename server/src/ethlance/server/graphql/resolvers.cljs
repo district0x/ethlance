@@ -548,11 +548,12 @@
       (log/debug "arbiter->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn job->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
+(defn job->arbitrations-resolver [root {:keys [:arbiter :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:job/id (graphql-utils/gql->clj root))
-          query (-> arbitrations-query
-                    (sql-helpers/merge-where [:ilike :Job.job/id address]) )]
+          query (cond-> arbitrations-query
+                    true (sql-helpers/merge-where [:ilike :Job.job/id address])
+                    arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter]))]
       (log/debug "job->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 

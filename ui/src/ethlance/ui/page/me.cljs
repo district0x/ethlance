@@ -104,6 +104,10 @@
                              :job/token-amount
                              :job/token-type
                              :job/date-created
+                             [:arbitrations {:arbiter active-user}
+                              [:total-count
+                               [:items
+                                [:arbitration/status]]]]
                              [:token-details [:token-detail/id
                                               :token-detail/name
                                               :token-detail/symbol]]]]]]
@@ -112,9 +116,13 @@
         jobs (get-in result [:job-search :items])
         remuneration (fn [job] (str (tokens/human-amount (:job/token-amount job) (:job/token-type job))
                                     " " (-> job :token-details :token-detail/symbol)))
+        arbitration-info (fn [job]
+                           (let [arbitration-status (:arbitration/status (first (get-in job [:arbitrations :items])))]
+                             (when arbitration-status (str "Arbitration: " arbitration-status))))
         jobs-table [{:title "Job Title" :source :job/title}
                     {:title "Remuneration" :source remuneration}
-                    {:title "Created at" :source (partial formatted-date :job/date-created)}]
+                    {:title "Created at" :source (partial formatted-date :job/date-created)}
+                    {:title "Info" :source arbitration-info}]
         job-link-fn (fn [job] {:route :route.job/detail :params {:id (:job/id job)}})
         pagination {:total-count (get-in result [:job-search :total-count])
                     :limit limit

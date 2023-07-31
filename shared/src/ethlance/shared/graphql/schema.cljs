@@ -482,7 +482,7 @@
     job_arbiter: Arbiter
 
 
-    arbitrations(limit: Int, offset: Int): ArbitrationList
+    arbitrations(arbiter: String, limit: Int, offset: Int): ArbitrationList
     jobStories(limit: Int, offset: Int): JobStoryList
     invoices(limit: Int, offset: Int): InvoiceList
     invoice(invoice_id: Int!, job_id: String!): Invoice
