@@ -162,9 +162,8 @@
           user-id (:user/id clj-parent)
           query {:select [:*]
                  :from [:Users]
-                 :where [:ilike :Users.user/id user-id]}
-          user-results (<? (db/get conn query))]
-      user-results)))
+                 :where [:ilike :Users.user/id user-id]}]
+      (<? (db/get conn query)))))
 
 (defn job->employer-resolver [parent args context info]
   (db/with-async-resolver-conn conn

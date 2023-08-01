@@ -29,8 +29,8 @@
                         :token-detail/name
                         :token-detail/symbol]]]]]]]]]]
         search-results (re/subscribe [::gql/query {:queries [query]}
-                                       { :id :CandidateJobStoriesForInvoice
-                                        :refetch-on [:page.new-invoice/set-invoiced-job]}])]
+                                      {:id :CandidateJobStoriesForInvoice
+                                       :refetch-on [:page.new-invoice/set-invoiced-job]}])]
     (fn []
       (let [*invoiced-job (re/subscribe [:page.new-invoice/invoiced-job])
             *hours-worked (re/subscribe [:page.new-invoice/hours-worked])

@@ -559,7 +559,7 @@
           *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
 
           invoices (get-in results [:invoices :items])
-          unpaid-invoices (filter #(= "open" (:invoice/status %)) invoices)
+          unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)
           unresolved-disputes (filter #(= "dispute-raised" (:invoice/status %)) invoices)
           has-unpaid-invoices? (not (empty? unpaid-invoices))
           has-unresolved-disputes? (not (empty? unresolved-disputes))

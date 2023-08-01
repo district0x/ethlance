@@ -392,7 +392,9 @@
                           :job/token-id
                           [:token-details [:token-detail/name :token-detail/symbol]]
                           [:job/arbiter
-                           [:user/id]]]]
+                           [:user/id
+                            [:user
+                             [:user/name]]]]]]
                         [:invitation-message [:message/id]]
                         [:invitation-accepted-message [:message/id]]
                         [:job-story/invoices
@@ -444,8 +446,14 @@
      (if invitation-to-accept?
        [c-accept-invitation message-params]
        [:div.message-input-container
-        [c-information "No invitations to accept"]]
-       )
+        [c-information "No invitations to accept"]])
+
+     {:label "Create invoice"}
+     [:div.message-input-container
+      [:div.info-message "Click here to create new invoice for this job"]
+      [c-button {:color :primary
+                 :on-click (util.navigation/create-handler {:route :route.invoice/new})}
+         [c-button-label "Go to create invoice"]]]
 
 
      {:label "Send Message"}

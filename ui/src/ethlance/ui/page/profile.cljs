@@ -427,7 +427,7 @@
           [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
        [:div.candidate-profile
-        [:div "This user has not set up their candidate profile"]])
+        [:div "This user has not set up their arbiter profile"]])
      [c-invite-arbiter]
      (c-arbitration-activity)
      (c-feedback-listing professional-title feedback-list)]))))
