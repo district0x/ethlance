@@ -21,7 +21,7 @@
 
 (defn js-obj->clj-map [obj]
   (let [obj-keys (district.graphql-utils/gql->clj (js-keys obj))
-        keywordize (fn [k] (keyword (camel-snake-kebab.core/->kebab-case k)))
+        keywordize (fn [k] (graphql-utils/gql-name->kw k)) ; "user_someThing" => :user/some-thing
         assoc-keywordized (fn [acc js-key] (assoc acc (keywordize js-key) (aget obj js-key)))]
     (reduce assoc-keywordized {} obj-keys)))
 
@@ -162,9 +162,8 @@
           user-id (:user/id clj-parent)
           query {:select [:*]
                  :from [:Users]
-                 :where [:ilike :Users.user/id user-id]}
-          user-results (<? (db/get conn query))]
-      user-results)))
+                 :where [:ilike :Users.user/id user-id]}]
+      (<? (db/get conn query)))))
 
 (defn job->employer-resolver [parent args context info]
   (db/with-async-resolver-conn conn
@@ -187,7 +186,7 @@
                                                              [:= "accepted" :JobArbiter.job-arbiter/status]])]
       (<? (db/get conn query)))))
 
-(defn employer-resolver [raw-parent {:keys [:user/id ] :as args} _]
+(defn employer-resolver [raw-parent {:keys [:user/id] :as args} _]
   (db/with-async-resolver-conn conn
     (log/debug "employer-resolver" args)
     (let [address-from-args (:user/id args)
@@ -223,7 +222,7 @@
 (def ^:private arbiter-query {:select [:Arbiter.*
                                        [:Users.user/date-registered :arbiter/date-registered]]
                               :from [:Arbiter]
-                              :join [:Users [:= :Users.user/id :Arbiter.user/id]]})
+                              :join [:Users [:ilike :Users.user/id :Arbiter.user/id]]})
 
 (defn arbiter-resolver [raw-parent args _]
   (db/with-async-resolver-conn conn
@@ -257,7 +256,8 @@
           query (cond-> (merge arbiter-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Arbiter.arbiter/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Arbiter.arbiter/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
+                  (and (nil? min-rating)
+                       (not (nil? max-rating))) (sql-helpers/merge-where :or [:= nil :Arbiter.arbiter/rating])
                   id (sql-helpers/merge-where [:ilike :Arbiter.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
@@ -429,7 +429,8 @@
           query (cond-> (merge candidate-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Candidate.candidate/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Candidate.candidate/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Candidate.candidate/rating])
+                  (and (nil? min-rating)
+                       (not (nil? max-rating))) (sql-helpers/merge-where :or [:= nil :Candidate.candidate/rating])
                   id (sql-helpers/merge-where [:= :Candidate.user/id id])
 
                   country (sql-helpers/merge-where [:= country :Users.user/country])
@@ -546,11 +547,12 @@
       (log/debug "arbiter->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn job->arbitrations-resolver [root {:keys [:limit :offset] :as args} _]
+(defn job->arbitrations-resolver [root {:keys [:arbiter :limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [address (:job/id (graphql-utils/gql->clj root))
-          query (-> arbitrations-query
-                    (sql-helpers/merge-where [:ilike :Job.job/id address]) )]
+          query (cond-> arbitrations-query
+                    true (sql-helpers/merge-where [:ilike :Job.job/id address])
+                    arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter]))]
       (log/debug "job->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -722,7 +724,8 @@
           query (cond-> (merge job-search-query {:modifiers [:distinct]})
                   min-rating (sql-helpers/merge-where [:<= min-rating :Employer.employer/rating])
                   max-rating (sql-helpers/merge-where [:>= max-rating :Employer.employer/rating])
-                  (nil? min-rating) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
+                  (and (nil? min-rating)
+                       (not (nil? max-rating))) (sql-helpers/merge-where :or [:= nil :Employer.employer/rating])
 
                   creator (sql-helpers/merge-where [:ilike creator :Job.job/creator])
                   arbiter (sql-helpers/merge-where [:ilike arbiter :JobArbiter.user/id])
@@ -746,7 +749,11 @@
                                         :where [:= :JobStoryFeedbackMessage.user/id :Job.job/creator]}])
                   payment-type (sql-helpers/merge-where [:= :Job.job/bid-option payment-type])
                   status (sql-helpers/merge-where [:= :Job.job/status status])
-                  experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels]))]
+                  experience-level (sql-helpers/merge-where [:in :Job.job/required-experience-level suitable-levels])
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :job/date-created
+                                                               :date-updated :job/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :desc)]]))]
       (<? (paged-query conn query limit offset)))))
 
 (def ^:private job-story-query {:select [:*]
@@ -796,13 +803,18 @@
                   job-id (sql-helpers/merge-where [:ilike :JobStory.job/id job-id])
                   employer-id (sql-helpers/merge-where [:ilike :Job.job/creator employer-id])
                   candidate-id (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate-id])
-                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status]))
+                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status])
+                  order-by (sql-helpers/merge-order-by [[(get {:date-created :job-story/date-created
+                                                               :date-updated :job-story/date-updated}
+                                                              (graphql-utils/gql-name->kw order-by))
+                                                         (or (keyword order-direction) :desc)]]))
           limit (:limit args)
           offset (:offset args)]
       (<? (paged-query conn query limit offset)))))
 
 
-(def ^:private invoice-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
+(def ^:private invoice-query {; FIXME: supposedly the distinct was to avoid duplication but doesn't seem necessary
+                              ; :modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
                               :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
                                        :JobStoryInvoiceMessage.message/id
@@ -830,7 +842,8 @@
           query (cond-> invoice-query
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
                   candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
-                  status (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status statuses]))]
+                  status (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status statuses])
+                  true (sql-helpers/merge-order-by [[:invoice/date-requested :desc]]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn invoice-resolver [_ {invoice-id :invoice/id  job-id :job/id :as args} _]
@@ -841,7 +854,10 @@
                                                  [:= job-id :Job.job/id]
                                                  [:= invoice-id :JobStoryInvoiceMessage.invoice/ref-id]]))))))
 
-(def ^:private dispute-query {:modifiers [:distinct-on :JobStory.job-story/id :JobStoryInvoiceMessage.invoice/ref-id]
+(def ^:private dispute-query {:modifiers [:distinct-on
+                                          :JobStory.job-story/id
+                                          :JobStoryInvoiceMessage.invoice/ref-id
+                                          :JobStoryInvoiceMessage.invoice/date-requested]
                               :select [[(sql/call :concat :JobStory.job/id (sql/raw "'-'") :invoice/ref-id) :id]
                                        [:JobStoryInvoiceMessage.invoice/ref-id :invoice/id]
                                        :JobStoryInvoiceMessage.message/id
@@ -875,7 +891,8 @@
                   employer (sql-helpers/merge-where [:ilike :Job.job/creator employer])
                   candidate (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate])
                   arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter])
-                  status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status]))]
+                  status (sql-helpers/merge-where [:= :JobStoryInvoiceMessage.invoice/status status])
+                  true (sql-helpers/merge-order-by [[:JobStoryInvoiceMessage.invoice/date-requested :desc]]))]
       (<? (paged-query conn query limit offset)))))
 
 (defn job-story->invoices-resolver [root {:keys [:statuses :limit :offset] :as args} _]
@@ -965,41 +982,29 @@
       true
       )))
 
-(defn update-employer-mutation [_ {:keys [input]} {:keys [timestamp]}]
+(defn update-user-mutation [_ params {:keys [timestamp]}]
   (db/with-async-resolver-tx conn
-    (let [{:user/keys [id]} input
-          response {:user/id id
-                    :user/date-updated timestamp
-                    :employer/date-updated timestamp}]
-      (log/debug "update-employer-mutation" {:input input :response response})
-      (<? (ethlance-db/upsert-user! conn (-> input
-                                             (assoc :user/type :employer)
-                                             (merge response))))
-      response)))
+    (let [user-id (:user/id params)
+          user (js-obj->clj-map (:user params))
+          candidate (js-obj->clj-map (:candidate params))
+          employer (js-obj->clj-map (:employer params))
+          arbiter (js-obj->clj-map (:arbiter params))
+          upsert-args (cond-> {}
+                        (not (empty? user))
+                        (assoc ,,, :user (assoc user :user/id user-id))
 
-(defn update-candidate-mutation [_ {:keys [input]} {:keys [timestamp]}]
-  (db/with-async-resolver-tx conn
-    (let [{:user/keys [id]} input
-          response {:user/id id
-                    :user/date-updated timestamp
-                    :candidate/date-updated timestamp}]
-      (log/debug "update-candidate-mutation" {:input input :response response})
-      (<? (ethlance-db/upsert-user! conn (-> input
-                                             (assoc :user/type :candidate)
-                                             (merge response))))
-      response)))
 
-(defn update-arbiter-mutation [_ {:keys [input]} {:keys [timestamp]}]
-  (db/with-async-resolver-tx conn
-    (let [{:user/keys [id]} input
-          response {:user/id id
-                    :user/date-updated timestamp
-                    :arbiter/date-updated timestamp}]
-      (log/debug "arbiter-candidate-mutation" {:input input :response response})
-      (<? (ethlance-db/upsert-user! conn (-> input
-                                             (assoc :user/type :arbiter)
-                                             (merge response))))
-      response)))
+                        (not (empty? candidate))
+                        (assoc ,,, :candidate (assoc candidate :user/id user-id))
+
+                        (not (empty? employer))
+                        (assoc ,,, :employer (assoc employer :user/id user-id))
+
+                        (not (empty? arbiter))
+                        (assoc ,,, :arbiter (assoc arbiter :user/id user-id)))]
+      (log/debug "update-user-mutation")
+      (<? (ethlance-db/upsert-user! conn upsert-args))
+      (<? (db/get conn {:select [:*] :from [:Users] :where [:= :user/id  user-id]})))))
 
 (defn create-job-proposal-mutation [_ gql-params {:keys [current-user timestamp]}]
   (db/with-async-resolver-conn conn
@@ -1192,9 +1197,7 @@
                                :sendMessage (require-auth send-message-mutation)
                                :leaveFeedback (require-auth leave-feedback-mutation)
                                ;; TODO : do require auth
-                               :updateEmployer (require-auth update-employer-mutation)
-                               :updateCandidate (require-auth (validate-input update-candidate-mutation))
-                               :updateArbiter (require-auth update-arbiter-mutation)
+                               :updateUser (require-auth update-user-mutation)
                                :createJobProposal (require-auth create-job-proposal-mutation)
                                :removeJobProposal (require-auth remove-job-proposal-mutation)
                                :replayEvents replay-events

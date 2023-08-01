@@ -32,7 +32,7 @@
 
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)
-(s/def :candidate/rate-currency-id string?)
+(s/def :candidate/rate-currency-id keyword?)
 (s/def :candidate/categories (fn [categories]
                                (and (pos? (count categories))
                                     (set/subset? categories constants/categories))))
@@ -51,6 +51,7 @@
 (s/def :arbiter/professional-title professional-title?)
 (s/def :arbiter/bio bio?)
 (s/def :arbiter/fee not-neg?)
+(s/def :arbiter/fee-currency-id keyword?)
 (s/def :arbiter/date-updated int?)
 
 

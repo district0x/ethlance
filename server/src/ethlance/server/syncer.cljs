@@ -12,6 +12,7 @@
             [ethlance.server.ipfs :as ipfs]
             [ethlance.server.utils :as server-utils]
             [ethlance.shared.utils :as shared-utils]
+            [honeysql.core :as sql]
             [ethlance.shared.contract-constants :refer [offered-vec->flat-map
                                                         enum-val->token-type]]
             [ethlance.shared.token-utils :as token-utils]
@@ -214,10 +215,20 @@
 (defn handle-quote-for-arbitration-accepted [conn _ {:keys [args] :as event}]
   (safe-go
     (log/info (str ">>> Handling event quote-for-arbitration-accepted" args))
-    (let [for-the-db {:job/id (:job args)
-                      :user/id (:arbiter args)
-                      :job-arbiter/status "accepted"}]
-      (<? (ethlance-db/update-arbitration conn for-the-db)))))
+    (let [arbiter-id (:arbiter args)
+          job-id (:job args)
+          new-accepted-arbiter {:job/id job-id
+                                :user/id arbiter-id
+                                :job-arbiter/status "accepted"}
+          previous-accepted-query {:select [:JobArbiter.job/id :JobArbiter.user/id]
+                                   :from [:JobArbiter]
+                                   :where [:and [:ilike :JobArbiter.job/id job-id]
+                                           [:= :JobArbiter.job-arbiter/status "accepted"]]}
+          previous-accepted-arbiter (<? (db/get conn previous-accepted-query))]
+      (println ">>> replacing arbiter" {:previous previous-accepted-arbiter :new new-accepted-arbiter})
+      (when previous-accepted-arbiter
+        (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :JobArbiter.job-arbiter/status "replaced"))))
+      (<? (ethlance-db/update-arbitration conn new-accepted-arbiter)))))
 
 (defn handle-arbiters-invited [conn _ {:keys [args] :as event}]
   (safe-go
@@ -225,7 +236,14 @@
     (let [job-id (:job args)
           arbiters (:arbiters args)]
       (doseq [arbiter arbiters]
-        (<? (ethlance-db/add-job-arbiter conn job-id arbiter))))))
+        ; Guard against error of adding same arbitrer more than once (can be invited multiple times)
+        (if (not (:exists (<? (db/get conn {:select [(sql/call :exists {:select [1]
+                                                                        :from [:JobArbiter]
+                                                                        :where [:and
+                                                                                [:ilike :JobArbiter.job/id job-id]
+                                                                                [:ilike :JobArbiter.user/id arbiter]]})]}))))
+          (<? (ethlance-db/add-job-arbiter conn job-id arbiter))
+          (println ">>> handle-arbiters-invited Avoided adding duplicate" {:job job-id :arbiter arbiter}))))))
 
 
 (defn handle-job-ended [conn _ {:keys [args] :as event}]

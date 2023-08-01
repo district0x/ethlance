@@ -390,7 +390,11 @@
                          [:job/token-type
                           :job/token-address
                           :job/token-id
-                          [:token-details [:token-detail/name :token-detail/symbol]]]]
+                          [:token-details [:token-detail/name :token-detail/symbol]]
+                          [:job/arbiter
+                           [:user/id
+                            [:user
+                             [:user/name]]]]]]
                         [:invitation-message [:message/id]]
                         [:invitation-accepted-message [:message/id]]
                         [:job-story/invoices
@@ -424,12 +428,15 @@
         human-amount (tokens/human-amount candidate-invoiced-amount token-type)
 
         has-invoice? (not (nil? latest-unpaid-invoice))
+        has-arbiter? (not (nil? (get-in @invoice-result [:job-story :job :job/arbiter])))
         can-dispute? (and has-invoice?
+                          has-arbiter?
                           (nil? (get-in latest-unpaid-invoice [:dispute-raised-message])))
         dispute-available? (and has-invoice? can-dispute?)
-        dispute-unavailable-message (if has-invoice?
-                                      "You have already raised a dispute on your latest invoice. One invoice can only be disputed once"
-                                      "Raising dispute becomes available after creating an invoice")
+        dispute-unavailable-message (cond
+                                      (not has-arbiter?) "This job doesn't yet have an arbiter so disputes can't be created."
+                                      has-invoice? "You have already raised a dispute on your latest invoice. One invoice can only be disputed once."
+                                      :else "Raising dispute becomes available after creating an invoice.")
         dispute-text (re/subscribe [:page.job-contract/dispute-text])]
     [c-tabular-layout
      {:key "candidate-tabular-layout"
@@ -439,8 +446,14 @@
      (if invitation-to-accept?
        [c-accept-invitation message-params]
        [:div.message-input-container
-        [c-information "No invitations to accept"]]
-       )
+        [c-information "No invitations to accept"]])
+
+     {:label "Create invoice"}
+     [:div.message-input-container
+      [:div.info-message "Click here to create new invoice for this job"]
+      [c-button {:color :primary
+                 :on-click (util.navigation/create-handler {:route :route.invoice/new})}
+         [c-button-label "Go to create invoice"]]]
 
 
      {:label "Send Message"}

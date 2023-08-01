@@ -38,20 +38,26 @@
 
 (defn prepare-candidate-jobs [story]
   {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-contract-active])
+   :start-date (get-in story [:job-story/date-created])
    :status (get-in story [:job-story/status])})
 
 (defn c-job-activity [user-role]
   (let [keys-headers {:title "Title" :start-date "Created" :status "Status"}
         headers (map last keys-headers)
         column-names (map first keys-headers)
-        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        active-page @(re/subscribe [::router-subs/active-page])
+        user-address (get-in active-page [:params :address])
         limit @(re/subscribe [:page.profile/pagination-limit])
         offset @(re/subscribe [:page.profile/pagination-offset])
-        query [:job-story-search {:search-params {user-role active-user} :limit limit :offset offset}
+        query [:job-story-search {:search-params {user-role user-address}
+                                  :limit limit
+                                  :offset offset
+                                  :order-by :date-created
+                                  :order-direction :desc}
                [:total-count
                 [:items
                  [:job-story/date-contract-active
+                  :job-story/date-created
                   :job-story/status
                   [:job
                    [:job/title
@@ -81,10 +87,11 @@
   (let [keys-headers {:title "Title" :start-date "Hired" :fee "Fee" :status "Status"}
         headers (map last keys-headers)
         column-names (map first keys-headers)
-        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        active-page @(re/subscribe [::router-subs/active-page])
+        user-address (get-in active-page [:params :address])
         limit @(re/subscribe [:page.profile/pagination-limit])
         offset @(re/subscribe [:page.profile/pagination-offset])
-        query [:arbiter {:user/id active-user}
+        query [:arbiter {:user/id user-address}
                [
                 [:arbitrations {:limit limit :offset offset}
                  [:total-count
@@ -112,7 +119,7 @@
          :offset offset
          :set-offset-event :page.profile/set-pagination-offset}]]))
 
-(defn c-invite-to-jobs []
+(defn c-invite-candidate []
   (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
         candidate-address (:address params)
 
@@ -129,7 +136,7 @@
         result @(re/subscribe [::gql/query
                                {:queries [jobs-query]}
                                {:id :JobsWithStoriesForInvitationDropdown
-                                :refetch-on [:ethlance.ui.page.profile.events/send-invitation-tx-success]}])
+                                :refetch-on [:ethlance.ui.page.profile.events/invite-candidate-tx-success]}])
         all-jobs (get-in (first result) [:job-search :items] [])
         existing-relation (fn [job]
                             (cond
@@ -165,7 +172,7 @@
                  :disabled? job-story-exists?
                  :on-click (fn []
                              (when-not job-story-exists?
-                               (re/dispatch [:page.profile/send-invitation
+                               (re/dispatch [:page.profile/invite-candidate
                                             {:candidate candidate-address
                                              :text @invitation-text
                                              :job preselected-job
@@ -232,27 +239,31 @@
             feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
             rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}]
         [:<>
-         [:div.candidate-profile
-          [:div.title
-           [:div.profile-image
-            [c-profile-image {:src image-url}]]
-           [:div.name name]
-           [:div.detail professional-title]]
-          [:div.biography biography]
-          [c-rating-box rating]
-          [:div.location location]
-          [:div.detail-listing
-           [c-tag-list "Languages" languages]
-           [c-tag-list "Skills" skills]]
-          [:div.button-listing
-           [c-button
-            {:size :normal}
-            [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-           [c-button
-            {:size :normal}
-            [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+         (if (not (nil? biography))
+           [:div.candidate-profile
+            [:div.title
+             [:div.profile-image
+              [c-profile-image {:src image-url}]]
+             [:div.name name]
+             [:div.detail professional-title]]
+            [:div.biography biography]
+            [c-rating-box rating]
+            [:div.location location]
+            [:div.detail-listing
+             [c-tag-list "Languages" languages]
+             [c-tag-list "Skills" skills]]
+            [:div.button-listing
+             [c-button
+              {:size :normal}
+              [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+             [c-button
+              {:size :normal}
+              [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+           [:div.candidate-profile
+            [:div "This user has not set up their candidate profile"]])
          (c-job-activity :candidate)
-         [c-invite-to-jobs]
+         [c-invite-candidate]
          (c-feedback-listing professional-title feedback-list)]))))
 
 (defn c-employer-profile []
@@ -284,27 +295,83 @@
           feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
           rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
       [:<>
-       [:div.employer-profile
-        [:div.title
-         [:div.profile-image
-          [c-profile-image {:src image-url}]]
-         [:div.name name]
-         [:div.detail professional-title]]
-        [:div.biography biography]
-        [c-rating-box rating]
-        [:div.location location]
-        [:div.detail-listing
-         [c-tag-list "Languages" languages]]
-        [:div.button-listing
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+       (if (not (nil? biography))
+         [:div.employer-profile
+          [:div.title
+           [:div.profile-image
+            [c-profile-image {:src image-url}]]
+           [:div.name name]
+           [:div.detail professional-title]]
+          [:div.biography biography]
+          [c-rating-box rating]
+          [:div.location location]
+          [:div.detail-listing
+           [c-tag-list "Languages" languages]]
+          [:div.button-listing
+           [c-button
+            {:size :normal}
+            [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+           [c-button
+            {:size :normal}
+            [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+
+         [:div.employer-profile
+          [:div "This user has not set up their employer profile"]])
 
        (c-job-activity :employer)
        (c-feedback-listing professional-title feedback-list)]))))
+
+(defn c-invite-arbiter []
+  (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
+        invitee-address (:address params)
+
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        jobs-query [:job-search {:search-params {:creator active-user} :order-by :dateCreated}
+                    [[:items [:job/id
+                              :job/title
+                              :job/date-created
+                              [:arbitrations
+                               [[:items
+                                 [:arbitration/status
+                                  [:arbiter [:user/id]]]]]]]]]]
+        result @(re/subscribe [::gql/query
+                               {:queries [jobs-query]}
+                               {:id :JobsWithStoriesForInvitationDropdown
+                                :refetch-on [:ethlance.ui.page.profile.events/invite-arbiter-tx-success]}])
+        all-jobs (get-in (first result) [:job-search :items] [])
+        jobs (sort-by :job/date-created #(compare %2 %1)
+                      (reduce (fn [acc job]
+                        (if (some #(ilike= invitee-address (-> % :arbiter :user/id)) (-> job :arbitrations :items))
+                          acc ; To show them in the list: (conj acc (merge job {:comment "(already invited)" :job-story-exists? true}))
+                          (conj acc job)))
+                      []
+                      all-jobs))
+        job-for-invitation (re/subscribe [:page.profile/job-for-invitation])
+        invitation-text (re/subscribe [:page.profile/invitation-text])
+        preselected-job (or @job-for-invitation (first jobs))
+        job-story-exists? (:job-story-exists? preselected-job)]
+    [:div.job-listing
+      [:div.title "Invite Arbiter"]
+      [c-select-input
+       {:selections jobs
+        :value-fn :job/id
+        :label-fn #(str (:job/title %) (:comment %))
+        :selection preselected-job
+        :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
+      [c-textarea-input {:value @invitation-text
+                         :disabled job-story-exists?
+                         :placeholder "Briefly describe to what and why you're inviting the arbiter"
+                         :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
+      [c-button {:color :primary
+                 :disabled? job-story-exists?
+                 :on-click (fn []
+                             (when-not job-story-exists?
+                               (re/dispatch [:page.profile/invite-arbiter
+                                            {:arbiter invitee-address
+                                             :text @invitation-text
+                                             :job preselected-job
+                                             :employer active-user}])))}
+        [c-button-label "Invite"]]]))
 
 (defn c-arbiter-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
@@ -330,34 +397,38 @@
                      :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])]
     (fn []
-      (let [name (get-in @results [:user :user/name])
-            location (get-in @results [:user :user/country])
+      (let [name (get-in @results [:arbiter :user :user/name])
+            location (get-in @results [:arbiter :user :user/country])
             professional-title (get-in @results [:arbiter :arbiter/professional-title])
             biography (get-in @results [:arbiter :arbiter/bio])
-            image-url (get-in @results [:user :user/profile-image])
-            languages (get-in @results [:user :user/languages])
+            image-url (get-in @results [:arbiter :user :user/profile-image])
+            languages (get-in @results [:arbiter :user :user/languages])
             feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
             rating {:average (get-in @results [:arbiter :arbiter/rating]) :count (count feedback-list)}]
     [:<>
-     [:div.arbiter-profile
-      [:div.title
-       [:div.profile-image
-        [c-profile-image {:src image-url}]]
-       [:div.name name]
-       [:div.detail professional-title]]
-      [:div.biography biography]
-      [c-rating-box rating]
-      [:div.location location]
-      [:div.detail-listing
-       [c-tag-list "Languages" languages]]
-      [:div.button-listing
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-       [c-button
-        {:size :normal}
-        [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+     (if (not (nil? biography))
+       [:div.arbiter-profile
+        [:div.title
+         [:div.profile-image
+          [c-profile-image {:src image-url}]]
+         [:div.name name]
+         [:div.detail professional-title]]
+        [:div.biography biography]
+        [c-rating-box rating]
+        [:div.location location]
+        [:div.detail-listing
+         [c-tag-list "Languages" languages]]
+        [:div.button-listing
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
+         [c-button
+          {:size :normal}
+          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
+       [:div.candidate-profile
+        [:div "This user has not set up their arbiter profile"]])
+     [c-invite-arbiter]
      (c-arbitration-activity)
      (c-feedback-listing professional-title feedback-list)]))))
 

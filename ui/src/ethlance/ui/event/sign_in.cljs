@@ -3,7 +3,7 @@
     [district.ui.logging.events :as logging.events]
     [district.ui.web3-accounts.queries :as account-queries]
     [district.ui.web3.queries :as web3-queries]
-    [ethlance.ui.graphql :as graphql]
+    [district.ui.graphql.events :as gql-events]
     [re-frame.core :as re])
   (:refer-clojure :exclude [resolve]))
 
@@ -37,21 +37,24 @@
      :store (dissoc store :active-session)}))
 
 
+(re/reg-event-fx
+  ::store-active-session
+  (fn [cofx [_ event-data]]
+    (println ">>> ::store-active-session" event-data)
+    (-> cofx
+        (assoc-in ,,, [:db :active-session] (select-keys (:sign-in event-data) [:jwt :user/id]))
+        (assoc-in ,,, [:store] (select-keys (:sign-in event-data) [:jwt :user/id])))))
+
 ;; Intermediates
 (re/reg-event-fx
   ;; Event FX Handler. Authenticate the sign in for the given active account.
   :user/-authenticate
   (fn [_ [_ {:keys [data-str]} data-signature]]
-    {:dispatch [::graphql/query
-                {:query
-                 "mutation SignIn($dataSignature: String!, $data: String!) {
-                    signIn(dataSignature: $dataSignature, data: $data) {
-                      jwt
-                      user_id
-                    }
-                 }"
-                 :variables {:dataSignature data-signature
-                             :data data-str}}]}))
+    {:dispatch [::gql-events/mutation
+                  {:queries [[:sign-in {:data-signature data-signature
+                                        :data data-str}
+                              [:jwt :user/id]]]
+                   :on-success [::store-active-session]}]}))
 
 (comment
   (re/dispatch [:user/sign-in]))

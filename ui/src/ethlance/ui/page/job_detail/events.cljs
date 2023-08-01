@@ -1,6 +1,10 @@
 (ns ethlance.ui.page.job-detail.events
   (:require [district.ui.router.effects :as router.effects]
+            [district.ui.router.queries :as router.queries]
+            [district.ui.conversion-rates.queries :as conversion-rates.queries]
+            [district.ui.web3.queries :as web3.queries]
             [ethlance.ui.event.utils :as event.utils]
+            [ethlance.ui.util.tokens :as util.tokens]
             [ethlance.shared.utils :refer [eth->wei]]
             [district.ui.web3-tx.events :as web3-events]
             [ethlance.shared.contract-constants :as contract-constants]
@@ -16,7 +20,9 @@
    :proposal-limit 3
    :arbitrations-offset 0
    :arbitrations-limit 3
-   :selected-arbiters #{}})
+   :selected-arbiters #{}
+   :job-arbiter-idle false
+   :show-invite-arbiters false})
 
 (def interceptors [re/trim-v])
 
@@ -24,7 +30,9 @@
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]}]
   (let [page-state (get db state-key)]
-    {::router.effects/watch-active-page
+    {
+     ; :fx [[:dispatch [:page.job-detail/fetch-job-arbiter-status]]]
+     ::router.effects/watch-active-page
      [{:id :page.job-detail/initialize-page
        :name :route.job/detail
        :dispatch [:page.job-detail/fetch-proposals]
@@ -45,10 +53,25 @@
 (re/reg-event-fx :page.job-detail/set-proposal-text (create-assoc-handler :job/proposal-text))
 (re/reg-event-fx :page.job-detail/set-proposal-offset (create-assoc-handler :proposal-offset))
 
-; (re/reg-event-fx :page.job-detail/set-arbitration-to-accept (create-assoc-handler :arbitration-to-accept))
-
 (re/reg-event-fx :page.job-detail/set-arbitrations-offset (create-assoc-handler :arbitrations-offset))
-(re/reg-event-fx :page.job-detail/set-arbitration-token-amount (create-assoc-handler :arbitration-token-amount))
+
+(re/reg-event-db
+  :page.job-detail/set-arbitration-token-amount
+  (fn [db [_ token-amount]]
+    (-> db
+        (assoc-in ,,, [state-key :arbitration-token-amount] token-amount)
+        (assoc-in ,,, [state-key :arbitration-token-amount-usd]
+                  (util.tokens/round 2 (* token-amount (conversion-rates.queries/conversion-rate db :ETH :USD)))))))
+
+(re/reg-event-db
+  :page.job-detail/set-arbitration-token-amount-usd
+  (fn [db [_ usd-amount]]
+    (-> db
+        (assoc-in ,,, [state-key :arbitration-token-amount-usd] usd-amount)
+        (assoc-in ,,, [state-key :arbitration-token-amount]
+                  (util.tokens/round 4 (* usd-amount (conversion-rates.queries/conversion-rate db :USD :ETH)))))))
+
+(re/reg-event-fx :page.job-detail/set-show-invite-arbiters (create-assoc-handler :show-invite-arbiters))
 
 (re/reg-event-db
   :page.job-detail/set-arbitration-to-accept
@@ -189,7 +212,7 @@
         arbiter-address (:user/id forwarded-event-data)
         employer-address (:employer forwarded-event-data)
         token-type (:job-arbiter/fee-currency-id forwarded-event-data)
-        amount-in-wei (:job-arbiter/fee forwarded-event-data)
+        amount-in-wei (str (:job-arbiter/fee forwarded-event-data))
         not-used-token-id 0
         address-placeholder "0x0000000000000000000000000000000000000000"
         offered-value {:value amount-in-wei
@@ -199,7 +222,7 @@
                         {:tokenType (contract-constants/token-type->enum-val token-type)
                          :tokenAddress address-placeholder}}}
         instance (contract-queries/instance (:db cofx) :job job-address)
-        tx-opts {:from employer-address :gas 10000000}
+        tx-opts {:from employer-address :gas 10000000 :value amount-in-wei}
         contract-args [arbiter-address [(clj->js offered-value)]]]
     {:dispatch [::web3-events/send-tx
                 {:instance instance
@@ -262,6 +285,33 @@
 (re/reg-event-fx :page.job-detail/invite-arbiters invite-arbiters)
 (re/reg-event-fx ::invite-arbiters-tx-error (create-logging-handler))
 (re/reg-event-fx ::invite-arbiters-tx-hash-error (create-logging-handler))
+
+(re/reg-event-fx
+  :page.job-detail/fetch-job-arbiter-status
+  (fn [cofx event]
+    (let [
+          ; web3-instance (web3.queries/web3 (:db cofx))
+          web3-instance (district.ui.web3.queries/web3 (:db cofx))
+          job-address (:id (router.queries/active-page-params (:db cofx)))
+          contract-instance (contract-queries/instance (:db cofx) :job job-address)
+          to-call {:instance contract-instance
+                   :fn :is-accepted-arbiter-idle
+                   :args []
+                   :on-success [::job-arbiter-status-success job-address]
+                   :on-error [::job-arbiter-status-error]}]
+      {:web3/call {:web3 web3-instance :fns [to-call]}})))
+
+(re/reg-event-db
+  ::job-arbiter-status-success
+  (fn [db [_ job-address arbiter-idle?]]
+    (println ">>> ::job-arbiter-status-success received" job-address arbiter-idle?)
+    (assoc-in db [state-key :job-arbiter-idle] arbiter-idle?)))
+
+(re/reg-event-db
+  ::job-arbiter-status-error
+  (fn [db event]
+    (println ">>> ::job-arbiter-status-error" event)
+    db))
 
 (re/reg-event-fx
   :page.job-detail/arbitration-tx-success

@@ -10,7 +10,7 @@
 
 (def state-key :page.me)
 (def state-default
-  {:pagination-limit 15
+  {:pagination-limit 10
    :pagination-offset 0})
 
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))

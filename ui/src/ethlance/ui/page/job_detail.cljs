@@ -322,9 +322,7 @@
                            {:job/id job-address
                             :employer employer-address
                             :arbiters (map :user/id @selected-arbiters)}])))}
-     [c-button-label "Invite"]]]
-    )
-  )
+     [c-button-label "Invite"]]]))
 
 (defn c-set-arbiter-quote [arbitration-by-current-user]
   (let [token-amount (re/subscribe [:page.job-detail/arbitration-token-amount])
@@ -339,20 +337,19 @@
        [:div.amount-input
         [c-text-input
          {:placeholder "Token amount"
-          :step 0.001
           :type :number
-          :default-value nil
           :disabled (not invited?)
           :value @token-amount
           :on-change #(re/dispatch [:page.job-detail/set-arbitration-token-amount (js/parseFloat %)])}]
         [:label "ETH (Ether)"]]
 
-       [:div
+       [:div.amount-input
         [c-text-input
          {:placeholder "USD amount"
           :type :number
-          :disabled true
-          :value @token-amount-usd}]
+          :disabled (not invited?)
+          :value @token-amount-usd
+          :on-change #(re/dispatch [:page.job-detail/set-arbitration-token-amount-usd (js/parseFloat %)])}]
         [:label "USD"]]
 
         [c-button
@@ -417,22 +414,32 @@
         employer-address (get-in result [:job :job/employer-address])
 
         arbiter-accepted? (= "accepted" (:arbitration/status job-arbitration))
-        arbiter-selected? (not (nil? arbitration-to-accept))]
+        arbiter-selected? (not (nil? arbitration-to-accept))
+        show-invite-arbiters? @(re/subscribe [:page.job-detail/show-invite-arbiters])
+        arbiter-idle? @(re/subscribe [:page.job-detail/job-arbiter-idle])]
+    ; TODO: remove after figuring out why at events/initialize DB doesn't have web3 and contract-instance
+    ; setTimeout is because dispatching at first render web3 ist not ready and causes errors
+    (js/setTimeout #(re/dispatch [:page.job-detail/fetch-job-arbiter-status]) 1000)
     [:div.proposal-listing
      [:div.label "Arbitrations"]
       [c-scrollable
        {:forceVisible true :autoHide false}
         (into [c-table {:headers ["" "Arbiter" "Rate" "Accepted at" "Status" ""]}]
               (map (fn [arbitration]
-                     [[:span (if (ilike= active-user (get-in arbitration [:arbiter :user/id])) "⭐" "")]
+                     [[:span (cond
+                               (ilike= active-user (get-in arbitration [:arbiter :user/id]))
+                               "⭐"
+                               (= "accepted" (get-in arbitration [:arbitration/status]))
+                               "✅")]
                       [:span (get-in arbitration [:arbiter :user :user/name])]
                       [:span (str (token-utils/human-amount (:arbitration/fee arbitration) :eth) " ETH")]
                       [:span (when (:arbitration/date-arbiter-accepted arbitration)
                                (format/time-ago (new js/Date (:arbitration/date-arbiter-accepted arbitration))))]
                       [:span (:arbitration/status arbitration)]
-                      (if (and (= "quote-set" (:arbitration/status arbitration))
-                               (not arbiter-accepted?)
-                               (= viewer-role :employer))
+                      (cond
+                        (and (= "quote-set" (:arbitration/status arbitration))
+                             (or (not arbiter-accepted?) arbiter-idle?)
+                             (= viewer-role :employer))
                         [:div.button.primary.active.small
                          {:style {:height "2em" :background (if (ilike= arbitration-to-accept arbitration)
                                                               "orange"
@@ -441,8 +448,14 @@
                          [:div.button-label (if (ilike= arbitration-to-accept arbitration)
                                                               "Selected"
                                                               "Select")]]
+                        (= "invited" (:arbitration/status arbitration))
+                        [:div "(arbiter to set quote)"]
 
-                        [:div "(waiting to set quote)"])])
+                        (= "quote-set" (:arbitration/status arbitration))
+                        [:div "(employer to accept)"]
+
+                        :else
+                        [:div ""])])
                    arbitrations))]
 
       [pagination/c-pagination-ends
@@ -456,14 +469,20 @@
         [c-set-arbiter-quote arbitration-by-current-user]
 
         :employer
-        (if arbiter-accepted?
+        (if (and arbiter-accepted? (not show-invite-arbiters?))
           [:div.proposal-form
            [c-participant-info :arbiter job-arbiter] ; TODO: Fix styling
-           ; [:div.label "Accept arbiter quote"]
-           ; [c-info-message "You have already accepted arbiter for this job"]
-           ]
+           (when arbiter-idle?
+             [c-info-message
+              "Idle arbiter"
+              [:div
+               "This arbiter has unresolved dispute for more than 30 days. You can accept new one to replace him"
+               [:div.button.primary.active
+                {:on-click (fn [] (re/dispatch [:page.job-detail/set-show-invite-arbiters true]))}
+                [:div.button-label "Invite arbiters"]]]])]
 
-          (if arbiter-selected?
+          (if (and arbiter-selected?
+                   (not show-invite-arbiters?))
             [c-accept-arbiter-quote]
             [c-invite-arbiters job-address]))
 
@@ -540,7 +559,7 @@
           *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
 
           invoices (get-in results [:invoices :items])
-          unpaid-invoices (filter #(= "open" (:invoice/status %)) invoices)
+          unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)
           unresolved-disputes (filter #(= "dispute-raised" (:invoice/status %)) invoices)
           has-unpaid-invoices? (not (empty? unpaid-invoices))
           has-unresolved-disputes? (not (empty? unresolved-disputes))

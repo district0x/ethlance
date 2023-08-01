@@ -568,3 +568,32 @@
                (is (not (nil? job-ended-event)) "JobEnded gets emitted")
                (is (= 0 (int job-balance-after)) "Job ETH balance will be zero"))
              (done)))))
+
+(deftest arbiter-idleness-test
+  (testing "Arbiter idleness"
+    (async done
+           (go
+             (let [[_owner employer worker sponsor arbiter] (<! (web3-eth/accounts @web3))
+                   contribution-a-amount 2
+                   job-data (<! (create-initialized-job [(partial fund-in-erc20 employer contribution-a-amount)] :arbiters [arbiter]))
+                   job-address (:job job-data)
+                   offered-values (:offered-values job-data)
+                   _ (<! (smart-contracts/contract-send [:job job-address] :add-candidate [worker "0x0"] {:from employer}))
+
+                   invoice-tx (<? (smart-contracts/contract-send [:job job-address] :create-invoice [offered-values "0x0"] {:from worker}))
+                   invoice-event (<! (smart-contracts/contract-event-in-tx :ethlance :InvoiceCreated invoice-tx))
+                   invoice-id (int (:invoice-id invoice-event))]
+
+               (let [raise-dispute-tx (<! (smart-contracts/contract-send [:job job-address] :raise-dispute [invoice-id "0x0"] {:from worker}))
+                     seconds-in-day (* 60 60 24)
+                     seconds-now (int (/ (.now js/Date) 1000))
+                     seconds-31-days (+ seconds-now (* 31 seconds-in-day))
+                     seconds-29-days (+ seconds-now (* 29 seconds-in-day))
+
+                     arbiter-idle-31? (<! (smart-contracts/contract-call [:job job-address] :is-accepted-arbiter-idle [seconds-31-days] {:from worker}))
+                     arbiter-idle-29? (<! (smart-contracts/contract-call [:job job-address] :is-accepted-arbiter-idle [seconds-29-days] {:from worker}))
+                     arbiter-idle-now? (<! (smart-contracts/contract-call [:job job-address] :is-accepted-arbiter-idle [] {:from worker}))]
+                 (is arbiter-idle-31?)
+                 (is (not arbiter-idle-29?))
+                 (is (not arbiter-idle-now?)))
+               (done))))))

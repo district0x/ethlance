@@ -44,13 +44,11 @@
         [c-button-label "Uninvite"]])]))
 
 (defn- c-submit-button [{:keys [:on-submit :disabled?]}]
-  (let [in-progress @(re/subscribe [::subs/api-request-in-progress])
-        disabled? (or disabled? in-progress)]
-    [:div.form-submit
-     {:class (when disabled? "disabled")
-      :on-click (fn [] (when-not disabled? (>evt on-submit)))}
-     [:span "Create"]
-     [c-icon {:name :ic-arrow-right :size :smaller}]]))
+  [:div.form-submit
+   {:class (when disabled? "disabled")
+    :on-click (fn [] (when-not disabled? (>evt on-submit)))}
+   [:span "Create"]
+   [c-icon {:name :ic-arrow-right :size :smaller}]])
 
 (defn c-job-creation-form []
   (let [arbiters-query [:arbiter-search {:limit 1000}

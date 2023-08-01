@@ -4,8 +4,10 @@
     [district.ui.component.page :refer [page]]
     [ethlance.ui.component.modal.events]
     [district.ui.router.events :as router-events]
+    [ethlance.ui.page.sign-up.events :as sign-up.events]
     [district.ui.notification.subs :as noti-subs]
     [district.ui.router.subs :as router.subs]
+    [district.ui.graphql.subs :as gql]
     [ethlance.shared.constants :as constants]
     [ethlance.shared.spec :refer [validate-keys]]
     [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
@@ -113,7 +115,7 @@
      :placeholder ""
      :auto-suggestion-listing constants/languages
      :allow-custom-chips? false
-     :chip-listing (:user/languages form-values)
+     :chip-listing (set (:user/languages form-values))
      :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]])
 
 
@@ -127,225 +129,167 @@
 
 
 (defn- c-submit-button [{:keys [:on-submit :disabled?]}]
-  (let [in-progress @(re/subscribe [::subs/api-request-in-progress])
-        disabled? (or disabled? in-progress)]
-    [:div.form-submit
-     {:class (when disabled? "disabled")
-      :on-click (fn [] (when-not disabled? (>evt on-submit)))}
-     [:span "Save"]
-     [c-icon {:name :ic-arrow-right :size :smaller}]]))
+  (println ">>> c-submit-button" on-submit)
+  [:div.form-submit
+   {:class (when disabled? "disabled")
+    :on-click (fn [] (when-not disabled? (>evt on-submit)))}
+   [:span "Save"]
+   [c-icon {:name :ic-arrow-right :size :smaller}]])
 
 (defn c-candidate-sign-up []
-  (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
-        active-user (re/subscribe [::subs/active-user])
-        active-candidate (re/subscribe [::subs/active-candidate])
-        sign-up-form (re/subscribe [:page.sign-up/form])
-        gh-client-id (:client-id github)
-        linkedin-client-id (:client-id linkedin)
-        {:keys [query]} (<sub [::router.subs/active-page])]
-    (r/create-class
-      {:display-name "c-candidate-sign-up"
-       :component-did-mount (fn []
-                              (when-let [code (:code query)]
-                                (case (-> query :social keyword)
-                                  :github
-                                  (>evt [:page.sign-up/send-github-verification-code code])
-                                  :linkedin
-                                  (>evt [:page.sign-up/send-linkedin-verification-code code (str root-url "/me/sign-up?tab=candidate&social=linkedin")])
-                                  nil)))
-       :reagent-render
-       (fn []
-         (let [form-values (merge @active-user @active-candidate @sign-up-form)
-               form-validation (validate-keys form-values)]
-           [:div.candidate-sign-up
-            [:div.form-container
-             [:div.label "Sign Up"]
-             [:div.first-forms
-              [:div.form-image
-               [c-upload-image]]
-              [c-user-name-input
-               {:form-values form-values
-                :form-validation form-validation}]
-              [c-user-email-input
-               {:form-values form-values
-                :form-validation form-validation}]
-              [:div.form-professional-title
-               [c-text-input
-                {:placeholder "Professional Title"
-                 :value (:candidate/professional-title form-values)
-                 :error? (not (:candidate/professional-title form-validation))
-                 :on-change #(>evt [:page.sign-up/set-candidate-professional-title %])}]]
-              [:div.form-hourly-rate
-               [c-currency-input
-                {:placeholder "Hourly Rate"
-                 :color :primary
-                 :min 0
-                 :value (:candidate/rate form-values)
-                 :error? (not (:candidate/rate form-validation))
-                 :on-change #(>evt [:page.sign-up/set-candidate-rate %])}]]
-              [c-user-country-input
-               {:form-values form-values}]
-              [c-user-github-input
-               {:form-values form-values
-                :gh-client-id gh-client-id
-                :root-url root-url}]
-              [c-user-linkedin-input
-               {:form-values form-values
-                :linkedin-client-id linkedin-client-id
-                :root-url root-url}]]
-             [:div.second-forms
-              [c-user-languages-input
-               {:form-values form-values}]
-              [:div.label [:h2 "Categories You Are Interested In"]]
-              [c-chip-search-input
-               {:search-icon? false
-                :placeholder ""
-                :auto-suggestion-listing constants/categories
-                :allow-custom-chips? false
-                :chip-listing (:candidate/categories form-values)
-                :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-categories %])
-                :display-listing-on-focus? true}]
-              [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-              [c-chip-search-input
-               {:search-icon? false
-                :placeholder ""
-                :allow-custom-chips? false
-                :auto-suggestion-listing constants/skills
-                :chip-listing (:candidate/skills form-values)
-                :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-skills %])}]
-              [c-bio
-               {:value (:candidate/bio form-values)
-                :on-change #(>evt [:page.sign-up/set-candidate-bio %])
-                :error? (not (:candidate/bio form-validation))}]]]
-            [c-submit-button
-             {:on-submit [:page.sign-up/update-candidate]
-              :disabled? (not (s/valid? :page.sign-up/update-candidate form-values))}]]))})))
+  (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        candidate-query [:candidate {:user/id user-id} sign-up.events/candidate-fields]
+        user-query [:user {:user/id user-id} sign-up.events/user-fields]
+        results (re/subscribe [::gql/query {:queries [candidate-query user-query]}])
+        sign-up-form (re/subscribe [:page.sign-up/form])]
+    (fn []
+      (let [form-values (merge (get-in @results [:candidate])
+                               (get-in @results [:user])
+                               @sign-up-form)
+            form-validation (validate-keys form-values)]
+        [:div.candidate-sign-up
+         [:div.form-container
+          [:div.label "Sign Up"]
+          [:div.first-forms
+           [:div.form-image
+            [c-upload-image]]
+           [c-user-name-input
+            {:form-values form-values
+             :form-validation form-validation}]
+           [c-user-email-input
+            {:form-values form-values
+             :form-validation form-validation}]
+           [:div.form-professional-title
+            [c-text-input
+             {:placeholder "Professional Title"
+              :value (:candidate/professional-title form-values)
+              :error? (not (:candidate/professional-title form-validation))
+              :on-change #(>evt [:page.sign-up/set-candidate-professional-title %])}]]
+           [:div.form-hourly-rate
+            [c-currency-input
+             {:placeholder "Hourly Rate"
+              :color :primary
+              :min 0
+              :value (:candidate/rate form-values)
+              :error? (not (:candidate/rate form-validation))
+              :on-change #(>evt [:page.sign-up/set-candidate-rate (js/parseInt %)])}]]
+           [c-user-country-input
+            {:form-values form-values}]]
+          [:div.second-forms
+           [c-user-languages-input
+            {:form-values form-values}]
+           [:div.label [:h2 "Categories You Are Interested In"]]
+           [c-chip-search-input
+            {:search-icon? false
+             :placeholder ""
+             :auto-suggestion-listing constants/categories
+             :allow-custom-chips? false
+             :chip-listing (:candidate/categories form-values)
+             :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-categories %])
+             :display-listing-on-focus? true}]
+           [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
+           [c-chip-search-input
+            {:search-icon? false
+             :placeholder ""
+             :allow-custom-chips? false
+             :auto-suggestion-listing constants/skills
+             :chip-listing (:candidate/skills form-values)
+             :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-skills %])}]
+           [c-bio
+            {:value (:candidate/bio form-values)
+             :on-change #(>evt [:page.sign-up/set-candidate-bio %])
+             :error? (not (:candidate/bio form-validation))}]]]
+         [c-submit-button
+          {:on-submit [:page.sign-up/update-candidate form-values]
+           :disabled? (not (s/valid? :page.sign-up/update-candidate form-values))}]]))))
 
 
 (defn c-employer-sign-up []
-  (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
-        active-user (re/subscribe [::subs/active-user])
-        active-employer (re/subscribe [::subs/active-employer])
-        sign-up-form (re/subscribe [:page.sign-up/form])
-        gh-client-id (-> github :client-id)
-        linkedin-client-id (:client-id linkedin)
-        {:keys [query]} (<sub [::router.subs/active-page])]
-    (r/create-class
-      {:display-name "c-employer-sign-up"
-       :component-did-mount (fn []
-                              (when-let [code (-> query :code)]
-                                (case (-> query :social keyword)
-                                  :github
-                                  (>evt [:page.sign-up/send-github-verification-code code])
-                                  :linkedin
-                                  (>evt [:page.sign-up/send-linkedin-verification-code code (str root-url "/me/sign-up?tab=employer&social=linkedin")])
-                                  nil)))
-       :reagent-render
-       (fn []
-         (let [form-values (merge @active-user @active-employer @sign-up-form)
-               form-validation (validate-keys form-values)]
-           [:div.employer-sign-up
-            [:div.form-container
-             [:div.label "Sign Up"]
-             [:div.first-forms
-              [:div.form-image
-               [c-upload-image]]
-              [c-user-name-input
-               {:form-values form-values
-                :form-validation form-validation}]
-              [c-user-email-input
-               {:form-values form-values
-                :form-validation form-validation}]
-              [:div.form-professional-title
-               [c-text-input
-                {:placeholder "Professional Title"
-                 :value (:employer/professional-title form-values)
-                 :on-change #(>evt [:page.sign-up/set-employer-professional-title %])}]]
-              [c-user-country-input
-               {:form-values form-values}]
-              [c-user-github-input
-               {:form-values form-values
-                :gh-client-id gh-client-id
-                :root-url root-url}]
-              [c-user-linkedin-input
-               {:form-values form-values
-                :linkedin-client-id linkedin-client-id
-                :root-url root-url}]]
-             [:div.second-forms
-              [c-user-languages-input
-               {:form-values form-values}]
-              [c-bio
-               {:value (:employer/bio form-values)
-                :on-change #(>evt [:page.sign-up/set-employer-bio %])
-                :error? (not (:employer/bio form-validation))}]]]
-            [c-submit-button
-             {:on-submit [:page.sign-up/update-employer]
-              :disabled? (not (s/valid? :page.sign-up/update-employer form-values))}]]))})))
+  (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        employer-query [:employer {:user/id user-id} sign-up.events/employer-fields]
+        user-query [:user {:user/id user-id} sign-up.events/user-fields]
+        results (re/subscribe [::gql/query {:queries [employer-query user-query]}])
+        sign-up-form (re/subscribe [:page.sign-up/form])]
+    (fn []
+      (let [form-values (merge (get-in @results [:employer])
+                               (get-in @results [:user])
+                               @sign-up-form)
+            form-validation (validate-keys form-values)]
+        [:div.employer-sign-up
+         [:div.form-container
+          [:div.label "Sign Up"]
+          [:div.first-forms
+           [:div.form-image
+            [c-upload-image]]
+           [c-user-name-input
+            {:form-values form-values
+             :form-validation form-validation}]
+           [c-user-email-input
+            {:form-values form-values
+             :form-validation form-validation}]
+           [:div.form-professional-title
+            [c-text-input
+             {:placeholder "Professional Title"
+              :value (:employer/professional-title form-values)
+              :on-change #(>evt [:page.sign-up/set-employer-professional-title %])}]]
+           [c-user-country-input
+            {:form-values form-values}]]
+          [:div.second-forms
+           [c-user-languages-input
+            {:form-values form-values}]
+           [c-bio
+            {:value (:employer/bio form-values)
+             :on-change #(>evt [:page.sign-up/set-employer-bio %])
+             :error? (not (:employer/bio form-validation))}]]]
+         [c-submit-button
+          {:on-submit [:page.sign-up/update-employer form-values]
+           :disabled? (not (s/valid? :page.sign-up/update-employer form-values))}]]))))
 
 (defn c-arbiter-sign-up []
-  (let [{:keys [root-url github linkedin]} (<sub [::subs/config])
-        active-user (re/subscribe [::subs/active-user])
-        active-arbiter (re/subscribe [::subs/active-arbiter])
-        sign-up-form (re/subscribe [:page.sign-up/form])
-        gh-client-id (-> github :client-id)
-        linkedin-client-id (:client-id linkedin)
-        {:keys [query]} (<sub [::router.subs/active-page])]
-    (r/create-class
-      {:display-name "c-arbiter-sign-up"
-       :component-did-mount (fn []
-                              (when-let [code (:code query)]
-                                (case (-> query :social keyword)
-                                  :github
-                                  (>evt [:page.sign-up/send-github-verification-code code])
-                                  :linkedin
-                                  (>evt [:page.sign-up/send-linkedin-verification-code code (str root-url "/me/sign-up?tab=arbiter&social=linkedin")])
-                                  nil)))
-       :reagent-render
-       (fn []
-         (let [form-values (merge @active-user @active-arbiter @sign-up-form)
-               form-validation (validate-keys form-values)]
-           [:div.arbiter-sign-up
-            [:div.form-container
-             [:div.label "Sign Up"]
-             [:div.first-forms
-              [:div.form-image
-               [c-upload-image]]
-              [c-user-name-input
-               {:form-values form-values
-                :form-validation form-validation}]
-              [c-user-email-input
-               {:form-values form-values
-                :form-validation form-validation}]
-              [:div.form-professional-title
-               [c-text-input
-                {:placeholder "Professional Title"
-                 :value (:arbiter/professional-title form-values)
-                 :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
-              [c-user-country-input
-               {:form-values form-values}]
-              [:div.form-hourly-rate
-               [c-currency-input
-                {:placeholder "Fixed Rate Per A Dispute" :color :primary
-                 :value (:arbiter/fee form-values)
-                 :on-change #(>evt [:page.sign-up/set-arbiter-fee %])}]]
-              [c-user-github-input
-               {:form-values form-values
-                :gh-client-id gh-client-id
-                :root-url root-url}]
-              [c-user-linkedin-input
-               {:form-values form-values
-                :linkedin-client-id linkedin-client-id
-                :root-url root-url}]]
-             [:div.second-forms
-              [c-user-languages-input
-               {:form-values form-values}]
-              [c-bio
-               {:value (:arbiter/bio form-values)
-                :on-change #(>evt [:page.sign-up/set-arbiter-bio %])
-                :error? (not (:arbiter/bio form-validation))}]]]
-            [c-submit-button
-             {:on-submit [:page.sign-up/update-arbiter]
-              :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))})))
+  (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        arbiter-query [:arbiter {:user/id user-id} sign-up.events/arbiter-fields]
+        user-query [:user {:user/id user-id} sign-up.events/user-fields]
+        results (re/subscribe [::gql/query {:queries [arbiter-query user-query]}])
+        sign-up-form (re/subscribe [:page.sign-up/form])]
+    (fn []
+      (let [form-values (merge (get-in @results [:arbiter])
+                               (get-in @results [:user])
+                               @sign-up-form)
+            form-validation (validate-keys form-values)]
+        [:div.arbiter-sign-up
+         [:div.form-container
+          [:div.label "Sign Up"]
+          [:div.first-forms
+           [:div.form-image
+            [c-upload-image]]
+           [c-user-name-input
+            {:form-values form-values
+             :form-validation form-validation}]
+           [c-user-email-input
+            {:form-values form-values
+             :form-validation form-validation}]
+           [:div.form-professional-title
+            [c-text-input
+             {:placeholder "Professional Title"
+              :value (:arbiter/professional-title form-values)
+              :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
+           [c-user-country-input
+            {:form-values form-values}]
+           [:div.form-hourly-rate
+            [c-currency-input
+             {:placeholder "Fixed Rate Per A Dispute" :color :primary
+              :value (:arbiter/fee form-values)
+              :on-change #(>evt [:page.sign-up/set-arbiter-fee (js/parseInt %)])}]]]
+          [:div.second-forms
+           [c-user-languages-input
+            {:form-values form-values}]
+           [c-bio
+            {:value (:arbiter/bio form-values)
+             :on-change #(>evt [:page.sign-up/set-arbiter-bio %])
+             :error? (not (:arbiter/bio form-validation))}]]]
+         [c-submit-button
+          {:on-submit [:page.sign-up/update-arbiter form-values]
+           :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))))
 
 (defn c-api-error-notification [message open?]
   [:div {:class ["notification-box" (when (not open?) "hidden")]}

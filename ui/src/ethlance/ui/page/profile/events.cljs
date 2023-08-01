@@ -5,7 +5,6 @@
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-tx.events :as web3-events]
-            [ethlance.ui.graphql :as graphql]
             [re-frame.core :as re]))
 
 ;; Page State
@@ -24,18 +23,6 @@
        :dispatch []}]
        :db (assoc-in db [state-key] state-default)}))
 
-(re/reg-event-fx
-  :query-profile-page-data
-  (fn [coeff _val]
-    (let [
-          query "query ($address: ID!) {
-                  candidate(user_id: $address) {user_id candidate_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                  employer(user_id: $address) {user_id employer_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                  arbiter(user_id: $address) {user_id arbiter_feedback {items {feedback_rating feedback_text feedback_fromUser {user_name}} totalCount}}
-                }"
-          user-address (-> coeff :db active-page-params :address)]
-      {:dispatch [::graphql/query {:query query :variables {:address user-address}}]})))
-
 ;;
 ;; Registered Events
 ;;
@@ -47,7 +34,7 @@
 (re/reg-event-fx :page.profile/set-pagination-offset (create-assoc-handler :pagination-offset))
 
 (re/reg-event-fx
-  :page.profile/send-invitation
+  :page.profile/invite-candidate
   (fn [{:keys [db]} [_ invitation-data]]
     (let [
           ipfs-invitation {:candidate (:candidate invitation-data)
@@ -77,8 +64,27 @@
                    :tx-opts tx-opts
                    :tx-hash [::tx-hash]
                    :on-tx-hash-error [::tx-hash-error]
-                   :on-tx-success [::send-invitation-tx-success]
-                   :on-tx-error [::send-invitation-tx-failure]}]})))
+                   :on-tx-success [::invite-candidate-tx-success]
+                   :on-tx-error [::invite-candidate-tx-failure]}]})))
+
+(re/reg-event-fx
+  :page.profile/invite-arbiter
+  (fn [cofx [_ event-data]]
+    (let [job-address (get-in event-data [:job :job/id])
+          arbiter-address (:arbiter event-data)
+          employer-address (:employer event-data)
+          instance (contract-queries/instance (:db cofx) :job job-address)
+          tx-opts {:from employer-address :gas 10000000}
+          contract-args [employer-address [arbiter-address]]]
+       {:dispatch [::web3-events/send-tx
+                  {:instance instance
+                   :fn :invite-arbiters
+                   :args contract-args
+                   :tx-opts tx-opts
+                   :tx-hash [::arbitration-tx-hash]
+                   :on-tx-hash-error [::invite-arbiters-tx-hash-error]
+                   :on-tx-success [:page.job-detail/arbitration-tx-success]
+                   :on-tx-error [::invite-arbiters-tx-error]}]})))
 
 (re/reg-event-db
   ::tx-hash-error
@@ -92,13 +98,13 @@
     db))
 
 (re/reg-event-db
-  ::send-invitation-tx-success
+  ::invite-candidate-tx-success
   (fn [db event]
-    (println ">>> ::send-invitation-tx-success" event)
+    (println ">>> ::invite-candidate-tx-success" event)
     db))
 
 (re/reg-event-db
-  ::send-invitation-tx-failure
+  ::invite-candidate-tx-failure
   (fn [db event]
-    (println ">>> ::send-invitation-tx-failure" event)
+    (println ">>> ::invite-candidate-tx-failure" event)
     db))
