@@ -129,7 +129,6 @@
 
 
 (defn- c-submit-button [{:keys [:on-submit :disabled?]}]
-  (println ">>> c-submit-button" on-submit)
   [:div.form-submit
    {:class (when disabled? "disabled")
     :on-click (fn [] (when-not disabled? (>evt on-submit)))}
@@ -141,67 +140,66 @@
         candidate-query [:candidate {:user/id user-id} sign-up.events/candidate-fields]
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [candidate-query user-query]}])
-        sign-up-form (re/subscribe [:page.sign-up/form])]
-    (fn []
-      (let [form-values (merge (get-in @results [:candidate])
-                               (get-in @results [:user])
-                               @sign-up-form)
-            form-validation (validate-keys form-values)]
-        [:div.candidate-sign-up
-         [:div.form-container
-          [:div.label "Sign Up"]
-          [:div.first-forms
-           [:div.form-image
-            [c-upload-image]]
-           [c-user-name-input
-            {:form-values form-values
-             :form-validation form-validation}]
-           [c-user-email-input
-            {:form-values form-values
-             :form-validation form-validation}]
-           [:div.form-professional-title
-            [c-text-input
-             {:placeholder "Professional Title"
-              :value (:candidate/professional-title form-values)
-              :error? (not (:candidate/professional-title form-validation))
-              :on-change #(>evt [:page.sign-up/set-candidate-professional-title %])}]]
-           [:div.form-hourly-rate
-            [c-currency-input
-             {:placeholder "Hourly Rate"
-              :color :primary
-              :min 0
-              :value (:candidate/rate form-values)
-              :error? (not (:candidate/rate form-validation))
-              :on-change #(>evt [:page.sign-up/set-candidate-rate (js/parseInt %)])}]]
-           [c-user-country-input
-            {:form-values form-values}]]
-          [:div.second-forms
-           [c-user-languages-input
-            {:form-values form-values}]
-           [:div.label [:h2 "Categories You Are Interested In"]]
-           [c-chip-search-input
-            {:search-icon? false
-             :placeholder ""
-             :auto-suggestion-listing constants/categories
-             :allow-custom-chips? false
-             :chip-listing (:candidate/categories form-values)
-             :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-categories %])
-             :display-listing-on-focus? true}]
-           [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
-           [c-chip-search-input
-            {:search-icon? false
-             :placeholder ""
-             :allow-custom-chips? false
-             :auto-suggestion-listing constants/skills
-             :chip-listing (:candidate/skills form-values)
-             :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-skills %])}]
-           [c-bio
-            {:value (:candidate/bio form-values)
-             :on-change #(>evt [:page.sign-up/set-candidate-bio %])
-             :error? (not (:candidate/bio form-validation))}]]]
-         [c-submit-button
-          {:on-submit [:page.sign-up/update-candidate form-values]
-           :disabled? (not (s/valid? :page.sign-up/update-candidate form-values))}]]))))
+        sign-up-form (re/subscribe [:page.sign-up/form])
+        form-values (merge (get-in @results [:candidate])
+                           (get-in @results [:user])
+                           @sign-up-form)
+        form-validation (validate-keys form-values)]
+    [:div.candidate-sign-up
+     [:div.form-container
+      [:div.label "Sign Up"]
+      [:div.first-forms
+       [:div.form-image
+        [c-upload-image]]
+       [c-user-name-input
+        {:form-values form-values
+         :form-validation form-validation}]
+       [c-user-email-input
+        {:form-values form-values
+         :form-validation form-validation}]
+       [:div.form-professional-title
+        [c-text-input
+         {:placeholder "Professional Title"
+          :value (:candidate/professional-title form-values)
+          :error? (not (:candidate/professional-title form-validation))
+          :on-change #(>evt [:page.sign-up/set-candidate-professional-title %])}]]
+       [:div.form-hourly-rate
+        [c-currency-input
+         {:placeholder "Hourly Rate"
+          :color :primary
+          :min 0
+          :value (:candidate/rate form-values)
+          :error? (not (:candidate/rate form-validation))
+          :on-change #(>evt [:page.sign-up/set-candidate-rate (js/parseInt %)])}]]
+       [c-user-country-input
+        {:form-values form-values}]]
+      [:div.second-forms
+       [c-user-languages-input
+        {:form-values form-values}]
+       [:div.label [:h2 "Categories You Are Interested In"]]
+       [c-chip-search-input
+        {:search-icon? false
+         :placeholder ""
+         :auto-suggestion-listing constants/categories
+         :allow-custom-chips? false
+         :chip-listing (:candidate/categories form-values)
+         :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-categories %])
+         :display-listing-on-focus? true}]
+       [:div.label [:h2 "Your Skills "] [:i "(Choose at least one skill)"]]
+       [c-chip-search-input
+        {:search-icon? false
+         :placeholder ""
+         :allow-custom-chips? false
+         :auto-suggestion-listing constants/skills
+         :chip-listing (:candidate/skills form-values)
+         :on-chip-listing-change #(>evt [:page.sign-up/set-candidate-skills %])}]
+       [c-bio
+        {:value (:candidate/bio form-values)
+         :on-change #(>evt [:page.sign-up/set-candidate-bio %])
+         :error? (not (:candidate/bio form-validation))}]]]
+     [c-submit-button
+      {:on-submit [:page.sign-up/update-candidate form-values]
+       :disabled? (not (s/valid? :page.sign-up/update-candidate form-values))}]]))
 
 
 (defn c-employer-sign-up []
@@ -209,87 +207,85 @@
         employer-query [:employer {:user/id user-id} sign-up.events/employer-fields]
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [employer-query user-query]}])
-        sign-up-form (re/subscribe [:page.sign-up/form])]
-    (fn []
-      (let [form-values (merge (get-in @results [:employer])
-                               (get-in @results [:user])
-                               @sign-up-form)
-            form-validation (validate-keys form-values)]
-        [:div.employer-sign-up
-         [:div.form-container
-          [:div.label "Sign Up"]
-          [:div.first-forms
-           [:div.form-image
-            [c-upload-image]]
-           [c-user-name-input
-            {:form-values form-values
-             :form-validation form-validation}]
-           [c-user-email-input
-            {:form-values form-values
-             :form-validation form-validation}]
-           [:div.form-professional-title
-            [c-text-input
-             {:placeholder "Professional Title"
-              :value (:employer/professional-title form-values)
-              :on-change #(>evt [:page.sign-up/set-employer-professional-title %])}]]
-           [c-user-country-input
-            {:form-values form-values}]]
-          [:div.second-forms
-           [c-user-languages-input
-            {:form-values form-values}]
-           [c-bio
-            {:value (:employer/bio form-values)
-             :on-change #(>evt [:page.sign-up/set-employer-bio %])
-             :error? (not (:employer/bio form-validation))}]]]
-         [c-submit-button
-          {:on-submit [:page.sign-up/update-employer form-values]
-           :disabled? (not (s/valid? :page.sign-up/update-employer form-values))}]]))))
+        sign-up-form (re/subscribe [:page.sign-up/form])
+        form-values (merge (get-in @results [:employer])
+                           (get-in @results [:user])
+                           @sign-up-form)
+        form-validation (validate-keys form-values)]
+    [:div.employer-sign-up
+     [:div.form-container
+      [:div.label "Sign Up"]
+      [:div.first-forms
+       [:div.form-image
+        [c-upload-image]]
+       [c-user-name-input
+        {:form-values form-values
+         :form-validation form-validation}]
+       [c-user-email-input
+        {:form-values form-values
+         :form-validation form-validation}]
+       [:div.form-professional-title
+        [c-text-input
+         {:placeholder "Professional Title"
+          :value (:employer/professional-title form-values)
+          :on-change #(>evt [:page.sign-up/set-employer-professional-title %])}]]
+       [c-user-country-input
+        {:form-values form-values}]]
+      [:div.second-forms
+       [c-user-languages-input
+        {:form-values form-values}]
+       [c-bio
+        {:value (:employer/bio form-values)
+         :on-change #(>evt [:page.sign-up/set-employer-bio %])
+         :error? (not (:employer/bio form-validation))}]]]
+     [c-submit-button
+      {:on-submit [:page.sign-up/update-employer form-values]
+       :disabled? (not (s/valid? :page.sign-up/update-employer form-values))}]]))
 
 (defn c-arbiter-sign-up []
   (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         arbiter-query [:arbiter {:user/id user-id} sign-up.events/arbiter-fields]
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [arbiter-query user-query]}])
-        sign-up-form (re/subscribe [:page.sign-up/form])]
-    (fn []
-      (let [form-values (merge (get-in @results [:arbiter])
+        sign-up-form (re/subscribe [:page.sign-up/form])
+        form-values (merge (get-in @results [:arbiter])
                                (get-in @results [:user])
                                @sign-up-form)
-            form-validation (validate-keys form-values)]
-        [:div.arbiter-sign-up
-         [:div.form-container
-          [:div.label "Sign Up"]
-          [:div.first-forms
-           [:div.form-image
-            [c-upload-image]]
-           [c-user-name-input
-            {:form-values form-values
-             :form-validation form-validation}]
-           [c-user-email-input
-            {:form-values form-values
-             :form-validation form-validation}]
-           [:div.form-professional-title
-            [c-text-input
-             {:placeholder "Professional Title"
-              :value (:arbiter/professional-title form-values)
-              :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
-           [c-user-country-input
-            {:form-values form-values}]
-           [:div.form-hourly-rate
-            [c-currency-input
-             {:placeholder "Fixed Rate Per A Dispute" :color :primary
-              :value (:arbiter/fee form-values)
-              :on-change #(>evt [:page.sign-up/set-arbiter-fee (js/parseInt %)])}]]]
-          [:div.second-forms
-           [c-user-languages-input
-            {:form-values form-values}]
-           [c-bio
-            {:value (:arbiter/bio form-values)
-             :on-change #(>evt [:page.sign-up/set-arbiter-bio %])
-             :error? (not (:arbiter/bio form-validation))}]]]
-         [c-submit-button
-          {:on-submit [:page.sign-up/update-arbiter form-values]
-           :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))))
+        form-validation (validate-keys form-values)]
+      [:div.arbiter-sign-up
+       [:div.form-container
+        [:div.label "Sign Up"]
+        [:div.first-forms
+         [:div.form-image
+          [c-upload-image]]
+         [c-user-name-input
+          {:form-values form-values
+           :form-validation form-validation}]
+         [c-user-email-input
+          {:form-values form-values
+           :form-validation form-validation}]
+         [:div.form-professional-title
+          [c-text-input
+           {:placeholder "Professional Title"
+            :value (:arbiter/professional-title form-values)
+            :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
+         [c-user-country-input
+          {:form-values form-values}]
+         [:div.form-hourly-rate
+          [c-currency-input
+           {:placeholder "Fixed Rate Per A Dispute" :color :primary
+            :value (:arbiter/fee form-values)
+            :on-change #(>evt [:page.sign-up/set-arbiter-fee (js/parseInt %)])}]]]
+        [:div.second-forms
+         [c-user-languages-input
+          {:form-values form-values}]
+         [c-bio
+          {:value (:arbiter/bio form-values)
+           :on-change #(>evt [:page.sign-up/set-arbiter-bio %])
+           :error? (not (:arbiter/bio form-validation))}]]]
+       [c-submit-button
+        {:on-submit [:page.sign-up/update-arbiter form-values]
+         :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))
 
 (defn c-api-error-notification [message open?]
   [:div {:class ["notification-box" (when (not open?) "hidden")]}

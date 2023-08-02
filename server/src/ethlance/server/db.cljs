@@ -701,7 +701,7 @@
     (when user (upsert-user conn user))
     (when candidate (upsert-candidate conn candidate))
     (when employer (upsert-employer conn employer))
-    (when arbiter (upsert-employer conn arbiter))))
+    (when arbiter (upsert-arbiter conn arbiter))))
 
 ; (defn upsert-user! [conn {:user/keys [type] :as user}]
 ;   (safe-go

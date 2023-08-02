@@ -29,5 +29,6 @@
    [ethlance.ui.page.about]
 
    ;; Development Pages
-   [ethlance.ui.page.devcard]))
+   [ethlance.ui.page.devcard]
+   [ethlance.ui.page.dev.contract-ops]))
 

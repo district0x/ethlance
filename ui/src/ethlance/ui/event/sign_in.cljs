@@ -40,7 +40,6 @@
 (re/reg-event-fx
   ::store-active-session
   (fn [cofx [_ event-data]]
-    (println ">>> ::store-active-session" event-data)
     (-> cofx
         (assoc-in ,,, [:db :active-session] (select-keys (:sign-in event-data) [:jwt :user/id]))
         (assoc-in ,,, [:store] (select-keys (:sign-in event-data) [:jwt :user/id])))))

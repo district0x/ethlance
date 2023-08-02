@@ -15,8 +15,9 @@
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.component.pagination :refer [c-pagination-ends]]
             [district.ui.router.subs :as router-subs]
+            [ethlance.ui.util.navigation :as navigation]
             [district.ui.router.events :as router-events]
-            [ethlance.shared.utils :refer [ilike=]]
+            [ethlance.shared.utils :refer [ilike= ilike!=]]
             [district.format :as format]
             [cljsjs.graphql]
             [clojure.string :as string]
@@ -106,8 +107,7 @@
                     [:job/title]]]]]]]]
         results @(re/subscribe [::gql/query {:queries [query]}])
         total-count (get-in results [:arbiter :arbitrations :total-count])
-        arbitrations (map prepare-arbitrations (get-in results [:arbiter :arbitrations :items]))
-        ]
+        arbitrations (map prepare-arbitrations (get-in results [:arbiter :arbitrations :items]))]
     [:div.job-listing
       [:div.title "Arbitrations"]
       [c-scrollable
@@ -210,6 +210,26 @@
    :start-date (get-in story [:job-story/date-created])
    :status (get-in story [:job :job/status])})
 
+(defn c-missing-profile-notification [profile-type]
+  (let [logged-in-address @(re/subscribe [::router-subs/active-page-params])
+        {:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
+        address-from-url (:address params)
+        viewed-user-address @(re/subscribe [:page.profile/viewed-user-address])
+        viewing-own-profile? (or
+                               (ilike= address-from-url viewed-user-address)
+                               (and (nil? address-from-url)
+                                    (ilike!= address-from-url viewed-user-address)))
+        subject (if viewing-own-profile? "You have" "This user has" )
+        posessive (if viewing-own-profile? "your" "their")
+        role-str (name profile-type)]
+    [:div.candidate-profile
+     [:div (str subject " not set up " posessive " " role-str " profile")]
+     (when viewing-own-profile?
+       [:div (str "Finish setting up your profile to participate as " role-str)]
+       [c-button (merge {:size :normal} (navigation/link-params {:route :route.me/sign-up
+                                                                 :query {:tab profile-type}}))
+        [c-button-label "Go to profile setup"]])]))
+
 (defn c-candidate-profile []
   (let [page-params (re/subscribe [::router-subs/active-page-params])
         user-address @(re/subscribe [:page.profile/viewed-user-address])
@@ -241,9 +261,9 @@
         skills (get-in @results [:candidate :candidate/skills])
         feedback-list (map prepare-feedback-cards (get-in @results [:candidate :candidate/feedback :items]))
         rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}
-        ]
+        has-candidate-profile? (not (nil? biography))]
     [:<>
-     (if (not (nil? biography))
+     (if has-candidate-profile?
        [:div.candidate-profile
         [:div.title
          [:div.profile-image
@@ -264,10 +284,9 @@
           {:size :normal}
           [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
 
-       [:div.candidate-profile
-        [:div "This user has not set up their candidate profile"]])
-     (c-job-activity :candidate)
-     [c-invite-candidate]
+       [c-missing-profile-notification :candidate])
+     (when has-candidate-profile? (c-job-activity :candidate))
+     (when has-candidate-profile? [c-invite-candidate])
      (c-feedback-listing professional-title feedback-list)]))
 
 (defn c-employer-profile []
@@ -297,9 +316,10 @@
         image-url (get-in @results [:employer :user :user/profile-image])
         languages (get-in @results [:employer :user :user/languages])
         feedback-list (map prepare-feedback-cards (get-in @results [:employer :employer/feedback :items]))
-        rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}]
+        rating {:average (get-in @results [:employer :employer/rating]) :count (count feedback-list)}
+        has-employer-profile? (not (nil? biography))]
     [:<>
-     (if (not (nil? biography))
+     (if has-employer-profile?
        [:div.employer-profile
         [:div.title
          [:div.profile-image
@@ -312,10 +332,9 @@
         [:div.detail-listing
          [c-tag-list "Languages" languages]]]
 
-       [:div.employer-profile
-        [:div "This user has not set up their employer profile"]])
+       [c-missing-profile-notification :employer])
 
-     (c-job-activity :employer)
+     (when has-employer-profile? (c-job-activity :employer))
      (c-feedback-listing professional-title feedback-list)]))
 
 (defn c-invite-arbiter []
@@ -416,8 +435,7 @@
         [:div.detail-listing
          [c-tag-list "Languages" languages]]]
 
-       [:div.candidate-profile
-        [:div "This user has not set up their arbiter profile"]])
+       [c-missing-profile-notification :arbiter])
      (when has-arbiter-profile? [c-invite-arbiter])
      (when has-arbiter-profile? (c-arbitration-activity))
      (c-feedback-listing professional-title feedback-list)]))

@@ -25,6 +25,7 @@
             query [:user {:user/id active-user-id}
                    [:user/id
                     :user/name
+                    :user/email
                     :user/profile-image]]
             result (re/subscribe [::gql/query {:queries [query]}])
             profile-image (get-in @result [:user :user/profile-image])
@@ -37,7 +38,7 @@
            :on-click (util.navigation/create-handler {:route :route/home})
            :href (util.navigation/resolve-route {:route :route/home})
            :inline? false}]
-         [:div.profile
+         [:a.profile (util.navigation/link-params {:route :route.user/profile :params {:address active-user-id}})
           (when (not (:graphql/loading? @result))
             [c-profile-image {:size :small :src (get-in @result [:user :user/profile-image])}])
           [:div.name
