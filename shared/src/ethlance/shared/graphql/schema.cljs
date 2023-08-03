@@ -425,6 +425,7 @@
     arbitration_fee: Float
     arbitration_feeCurrencyId: String
     arbitration_status: String
+    arbitration_dateCreated: Date
     job: Job
     arbiter: Arbiter
   }

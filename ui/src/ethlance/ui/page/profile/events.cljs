@@ -23,6 +23,11 @@
        :dispatch []}]
        :db (assoc-in db [state-key] state-default)}))
 
+(defn clear-forms [db]
+  (let [field-names [:invitation-text
+                     :job-for-invitation]]
+    (reduce (fn [acc field] (assoc-in acc [state-key field] nil)) db field-names)))
+
 ;;
 ;; Registered Events
 ;;
@@ -83,7 +88,7 @@
                    :tx-opts tx-opts
                    :tx-hash [::arbitration-tx-hash]
                    :on-tx-hash-error [::invite-arbiters-tx-hash-error]
-                   :on-tx-success [:page.job-detail/arbitration-tx-success]
+                   :on-tx-success [::invite-arbiter-tx-success]
                    :on-tx-error [::invite-arbiters-tx-error]}]})))
 
 (re/reg-event-db
@@ -101,10 +106,16 @@
   ::invite-candidate-tx-success
   (fn [db event]
     (println ">>> ::invite-candidate-tx-success" event)
-    db))
+    (clear-forms db)))
 
 (re/reg-event-db
   ::invite-candidate-tx-failure
   (fn [db event]
     (println ">>> ::invite-candidate-tx-failure" event)
     db))
+
+(re/reg-event-db
+  ::invite-arbiter-tx-success
+  (fn [db event]
+    (println ">>> ::invite-candidate-tx-success" event)
+    (clear-forms db)))

@@ -17,6 +17,7 @@
             [district.ui.router.subs :as router-subs]
             [ethlance.ui.util.navigation :as navigation]
             [district.ui.router.events :as router-events]
+            [ethlance.ui.page.profile.events :as profile-events]
             [ethlance.shared.utils :refer [ilike= ilike!=]]
             [district.format :as format]
             [cljsjs.graphql]
@@ -64,7 +65,8 @@
                   [:job
                    [:job/title
                     :job/status]]]]]]
-        results @(re/subscribe [::gql/query {:queries [query]}])
+        results @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{::profile-events/invite-arbiter-tx-success
+                                                                              ::profile-events/invite-candidate-tx-success}}])
         total-count (get-in results [:job-story-search :total-count])
         jobs (map prepare-candidate-jobs (get-in results [:job-story-search :items]))]
     [:div.job-listing
@@ -105,7 +107,7 @@
                    :arbitration/status
                    [:job
                     [:job/title]]]]]]]]
-        results @(re/subscribe [::gql/query {:queries [query]}])
+        results @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{::profile-events/invite-arbiter-tx-success}}])
         total-count (get-in results [:arbiter :arbitrations :total-count])
         arbitrations (map prepare-arbitrations (get-in results [:arbiter :arbitrations :items]))]
     [:div.job-listing
@@ -138,7 +140,7 @@
         result @(re/subscribe [::gql/query
                                {:queries [jobs-query]}
                                {:id :JobsWithStoriesForInvitationDropdown
-                                :refetch-on [:ethlance.ui.page.profile.events/invite-candidate-tx-success]}])
+                                :refetch-on #{::profile-events/invite-candidate-tx-success}}])
         all-jobs (get-in (first result) [:job-search :items] [])
         existing-relation (fn [job]
                             (cond
@@ -353,7 +355,7 @@
         result @(re/subscribe [::gql/query
                                {:queries [jobs-query]}
                                {:id :JobsWithStoriesForInvitationDropdown
-                                :refetch-on [:ethlance.ui.page.profile.events/invite-arbiter-tx-success]}])
+                                :refetch-on #{::profile-events/invite-arbiter-tx-success}}])
         all-jobs (get-in (first result) [:job-search :items] [])
         jobs (sort-by :job/date-created #(compare %2 %1)
                       (reduce (fn [acc job]
