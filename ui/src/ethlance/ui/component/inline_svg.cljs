@@ -9,7 +9,7 @@
   "
   (:require
    [reagent.core :as r]
-   [reagent.dom :as rdom]))
+   ["react" :as react]))
 
 (def *cached-svg-listing (atom {}))
 
@@ -70,7 +70,8 @@
 
 (defn c-inline-svg
   [{:keys [src]}]
-  (let [*inline-svg (r/atom nil)]
+  (let [*inline-svg (r/atom nil)
+        react-ref (react/createRef)]
     (r/create-class
      {:display-name "c-inline-svg"
 
@@ -97,7 +98,7 @@
 
           (when @*inline-svg
             (let [inline-svg @*inline-svg
-                  elnode (rdom/dom-node this)]
+                  elnode (.-current react-ref)]
               (when id (.setAttribute inline-svg "id" id))
               (when class (.setAttribute inline-svg "class" class))
               (when width (.setAttribute inline-svg "width" width))
@@ -115,6 +116,6 @@
                       width (assoc :width (str width "px"))
                       height (assoc :height (str height "px")))]
           [:div.ethlance-inline-svg
-           {:class root-class :key key}
+           {:class root-class :key key :ref react-ref}
            (when-not @*inline-svg [:img.svg {:style (merge style {:opacity 0})
                                              :class class}])]))})))
