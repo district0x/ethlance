@@ -1,5 +1,6 @@
 (ns ethlance.ui.component.main-layout
   (:require [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+            [district.ui.component.notification :as component.notification]
             [ethlance.ui.component.main-navigation-bar
              :refer
              [c-main-navigation-bar]]
@@ -70,4 +71,5 @@
                                   :size :small :href "https://district0x-slack.herokuapp.com/"}]]]
 
          [:div.modals
-          [c-sign-in-dialog]]]))))
+          [c-sign-in-dialog]]
+         [component.notification/notification]]))))

@@ -10,6 +10,7 @@
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
+    [district.ui.notification.events :as notification.events]
     [ethlance.shared.contract-constants :as contract-constants]))
 
 (def state-key :page.new-job)
@@ -153,12 +154,9 @@
 (re/reg-event-db
   ::create-job-tx-error
   (fn [db event]
-    ; TODO: show something meaningful to the user
-    (println ">>> got :create-job-tx-error event:" event)))
+    {:dispatch [::notification.events/show "Error with creating new job transaction"]}))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::job-to-ipfs-failure
-  (fn [db event]
-    ; TODO: show something meaningful to the user
-    (println ">>> EVENT ze-new-job-failure" event)
-    db))
+  (fn [_ _]
+  {:dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))

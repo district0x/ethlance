@@ -17,6 +17,8 @@
    :reagent-render
    {:id "app"
     :component-var #'router/router}
+   :notification {:default-show-duration 5000
+                  :default-hide-duration 1000}
    :router
    {:routes routes/routes
     :default-route :route/home
