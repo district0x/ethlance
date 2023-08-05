@@ -22,6 +22,7 @@
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
             [ethlance.ui.util.tokens :as token-utils]
+            [ethlance.ui.util.job :as util.job]
             [ethlance.shared.utils :refer [millis->relative-time ilike!= ilike=]]
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
@@ -240,43 +241,38 @@
         job-address (get-in arbitration-to-accept [:job/id])
         employer-address (get-in arbitration-to-accept [:job :job/employer-address])
         arbiter-address (get-in arbitration-to-accept [:arbiter :user/id])
-        arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))
-        ]
+        arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))]
     [:div.proposal-form
-           [:div.label "Accept arbiter quote"]
+     [:div.label "Accept arbiter quote"]
+      [:div.amount-input
+       [:div.label "Arbiter: "]
+       [c-text-input
+        {:placeholder ""
+         :disabled true
+         :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
+      [:div.amount-input
+       [:div.label "Amount: "]
+       [c-text-input
+        {:placeholder ""
+         :disabled true
+         :value (token-utils/human-amount (get-in arbitration-to-accept [:arbitration/fee]) :eth)}]
+       [:label "ETH (Ether)"]]
 
-           [:div.amount-input
-            [:div.label "Arbiter: "]
-            [c-text-input
-             {:placeholder ""
-              :disabled true
-              :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
-           [:div.amount-input
-            [:div.label "Amount: "]
-            [c-text-input
-             {:placeholder ""
-              :disabled true
-              :value (token-utils/human-amount (get-in arbitration-to-accept [:arbitration/fee]) :eth)}]
-            [:label "ETH (Ether)"]]
-
-           (when arbiter-to-be-assigned?
-             [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
-                        :on-click (fn []
-                                    (when arbitration-to-accept
-                                      (>evt [:page.job-detail/accept-quote-for-arbitration
-                                             {:job/id job-address
-                                              :employer employer-address
-                                              :user/id (get-in arbitration-to-accept [:arbiter :user/id])
-                                              :job-arbiter/fee (:arbitration/fee arbitration-to-accept)
-                                              :job-arbiter/fee-currency-id :ETH}])))
-                        :size :small}
-              [c-button-label "Accept"]])]
-    )
-  )
+      (when arbiter-to-be-assigned?
+        [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
+                   :size :small
+                   :on-click (fn []
+                               (when arbitration-to-accept
+                                 (>evt [:page.job-detail/accept-quote-for-arbitration
+                                        {:job/id job-address
+                                         :employer employer-address
+                                         :user/id (get-in arbitration-to-accept [:arbiter :user/id])
+                                         :job-arbiter/fee (:arbitration/fee arbitration-to-accept)
+                                         :job-arbiter/fee-currency-id :ETH}])))}
+         [c-button-label "Accept"]])]))
 
 (defn c-invite-arbiters [job-address]
-  (let [
-        selected-arbiters (re/subscribe [:page.job-detail/selected-arbiters])
+  (let [selected-arbiters (re/subscribe [:page.job-detail/selected-arbiters])
         arbiter-user-fields [:user [:user/id :user/name]]
         job-query [:job {:job/id job-address}
                    [:job/employer-address
@@ -534,10 +530,18 @@
                             (format/format-local-date job-creation-time)
                             ")")
           job-status (:job/status results)
-          *job-info-tags (remove nil? [(:job/estimated-project-length results)
-                                       job-status
-                                       (:job/required-experience-level results)
-                                       (:job/bid-option results)])
+          desc-from-vec (fn [options source job] ((source job) (into {} options)))
+          tag-definitions [{:desc "Estimated duration: " :source (partial desc-from-vec util.job/estimated-durations :job/estimated-project-length)}
+                           {:desc "Required experience: " :source (partial desc-from-vec util.job/experience-level :job/required-experience-level)}
+                           {:desc "Job status: " :source #(name (:job/status %))}
+                           {:desc "Bid option: " :source (partial desc-from-vec util.job/bid-option :job/bid-option)}]
+          *job-info-tags (remove nil?
+                                 (map (fn [tag-def]
+                                        (when (and
+                                                (not (nil? results))
+                                                ((:source tag-def) results))
+                                          (str (:desc tag-def) ((:source tag-def) results))))
+                                      tag-definitions))
           *required-skills (:job/required-skills results)
 
           employer-id (get-in results [:job/employer :user/id])
