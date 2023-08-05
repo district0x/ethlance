@@ -20,6 +20,7 @@ import "@ganache/console.log/console.sol";
 contract Job is IERC721Receiver, IERC1155Receiver {
   uint public constant version = 1; // current version of {Job} smart-contract
   uint public constant ARBITER_IDLE_TIMEOUT = 30 days;
+  uint public constant FIRST_INVOICE_ID = 1;
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
   address public creator;
@@ -60,7 +61,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
   mapping (uint => Invoice) public invoices;
   mapping (address => uint[]) public candidateInvoiceIds;
-  uint lastInvoiceIndex;
+  uint lastInvoiceIndex = FIRST_INVOICE_ID;
 
   /**
    * @dev Contract initialization
@@ -436,7 +437,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   function _hasUnpaidInvoices() internal view returns(bool) {
-    for(uint i = 0; i < lastInvoiceIndex; i++) {
+    for(uint i = 0; i < invoices.length; i++) {
       Invoice memory invoice = invoices[i];
       if (invoice.paid == false && invoice.cancelled == false) {
         return true;
