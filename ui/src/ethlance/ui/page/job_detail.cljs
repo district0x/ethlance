@@ -220,24 +220,20 @@
         results (if user-id
                  @(re/subscribe [::gql/query {:queries [query]}])
                  {})
-        *arbiter-name (get-in results [participant-type :user :user/name])
-        *arbiter-address (get-in results [participant-type :user/id])
-        *arbiter-rating (get-in results [participant-type :arbiter/rating])
-        *arbiter-country (get-in results [participant-type :user :user/country])
-        *arbiter-profile-image (get-in results [participant-type :user :user/profile-image])]
-    [:a.arbiter-detail {:on-click (util.navigation/create-handler
+        *participant-name (get-in results [participant-type :user :user/name])
+        *participant-address (get-in results [participant-type :user/id])
+        *participant-rating (get-in results [participant-type :arbiter/rating])
+        *participant-country (get-in results [participant-type :user :user/country])
+        *participant-profile-image (get-in results [participant-type :user :user/profile-image])]
+    [:a.arbiter-detail (util.navigation/link-params
                                     {:route :route.user/profile
-                                     :params {:address *arbiter-address}
+                                     :params {:address *participant-address}
                                      :query {:tab participant-type}})
-                        :href (util.navigation/resolve-route
-                                {:route :route.user/profile
-                                 :params {:address *arbiter-address}
-                                 :query {:tab participant-type}})}
-            [:div.header (clojure.string/capitalize (name participant-type))]
-            [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
-            [:div.name *arbiter-name]
-            [:div.rating [c-rating {:rating *arbiter-rating}]]
-            [:div.location *arbiter-country]]))
+     [:div.header (clojure.string/capitalize (name participant-type))]
+     [:div.profile-image [c-profile-image {:src *participant-profile-image}]]
+     [:div.name *participant-name]
+     [:div.rating [c-rating {:rating *participant-rating}]]
+     [:div.location *participant-country]]))
 
 (defn c-accept-arbiter-quote []
   (let [arbitration-to-accept @(re/subscribe [:page.job-detail/arbitration-to-accept])

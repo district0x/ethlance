@@ -98,7 +98,7 @@
        [:div.left
         [c-participant-user-info :employer employer]
         [c-participant-user-info :candidate candidate]
-        [c-participant-user-info :arbiter arbiter]]
+        (when arbiter [c-participant-user-info :arbiter arbiter])]
 
        [:div.right
         [:div.ethlance-table
