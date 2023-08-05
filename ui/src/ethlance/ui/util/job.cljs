@@ -17,5 +17,5 @@
    [:year ">6 months"]])
 
 (def required-availability
-  [[:full-time "Full time"
-    :part-time "Part time"]])
+  [[:full-time "Full time"]
+   [:part-time "Part time"]])
