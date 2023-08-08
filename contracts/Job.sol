@@ -61,7 +61,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
   mapping (uint => Invoice) public invoices;
   uint[] public invoiceIds;
-  uint lastInvoiceIndex = FIRST_INVOICE_INDEX;
+  uint public lastInvoiceIndex;
 
   /**
    * @dev Contract initialization
@@ -91,6 +91,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     ethlance = _ethlance;
     creator = _creator;
+    lastInvoiceIndex = FIRST_INVOICE_INDEX;
     inviteArbiters(_creator, _invitedArbiters);
     _recordAddedFunds(_creator, _offeredValues);
   }
