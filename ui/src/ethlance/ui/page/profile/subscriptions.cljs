@@ -18,4 +18,6 @@
   :<- [::router-subs/active-page-params]
   :<- [::ethlance-subs/active-session]
   (fn [[params session-user] _]
-    (or (:address params) (:user/id session-user))))
+    (if (empty? (:address params))
+      (:user/id session-user)
+      (:address params))))

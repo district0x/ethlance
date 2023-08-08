@@ -213,17 +213,15 @@
    :status (get-in story [:job :job/status])})
 
 (defn c-missing-profile-notification [profile-type]
-  (let [logged-in-address @(re/subscribe [::router-subs/active-page-params])
-        {:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
-        address-from-url (:address params)
+  (let [viewing-user-address (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         viewed-user-address @(re/subscribe [:page.profile/viewed-user-address])
-        viewing-own-profile? (or
-                               (ilike= address-from-url viewed-user-address)
-                               (and (nil? address-from-url)
-                                    (ilike!= address-from-url viewed-user-address)))
+        viewing-own-profile? (ilike= viewing-user-address viewed-user-address)
         subject (if viewing-own-profile? "You have" "This user has" )
         posessive (if viewing-own-profile? "your" "their")
         role-str (name profile-type)]
+    (println "c-missing-profile-notification" {:viewed-user-address viewed-user-address
+                                               :viewing-user-address viewing-user-address
+                                               :viewing-own-profile? viewing-own-profile?})
     [:div.candidate-profile
      [:div (str subject " not set up " posessive " " role-str " profile")]
      (when viewing-own-profile?
