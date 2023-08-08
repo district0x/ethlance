@@ -192,7 +192,9 @@
   [:div.feedback-listing
       [:div.title "Feedback"]
       [:div.sub-title sub-title]
-      (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))])
+      (if (not (empty? feedback-list))
+        (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))
+        [:div.info-message "This user is yet to receive feedback"])])
 
 (def log (.-log js/console))
 
