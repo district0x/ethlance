@@ -333,7 +333,15 @@
           address-from-parent (or
                                 (:candidate/id parent)
                                 (:job-story/candidate parent))
-          address (or address-from-args address-from-parent)]
+          address-from-proposal (when (:job-story/proposal-message-id parent)
+                                   (:message/creator
+                                     (<? (db/get conn {:select [:Message.message/creator]
+                                                       :from [:Message]
+                                                       :where [:= :message/id (:job-story/proposal-message-id parent)]}))))
+          address (or
+                    address-from-args
+                    address-from-parent
+                    address-from-proposal)]
       (<? (db/get conn (sql-helpers/merge-where candidate-query [:ilike address :Candidate.user/id]))))))
 
 
