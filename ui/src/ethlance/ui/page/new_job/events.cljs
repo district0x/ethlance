@@ -144,12 +144,13 @@
   ::web3-tx-localstorage
   (fn [db event] (println ">>> ethlance.ui.page.new-job.events :web3-tx-localstorage" event)))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::create-job-tx-success
-  (fn [db [event-name tx-data]]
+  (fn [{:keys [db]} [event-name tx-data]]
     (re/dispatch [::router-events/navigate
                   :route.job/detail
-                  {:id (get-in tx-data [:events :Job-created :return-values :job])}])))
+                  {:id (get-in tx-data [:events :Job-created :return-values :job])}])
+    {:dispatch [::notification.events/show "Transaction to create job processed successfully"]}))
 
 (re/reg-event-db
   ::create-job-tx-error

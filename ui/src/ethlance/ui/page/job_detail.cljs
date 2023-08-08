@@ -462,7 +462,7 @@
 
         :employer
         (if (and arbiter-accepted? (not show-invite-arbiters?))
-          [:div.proposal-form
+          [:div.proposal-form.profiles
            [c-participant-info :arbiter job-arbiter] ; TODO: Fix styling
            (when arbiter-idle?
              [c-info-message

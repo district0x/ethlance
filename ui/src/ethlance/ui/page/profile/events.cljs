@@ -3,6 +3,7 @@
             [district.ui.router.queries :refer [active-page-params]]
             [ethlance.ui.event.utils :as event.utils]
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
+            [district.ui.notification.events :as notification.events]
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-tx.events :as web3-events]
             [re-frame.core :as re]))
@@ -41,8 +42,7 @@
 (re/reg-event-fx
   :page.profile/invite-candidate
   (fn [{:keys [db]} [_ invitation-data]]
-    (let [
-          ipfs-invitation {:candidate (:candidate invitation-data)
+    (let [ipfs-invitation {:candidate (:candidate invitation-data)
                            :employer (:employer invitation-data)
                            :job-story-message/type :invitation
                            :job/id (get-in invitation-data [:job :job/id])
@@ -56,7 +56,6 @@
 (re/reg-event-fx
   :invitation-to-ipfs-success
   (fn [{:keys [db]} [_event ipfs-invitation ipfs-event]]
-    (println ">>> :invitation-to-ipfs-success" _event ipfs-invitation ipfs-event)
     (let [creator (:employer ipfs-invitation)
           ipfs-hash (base58->hex (:Hash ipfs-event))
           job-contract-address (:job/id ipfs-invitation)
@@ -102,11 +101,11 @@
     (println ">>> :invitation-to-ipfs-failure" event)
     db))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::invite-candidate-tx-success
-  (fn [db event]
-    (println ">>> ::invite-candidate-tx-success" event)
-    (clear-forms db)))
+  (fn [{:keys [db]} event]
+    {:db (clear-forms db)
+     :dispatch [::notification.events/show "Transaction to invite candidate processed successfully"]}))
 
 (re/reg-event-db
   ::invite-candidate-tx-failure
@@ -114,8 +113,8 @@
     (println ">>> ::invite-candidate-tx-failure" event)
     db))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::invite-arbiter-tx-success
-  (fn [db event]
-    (println ">>> ::invite-candidate-tx-success" event)
-    (clear-forms db)))
+  (fn [{:keys [db] :as cofx} event]
+    {:db (clear-forms db)
+     :dispatch [::notification.events/show "Transaction to invite arbiter processed successfully"]}))
