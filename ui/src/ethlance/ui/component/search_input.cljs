@@ -2,7 +2,7 @@
   (:require [cuerdas.core :as string]
             [ethlance.ui.component.icon :refer [c-icon]]
             [reagent.core :as r]
-            [reagent.dom :as rdom]))
+            ["react" :as react]))
 
 (def blur-delay-ms 200)
 
@@ -78,12 +78,13 @@
   (let [*current-chip-listing (r/atom (or default-chip-listing #{}))
         *active-suggestion (r/atom nil)
         *search-text (r/atom "")
-        *input-focused? (r/atom false)]
+        *input-focused? (r/atom false)
+        react-ref (react/createRef)]
     (r/create-class
       {:display-name "ethlance-chip-search-input"
        :component-did-mount
        (fn [this]
-         (let [root-dom (rdom/dom-node this)
+         (let [root-dom (.-current react-ref)
                search-input (.querySelector root-dom ".search-input")]
            (.addEventListener
              search-input "blur"
@@ -134,6 +135,7 @@
                current-chip-listing (if (contains? opts :default-chip-listing) @*current-chip-listing chip-listing)]
            [:div.ethlance-chip-search-input
             {:key "chip-search-input"
+             :ref react-ref
              :class (when-not search-icon? "no-search-icon")}
             [:div.search-container
              (doall

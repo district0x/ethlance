@@ -54,7 +54,7 @@
            [:div.label "Job"]
            [c-select-input
             {:selections *job-listing
-             :value-fn :job/id
+             :value-fn (fn [job-story] (str (:job/id job-story) "-" (:job-story/id job-story)))
              :label-fn (comp :job/title :job)
              :selection @*invoiced-job
              :on-select #(re/dispatch [:page.new-invoice/set-invoiced-job %])}]]

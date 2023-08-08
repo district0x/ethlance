@@ -333,7 +333,15 @@
           address-from-parent (or
                                 (:candidate/id parent)
                                 (:job-story/candidate parent))
-          address (or address-from-args address-from-parent)]
+          address-from-proposal (when (:job-story/proposal-message-id parent)
+                                   (:message/creator
+                                     (<? (db/get conn {:select [:Message.message/creator]
+                                                       :from [:Message]
+                                                       :where [:= :message/id (:job-story/proposal-message-id parent)]}))))
+          address (or
+                    address-from-args
+                    address-from-parent
+                    address-from-proposal)]
       (<? (db/get conn (sql-helpers/merge-where candidate-query [:ilike address :Candidate.user/id]))))))
 
 
@@ -535,7 +543,8 @@
     [:JobArbiter.job-arbiter/date-accepted :arbitration/date-arbiter-accepted]
     [:JobArbiter.job-arbiter/fee :arbitration/fee]
     [:JobArbiter.job-arbiter/status :arbitration/status]
-    [:JobArbiter.job-arbiter/fee-currency-id :arbitration/fee-currency-id]]
+    [:JobArbiter.job-arbiter/fee-currency-id :arbitration/fee-currency-id]
+    [(sql/call :coalesce :JobArbiter.job-arbiter/date-created :Job.job/date-created) :arbitration/date-created]]
    :from [:Job]
    :join [:JobArbiter [:= :JobArbiter.job/id :Job.job/id]]})
 
@@ -543,7 +552,8 @@
   (db/with-async-resolver-conn conn
     (let [address (:user/id (graphql-utils/gql->clj root))
           query (-> arbitrations-query
-                    (sql-helpers/merge-where [:ilike :JobArbiter.user/id address]) )]
+                    (sql-helpers/merge-where [:ilike :JobArbiter.user/id address])
+                    (sql-helpers/merge-order-by [[:arbitration/date-created :desc]]))]
       (log/debug "arbiter->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -552,7 +562,8 @@
     (let [address (:job/id (graphql-utils/gql->clj root))
           query (cond-> arbitrations-query
                     true (sql-helpers/merge-where [:ilike :Job.job/id address])
-                    arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter]))]
+                    arbiter (sql-helpers/merge-where [:ilike :JobArbiter.user/id arbiter])
+                    true (sql-helpers/merge-order-by [[:arbitration/date-created :desc]]))]
       (log/debug "job->arbitrations-resolver" {:address address :args args})
       (<? (paged-query conn query limit offset)))))
 

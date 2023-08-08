@@ -10,6 +10,7 @@
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
+    [district.ui.notification.events :as notification.events]
     [ethlance.shared.contract-constants :as contract-constants]))
 
 (def state-key :page.new-job)
@@ -143,22 +144,20 @@
   ::web3-tx-localstorage
   (fn [db event] (println ">>> ethlance.ui.page.new-job.events :web3-tx-localstorage" event)))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::create-job-tx-success
-  (fn [db [event-name tx-data]]
+  (fn [{:keys [db]} [event-name tx-data]]
     (re/dispatch [::router-events/navigate
                   :route.job/detail
-                  {:id (get-in tx-data [:events :Job-created :return-values :job])}])))
+                  {:id (get-in tx-data [:events :Job-created :return-values :job])}])
+    {:dispatch [::notification.events/show "Transaction to create job processed successfully"]}))
 
 (re/reg-event-db
   ::create-job-tx-error
   (fn [db event]
-    ; TODO: show something meaningful to the user
-    (println ">>> got :create-job-tx-error event:" event)))
+    {:dispatch [::notification.events/show "Error with creating new job transaction"]}))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::job-to-ipfs-failure
-  (fn [db event]
-    ; TODO: show something meaningful to the user
-    (println ">>> EVENT ze-new-job-failure" event)
-    db))
+  (fn [_ _]
+  {:dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))

@@ -20,6 +20,7 @@ import "@ganache/console.log/console.sol";
 contract Job is IERC721Receiver, IERC1155Receiver {
   uint public constant version = 1; // current version of {Job} smart-contract
   uint public constant ARBITER_IDLE_TIMEOUT = 30 days;
+  uint public constant FIRST_INVOICE_INDEX = 1;
   Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
 
   address public creator;
@@ -59,8 +60,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     bool cancelled;
   }
   mapping (uint => Invoice) public invoices;
-  mapping (address => uint[]) public candidateInvoiceIds;
-  uint lastInvoiceIndex;
+  uint[] public invoiceIds;
+  uint public lastInvoiceIndex;
 
   /**
    * @dev Contract initialization
@@ -90,6 +91,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     ethlance = _ethlance;
     creator = _creator;
+    lastInvoiceIndex = FIRST_INVOICE_INDEX;
     inviteArbiters(_creator, _invitedArbiters);
     _recordAddedFunds(_creator, _offeredValues);
   }
@@ -230,7 +232,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     for(uint i = 0; i < _invoicedValue.length; i++) {
       Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false, false);
       invoices[lastInvoiceIndex] = newInvoice;
-      candidateInvoiceIds[msg.sender].push(lastInvoiceIndex);
+      invoiceIds.push(lastInvoiceIndex);
 
       // FIXME: Is there a better way to emit array of TokenValue-s?
       EthlanceStructs.TokenValue[] memory single = new EthlanceStructs.TokenValue[](1);
@@ -436,8 +438,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   function _hasUnpaidInvoices() internal view returns(bool) {
-    for(uint i = 0; i < lastInvoiceIndex; i++) {
-      Invoice memory invoice = invoices[i];
+    for(uint i = 0; i < invoiceIds.length; i++) {
+      Invoice memory invoice = invoices[invoiceIds[i]];
       if (invoice.paid == false && invoice.cancelled == false) {
         return true;
       }

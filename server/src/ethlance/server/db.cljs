@@ -259,6 +259,7 @@
      [:job-arbiter/fee :bigint]
      [:job-arbiter/fee-currency-id :varchar]
      [:job-arbiter/status :varchar]
+     [:job-arbiter/date-created :bigint]
      [:job-arbiter/date-accepted :bigint]
      ;; PK
      [(sql/call :primary-key :job/id :user/id)]
@@ -701,7 +702,7 @@
     (when user (upsert-user conn user))
     (when candidate (upsert-candidate conn candidate))
     (when employer (upsert-employer conn employer))
-    (when arbiter (upsert-employer conn arbiter))))
+    (when arbiter (upsert-arbiter conn arbiter))))
 
 ; (defn upsert-user! [conn {:user/keys [type] :as user}]
 ;   (safe-go
@@ -754,7 +755,10 @@
 
 (defn add-job-arbiter [conn job-id user-address]
   (safe-go
-   (<? (insert-row! conn :JobArbiter {:job/id job-id :user/id user-address :job-arbiter/status "invited"}))))
+   (<? (insert-row! conn :JobArbiter {:job/id job-id
+                                      :user/id user-address
+                                      :job-arbiter/status "invited"
+                                      :job-arbiter/date-created (.now js/Date)}))))
 
 (defn update-arbitration [conn params]
   (safe-go
@@ -840,6 +844,7 @@
                                                               :job-story/invitation-message-id msg-id))
                :accept-proposal (update-row! conn :JobStory (assoc message
                                                                    :job-story/status "active"
+                                                                   :job-story/candidate (:candidate message)
                                                                    :job-story/id (:job-story/id message)
                                                                    :job-story/date-contract-active (:message/date-created message)))
                :accept-invitation (update-row! conn :JobStory (assoc message

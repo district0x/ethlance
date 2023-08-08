@@ -13,7 +13,6 @@
     [ethlance.ui.page.me.subscriptions]
     [ethlance.ui.page.new-invoice.subscriptions]
     [ethlance.ui.page.new-job.subscriptions]
-    [ethlance.ui.page.profile.subscriptions]
     [re-frame.core :as re]))
 
 (re/reg-sub

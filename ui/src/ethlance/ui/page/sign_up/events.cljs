@@ -60,11 +60,7 @@
    :user/country
    :user/name
    :user/languages
-   :user/profile-image
-   ; :user/github-code
-   ; :user/linkedin-code
-   ; :user/linkedin-redirect-uri
-   ])
+   :user/profile-image])
 
 (def candidate-fields
   [:candidate/professional-title

@@ -425,6 +425,7 @@
     arbitration_fee: Float
     arbitration_feeCurrencyId: String
     arbitration_status: String
+    arbitration_dateCreated: Date
     job: Job
     arbiter: Arbiter
   }
@@ -463,7 +464,7 @@
     job_title: String
     job_description: String
     job_requiredSkills: [String]
-    job_requiredExperienceLevel: String
+    job_requiredExperienceLevel: Keyword
     job_category: String
     job_status: Keyword
     job_dateCreated: Float # TODO: change back to Date after switching to district-ui-graphql
@@ -487,11 +488,11 @@
     invoices(limit: Int, offset: Int): InvoiceList
     invoice(invoice_id: Int!, job_id: String!): Invoice
 
-    job_estimatedProjectLength: String
+    job_estimatedProjectLength: Keyword
     job_maxNumberOfCandidates: Int
     job_invitationOnly: Boolean
-    job_requiredAvailability: String
-    job_bidOption: String
+    job_requiredAvailability: Keyword
+    job_bidOption: Keyword
   }
 
 

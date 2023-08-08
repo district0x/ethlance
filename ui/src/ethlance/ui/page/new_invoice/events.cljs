@@ -5,6 +5,7 @@
             [ethlance.ui.event.utils :as event.utils]
             [ethlance.ui.util.tokens :as util.tokens]
             [district.ui.web3-tx.events :as web3-events]
+            [district.ui.notification.events :as notification.events]
             [district.ui.router.events :as router-events]
             [district.ui.smart-contracts.queries :as contract-queries]
             [ethlance.shared.contract-constants :as contract-constants]
@@ -118,16 +119,17 @@
 
 (def invoice-data (atom nil))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::send-invoice-tx-success
-  (fn [db [event-name ipfs-job tx-data]]
+  (fn [{:keys [db]} [event-name ipfs-job tx-data]]
     (let [web3 (web3-queries/web3 db)
           contract-instance (smart-contracts.queries/instance db :ethlance)
           raw-event (get-in tx-data [:events :0 :raw])
           invoice-created (util.tokens/parse-event web3 contract-instance raw-event :Invoice-created)
           job-story-id (:job-story/id ipfs-job)]
       (println ">>> ::send-invoice-tx-success" {:tx-data tx-data :invoice-created invoice-created :ipfs-job ipfs-job :event (get-in tx-data [:events :Invoice-created :return-values])})
-      (re/dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}]))))
+      (re/dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}])
+      {:dispatch [::notification.events/show "Transaction to create invoice processed successfully"]})))
 
 (re/reg-event-db
   ::send-invoice-tx-error

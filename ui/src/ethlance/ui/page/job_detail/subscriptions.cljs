@@ -3,6 +3,7 @@
     [ethlance.ui.page.job-detail.events :as job-detail.events]
     [re-frame.core :as re]
     [district.ui.conversion-rates.subs :as rates-subs]
+    [ethlance.shared.utils :refer [ilike=]]
     [ethlance.ui.subscription.utils :as subscription.utils]))
 
 (def create-get-handler #(subscription.utils/create-get-handler job-detail.events/state-key %))
@@ -54,14 +55,18 @@
           stories (filter with-proposal-for-this-job? (vals (:job-stories db)))]
       (->> stories
            (map (fn [story]
-                  {:current-user? (= (clojure.string/lower-case current-user-address)
-                                     (clojure.string/lower-case (get-in story [:candidate :user :user/id] "")))
+                  {:current-user? (ilike=  current-user-address
+                                     (or (get-in story [:candidate :user :user/id])
+                                         (get-in story [:proposal-message :creator :user/id])
+                                         ""))
                    :job-story/id (:job-story/id story)
                    :proposal-message (get-in story [:proposal-message])
-                   :candidate-name (get-in story [:candidate :user :user/name])
+                   :candidate-name (or
+                                     (get-in story [:candidate :user :user/name])
+                                     (get-in story [:proposal-message :creator :user/name]))
                    :rate (get-in story [:job-story/proposal-rate])
                    :message (get-in story [:proposal-message :message/text])
-                   :created-at (js/parseInt (get-in story [:job-story/date-created]))
+                   :created-at (get-in story [:job-story/date-created])
                    :status (get-in story [:job-story/status])}))
            ; Keeps the current-user's proposal at the top of the list
            (sort-by (fn [story] [(if (:current-user? story) 1 0) (:created-at story)]))

@@ -4,6 +4,7 @@
             [district.ui.conversion-rates.queries :as conversion-rates.queries]
             [district.ui.web3.queries :as web3.queries]
             [ethlance.ui.event.utils :as event.utils]
+            [district.ui.notification.events :as notification.events]
             [ethlance.ui.util.tokens :as util.tokens]
             [ethlance.shared.utils :refer [eth->wei]]
             [district.ui.web3-tx.events :as web3-events]
@@ -97,7 +98,8 @@
     [:message/id
      :message/type
      :message/text
-     :message/creator]]])
+     [:creator
+      [:user/id :user/name]]]]])
 
 (re/reg-event-fx
   :page.job-proposal/send
@@ -152,7 +154,7 @@
           stories (get-in result [:items])
           id-mapped (reduce
                       (fn [acc job-story]
-                      (assoc acc (:job-story/id job-story) job-story))
+                        (assoc acc (:job-story/id job-story) job-story))
                       {}
                       stories)]
       {:db (-> db
@@ -204,7 +206,7 @@
                  :tx-opts tx-opts
                  :tx-hash [::arbitration-tx-hash]
                  :on-tx-hash-error [::set-quote-for-arbitration-tx-hash-error]
-                 :on-tx-success [:page.job-detail/arbitration-tx-success]
+                 :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to set quote successful"]
                  :on-tx-error [::set-quote-for-arbitration-tx-error]}]}))
 
 (defn accept-quote-for-arbitration-tx [cofx [_event-name forwarded-event-data]]
@@ -231,7 +233,7 @@
                  :tx-opts tx-opts
                  :tx-hash [::arbitration-tx-hash]
                  :on-tx-hash-error [::accept-quote-for-arbitration-tx-hash-error]
-                 :on-tx-success [:page.job-detail/arbitration-tx-success]
+                 :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to accept quote successful"]
                  :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
 
 (defn invite-arbiters [cofx [_event-name event-data]]
@@ -248,7 +250,7 @@
                  :tx-opts tx-opts
                  :tx-hash [::arbitration-tx-hash]
                  :on-tx-hash-error [::invite-arbiters-tx-hash-error]
-                 :on-tx-success [:page.job-detail/arbitration-tx-success]
+                 :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to invite arbiters successful"]
                  :on-tx-error [::invite-arbiters-tx-error]}]}))
 
 (defn end-job-tx [cofx [_event-name event-data]]
@@ -315,9 +317,10 @@
 
 (re/reg-event-fx
   :page.job-detail/arbitration-tx-success
-  (fn [cofx event]
+  (fn [cofx [event message]]
     {:db (assoc-in (:db cofx) [state-key] state-default)
-     :fx [[:dispatch [:page.job-detail/arbitrations-updated]]]}))
+     :fx [[:dispatch [:page.job-detail/arbitrations-updated]]
+          [:dispatch [::notification.events/show message]]]}))
 
 (re/reg-event-db
   :page.job-detail/set-selected-arbiters
@@ -327,4 +330,5 @@
 (re/reg-event-fx
   :page.job-detail/end-job-tx-success
   (fn [cofx event]
-    {:fx [[:dispatch [:page.job-detail/job-updated]]]}))
+    {:fx [[:dispatch [:page.job-detail/job-updated]]
+          [:dispatch [::notification.events/show "Transaction to end job processed successfully"]]]}))

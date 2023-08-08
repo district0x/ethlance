@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.invoices.events
   (:require [district.ui.router.effects :as router.effects]
             [ethlance.ui.event.utils :as event.utils]
+            [district.ui.notification.events :as notification.events]
             [ethlance.ui.util.tokens :as util.tokens]
             [district.ui.smart-contracts.queries :as contract-queries]
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
@@ -43,7 +44,6 @@
 (re/reg-event-fx
   ::invoice-to-ipfs-success
   (fn [cofx [_event invoice ipfs-event]]
-    (println ">>> invoice-to-ipfs-success" {:invoice invoice :ipfs-event ipfs-event})
     (let [invoice-fields (get-in cofx [:db state-key])
           contract-address (:job/id invoice)
           tx-opts {:from (:payer invoice) :gas 10000000}
@@ -59,11 +59,10 @@
                    :on-tx-success [::send-invoice-tx-success invoice]
                    :on-tx-error [::send-invoice-tx-error invoice]}]})))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::invoice-to-ipfs-failure
-  (fn [db event]
-    (println ">>> ethlance.ui.page.invoices.events EVENT :invoice-to-ipfs-failure" event)
-    db))
+  (fn [_ _]
+    {:dispatch [::notification.events/show "Error uploading invoice data to IPFS"]}))
 
 (re/reg-event-fx
   ::tx-hash
@@ -73,13 +72,13 @@
   ::web3-tx-localstorage
   (fn [db event] (println ">>> ethlance.ui.page.invoices.events :web3-tx-localstorage" event)))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::send-invoice-tx-success
-  (fn [db _]
-    (println ">>> ::send-invoice-tx-success refetching invoice")
-    {:fx [[:dispatch [:page.invoices/refetch-invoice]]]}))
+  (fn [_ _]
+    {:fx [[:dispatch [:page.invoices/refetch-invoice]]
+          [:dispatch [::notification.events/show "Invoice transaction processed sucessfully"]]]}))
 
-(re/reg-event-db
+(re/reg-event-fx
   ::send-invoice-tx-error
   (fn [db event]
-    (println ">>> got :create-job-tx-error event:" event)))
+    {:dispatch [::notification.events/show "Error with send invoice transaction"]}))

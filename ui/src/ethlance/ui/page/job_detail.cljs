@@ -22,6 +22,7 @@
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
             [ethlance.ui.util.tokens :as token-utils]
+            [ethlance.ui.util.job :as util.job]
             [ethlance.shared.utils :refer [millis->relative-time ilike!= ilike=]]
             [ethlance.shared.utils :as shared-utils]
             [re-frame.core :as re]))
@@ -165,7 +166,7 @@
               (map (fn [proposal]
                      [[:span (if (:current-user? proposal) "⭐" "")]
                       [:span (:candidate-name proposal)]
-                      [:span (token-utils/human-amount (:rate proposal) *job-token-type)]
+                      [:span (str (token-utils/human-amount (:rate proposal) *job-token-type) " " (clojure.string/upper-case *job-token-type))]
                       [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
                       [:span (:status proposal)]])
                    @proposals))]
@@ -220,67 +221,58 @@
         results (if user-id
                  @(re/subscribe [::gql/query {:queries [query]}])
                  {})
-        *arbiter-name (get-in results [participant-type :user :user/name])
-        *arbiter-address (get-in results [participant-type :user/id])
-        *arbiter-rating (get-in results [participant-type :arbiter/rating])
-        *arbiter-country (get-in results [participant-type :user :user/country])
-        *arbiter-profile-image (get-in results [participant-type :user :user/profile-image])]
-    [:a.arbiter-detail {:on-click (util.navigation/create-handler
+        *participant-name (get-in results [participant-type :user :user/name])
+        *participant-address (get-in results [participant-type :user/id])
+        *participant-rating (get-in results [participant-type :arbiter/rating])
+        *participant-country (get-in results [participant-type :user :user/country])
+        *participant-profile-image (get-in results [participant-type :user :user/profile-image])]
+    [:a.arbiter-detail (util.navigation/link-params
                                     {:route :route.user/profile
-                                     :params {:address *arbiter-address}
+                                     :params {:address *participant-address}
                                      :query {:tab participant-type}})
-                        :href (util.navigation/resolve-route
-                                {:route :route.user/profile
-                                 :params {:address *arbiter-address}
-                                 :query {:tab participant-type}})}
-            [:div.header (clojure.string/capitalize (name participant-type))]
-            [:div.profile-image [c-profile-image {:src *arbiter-profile-image}]]
-            [:div.name *arbiter-name]
-            [:div.rating [c-rating {:rating *arbiter-rating}]]
-            [:div.location *arbiter-country]]))
+     [:div.header (clojure.string/capitalize (name participant-type))]
+     [:div.profile-image [c-profile-image {:src *participant-profile-image}]]
+     [:div.name *participant-name]
+     [:div.rating [c-rating {:rating *participant-rating}]]
+     [:div.location *participant-country]]))
 
 (defn c-accept-arbiter-quote []
   (let [arbitration-to-accept @(re/subscribe [:page.job-detail/arbitration-to-accept])
         job-address (get-in arbitration-to-accept [:job/id])
         employer-address (get-in arbitration-to-accept [:job :job/employer-address])
         arbiter-address (get-in arbitration-to-accept [:arbiter :user/id])
-        arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))
-        ]
+        arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))]
     [:div.proposal-form
-           [:div.label "Accept arbiter quote"]
+     [:div.label "Accept arbiter quote"]
+      [:div.amount-input
+       [:div.label "Arbiter: "]
+       [c-text-input
+        {:placeholder ""
+         :disabled true
+         :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
+      [:div.amount-input
+       [:div.label "Amount: "]
+       [c-text-input
+        {:placeholder ""
+         :disabled true
+         :value (token-utils/human-amount (get-in arbitration-to-accept [:arbitration/fee]) :eth)}]
+       [:label "ETH (Ether)"]]
 
-           [:div.amount-input
-            [:div.label "Arbiter: "]
-            [c-text-input
-             {:placeholder ""
-              :disabled true
-              :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
-           [:div.amount-input
-            [:div.label "Amount: "]
-            [c-text-input
-             {:placeholder ""
-              :disabled true
-              :value (token-utils/human-amount (get-in arbitration-to-accept [:arbitration/fee]) :eth)}]
-            [:label "ETH (Ether)"]]
-
-           (when arbiter-to-be-assigned?
-             [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
-                        :on-click (fn []
-                                    (when arbitration-to-accept
-                                      (>evt [:page.job-detail/accept-quote-for-arbitration
-                                             {:job/id job-address
-                                              :employer employer-address
-                                              :user/id (get-in arbitration-to-accept [:arbiter :user/id])
-                                              :job-arbiter/fee (:arbitration/fee arbitration-to-accept)
-                                              :job-arbiter/fee-currency-id :ETH}])))
-                        :size :small}
-              [c-button-label "Accept"]])]
-    )
-  )
+      (when arbiter-to-be-assigned?
+        [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
+                   :size :small
+                   :on-click (fn []
+                               (when arbitration-to-accept
+                                 (>evt [:page.job-detail/accept-quote-for-arbitration
+                                        {:job/id job-address
+                                         :employer employer-address
+                                         :user/id (get-in arbitration-to-accept [:arbiter :user/id])
+                                         :job-arbiter/fee (:arbitration/fee arbitration-to-accept)
+                                         :job-arbiter/fee-currency-id :ETH}])))}
+         [c-button-label "Accept"]])]))
 
 (defn c-invite-arbiters [job-address]
-  (let [
-        selected-arbiters (re/subscribe [:page.job-detail/selected-arbiters])
+  (let [selected-arbiters (re/subscribe [:page.job-detail/selected-arbiters])
         arbiter-user-fields [:user [:user/id :user/name]]
         job-query [:job {:job/id job-address}
                    [:job/employer-address
@@ -470,7 +462,7 @@
 
         :employer
         (if (and arbiter-accepted? (not show-invite-arbiters?))
-          [:div.proposal-form
+          [:div.proposal-form.profiles
            [c-participant-info :arbiter job-arbiter] ; TODO: Fix styling
            (when arbiter-idle?
              [c-info-message
@@ -524,7 +516,9 @@
                           :invoice/status]]]]
                       [:job/employer [:user/id]]
                       [:job/arbiter [:user/id]]]]
-          query-results (re/subscribe [::gql/query {:queries [job-query]} {:refetch-on #{:page.job-detail/job-updated}}])
+          query-results (re/subscribe [::gql/query
+                                       {:queries [job-query]}
+                                       {:refetch-on #{:page.job-detail/job-updated}}])
           results (:job @query-results)
 
           *title (:job/title results)
@@ -532,16 +526,22 @@
           *sub-title (:job/category results)
           *experience (:job/required-experience-level results)
           job-creation-time (.fromTimestamp goog.date.DateTime (:job/date-created results))
-          *posted-time (str "Posted "
-                            (format/time-ago job-creation-time)
-                            " ("
-                            (format/format-local-date job-creation-time)
-                            ")")
+          *posted-time-relative (str "Posted " (format/time-ago job-creation-time))
+          *posted-time-absolute (str "(" (format/format-local-date job-creation-time) ")")
           job-status (:job/status results)
-          *job-info-tags (remove nil? [(:job/estimated-project-length results)
-                                       job-status
-                                       (:job/required-experience-level results)
-                                       (:job/bid-option results)])
+          desc-from-vec (fn [options source job]
+                          ((source job) (into {} options)))
+          tag-definitions [{:desc "Estimated duration: " :source (partial desc-from-vec util.job/estimated-durations :job/estimated-project-length)}
+                           {:desc "Required experience: " :source (partial desc-from-vec util.job/experience-level :job/required-experience-level)}
+                           {:desc "Job status: " :source #(name (:job/status %))}
+                           {:desc "Bid option: " :source (partial desc-from-vec util.job/bid-option :job/bid-option)}]
+          *job-info-tags (remove nil?
+                                 (map (fn [tag-def]
+                                        (when (and
+                                                (not (nil? results))
+                                                ((:source tag-def) results))
+                                          (str (:desc tag-def) ((:source tag-def) results))))
+                                      tag-definitions))
           *required-skills (:job/required-skills results)
 
           employer-id (get-in results [:job/employer :user/id])
@@ -584,7 +584,8 @@
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
         [:div.side
-         [:div.label *posted-time]
+         [:div.label *posted-time-relative]
+         [:div.label *posted-time-absolute]
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])
          (when show-end-job?
            [:div

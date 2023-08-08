@@ -198,189 +198,192 @@
     "Zambia"
     "Zimbabwe"})
 
+(def language-defs
+  [{:name "Abkhaz" :native-name "аҧсуа"}
+   {:name "Afar" :native-name "Afaraf"}
+   {:name "Afrikaans" :native-name "Afrikaans"}
+   {:name "Akan" :native-name "Akan"}
+   {:name "Albanian" :native-name "Shqip"}
+   {:name "Amharic" :native-name "አማርኛ"}
+   {:name "Arabic" :native-name "العربية"}
+   {:name "Aragonese" :native-name "Aragonés"}
+   {:name "Armenian" :native-name "Հայերեն"}
+   {:name "Assamese" :native-name "অসমীয়া"}
+   {:name "Avaric" :native-name "авар мацӀ, магӀарул мацӀ"}
+   {:name "Avestan" :native-name "avesta"}
+   {:name "Aymara" :native-name "aymar aru"}
+   {:name "Azerbaijani" :native-name "azərbaycan dili"}
+   {:name "Bambara" :native-name "bamanankan"}
+   {:name "Bashkir" :native-name "башҡорт теле"}
+   {:name "Basque" :native-name "euskara, euskera"}
+   {:name "Belarusian" :native-name "Беларуская"}
+   {:name "Bengali" :native-name "বাংলা"}
+   {:name "Bihari" :native-name "भोजपुरी"}
+   {:name "Bislama" :native-name "Bislama"}
+   {:name "Bosnian" :native-name "bosanski jezik"}
+   {:name "Breton" :native-name "brezhoneg"}
+   {:name "Bulgarian" :native-name "български език"}
+   {:name "Burmese" :native-name "ဗမာစာ"}
+   {:name "Catalan; Valencian" :native-name "Català"}
+   {:name "Chamorro" :native-name "Chamoru"}
+   {:name "Chechen" :native-name "нохчийн мотт"}
+   {:name "Chichewa; Chewa; Nyanja" :native-name "chiCheŵa, chinyanja"}
+   {:name "Chinese" :native-name "中文 (Zhōngwén), 汉语, 漢語"}
+   {:name "Chuvash" :native-name "чӑваш чӗлхи"}
+   {:name "Cornish" :native-name "Kernewek"}
+   {:name "Corsican" :native-name "corsu, lingua corsa"}
+   {:name "Cree" :native-name "ᓀᐦᐃᔭᐍᐏᐣ"}
+   {:name "Croatian" :native-name "hrvatski"}
+   {:name "Czech" :native-name "česky, čeština"}
+   {:name "Danish" :native-name "dansk"}
+   {:name "Divehi; Dhivehi; Maldivian;" :native-name "ދިވެހި"}
+   {:name "Dutch" :native-name "Nederlands, Vlaams"}
+   {:name "English" :native-name "English"}
+   {:name "Esperanto" :native-name "Esperanto"}
+   {:name "Estonian" :native-name "eesti, eesti keel"}
+   {:name "Ewe" :native-name "Eʋegbe"}
+   {:name "Faroese" :native-name "føroyskt"}
+   {:name "Fijian" :native-name "vosa Vakaviti"}
+   {:name "Finnish" :native-name "suomi, suomen kieli"}
+   {:name "French" :native-name "français, langue française"}
+   {:name "Fula; Fulah; Pulaar; Pular" :native-name "Fulfulde, Pulaar, Pular"}
+   {:name "Galician" :native-name "Galego"}
+   {:name "Georgian" :native-name "ქართული"}
+   {:name "German" :native-name "Deutsch"}
+   {:name "Greek, Modern" :native-name "Ελληνικά"}
+   {:name "Guaraní" :native-name "Avañeẽ"}
+   {:name "Gujarati" :native-name "ગુજરાતી"}
+   {:name "Haitian; Haitian Creole" :native-name "Kreyòl ayisyen"}
+   {:name "Hausa" :native-name "Hausa, هَوُسَ"}
+   {:name "Hebrew (modern)" :native-name "עברית"}
+   {:name "Herero" :native-name "Otjiherero"}
+   {:name "Hindi" :native-name "हिन्दी, हिंदी"}
+   {:name "Hiri Motu" :native-name "Hiri Motu"}
+   {:name "Hungarian" :native-name "Magyar"}
+   {:name "Interlingua" :native-name "Interlingua"}
+   {:name "Indonesian" :native-name "Bahasa Indonesia"}
+   {:name "Interlingue" :native-name "Originally called Occidental; then Interlingue after WWII"}
+   {:name "Irish" :native-name "Gaeilge"}
+   {:name "Igbo" :native-name "Asụsụ Igbo"}
+   {:name "Inupiaq" :native-name "Iñupiaq, Iñupiatun"}
+   {:name "Ido" :native-name "Ido"}
+   {:name "Icelandic" :native-name "Íslenska"}
+   {:name "Italian" :native-name "Italiano"}
+   {:name "Inuktitut" :native-name "ᐃᓄᒃᑎᑐᑦ"}
+   {:name "Japanese" :native-name "日本語 (にほんご／にっぽんご)"}
+   {:name "Javanese" :native-name "basa Jawa"}
+   {:name "Kalaallisut, Greenlandic" :native-name "kalaallisut, kalaallit oqaasii"}
+   {:name "Kannada" :native-name "ಕನ್ನಡ"}
+   {:name "Kanuri" :native-name "Kanuri"}
+   {:name "Kashmiri" :native-name "कश्मीरी, كشميري‎"}
+   {:name "Kazakh" :native-name "Қазақ тілі"}
+   {:name "Khmer" :native-name "ភាសាខ្មែរ"}
+   {:name "Kikuyu, Gikuyu" :native-name "Gĩkũyũ"}
+   {:name "Kinyarwanda" :native-name "Ikinyarwanda"}
+   {:name "Kirghiz, Kyrgyz" :native-name "кыргыз тили"}
+   {:name "Komi" :native-name "коми кыв"}
+   {:name "Kongo" :native-name "KiKongo"}
+   {:name "Korean" :native-name "한국어 (韓國語), 조선말 (朝鮮語)"}
+   {:name "Kurdish" :native-name "Kurdî, كوردی‎"}
+   {:name "Kwanyama, Kuanyama" :native-name "Kuanyama"}
+   {:name "Latin" :native-name "latine, lingua latina"}
+   {:name "Luxembourgish, Letzeburgesch" :native-name "Lëtzebuergesch"}
+   {:name "Luganda" :native-name "Luganda"}
+   {:name "Limburgish, Limburgan, Limburger" :native-name "Limburgs"}
+   {:name "Lingala" :native-name "Lingála"}
+   {:name "Lao" :native-name "ພາສາລາວ"}
+   {:name "Lithuanian" :native-name "lietuvių kalba"}
+   {:name "Luba-Katanga" :native-name ""}
+   {:name "Latvian" :native-name "latviešu valoda"}
+   {:name "Manx" :native-name "Gaelg, Gailck"}
+   {:name "Macedonian" :native-name "македонски јазик"}
+   {:name "Malagasy" :native-name "Malagasy fiteny"}
+   {:name "Malay" :native-name "bahasa Melayu, بهاس ملايو‎"}
+   {:name "Malayalam" :native-name "മലയാളം"}
+   {:name "Maltese" :native-name "Malti"}
+   {:name "Māori" :native-name "te reo Māori"}
+   {:name "Marathi (Marāṭhī)" :native-name "मराठी"}
+   {:name "Marshallese" :native-name "Kajin M̧ajeļ"}
+   {:name "Mongolian" :native-name "монгол"}
+   {:name "Nauru" :native-name "Ekakairũ Naoero"}
+   {:name "Navajo, Navaho" :native-name "Diné bizaad, Dinékʼehǰí"}
+   {:name "Norwegian Bokmål" :native-name "Norsk bokmål"}
+   {:name "North Ndebele" :native-name "isiNdebele"}
+   {:name "Nepali" :native-name "नेपाली"}
+   {:name "Ndonga" :native-name "Owambo"}
+   {:name "Norwegian Nynorsk" :native-name "Norsk nynorsk"}
+   {:name "Norwegian" :native-name "Norsk"}
+   {:name "Nuosu" :native-name "ꆈꌠ꒿ Nuosuhxop"}
+   {:name "South Ndebele" :native-name "isiNdebele"}
+   {:name "Occitan" :native-name "Occitan"}
+   {:name "Ojibwe, Ojibwa" :native-name "ᐊᓂᔑᓈᐯᒧᐎᓐ"}
+   {:name "Old Church Slavonic, Church Slavic, Church Slavonic, Old Bulgarian, Old Slavonic" :native-name "ѩзыкъ словѣньскъ"}
+   {:name "Oromo" :native-name "Afaan Oromoo"}
+   {:name "Oriya" :native-name "ଓଡ଼ିଆ"}
+   {:name "Ossetian, Ossetic" :native-name "ирон æвзаг"}
+   {:name "Panjabi, Punjabi" :native-name "ਪੰਜਾਬੀ, پنجابی‎"}
+   {:name "Pāli" :native-name "पाऴि"}
+   {:name "Persian" :native-name "فارسی"}
+   {:name "Polish" :native-name "polski"}
+   {:name "Pashto, Pushto" :native-name "پښتو"}
+   {:name "Portuguese" :native-name "Português"}
+   {:name "Quechua" :native-name "Runa Simi, Kichwa"}
+   {:name "Romansh" :native-name "rumantsch grischun"}
+   {:name "Kirundi" :native-name "kiRundi"}
+   {:name "Romanian, Moldavian, Moldovan" :native-name "română"}
+   {:name "Russian" :native-name "русский язык"}
+   {:name "Sanskrit (Saṁskṛta)" :native-name "संस्कृतम्"}
+   {:name "Sardinian" :native-name "sardu"}
+   {:name "Sindhi" :native-name "सिन्धी, سنڌي، سندھی‎"}
+   {:name "Northern Sami" :native-name "Davvisámegiella"}
+   {:name "Samoan" :native-name "gagana faa Samoa"}
+   {:name "Sango" :native-name "yângâ tî sängö"}
+   {:name "Serbian" :native-name "српски језик"}
+   {:name "Scottish Gaelic; Gaelic" :native-name "Gàidhlig"}
+   {:name "Shona" :native-name "chiShona"}
+   {:name "Sinhala, Sinhalese" :native-name "සිංහල"}
+   {:name "Slovak" :native-name "slovenčina"}
+   {:name "Slovene" :native-name "slovenščina"}
+   {:name "Somali" :native-name "Soomaaliga, af Soomaali"}
+   {:name "Southern Sotho" :native-name "Sesotho"}
+   {:name "Spanish; Castilian" :native-name "español, castellano"}
+   {:name "Sundanese" :native-name "Basa Sunda"}
+   {:name "Swahili" :native-name "Kiswahili"}
+   {:name "Swati" :native-name "SiSwati"}
+   {:name "Swedish" :native-name "svenska"}
+   {:name "Tamil" :native-name "தமிழ்"}
+   {:name "Telugu" :native-name "తెలుగు"}
+   {:name "Tajik" :native-name "тоҷикӣ, toğikī, تاجیکی‎"}
+   {:name "Thai" :native-name "ไทย"}
+   {:name "Tigrinya" :native-name "ትግርኛ"}
+   {:name "Tibetan Standard, Tibetan, Central" :native-name "བོད་ཡིག"}
+   {:name "Turkmen" :native-name "Türkmen, Түркмен"}
+   {:name "Tagalog" :native-name "Wikang Tagalog, ᜏᜒᜃᜅ᜔ ᜆᜄᜎᜓᜄ᜔"}
+   {:name "Tswana" :native-name "Setswana"}
+   {:name "Tonga (Tonga Islands)" :native-name "faka Tonga"}
+   {:name "Turkish" :native-name "Türkçe"}
+   {:name "Tsonga" :native-name "Xitsonga"}
+   {:name "Tatar" :native-name "татарча, tatarça, تاتارچا‎"}
+   {:name "Twi" :native-name "Twi"}
+   {:name "Tahitian" :native-name "Reo Tahiti"}
+   {:name "Uighur, Uyghur" :native-name "Uyƣurqə, ئۇيغۇرچە‎"}
+   {:name "Ukrainian" :native-name "українська"}
+   {:name "Urdu" :native-name "اردو"}
+   {:name "Uzbek" :native-name "zbek, Ўзбек, أۇزبېك‎"}
+   {:name "Venda" :native-name "Tshivenḓa"}
+   {:name "Vietnamese" :native-name "Tiếng Việt"}
+   {:name "Volapük" :native-name "Volapük"}
+   {:name "Walloon" :native-name "Walon"}
+   {:name "Welsh" :native-name "Cymraeg"}
+   {:name "Wolof" :native-name "Wollof"}
+   {:name "Western Frisian" :native-name "Frysk"}
+   {:name "Xhosa" :native-name "isiXhosa"}
+   {:name "Yiddish" :native-name "ייִדיש"}
+   {:name "Yoruba" :native-name "Yorùbá"}
+   {:name "Zhuang, Chuang" :native-name "Saɯ cueŋƅ, Saw cuengh"}])
+
 (def languages
-  #{"аҧсуа бызшәа, аҧсшәа"
-    "Afaraf"
-    "Afrikaans"
-    "Akan"
-    "Shqip"
-    "አማርኛ"
-    "العربية"
-    "aragonés"
-    "Հայերեն"
-    "অসমীয়া"
-    "авар мацӀ, магӀарул мацӀ"
-    "avesta"
-    "aymar aru"
-    "azərbaycan dili"
-    "bamanankan"
-    "башҡорт теле"
-    "euskara, euskera"
-    "беларуская мова"
-    "বাংলা"
-    "भोजपुरी"
-    "Bislama"
-    "bosanski jezik"
-    "brezhoneg"
-    "български език"
-    "ဗမာစာ"
-    "català"
-    "Chamoru"
-    "нохчийн мотт"
-    "chiCheŵa, chinyanja"
-    "中文 (Zhōngwén), 汉语, 漢語"
-    "чӑваш чӗлхи"
-    "Kernewek"
-    "corsu, lingua corsa"
-    "ᓀᐦᐃᔭᐍᐏᐣ"
-    "hrvatski jezik"
-    "čeština, český jazyk"
-    "Dansk"
-    "Nederlands, Vlaams"
-    "རྫོང་ཁ"
-    "English"
-    "Esperanto"
-    "eesti, eesti keel"
-    "Eʋegbe"
-    "Føroyskt"
-    "vosa Vakaviti"
-    "suomi, suomen kieli"
-    "français, langue française"
-    "Fulfulde, Pulaar, Pular"
-    "galego"
-    "ქართული"
-    "Deutsch"
-    "Ελληνικά"
-    "Avañe'ẽ"
-    "ગુજરાતી"
-    "Kreyòl ayisyen"
-    "(Hausa) هَوُسَ"
-    "עברית"
-    "Otjiherero"
-    "हिन्दी, हिंदी"
-    "Hiri Motu"
-    "magyar"
-    "Interlingua"
-    "Bahasa Indonesia"
-    "Interlingue"
-    "Gaeilge"
-    "Asụsụ Igbo"
-    "Iñupiaq, Iñupiatun"
-    "Ido"
-    "Íslenska"
-    "Italiano"
-    "ᐃᓄᒃᑎᑐᑦ"
-    "日本語 (にほんご)"
-    "Basa Jawa"
-    "kalaallisut, kalaallit oqaasii"
-    "ಕನ್ನಡ"
-    "Kanuri"
-    "कश्मीरी, كشميري‎"
-    "қазақ тілі"
-    "ខ្មែរ, ខេមរភាសា, ភាសាខ្មែរ"
-    "Gĩkũyũ"
-    "Ikinyarwanda"
-    "Кыргызча, Кыргыз тили"
-    "коми кыв"
-    "Kikongo"
-    "한국어"
-    "Kurdî, كوردی‎"
-    "Kuanyama"
-    "latine, lingua latina"
-    "Lëtzebuergesch"
-    "Luganda"
-    "Limburgs"
-    "Lingála"
-    "ພາສາລາວ"
-    "lietuvių kalba"
-    "Tshiluba"
-    "latviešu valoda"
-    "Gaelg, Gailck"
-    "македонски јазик"
-    "fiteny malagasy"
-    "bahasa Melayu, بهاس ملايو‎"
-    "മലയാളം"
-    "Malti"
-    "te reo Māori"
-    "मराठी"
-    "Kajin M̧ajeļ"
-    "Монгол хэл"
-    "Dorerin Naoero"
-    "Diné bizaad"
-    "नेपाली"
-    "Owambo"
-    "Norsk bokmål"
-    "Norsk nynorsk"
-    "Norsk"
-    "ꆈꌠ꒿ Nuosuhxop"
-    "isiNdebele"
-    "occitan, lenga d'òc"
-    "ᐊᓂᔑᓈᐯᒧᐎᓐ"
-    "ѩзыкъ словѣньскъ"
-    "Afaan Oromoo"
-    "ଓଡ଼ିଆ"
-    "ирон æвзаг"
-    "ਪੰਜਾਬੀ"
-    "पाऴि"
-    "فارسی"
-    "język polski, polszczyzna"
-    "پښتو"
-    "Português"
-    "Runa Simi, Kichwa"
-    "rumantsch grischun"
-    "Ikirundi"
-    "Română"
-    "Русский"
-    "संस्कृतम्"
-    "sardu"
-    "सिन्धी, سنڌي، سندھی‎"
-    "Davvisámegiella"
-    "gagana fa'a Samoa"
-    "yângâ tî sängö"
-    "српски језик"
-    "Gàidhlig"
-    "chiShona"
-    "සිංහල"
-    "slovenčina, slovenský jazyk"
-    "slovenski jezik, slovenščina"
-    "Soomaaliga, af Soomaali"
-    "Sesotho"
-    "español"
-    "Basa Sunda"
-    "Kiswahili"
-    "SiSwati"
-    "Svenska"
-    "தமிழ்"
-    "తెలుగు"
-    "тоҷикӣ, toçikī, تاجیکی‎"
-    "ไทย"
-    "ትግርኛ"
-    "བོད་ཡིག"
-    "Türkmen, Түркмен"
-    "Wikang Tagalog"
-    "Setswana"
-    "faka Tonga"
-    "Türkçe"
-    "Xitsonga"
-    "татар теле, tatar tele"
-    "Twi"
-    "Reo Tahiti"
-    "ئۇيغۇرچە ‎Uyghurche"
-    "Українська"
-    "اردو"
-    "Oʻzbek, Ўзбек, أۇزبېك‎"
-    "Tshivenḓa"
-    "Tiếng Việt"
-    "Volapük"
-    "walon"
-    "Cymraeg"
-    "Wollof"
-    "Frysk"
-    "isiXhosa"
-    "ייִדיש"
-    "Yorùbá"
-    "Saɯ cueŋƅ, Saw cuengh"
-    "isiZulu"})
+  (set (map :name language-defs)))
 
 (def skills
   #{".NET Compact Framework"

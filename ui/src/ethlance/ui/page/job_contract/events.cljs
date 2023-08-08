@@ -2,6 +2,7 @@
   (:require [district.ui.router.effects :as router.effects]
             [ethlance.ui.event.utils :as event.utils]
             [ethlance.shared.utils :refer [eth->wei base58->hex]]
+            [district.ui.notification.events :as notification.events]
             [district.ui.graphql.events :as gql-events]
             [district.ui.web3-tx.events :as web3-events]
             ["web3" :as w3]
@@ -138,7 +139,7 @@
                    :tx-opts tx-opts
                    :tx-hash [::tx-hash]
                    :on-tx-hash-error [::tx-hash-error]
-                   :on-tx-success [::dispute-tx-success]
+                   :on-tx-success [::dispute-tx-success "Transaction to raise dispute processed successfully"]
                    :on-tx-error [::dispute-tx-error]}]})))
 
 (re/reg-event-fx
@@ -184,12 +185,13 @@
   (fn [{:keys [db]} event]
     (println ">>> ::send-invitation-tx-success" event)
     {:db (clear-forms db)
-     :fx [[:dispatch [:page.job-contract/refetch-messages]]]}))
+     :fx [[:dispatch [:page.job-contract/refetch-messages]]
+          [:dispatch [::notification.events/show "Transaction to accept proposal processed successfully"]]]}))
 
 (re/reg-event-fx
   ::accept-proposal-tx-failure
   (fn [{:keys [db]} event]
-    (println ">>> ::send-invitation-tx-failure" event)))
+    {:dispatch [::notification.events/show "Error processing accept proposal transaction"]}))
 
 (re/reg-event-fx
   :page.job-contract/clear-message-forms
@@ -198,11 +200,10 @@
 
 (re/reg-event-fx
   ::dispute-tx-success
-  (fn [{:keys [db]} [event-name tx-data]]
-    ; TODO: clear & disable form
-    (println ">>> ethlance.ui.page.job-contract.events ::raise-dispute-tx-success" tx-data)
+  (fn [{:keys [db]} [event-name message]]
     {:db (clear-forms db)
-     :fx [[:dispatch [:page.job-contract/refetch-messages]]]}))
+     :fx [[:dispatch [:page.job-contract/refetch-messages]]
+          [:dispatch [::notification.events/show message]]]}))
 
 (defn send-resolve-dispute-ipfs
   [{:keys [db]} [_ {invoice-id :invoice/id
@@ -214,7 +215,6 @@
                       :job/id job-id
                       :job-story/id job-story-id
                       :invoice/id invoice-id}]
-    (println ">>> ethlance.ui.page.job-contract.events/raise-dispute to ipfs: " event)
     {:ipfs/call {:func "add"
                  :args [(js/Blob. [ipfs-dispute])]
                  :on-success [:page.job-contract/resolve-dispute-to-ipfs-success event]
@@ -249,7 +249,7 @@
                  :tx-opts tx-opts
                  :tx-hash [:page.job-contract/tx-hash]
                  :on-tx-hash-error [::dispute-tx-error]
-                 :on-tx-success [::dispute-tx-success]
+                 :on-tx-success [::dispute-tx-success "Transaction to resolve dispute processed successfully"]
                  :on-tx-error [::dispute-tx-error]}]}))
 
 (re/reg-event-fx :page.job-contract/resolve-dispute send-resolve-dispute-ipfs)

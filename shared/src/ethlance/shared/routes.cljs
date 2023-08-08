@@ -30,4 +30,6 @@
 
 
 (def dev-routes
-  (conj routes ["/devcard/index" :route.devcard/index]))
+  (-> routes
+      (conj ,,, ["/devcard/index" :route.devcard/index])
+      (conj ,,, ["/dev/contract-ops" :route.dev/contract-ops])))

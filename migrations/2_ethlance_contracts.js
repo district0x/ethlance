@@ -45,7 +45,7 @@ async function deploy_DSGuard(deployer, opts) {
 
 async function deploy_TestNft(deployer, opts) {
   console.log("Deploying TestNft...");
-  await deployer.deploy(TestNft, opts.from, {...opts, gas: 3.0e6});
+  await deployer.deploy(TestNft, opts.from, {...opts, gas: 10.0e6});
   let token = await TestNft.deployed();
 
   // Assign

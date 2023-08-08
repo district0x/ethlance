@@ -20,6 +20,7 @@
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.subscriptions :as subs]
             [ethlance.ui.util.navigation :as navigation]
+            [ethlance.ui.util.job :as util.job]
             [re-frame.core :as re]
             [clojure.spec.alpha :as s]))
 
@@ -49,6 +50,9 @@
     :on-click (fn [] (when-not disabled? (>evt on-submit)))}
    [:span "Create"]
    [c-icon {:name :ic-arrow-right :size :smaller}]])
+
+(defn radio-options-from-vector [options]
+  (map (fn [[kw desc]] [kw [c-radio-secondary-element desc]]) options))
 
 (defn c-job-creation-form []
   (let [arbiters-query [:arbiter-search {:limit 1000}
@@ -99,39 +103,31 @@
              :on-select #(re/dispatch [:page.new-job/set-category %])}]]
           [:div.bid-for-radio-input.radio
            [:div.label "Candidates Should Bid For"]
-           [c-radio-select
-            {:selection @*bid-option
-             :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}
-            [:hourly-rate [c-radio-secondary-element "Hourly Rate"]]
-            [:fixed-price [c-radio-secondary-element "Fixed Price"]]
-            [:annual-salary [c-radio-secondary-element "Annual Salary"]]
-            ]]
+           (into [c-radio-select
+                  {:selection @*bid-option
+                   :on-selection #(re/dispatch [:page.new-job/set-bid-option %])}]
+                 (radio-options-from-vector util.job/bid-option))]
+
           [:div.experience-radio-input.radio
            [:div.label "Required Experience Level"]
-           [c-radio-select
-            {:selection @*required-experience-level
-             :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}
-            [:beginner [c-radio-secondary-element "Beginner ($)"]]
-            [:intermediate [c-radio-secondary-element "Intermediate ($$)"]]
-            [:expert [c-radio-secondary-element "Expert ($$$)"]]]]
+           (into [c-radio-select
+                  {:selection @*required-experience-level
+                   :on-selection #(re/dispatch [:page.new-job/set-required-experience-level %])}]
+                 (radio-options-from-vector util.job/experience-level))]
 
           [:div.project-length-radio-input.radio
            [:div.label "Estimated Project Length"]
-           [c-radio-select
-            {:selection @*estimated-project-length
-             :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}
-            [:day [c-radio-secondary-element "Hours or Days"]]
-            [:week [c-radio-secondary-element "Weeks"]]
-            [:month [c-radio-secondary-element "Months"]]
-            [:year [c-radio-secondary-element ">6 Months"]]]]
+           (into [c-radio-select
+                  {:selection @*estimated-project-length
+                   :on-selection #(re/dispatch [:page.new-job/set-estimated-project-length %])}]
+                 (radio-options-from-vector util.job/estimated-durations))]
 
           [:div.availability-radio-input.radio
            [:div.label "Required Availability"]
-           [c-radio-select
-            {:selection @*required-availability
-             :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}
-            [:full-time [c-radio-secondary-element "Full-Time"]]
-            [:part-time [c-radio-secondary-element "Part-Time"]]]]
+           (into [c-radio-select
+                  {:selection @*required-availability
+                   :on-selection #(re/dispatch [:page.new-job/set-required-availability %])}]
+                 (radio-options-from-vector util.job/required-availability))]
 
           [:div.with-arbiter-radio-input.radio
            [:div.label "Arbiter"]
