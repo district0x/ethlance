@@ -65,8 +65,8 @@
          for-the-db (merge {:job/id (:job args)
                                        :job/status  "active" ;; draft -> active -> finished hiring -> closed
                                        :job/creator (:creator args)
-                                       :job/date-created (:timestamp event)
-                                       :job/date-updated (:timestamp event)
+                                       :job/date-created (get-timestamp event)
+                                       :job/date-updated (get-timestamp event)
 
                                        :job/token-type token-type
                                        :job/token-amount (:token-amount offered-value)
@@ -74,19 +74,7 @@
                                        :job/token-id (:token-id offered-value)
                                        :invited-arbiters (get-in args [:invited-arbiters] [])}
                                       (build-ethlance-job-data-from-ipfs-object ipfs-job-content))]
-     (<? (ethlance-db/add-job conn
-                              (merge {:job/id (:job args)
-                                      :job/status  "active" ;; draft -> active -> finished hiring -> closed
-                                      :job/creator (:creator args)
-                                      :job/date-created (get-timestamp event)
-                                      :job/date-updated (get-timestamp event)
-
-                                      :job/token-type token-type
-                                      :job/token-amount (:token-amount offered-value)
-                                      :job/token-address token-address
-                                      :job/token-id (:token-id offered-value)
-                                      :invited-arbiters (get-in args [:invited-arbiters] [])}
-                                     (build-ethlance-job-data-from-ipfs-object ipfs-job-content))))
+     (<? (ethlance-db/add-job conn for-the-db))
      (ensure-db-token-details token-type token-address conn))))
 
 (defn handle-invoice-created [conn _ {:keys [args]}]
@@ -105,6 +93,8 @@
                           :invoice/date-requested (get-timestamp)
                           :invoice/status "created"
                           :invoice/amount-requested (:token-amount offered-value)
+                          :invoice/hours-worked (:invoice/hours-worked ipfs-data)
+                          :invoice/hourly-rate (:invoice/hourly-rate ipfs-data)
                           :invoice/ref-id (:invoice-id args)}]
      (<? (ethlance-db/add-message conn invoice-message)))))
 

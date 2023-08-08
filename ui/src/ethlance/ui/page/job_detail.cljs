@@ -166,7 +166,7 @@
               (map (fn [proposal]
                      [[:span (if (:current-user? proposal) "⭐" "")]
                       [:span (:candidate-name proposal)]
-                      [:span (token-utils/human-amount (:rate proposal) *job-token-type)]
+                      [:span (str (token-utils/human-amount (:rate proposal) *job-token-type) " " (clojure.string/upper-case *job-token-type))]
                       [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
                       [:span (:status proposal)]])
                    @proposals))]
@@ -516,7 +516,9 @@
                           :invoice/status]]]]
                       [:job/employer [:user/id]]
                       [:job/arbiter [:user/id]]]]
-          query-results (re/subscribe [::gql/query {:queries [job-query]} {:refetch-on #{:page.job-detail/job-updated}}])
+          query-results (re/subscribe [::gql/query
+                                       {:queries [job-query]}
+                                       {:refetch-on #{:page.job-detail/job-updated}}])
           results (:job @query-results)
 
           *title (:job/title results)
@@ -530,7 +532,8 @@
                             (format/format-local-date job-creation-time)
                             ")")
           job-status (:job/status results)
-          desc-from-vec (fn [options source job] ((source job) (into {} options)))
+          desc-from-vec (fn [options source job]
+                          ((source job) (into {} options)))
           tag-definitions [{:desc "Estimated duration: " :source (partial desc-from-vec util.job/estimated-durations :job/estimated-project-length)}
                            {:desc "Required experience: " :source (partial desc-from-vec util.job/experience-level :job/required-experience-level)}
                            {:desc "Job status: " :source #(name (:job/status %))}

@@ -98,7 +98,8 @@
     [:message/id
      :message/type
      :message/text
-     :message/creator]]])
+     [:creator
+      [:user/id :user/name]]]]])
 
 (re/reg-event-fx
   :page.job-proposal/send
@@ -153,7 +154,7 @@
           stories (get-in result [:items])
           id-mapped (reduce
                       (fn [acc job-story]
-                      (assoc acc (:job-story/id job-story) job-story))
+                        (assoc acc (:job-story/id job-story) job-story))
                       {}
                       stories)]
       {:db (-> db
