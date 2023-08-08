@@ -44,4 +44,5 @@
           filter-params (util.graphql/prepare-search-params page-state filters)]
       {:search-params filter-params
        :offset (:offset page-state)
+       :order-by :date-created
        :limit (:limit page-state)})))
