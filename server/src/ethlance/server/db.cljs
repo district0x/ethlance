@@ -844,6 +844,7 @@
                                                               :job-story/invitation-message-id msg-id))
                :accept-proposal (update-row! conn :JobStory (assoc message
                                                                    :job-story/status "active"
+                                                                   :job-story/candidate (:candidate message)
                                                                    :job-story/id (:job-story/id message)
                                                                    :job-story/date-contract-active (:message/date-created message)))
                :accept-invitation (update-row! conn :JobStory (assoc message

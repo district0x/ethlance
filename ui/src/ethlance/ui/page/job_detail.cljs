@@ -526,11 +526,8 @@
           *sub-title (:job/category results)
           *experience (:job/required-experience-level results)
           job-creation-time (.fromTimestamp goog.date.DateTime (:job/date-created results))
-          *posted-time (str "Posted "
-                            (format/time-ago job-creation-time)
-                            " ("
-                            (format/format-local-date job-creation-time)
-                            ")")
+          *posted-time-relative (str "Posted " (format/time-ago job-creation-time))
+          *posted-time-absolute (str "(" (format/format-local-date job-creation-time) ")")
           job-status (:job/status results)
           desc-from-vec (fn [options source job]
                           ((source job) (into {} options)))
@@ -587,7 +584,8 @@
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
         [:div.side
-         [:div.label *posted-time]
+         [:div.label *posted-time-relative]
+         [:div.label *posted-time-absolute]
          (for [tag-text *job-info-tags] [c-tag {:key tag-text} [c-tag-label tag-text]])
          (when show-end-job?
            [:div
