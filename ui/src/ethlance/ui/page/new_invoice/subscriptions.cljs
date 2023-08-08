@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as re]
 
+   [ethlance.ui.util.tokens :as util.tokens]
    [district.ui.conversion-rates.queries :as rates-queries]
    [district.ui.conversion-rates.subs :as rates-subs]
    [ethlance.ui.page.new-invoice.events :as new-invoice.events]
@@ -46,11 +47,11 @@
   :<- [:page.new-invoice/invoice-amount]
   :<- [::rates-subs/conversion-rates]
   (fn [[token-details invoice-amount conversion-rates] _]
-    (let [from-currency (:symbol token-details)
+    (let [from-currency (or (:symbol token-details) :ETH)
           to-currency :USD
           amount (or invoice-amount 0)
           rate (get-in conversion-rates [from-currency to-currency])
-          sum-usd (* amount rate)]
+          sum-usd (util.tokens/round 2 (* amount rate))]
       (if from-currency
         (str "Estimated $" sum-usd " (1 " (name from-currency) " = " rate " " (name to-currency) ")")
         "Please fill in invoice details to get an estimate"))))
