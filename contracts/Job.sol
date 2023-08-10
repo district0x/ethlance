@@ -49,7 +49,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint raisedAt;
     bool resolved;
   }
-  mapping (uint => Dispute) public disputes;
+  mapping (uint => Dispute) public disputes; // invoiceId => dispute
   uint[] disputeIds;
 
   struct Invoice {
