@@ -206,7 +206,7 @@
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:user/id] :as employer} (graphql-utils/gql->clj root)
-          query (sql-helpers/merge-where user-feedback-query [:= id :JobStoryFeedbackMessage.user/id])]
+          query (sql-helpers/merge-where user-feedback-query [:ilike id :JobStoryFeedbackMessage.user/id])]
       (log/debug "employer->feedback-resolver" {:employer employer :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -289,11 +289,9 @@
 
 (defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} {:keys [conn]}]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as arbiter} (graphql-utils/gql->clj root)
-          job-story-id 2 ; FIXME: read from params
-          query (sql-helpers/merge-where user-feedback-query [:and
-                                                              [:= id :JobStoryFeedbackMessage.user/id]
-                                                              [:= job-story-id :JobStoryFeedbackMessage.job-story/id]])]
+    (let [arbiter (graphql-utils/gql->clj root)
+          user-id (:user/id arbiter)
+          query (sql-helpers/merge-where user-feedback-query [:ilike user-id :JobStoryFeedbackMessage.user/id])]
       (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
       (<? (paged-query conn query limit offset)))))
 
