@@ -273,35 +273,47 @@
 
 (defn c-invite-arbiters [job-address]
   (let [selected-arbiters (re/subscribe [:page.job-detail/selected-arbiters])
-        arbiter-user-fields [:user [:user/id :user/name]]
+        arbiter-fields [:arbiter/rating
+                        [:arbiter/feedback [:total-count]]
+                        [:user [:user/id :user/name]]]
         job-query [:job {:job/id job-address}
                    [:job/employer-address
                     [:arbitrations
                      [[:items
                        [[:arbiter
-                         [arbiter-user-fields]]]]]]]]
+                         arbiter-fields]]]]]]]
         arbiters-query [:arbiter-search {:search-params {:name ""}}
                [[:items
-                 [arbiter-user-fields]]]]
+                 arbiter-fields]]]
         search-result @(re/subscribe [::gql/query {:queries [arbiters-query job-query]}
                                       {:refetch-on #{:page.job-detail/arbitrations-updated}}])
 
-        all-arbiters (map :user (get-in search-result [:arbiter-search :items]))
-        already-added (map #(get-in % [:arbiter :user]) (get-in search-result [:job :arbitrations :items]))
+        all-arbiters (get-in search-result [:arbiter-search :items])
+        already-added (map #(get-in % [:arbiter]) (get-in search-result [:job :arbitrations :items]))
         uninvited-arbiters (clojure.set/difference (set all-arbiters) (set already-added))
 
         employer-address (get-in search-result [:job :job/employer-address])
         arbiter-address-fn (fn [arbiter] (get-in arbiter [:user :user/id]))
 
-        nothing-added? (empty? @selected-arbiters)]
+        nothing-added? (empty? @selected-arbiters)
+        arbiter-info-fn (fn [arbiter]
+                          (clojure.string.join
+                            [(get-in arbiter [:user :user/name])
+                             " "
+                             (apply str (repeat (:arbiter/rating arbiter) "⭐"))
+                             (apply str (repeat (- 5 (:arbiter/rating arbiter)) "☆"))
+                             " ("
+                             (get-in arbiter [:arbiter/feedback :total-count])
+                             ")"]))
+        arbiter-address-fn (comp :user/id :user)]
     [:div.proposal-form
      [:div.label "Invite arbiter"]
      [c-chip-search-input
       {:chip-listing @selected-arbiters
        :on-chip-listing-change #(re/dispatch [:page.job-detail/set-selected-arbiters %])
        :auto-suggestion-listing uninvited-arbiters
-       :label-fn :user/name
-       :value-fn :user/id
+       :label-fn arbiter-info-fn
+       :value-fn arbiter-address-fn
        :allow-custom-chips? false
        :placeholder "Searh arbiter by name"}]
 
@@ -313,7 +325,7 @@
                     (>evt [:page.job-detail/invite-arbiters
                            {:job/id job-address
                             :employer employer-address
-                            :arbiters (map :user/id @selected-arbiters)}])))}
+                            :arbiters (map arbiter-address-fn @selected-arbiters)}])))}
      [c-button-label "Invite"]]]))
 
 (defn c-set-arbiter-quote [arbitration-by-current-user]
