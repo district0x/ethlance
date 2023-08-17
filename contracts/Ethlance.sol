@@ -385,9 +385,9 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * TODO: Needs implementation
    */
   function onERC721Received(
-    address _operator,
-    address _from,
-    uint256 _tokenId,
+    address,
+    address,
+    uint256,
     bytes calldata _data
   ) public override returns (bytes4) {
     if(isCalledForOneStepJobCreation(_data)) { _createJobWithPassedData(_data); }
@@ -402,10 +402,10 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * - rest of arguments is obtained by decoding `_data`
    */
   function onERC1155Received(
-    address _operator,
-    address _from,
-    uint256 _id,
-    uint256 _value,
+    address,
+    address,
+    uint256,
+    uint256,
     bytes calldata _data
   ) external override returns (bytes4) {
     if(isCalledForOneStepJobCreation(_data)) { _createJobWithPassedData(_data); }
@@ -427,10 +427,10 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
    * TODO: Needs implementation
    */
   function onERC1155BatchReceived(
-    address _operator,
-    address _from,
-    uint256[] calldata _ids,
-    uint256[] calldata _values,
+    address,
+    address,
+    uint256[] calldata,
+    uint256[] calldata,
     bytes calldata _data
   ) external override returns (bytes4) {
     // TODO: iterate over _ids & _values
@@ -452,12 +452,11 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   }
 
   function supportsInterface(bytes4 interfaceId) external override view returns (bool) {
-    // return interfaceId == type(IERC20).interfaceId ||
-    //   interfaceId == type(IERC721).interfaceId ||
-    //   interfaceId == type(IERC1155).interfaceId ||
-    //   interfaceId == type(IERC721Receiver).interfaceId ||
-    //   interfaceId == type(IERC1155Receiver).interfaceId;
-    return true;
+    return interfaceId == type(IERC20).interfaceId ||
+      interfaceId == type(IERC721).interfaceId ||
+      interfaceId == type(IERC1155).interfaceId ||
+      interfaceId == type(IERC721Receiver).interfaceId ||
+      interfaceId == type(IERC1155Receiver).interfaceId;
   }
 
   function transferCallbackDelegate(

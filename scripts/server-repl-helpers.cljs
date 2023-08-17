@@ -59,7 +59,7 @@
 (in-ns 'ethlance.server.db)
 (require '[clojure.core.async :as async])
 (def conn (atom nil))
-(.then (db/get-connection) #(reset! conn %))
+(.then (district.server.async-db/get-connection) #(reset! conn %))
 
 (defn add-proposal [job-contract connection]
   (async/go
@@ -193,3 +193,12 @@
 
 ; Add Ethereum token details
 (store-token-details @conn {:address "0x0000000000000000000000000000000000000000" :name "Ether" :symbol "ETH" :abi []})
+
+; Replace accepted arbiter
+(in-ns 'ethlance.server.syncer)
+(def conn (atom nil))
+(.then (district.server.async-db/get-connection) #(reset! conn %))
+(def quote-accepted-event
+  {:job "0xf7264e7f594b5069ff12c7D81C96850ff0bF50c7"
+   :arbiter "0xef69e6586486903a7d772c3fab5c8a4d25f0ffe7"})
+(handle-quote-for-arbitration-accepted @conn nil {:args quote-accepted-event})

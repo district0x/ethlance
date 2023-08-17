@@ -132,7 +132,7 @@ function writeSmartContracts() {
 // Begin Migration
 //
 module.exports = async function(deployer, network, accounts) {
-  const address = accounts[0];
+  const address = accounts[6]; // 6th address
   const gas = 4e6;
   const opts = {gas: gas, from: address};
 

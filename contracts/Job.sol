@@ -262,8 +262,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     bytes memory _ipfsData
   ) public {
     require(msg.sender == creator, "Only job creator can pay invoice");
-    Invoice memory invoice = invoices[_invoiceId];
+    Invoice storage invoice = invoices[_invoiceId];
     require(invoice.paid == false, "Invoice already paid");
+    if (disputeExistsForInvoice(_invoiceId)) { // If employer wants to pay disputed invoice, mark the dispute as resolved
+      disputes[_invoiceId].resolved = true;
+    }
 
     EthlanceStructs.transferTokenValue(invoice.item, address(this), invoice.issuer);
 
@@ -425,8 +428,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
 
   function endJob() external hasNoOutstandingPayments {
-    // EthlanceStructs.TokenValue[] memory withdrawAmounts = maxWithdrawableAmounts(msg.sender);
-    bytes32 depositId;
     for(uint i = 0; i < depositors.length(); i++) {
       address depositor = depositors.at(i);
       EthlanceStructs.TokenValue[] memory depositAmounts = maxWithdrawableAmounts(depositor);
@@ -437,7 +438,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitJobEnded(address(this));
   }
 
-  function _hasUnpaidInvoices() internal view returns(bool) {
+  function _hasUnpaidInvoices() public view returns(bool) {
     for(uint i = 0; i < invoiceIds.length; i++) {
       Invoice memory invoice = invoices[invoiceIds[i]];
       if (invoice.paid == false && invoice.cancelled == false) {
@@ -447,7 +448,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return false;
   }
 
-  function _noUnresolvedDisputes() internal view returns(bool) {
+  function _noUnresolvedDisputes() public view returns(bool) {
     bool allResolved = true;
     for(uint i = 0; i < disputeIds.length; i++) {
       allResolved = allResolved && disputes[disputeIds[i]].resolved ;
@@ -501,6 +502,15 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return a <= b ? a : b;
   }
 
+  function disputeExistsForInvoice(uint invoiceId) public view returns(bool) {
+    for(uint i = 0; i < disputeIds.length; i++) {
+      if(disputes[disputeIds[i]].invoiceId == invoiceId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * @dev Raises a dispute between job creator and candidate
    *
@@ -518,14 +528,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     Invoice memory invoice = invoices[_invoiceId];
     require(invoice.issuer != address(0), "Can only raise dispute for invoices that exist");
     require(invoice.issuer == msg.sender, "Only issuer of an invoice can raise dispute about it");
-    bool previousDisputeFound = false;
-    for(uint i = 0; i < disputeIds.length; i++) {
-      if(disputes[disputeIds[i]].invoiceId == _invoiceId) {
-        previousDisputeFound = true;
-        break;
-      }
-    }
-    require(previousDisputeFound == false, "Can't raise dispute for same invoice more than once.");
+    require(disputeExistsForInvoice(_invoiceId) == false, "Can't raise dispute for same invoice more than once.");
     Dispute memory dispute = Dispute(_invoiceId, msg.sender, invoice.item, block.timestamp, false);
     disputes[_invoiceId] = dispute;
     disputeIds.push(_invoiceId);
@@ -602,9 +605,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    */
   function onERC721Received(
-    address _operator,
-    address _from,
-    uint256 _tokenId,
+    address,
+    address,
+    uint256,
     bytes calldata _data
   ) public override returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
@@ -617,10 +620,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    */
   function onERC1155Received(
-    address _operator,
-    address _from,
-    uint256 _id,
-    uint256 _value,
+    address,
+    address,
+    uint256,
+    uint256,
     bytes calldata _data
   ) public override returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
@@ -653,11 +656,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * TODO: Needs implementation
    */
   function onERC1155BatchReceived(
-    address _operator,
-    address _from,
-    uint256[] calldata _ids,
-    uint256[] calldata _values,
-    bytes calldata _data
+    address,
+    address,
+    uint256[] calldata,
+    uint256[] calldata,
+    bytes calldata
   ) public pure override returns (bytes4) {
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
@@ -692,21 +695,23 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   // Debugging helpers
-  function setToArray(EnumerableSet.AddressSet storage set) internal view returns (address[] memory) {
-    address[] memory result = new address[](EnumerableSet.length(set));
-    for (uint i = 0; i < EnumerableSet.length(set); i++)
-      result[i] = EnumerableSet.at(set, i);
-    return result;
-  }
+  // Would need to extract them because they make contract size too big
+  // function setToArray(EnumerableSet.AddressSet storage set) internal view returns (address[] memory) {
+  //   address[] memory result = new address[](EnumerableSet.length(set));
+  //   for (uint i = 0; i < EnumerableSet.length(set); i++)
+  //     result[i] = EnumerableSet.at(set, i);
+  //   return result;
+  // }
 
-  function getInvitedArbiters() public view returns (address[] memory) {
-    return setToArray(invitedArbiters);
-  }
+  // function getInvitedArbiters() public view returns (address[] memory) {
+  //   return setToArray(invitedArbiters);
+  // }
 
-  function getInvitedCandidates() public returns (address[] memory) {
-    return setToArray(invitedCandidates);
-  }
+  // function getInvitedCandidates() public returns (address[] memory) {
+  //   return setToArray(invitedCandidates);
+  // }
 
+  // Modifiers
   modifier hasNoOutstandingPayments {
     require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
     require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
