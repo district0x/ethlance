@@ -92,13 +92,14 @@
   :page.sign-up/update-candidate
   [interceptors]
   (fn [{:keys [db]} [form]]
-    (println ">>> update-candidate FORM" form)
     (let [user-address (accounts-queries/active-account db)
           set->vec (fn [v] (if (set? v) (vec v) v))
           user-params (update-vals
                         (remove-nil-vals-from-map (select-keys form user-fields))
                         set->vec)
-          candidate-params (remove-nil-vals-from-map (select-keys form candidate-fields))
+          candidate-params (update-vals
+                             (remove-nil-vals-from-map (select-keys form candidate-fields))
+                             set->vec)
           query [:update-user
                  {:user/id user-address :user user-params :candidate candidate-params}
                  [:user/id]]]

@@ -122,7 +122,7 @@
         raw-token-amount (get-in job [:job/token-amount])
 
         *bid-option (:job/bid-option job)
-        *job-token-type (get-in job [:job/token-type])
+        *job-token-type (get-in job [:job/token-type] "")
         *job-token-id (get-in job [:job/token-id])
         *job-token-address (get-in job [:job/token-address])
         *job-token-amount (if (= (str *job-token-type) "eth")
