@@ -832,6 +832,9 @@
           candidate-id (:candidate search-params)
           employer-id (:employer search-params)
           status (:status search-params)
+          status-val (if (= "finished" status)
+                       ["finished" "job-ended"]
+                       [(:status search-params)])
           base-query {:select [:JobStory.*]
                       :from [:JobStory]
                       :join [:Job [:= :Job.job/id :JobStory.job/id]]}
@@ -839,7 +842,7 @@
                   job-id (sql-helpers/merge-where [:ilike :JobStory.job/id job-id])
                   employer-id (sql-helpers/merge-where [:ilike :Job.job/creator employer-id])
                   candidate-id (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate-id])
-                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status])
+                  status (sql-helpers/merge-where [:in :JobStory.job-story/status status-val])
                   order-by (sql-helpers/merge-order-by [[(get {:date-created :job-story/date-created
                                                                :date-updated :job-story/date-updated}
                                                               (graphql-utils/gql-name->kw order-by))

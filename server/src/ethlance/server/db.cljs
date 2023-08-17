@@ -783,6 +783,10 @@
   (safe-go
   (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
+(defn update-job-story [conn job-story-id job-story-data]
+  (safe-go
+  (<? (update-row! conn :JobStory (assoc job-story-data :job-story/id job-story-id)))))
+
 (defn get-invoice-message [conn job-story-id invoice-id]
   (safe-go
     (<? (db/get conn {:select [:*]
