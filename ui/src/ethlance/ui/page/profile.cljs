@@ -221,9 +221,6 @@
         subject (if viewing-own-profile? "You have" "This user has" )
         posessive (if viewing-own-profile? "your" "their")
         role-str (name profile-type)]
-    (println "c-missing-profile-notification" {:viewed-user-address viewed-user-address
-                                               :viewing-user-address viewing-user-address
-                                               :viewing-own-profile? viewing-own-profile?})
     [:div.candidate-profile
      [:div (str subject " not set up " posessive " " role-str " profile")]
      (when viewing-own-profile?

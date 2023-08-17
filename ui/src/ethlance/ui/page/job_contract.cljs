@@ -213,7 +213,7 @@
                   :feedback/to-user-type
                   [:feedback/from-user [:user/id :user/name]]
                   [:feedback/to-user [:user/id :user/name]]]]]]
-        results @(re/subscribe [::gql/query {:queries [query]}])
+        results @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
         feedbacks (get-in results [:job-story :feedbacks])
         open-invoices (get-in results [:job-story :job-story/invoices :items])
         participants {:employer (get-in results [:job-story :job :job/employer :user])
@@ -412,7 +412,7 @@
                                    [:creation-message [:message/date-created]]
                                    [:dispute-raised-message [:message/id :message/text]]
                                    [:dispute-resolved-message [:message/id :message/text]]]]]]]]
-        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
 
         invitation-message (get-in @invoice-result [:job-story :invitation-message])
         invitation-accepted-message (get-in @invoice-result [:job-story :invitation-accepted-message])
@@ -515,7 +515,7 @@
                             [:creation-message [:message/date-created]]
                             [:dispute-raised-message [:message/id]]
                             [:dispute-resolved-message [:message/id]]]]]]]]
-        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
         job-id (get-in @invoice-result [:job-story :job/id])
         job-story-id (get-in @invoice-result [:job-story :job-story/id])
         token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
@@ -628,7 +628,7 @@
                        [:user/id
                         [:user [:user/name]]]]
                       [:token-details [:token-detail/symbol :token-detail/name]]]]]]
-            result @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:job-contract-refresh}}])
+            result @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
             job-story (:job-story result)
 
             candidate-id (get-in job-story [:candidate :user/id])
