@@ -89,14 +89,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   );
 
 
-  event FundsAdded(
-    address indexed job,
-    address indexed funder,
-    EthlanceStructs.TokenValue[] fundedValue,
-    uint timestamp
-  );
-
-
   event FundsWithdrawn(
     address indexed job,
     address indexed withdrawer,
@@ -125,6 +117,16 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     address indexed job,
     uint timestamp
   );
+
+  event FundsIn(address indexed job, EthlanceStructs.TokenValue[] funds);
+  function emitFundsIn(address job, EthlanceStructs.TokenValue[] memory funds) external {
+    emit FundsIn(job, funds);
+  }
+
+  event FundsOut(address indexed job, EthlanceStructs.TokenValue[] funds);
+  function emitFundsOut(address job, EthlanceStructs.TokenValue[] memory funds) external {
+    emit FundsOut(job, funds);
+  }
 
   event TestEvent(uint indexed theAnswer);
   function emitTestEvent(uint answer) external returns(uint) {
@@ -296,19 +298,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
 
 
   /**
-   * @dev Emits {FundsAdded} event
-   * Can only be called by {Job} contract address
-   */
-  function emitFundsAdded(
-    address _job,
-    address _funder,
-    EthlanceStructs.TokenValue[] memory _fundedValue
-  ) external isJob {
-    emit FundsAdded(_job, _funder, _fundedValue, timestamp());
-  }
-
-
-  /**
    * @dev Emits {FundsWithdrawn} event
    * Can only be called by {Job} contract address
    */
@@ -451,7 +440,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   ) external payable {
   }
 
-  function supportsInterface(bytes4 interfaceId) external override view returns (bool) {
+  function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
     return interfaceId == type(IERC20).interfaceId ||
       interfaceId == type(IERC721).interfaceId ||
       interfaceId == type(IERC1155).interfaceId ||
@@ -491,7 +480,7 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
     return abi.decode(_data[4:], (OperationType, address, EthlanceStructs.TokenValue[], address[], bytes));
   }
 
-  function isCalledForOneStepJobCreation(bytes calldata _data) internal returns(bool) {
+  function isCalledForOneStepJobCreation(bytes calldata _data) internal pure returns(bool) {
     if (_data.length > 0) {
       address creator;
       EthlanceStructs.TokenValue[] memory offeredValues;

@@ -261,6 +261,20 @@
         (<? (ethlance-db/update-job-story conn story-id {:job-story/status "job-ended"})))
       (<? (ethlance-db/update-job conn job-id {:job/status job-status})))))
 
+(defn handle-job-funds-change [outflow? conn _ {:keys [args] :as event}]
+  (safe-go
+    (log/info (str "handle-job-funds-change outflow?" outflow? " | event: " event))
+    (let [funds (:funds args)
+          funds-map (map offered-vec->flat-map funds)
+          amount-sign-fn (if outflow? (partial * -1) identity)
+          funding-base {:tx (:transaction-hash event)
+                        :job/id (:job args)
+                        :job-funding/created-at (get-timestamp)}
+          funding-updates (map (fn [tv]
+                                 (merge funding-base {:job-funding/amount (amount-sign-fn (:token-amount tv))
+                                                      :token-detail/id (:token-address tv) }))
+                               funds-map)]
+      (doseq [funding funding-updates] (<? (ethlance-db/insert-row! conn :JobFunding funding))))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
@@ -338,6 +352,8 @@
                          :ethlance/quote-for-arbitration-accepted handle-quote-for-arbitration-accepted
                          :ethlance/job-ended handle-job-ended
                          :ethlance/arbiters-invited handle-arbiters-invited
+                         :ethlance/funds-in (partial handle-job-funds-change false)
+                         :ethlance/funds-out (partial handle-job-funds-change true)
                          }
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)

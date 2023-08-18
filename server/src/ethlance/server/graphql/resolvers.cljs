@@ -956,6 +956,17 @@
       (log/debug "job->invoices-resolver RESULT-PAGES" job-id " | " result-pages)
       result-pages)))
 
+(defn job->balance-resolver [root {:keys [:limit :offset] :as args} _]
+  (db/with-async-resolver-conn conn
+    (let [parsed-root (graphql-utils/gql->clj root)
+          job-id (:job/id (graphql-utils/gql->clj root))
+          query {:select [(sql/call :sum :job-funding/amount)]
+                 :from [:JobFunding]
+                 :where [:= :JobFunding.job/id job-id]}
+          result (<? (db/get conn query))]
+      (log/debug "job->balance-resolver " job-id " | " result)
+      (:sum result))))
+
 (defn sign-in-mutation [_ {:keys [:data :data-signature] :as input} {:keys [config]}]
   (try-catch-throw
     (let [sign-in-secret (-> config :graphql :sign-in-secret)
@@ -1182,6 +1193,7 @@
                           :tokenDetails job->token-details-resolver
                           :invoices job->invoices-resolver
                           :invoice invoice-resolver
+                          :balance job->balance-resolver
                           :job_requiredSkills job->required-skills-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver

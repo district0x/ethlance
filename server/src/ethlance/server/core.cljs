@@ -49,6 +49,8 @@
                           :ethlance/quote-for-arbitration-accepted [:ethlance :QuoteForArbitrationAccepted]
                           :ethlance/job-ended [:ethlance :JobEnded]
                           :ethlance/arbiters-invited [:ethlance :ArbitersInvited]
+                          :ethlance/funds-in [:ethlance :FundsIn]
+                          :ethlance/funds-out [:ethlance :FundsOut]
                           :ethlance/test-event [:ethlance :TestEvent]
                           }
                  :from-block 0 ; 53; (:last-processed-block (read-edn-sync "ethlance-events.log"))

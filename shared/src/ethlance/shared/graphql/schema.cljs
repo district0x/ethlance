@@ -470,6 +470,7 @@
     job_dateCreated: Float # TODO: change back to Date after switching to district-ui-graphql
     job_dateUpdated: Float # TODO: change back to Date after switching to district-ui-graphql
 
+    balance: Float
     job_tokenType: String
     job_tokenAmount: Float
     job_tokenAddress: String

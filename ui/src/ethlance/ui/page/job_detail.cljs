@@ -25,6 +25,7 @@
             [ethlance.ui.util.job :as util.job]
             [ethlance.shared.utils :refer [millis->relative-time ilike!= ilike=]]
             [ethlance.shared.utils :as shared-utils]
+            [ethlance.ui.util.tokens :as util.tokens]
             [re-frame.core :as re]))
 
 (defn c-token-values [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name] :as opts}]
@@ -72,11 +73,9 @@
                                  :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [invoices-query]}])
         job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
-        token->human-amount (fn [amount token-symbol]
-                              (if (= token-symbol "ETH") (shared-utils/wei->eth amount) amount))
         invoices (map (fn [invoice]
                         {:name (get-in invoice [:creation-message :creator :user/name])
-                         :amount (str (token->human-amount (get-in invoice [:invoice/amount-requested]) job-token-symbol) " " job-token-symbol)
+                         :amount (str (util.tokens/human-amount (get-in invoice [:invoice/amount-requested]) job-token-symbol) " " job-token-symbol)
                          :timestamp (format/time-ago (new js/Date (get-in invoice [:creation-message :message/date-created])))
                          :status (get-in invoice [:invoice/status])})
                       (-> result :job :invoices :items))]
@@ -125,9 +124,7 @@
         *job-token-type (get-in job [:job/token-type] "")
         *job-token-id (get-in job [:job/token-id])
         *job-token-address (get-in job [:job/token-address])
-        *job-token-amount (if (= (str *job-token-type) "eth")
-                            (shared-utils/wei->eth raw-token-amount)
-                            raw-token-amount)
+        *job-token-amount (util.tokens/human-amount raw-token-amount *job-token-type)
         *token-detail-name (get-in job [:token-details :token-detail/name])
         *token-detail-symbol (get-in job [:token-details :token-detail/symbol])
         *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
@@ -515,6 +512,7 @@
                       :job/token-amount
                       :job/token-address
                       :job/token-id
+                      :balance
 
                       [:token-details [:token-detail/id
                                        :token-detail/name
@@ -564,9 +562,8 @@
           *job-token-type (get-in results [:job/token-type])
           *job-token-id (get-in results [:job/token-id])
           *job-token-address (get-in results [:job/token-address])
-          *job-token-amount (if (= (str *job-token-type) "eth")
-                              (shared-utils/wei->eth raw-token-amount)
-                              raw-token-amount)
+          *job-initial-amount (util.tokens/human-amount raw-token-amount *job-token-type)
+          *job-balance (util.tokens/human-amount (get-in results [:balance]) *job-token-type)
           *token-detail-name (get-in results [:token-details :token-detail/name])
           *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
 
@@ -591,7 +588,7 @@
          [:div.ticket-listing
          [:a.ticket {:href (token-utils/address->token-info-url *job-token-address) :target "_blank"}
           [:div.label "Available Funds"]
-          [:div.amount (str *job-token-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
+          [:div.amount (str *job-balance " of " *job-initial-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
          [:div.profiles
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]

@@ -138,9 +138,9 @@
      [:token-detail/symbol :text]
      [:token-detail/abi :text]
      ;; PK
-     [(sql/call :primary-key :token-detail/id)]
-     ]
+     [(sql/call :primary-key :token-detail/id)]]
     :list-keys []}
+
    {:table-name :ArbiterCategory
     :table-columns
     [[:user/id column-types/address]
@@ -384,6 +384,23 @@
      [(sql/call :foreign-key :message/id) (sql/call :references :Message :message/id) (sql/raw "ON DELETE CASCADE")]
      [(sql/call :foreign-key :job-story/id) (sql/call :references :JobStory :job-story/id) (sql/raw "ON DELETE CASCADE")]]
 
+    :list-keys []}
+
+   {:table-name :JobFunding
+    :table-columns
+    [[:tx column-types/sha3-hash]
+     [:job/id column-types/address not-nil]
+     [:job-funding/amount :bigint not-nil]
+     [:job-funding/created-at :bigint]
+     [:token-detail/id column-types/address]
+     ;; PK
+     [(sql/call :primary-key :tx)]
+
+     ;; FKs
+     [(sql/call :foreign-key :token-detail/id) (sql/call :references :TokenDetail :token-detail/id) (sql/raw "ON DELETE CASCADE")]
+     ; FIXME: Disabled due to JobCreated and FundsIn event order (FundsIn comes first, before job has been created)
+     ; [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     ]
     :list-keys []}
 
    {:table-name :File
