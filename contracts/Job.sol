@@ -173,7 +173,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     acceptedArbiter = _arbiter;
     EthlanceStructs.transferTokenValue(_transferredValue[0], address(this), _arbiter);
-    ethlance.emitFundsOut(address(this), _transferredValue);
     ethlance.emitQuoteForArbitrationAccepted(address(this), _arbiter);
   }
 
