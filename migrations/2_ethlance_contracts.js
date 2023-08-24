@@ -3,7 +3,7 @@ const {copy, smartContractsTemplate, encodeContractEDN, linkBytecode, requireCon
 const web3 = require("web3");
 const fs = require("fs");
 const edn = require("jsedn");
-const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle.js");
+const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle-config.js");
 
 // Placeholders
 const ethlanceJobsPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";

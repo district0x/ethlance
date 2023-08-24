@@ -7,7 +7,7 @@ import "./Ethlance.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@ganache/console.log/console.sol";
+// import "@ganache/console.log/console.sol";
 
 
 /**
@@ -266,6 +266,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
     invoice.paid = true;
     invoices[_invoiceId] = invoice;
+
+    EthlanceStructs.TokenValue[] memory outValues = new EthlanceStructs.TokenValue[](1);
+    outValues[0] = invoice.item;
+
+    ethlance.emitFundsOut(address(this), outValues);
     ethlance.emitInvoicePaid(address(this), _invoiceId, _ipfsData);
   }
 
@@ -637,12 +642,12 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive() external payable {
-    console.log("Job#receive called");
+    // console.log("Job#receive called");
     ethlance.emitFundsIn(address(this), EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
   }
 
   fallback() external payable {
-    console.log("Job#fallback called");
+    // console.log("Job#fallback called");
   }
 
   function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
