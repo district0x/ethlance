@@ -144,7 +144,8 @@
 (re/reg-event-fx
   :navigate-to-profile
   (fn [cofx [_ address tab]]
-    {:dispatch [:district.ui.router.events/navigate :route.user/profile {:address address} {:tab tab}]}))
+    {:fx [[:dispatch [:district.ui.router.events/navigate :route.user/profile {:address address} {:tab tab}]]
+          [:dispatch [:district.ui.user-profile-updated]]]}))
 
 (re/reg-event-fx
   :page.sign-up/upload-user-image

@@ -2,7 +2,7 @@
  :npm-deps {:install true}
  :dev-http {6500 ["resources/public/" "../resources/public/"]}
  :nrepl {:port 54200}
- :http {:port 3449
+ :http {:port 3420
         :host "0.0.0.0"}
  :builds {:dev-ui
           {:target :browser

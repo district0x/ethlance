@@ -33,6 +33,17 @@ module.exports = {
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : parameters [ETHLANCE_ENV],
 
+  compilers: {
+    solc: {
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      }
+    }
+  },
+
   networks: {
     development: {
       port: 9545,
