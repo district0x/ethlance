@@ -1,7 +1,7 @@
 {:deps true
  :npm-deps {:install true}
  :nrepl {:port 54100}
- :http {:port 3449
+ :http {:port 3410
         :host "0.0.0.0"}
 
  :builds {:dev-server

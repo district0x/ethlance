@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@ganache/console.log/console.sol";
+// import "@ganache/console.log/console.sol";
 
 library EthlanceStructs {
   enum TokenType {
@@ -28,6 +28,62 @@ library EthlanceStructs {
   struct TokenValue {
     Token token;
     uint value;
+  }
+
+  struct Deposit {
+    address depositor;
+    // This (tokenValue) reflects the amount depositor has added - withdrawn
+    // It excludes (doesn't get updated for) the amounts paid out as invoices
+    TokenValue tokenValue;
+  }
+
+  function makeTokenValue(uint value, TokenType tokenType) public pure returns(TokenValue[] memory) {
+      EthlanceStructs.TokenValue[] memory single = new EthlanceStructs.TokenValue[](1);
+      single[0].value = value;
+      single[0].token.tokenContract.tokenAddress = address(0);
+      single[0].token.tokenContract.tokenType = tokenType;
+
+      return single;
+  }
+
+  function min(uint a, uint b) pure internal returns(uint) {
+    return a <= b ? a : b;
+  }
+
+  // Normally the contributors (job creator and those who have added funds) can withdraw all their funds
+  // at any point. This is not the case when there have already been payouts and thus the funds kept in
+  // this Job contract are less.
+  // In such case these users will be eligible up to what they've contributed limited to what's left in Job
+  //
+  // This method can be used to receive array of TokenValue-s with max amounts to be used
+  // for subsequent withdrawFunds call
+  function maxWithdrawableAmounts(address contributor,
+                                  bytes32[] memory depositIds,
+                                  mapping(bytes32 => Deposit) storage deposits
+                                 ) public view returns(EthlanceStructs.TokenValue[] memory) {
+    EthlanceStructs.TokenValue[] memory withdrawables = new EthlanceStructs.TokenValue[](depositIds.length);
+    uint withdrawablesCount = 0;
+    for(uint i = 0; i < depositIds.length; i++) {
+      Deposit memory deposit = deposits[depositIds[i]];
+      if(deposit.depositor == contributor) {
+        TokenValue memory tv = deposit.tokenValue;
+        uint jobTokenBalance = tokenValueBalance(address(this), tv);
+        if (jobTokenBalance == 0) { break; } // Nothing to do if 0 tokens left of the kind
+        uint valueToWithdraw = min(jobTokenBalance, tv.value);
+        if (valueToWithdraw == 0) { break; } // Nothing to do if could withdraw 0
+        tv.value = valueToWithdraw;
+        withdrawables[withdrawablesCount] = tv;
+        withdrawablesCount += 1;
+      }
+    }
+
+    // Return only the ones that matched contributor (can't dynamically allocate in-memory array, need to reconstruct)
+    TokenValue[] memory compactWithdrawables = new TokenValue[](withdrawablesCount);
+    for(uint i = 0; i < withdrawablesCount; i++) {
+      compactWithdrawables[i] = withdrawables[i];
+    }
+
+    return compactWithdrawables;
   }
 
   function tokenValuesEqual(EthlanceStructs.TokenValue memory first, EthlanceStructs.TokenValue memory second) public pure returns (bool) {

@@ -25,6 +25,7 @@
             [ethlance.ui.util.job :as util.job]
             [ethlance.shared.utils :refer [millis->relative-time ilike!= ilike=]]
             [ethlance.shared.utils :as shared-utils]
+            [ethlance.ui.util.tokens :as util.tokens]
             [re-frame.core :as re]))
 
 (defn c-token-values [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name] :as opts}]
@@ -72,11 +73,9 @@
                                  :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [invoices-query]}])
         job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
-        token->human-amount (fn [amount token-symbol]
-                              (if (= token-symbol "ETH") (shared-utils/wei->eth amount) amount))
         invoices (map (fn [invoice]
                         {:name (get-in invoice [:creation-message :creator :user/name])
-                         :amount (str (token->human-amount (get-in invoice [:invoice/amount-requested]) job-token-symbol) " " job-token-symbol)
+                         :amount (str (util.tokens/human-amount (get-in invoice [:invoice/amount-requested]) job-token-symbol) " " job-token-symbol)
                          :timestamp (format/time-ago (new js/Date (get-in invoice [:creation-message :message/date-created])))
                          :status (get-in invoice [:invoice/status])})
                       (-> result :job :invoices :items))]
@@ -122,12 +121,10 @@
         raw-token-amount (get-in job [:job/token-amount])
 
         *bid-option (:job/bid-option job)
-        *job-token-type (get-in job [:job/token-type])
+        *job-token-type (get-in job [:job/token-type] "")
         *job-token-id (get-in job [:job/token-id])
         *job-token-address (get-in job [:job/token-address])
-        *job-token-amount (if (= (str *job-token-type) "eth")
-                            (shared-utils/wei->eth raw-token-amount)
-                            raw-token-amount)
+        *job-token-amount (util.tokens/human-amount raw-token-amount *job-token-type)
         *token-detail-name (get-in job [:token-details :token-detail/name])
         *token-detail-symbol (get-in job [:token-details :token-detail/symbol])
         *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
@@ -273,35 +270,47 @@
 
 (defn c-invite-arbiters [job-address]
   (let [selected-arbiters (re/subscribe [:page.job-detail/selected-arbiters])
-        arbiter-user-fields [:user [:user/id :user/name]]
+        arbiter-fields [:arbiter/rating
+                        [:arbiter/feedback [:total-count]]
+                        [:user [:user/id :user/name]]]
         job-query [:job {:job/id job-address}
                    [:job/employer-address
                     [:arbitrations
                      [[:items
                        [[:arbiter
-                         [arbiter-user-fields]]]]]]]]
+                         arbiter-fields]]]]]]]
         arbiters-query [:arbiter-search {:search-params {:name ""}}
                [[:items
-                 [arbiter-user-fields]]]]
+                 arbiter-fields]]]
         search-result @(re/subscribe [::gql/query {:queries [arbiters-query job-query]}
                                       {:refetch-on #{:page.job-detail/arbitrations-updated}}])
 
-        all-arbiters (map :user (get-in search-result [:arbiter-search :items]))
-        already-added (map #(get-in % [:arbiter :user]) (get-in search-result [:job :arbitrations :items]))
+        all-arbiters (get-in search-result [:arbiter-search :items])
+        already-added (map #(get-in % [:arbiter]) (get-in search-result [:job :arbitrations :items]))
         uninvited-arbiters (clojure.set/difference (set all-arbiters) (set already-added))
 
         employer-address (get-in search-result [:job :job/employer-address])
         arbiter-address-fn (fn [arbiter] (get-in arbiter [:user :user/id]))
 
-        nothing-added? (empty? @selected-arbiters)]
+        nothing-added? (empty? @selected-arbiters)
+        arbiter-info-fn (fn [arbiter]
+                          (clojure.string.join
+                            [(get-in arbiter [:user :user/name])
+                             " "
+                             (apply str (repeat (:arbiter/rating arbiter) "⭐"))
+                             (apply str (repeat (- 5 (:arbiter/rating arbiter)) "☆"))
+                             " ("
+                             (get-in arbiter [:arbiter/feedback :total-count])
+                             ")"]))
+        arbiter-address-fn (comp :user/id :user)]
     [:div.proposal-form
      [:div.label "Invite arbiter"]
      [c-chip-search-input
       {:chip-listing @selected-arbiters
        :on-chip-listing-change #(re/dispatch [:page.job-detail/set-selected-arbiters %])
        :auto-suggestion-listing uninvited-arbiters
-       :label-fn :user/name
-       :value-fn :user/id
+       :label-fn arbiter-info-fn
+       :value-fn arbiter-address-fn
        :allow-custom-chips? false
        :placeholder "Searh arbiter by name"}]
 
@@ -313,7 +322,7 @@
                     (>evt [:page.job-detail/invite-arbiters
                            {:job/id job-address
                             :employer employer-address
-                            :arbiters (map :user/id @selected-arbiters)}])))}
+                            :arbiters (map arbiter-address-fn @selected-arbiters)}])))}
      [c-button-label "Invite"]]]))
 
 (defn c-set-arbiter-quote [arbitration-by-current-user]
@@ -360,9 +369,10 @@
         "You already set the quote for arbitration. Now the employer must
         accept, which will transfer the quoted amount to you"]])))
 
-(defn c-arbitrations-section [job-address active-user]
+(defn c-arbitrations-section [job-address]
   (let [limit @(re/subscribe [:page.job-detail/arbitrations-limit])
         offset @(re/subscribe [:page.job-detail/arbitrations-offset])
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         query [:job {:job/id job-address}
                [:job/id
                 :job/employer-address
@@ -481,94 +491,57 @@
         :other
         [:div.proposal-form])]))
 
-(defmethod page :route.job/detail []
-  (fn []
-    (let [page-params (re/subscribe [:district.ui.router.subs/active-page-params])
-          contract-address (:id @page-params)
-          active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-          job-query [:job {:job/id contract-address}
-                     [:job/id
-                      :job/title
-                      :job/description
-                      :job/required-skills
-                      :job/category
-                      :job/status
-                      :job/required-experience-level
-                      :job/required-availability
-                      :job/bid-option
-                      :job/estimated-project-length
-                      :job/date-created
+(defn c-job-info-section [results]
+  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        page-params (re/subscribe [:district.ui.router.subs/active-page-params])
+        contract-address (:id @page-params)
+        *title (:job/title results)
+        *description (:job/description results)
+        *sub-title (:job/category results)
+        *experience (:job/required-experience-level results)
+        job-creation-time (.fromTimestamp goog.date.DateTime (:job/date-created results))
+        *posted-time-relative (str "Posted " (format/time-ago job-creation-time))
+        *posted-time-absolute (str "(" (format/format-local-date job-creation-time) ")")
+        job-status (:job/status results)
+        desc-from-vec (fn [options source job]
+                        (println ">>> desc-from-vec" {:options options :source source :job job})
+                        ((source job) (into {} options)))
+        tag-definitions [{:desc "Estimated duration: " :source (partial desc-from-vec util.job/estimated-durations :job/estimated-project-length)}
+                         {:desc "Required experience: " :source (partial desc-from-vec util.job/experience-level :job/required-experience-level)}
+                         {:desc "Job status: " :source #(name (:job/status %))}
+                         {:desc "Bid option: " :source (partial desc-from-vec util.job/bid-option :job/bid-option)}]
+        *job-info-tags (remove nil?
+                               (map (fn [tag-def]
+                                      (when (and
+                                              (not (nil? results))
+                                              ((:source tag-def) results))
+                                        (str (:desc tag-def) ((:source tag-def) results))))
+                                    tag-definitions))
+        *required-skills (:job/required-skills results)
 
-                      :job/token-type
-                      :job/token-amount
-                      :job/token-address
-                      :job/token-id
+        employer-id (get-in results [:job/employer :user/id])
+        arbiter-id (get-in results [:job/arbiter :user/id])
+        has-accepted-arbiter? (not (nil? (get-in results [:job/arbiter])))
 
-                      [:token-details [:token-detail/id
-                                       :token-detail/name
-                                       :token-detail/symbol]]
-                      [:invoices
-                       [[:items
-                         [:id
-                          :invoice/id
-                          :job/id
-                          :job-story/id
-                          :invoice/status]]]]
-                      [:job/employer [:user/id]]
-                      [:job/arbiter [:user/id]]]]
-          query-results (re/subscribe [::gql/query
-                                       {:queries [job-query]}
-                                       {:refetch-on #{:page.job-detail/job-updated}}])
-          results (:job @query-results)
+        raw-token-amount (get-in results [:job/token-amount])
+        *job-token-type (get-in results [:job/token-type])
+        *job-token-id (get-in results [:job/token-id])
+        *job-token-address (get-in results [:job/token-address])
+        *job-initial-amount (util.tokens/human-amount raw-token-amount *job-token-type)
+        *job-balance (util.tokens/human-amount (get-in results [:balance]) *job-token-type)
+        *token-detail-name (get-in results [:token-details :token-detail/name])
+        *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
 
-          *title (:job/title results)
-          *description (:job/description results)
-          *sub-title (:job/category results)
-          *experience (:job/required-experience-level results)
-          job-creation-time (.fromTimestamp goog.date.DateTime (:job/date-created results))
-          *posted-time-relative (str "Posted " (format/time-ago job-creation-time))
-          *posted-time-absolute (str "(" (format/format-local-date job-creation-time) ")")
-          job-status (:job/status results)
-          desc-from-vec (fn [options source job]
-                          ((source job) (into {} options)))
-          tag-definitions [{:desc "Estimated duration: " :source (partial desc-from-vec util.job/estimated-durations :job/estimated-project-length)}
-                           {:desc "Required experience: " :source (partial desc-from-vec util.job/experience-level :job/required-experience-level)}
-                           {:desc "Job status: " :source #(name (:job/status %))}
-                           {:desc "Bid option: " :source (partial desc-from-vec util.job/bid-option :job/bid-option)}]
-          *job-info-tags (remove nil?
-                                 (map (fn [tag-def]
-                                        (when (and
-                                                (not (nil? results))
-                                                ((:source tag-def) results))
-                                          (str (:desc tag-def) ((:source tag-def) results))))
-                                      tag-definitions))
-          *required-skills (:job/required-skills results)
-
-          employer-id (get-in results [:job/employer :user/id])
-          arbiter-id (get-in results [:job/arbiter :user/id])
-          has-accepted-arbiter? (not (nil? (get-in results [:job/arbiter])))
-
-          raw-token-amount (get-in results [:job/token-amount])
-          *job-token-type (get-in results [:job/token-type])
-          *job-token-id (get-in results [:job/token-id])
-          *job-token-address (get-in results [:job/token-address])
-          *job-token-amount (if (= (str *job-token-type) "eth")
-                              (shared-utils/wei->eth raw-token-amount)
-                              raw-token-amount)
-          *token-detail-name (get-in results [:token-details :token-detail/name])
-          *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
-
-          invoices (get-in results [:invoices :items])
-          unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)
-          unresolved-disputes (filter #(= "dispute-raised" (:invoice/status %)) invoices)
-          has-unpaid-invoices? (not (empty? unpaid-invoices))
-          has-unresolved-disputes? (not (empty? unresolved-disputes))
-          show-end-job? (and
-                          (ilike= employer-id active-user)
-                          (not= :ended job-status))
-          can-end-job? (not (or has-unpaid-invoices? has-unresolved-disputes?))]
-      [c-main-layout {:container-opts {:class :job-detail-main-container}}
-       [:div.header
+        invoices (get-in results [:invoices :items])
+        unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)
+        unresolved-disputes (filter #(= "dispute-raised" (:invoice/status %)) invoices)
+        has-unpaid-invoices? (not (empty? unpaid-invoices))
+        has-unresolved-disputes? (not (empty? unresolved-disputes))
+        show-end-job? (and
+                        (ilike= employer-id active-user)
+                        (not= :ended job-status))
+        can-end-job? (not (or has-unpaid-invoices? has-unresolved-disputes?))]
+    [:div.header
         [:div.main
          [:div.title *title]
          [:div.sub-title *sub-title] ; TODO: where this comes from
@@ -579,7 +552,7 @@
          [:div.ticket-listing
          [:a.ticket {:href (token-utils/address->token-info-url *job-token-address) :target "_blank"}
           [:div.label "Available Funds"]
-          [:div.amount (str *job-token-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
+          [:div.amount (str *job-balance " of " *job-initial-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
          [:div.profiles
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
@@ -613,9 +586,52 @@
                     (str "Dispute #" (:invoice/id invoice))]])]])
 
             (when can-end-job? [:div "Ending the job will return all remaining funds to who contributed them"])])]]
+    ))
 
-       [c-proposals-section results]
-       [c-arbitrations-section contract-address active-user]
+(defmethod page :route.job/detail []
+  (fn []
+    (let [page-params (re/subscribe [:district.ui.router.subs/active-page-params])
+          contract-address (:id @page-params)
+          job-query [:job {:job/id contract-address}
+                     [:job/id
+                      :job/title
+                      :job/description
+                      :job/required-skills
+                      :job/category
+                      :job/status
+                      :job/required-experience-level
+                      :job/required-availability
+                      :job/bid-option
+                      :job/estimated-project-length
+                      :job/date-created
+
+                      :job/token-type
+                      :job/token-amount
+                      :job/token-address
+                      :job/token-id
+                      :balance
+
+                      [:token-details [:token-detail/id
+                                       :token-detail/name
+                                       :token-detail/symbol]]
+                      [:invoices
+                       [[:items
+                         [:id
+                          :invoice/id
+                          :job/id
+                          :job-story/id
+                          :invoice/status]]]]
+                      [:job/employer [:user/id]]
+                      [:job/arbiter [:user/id]]]]
+          query-results (re/subscribe [::gql/query
+                                       {:queries [job-query]}
+                                       {:refetch-on #{:page.job-detail/job-updated}}])
+          results (:job @query-results)]
+      [c-main-layout {:container-opts {:class :job-detail-main-container}}
+       (when (not (:graphql/loading? @query-results)) [c-job-info-section results])
+
+       (when (not (:graphql/loading? @query-results)) [c-proposals-section results])
+       [c-arbitrations-section contract-address]
 
        [c-invoice-listing contract-address]
 

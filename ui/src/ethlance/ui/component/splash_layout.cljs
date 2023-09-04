@@ -1,17 +1,15 @@
 (ns ethlance.ui.component.splash-layout
-  (:require [ethlance.ui.component.button :refer [c-button c-button-label]]
-            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.component.splash-mobile-navigation-bar
-             :refer
-             [c-splash-mobile-navigation-bar]]
-            [ethlance.ui.component.splash-navigation-bar
-             :refer
-             [c-splash-navigation-bar]]
-            [ethlance.ui.util.navigation :as util.navigation]
-            [reagent.core :as r]
-            ["react-transition-group" :refer [CSSTransition TransitionGroup]]))
+  (:require
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
+    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.splash-mobile-navigation-bar :refer [c-splash-mobile-navigation-bar]]
+    [ethlance.ui.component.splash-navigation-bar :refer [c-splash-navigation-bar]]
+    [ethlance.ui.util.navigation :as util.navigation]
+    [reagent.core :as r]
+    ["react-transition-group" :refer [CSSTransition TransitionGroup]]
+    [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog]]))
 
 (defn c-how-to-card [label src]
   [:div.how-to-card
@@ -308,4 +306,7 @@
         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :arbiter}})}
        [c-button-label [:span "Become an " [:b "Arbiter"]]]]]
      [:div.footer-section
-      [:span "Copyright © 2020 Ethlance.com. All rights reserved."]]]]])
+      [:span "Copyright © 2020 Ethlance.com. All rights reserved."]]
+     [:div.modals
+          [c-sign-in-dialog]]
+     ]]])

@@ -113,9 +113,7 @@
 
 (defn c-arbiter-listing []
   (let [query-params (re/subscribe [:page.arbiters/search-params])
-        ]
-    (fn []
-      (let [query [:arbiter-search @query-params
+        query [:arbiter-search @query-params
                    [:total-count
                     [:items [:user/id
                              [:user [:user/id
@@ -128,44 +126,42 @@
                              :arbiter/rating
                              :arbiter/fee
                              :arbiter/fee-currency-id]]]]
-            results (re/subscribe [::gql/query {:queries [query]} {:id @query-params}])
-            _ (println ">>> arbiter-listing-query" @results)
-            *limit (re/subscribe [:page.arbiters/limit])
-            *offset (re/subscribe [:page.arbiters/offset])
-            {arbiter-search   :arbiter-search
-             preprocessing?   :graphql/preprocessing?
-             loading?         :graphql/loading?
-             errors           :graphql/errors} @results
-            {arbiter-listing  :items
-             total-count      :total-count} arbiter-search]
-        (println ">>> results" {:results @results :arbiter-listing arbiter-listing})
-        [:<>
-         (cond
-           ;; Errors?
-           (seq errors)
-           [c-error-message "Failed to process GraphQL" (pr-str errors)]
+        results (re/subscribe [::gql/query {:queries [query]} {:id @query-params}])
+        *limit (re/subscribe [:page.arbiters/limit])
+        *offset (re/subscribe [:page.arbiters/offset])
+        {arbiter-search   :arbiter-search
+         preprocessing?   :graphql/preprocessing?
+         loading?         :graphql/loading?
+         errors           :graphql/errors} @results
+        {arbiter-listing  :items
+         total-count      :total-count} arbiter-search]
+    [:<>
+     (cond
+       ;; Errors?
+       (seq errors)
+       [c-error-message "Failed to process GraphQL" (pr-str errors)]
 
-           ;; Loading?
-           (or preprocessing? loading?)
-           [c-loading-spinner]
+       ;; Loading?
+       (or preprocessing? loading?)
+       [c-loading-spinner]
 
-           ;; Empty?
-           (empty? arbiter-listing)
-           [c-info-message "No Arbiters"]
+       ;; Empty?
+       (empty? arbiter-listing)
+       [c-info-message "No Arbiters"]
 
-           :else
-           (doall
-            (for [arbiter arbiter-listing]
-              ^{:key (str "arbiter-" (hash arbiter))}
-              [c-arbiter-element arbiter])))
+       :else
+       (doall
+         (for [arbiter arbiter-listing]
+           ^{:key (str "arbiter-" (hash arbiter))}
+           [c-arbiter-element arbiter])))
 
-         ;; Pagination
-         (when (seq arbiter-listing)
-           [c-pagination
-            {:total-count total-count
-             :limit @*limit
-             :offset @*offset
-             :set-offset-event :page.arbiters/set-offset}])]))))
+     ;; Pagination
+     (when (seq arbiter-listing)
+       [c-pagination
+        {:total-count total-count
+         :limit @*limit
+         :offset @*offset
+         :set-offset-event :page.arbiters/set-offset}])]))
 
 (defmethod page :route.user/arbiters []
   (let [*skills (re/subscribe [:page.arbiters/skills])]

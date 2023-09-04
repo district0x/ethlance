@@ -50,7 +50,9 @@
   [{:keys [title] :as details}]
   [:div.header-profile
    [:div.title "Job Contract"]
-   [:div.job-name title]
+   [:a.job-name
+     (util.navigation/link-params {:route :route.job/detail :params {:id (:job/id details)}})
+    title]
    [:div.job-details
     [c-job-detail-table details]]])
 
@@ -113,10 +115,10 @@
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
                               (:direct-messages job-story))
         invoice-link (fn [invoice]
-                       (let [params {:route :route.invoice/index
-                                     :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}}]
-                       [:a {:on-click (util.navigation/create-handler params) :href (util.navigation/resolve-route params)}
-                        "View invoice details"]))
+                       [:a (util.navigation/link-params
+                             {:route :route.invoice/index
+                              :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})
+                        "View invoice details"])
         invoice-messages (map #(common-chat-fields current-user % :creation-message
                                                    [(fn [invoice] (str "Invoice #" (:invoice/id invoice) " created"))
                                                     (partial invoice-detail job-story :invoice/amount-requested)
@@ -211,7 +213,7 @@
                   :feedback/to-user-type
                   [:feedback/from-user [:user/id :user/name]]
                   [:feedback/to-user [:user/id :user/name]]]]]]
-        results @(re/subscribe [::gql/query {:queries [query]}])
+        results @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
         feedbacks (get-in results [:job-story :feedbacks])
         open-invoices (get-in results [:job-story :job-story/invoices :items])
         participants {:employer (get-in results [:job-story :job :job/employer :user])
@@ -410,7 +412,7 @@
                                    [:creation-message [:message/date-created]]
                                    [:dispute-raised-message [:message/id :message/text]]
                                    [:dispute-resolved-message [:message/id :message/text]]]]]]]]
-        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
 
         invitation-message (get-in @invoice-result [:job-story :invitation-message])
         invitation-accepted-message (get-in @invoice-result [:job-story :invitation-accepted-message])
@@ -513,7 +515,7 @@
                             [:creation-message [:message/date-created]]
                             [:dispute-raised-message [:message/id]]
                             [:dispute-resolved-message [:message/id]]]]]]]]
-        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]}])
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
         job-id (get-in @invoice-result [:job-story :job/id])
         job-story-id (get-in @invoice-result [:job-story :job-story/id])
         token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
@@ -604,29 +606,29 @@
     (fn []
       (let [job-story-id (-> @*active-page-params :job-story-id parse-int)
             active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-            job-story-query [:job-story {:job-story/id job-story-id}
-                             [:job/id
-                              :job-story/id
-                              :job-story/status
-                              [:candidate [:user/id
-                                           [:user [:user/name]]]]
-
-                              [:proposal-message [:message/id :message/text]]
-
-                              [:job [:job/title
-                                     :job/token-type
-                                     :job/token-amount
-                                     :job/token-address
-                                     :job/token-id
-                                     [:job/employer
-                                      [:user/id
-                                       [:user [:user/name]]]]
-                                     [:job/arbiter
-                                      [:user/id
-                                       [:user [:user/name]]]]
-                                     [:token-details [:token-detail/symbol :token-detail/name]]]]]]
-            result @(re/subscribe [::gql/query {:queries [job-story-query]} {:refetch-on #{:job-contract-refresh}}])
-            _ (cljs.pprint/pprint result)
+            query [:job-story {:job-story/id job-story-id}
+                   [:job/id
+                    :job-story/id
+                    :job-story/status
+                    [:candidate
+                     [:user/id
+                      [:user [:user/name]]]]
+                    [:proposal-message
+                     [:message/id :message/text]]
+                    [:job
+                     [:job/title
+                      :job/token-type
+                      :job/token-amount
+                      :job/token-address
+                      :job/token-id
+                      [:job/employer
+                       [:user/id
+                        [:user [:user/name]]]]
+                      [:job/arbiter
+                       [:user/id
+                        [:user [:user/name]]]]
+                      [:token-details [:token-detail/symbol :token-detail/name]]]]]]
+            result @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
             job-story (:job-story result)
 
             candidate-id (get-in job-story [:candidate :user/id])
@@ -650,6 +652,7 @@
             raw-amount (get-in job-story [:job :job/token-amount])
             human-amount (tokens/human-amount raw-amount token-type)
             profile {:title (get-in job-story [:job :job/title])
+                     :job/id (:job/id job-story)
                      :status (get-in job-story [:job-story/status])
                      :funds {:amount human-amount
                              :name (-> job-story :job :token-details :token-detail/name)

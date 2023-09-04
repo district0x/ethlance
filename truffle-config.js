@@ -33,6 +33,17 @@ module.exports = {
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : parameters [ETHLANCE_ENV],
 
+  compilers: {
+    solc: {
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      }
+    }
+  },
+
   networks: {
     development: {
       port: 9545,
@@ -44,6 +55,7 @@ module.exports = {
     ganache: {
       host: 'localhost',
       port: 8549,
+      from: "0xeba108B12593336bBa461b8a6e7DC5A4b597Bc7E", // 6th address
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'

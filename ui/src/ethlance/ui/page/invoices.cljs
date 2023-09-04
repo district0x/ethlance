@@ -10,6 +10,7 @@
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.util.navigation :as util.navigation]
             [ethlance.ui.component.rating :refer [c-rating]]))
 
 (defn c-participant-user-info [data-prefix data]
@@ -91,8 +92,8 @@
                       ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]]
       [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
        [:div.title "Invoice"]
-       [:a.sub-title
-        {:on-click (fn [])} (:job/title job)]
+       [:a.sub-title (util.navigation/link-params {:route :route.job/detail
+                                                   :params {:id (:job/id invoice)}}) (:job/title job)]
        [:div.invoice-status [:span.label (:invoice/status invoice)]]
 
        [:div.left

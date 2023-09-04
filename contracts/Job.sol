@@ -7,7 +7,7 @@ import "./Ethlance.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@ganache/console.log/console.sol";
+// import "@ganache/console.log/console.sol";
 
 
 /**
@@ -26,13 +26,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   address public creator;
 
   // The bytes32 being keccak256(abi.encodePacked(depositorAddress, TokenType, contractAddress, tokenId))
-  mapping(bytes32 => Deposit) deposits;
-  struct Deposit {
-    address depositor;
-    // This (tokenValue) reflects the amount depositor has added - withdrawn
-    // It excludes (doesn't get updated for) the amounts paid out as invoices
-    EthlanceStructs.TokenValue tokenValue;
-  }
+  mapping(bytes32 => EthlanceStructs.Deposit) deposits;
   bytes32[] depositIds; // To allow looking up and listing all deposits
   EnumerableSet.AddressSet internal depositors;
 
@@ -49,7 +43,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint raisedAt;
     bool resolved;
   }
-  mapping (uint => Dispute) public disputes;
+  mapping (uint => Dispute) public disputes; // invoiceId => dispute
   uint[] disputeIds;
 
   struct Invoice {
@@ -262,13 +256,21 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     bytes memory _ipfsData
   ) public {
     require(msg.sender == creator, "Only job creator can pay invoice");
-    Invoice memory invoice = invoices[_invoiceId];
+    Invoice storage invoice = invoices[_invoiceId];
     require(invoice.paid == false, "Invoice already paid");
+    if (disputeExistsForInvoice(_invoiceId)) { // If employer wants to pay disputed invoice, mark the dispute as resolved
+      disputes[_invoiceId].resolved = true;
+    }
 
     EthlanceStructs.transferTokenValue(invoice.item, address(this), invoice.issuer);
 
     invoice.paid = true;
     invoices[_invoiceId] = invoice;
+
+    EthlanceStructs.TokenValue[] memory outValues = new EthlanceStructs.TokenValue[](1);
+    outValues[0] = invoice.item;
+
+    ethlance.emitFundsOut(address(this), outValues);
     ethlance.emitInvoicePaid(address(this), _invoiceId, _ipfsData);
   }
 
@@ -308,7 +310,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * - `_funder` cannot be empty
    * - `_fundedValue` cannot be empty
    *
-   * Emits {FundsAdded} event
+   * Emits {FundsIn} event
    * See spec :ethlance/funds-added for the format of _ipfsData file
    */
   function _recordAddedFunds(
@@ -318,10 +320,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     for(uint i = 0; i < _offeredValues.length; i++) {
       EthlanceStructs.TokenValue memory tv = _offeredValues[i];
       bytes32 depositId = _generateDepositId(_funder, tv);
-      Deposit storage earlierDeposit = deposits[depositId];
+      EthlanceStructs.Deposit storage earlierDeposit = deposits[depositId];
       if (earlierDeposit.depositor == address(0)) {
         // No earlier deposit of that token from the depositor
-        Deposit memory deposit = Deposit(_funder, tv);
+        EthlanceStructs.Deposit memory deposit = EthlanceStructs.Deposit(_funder, tv);
         deposits[depositId] = deposit;
         depositIds.push(depositId);
         depositors.add(_funder);
@@ -332,7 +334,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
         earlierDeposit.tokenValue.value += tv.value;
       }
     }
-    ethlance.emitFundsAdded(address(this), _funder, _offeredValues);
+    ethlance.emitFundsIn(address(this), _offeredValues);
   }
 
   // For adding ETH and ERC20 funds. ERC721 and 1155 get added via callbacks (onERC<...>Received)
@@ -365,7 +367,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint lastFilled = 0;
     for(uint i = 0; i < depositIds.length; i++) {
       bytes32 depositId = depositIds[i];
-      Deposit memory currentDeposit = deposits[depositId];
+      EthlanceStructs.Deposit memory currentDeposit = deposits[depositId];
       if(currentDeposit.depositor == depositor) {
         selectedValues[lastFilled] = currentDeposit.tokenValue;
         lastFilled += 1;
@@ -416,7 +418,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   function withdrawAll() external {
-    EthlanceStructs.TokenValue[] memory withdrawAmounts = maxWithdrawableAmounts(msg.sender);
+    EthlanceStructs.TokenValue[] memory withdrawAmounts = EthlanceStructs.maxWithdrawableAmounts(msg.sender,
+                                                                                                depositIds,
+                                                                                                deposits);
     for(uint i = 0; i < withdrawAmounts.length; i++) {
       _executeWithdraw(msg.sender, withdrawAmounts[i]);
     }
@@ -425,11 +429,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
 
   function endJob() external hasNoOutstandingPayments {
-    // EthlanceStructs.TokenValue[] memory withdrawAmounts = maxWithdrawableAmounts(msg.sender);
-    bytes32 depositId;
     for(uint i = 0; i < depositors.length(); i++) {
       address depositor = depositors.at(i);
-      EthlanceStructs.TokenValue[] memory depositAmounts = maxWithdrawableAmounts(depositor);
+      EthlanceStructs.TokenValue[] memory depositAmounts = EthlanceStructs.maxWithdrawableAmounts(depositor,
+                                                                                                 depositIds,
+                                                                                                 deposits);
       for (uint j = 0; j < depositAmounts.length; j++) {
         _executeWithdraw(depositor, depositAmounts[j]);
       }
@@ -437,7 +441,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitJobEnded(address(this));
   }
 
-  function _hasUnpaidInvoices() internal view returns(bool) {
+  function _hasUnpaidInvoices() public view returns(bool) {
     for(uint i = 0; i < invoiceIds.length; i++) {
       Invoice memory invoice = invoices[invoiceIds[i]];
       if (invoice.paid == false && invoice.cancelled == false) {
@@ -447,7 +451,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return false;
   }
 
-  function _noUnresolvedDisputes() internal view returns(bool) {
+  function _noUnresolvedDisputes() public view returns(bool) {
     bool allResolved = true;
     for(uint i = 0; i < disputeIds.length; i++) {
       allResolved = allResolved && disputes[disputeIds[i]].resolved ;
@@ -457,48 +461,24 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   function _executeWithdraw(address receiver, EthlanceStructs.TokenValue memory tokenValue) internal {
     bytes32 valueDepositId = _generateDepositId(receiver, tokenValue);
-    Deposit memory deposit = deposits[valueDepositId];
+    EthlanceStructs.Deposit memory deposit = deposits[valueDepositId];
     require(tokenValue.value <= deposit.tokenValue.value, "Can't withdraw more than the withdrawer has deposited");
     EthlanceStructs.transferTokenValue(tokenValue, address(this), receiver);
     deposit.tokenValue.value -= tokenValue.value;
     deposits[valueDepositId] = deposit;
+    EthlanceStructs.TokenValue[] memory outValues = new EthlanceStructs.TokenValue[](1);
+    outValues[0] = tokenValue;
+    ethlance.emitFundsOut(address(this), outValues);
   }
 
-  // Normally the contributors (job creator and those who have added funds) can withdraw all their funds
-  // at any point. This is not the case when there have already been payouts and thus the funds kept in
-  // this Job contract are less.
-  // In such case these users will be eligible up to what they've contributed limited to what's left in Job
-  //
-  // This method can be used to receive array of TokenValue-s with max amounts to be used
-  // for subsequent withdrawFunds call
-  function maxWithdrawableAmounts(address contributor) public view returns(EthlanceStructs.TokenValue[] memory) {
-    EthlanceStructs.TokenValue[] memory withdrawables = new EthlanceStructs.TokenValue[](depositIds.length);
-    uint withdrawablesCount = 0;
-    for(uint i = 0; i < depositIds.length; i++) {
-      Deposit memory deposit = deposits[depositIds[i]];
-      if(deposit.depositor == contributor) {
-        EthlanceStructs.TokenValue memory tv = deposit.tokenValue;
-        uint jobTokenBalance = EthlanceStructs.tokenValueBalance(address(this), tv);
-        if (jobTokenBalance == 0) { break; } // Nothing to do if 0 tokens left of the kind
-        uint valueToWithdraw = min(jobTokenBalance, tv.value);
-        if (valueToWithdraw == 0) { break; } // Nothing to do if could withdraw 0
-        tv.value = valueToWithdraw;
-        withdrawables[withdrawablesCount] = tv;
-        withdrawablesCount += 1;
+
+  function disputeExistsForInvoice(uint invoiceId) public view returns(bool) {
+    for(uint i = 0; i < disputeIds.length; i++) {
+      if(disputes[disputeIds[i]].invoiceId == invoiceId) {
+        return true;
       }
     }
-
-    // Return only the ones that matched contributor (can't dynamically allocate in-memory array, need to reconstruct)
-    EthlanceStructs.TokenValue[] memory compactWithdrawables = new EthlanceStructs.TokenValue[](withdrawablesCount);
-    for(uint i = 0; i < withdrawablesCount; i++) {
-      compactWithdrawables[i] = withdrawables[i];
-    }
-
-    return compactWithdrawables;
-  }
-
-  function min(uint a, uint b) pure internal returns(uint) {
-    return a <= b ? a : b;
+    return false;
   }
 
   /**
@@ -518,14 +498,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     Invoice memory invoice = invoices[_invoiceId];
     require(invoice.issuer != address(0), "Can only raise dispute for invoices that exist");
     require(invoice.issuer == msg.sender, "Only issuer of an invoice can raise dispute about it");
-    bool previousDisputeFound = false;
-    for(uint i = 0; i < disputeIds.length; i++) {
-      if(disputes[disputeIds[i]].invoiceId == _invoiceId) {
-        previousDisputeFound = true;
-        break;
-      }
-    }
-    require(previousDisputeFound == false, "Can't raise dispute for same invoice more than once.");
+    require(disputeExistsForInvoice(_invoiceId) == false, "Can't raise dispute for same invoice more than once.");
     Dispute memory dispute = Dispute(_invoiceId, msg.sender, invoice.item, block.timestamp, false);
     disputes[_invoiceId] = dispute;
     disputeIds.push(_invoiceId);
@@ -597,36 +570,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     return abi.decode(_data[4:], (TargetMethod, address, EthlanceStructs.TokenValue[], uint));
   }
 
-  /**
-   * @dev This function is called automatically when this contract receives ERC721 token
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
-   */
-  function onERC721Received(
-    address _operator,
-    address _from,
-    uint256 _tokenId,
-    bytes calldata _data
-  ) public override returns (bytes4) {
-    if (_data.length > 0) { _delegateBasedOnData(_data); }
-    return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
-  }
-
-
-  /**
-   * @dev This function is called automatically when this contract receives ERC1155 token
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
-   */
-  function onERC1155Received(
-    address _operator,
-    address _from,
-    uint256 _id,
-    uint256 _value,
-    bytes calldata _data
-  ) public override returns (bytes4) {
-    if (_data.length > 0) { _delegateBasedOnData(_data); }
-    return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
-  }
-
   function _delegateBasedOnData(bytes calldata _data) internal {
     TargetMethod targetMethod;
     address target;
@@ -648,17 +591,48 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   /**
+   * @dev This function is called automatically when this contract receives ERC721 token
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
+   */
+  function onERC721Received(
+    address,
+    address,
+    uint256,
+    bytes calldata _data
+  ) public override returns (bytes4) {
+    if (_data.length > 0) { _delegateBasedOnData(_data); }
+    return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+  }
+
+
+  /**
+   * @dev This function is called automatically when this contract receives ERC1155 token
+   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
+   */
+  function onERC1155Received(
+    address,
+    address,
+    uint256,
+    uint256,
+    bytes calldata _data
+  ) public override returns (bytes4) {
+    if (_data.length > 0) { _delegateBasedOnData(_data); }
+    return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+  }
+
+  /**
    * @dev This function is called automatically when this contract receives multiple ERC1155 tokens
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
    * TODO: Needs implementation
    */
   function onERC1155BatchReceived(
-    address _operator,
-    address _from,
-    uint256[] calldata _ids,
-    uint256[] calldata _values,
+    address,
+    address,
+    uint256[] calldata,
+    uint256[] calldata,
     bytes calldata _data
-  ) public pure override returns (bytes4) {
+  ) public override returns (bytes4) {
+    if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
 
@@ -668,11 +642,12 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive() external payable {
-    console.log("Job#receive called");
+    // console.log("Job#receive called");
+    ethlance.emitFundsIn(address(this), EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
   }
 
   fallback() external payable {
-    console.log("Job#fallback called");
+    // console.log("Job#fallback called");
   }
 
   function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
@@ -692,21 +667,23 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   }
 
   // Debugging helpers
-  function setToArray(EnumerableSet.AddressSet storage set) internal view returns (address[] memory) {
-    address[] memory result = new address[](EnumerableSet.length(set));
-    for (uint i = 0; i < EnumerableSet.length(set); i++)
-      result[i] = EnumerableSet.at(set, i);
-    return result;
-  }
+  // Would need to extract them because they make contract size too big
+  // function setToArray(EnumerableSet.AddressSet storage set) internal view returns (address[] memory) {
+  //   address[] memory result = new address[](EnumerableSet.length(set));
+  //   for (uint i = 0; i < EnumerableSet.length(set); i++)
+  //     result[i] = EnumerableSet.at(set, i);
+  //   return result;
+  // }
 
-  function getInvitedArbiters() public view returns (address[] memory) {
-    return setToArray(invitedArbiters);
-  }
+  // function getInvitedArbiters() public view returns (address[] memory) {
+  //   return setToArray(invitedArbiters);
+  // }
 
-  function getInvitedCandidates() public returns (address[] memory) {
-    return setToArray(invitedCandidates);
-  }
+  // function getInvitedCandidates() public returns (address[] memory) {
+  //   return setToArray(invitedCandidates);
+  // }
 
+  // Modifiers
   modifier hasNoOutstandingPayments {
     require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
     require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");

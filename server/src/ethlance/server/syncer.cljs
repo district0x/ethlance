@@ -174,7 +174,7 @@
                                      :where [:and
                                              [:= :JobStory.job-story/candidate candidate-id]
                                              [:= :JobStory.job/id job-id]
-                                             [:!= :JobStory.job-story/status "completed"]]
+                                             [:!= :JobStory.job-story/status "finished"]]
                                      :order-by [[:job-story/date-created :desc]]}))
          job-story-message-type (:job-story-message/type ipfs-data)
          message {:job-story/id (:job-story/id ipfs-data)
@@ -202,6 +202,8 @@
                       :job-arbiter/status "quote-set"}]
       (<? (ethlance-db/update-arbitration conn for-the-db)))))
 
+(def system-message-address "0x0000000000000000000000000000000000000000")
+
 (defn handle-quote-for-arbitration-accepted [conn _ {:keys [args] :as event}]
   (safe-go
     (log/info (str ">>> Handling event quote-for-arbitration-accepted" args))
@@ -215,9 +217,18 @@
                                    :where [:and [:ilike :JobArbiter.job/id job-id]
                                            [:= :JobArbiter.job-arbiter/status "accepted"]]}
           previous-accepted-arbiter (<? (db/get conn previous-accepted-query))]
-      (println ">>> replacing arbiter" {:previous previous-accepted-arbiter :new new-accepted-arbiter})
       (when previous-accepted-arbiter
-        (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :JobArbiter.job-arbiter/status "replaced"))))
+        (do
+          (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :job-arbiter/status "replaced")))
+          (<? (ethlance-db/add-message conn
+                                       {:job-story/id (<? (ethlance-db/get-job-story-id-by-job-id conn job-id))
+                                        :message/type :job-story-message
+                                        :job-story-message/type :feedback
+                                        :message/creator system-message-address
+                                        :message/text "Was replaced as arbiter due to inactivity"
+                                        :message/date-created (get-timestamp)
+                                        :feedback/rating 1
+                                        :user/id (:user/id previous-accepted-arbiter)}))))
       (<? (ethlance-db/update-arbitration conn new-accepted-arbiter)))))
 
 (defn handle-arbiters-invited [conn _ {:keys [args] :as event}]
@@ -240,9 +251,30 @@
   (safe-go
     (log/info (str ">>> Handling event job-ended" args))
     (let [job-id (:job args)
-          job-status "ended"]
+          job-status "ended"
+          stories (<? (db/all conn {:select [:JobStory.job-story/id]
+                                    :from [:JobStory]
+                                    :where [:and
+                                            [:= :JobStory.job/id job-id]
+                                            [:!= :JobStory.job-story/status "finished"]]}))]
+      (doseq [story-id (map :job-story/id stories)]
+        (<? (ethlance-db/update-job-story conn story-id {:job-story/status "job-ended"})))
       (<? (ethlance-db/update-job conn job-id {:job/status job-status})))))
 
+(defn handle-job-funds-change [outflow? conn _ {:keys [args] :as event}]
+  (safe-go
+    (log/info (str "handle-job-funds-change outflow?" outflow? " | event: " event))
+    (let [funds (:funds args)
+          funds-map (map offered-vec->flat-map funds)
+          amount-sign-fn (if outflow? (partial * -1) identity)
+          funding-base {:tx (:transaction-hash event)
+                        :job/id (:job args)
+                        :job-funding/created-at (get-timestamp)}
+          funding-updates (map (fn [tv]
+                                 (merge funding-base {:job-funding/amount (amount-sign-fn (:token-amount tv))
+                                                      :token-detail/id (:token-address tv) }))
+                               funds-map)]
+      (doseq [funding funding-updates] (<? (ethlance-db/insert-row! conn :JobFunding funding))))))
 
 (defn handle-test-event [& args]
   (println ">>> HANDLE TEST EVENT args: " args))
@@ -320,6 +352,8 @@
                          :ethlance/quote-for-arbitration-accepted handle-quote-for-arbitration-accepted
                          :ethlance/job-ended handle-job-ended
                          :ethlance/arbiters-invited handle-arbiters-invited
+                         :ethlance/funds-in (partial handle-job-funds-change false)
+                         :ethlance/funds-out (partial handle-job-funds-change true)
                          }
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)

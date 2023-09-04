@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "jsedn": "0.4.1",
-    "truffle": "5.7.0"
+    "truffle": "5.11.2"
   },
   "engines": {
     "node": "16.15.1"

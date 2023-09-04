@@ -89,6 +89,7 @@
     district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
     is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}
     is.d0x/district-ui-router {:local/root "../../d0x-libs/browser/district-ui-router"}
+    is.d0x/district-ui-web3-accounts {:local/root "../../d0x-libs/browser/district-ui-web3-accounts"}
     is.d0x/re-frame-web3-fx {:local/root "../../d0x-libs/browser/re-frame-web3-fx"}
     is.d0x/district-ui-web3-tx {:local/root "../../d0x-libs/browser/district-ui-web3-tx"}}}
   :dev

@@ -22,8 +22,14 @@
 
 (s/def :user/github-code string?)
 (s/def :user/github-username (s/nilable string?))
-(def ethereum-address-pattern #"^0x([A-Fa-f0-9]{40})$")
-(s/def :user/id #(re-matches ethereum-address-pattern %))
+
+; Used on ethlance.ui.page.sign-up to validate form fields
+; but fails when there's no logged in user
+; (def ethereum-address-pattern #"^0x([A-Fa-f0-9]{40})$")
+; (s/def :user/id #(re-matches ethereum-address-pattern %))
+
+(s/def :user/id #(or (nil? %) (string? %)))
+
 (s/def :user/linkedin-code string?)
 (s/def :user/linkedin-redirect-uri string?)
 (s/def :user/is-registered-candidate boolean?)

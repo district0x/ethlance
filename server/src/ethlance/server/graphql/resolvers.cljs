@@ -126,15 +126,6 @@
                              :from [:UserLanguage]
                              :where [:= id :UserLanguage.user/id]}))))))
 
-(def ^:private user-type-query
-  {:select [:type]
-   :from [[{:union [{:select [:Candidate.user/id ["Candidate" :type]]
-                     :from [:Candidate]}
-                    {:select [:Employer.user/id ["Employer" :type]]
-                     :from [:Employer]}
-                    {:select [:Arbiter.user/id ["Arbiter" :type]]
-                     :from [:Arbiter]}]} :a]]})
-
 (def ^:private employer-query {:select [:Employer.*
                                         [:Users.user/date-registered :employer/date-registered]]
                                :from [:Employer]
@@ -215,7 +206,7 @@
 (defn employer->feedback-resolver [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
     (let [{:keys [:user/id] :as employer} (graphql-utils/gql->clj root)
-          query (sql-helpers/merge-where user-feedback-query [:= id :JobStoryFeedbackMessage.user/id])]
+          query (sql-helpers/merge-where user-feedback-query [:ilike id :JobStoryFeedbackMessage.user/id])]
       (log/debug "employer->feedback-resolver" {:employer employer :args args})
       (<? (paged-query conn query limit offset)))))
 
@@ -298,27 +289,61 @@
 
 (defn arbiter->feedback-resolver [root {:keys [:limit :offset] :as args} {:keys [conn]}]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as arbiter} (graphql-utils/gql->clj root)
-          job-story-id 2 ; FIXME: read from params
-          query (sql-helpers/merge-where user-feedback-query [:and
-                                                              [:= id :JobStoryFeedbackMessage.user/id]
-                                                              [:= job-story-id :JobStoryFeedbackMessage.job-story/id]])]
+    (let [arbiter (graphql-utils/gql->clj root)
+          user-id (:user/id arbiter)
+          query (sql-helpers/merge-where user-feedback-query [:ilike user-id :JobStoryFeedbackMessage.user/id])]
       (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
       (<? (paged-query conn query limit offset)))))
 
-(defn feedback->to-user-type-resolver [root _ _]
-  (db/with-async-resolver-conn conn
-    (let [{:keys [:feedback/to-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:ilike to-user-address :user/id])]
-      (log/debug "feedback->to-user-type-resolver" feedback)
-      (:type (<? (db/get conn q))))))
+(def ^:private user-type-query
+  {:select [:type]
+   :from [[{:union [{:select [:Candidate.user/id ["Candidate" :type]]
+                     :from [:Candidate]}
+                    {:select [:Employer.user/id ["Employer" :type]]
+                     :from [:Employer]}
+                    {:select [:Arbiter.user/id ["Arbiter" :type]]
+                     :from [:Arbiter]}]} :a]]})
 
-(defn feedback->from-user-type-resolver [root _ _]
+(def feedback-user-type-query
+  {:select [(sql/raw
+              (clojure.string/join
+                "\n"
+                ["case"
+                 "  when j.job_slash_creator ilike m.message_slash_creator"
+                 "    then 'employer'"
+                 "  when ja.user_slash_id ilike m.message_slash_creator"
+                 "    then 'arbiter'"
+                 "  when js.job_story_slash_candidate ilike m.message_slash_creator"
+                 "    then 'candidate'"
+                 "end as from_user_type,"
+
+                "case"
+                 "  when j.job_slash_creator ilike jsfm.user_slash_id"
+                 "    then 'employer'"
+                 "  when ja.user_slash_id ilike jsfm.user_slash_id"
+                 "    then 'arbiter'"
+                 "  when js.job_story_slash_candidate ilike jsfm.user_slash_id"
+                 "    then 'candidate'"
+                 "end as to_user_type"]))]
+   :from [[:JobStoryFeedbackMessage :jsfm]]
+   :join [[:Message :m] [:= :m.message/id :jsfm.message/id]
+          [:JobStory :js] [:= :js.job-story/id :jsfm.job-story/id]
+          [:Job :j] [:ilike :j.job/id :js.job/id]]
+   :left-join [[:JobArbiter :ja] [:= :ja.job/id :j.job/id]]})
+
+(defn feedback->user-type-resolver [user-type-column root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:feedback/from-user-address] :as feedback} (graphql-utils/gql->clj root)
-          q (sql-helpers/merge-where user-type-query [:ilike from-user-address :user/id])]
-      (log/debug "feedback->from-user-type-resolver" feedback)
-      (:type (<? (db/get conn q))))))
+    (let [feedback (graphql-utils/gql->clj root)
+          message-id (:message/id feedback)
+          arbiter-status "accepted"
+          job-story-id (:job-story/id feedback)
+          where-condition [:and
+                           [:= message-id :jsfm.message/id ]
+                           [:= job-story-id :js.job-story/id]
+                           [:= arbiter-status :ja.job-arbiter/status]]
+          q (sql-helpers/merge-where feedback-user-type-query where-condition)]
+      (log/debug "feedback->user-type-resolver" user-type-column feedback)
+      (user-type-column (<? (db/get conn q))))))
 
 (def ^:private candidate-query
   {:select [:Candidate.*]
@@ -807,6 +832,9 @@
           candidate-id (:candidate search-params)
           employer-id (:employer search-params)
           status (:status search-params)
+          status-val (if (= "finished" status)
+                       ["finished" "job-ended"]
+                       [(:status search-params)])
           base-query {:select [:JobStory.*]
                       :from [:JobStory]
                       :join [:Job [:= :Job.job/id :JobStory.job/id]]}
@@ -814,7 +842,7 @@
                   job-id (sql-helpers/merge-where [:ilike :JobStory.job/id job-id])
                   employer-id (sql-helpers/merge-where [:ilike :Job.job/creator employer-id])
                   candidate-id (sql-helpers/merge-where [:ilike :JobStory.job-story/candidate candidate-id])
-                  status (sql-helpers/merge-where [:= :JobStory.job-story/status status])
+                  status (sql-helpers/merge-where [:in :JobStory.job-story/status status-val])
                   order-by (sql-helpers/merge-order-by [[(get {:date-created :job-story/date-created
                                                                :date-updated :job-story/date-updated}
                                                               (graphql-utils/gql-name->kw order-by))
@@ -927,6 +955,17 @@
           result-pages (<? (paged-query conn query limit offset))]
       (log/debug "job->invoices-resolver RESULT-PAGES" job-id " | " result-pages)
       result-pages)))
+
+(defn job->balance-resolver [root {:keys [:limit :offset] :as args} _]
+  (db/with-async-resolver-conn conn
+    (let [parsed-root (graphql-utils/gql->clj root)
+          job-id (:job/id (graphql-utils/gql->clj root))
+          query {:select [(sql/call :sum :job-funding/amount)]
+                 :from [:JobFunding]
+                 :where [:= :JobFunding.job/id job-id]}
+          result (<? (db/get conn query))]
+      (log/debug "job->balance-resolver " job-id " | " result)
+      (:sum result))))
 
 (defn sign-in-mutation [_ {:keys [:data :data-signature] :as input} {:keys [config]}]
   (try-catch-throw
@@ -1154,6 +1193,7 @@
                           :tokenDetails job->token-details-resolver
                           :invoices job->invoices-resolver
                           :invoice invoice-resolver
+                          :balance job->balance-resolver
                           :job_requiredSkills job->required-skills-resolver}
                     :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
                                :jobStory_candidateFeedback job-story->candidate-feedback-resolver
@@ -1192,9 +1232,9 @@
                               :employer employer-resolver
                               :arbiter arbiter-resolver}
 
-                    :Feedback {:feedback_toUserType feedback->to-user-type-resolver
+                    :Feedback {:feedback_toUserType (partial feedback->user-type-resolver :to-user-type)
                                :feedback_toUser feedback->to-user-resolver
-                               :feedback_fromUserType feedback->from-user-type-resolver
+                               :feedback_fromUserType (partial feedback->user-type-resolver :from-user-type)
                                :feedback_fromUser feedback->from-user-resolver
                                :message message-resolver}
                     :JobStoryMessage {:creator user-resolver}

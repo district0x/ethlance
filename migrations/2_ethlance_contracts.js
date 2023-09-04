@@ -3,7 +3,7 @@ const {copy, smartContractsTemplate, encodeContractEDN, linkBytecode, requireCon
 const web3 = require("web3");
 const fs = require("fs");
 const edn = require("jsedn");
-const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle.js");
+const {env, contracts_build_directory, smart_contracts_path, parameters} = require("../truffle-config.js");
 
 // Placeholders
 const ethlanceJobsPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
@@ -132,7 +132,7 @@ function writeSmartContracts() {
 // Begin Migration
 //
 module.exports = async function(deployer, network, accounts) {
-  const address = accounts[0];
+  const address = accounts[6]; // 6th address
   const gas = 4e6;
   const opts = {gas: gas, from: address};
 

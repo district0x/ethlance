@@ -47,17 +47,30 @@
                              (shell {:dir "server"} "node out/ethlance_server.js"))}
          repl {:doc "Start REPL. Usage: bb repl [ui|server|test]"
                :requires ([clojure.edn :as edn])
-               :task (let [runtime (or (first *command-line-args*) "ui")
-                           [build-id folder] (case runtime
+               :task (let [build-arg (or (first *command-line-args*) "ui")
+                           runtime-id (second *command-line-args*)
+                           _ (println ">>> type runtime-id" (type runtime-id) runtime-id)
+
+                           [build-id folder] (case build-arg
                                                    "ui" [:dev-ui "ui"]
                                                    "server" [:dev-server "server"]
                                                    "test" [:test-repl "server"])
                            _ (println ">>> build-id folder" build-id folder)
                            parse-port (fn [folder] (get-in (clojure.edn/read-string (slurp (str folder "/shadow-cljs.edn"))) [:nrepl :port]))
                            port (parse-port folder)
-                           command (format "clojure -Sdeps '{:deps {reply/reply {:mvn/version \"0.5.1\"}}}' -M -m reply.main --color --attach %s --custom-eval \"(shadow/repl %s)\""
-                                           port build-id)]
-                       (println "Connecting lein repl to" runtime)
+                           ; Runtime numbers increase each time the browser app is reloaded
+                           ; They can be seen at http://d0x-vm:3420/runtimes
+                           ; To switch between them, open a 2nd REPL with: 1) bb repl 2) :cljs/quit
+                           ;   and then pick build-id with:
+                           ;   (shadow.cljs.devtools.api/repl-runtime-select :dev-ui 51)
+                           choose-runtime (format "(shadow.cljs.devtools.api/repl-runtime-select %s %s)" build-id runtime-id)
+                           connect-repl (format "(shadow/repl %s)" build-id)
+                           code-for-repl (str
+                                           (when runtime-id choose-runtime)
+                                           connect-repl)
+                           command (format "clojure -Sdeps '{:deps {reply/reply {:mvn/version \"0.5.1\"}}}' -M -m reply.main --color --attach %s --custom-eval \"%s\""
+                                           port code-for-repl)]
+                       (println "Connecting lein repl to" runtime-id)
                        (println "  command: " command)
                              (shell command))}
          ; In practice
