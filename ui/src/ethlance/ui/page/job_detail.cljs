@@ -167,7 +167,6 @@
                       [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
                       [:span (:status proposal)]])
                    @proposals))]
-
       [pagination/c-pagination-ends
        {:total-count proposal-total-count
         :limit proposal-limit
@@ -199,7 +198,8 @@
          (if (not my-proposal?)
            [c-button {:style (when (not can-send-proposals?) {:background :gray})
                       :on-click (fn []
-                                  (when can-send-proposals? (>evt [:page.job-proposal/send contract-address])))
+                                  (when can-send-proposals?
+                                    (>evt [:page.job-proposal/send contract-address *job-token-type])))
                       :size :small}
             [c-button-label "Send"]])]
 

@@ -3,7 +3,7 @@
     [re-frame.core :as re]
     [clojure.math]
     [cljs-web3-next.helpers :as web3-helpers]
-    [ethlance.shared.utils :refer [wei->eth]]
+    [ethlance.shared.utils :refer [wei->eth eth->wei]]
     [cljs-web3-next.eth :as w3-eth]))
 
 (defn round [decimals amount]
@@ -13,6 +13,11 @@
 (defn human-amount [amount token-type]
   (case (keyword token-type)
     :eth (wei->eth amount)
+    amount))
+
+(defn machine-amount [amount token-type]
+  (case (keyword token-type)
+    :eth (eth->wei amount)
     amount))
 
 (defn human-currency-amount [currency-id amount]

@@ -1,4 +1,5 @@
-(ns ethlance.shared.contract-constants)
+(ns ethlance.shared.contract-constants
+  (:require [shadow.resource]))
 
 (def token-types {:eth 0 :erc20 1 :erc721 2 :erc1155 3})
 
@@ -11,6 +12,7 @@
 (defn enum-val->token-type [enum-val]
   (get (clojure.set/map-invert token-types) enum-val :not-found))
 
+; Corresponds to the enum OperationType in Ethlance contract
 (def operation-type {:one-step-job-creation 0 :two-step-job-creation 1 :add-funds 2})
 ; Corresponds to the enum TargetMethod values in Job contract
 (def job-callback-target-method {:accept-quote-for-arbitration 0 :add-funds 1 :add-funds-and-pay-invoice 2})
@@ -50,3 +52,15 @@
    :token-amount (get-in offered [1])
    :token-address (get-in offered [0 0 1])
    :token-id (js/parseInt (get-in offered [0 1]))})
+
+(defn json-str->clj-abi [json]
+  (as-> json j
+       (.parse js/JSON j)
+       (js->clj j)
+       (get j "abi")
+       (clj->js j)))
+
+(def abi
+  {:erc20 (json-str->clj-abi (shadow.resource/inline "./abis/ERC20.json" ))
+   :erc721 (json-str->clj-abi (shadow.resource/inline "./abis/ERC721.json"))
+   :erc1155 (json-str->clj-abi (shadow.resource/inline "./abis/ERC1155.json"))})

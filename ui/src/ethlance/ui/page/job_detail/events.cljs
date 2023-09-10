@@ -104,13 +104,13 @@
 (re/reg-event-fx
   :page.job-proposal/send
   [interceptors]
-  (fn [{:keys [db]} [contract-address]]
+  (fn [{:keys [db]} [contract-address token-type]]
     (let [user-address (accounts-queries/active-account db)
           text (get-in db [state-key :job/proposal-text])
-          token-amount (get-in db [state-key :job/proposal-token-amount])
+          token-amount (util.tokens/machine-amount (get-in db [state-key :job/proposal-token-amount]) token-type)
           proposal {:contract contract-address
                     :text text
-                    :rate (js/parseFloat (eth->wei token-amount))}]
+                    :rate (js/parseFloat token-amount)}]
       {:dispatch [:district.ui.graphql.events/mutation
                   {:queries [[:create-job-proposal {:input proposal}
                               job-story-requested-fields]]

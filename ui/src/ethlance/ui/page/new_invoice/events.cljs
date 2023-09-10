@@ -78,9 +78,7 @@
           creator (accounts-queries/active-account (:db cofx))
           token-type (keyword (:job/token-type job-fields))
           invoice-amount (:invoice-amount invoice-fields)
-          token-amount (if (= token-type :eth)
-                         (eth->wei invoice-amount)
-                         invoice-amount)
+          token-amount (util.tokens/machine-amount invoice-amount token-type)
           address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)

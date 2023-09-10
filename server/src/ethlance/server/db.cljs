@@ -934,10 +934,6 @@
 (defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
   (safe-go
     (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
-      (println ">>> set-job-story-invoice-status-for-job" {:job-story-id job-story-id
-                                                           :job-id job-id
-                                                           :invoice-id invoice-id
-                                                           :status status})
       (<? (db/run! conn {:update :JobStoryInvoiceMessage
                          :set {:invoice/status status}
                          :where [:and

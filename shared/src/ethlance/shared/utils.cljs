@@ -3,6 +3,7 @@
   (:require [alphabase.base58 :as base58]
             [alphabase.hex :as hex]
             [goog.date.relative :as gdate]
+            [goog.object]
             ["web3" :as w3]))
 
 (defn now []
@@ -48,3 +49,12 @@
   (apply = (map #(clojure.string/lower-case (str %)) args)))
 
 (def ilike!= (comp not ilike=))
+
+(defn js-obj->clj-map
+  [obj]
+  (-> (fn [result key]
+        (let [v (goog.object/get obj key)]
+          (if (= "function" (goog/typeOf v))
+            result
+            (assoc result key v))))
+      (reduce {} (.getKeys goog/object obj))))
