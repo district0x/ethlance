@@ -35,7 +35,8 @@
    :job/token-amount 0.69
    :job/token-address "0x1111111111111111111111111111111111111111"
    :job/token-id 0
-   :job/with-arbiter? false})
+   :job/with-arbiter? false
+   :job/invited-arbiters #{}})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -62,7 +63,19 @@
 (re/reg-event-fx :page.new-job/set-required-experience-level (create-assoc-handler :job/required-experience-level))
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
-(re/reg-event-fx :page.new-job/invite-arbiter (create-assoc-handler :job/invited-arbiter))
+
+(re/reg-event-db
+  :page.new-job/invite-arbiter
+  (fn [db [_ arbiter]]
+    (assoc-in db [state-key :job/invited-arbiters]
+              (conj (get-in db [state-key :job/invited-arbiters]) arbiter))))
+
+(re/reg-event-fx
+  :page.new-job/uninvite-arbiter
+  (fn [db [_ arbiter]]
+    (assoc-in db [state-key :job/invited-arbiters]
+              (disj (get-in db [state-key :job/invited-arbiters]) arbiter))))
+
 
 ; The simple setter implementation for eventual production
 ; (re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
@@ -97,7 +110,7 @@
    :job/required-availability :job/required-availability
    :job/required-skills :job/required-skills
    :job/title :job/title
-   :job/invited-arbiter :job/invited-arbiter})
+   :job/invited-arbiters :job/invited-arbiters})
 
 (defn- db-job->ipfs-job
   "Useful for renaming map keys by reducing over a map of keyword -> keyword
@@ -254,7 +267,7 @@
                           {:tokenType (contract-constants/token-type->enum-val token-type)
                            :tokenAddress token-address}}}
           invited-arbiters (if (:job/with-arbiter? job-fields)
-                             [(:job/invited-arbiter job-fields)]
+                             (into [] (:job/invited-arbiters job-fields))
                              [])
           new-job-params {:offered-value offered-value
                           :token-type token-type

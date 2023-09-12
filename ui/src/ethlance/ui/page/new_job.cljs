@@ -26,13 +26,13 @@
 
 (defn c-arbiter-for-hire
   [arbiter]
-  (let [invited-arbiter (re/subscribe [:page.new-job/invited-arbiter])]
+  (let [invited-arbiters (re/subscribe [:page.new-job/invited-arbiters])]
     [:div.arbiter-for-hire
      [c-profile-image {:src (-> arbiter :user :user/profile-image)}]
      [:div.name (-> arbiter :user :user/name)]
      [c-rating {:rating (-> arbiter :arbiter/rating) :default-rating nil}]
      [:div.price "$" (-> arbiter :arbiter/fee)]
-     (if-not (= @invited-arbiter (:user/id arbiter))
+     (if-not (contains? @invited-arbiters (:user/id arbiter))
        [c-button
         {:size :small
          :on-click #(re/dispatch [:page.new-job/invite-arbiter (:user/id arbiter)])}
@@ -41,7 +41,7 @@
        [c-button
         {:size :small
          :color :warning
-         :on-click #(re/dispatch [:page.new-job/invite-arbiter nil])}
+         :on-click #(re/dispatch [:page.new-job/uninvite-arbiter (:user/id arbiter)])}
         [c-button-label "Uninvite"]])]))
 
 (defn- c-submit-button [{:keys [:on-submit :disabled?]}]
