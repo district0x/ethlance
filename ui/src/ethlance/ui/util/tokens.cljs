@@ -20,7 +20,7 @@
     :eth (eth->wei amount)
     amount))
 
-(defn human-currency-amount [currency-id amount]
+(defn fiat-amount-with-symbol [currency-id amount]
   (case currency-id
     :usd (str "$ " amount)
     :eur (str amount " €")

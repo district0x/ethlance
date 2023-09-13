@@ -134,9 +134,9 @@
    {:table-name :TokenDetail
     :table-columns
     [[:token-detail/id column-types/address]
+     [:token-detail/type :text not-nil] ; #{:eth :erc20 :erc721 :erc1155}
      [:token-detail/name :text]
      [:token-detail/symbol :text]
-     [:token-detail/abi :text]
      ;; PK
      [(sql/call :primary-key :token-detail/id)]]
     :list-keys []}
@@ -957,9 +957,9 @@
   (safe-go
     (<? (insert-row! conn :TokenDetail
                      {:token-detail/id (:address token-details)
+                      :token-detail/type (:type token-details)
                       :token-detail/name (:name token-details)
-                      :token-detail/symbol (:symbol token-details)
-                      :token-detail/abi (:abi-string token-details)}))))
+                      :token-detail/symbol (:symbol token-details)}))))
 
 (defn ready-state?
   []

@@ -4,6 +4,7 @@
             [ethlance.ui.component.search-input :refer [c-chip-search-input]]
             [ethlance.ui.component.button :refer [c-button c-button-label]]
             [ethlance.ui.component.info-message :refer [c-info-message]]
+            [ethlance.ui.component.token-info :refer [c-token-info]]
             [ethlance.ui.component.carousel
              :refer
              [c-carousel c-carousel-old c-feedback-slide]]
@@ -385,7 +386,11 @@
                     :job/id
                     :arbitration/date-arbiter-accepted
                     :arbitration/fee
-                    :arbitration/fee-currency-id
+                    [:fee-token-details
+                     [:token-detail/id
+                      :token-detail/type
+                      :token-detail/name
+                      :token-detail/symbol]]
                     :arbitration/status
                     [:job
                      [:job/employer-address]]
@@ -434,7 +439,7 @@
                                (= "accepted" (get-in arbitration [:arbitration/status]))
                                "✅")]
                       [:span (get-in arbitration [:arbiter :user :user/name])]
-                      [:span (str (token-utils/human-amount (:arbitration/fee arbitration) :eth) " ETH")]
+                      [c-token-info (:arbitration/fee arbitration) (:fee-token-details arbitration)]
                       [:span (when (:arbitration/date-arbiter-accepted arbitration)
                                (format/time-ago (new js/Date (:arbitration/date-arbiter-accepted arbitration))))]
                       [:span (:arbitration/status arbitration)]

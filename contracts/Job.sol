@@ -56,6 +56,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   mapping (uint => Invoice) public invoices;
   uint[] public invoiceIds;
   uint public lastInvoiceIndex;
+  bool jobEnded;
 
   /**
    * @dev Contract initialization
@@ -159,7 +160,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     EthlanceStructs.TokenValue[] memory _transferredValue
   ) public payable {
     // Allow re-assigning accepted arbiter after 30 days since raising dispute (remains unresolved)
-    // NB! Check syncer implementation to be correct if this event comes in again
     // Generate feedback from part of employer stating "This arbiter got replaced due to inactivity > 30 days of open dispute"
     require(true
             || acceptedArbiter == address(0)
@@ -192,7 +192,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     bytes memory _ipfsData
   ) external {
     require(msg.sender == creator, "Only job creator can add candidates");
-    // TODO: add check that candidate cant be same as arbiter or employer (creator)
     require(_candidate != creator, "Candidate can't be the same address as creator (employer)");
     require(_candidate != acceptedArbiter, "Candidate can't be the same address as acceptedArbiter");
     require(invitedCandidates.contains(_candidate) == false, "Candidate already added. Can't add duplicates");
@@ -438,6 +437,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
         _executeWithdraw(depositor, depositAmounts[j]);
       }
     }
+    jobEnded = true;
     ethlance.emitJobEnded(address(this));
   }
 
@@ -599,7 +599,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     address,
     uint256,
     bytes calldata _data
-  ) public override returns (bytes4) {
+  ) public override ongoingJob returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
   }
@@ -615,7 +615,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256,
     uint256,
     bytes calldata _data
-  ) public override returns (bytes4) {
+  ) public override ongoingJob returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
@@ -623,7 +623,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   /**
    * @dev This function is called automatically when this contract receives multiple ERC1155 tokens
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
-   * TODO: Needs implementation
    */
   function onERC1155BatchReceived(
     address,
@@ -631,7 +630,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256[] calldata,
     uint256[] calldata,
     bytes calldata _data
-  ) public override returns (bytes4) {
+  ) public override ongoingJob returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
@@ -641,7 +640,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * @dev This function is called automatically when this contract receives ETH
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
-  receive() external payable {
+  receive() external ongoingJob payable {
     // console.log("Job#receive called");
     ethlance.emitFundsIn(address(this), EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
   }
@@ -687,6 +686,11 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   modifier hasNoOutstandingPayments {
     require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
     require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
+    _;
+  }
+
+  modifier ongoingJob {
+    require(jobEnded == false, "This job was ended. Can't receive more funds");
     _;
   }
 }

@@ -64,32 +64,26 @@
           symbol-method (oget contract-instance "?methods" "?symbol")]
       (when (and name-method symbol-method) abi-string))))
 
+
+(defn get-abi-string [address]
+  (go
+    (or (<! (get-abi-for-token-info address))
+        (<! (get-abi-for-token-info (<! (get-proxy-address address)))))))
+
 (defn get-token-details [token-type contract-address]
   (go
     (let [abi (get ethlance.shared.contract-constants/abi token-type)
-          abi-string "Get it from ethlance.shared.contract-constants/abi"
-          ; FIXME: probably remove below code - as the ERC{20/721/1155} are the only tokens Ethlance supports
-          ;        and the ABI-s are standard and already in the app, there's no need to pull them from outside
-          ; abi-string (<! (get-abi-for-token-info contract-address))
-          ; abi-string (if (nil? abi-string)
-          ;              (<! (get-abi-for-token-info (<! (get-proxy-address contract-address))))
-          ;              abi-string)
-          ; abi (parse-json abi-string)
           web3-instance (w3-core/create-web3 nil provider-url)
           contract-instance (w3-eth/contract-at web3-instance abi contract-address)
           has-contract-method? (fn [contract method]
                                  (.hasOwnProperty (.-methods contract) method))
-
           token-name (when (has-contract-method? contract-instance "name")
                        (<! (promise->chan (w3-eth/contract-call contract-instance :name [] {}))))
           token-symbol (when (has-contract-method? contract-instance "symbol")
-                         (<! (promise->chan (w3-eth/contract-call contract-instance :symbol [] {}))))
-
-          result {:address contract-address
-                  :name token-name
-                  :symbol token-symbol
-                  :abi abi
-                  :abi-string abi-string
-                  :web3-instance web3-instance
-                  :contract-instance contract-instance}]
-      result)))
+                         (<! (promise->chan (w3-eth/contract-call contract-instance :symbol [] {}))))]
+      {:address contract-address
+       :type token-type
+       :name token-name
+       :symbol token-symbol
+       :web3-instance web3-instance
+       :contract-instance contract-instance})))
