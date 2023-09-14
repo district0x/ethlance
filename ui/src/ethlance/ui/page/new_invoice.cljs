@@ -26,6 +26,7 @@
                       :job/token-id
                       [:token-details
                        [:token-detail/id
+                        :token-detail/type
                         :token-detail/name
                         :token-detail/symbol]]]]]]]]]]
         search-results (re/subscribe [::gql/query {:queries [query]}
@@ -46,7 +47,8 @@
                               :items
                               (sort-by :job-story/date-created ,,,)
                               reverse)
-            token-symbol (-> @job-token :symbol (or ,,, "") name)]
+            token-display-name (-> @job-token :symbol (or ,,, "") name)
+            token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
          [:div.title "New Invoice"]
          [:div.left-form
@@ -81,7 +83,7 @@
              :step 0.01
              :value @*invoice-amount
              :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount (-> % .-target .-value)])}]
-           [:div.post-label token-symbol]]
+           [:div.post-label token-display-name]]
           [:div.usd-estimate @estimated-usd]]
 
          [:div.right-form

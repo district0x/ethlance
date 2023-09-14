@@ -147,11 +147,11 @@
 
         user-query [:user {:user/id active-user}
                [:user/is-registered-candidate]]
-        arbiter-query [:job {:job/id contract-address}
-                       [[:arbitrations
-                         [[:items
-                           [:user/id]]]]]]
-        result @(re/subscribe [::gql/query {:queries [user-query arbiter-query]}])
+        arbitrations-query [:job {:job/id contract-address}
+                            [[:arbitrations
+                              [[:items
+                                [:user/id]]]]]]
+        result @(re/subscribe [::gql/query {:queries [user-query arbitrations-query]}])
         candidate-role? (and
                           (get-in result [:user :user/is-registered-candidate])
                           (not (ilike= active-user *employer-address))
@@ -163,8 +163,11 @@
         (into [c-table {:headers ["" "Candidate" "Rate" "Created" "Status"]}]
               (map (fn [proposal]
                      [[:span (if (:current-user? proposal) "⭐" "")]
-                      [:span (:candidate-name proposal)]
-                      [:span (str (token-utils/human-amount (:rate proposal) *job-token-type) " " (clojure.string/upper-case *job-token-type))]
+                      [:a (util.navigation/link-params
+                                    {:route :route.job/contract
+                                     :params {:job-story-id (:job-story/id proposal)}})
+                       [:span (:candidate-name proposal)]]
+                      [c-token-info (:rate proposal) (:token-details job)]
                       [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
                       [:span (:status proposal)]])
                    @proposals))]
@@ -281,8 +284,8 @@
                        [[:arbiter
                          arbiter-fields]]]]]]]
         arbiters-query [:arbiter-search {:search-params {:name ""}}
-               [[:items
-                 arbiter-fields]]]
+                        [[:items
+                          arbiter-fields]]]
         search-result @(re/subscribe [::gql/query {:queries [arbiters-query job-query]}
                                       {:refetch-on #{:page.job-detail/arbitrations-updated}}])
 
@@ -509,7 +512,6 @@
         *posted-time-absolute (str "(" (format/format-local-date job-creation-time) ")")
         job-status (:job/status results)
         desc-from-vec (fn [options source job]
-                        (println ">>> desc-from-vec" {:options options :source source :job job})
                         ((source job) (into {} options)))
         tag-definitions [{:desc "Estimated duration: " :source (partial desc-from-vec util.job/estimated-durations :job/estimated-project-length)}
                          {:desc "Required experience: " :source (partial desc-from-vec util.job/experience-level :job/required-experience-level)}
@@ -527,15 +529,7 @@
         employer-id (get-in results [:job/employer :user/id])
         arbiter-id (get-in results [:job/arbiter :user/id])
         has-accepted-arbiter? (not (nil? (get-in results [:job/arbiter])))
-
-        raw-token-amount (get-in results [:job/token-amount])
-        *job-token-type (get-in results [:job/token-type])
-        *job-token-id (get-in results [:job/token-id])
-        *job-token-address (get-in results [:job/token-address])
-        *job-initial-amount (util.tokens/human-amount raw-token-amount *job-token-type)
-        *job-balance (util.tokens/human-amount (get-in results [:balance]) *job-token-type)
-        *token-detail-name (get-in results [:token-details :token-detail/name])
-        *token-detail-symbol (get-in results [:token-details :token-detail/symbol])
+        job-balance (get-in results [:balance])
 
         invoices (get-in results [:invoices :items])
         unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)
@@ -555,9 +549,9 @@
          [:div.skill-listing
           (for [skill *required-skills] [c-tag {:key skill} [c-tag-label skill]])]
          [:div.ticket-listing
-         [:a.ticket {:href (token-utils/address->token-info-url *job-token-address) :target "_blank"}
+         [:div.ticket
           [:div.label "Available Funds"]
-          [:div.amount (str *job-balance " of " *job-initial-amount " " *token-detail-symbol " (" (or *token-detail-name *job-token-type) ")")]]]
+          [c-token-info job-balance (get-in results [:token-details])]]]
          [:div.profiles
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
@@ -589,9 +583,7 @@
                   [:li [:a (link-params {:route :route.job/contract
                                          :params {:job-story-id (:job-story/id invoice)}})
                     (str "Dispute #" (:invoice/id invoice))]])]])
-
-            (when can-end-job? [:div "Ending the job will return all remaining funds to who contributed them"])])]]
-    ))
+            (when can-end-job? [:div "Ending the job will return all remaining funds to who contributed them"])])]]))
 
 (defmethod page :route.job/detail []
   (fn []
@@ -617,6 +609,7 @@
                       :balance
 
                       [:token-details [:token-detail/id
+                                       :token-detail/type
                                        :token-detail/name
                                        :token-detail/symbol]]
                       [:invoices
