@@ -282,15 +282,9 @@
       {:db (assoc-in (:db cofx) new-job-params-path new-job-params)
        :fx [[:dispatch [(get next-event token-type)]]]})))
 
-; TODO: fix event/callback names in README (they don't have on-<...> prefix)
-;         https://github.com/district0x/re-frame-web3-fx#usage
 (re/reg-event-fx
   ::tx-hash
   (fn [db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
-
-(re/reg-event-fx
-  ::web3-tx-localstorage
-  (fn [db event] (println ">>> ethlance.ui.page.new-job.events :web3-tx-localstorage" event)))
 
 (defn async-request-event [{:keys [contract event block-number callback]}]
   (let []
@@ -302,6 +296,9 @@
   (fn [{:keys [db]} [event-name tx-data]]
     (let [job-from-event (get-in tx-data [:events :Job-created :return-values :job])]
       {:fx [[:dispatch [::notification.events/show "Transaction to create job processed successfully"]]
+            ; When creating job via ERC721/1155 callback (onERC{721,1155}Received), the event data is part of the
+            ; tx-receipt, but doesn't have event name, making it difficult to find and decode. Thus this workaround:
+            ;   - requesting the JobCreated event directly from Ethlance and receiving it correctly decoded
             (if job-from-event
               [:dispatch [::router-events/navigate :route.job/detail {:id (get-in tx-data [:events :Job-created :return-values :job])}]]
               (async-request-event {:event :Job-created

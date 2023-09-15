@@ -2,11 +2,13 @@
   (:require [district.ui.router.effects :as router.effects]
             [district.ui.router.queries :as router.queries]
             [district.ui.conversion-rates.queries :as conversion-rates.queries]
-            [district.ui.web3.queries :as web3.queries]
+            [district.ui.web3.queries :as web3-queries]
+            [district.ui.smart-contracts.queries :as contract-queries]
             [ethlance.ui.event.utils :as event.utils]
             [district.ui.notification.events :as notification.events]
             [ethlance.ui.util.tokens :as util.tokens]
             [ethlance.shared.utils :refer [eth->wei]]
+            [cljs-web3-next.eth :as w3n-eth]
             [district.ui.web3-tx.events :as web3-events]
             [ethlance.shared.contract-constants :as contract-constants]
             [district.ui.smart-contracts.queries :as contract-queries]
@@ -291,9 +293,7 @@
 (re/reg-event-fx
   :page.job-detail/fetch-job-arbiter-status
   (fn [cofx event]
-    (let [
-          ; web3-instance (web3.queries/web3 (:db cofx))
-          web3-instance (district.ui.web3.queries/web3 (:db cofx))
+    (let [web3-instance (web3-queries/web3 (:db cofx))
           job-address (:id (router.queries/active-page-params (:db cofx)))
           contract-instance (contract-queries/instance (:db cofx) :job job-address)
           to-call {:instance contract-instance
@@ -332,3 +332,150 @@
   (fn [cofx event]
     {:fx [[:dispatch [:page.job-detail/job-updated]]
           [:dispatch [::notification.events/show "Transaction to end job processed successfully"]]]}))
+
+(re/reg-event-fx :page.job-detail/set-add-funds-amount (create-assoc-handler :add-funds-amount))
+(re/reg-event-fx :page.job-detail/start-adding-funds (create-assoc-handler :adding-funds?))
+
+(re/reg-event-fx
+  ::send-add-funds-tx
+  (fn [{:keys [db] :as cofx} [_ funds-params]]
+    (let [token-type (:token-type funds-params)
+          tx-opts-base {:from (:funder funds-params) :gas 10000000}
+          offered-value (:offered-value funds-params)
+          tx-opts (if (= token-type :eth)
+                    (assoc tx-opts-base :value (:value offered-value))
+                    tx-opts-base)]
+      {:fx [[:dispatch [::web3-events/send-tx
+                        {:instance (contract-queries/instance db :job (:receiver funds-params))
+                         :fn :add-funds
+                         :args [[(clj->js (:offered-value funds-params))]]
+                         :tx-opts tx-opts
+                         :tx-hash [::tx-hash]
+                         :on-tx-hash-error [::tx-hash-error]
+                         :on-tx-success [::add-funds-tx-success]
+                         :on-tx-error [::add-funds-tx-error]}]]]})))
+
+(re/reg-event-fx
+  ::erc20-allowance-amount-success
+  (fn [{:keys [db] :as cofx} [_ funds-params result]]
+    (let [offered-value (funds-params :offered-value)
+          amount (:value offered-value)
+          erc20-address (get-in offered-value [:token :tokenContract :tokenAddress])
+          erc20-abi (:erc20 ethlance.shared.contract-constants/abi)
+          erc20-instance (w3n-eth/contract-at (web3-queries/web3 db) erc20-abi erc20-address)
+          owner (:funder funds-params)
+          spender (:receiver funds-params)
+          enough-allowance? (>= (int result) amount)
+          increase-allowance-event [::web3-events/send-tx
+                                    {:instance erc20-instance
+                                     :fn :approve
+                                     :args [spender amount]
+                                     :tx-opts {:from owner}
+                                     :on-tx-success [::send-add-funds-tx funds-params]
+                                     :on-tx-error [::erc20-allowance-approval-error]}]]
+      {:fx [[:dispatch (if enough-allowance?
+                         [::send-add-funds-tx funds-params]
+                         increase-allowance-event)]]})))
+
+(re/reg-event-fx
+  ::erc20-allowance-amount-error
+  (fn [cofx result]
+    (println ">>> ::erc20-allowance-amount-error" result)))
+
+(re/reg-event-fx
+  ::ensure-erc20-allowance
+  (fn [{:keys [db] :as cofx} [_ funds-params]]
+    (let [offered-value (funds-params :offered-value)
+          erc20-address (get-in offered-value [:token :tokenContract :tokenAddress])
+          erc20-abi (:erc20 ethlance.shared.contract-constants/abi)
+          erc20-instance (w3n-eth/contract-at (web3-queries/web3 db) erc20-abi erc20-address)
+          owner (:funder funds-params)
+          spender (:receiver funds-params)]
+      {:fx [[:web3/call {:fns
+                          [{:instance erc20-instance
+                            :fn :allowance
+                            :args [owner spender]
+                            :on-success [::erc20-allowance-amount-success funds-params]
+                            :on-error [::erc20-allowance-amount-error]}]}]]})))
+
+(re/reg-event-fx
+  ::safe-transfer-with-add-funds
+  (fn [{:keys [db] :as cofx} [_ funds-params]]
+    (let [offered-value (:offered-value funds-params)
+          amount (:value offered-value)
+          token-address (get-in offered-value [:token :tokenContract :tokenAddress])
+          token-type (:token-type funds-params)
+          token-abi (get ethlance.shared.contract-constants/abi token-type)
+          token-id (get-in offered-value [:token :tokenId])
+          token-instance (w3n-eth/contract-at (web3-queries/web3 db) token-abi token-address)
+          owner (:funder funds-params)
+          spender (:receiver funds-params)
+          not-used-invoice-id 0
+          contract-callback-params [(:add-funds contract-constants/job-callback-target-method)
+                                    owner
+                                    [offered-value]
+                                    not-used-invoice-id]
+          job-instance (contract-queries/instance db :job spender)
+          data-for-callback (w3n-eth/encode-abi
+                              job-instance
+                              :example-function-signature-for-token-callback-data-encoding
+                              contract-callback-params)
+          safe-transfer-args (case token-type
+                               :erc721 [owner spender token-id data-for-callback]
+                               :erc1155 [owner spender token-id amount data-for-callback])
+          safe-transfer-with-create-job-tx [::web3-events/send-tx
+                                            {:instance token-instance
+                                             :fn :safe-transfer-from
+                                             :args safe-transfer-args
+                                             :tx-opts {:from owner}
+                                             :on-tx-success [::add-funds-tx-success]
+                                             :on-tx-error [::add-funds-tx-error]}]]
+      {:fx [[:dispatch safe-transfer-with-create-job-tx]]})))
+
+(re/reg-event-fx
+  :page.job-detail/finish-adding-funds
+  (fn [{:keys [db] :as cofx} [_ job-address token-details token-id amount]]
+    (let [
+          funder (accounts-queries/active-account (:db cofx))
+          tx-opts-base {:from funder :gas 10000000}
+          token-type (:token-detail/type token-details)
+          tx-amount (util.tokens/machine-amount amount token-type)
+          tx-opts (if (= token-type :eth)
+                    (assoc tx-opts-base :value tx-amount)
+                    tx-opts-base)
+          token-address (:token-detail/id token-details)
+          address-placeholder "0x0000000000000000000000000000000000000000"
+          token-address (if (not (= token-type :eth))
+                          token-address
+                          address-placeholder)
+          offered-value {:value (str tx-amount)
+                         :token
+                         {:tokenId token-id
+                          :tokenContract
+                          {:tokenType (contract-constants/token-type->enum-val token-type)
+                           :tokenAddress token-address}}}
+          instance (contract-queries/instance (:db cofx) :job job-address)
+          funds-params {:offered-value offered-value
+                        :token-type token-type
+                        :funder funder
+                        :receiver job-address}
+          next-event {:eth ::send-add-funds-tx
+                      :erc20 ::ensure-erc20-allowance
+                      :erc721 ::safe-transfer-with-add-funds
+                      :erc1155 ::safe-transfer-with-add-funds}]
+      {:fx [[:dispatch [(get next-event token-type) funds-params]]]})))
+
+(re/reg-event-fx
+  ::add-funds-tx-success
+  (fn [{:keys [db]} [event-name tx-data]]
+    (let [events (get-in tx-data [:events])]
+      {:db (-> db
+               (assoc-in ,,, [state-key :adding-funds?] false)
+               (assoc-in ,,, [state-key :add-funds-amount] nil))
+       :fx [[:dispatch [::notification.events/show "Transaction to add funds processed successfully"]]
+            [:dispatch [:page.job-detail/job-updated]]]})))
+
+(re/reg-event-db
+  ::add-funds-tx-error
+  (fn [db event]
+    {:dispatch [::notification.events/show "Error with add funds to job transaction"]}))

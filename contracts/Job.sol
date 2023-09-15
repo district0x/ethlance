@@ -560,6 +560,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   // This function is not meant to have implementation, rather only to serve for ABI encoder
   // to use for encoding call data for token (ERC721/1155) callbacks
+  // TODO: same functionality in Ethlance is called transferCallbackDelegate, give them same name
   function exampleFunctionSignatureForTokenCallbackDataEncoding(TargetMethod targetMethod,
                                                                 address target,
                                                                 EthlanceStructs.TokenValue[] memory tokenValues,

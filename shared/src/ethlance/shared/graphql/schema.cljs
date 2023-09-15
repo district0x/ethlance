@@ -396,6 +396,13 @@
     dateRegistered
   }
 
+  type TokenDetails {
+    tokenDetail_id: ID!
+    tokenDetail_type: Keyword
+    tokenDetail_name: String
+    tokenDetail_symbol: String
+  }
+
 
   # Arbiter Types
 
@@ -448,14 +455,6 @@
     dateUpdated
     dateCreated
     dateRegistered
-  }
-
-
-  type TokenDetails {
-    tokenDetail_id: ID!
-    tokenDetail_type: Keyword
-    tokenDetail_name: String
-    tokenDetail_symbol: String
   }
 
   # Job Types

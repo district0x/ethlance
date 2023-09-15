@@ -54,6 +54,7 @@
   (let [invoices-query [:job {:job/id contract-address}
                         [[:token-details
                           [:token-detail/id
+                           :token-detail/type
                            :token-detail/name
                            :token-detail/symbol]]
                          [:invoices
@@ -499,6 +500,30 @@
         :other
         [:div.proposal-form])]))
 
+(defn c-add-funds [contract-address token-id token-details]
+  (let [amount @(re/subscribe [:page.job-detail/add-funds-amount])
+        step (if (= (:token-detail/type token-details) :eth) 0.001 1)
+        adding-funds? (re/subscribe [:page.job-detail/adding-funds?])]
+    (if @adding-funds?
+      [:div.add-funds
+       [c-text-input
+        {:placeholder "Token amount"
+         :step step
+         :type :number
+         :default-value nil
+         :value amount
+         :on-change #(re/dispatch [:page.job-detail/set-add-funds-amount (js/parseFloat %)])}]
+       [c-button {:on-click (fn []
+                              (>evt [:page.job-detail/finish-adding-funds contract-address token-details token-id amount]))
+                  :size :small}
+        [c-button-label "Confirm"]]]
+
+      [:div.add-funds
+       [c-button {:on-click (fn []
+                              (>evt [:page.job-detail/start-adding-funds true]))
+                  :size :small}
+        [c-button-label "Add funds"]]])))
+
 (defn c-job-info-section [results]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         page-params (re/subscribe [:district.ui.router.subs/active-page-params])
@@ -529,6 +554,7 @@
         employer-id (get-in results [:job/employer :user/id])
         arbiter-id (get-in results [:job/arbiter :user/id])
         has-accepted-arbiter? (not (nil? (get-in results [:job/arbiter])))
+        token-details (get-in results [:token-details])
         job-balance (get-in results [:balance])
 
         invoices (get-in results [:invoices :items])
@@ -551,7 +577,9 @@
          [:div.ticket-listing
          [:div.ticket
           [:div.label "Available Funds"]
-          [c-token-info job-balance (get-in results [:token-details])]]]
+          [c-token-info job-balance token-details]]]
+
+         [c-add-funds contract-address (:job/token-id results) token-details]
          [:div.profiles
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
