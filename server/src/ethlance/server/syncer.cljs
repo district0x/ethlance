@@ -51,7 +51,7 @@
       (if (not (<? (ethlance-db/get-token conn token-address)))
         (if (= :eth token-type)
           (ethlance-db/store-token-details conn eth-token-details)
-          (ethlance-db/store-token-details conn (<! (token-utils/get-token-details token-address))))))))
+          (ethlance-db/store-token-details conn (<! (token-utils/get-token-details token-type token-address))))))))
 
 (defn handle-job-created [conn _ {:keys [args] :as event}]
   (safe-go
@@ -74,8 +74,8 @@
                                        :job/token-id (:token-id offered-value)
                                        :invited-arbiters (get-in args [:invited-arbiters] [])}
                                       (build-ethlance-job-data-from-ipfs-object ipfs-job-content))]
-     (<? (ethlance-db/add-job conn for-the-db))
-     (ensure-db-token-details token-type token-address conn))))
+     (<? (ensure-db-token-details token-type token-address conn))
+     (<? (ethlance-db/add-job conn for-the-db)))))
 
 (defn handle-invoice-created [conn _ {:keys [args]}]
   (safe-go

@@ -98,3 +98,6 @@
     (->> proposals
          (filter #(not= :deleted (:status %)) ,,,)
          (seek :current-user? ,,,))))
+
+(re/reg-sub :page.job-detail/add-funds-amount (create-get-handler :add-funds-amount))
+(re/reg-sub :page.job-detail/adding-funds? (create-get-handler :adding-funds?))

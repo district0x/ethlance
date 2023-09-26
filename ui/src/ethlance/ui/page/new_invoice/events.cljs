@@ -23,8 +23,7 @@
 (def state-key :page.new-invoice)
 
 (def state-default
-  {:job-listing ["Smart Contract" "USD" "ETH"]
-   :invoiced-job nil
+  {:invoiced-job nil
    :hours-worked nil
    :hourly-rate nil
    :invoice-amount nil
@@ -41,7 +40,6 @@
      :dispatch []}]})
 
 (re/reg-event-fx :page.new-invoice/initialize-page initialize-page)
-(re/reg-event-fx :page.new-invoice/set-job-listing (create-assoc-handler :job-listing))
 (re/reg-event-fx :page.new-invoice/set-hours-worked (create-assoc-handler :hours-worked parse-int))
 (re/reg-event-fx :page.new-invoice/set-hourly-rate (create-assoc-handler :hourly-rate parse-float))
 (re/reg-event-fx :page.new-invoice/set-invoice-amount (create-assoc-handler :invoice-amount parse-float))
@@ -50,16 +48,20 @@
 (re/reg-event-fx
   :page.new-invoice/set-invoiced-job
   (fn [cofx [_ job]]
-    {:db (assoc-in (:db cofx) [state-key :invoiced-job] job)
-     :dispatch [:district.ui.conversion-rates.events/load-conversion-rates
-                {:from-currencies [(get-in job [:job :token-details :token-detail/symbol])]
-                 :to-currencies [:USD]}]}))
+    (let [token-type (get-in job [:job :token-details :token-detail/type])
+          updated-cofx {:db (assoc-in (:db cofx) [state-key :invoiced-job] job)}
+          load-eth-rate [:dispatch [:district.ui.conversion-rates.events/load-conversion-rates
+                                    {:from-currencies [token-type] :to-currencies [:USD]}]]]
+      (if (= token-type :eth)
+        (assoc-in updated-cofx [:fx] [load-eth-rate])
+        updated-cofx))))
 
 (re/reg-event-fx
   :page.new-invoice/send
   (fn [{:keys [db]}]
     (let [db-invoice (get-in db [state-key])
-          ipfs-invoice {:invoice/hours-worked (:hours-worked db-invoice)
+          ipfs-invoice {:invoice/amount-requested (:invoice-amount db-invoice)
+                        :invoice/hours-worked (:hours-worked db-invoice)
                         :invoice/hourly-rate (:hourly-rate db-invoice)
                         :message/text (:message db-invoice)
                         :job/id (-> db-invoice :invoiced-job :job/id)
@@ -78,9 +80,7 @@
           creator (accounts-queries/active-account (:db cofx))
           token-type (keyword (:job/token-type job-fields))
           invoice-amount (:invoice-amount invoice-fields)
-          token-amount (if (= token-type :eth)
-                         (eth->wei invoice-amount)
-                         invoice-amount)
+          token-amount (util.tokens/machine-amount invoice-amount token-type)
           address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
@@ -127,9 +127,9 @@
           raw-event (get-in tx-data [:events :0 :raw])
           invoice-created (util.tokens/parse-event web3 contract-instance raw-event :Invoice-created)
           job-story-id (:job-story/id ipfs-job)]
-      (println ">>> ::send-invoice-tx-success" {:tx-data tx-data :invoice-created invoice-created :ipfs-job ipfs-job :event (get-in tx-data [:events :Invoice-created :return-values])})
       (re/dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}])
-      {:dispatch [::notification.events/show "Transaction to create invoice processed successfully"]})))
+      {:dispatch [::notification.events/show "Transaction to create invoice processed successfully"]
+       :db (assoc-in db [state-key] state-default)})))
 
 (re/reg-event-db
   ::send-invoice-tx-error

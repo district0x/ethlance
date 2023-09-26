@@ -96,7 +96,7 @@
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> arbiter :user :user/profile-image)}]]
     [:div.name (get-in arbiter [:user :user/name])]]
-   [:div.price (tokens/human-currency-amount (-> arbiter :arbiter/fee-currency-id)
+   [:div.price (tokens/fiat-amount-with-symbol (-> arbiter :arbiter/fee-currency-id)
                                              (-> arbiter :arbiter/fee))]
    [:div.tags
     (doall

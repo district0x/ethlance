@@ -40,7 +40,7 @@ let smartContractsTemplate = (map, env) => {
 
 let encodeContractEDN = (contract_instance, contract_name, contract_key, opts) => {
   const clj_contract_name = ":" + contract_key;
-  const contract_address = contract_instance.address.toLowerCase();
+  const contract_address = contract_instance.address;
   opts = opts || {};
 
   let entry_value = [
@@ -73,6 +73,50 @@ function requireContract(contract_name, contracts_build_directory, contract_copy
   return artifacts.require(copy_name);
 }
 
+function readSmartContractsFile(smartContractsPath) {
+  var content = fs.readFileSync(smartContractsPath, "utf8");
+
+  content = content.replace(/\(ns.*\)/gm, "");
+  content = content.replace(/\(def smart-contracts/gm, "");
+  content = content.replace(/\)$/gm, "");
+
+  return edn.parse(content);
+}
+
+function setSmartContractAddress(smartContracts, contractKey, newAddress) {
+  var contract = edn.atPath(smartContracts, contractKey);
+  contract = contract.set(edn.kw(":address"), newAddress);
+  return smartContracts.set(edn.kw(contractKey), contract);
+}
+
+function setSmartContractForwardsTo(smartContracts, contractKey, targetContractName) {
+  var contract = edn.atPath(smartContracts, contractKey);
+  contract = contract.set(edn.kw(":forwards-to"), edn.kw(targetContractName));
+  return smartContracts.set(edn.kw(contractKey), contract);
+}
+
+function getSmartContractAddress(smartContracts, contractKey) {
+  try {
+    return edn.atPath(smartContracts, contractKey + " :address");
+  } catch (e) {
+    return null;
+  }
+}
+
+function encodeSmartContracts (smartContracts) {
+  if (Array.isArray(smartContracts)) {
+    smartContracts = new edn.Map(smartContracts);
+  }
+  var contracts = edn.encode(smartContracts);
+  console.log(contracts);
+  return contracts;
+};
+
+function writeSmartContracts(smartContractsPath, smartContracts, env) {
+  console.log("Writing to smart contract file: " + smartContractsPath);
+  fs.writeFileSync(smartContractsPath, smartContractsTemplate(encodeSmartContracts(smartContracts), env));
+}
+
 module.exports = {
   last: last,
   copy: copy,
@@ -80,4 +124,10 @@ module.exports = {
   smartContractsTemplate: smartContractsTemplate,
   encodeContractEDN: encodeContractEDN,
   requireContract: requireContract,
+  getSmartContractAddress: getSmartContractAddress,
+  setSmartContractAddress: setSmartContractAddress,
+  readSmartContractsFile: readSmartContractsFile,
+  writeSmartContracts: writeSmartContracts,
+  encodeSmartContracts: encodeSmartContracts,
+  setSmartContractForwardsTo: setSmartContractForwardsTo
 };

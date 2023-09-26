@@ -23,7 +23,7 @@
   district0x/async-helpers {:mvn/version "0.1.3"}
   district0x/error-handling {:mvn/version "1.0.4"}
   district0x/graphql-query {:mvn/version "1.0.6"}
-  district0x/district-graphql-utils {:mvn/version "1.0.11"}
+  district0x/district-graphql-utils {:mvn/version "1.0.12"}
   district0x/bignumber {:mvn/version "1.0.3"}
   district0x/district-cljs-utils {:mvn/version "1.0.4"}
   district0x/district-encryption {:mvn/version "1.0.1"}
@@ -88,6 +88,7 @@
     is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}
     district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
     is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}
+    is.d0x/district-ui-smart-contracts {:local/root "../../d0x-libs/browser/district-ui-smart-contracts"}
     is.d0x/district-ui-router {:local/root "../../d0x-libs/browser/district-ui-router"}
     is.d0x/district-ui-web3-accounts {:local/root "../../d0x-libs/browser/district-ui-web3-accounts"}
     is.d0x/re-frame-web3-fx {:local/root "../../d0x-libs/browser/re-frame-web3-fx"}

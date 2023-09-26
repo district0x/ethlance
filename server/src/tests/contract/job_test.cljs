@@ -263,8 +263,8 @@
                    target-method (contract-constants/job-callback-target-method :accept-quote-for-arbitration)
                    not-used-invoice-id 0 ; just a placeholder, not used for accepting quote call
                    call-data (web3-eth/encode-abi (smart-contracts/instance :job)
-                                                       :example-function-signature-for-token-callback-data-encoding
-                                                       [target-method arbiter [erc721-offer] not-used-invoice-id])
+                                                  :transfer-callback-delegate
+                                                  [target-method arbiter [erc721-offer] not-used-invoice-id])
 
                    _ (<! (smart-contracts/contract-send :test-nft :safe-transfer-from [employer arbiter token-id call-data] {:from employer}))
                    _ (<! (smart-contracts/contract-send [:job job-address] :accept-quote-for-arbitration [arbiter token-offer] {:from employer}))
@@ -301,8 +301,8 @@
                    token-id (get-in contributor-c-offer-multi-token [:token :tokenId])
                    not-used-invoice-id 0 ; just a placeholder, not used for add-funds call
                    call-data (web3-eth/encode-abi (smart-contracts/instance :job)
-                                                       :example-function-signature-for-token-callback-data-encoding
-                                                       [target-method-add-funds contributor-c [contributor-c-offer-multi-token] not-used-invoice-id])
+                                                  :transfer-callback-delegate
+                                                  [target-method-add-funds contributor-c [contributor-c-offer-multi-token] not-used-invoice-id])
                    _ (<! (smart-contracts/contract-send :test-multi-token
                                                         :safe-transfer-from
                                                         [contributor-c job-address token-id contributor-c-amount call-data]

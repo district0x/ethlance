@@ -14,6 +14,7 @@
             [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.component.text-input :refer [c-text-input]]
+            [ethlance.ui.component.token-info :refer [c-token-info] :as token-info]
             [ethlance.ui.util.navigation :as util.navigation]
             [re-frame.core :as re]))
 
@@ -35,7 +36,7 @@
    [:div.value status]
 
    [:div.name "Funds Available"]
-   [:div.value (str (:amount funds) " " (:symbol funds))]
+   [:div.value [c-token-info (:amount funds) (:token-details funds)]]
 
    [:div.name "Employer"]
    [:a.value (profile-link-handlers :employer (:address employer)) (:name employer)]
@@ -85,7 +86,7 @@
                  (-> job-story :job :job/token-type))
         token-name (-> job-story :job :token-details :token-detail/name)
         token-symbol (-> job-story :job :token-details :token-detail/symbol)]
-    (str amount " " token-symbol " (" token-name ")")))
+    [c-token-info (:invoice/amount-requested invoice) (get-in job-story [:job :token-details])]))
 
 (defn extract-chat-messages [job-story current-user]
   (let [job-story-id (-> job-story :job-story :job-story/id)
@@ -93,12 +94,7 @@
                          (when message
                            (assoc message :details (conj (:details message) additional-detail))))
         format-proposal-amount (fn [job-story]
-                                 (let [amount (tokens/human-amount
-                                                (-> job-story :job-story/proposal-rate)
-                                                (-> job-story :job :job/token-type))
-                                       token-name (-> job-story :job :token-details :token-detail/name)
-                                       token-symbol (-> job-story :job :token-details :token-detail/symbol)]
-                                   (str amount " " token-symbol " (" token-name ")")))
+                                 (token-info/token-info-str (-> job-story :job-story/proposal-rate) (get-in job-story [:job :token-details])))
         common-fields (partial common-chat-fields current-user job-story)
 
         invitation (common-fields :invitation-message ["Sent job invitation"])
@@ -157,6 +153,7 @@
                          [:job [:job/token-type
                                 :job/token-address
                                 [:token-details [:token-detail/id
+                                                 :token-detail/type
                                                  :token-detail/name
                                                  :token-detail/symbol]]]]
                          [:proposal-message message-fields]
@@ -617,17 +614,18 @@
                      [:message/id :message/text]]
                     [:job
                      [:job/title
-                      :job/token-type
-                      :job/token-amount
-                      :job/token-address
-                      :job/token-id
+                      :balance
                       [:job/employer
                        [:user/id
                         [:user [:user/name]]]]
                       [:job/arbiter
                        [:user/id
                         [:user [:user/name]]]]
-                      [:token-details [:token-detail/symbol :token-detail/name]]]]]]
+                      [:token-details
+                       [:token-detail/id
+                        :token-detail/type
+                        :token-detail/symbol
+                        :token-detail/name]]]]]]
             result @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
             job-story (:job-story result)
 
@@ -654,9 +652,8 @@
             profile {:title (get-in job-story [:job :job/title])
                      :job/id (:job/id job-story)
                      :status (get-in job-story [:job-story/status])
-                     :funds {:amount human-amount
-                             :name (-> job-story :job :token-details :token-detail/name)
-                             :symbol (-> job-story :job :token-details :token-detail/symbol)}
+                     :funds {:amount (get-in job-story [:job :balance])
+                             :token-details (get-in job-story [:job :token-details])}
                      :employer {:name (get-in job-story [:job :job/employer :user :user/name])
                                 :address employer-id}
                      :candidate {:name (get-in job-story [:candidate :user :user/name])
@@ -665,7 +662,7 @@
                                :address arbiter-id}}]
         [c-main-layout {:container-opts {:class :job-contract-main-container :random (rand)}}
          [:div.header-container
-          [c-header-profile profile]
+          (when-not (:graphql/loading? result) [c-header-profile profile])
           [c-chat job-story-id]]
 
          [:div.options-container

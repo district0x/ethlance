@@ -28,7 +28,7 @@
 (re/reg-sub :page.new-job/token-id (create-get-handler :job/token-id))
 
 (re/reg-sub :page.new-job/with-arbiter? (create-get-handler :job/with-arbiter?))
-(re/reg-sub :page.new-job/invited-arbiter (create-get-handler :job/invited-arbiter))
+(re/reg-sub :page.new-job/invited-arbiters (create-get-handler :job/invited-arbiters))
 
 
 (re/reg-sub :page.new-job/form (fn [db] (get db new-job.events/state-key)))

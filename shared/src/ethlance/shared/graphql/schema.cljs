@@ -396,6 +396,13 @@
     dateRegistered
   }
 
+  type TokenDetails {
+    tokenDetail_id: ID!
+    tokenDetail_type: Keyword
+    tokenDetail_name: String
+    tokenDetail_symbol: String
+  }
+
 
   # Arbiter Types
 
@@ -423,7 +430,7 @@
     job_id: String
     arbitration_dateArbiterAccepted: Float
     arbitration_fee: Float
-    arbitration_feeCurrencyId: String
+    feeTokenDetails: TokenDetails
     arbitration_status: String
     arbitration_dateCreated: Date
     job: Job
@@ -450,13 +457,6 @@
     dateRegistered
   }
 
-
-  type TokenDetails {
-    tokenDetail_id: ID!
-    tokenDetail_name: String
-    tokenDetail_symbol: String
-    tokenDetail_abi: String
-  }
   # Job Types
 
   type Job {

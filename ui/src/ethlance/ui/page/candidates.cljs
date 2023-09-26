@@ -106,7 +106,7 @@
     [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
     [:div.name (-> candidate :user :user/name)]
     [:div.title (str/title (-> candidate :candidate/professional-title)) (str " (" (-> candidate :user :user/country) ")")]]
-   [:div.price (tokens/human-currency-amount (-> candidate :candidate/rate-currency-id) (-> candidate :candidate/rate))]
+   [:div.price (tokens/fiat-amount-with-symbol (-> candidate :candidate/rate-currency-id) (-> candidate :candidate/rate))]
    [:div.tags
     (doall
      (for [tag-label (-> candidate :candidate/skills)]

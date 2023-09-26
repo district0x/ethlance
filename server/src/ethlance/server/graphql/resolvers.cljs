@@ -146,6 +146,16 @@
                  :where [:= :TokenDetail.token-detail/id token-address]}]
       (<? (db/get conn query)))))
 
+(defn arbitration->fee-token-details-resolver [parent args context info]
+  (log/debug "job->token-details-resolver" parent)
+  (db/with-async-resolver-conn conn
+    (let [clj-parent (js->clj parent)
+          token-address  "0x0000000000000000000000000000000000000000" ; arbiter fees are always ETH
+          query {:select [:*]
+                 :from [:TokenDetail]
+                 :where [:= :TokenDetail.token-detail/id token-address]}]
+      (<? (db/get conn query)))))
+
 (defn participant->user-resolver [parent args context info]
   (log/debug "participant->user-resolver")
   (db/with-async-resolver-conn conn
@@ -1225,7 +1235,8 @@
                               :arbitrations arbiter->arbitrations-resolver
                               :user participant->user-resolver}
                     :Arbitration {:job job-resolver
-                                  :arbiter arbiter-resolver}
+                                  :arbiter arbiter-resolver
+                                  :feeTokenDetails arbitration->fee-token-details-resolver}
                     :Dispute {:job job-resolver
                               :jobStory job-story-resolver
                               :candidate candidate-resolver

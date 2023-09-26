@@ -10,6 +10,7 @@
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.profile-image :refer [c-profile-image]]
+            [ethlance.ui.component.token-info :refer [c-token-info]]
             [ethlance.ui.util.navigation :as util.navigation]
             [ethlance.ui.component.rating :refer [c-rating]]))
 
@@ -43,6 +44,7 @@
                     [:user [:user/name :user/country :user/profile-image]]]]
                   [:token-details
                    [:token-detail/id
+                    :token-detail/type
                     :token-detail/name
                     :token-detail/symbol]]
                   [:invoice {:invoice/id invoice-id :job/id contract-address}
@@ -86,8 +88,9 @@
                           :receiver (:user/id candidate)}
 
           invoice-payable? (not= "paid" (get-in invoice [:invoice/status]))
-          info-panel [["Hours Worked" (get-in invoice [:invoice/hours-worked])]
-                      ["Invoiced Amount" (str (tokens/human-amount (:invoice/amount-requested invoice) (:job/token-type job)) " " job-token-symbol)]
+          info-panel [["Invoiced Amount" (when-not (:graphql/loading? result)
+                                           [c-token-info (:invoice/amount-requested invoice) (:token-details job)])]
+                      ["Hours Worked" (get-in invoice [:invoice/hours-worked])]
                       ["Hourly Rate" (get-in invoice [:invoice/hourly-rate])]
                       ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]]
       [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
@@ -103,8 +106,7 @@
 
        [:div.right
         [:div.ethlance-table
-         [:table
-          (into [:tbody] (map (fn [[label content]] [:tr [:th label] [:td content]]) info-panel))]]]
+         [:table (into [:tbody] (map (fn [[label content]] [:tr [:th label] [:td content]]) info-panel))]]]
 
        (if invoice-payable?
          [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}

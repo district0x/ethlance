@@ -17,7 +17,6 @@
 ;;
 
 
-(re/reg-sub :page.new-invoice/job-listing (create-get-handler :job-listing))
 (re/reg-sub :page.new-invoice/invoiced-job (create-get-handler :invoiced-job))
 (re/reg-sub :page.new-invoice/hours-worked (create-get-handler :hours-worked))
 (re/reg-sub :page.new-invoice/hourly-rate (create-get-handler :hourly-rate))
@@ -39,7 +38,7 @@
      :amount (-> job :job :job/token-amount)
      :id (-> job :job :job/token-id)
      :name (-> job :job :token-details :token-detail/name)
-     :symbol (keyword (-> job :job :token-details :token-detail/symbol))}))
+     :symbol (or (keyword (-> job :job :token-details :token-detail/symbol)))}))
 
 (re/reg-sub
   :page.new-invoice/estimated-usd
@@ -47,11 +46,16 @@
   :<- [:page.new-invoice/invoice-amount]
   :<- [::rates-subs/conversion-rates]
   (fn [[token-details invoice-amount conversion-rates] _]
-    (let [from-currency (or (:symbol token-details) :ETH)
+    (let [from-currency (:symbol token-details)
           to-currency :USD
           amount (or invoice-amount 0)
           rate (get-in conversion-rates [from-currency to-currency])
-          sum-usd (util.tokens/round 2 (* amount rate))]
-      (if from-currency
-        (str "Estimated $" sum-usd " (1 " (name from-currency) " = " rate " " (name to-currency) ")")
-        "Please fill in invoice details to get an estimate"))))
+          sum-usd #(util.tokens/round 2 (* amount rate))]
+      (cond
+        (and (= 0 amount) (= :eth (:token-detail/type token-details)))
+        "Please fill in invoice details to get an estimate"
+
+        (= :ETH from-currency)
+        (str "Estimated $" (sum-usd) " (1 " (name from-currency) " = " rate " " (name to-currency) ")")
+
+        :else ""))))
