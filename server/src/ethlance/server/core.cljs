@@ -39,20 +39,21 @@
 (def default-config
   {
    :web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
-   :web3-events {:events {:ethlance/job-created [:ethlance :JobCreated]
-                          :ethlance/invoice-created [:ethlance :InvoiceCreated]
-                          :ethlance/invoice-paid [:ethlance :InvoicePaid]
-                          :ethlance/dispute-raised [:ethlance :DisputeRaised]
-                          :ethlance/dispute-resolved [:ethlance :DisputeResolved]
-                          :ethlance/candidate-added [:ethlance :CandidateAdded]
-                          :ethlance/quote-for-arbitration-set [:ethlance :QuoteForArbitrationSet]
-                          :ethlance/quote-for-arbitration-accepted [:ethlance :QuoteForArbitrationAccepted]
-                          :ethlance/job-ended [:ethlance :JobEnded]
-                          :ethlance/arbiters-invited [:ethlance :ArbitersInvited]
-                          :ethlance/funds-in [:ethlance :FundsIn]
-                          :ethlance/funds-out [:ethlance :FundsOut]
-                          :ethlance/test-event [:ethlance :TestEvent]
-                          }
+   ; :web3 {:url  "ws://127.0.0.1:8545"} ; "ws://d0x-vm:8549"
+   :web3-events {:events
+                 {:ethlance/job-created [:ethlance :JobCreated]
+                  :ethlance/invoice-created [:ethlance :InvoiceCreated]
+                  :ethlance/invoice-paid [:ethlance :InvoicePaid]
+                  :ethlance/dispute-raised [:ethlance :DisputeRaised]
+                  :ethlance/dispute-resolved [:ethlance :DisputeResolved]
+                  :ethlance/candidate-added [:ethlance :CandidateAdded]
+                  :ethlance/quote-for-arbitration-set [:ethlance :QuoteForArbitrationSet]
+                  :ethlance/quote-for-arbitration-accepted [:ethlance :QuoteForArbitrationAccepted]
+                  :ethlance/job-ended [:ethlance :JobEnded]
+                  :ethlance/arbiters-invited [:ethlance :ArbitersInvited]
+                  :ethlance/funds-in [:ethlance :FundsIn]
+                  :ethlance/funds-out [:ethlance :FundsOut]
+                  :ethlance/test-event [:ethlance :TestEvent]}
                  :from-block 0 ; 53; (:last-processed-block (read-edn-sync "ethlance-events.log"))
                  :block-step 1000
                  :dispatch-logging? true

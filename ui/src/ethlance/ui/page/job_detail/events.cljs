@@ -418,7 +418,7 @@
           job-instance (contract-queries/instance db :job spender)
           data-for-callback (w3n-eth/encode-abi
                               job-instance
-                              :example-function-signature-for-token-callback-data-encoding
+                              :transfer-callback-delegate
                               contract-callback-params)
           safe-transfer-args (case token-type
                                :erc721 [owner spender token-id data-for-callback]

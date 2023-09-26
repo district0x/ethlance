@@ -230,6 +230,7 @@
                     :job/token-amount
                     [:token-details
                      [:token-detail/id
+                      :token-detail/type
                       :token-detail/name
                       :token-detail/symbol]]
 

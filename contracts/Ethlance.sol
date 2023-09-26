@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.21;
 pragma experimental ABIEncoderV2;
 
 import "./EthlanceStructs.sol";
 import "./Job.sol";
-import "./external/ApproveAndCallFallback.sol";
 import "./external/MutableForwarder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./external/ds-auth/auth.sol";
-
 
 /**
  * @dev Factory contract for creating {Job} smart-contracts
@@ -19,7 +16,7 @@ import "./external/ds-auth/auth.sol";
  * No breaking changes will be introduced for events, so they all stay accessible from a single contract.
  */
 
-contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, DSAuth {
+contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
 
   address public jobProxyTarget; // Stores address of a contract that Job proxies will be delegating to
   mapping(address => bool) public isJobMap; // Stores if given address is a Job proxy contract address
@@ -347,23 +344,6 @@ contract Ethlance is ApproveAndCallFallBack, IERC721Receiver, IERC1155Receiver, 
   function emitJobEnded(address job) external isJob {
     emit JobEnded(job, timestamp());
   }
-
-  /**
-   * @dev This function is called automatically when this contract receives approval for ERC20 MiniMe token
-   * It calls {_createJob} where:
-   * - passed `_creator` is `_from`
-   * - passed `_offeredValues` are constructed from the transferred token
-   * - rest of arguments is obtained by decoding `_data`
-   * TODO: Needs implementation
-   */
-  function receiveApproval(
-    address _from,
-    uint256 _amount,
-    address _token,
-    bytes memory _data
-  ) external override {
-  }
-
 
   /**
    * @dev This function is called automatically when this contract receives ERC721 token

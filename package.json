@@ -12,9 +12,13 @@
   },
   "devDependencies": {
     "jsedn": "0.4.1",
-    "truffle": "5.11.2"
+    "truffle": "5.11.5",
+    "solc": "0.8.21"
+  },
+  "resolutions": {
+    "solc": "0.8.21"
   },
   "engines": {
-    "node": "16.15.1"
+    "node": "^18.17.0"
   }
 }

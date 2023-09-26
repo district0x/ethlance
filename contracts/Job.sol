@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.21;
 pragma experimental ABIEncoderV2;
 
 import "./EthlanceStructs.sol";
+import "./JobHelpers.sol";
 import "./Ethlance.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-// import "@ganache/console.log/console.sol";
 
 
 /**
@@ -16,7 +16,6 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  * and optionally an arbiter.
  * Every new Job contract is created as a proxy contract.
  */
-
 contract Job is IERC721Receiver, IERC1155Receiver {
   uint public constant version = 1; // current version of {Job} smart-contract
   uint public constant ARBITER_IDLE_TIMEOUT = 30 days;
@@ -36,14 +35,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
   EnumerableSet.AddressSet internal invitedCandidates;
   address public acceptedArbiter;
 
-  struct Dispute {
-    uint invoiceId;
-    address creator;
-    EthlanceStructs.TokenValue resolution;
-    uint raisedAt;
-    bool resolved;
-  }
-  mapping (uint => Dispute) public disputes; // invoiceId => dispute
+  mapping (uint => JobHelpers.Dispute) public disputes; // invoiceId => dispute
   uint[] disputeIds;
 
   struct Invoice {
@@ -91,6 +83,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     _recordAddedFunds(_creator, _offeredValues);
   }
 
+  function emitTestEvent(uint answer) public returns(uint) {
+    ethlance.emitTestEvent(answer + 1);
+    return answer * 2;
+  }
 
   /**
    * @dev Sets quote for arbitration requested by arbiter for his services
@@ -128,20 +124,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitArbitersInvited(address(this), _invitedArbiters);
   }
 
-  function isAcceptedArbiterIdle() public view returns (bool) {
-    return isAcceptedArbiterIdle(block.timestamp);
-  }
-
-  function isAcceptedArbiterIdle(uint timeNow) public view returns (bool) {
-    for(uint i = 0; i < disputeIds.length; i++) {
-      if(disputes[disputeIds[i]].resolved == false &&
-         (timeNow - disputes[disputeIds[i]].raisedAt) > ARBITER_IDLE_TIMEOUT) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * @dev It is called by job creator when he decides to accept an quote from an arbiter
    * It checks if `_transferredValue` matches the quote requested by an arbiter
@@ -164,7 +146,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(true
             || acceptedArbiter == address(0)
             || acceptedArbiter == _arbiter
-            || isAcceptedArbiterIdle(block.timestamp),
+            || JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, block.timestamp),
             "Another arbiter (non-idle) had been accepted before. Only 1 can be accepted.");
     require(isAmongstInvitedArbiters(_arbiter), "Arbiter to be accepted must be amongst invited arbiters");
     require(isCallerJobCreator(msg.sender), "Only job creator (employer) can accept quote for arbitration");
@@ -176,6 +158,9 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitQuoteForArbitrationAccepted(address(this), _arbiter);
   }
 
+  function isAcceptedArbiterIdle() public view returns (bool) {
+    return JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, block.timestamp);
+  }
 
   /**
    * @dev It is called by job creator when he allows a new candidate to start invoicing for this job
@@ -198,7 +183,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     invitedCandidates.add(_candidate);
     ethlance.emitCandidateAdded(address(this), address(_candidate), _ipfsData);
   }
-
 
   /**
    * @dev Function called by candidate to create an invoice to be paid
@@ -353,33 +337,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       tokenValue.token.tokenId));
   }
 
-  function getDepositsCount() public view returns(uint) {
-    return depositIds.length;
-  }
-
-  function getDepositIds() public view returns(bytes32[] memory) {
-    return depositIds;
-  }
-
   function getDeposits(address depositor) public view returns (EthlanceStructs.TokenValue[] memory) {
-    EthlanceStructs.TokenValue[] memory selectedValues = new EthlanceStructs.TokenValue[](depositIds.length);
-    uint lastFilled = 0;
-    for(uint i = 0; i < depositIds.length; i++) {
-      bytes32 depositId = depositIds[i];
-      EthlanceStructs.Deposit memory currentDeposit = deposits[depositId];
-      if(currentDeposit.depositor == depositor) {
-        selectedValues[lastFilled] = currentDeposit.tokenValue;
-        lastFilled += 1;
-      }
-    }
-
-    EthlanceStructs.TokenValue[] memory compactedValues = new EthlanceStructs.TokenValue[](lastFilled);
-    for(uint i = 0; i < lastFilled; i++) {
-      if(selectedValues[i].value != 0) {
-        compactedValues[i] = selectedValues[i];
-      }
-    }
-    return compactedValues;
+    return JobHelpers.getDeposits(depositIds, deposits, depositor);
   }
 
   /**
@@ -499,7 +458,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(invoice.issuer != address(0), "Can only raise dispute for invoices that exist");
     require(invoice.issuer == msg.sender, "Only issuer of an invoice can raise dispute about it");
     require(disputeExistsForInvoice(_invoiceId) == false, "Can't raise dispute for same invoice more than once.");
-    Dispute memory dispute = Dispute(_invoiceId, msg.sender, invoice.item, block.timestamp, false);
+    JobHelpers.Dispute memory dispute = JobHelpers.Dispute(_invoiceId, msg.sender, invoice.item, block.timestamp, false);
     disputes[_invoiceId] = dispute;
     disputeIds.push(_invoiceId);
     ethlance.emitDisputeRaised(address(this), _invoiceId, _ipfsData);
@@ -523,7 +482,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     EthlanceStructs.TokenValue[] memory _valueForInvoicer,
     bytes memory _ipfsData
   ) external {
-    Dispute memory dispute = disputes[_invoiceId];
+    JobHelpers.Dispute memory dispute = disputes[_invoiceId];
     require(dispute.creator != address(0), "The dispute to resolve didn't exist");
     require(dispute.resolved == false, "Can only resolve dispute once");
     require(acceptedArbiter == msg.sender, "Only accepted arbitor can resolve disputes");
@@ -542,30 +501,15 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitDisputeResolved(address(this), _invoiceId, _valueForInvoicer, _ipfsData);
   }
 
-
-  /**
-   * @dev This function is called automatically when this contract receives approval for ERC20 MiniMe token
-   * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
-   * TODO: Needs implementation
-   */
-  function receiveApproval(
-    address _from,
-    uint256 _amount,
-    address _token,
-    bytes memory _data
-  ) external {
-  }
-
   enum TargetMethod { ACCEPT_QUOTE_FOR_ARBITRATION, ADD_FUNDS, ADD_FUNDS_AND_PAY_INVOICE }
 
   // This function is not meant to have implementation, rather only to serve for ABI encoder
   // to use for encoding call data for token (ERC721/1155) callbacks
-  // TODO: same functionality in Ethlance is called transferCallbackDelegate, give them same name
-  function exampleFunctionSignatureForTokenCallbackDataEncoding(TargetMethod targetMethod,
-                                                                address target,
-                                                                EthlanceStructs.TokenValue[] memory tokenValues,
-                                                                uint invoiceId) public payable {}
-
+  function transferCallbackDelegate(TargetMethod targetMethod,
+                                    address target,
+                                    EthlanceStructs.TokenValue[] memory tokenValues,
+                                    uint invoiceId
+                                   ) public payable {}
 
   function _decodeTokenCallbackData(bytes calldata _data) internal pure returns(TargetMethod, address, EthlanceStructs.TokenValue[] memory, uint) {
     return abi.decode(_data[4:], (TargetMethod, address, EthlanceStructs.TokenValue[], uint));
@@ -591,6 +535,27 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     }
   }
 
+  function isAmongstInvitedArbiters(address account) internal view returns (bool) {
+    return invitedArbiters.contains(account);
+  }
+
+  function isCallerJobCreator(address account) internal view returns (bool) {
+    return account == creator;
+  }
+
+  // Modifiers
+  modifier hasNoOutstandingPayments {
+    require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
+    require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
+    _;
+  }
+
+  modifier ongoingJob {
+    require(jobEnded == false, "This job was ended. Can't receive more funds");
+    _;
+  }
+
+  // Implemented interfaces
   /**
    * @dev This function is called automatically when this contract receives ERC721 token
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `_data`
@@ -600,7 +565,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     address,
     uint256,
     bytes calldata _data
-  ) public override ongoingJob returns (bytes4) {
+  ) external override ongoingJob returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
   }
@@ -616,7 +581,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256,
     uint256,
     bytes calldata _data
-  ) public override ongoingJob returns (bytes4) {
+  ) external override ongoingJob returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
   }
@@ -631,7 +596,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     uint256[] calldata,
     uint256[] calldata,
     bytes calldata _data
-  ) public override ongoingJob returns (bytes4) {
+  ) external override ongoingJob returns (bytes4) {
     if (_data.length > 0) { _delegateBasedOnData(_data); }
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
@@ -642,12 +607,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive() external ongoingJob payable {
-    // console.log("Job#receive called");
     ethlance.emitFundsIn(address(this), EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
   }
 
   fallback() external payable {
-    // console.log("Job#fallback called");
   }
 
   function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
@@ -656,42 +619,5 @@ contract Job is IERC721Receiver, IERC1155Receiver {
       interfaceId == type(IERC1155).interfaceId ||
       interfaceId == type(IERC721Receiver).interfaceId ||
       interfaceId == type(IERC1155Receiver).interfaceId;
-  }
-
-  function isAmongstInvitedArbiters(address account) internal view returns (bool) {
-    return invitedArbiters.contains(account);
-  }
-
-  function isCallerJobCreator(address account) internal view returns (bool) {
-    return account == creator;
-  }
-
-  // Debugging helpers
-  // Would need to extract them because they make contract size too big
-  // function setToArray(EnumerableSet.AddressSet storage set) internal view returns (address[] memory) {
-  //   address[] memory result = new address[](EnumerableSet.length(set));
-  //   for (uint i = 0; i < EnumerableSet.length(set); i++)
-  //     result[i] = EnumerableSet.at(set, i);
-  //   return result;
-  // }
-
-  // function getInvitedArbiters() public view returns (address[] memory) {
-  //   return setToArray(invitedArbiters);
-  // }
-
-  // function getInvitedCandidates() public returns (address[] memory) {
-  //   return setToArray(invitedCandidates);
-  // }
-
-  // Modifiers
-  modifier hasNoOutstandingPayments {
-    require(_noUnresolvedDisputes(), "Can't withdraw funds when there is unresolved dispute");
-    require(!_hasUnpaidInvoices(), "Can't withdraw whilst there are unpaid invoices");
-    _;
-  }
-
-  modifier ongoingJob {
-    require(jobEnded == false, "This job was ended. Can't receive more funds");
-    _;
   }
 }

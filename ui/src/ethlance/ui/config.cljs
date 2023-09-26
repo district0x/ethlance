@@ -4,6 +4,7 @@
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
             [ethlance.shared.graphql.schema :refer [schema]]
+            [district.graphql-utils]
             [ethlance.shared.routes :as routes]))
 
 ; gql-name->kw transforms "erc20" to :erc-20

@@ -5,7 +5,7 @@
                                    host "0.0.0.0"
                                    port "8550"
                                    block-time "0"
-                                   args (format "ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 20000000 --chain.allowUnlimitedContractSize true --miner.blockTime=%s --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port block-time)]
+                                   args (format "npx ganache --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 20000000 --chain.allowUnlimitedContractSize true --miner.blockTime=%s --chain.vmErrorsOnRPCResponse --chain.chainId 1337" seed host port block-time)]
                                      (println "Starting TEST testnet with args: " args)
                                      (println "To migrate here use:")
                                      (println "  export ETHLANCE_ENV=qa")
@@ -18,7 +18,7 @@
                                   block-time "0" ; Seconds (could be fractional). 0 means instamine https://trufflesuite.com/docs/ganache/reference/cli-options/#miner
                                   ; Changed networkId and chainId to 1 for MetaMask to show custom tokens (ERC20) correctly
                                   ; see: https://github.com/trufflesuite/ganache/discussions/4332#discussioncomment-5492132
-                                  args (format "ganache --database.dbPath=./temp/ganache-db --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 20000000 --chain.allowUnlimitedContractSize true --miner.blockTime=%s --chain.vmErrorsOnRPCResponse --chain.chainId 1 --chain.networkId 1" seed host port block-time)]
+                                  args (format "npx ganache --database.dbPath=./temp/ganache-db --logging.verbose --wallet.mnemonic \"%s\" --server.host %s --server.port %s --miner.blockGasLimit 20000000 --chain.allowUnlimitedContractSize true --miner.blockTime=%s --chain.vmErrorsOnRPCResponse --chain.chainId 1 --chain.networkId 1" seed host port block-time)]
                                     (println "Starting DEV testnet with args: " args)
                                     (shell args))}
          serve-designs {:doc "Start HTTP server on 8088 to serve designs"

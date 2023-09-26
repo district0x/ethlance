@@ -35,10 +35,11 @@ module.exports = {
 
   compilers: {
     solc: {
+      version: "0.8.21",
       settings: {
         optimizer: {
           enabled: true,
-          runs: 200
+          runs: 1
         }
       }
     }
@@ -56,7 +57,7 @@ module.exports = {
       host: 'localhost',
       port: 8549,
       from: "0xeba108B12593336bBa461b8a6e7DC5A4b597Bc7E", // 6th address
-      gas: 6e6, // gas limit
+      gas: 10e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
@@ -74,21 +75,6 @@ module.exports = {
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
-    },
-
-
-    hostia: { // Truffle Ganache GUI app running on host machine
-      host: "192.168.32.1",     // Localhost (default: none)
-      port: 7545,               // Standard Ethereum port (default: none)
-      network_id: "5777",       // Any network (default: none)
-      websockets: true,
-      provider: () => new HDWalletProvider(mnemonic, `http://192.168.32.1:7545`),
-    },
-  },
-
-  compilers: {
-    solc: {
-      version: "0.8.12",
     }
   }
 }
