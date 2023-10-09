@@ -12,7 +12,10 @@ let Ethlance = artifacts.require("Ethlance");
 let JobHelpers = artifacts.require("JobHelpers");
 let Job = artifacts.require("Job");
 let EthlanceStructs = artifacts.require("EthlanceStructs");
+let EthlanceProxy = artifacts.require("EthlanceProxy");
 let MutableForwarder = artifacts.require("MutableForwarder");
+// copy("EthlanceProxy", "EthlanceProxy", contracts_build_directory);
+// let EthlanceProxy = artifacts.require("EthlanceProxy");
 
 // Deployment Functions
 
@@ -55,10 +58,12 @@ async function deploy_JobHelpers(deployer, opts){
   assignContract(jobHelpers, "JobHelpers", "job-helpers");
 }
 
-async function deploy_EthlanceProxy(deployer, opts) {
-  let ethlanceProxy = await deployer.deploy(MutableForwarder, {...opts, gas: 6e6});
-  assignContract(ethlanceProxy, "MutableForwarder", "mutable-forwarder");
-  assignContract(ethlanceProxy, "Ethlance", "ethlance", {forwards_to: "not-yet-deployed"});
+async function deploy_proxies(deployer, opts) {
+  let mutableForwarder = await deployer.deploy(MutableForwarder, opts);
+  assignContract(mutableForwarder, "MutableForwarder", "mutable-forwarder");
+
+  let ethlanceForwarder = await deployer.deploy(EthlanceProxy, opts);
+  assignContract(ethlanceForwarder, "EthlanceProxy", "ethlance");
 }
 
 async function deploy_Job(deployer, opts){
@@ -73,7 +78,7 @@ async function deploy_all(deployer, opts) {
   await deploy_EthlanceStructs(deployer, opts);
   await deploy_JobHelpers(deployer, opts);
   await deploy_Job(deployer, opts);
-  await deploy_EthlanceProxy(deployer, opts);
+  await deploy_proxies(deployer, opts);
 }
 
 
@@ -108,14 +113,13 @@ function writeSmartContracts() {
 // Begin Migration
 //
 module.exports = async function(deployer, network, accounts) {
-  const address = accounts[6]; // 6th address
   const gas = 4e6;
-  const opts = {gas: gas, from: address};
+  const from = deployer.options.from || accounts[0];
+  const opts = {gas: gas, from: from};
 
   console.log("Ethlance Deployment Started...");
   await deployer;
   console.log("@@@ using Web3 version:", web3.version);
-  console.log("@@@ using address", address);
 
   try {
     await deploy_all(deployer, opts);

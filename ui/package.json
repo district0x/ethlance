@@ -23,7 +23,7 @@
     "react-transition-group": "^4.4.5",
     "semantic-ui-css": "^2.5.0",
     "semantic-ui-react": "^2.1.4",
-    "shadow-cljs": "2.20.20",
+    "shadow-cljs": "2.25.7",
     "simplebar": "^5.3.9",
     "web3": "1.7.3",
     "xhr2": "0.2.1",

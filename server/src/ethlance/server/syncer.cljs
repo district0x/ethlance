@@ -310,6 +310,7 @@
              event-key (-> event :event)
              handler (get contract-ev->handler [contract-key event-key])
              conn (<? (db/get-connection))]
+         (println ">>> syncer DISPATCHER handling" {:contract-key contract-key :event-key event-key :handler handler :event event})
          (try
            (let [block-timestamp (<? (block-timestamp block-number))
                  event (-> event

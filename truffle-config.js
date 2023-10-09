@@ -69,12 +69,14 @@ module.exports = {
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
-    hardhat: {
-      host: 'localhost',
+
+    "ethlance.mad.is-testnet": {
+      host: 'ethlance.mad.is',
       port: 8545,
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
-      network_id: '*'
+      network_id: '*',
+      from: "0xeba108B12593336bBa461b8a6e7DC5A4b597Bc7E" // 6) address
     }
   }
 }

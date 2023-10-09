@@ -1,7 +1,7 @@
 {:paths ["src" "test" "resources" "src-cljsjs"]
  :deps
  {org.clojure/clojure {:mvn/version "1.10.3"},
-  org.clojure/clojurescript {:mvn/version "1.11.60"},
+  org.clojure/clojurescript {:mvn/version "1.11.60"}
   binaryage/devtools {:mvn/version "1.0.7"}
 
   re-frame/re-frame {:mvn/version "1.3.0"}
@@ -37,7 +37,7 @@
   ; district0x/district-ui-component-tx-button {:mvn/version "1.0.0"
   ;                                             :exclusions [district0x/district-ui-web3-accounts ; because it depends on old district0x.re-frame/web3-fx
   ;                                                          cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
-  district0x/district-ui-ipfs {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
+  district0x/district-ui-ipfs {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js district0x/re-frame-ipfs-fx]}
   district0x/district-ui-logging {:mvn/version "1.1.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-notification {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/district-ui-now {:mvn/version "1.0.2" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
@@ -79,12 +79,12 @@
 
  :aliases
  {:shadow-cljs
-  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.20.20"}},
+  {:extra-deps
+   {thheller/shadow-cljs {:mvn/version "2.25.7"}},
    :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :local-deps
   {:override-deps
    {
-
     is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}
     district0x/district-ui-graphql {:local/root "../../district-ui-graphql"}
     is.d0x/district-ui-bundle {:local/root "../../d0x-libs/browser/district-ui-bundle"}
@@ -92,6 +92,7 @@
     is.d0x/district-ui-router {:local/root "../../d0x-libs/browser/district-ui-router"}
     is.d0x/district-ui-web3-accounts {:local/root "../../d0x-libs/browser/district-ui-web3-accounts"}
     is.d0x/re-frame-web3-fx {:local/root "../../d0x-libs/browser/re-frame-web3-fx"}
+    is.d0x/cljs-ipfs-http-client {:local/root "../../d0x-libs/shared/cljs-ipfs-http-client"}
     is.d0x/district-ui-web3-tx {:local/root "../../d0x-libs/browser/district-ui-web3-tx"}}}
   :dev
   {:extra-deps

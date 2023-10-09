@@ -43,26 +43,30 @@
 
   cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
   cljsjs/graphql {:mvn/version "0.13.1-0"}
-  district0x/re-frame-ipfs-fx {:mvn/version "1.1.1"}
+  ; Removed because was leftover UI dependency
+  ; district0x/re-frame-ipfs-fx {:mvn/version "1.1.1"}
   expound/expound {:mvn/version "0.8.4"}
-  flib/simplebar {:mvn/version "5.0.7-SNAPSHOT"}
+  ; flib/simplebar {:mvn/version "5.0.7-SNAPSHOT"}
   funcool/bide {:mvn/version "1.7.0"} ; FIXME: district.ui.router requires it but older version is included by some other library
   funcool/cuerdas {:mvn/version "2.2.0"}
   medley/medley {:mvn/version "1.3.0"}
   mount/mount {:mvn/version "0.1.16"}
   orchestra/orchestra {:mvn/version "2019.02.06-1"}
-  org.clojars.mmb90/cljs-cache {:mvn/version "0.1.4"}
+  ; Not used anywhere
+  ; org.clojars.mmb90/cljs-cache {:mvn/version "0.1.4"}
   org.clojure/core.match {:mvn/version "1.0.0"}
   org.clojure/tools.reader {:mvn/version "1.3.6"}
   print-foo-cljs/print-foo-cljs {:mvn/version "2.0.3"}}
  :aliases
  {:shadow-cljs
-  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.20.20"}},
+  {:extra-deps
+   {thheller/shadow-cljs {:mvn/version "2.25.7"}}
    :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :local-deps
   {:override-deps
    {is.d0x/district-server-smart-contracts {:local/root "../../d0x-libs/server/district-server-smart-contracts"}
     is.d0x/district-server-web3-events {:local/root "../../d0x-libs/server/district-server-web3-events"}
+    is.d0x/cljs-ipfs-http-client {:local/root "../../d0x-libs/shared/cljs-ipfs-http-client"}
     is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}}
    }
   :dev

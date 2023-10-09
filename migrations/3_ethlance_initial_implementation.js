@@ -1,9 +1,9 @@
 const edn = require ("jsedn");
 const {env, smart_contracts_path, contracts_build_directory} = require ('../truffle-config.js');
-const {copy, encodeContractEDN, readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, setSmartContractForwardsTo} = require("./utils");
+const {copy, encodeContractEDN, readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, setSmartContractForwardsTo, linkBytecode} = require("./utils");
 
-const MutableForwarder = artifacts.require("MutableForwarder");
-const EthlanceImpl = artifacts.require("Ethlance");
+const Ethlance = artifacts.require("Ethlance");
+const EthlanceProxy = artifacts.require("EthlanceProxy");
 
 const smartContracts = readSmartContractsFile(smart_contracts_path);
 const ethlanceProxyAddress = getSmartContractAddress(smartContracts, ":ethlance");
@@ -13,28 +13,28 @@ const ethlanceStructsAddress = getSmartContractAddress(smartContracts, ":ethlanc
 const EthlanceStructs = artifacts.require("EthlanceStructs");
 
 async function deploy_EthlanceImpl(deployer, opts) {
-  copy("Ethlance", "EthlanceImpl", contracts_build_directory);
   let ethlanceStructsInstance = await EthlanceStructs.at(ethlanceStructsAddress);
-  deployer.link(ethlanceStructsInstance, EthlanceImpl);
-  let ethlanceImpl = await deployer.deploy(EthlanceImpl, {...opts, gas: 6e6});
-  console.log(">>> initializing ethlanceImpl", jobAddress);
-  // await ethlanceImpl.initialize(jobAddress);
-  let ethlanceProxy = await MutableForwarder.at(ethlanceProxyAddress);
+  deployer.link(ethlanceStructsInstance, Ethlance);
+
+  let ethlanceImpl = await deployer.deploy(Ethlance, {...opts, gas: 6e6});
+  let ethlanceProxy = await EthlanceProxy.at(ethlanceProxyAddress);
+  console.log(">>> Setting EthlanceProxy.target to", ethlanceImpl.address);
   await ethlanceProxy.setTarget(ethlanceImpl.address);
 
-  ethlanceThroughProxy = await EthlanceImpl.at(ethlanceProxyAddress);
+  console.log(">>> Initializing Ethlance with proxy at: ", ethlanceProxyAddress);
+  ethlanceThroughProxy = await Ethlance.at(ethlanceProxyAddress);
+  console.log(">>> Setting Ethlance.jobProxyTarget to", jobAddress);
+  console.log(">>> ethlanceThroughProxy is at", ethlanceThroughProxy.address);
   ethlanceThroughProxy.initialize(jobAddress);
 
-  [ethlanceImplKey, ethlanceImplValue] = encodeContractEDN(ethlanceImpl, "EthlanceImpl", "ethlance-impl");
-  console.log("Setting Ethlance proxy to point to Ethlance implementation at", ethlanceImpl.address);
+  [ethlanceImplKey, ethlanceImplValue] = encodeContractEDN(ethlanceImpl, "Ethlance", "ethlance-impl");
   setSmartContractForwardsTo(smartContracts, ":ethlance", ":ethlance-impl");
   smartContracts.set(ethlanceImplKey, ethlanceImplValue);
 }
 
 module.exports = async function(deployer, network, accounts) {
-  const address = accounts[6]; // 6th address
   const gas = 4e6;
-  const opts = {gas: gas, from: address};
+  const opts = {gas: gas};
   await deploy_EthlanceImpl(deployer, opts);
   writeSmartContracts(smart_contracts_path, smartContracts, env);
   console.log("Ethlance initial implementation Deployed!")

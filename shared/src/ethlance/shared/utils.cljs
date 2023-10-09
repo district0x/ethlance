@@ -58,3 +58,19 @@
             result
             (assoc result key v))))
       (reduce {} (.getKeys goog/object obj))))
+
+(defn deep-merge
+  "Merges nested maps, left to right (overwriting existing values)
+
+   Example:
+    (deep-merge {:first {:a 1 :b 2}}
+                {:first {:b 3 :c 4} :second {:d 4}})
+
+    => {:first {:a 1, :b 3, :c 4}, :second {:d 4}}
+  "
+  [& maps]
+  (apply merge-with (fn [& args]
+                      (if (every? map? args)
+                        (apply deep-merge args)
+                        (last args)))
+         maps))

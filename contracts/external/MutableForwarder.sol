@@ -3,13 +3,14 @@ pragma solidity ^0.8.0;
 
 import "./DelegateProxy.sol";
 import "./ds-auth/auth.sol";
+import "../JobStorage.sol";
 
 /**
  * @title Forwarder proxy contract with editable target
  */
-contract MutableForwarder is DelegateProxy, DSAuth {
-
-  address public target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
+contract MutableForwarder is JobStorage, DelegateProxy, DSAuth {
+  // Storage layout is inherited from JobStorage
+  // address public target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
 
   /**
    * @dev Replaces targer forwarder contract is pointing to
@@ -23,7 +24,7 @@ contract MutableForwarder is DelegateProxy, DSAuth {
 
   event Received(address, uint);
   receive() external payable {
-    emit Received(msg.sender, msg.value);
+    payable(target).transfer(msg.value);
   }
 
   fallback() external payable {

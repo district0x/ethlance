@@ -26,13 +26,16 @@
     [cljsjs.dataloader]
     [district.ui.graphql]
     [print.foo :include-macros true]
+    [ethlance.shared.utils :as shared-utils]
     [re-frame.core :as re]))
 
 (enable-console-print!)
 
+(def environment (shared-utils/get-environment))
+
 (defn ^:export init []
-  (let [main-config (ui.config/get-config)]
-    (.log js/console (clj->js main-config))
+  (let [main-config (ui.config/get-config environment)]
+    (println ">>> ethlance.ui.core/init starting with CONFIG: " main-config)
     (util.injection/inject-data-scroll! {:injection-selector "#app"})
 
     ;; Initialize our district re-mount components

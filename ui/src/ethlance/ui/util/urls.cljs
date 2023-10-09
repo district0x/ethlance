@@ -1,4 +1,6 @@
-(ns ethlance.ui.util.urls)
+(ns ethlance.ui.util.urls
+  (:require
+    [ethlance.ui.config :as ui-config]))
 
 (defn ipfs-hash->gateway-url
  [ipfs-hash]
@@ -13,4 +15,4 @@
    ipfs-hash
 
    :else
-   (str "http://ipfs.localhost:8080/ipfs/" ipfs-hash)))
+   (str (get-in (ui-config/get-config) [:ipfs :gateway]) "/" ipfs-hash)))

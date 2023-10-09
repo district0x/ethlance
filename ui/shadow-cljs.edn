@@ -16,6 +16,9 @@
            :optimizations :none
            :source-map true
            :source-map-timestamp true
+           :release {:compiler-options
+                     {:optimizations :simple
+                      :source-map true}}
            :devtools {:ignore-warnings true
                       :preloads [devtools.preload
                                  day8.re-frame-10x.preload]}
