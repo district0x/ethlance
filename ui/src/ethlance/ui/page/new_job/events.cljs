@@ -70,7 +70,7 @@
     (assoc-in db [state-key :job/invited-arbiters]
               (conj (get-in db [state-key :job/invited-arbiters]) arbiter))))
 
-(re/reg-event-fx
+(re/reg-event-db
   :page.new-job/uninvite-arbiter
   (fn [db [_ arbiter]]
     (assoc-in db [state-key :job/invited-arbiters]
@@ -314,7 +314,6 @@
                                     :block-number (:block-number tx-data)
                                     :contract (district.ui.smart-contracts.queries/instance db :ethlance)
                                     :callback (fn [result]
-                                                (println ">>> :Job-created event data" result)
                                                 (re/dispatch
                                                   [::router-events/navigate
                                                    :route.job/detail
