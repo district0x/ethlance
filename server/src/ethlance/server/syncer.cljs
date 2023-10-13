@@ -47,7 +47,7 @@
     (let [eth-token-details {:address "0x0000000000000000000000000000000000000000"
                              :name "Ether"
                              :symbol "ETH"
-                             :abi []}]
+                             :type :eth}]
       (if (not (<? (ethlance-db/get-token conn token-address)))
         (if (= :eth token-type)
           (ethlance-db/store-token-details conn eth-token-details)
@@ -267,13 +267,19 @@
     (let [funds (:funds args)
           funds-map (map offered-vec->flat-map funds)
           amount-sign-fn (if outflow? (partial * -1) identity)
+          job-id (:job args)
           funding-base {:tx (:transaction-hash event)
-                        :job/id (:job args)
+                        :job/id job-id
                         :job-funding/created-at (get-timestamp)}
+          extract-token-info (fn [funds]
+                               [(-> funds :token-type enum-val->token-type)
+                                (:token-address funds)])
+          tokens-info (map extract-token-info funds-map)
           funding-updates (map (fn [tv]
                                  (merge funding-base {:job-funding/amount (amount-sign-fn (:token-amount tv))
                                                       :token-detail/id (:token-address tv) }))
                                funds-map)]
+      (doseq [[token-type token-address] tokens-info] (<? (ensure-db-token-details token-type token-address conn)))
       (doseq [funding funding-updates] (<? (ethlance-db/insert-row! conn :JobFunding funding))))))
 
 (defn handle-test-event [& args]
