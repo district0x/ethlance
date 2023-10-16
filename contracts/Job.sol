@@ -6,6 +6,7 @@ import "./EthlanceStructs.sol";
 import "./JobHelpers.sol";
 import "./Ethlance.sol";
 import "./JobStorage.sol";
+import "./external/ds-auth/auth.sol";
 
 /**
  * @dev Job contract on Ethlance
@@ -13,7 +14,7 @@ import "./JobStorage.sol";
  * and optionally an arbiter.
  * Every new Job contract is created as a proxy contract.
  */
-contract Job is JobStorage, IERC721Receiver, IERC1155Receiver {
+contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
   // Storage layout is inherited from JobStorage
 
   /**

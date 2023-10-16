@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 import "./DelegateProxy.sol";
 import "./ds-auth/auth.sol";
-import "../JobStorage.sol";
+// import "../JobStorage.sol";
 
 /**
  * @title Forwarder proxy contract with editable target
  */
-contract MutableForwarder is JobStorage, DelegateProxy, DSAuth {
+contract MutableForwarder is DelegateProxy, DSAuth {
   // Storage layout is inherited from JobStorage
-  // address public target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
+  address public target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
 
   /**
    * @dev Replaces targer forwarder contract is pointing to

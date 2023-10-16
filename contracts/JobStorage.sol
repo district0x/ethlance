@@ -43,7 +43,8 @@ contract JobStorage {
   uint[] public invoiceIds;
   uint public lastInvoiceIndex;
   bool jobEnded;
-function addArbiter(address arbiter) public {
+
+  function addArbiter(address arbiter) public {
     invitedArbiters.add(arbiter);
   }
 
