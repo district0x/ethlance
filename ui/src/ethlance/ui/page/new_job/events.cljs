@@ -142,7 +142,8 @@
           arbiters (get-job-creation-param db :arbiters)
           tx-opts-base {:from employer
                         ; :ignore-forward? true
-                        :gas "10000000"}
+                        :gas "1000000"
+                        }
           token-type (get-job-creation-param db :token-type)
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value (:value offered-value))

@@ -45,7 +45,7 @@
    :notification {:default-show-duration 5000
                   :default-hide-duration 1000}
    :router
-   {:routes routes/routes
+   {:routes routes/dev-routes; routes/routes
     :default-route :route/home
     :scroll-top? true
     :html5? true}
