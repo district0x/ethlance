@@ -22,9 +22,9 @@ contract MutableForwarder is DelegateProxy, DSAuth {
     target = _target;
   }
 
-  event Received(address, uint);
   receive() external payable {
-    payable(target).transfer(msg.value);
+    // This method doesn't (and shouldn't) do anything. It's here to be able to receive Ether only
+    // When Job gets created, ETH gets transferred to it (EthlanceStructs.transferToJob)
   }
 
   fallback() external payable {

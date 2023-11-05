@@ -101,3 +101,6 @@
 
 (re/reg-sub :page.job-detail/add-funds-amount (create-get-handler :add-funds-amount))
 (re/reg-sub :page.job-detail/adding-funds? (create-get-handler :adding-funds?))
+(re/reg-sub :page.job-detail/add-funds-tx-in-progress? (create-get-handler :add-funds-tx-in-progress?))
+(re/reg-sub :page.job-detail/end-job-tx-in-progress? (create-get-handler :end-job-tx-in-progress?))
+(re/reg-sub :page.job-detail/invite-arbiters-tx-in-progress? (create-get-handler :invite-arbiters-tx-in-progress?))

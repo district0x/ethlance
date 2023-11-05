@@ -307,7 +307,8 @@
                              " ("
                              (get-in arbiter [:arbiter/feedback :total-count])
                              ")"]))
-        arbiter-address-fn (comp :user/id :user)]
+        arbiter-address-fn (comp :user/id :user)
+        invite-arbiters-tx-in-progress? (re/subscribe [:page.job-detail/invite-arbiters-tx-in-progress?])]
     [:div.proposal-form
      [:div.label "Invite arbiter"]
      [c-chip-search-input
@@ -320,10 +321,12 @@
        :placeholder "Searh arbiter by name"}]
 
     [c-button
-     {:style (when nothing-added? {:background :gray})
+     {:style (when (or nothing-added? @invite-arbiters-tx-in-progress?) {:background :gray})
       :size :small
       :on-click (fn []
-                  (when (not (empty? @selected-arbiters))
+                  (when (and
+                          (not (empty? @selected-arbiters))
+                          (not @invite-arbiters-tx-in-progress?))
                     (>evt [:page.job-detail/invite-arbiters
                            {:job/id job-address
                             :employer employer-address
@@ -503,7 +506,9 @@
 (defn c-add-funds [contract-address token-id token-details]
   (let [amount @(re/subscribe [:page.job-detail/add-funds-amount])
         step (if (= (:token-detail/type token-details) :eth) 0.001 1)
-        adding-funds? (re/subscribe [:page.job-detail/adding-funds?])]
+        adding-funds? (re/subscribe [:page.job-detail/adding-funds?])
+        add-funds-tx-in-progress? (re/subscribe [:page.job-detail/add-funds-tx-in-progress?])
+        ]
     (if @adding-funds?
       [:div.add-funds
        [c-text-input
@@ -514,7 +519,9 @@
          :value amount
          :on-change #(re/dispatch [:page.job-detail/set-add-funds-amount (js/parseFloat %)])}]
        [c-button {:on-click (fn []
-                              (>evt [:page.job-detail/finish-adding-funds contract-address token-details token-id amount]))
+                              (when (not @add-funds-tx-in-progress?)
+                                (>evt [:page.job-detail/finish-adding-funds contract-address token-details token-id amount])))
+                  :disabled? @add-funds-tx-in-progress?
                   :size :small}
         [c-button-label "Confirm"]]]
 
@@ -565,7 +572,9 @@
         show-end-job? (and
                         (ilike= employer-id active-user)
                         (not= :ended job-status))
-        can-end-job? (not (or has-unpaid-invoices? has-unresolved-disputes?))]
+        job-ongoing? (not= :ended job-status)
+        can-end-job? (not (or has-unpaid-invoices? has-unresolved-disputes?))
+        end-job-tx-in-progress? (re/subscribe [:page.job-detail/end-job-tx-in-progress?])]
     [:div.header
         [:div.main
          [:div.title *title]
@@ -579,7 +588,7 @@
           [:div.label "Available Funds"]
           [c-token-info job-balance token-details]]]
 
-         [c-add-funds contract-address (:job/token-id results) token-details]
+         (when job-ongoing? [c-add-funds contract-address (:job/token-id results) token-details])
          [:div.profiles
           [c-participant-info :employer employer-id]
           (when has-accepted-arbiter? [c-participant-info :arbiter arbiter-id])]]
@@ -590,9 +599,10 @@
          (when show-end-job?
            [:div
             [:div.button.primary.active
-             {:style (when (or has-unpaid-invoices? has-unresolved-disputes?) {:background :gray})
+             {:style (when (or @end-job-tx-in-progress? has-unpaid-invoices? has-unresolved-disputes?) {:background :gray})
+              :disabled? @end-job-tx-in-progress?
               :on-click (fn []
-                          (when can-end-job?
+                          (when (and can-end-job? (not @end-job-tx-in-progress?))
                             (re/dispatch [:page.job-detail/end-job {:job/id contract-address :employer employer-id}])))}
              [:div.button-label "End job"]]
             (when has-unpaid-invoices?

@@ -20,7 +20,7 @@ contract JobStorage {
 
   // The bytes32 being keccak256(abi.encodePacked(depositorAddress, TokenType, contractAddress, tokenId))
   mapping(bytes32 => EthlanceStructs.Deposit) deposits;
-  bytes32[] depositIds; // To allow looking up and listing all deposits
+  bytes32[] public depositIds; // To allow looking up and listing all deposits
   EnumerableSet.AddressSet depositors;
 
   mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;

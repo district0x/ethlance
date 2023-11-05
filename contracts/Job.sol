@@ -347,7 +347,6 @@ contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
   }
 
-
   function endJob() external hasNoOutstandingPayments {
     for(uint i = 0; i < depositorsLength(); i++) {
       address depositor = getDepositor(i);

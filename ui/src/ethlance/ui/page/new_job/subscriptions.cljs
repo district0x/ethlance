@@ -32,3 +32,4 @@
 
 
 (re/reg-sub :page.new-job/form (fn [db] (get db new-job.events/state-key)))
+(re/reg-sub :page.new-job/tx-in-progress? (create-get-handler :tx-in-progress?))

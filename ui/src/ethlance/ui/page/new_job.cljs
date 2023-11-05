@@ -80,13 +80,17 @@
         *token-type (re/subscribe [:page.new-job/token-type])
         *token-amount (re/subscribe [:page.new-job/token-amount])
         *token-address (re/subscribe [:page.new-job/token-address])
-        *token-id (re/subscribe [:page.new-job/token-id])]
+        *token-id (re/subscribe [:page.new-job/token-id])
+        tx-in-progress? (re/subscribe [:page.new-job/tx-in-progress?])]
     (fn []
       (let [arbiters (get-in @arbiters-result [:arbiter-search :items])
             with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
             with-nft? (#{:erc721} @*token-type)
             token-with-amount? (#{:erc20 :erc1155 :eth} @*token-type)
-            token-with-id? (#{:erc721 :erc1155} @*token-type)]
+            token-with-id? (#{:erc721 :erc1155} @*token-type)
+            disabled? (or
+                        (not (s/valid? :page.new-job/create @form-values))
+                        @tx-in-progress?)]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
           [:div.title "New job"]
@@ -198,8 +202,9 @@
               [c-arbiter-for-hire arbiter])])
 
          [c-button
-          {:on-click (fn [] (>evt [:page.new-job/create]))
-           :disabled? (not (s/valid? :page.new-job/create @form-values))}
+          {:on-click (fn [] (when (not disabled?) (>evt [:page.new-job/create])))
+           :disabled? disabled?
+           :active? true}
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))
 

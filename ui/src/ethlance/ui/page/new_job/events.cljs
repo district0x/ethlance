@@ -122,6 +122,9 @@
   [job-data acc ipfs-key db-key]
   (assoc acc ipfs-key (job-data db-key)))
 
+(defn set-tx-in-progress [db in-progress?]
+  (assoc-in db [state-key :tx-in-progress?] in-progress?))
+
 (re/reg-event-fx
   :page.new-job/create
   [interceptors]
@@ -148,7 +151,8 @@
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value (:value offered-value))
                     tx-opts-base)]
-      {:fx [[:dispatch [::web3-events/send-tx
+      {:db (set-tx-in-progress db true)
+       :fx [[:dispatch [::web3-events/send-tx
                         {:instance (contract-queries/instance db :ethlance)
                          :fn :createJob
                          :args [employer [(clj->js offered-value)] arbiters ipfs-hash]
@@ -194,7 +198,8 @@
                                      :tx-opts {:from owner}
                                      :on-tx-success [::erc20-allowance-approval-success]
                                      :on-tx-error [::erc20-allowance-approval-error]}]]
-      {:fx [[:dispatch (if enough-allowance?
+      {:db (set-tx-in-progress db true)
+       :fx [[:dispatch (if enough-allowance?
                          [::send-create-job-tx]
                          increase-allowance-event)]]})))
 
@@ -253,7 +258,8 @@
                                              :tx-opts {:from owner}
                                              :on-tx-success [::create-job-tx-success]
                                              :on-tx-error [::create-job-tx-error]}]]
-      {:fx [[:dispatch safe-transfer-with-create-job-tx]]})))
+      {:db (set-tx-in-progress db true)
+       :fx [[:dispatch safe-transfer-with-create-job-tx]]})))
 
 (re/reg-event-fx
   :job-to-ipfs-success
@@ -305,25 +311,30 @@
   (fn [{:keys [db]} [event-name tx-data]]
     (let [job-from-event (get-in tx-data [:events :Job-created :return-values :job])]
       (println ">>> ::create-job-tx-success" tx-data)
-      {:fx [[:dispatch [::notification.events/show "Transaction to create job processed successfully"]]
+      {:db (set-tx-in-progress db false)
+       :fx [[:dispatch [::notification.events/show "Transaction to create job processed successfully"]]
             ; When creating job via ERC721/1155 callback (onERC{721,1155}Received), the event data is part of the
             ; tx-receipt, but doesn't have event name, making it difficult to find and decode. Thus this workaround:
             ;   - requesting the JobCreated event directly from Ethlance and receiving it correctly decoded
             (if job-from-event
-              [:dispatch [::router-events/navigate :route.job/detail {:id (get-in tx-data [:events :Job-created :return-values :job])}]]
+              [:dispatch-later [{:ms 1000 :dispatch [::router-events/navigate :route.job/detail {:id (get-in tx-data [:events :Job-created :return-values :job])}]}]]
               (async-request-event {:event "allEvents"
                                     :block-number (:block-number tx-data)
                                     :contract (district.ui.smart-contracts.queries/instance db :ethlance)
                                     :callback (fn [result]
-                                                (re/dispatch
-                                                  [::router-events/navigate
-                                                   :route.job/detail
-                                                   {:id (get (js-obj->clj-map (.-returnValues (first result))) "job")}]))}))]})))
+                                                ; Delaying navigation to give server time to process the contract event
+                                                (js/setTimeout
+                                                  #(re/dispatch
+                                                     [::router-events/navigate
+                                                      :route.job/detail
+                                                      {:id (get (js-obj->clj-map (.-returnValues (first result))) "job")}])
+                                                  1000))}))]})))
 
 (re/reg-event-db
   ::create-job-tx-error
   (fn [db event]
-    {:dispatch [::notification.events/show "Error with creating new job transaction"]}))
+    {:db (set-tx-in-progress db false)
+     :dispatch [::notification.events/show "Error with creating new job transaction"]}))
 
 (re/reg-event-fx
   ::job-to-ipfs-failure
