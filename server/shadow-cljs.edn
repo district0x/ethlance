@@ -12,7 +12,10 @@
            :optimizations :none
            :source-map true
            :source-map-timestamp true
-           :closure-defines {goog.DEBUG true}}
+           :closure-defines {goog.DEBUG true}
+
+           :release
+           {:compiler-options {:optimizations :simple :source-map true}}}
 
           :server-tests
           {:target :node-test

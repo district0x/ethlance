@@ -4,7 +4,10 @@
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
             [ethlance.shared.graphql.schema :refer [schema]]
+            [ethlance.shared.utils :include-macros true :refer [slurp]]
             [district.graphql-utils]
+            [taoensso.timbre :refer [merge-config!] :as log]
+            [ethlance.shared.utils :include-macros true :refer [slurp] :as shared-utils]
             [ethlance.shared.routes :as routes]))
 
 ; gql-name->kw transforms "erc20" to :erc-20
@@ -20,11 +23,19 @@
       (keyword s)
       (district.graphql-utils/gql-name->kw s))))
 
-(def general-config
+(def environment (shared-utils/get-environment))
+
+(def contracts-var
+  (condp = environment
+    "prod" smart-contracts-prod/smart-contracts
+    "qa" smart-contracts-qa/smart-contracts
+    "dev" smart-contracts-dev/smart-contracts))
+
+(def default-config
   ; config of https://github.com/district0x/district-ui-smart-contracts
   {:smart-contracts {:format :truffle-json
                      :load-path "../resources/public/contracts/build/"
-                     :contracts smart-contracts-dev/smart-contracts}
+                     :contracts contracts-var}
    :logging
    {:level :info
     :console? true}
@@ -34,16 +45,17 @@
    :notification {:default-show-duration 5000
                   :default-hide-duration 1000}
    :router
-   {:routes routes/routes
+   {:routes routes/dev-routes; routes/routes
     :default-route :route/home
     :scroll-top? true
     :html5? true}
    :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
+   ; :web3 {:url "http://d0x-vm:8545"} ; "https://mainnet.infura.io/"
    :web3-tx {:disable-using-localstorage? true}
    :ipfs
    {:endpoint "/api/v0"
     :host "http://host-machine:5001"
-    :gateway "http://host-machine/ipfs"}
+    :gateway "http://ipfs.localhost:8080/ipfs"}
    :server-config {:url "http://d0x-vm:6300/config" :format :json}
    :graphql
    {:schema schema
@@ -56,14 +68,29 @@
    :linkedin
    {:client-id "86csctqngadad5"}
    :conversion-rates {:from-currencies [:ETH :USD]
-                      :to-currencies [:USD :ETH]}
+                      :to-currencies [:USD :ETH]}})
+
+
+(def config-qa (cljs.reader/read-string (slurp "../config/ui-config-qa.edn")))
+(def config-prod (cljs.reader/read-string (slurp "../config/ui-config-prod.edn")))
+(def config-dev
+  {:logging {:level :debug}
+   :router {:routes routes/dev-routes}
+
+   :ipfs
+   {:host "https://ipfs.infura.io:5001"
+    :endpoint "/api/v0"
+    :gateway "https://ethlance-qa.infura-ipfs.io/ipfs"
+    :auth {:username "xxx"
+           :password "xxx"}}
    })
 
-(def development-config
-  (-> general-config
-      (assoc-in [:logging :level] :debug)
-      (assoc-in [:router :routes] routes/dev-routes)))
-
-;; TODO: generate based on whether dev, prod, qa
-(defn get-config []
-  development-config)
+(defn get-config
+  ([] (get-config environment))
+  ([env]
+   (shared-utils/deep-merge
+     default-config
+     (condp = env
+       "prod" config-prod
+       "qa" config-qa
+       "dev" config-dev))))

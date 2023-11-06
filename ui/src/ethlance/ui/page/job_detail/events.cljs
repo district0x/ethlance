@@ -19,7 +19,10 @@
 ;; Page State
 (def state-key :page.job-detail)
 (def state-default
-  {:proposal-offset 0
+  {:add-funds-tx-in-progress? false
+   :end-job-tx-in-progress? false
+   :invite-arbiters-in-progress? false
+   :proposal-offset 0
    :proposal-limit 3
    :arbitrations-offset 0
    :arbitrations-limit 3
@@ -42,6 +45,14 @@
        }]
      :db (assoc-in db [state-key] state-default)}))
 
+(defn set-add-funds-tx-in-progress [db in-progress?]
+  (assoc-in db [state-key :add-funds-tx-in-progress?] in-progress?))
+
+(defn set-end-job-tx-in-progress [db in-progress?]
+  (assoc-in db [state-key :end-job-tx-in-progress?] in-progress?))
+
+(defn set-invite-arbiters-tx-in-progress [db in-progress?]
+  (assoc-in db [state-key :invite-arbiters-tx-in-progress?] in-progress?))
 ;;
 ;; Registered Events
 ;;
@@ -238,14 +249,15 @@
                  :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to accept quote successful"]
                  :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
 
-(defn invite-arbiters [cofx [_event-name event-data]]
+(defn invite-arbiters [{:keys [db] :as cofx} [_event-name event-data]]
   (let [job-address (:job/id event-data)
         arbiter-addresses (:arbiters event-data)
         employer-address (:employer event-data)
-        instance (contract-queries/instance (:db cofx) :job job-address)
+        instance (contract-queries/instance db :job job-address)
         tx-opts {:from employer-address :gas 10000000}
         contract-args [employer-address arbiter-addresses]]
-     {:dispatch [::web3-events/send-tx
+     {:db (set-invite-arbiters-tx-in-progress db true)
+      :dispatch [::web3-events/send-tx
                 {:instance instance
                  :fn :invite-arbiters
                  :args contract-args
@@ -255,12 +267,13 @@
                  :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to invite arbiters successful"]
                  :on-tx-error [::invite-arbiters-tx-error]}]}))
 
-(defn end-job-tx [cofx [_event-name event-data]]
+(defn end-job-tx [{:keys [db] :as cofx} [_event-name event-data]]
   (let [job-address (:job/id event-data)
         employer-address (:employer event-data)
         instance (contract-queries/instance (:db cofx) :job job-address)
         tx-opts {:from employer-address :gas 10000000}]
-    {:dispatch [::web3-events/send-tx
+    {:db (set-end-job-tx-in-progress db true)
+     :dispatch [::web3-events/send-tx
                 {:instance instance
                  :fn :end-job
                  :args []
@@ -284,11 +297,21 @@
 
 (re/reg-event-fx :page.job-detail/end-job end-job-tx)
 (re/reg-event-fx ::end-job-tx-hash-error (create-logging-handler))
-(re/reg-event-fx ::end-job-tx-error (create-logging-handler))
+(re/reg-event-fx
+  ::end-job-tx-error
+  (fn [{:keys [db]} _]
+    {:db (set-end-job-tx-in-progress db false)}))
 
 (re/reg-event-fx :page.job-detail/invite-arbiters invite-arbiters)
-(re/reg-event-fx ::invite-arbiters-tx-error (create-logging-handler))
-(re/reg-event-fx ::invite-arbiters-tx-hash-error (create-logging-handler))
+(re/reg-event-db
+  ::invite-arbiters-tx-error
+  (fn [db _]
+    (set-invite-arbiters-tx-in-progress db false)))
+
+(re/reg-event-db
+  ::invite-arbiters-tx-hash-error
+  (fn [db _]
+    (set-invite-arbiters-tx-in-progress db false)))
 
 (re/reg-event-fx
   :page.job-detail/fetch-job-arbiter-status
@@ -318,7 +341,9 @@
 (re/reg-event-fx
   :page.job-detail/arbitration-tx-success
   (fn [cofx [event message]]
-    {:db (assoc-in (:db cofx) [state-key] state-default)
+    {:db (-> (:db cofx)
+             (set-invite-arbiters-tx-in-progress ,,, false)
+             (assoc-in ,,, [state-key] state-default))
      :fx [[:dispatch [:page.job-detail/arbitrations-updated]]
           [:dispatch [::notification.events/show message]]]}))
 
@@ -329,8 +354,9 @@
 
 (re/reg-event-fx
   :page.job-detail/end-job-tx-success
-  (fn [cofx event]
-    {:fx [[:dispatch [:page.job-detail/job-updated]]
+  (fn [{:keys [db] :as cofx} event]
+    {:db (set-end-job-tx-in-progress db false)
+     :fx [[:dispatch [:page.job-detail/job-updated]]
           [:dispatch [::notification.events/show "Transaction to end job processed successfully"]]]}))
 
 (re/reg-event-fx :page.job-detail/set-add-funds-amount (create-assoc-handler :add-funds-amount))
@@ -435,8 +461,7 @@
 (re/reg-event-fx
   :page.job-detail/finish-adding-funds
   (fn [{:keys [db] :as cofx} [_ job-address token-details token-id amount]]
-    (let [
-          funder (accounts-queries/active-account (:db cofx))
+    (let [funder (accounts-queries/active-account (:db cofx))
           tx-opts-base {:from funder :gas 10000000}
           token-type (:token-detail/type token-details)
           tx-amount (util.tokens/machine-amount amount token-type)
@@ -463,7 +488,8 @@
                       :erc20 ::ensure-erc20-allowance
                       :erc721 ::safe-transfer-with-add-funds
                       :erc1155 ::safe-transfer-with-add-funds}]
-      {:fx [[:dispatch [(get next-event token-type) funds-params]]]})))
+      {:db (set-add-funds-tx-in-progress db true)
+       :fx [[:dispatch [(get next-event token-type) funds-params]]]})))
 
 (re/reg-event-fx
   ::add-funds-tx-success
@@ -471,11 +497,13 @@
     (let [events (get-in tx-data [:events])]
       {:db (-> db
                (assoc-in ,,, [state-key :adding-funds?] false)
-               (assoc-in ,,, [state-key :add-funds-amount] nil))
+               (assoc-in ,,, [state-key :add-funds-amount] nil)
+               (set-add-funds-tx-in-progress ,,, false))
        :fx [[:dispatch [::notification.events/show "Transaction to add funds processed successfully"]]
             [:dispatch [:page.job-detail/job-updated]]]})))
 
 (re/reg-event-db
   ::add-funds-tx-error
   (fn [db event]
-    {:dispatch [::notification.events/show "Error with add funds to job transaction"]}))
+    {:db (set-add-funds-tx-in-progress db false)
+     :dispatch [::notification.events/show "Error with add funds to job transaction"]}))

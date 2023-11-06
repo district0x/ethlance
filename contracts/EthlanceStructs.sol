@@ -131,7 +131,7 @@ library EthlanceStructs {
   }
 
   function transferETH(TokenValue memory tokenValue, address payable to) public {
-    to.transfer(tokenValue.value); // If more was included in msg.value, the reminder stays in the calling contract
+    to.call{value: tokenValue.value}("");
   }
 
   function transferERC20(TokenValue memory tokenValue, address from, address to) public {

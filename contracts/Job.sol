@@ -5,10 +5,8 @@ pragma experimental ABIEncoderV2;
 import "./EthlanceStructs.sol";
 import "./JobHelpers.sol";
 import "./Ethlance.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
+import "./JobStorage.sol";
+import "./external/ds-auth/auth.sol";
 
 /**
  * @dev Job contract on Ethlance
@@ -16,39 +14,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  * and optionally an arbiter.
  * Every new Job contract is created as a proxy contract.
  */
-contract Job is IERC721Receiver, IERC1155Receiver {
-  uint public constant version = 1; // current version of {Job} smart-contract
-  uint public constant ARBITER_IDLE_TIMEOUT = 30 days;
-  uint public constant FIRST_INVOICE_INDEX = 1;
-  Ethlance public ethlance; // Stores address of {Ethlance} smart-contract so it can emit events there
-
-  address public creator;
-
-  // The bytes32 being keccak256(abi.encodePacked(depositorAddress, TokenType, contractAddress, tokenId))
-  mapping(bytes32 => EthlanceStructs.Deposit) deposits;
-  bytes32[] depositIds; // To allow looking up and listing all deposits
-  EnumerableSet.AddressSet internal depositors;
-
-  mapping(address => EthlanceStructs.TokenValue) public arbiterQuotes;
-  using EnumerableSet for EnumerableSet.AddressSet;
-  EnumerableSet.AddressSet internal invitedArbiters;
-  EnumerableSet.AddressSet internal invitedCandidates;
-  address public acceptedArbiter;
-
-  mapping (uint => JobHelpers.Dispute) public disputes; // invoiceId => dispute
-  uint[] disputeIds;
-
-  struct Invoice {
-    EthlanceStructs.TokenValue item;
-    address payable issuer;
-    uint invoiceId;
-    bool paid;
-    bool cancelled;
-  }
-  mapping (uint => Invoice) public invoices;
-  uint[] public invoiceIds;
-  uint public lastInvoiceIndex;
-  bool jobEnded;
+contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
+  // Storage layout is inherited from JobStorage
 
   /**
    * @dev Contract initialization
@@ -83,11 +50,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     _recordAddedFunds(_creator, _offeredValues);
   }
 
-  function emitTestEvent(uint answer) public returns(uint) {
-    ethlance.emitTestEvent(answer + 1);
-    return answer * 2;
-  }
-
   /**
    * @dev Sets quote for arbitration requested by arbiter for his services
    *
@@ -119,7 +81,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(isCallerJobCreator(_sender), message);
 
     for(uint i = 0; i < _invitedArbiters.length; i++) {
-      invitedArbiters.add(_invitedArbiters[i]);
+      addArbiter(_invitedArbiters[i]);
     }
     ethlance.emitArbitersInvited(address(this), _invitedArbiters);
   }
@@ -146,7 +108,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(true
             || acceptedArbiter == address(0)
             || acceptedArbiter == _arbiter
-            || JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, block.timestamp),
+            || isAcceptedArbiterIdle(block.timestamp),
             "Another arbiter (non-idle) had been accepted before. Only 1 can be accepted.");
     require(isAmongstInvitedArbiters(_arbiter), "Arbiter to be accepted must be amongst invited arbiters");
     require(isCallerJobCreator(msg.sender), "Only job creator (employer) can accept quote for arbitration");
@@ -160,6 +122,10 @@ contract Job is IERC721Receiver, IERC1155Receiver {
 
   function isAcceptedArbiterIdle() public view returns (bool) {
     return JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, block.timestamp);
+  }
+
+  function isAcceptedArbiterIdle(uint timeNow) public view returns (bool) {
+    return JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, timeNow);
   }
 
   /**
@@ -179,8 +145,8 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     require(msg.sender == creator, "Only job creator can add candidates");
     require(_candidate != creator, "Candidate can't be the same address as creator (employer)");
     require(_candidate != acceptedArbiter, "Candidate can't be the same address as acceptedArbiter");
-    require(invitedCandidates.contains(_candidate) == false, "Candidate already added. Can't add duplicates");
-    invitedCandidates.add(_candidate);
+    require(containsCandidate(_candidate) == false, "Candidate already added. Can't add duplicates");
+    addCandidate(_candidate);
     ethlance.emitCandidateAdded(address(this), address(_candidate), _ipfsData);
   }
 
@@ -204,7 +170,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     EthlanceStructs.TokenValue[] memory _invoicedValue,
     bytes memory _ipfsData
   ) external {
-    require(invitedCandidates.contains(msg.sender), "Sender must be amongst invitedCandidates to raise an invoice");
+    require(containsCandidate(msg.sender), "Sender must be amongst invitedCandidates to raise an invoice");
 
     for(uint i = 0; i < _invoicedValue.length; i++) {
       Invoice memory newInvoice = Invoice(_invoicedValue[i], payable(msg.sender), lastInvoiceIndex, false, false);
@@ -309,7 +275,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
         EthlanceStructs.Deposit memory deposit = EthlanceStructs.Deposit(_funder, tv);
         deposits[depositId] = deposit;
         depositIds.push(depositId);
-        depositors.add(_funder);
+        addDepositor(_funder);
 
       } else {
         // There was a deposit before of that token from the depositor
@@ -385,10 +351,13 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
   }
 
+  function maxWithdrawableAmounts() public view returns(EthlanceStructs.TokenValue[] memory) {
+    return EthlanceStructs.maxWithdrawableAmounts(msg.sender, depositIds, deposits);
+  }
 
   function endJob() external hasNoOutstandingPayments {
-    for(uint i = 0; i < depositors.length(); i++) {
-      address depositor = depositors.at(i);
+    for(uint i = 0; i < depositorsLength(); i++) {
+      address depositor = getDepositor(i);
       EthlanceStructs.TokenValue[] memory depositAmounts = EthlanceStructs.maxWithdrawableAmounts(depositor,
                                                                                                  depositIds,
                                                                                                  deposits);
@@ -535,10 +504,6 @@ contract Job is IERC721Receiver, IERC1155Receiver {
     }
   }
 
-  function isAmongstInvitedArbiters(address account) internal view returns (bool) {
-    return invitedArbiters.contains(account);
-  }
-
   function isCallerJobCreator(address account) internal view returns (bool) {
     return account == creator;
   }
@@ -607,7 +572,7 @@ contract Job is IERC721Receiver, IERC1155Receiver {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive() external ongoingJob payable {
-    ethlance.emitFundsIn(address(this), EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
+    _recordAddedFunds(msg.sender, EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
   }
 
   fallback() external payable {

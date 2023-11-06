@@ -1,6 +1,7 @@
 (ns ethlance.ui.page.home.events
   (:require
     [district.ui.web3-accounts.queries :as accounts-queries]
+    [ethlance.shared.utils]
     [re-frame.core :as re]))
 
 

@@ -15,10 +15,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * This contract is used through a proxy, therefore its address will never change.
  * No breaking changes will be introduced for events, so they all stay accessible from a single contract.
  */
-
 contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
-
-  address public jobProxyTarget; // Stores address of a contract that Job proxies will be delegating to
+  address public target = 0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd; // Stores address of a contract that Job proxies will be delegating to
+  address public jobProxyTarget = 0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd; // Stores address of a contract that Job proxies will be delegating to
   mapping(address => bool) public isJobMap; // Stores if given address is a Job proxy contract address
 
   event JobCreated(
@@ -125,9 +124,13 @@ contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
     emit FundsOut(job, funds);
   }
 
-  event TestEvent(uint indexed theAnswer);
+  event TestEvent(string info, uint answer);
+  function emitTestEvent(string calldata info) external returns(uint) {
+    emit TestEvent(info, 42);
+    return 42;
+  }
   function emitTestEvent(uint answer) external returns(uint) {
-    emit TestEvent(answer);
+    emit TestEvent("Basic info", answer);
     return answer + 1;
   }
 
@@ -201,7 +204,6 @@ contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
     address payable newJobPayableAddress = payable(address(uint160(newJob)));
     MutableForwarder(newJobPayableAddress).setTarget(jobProxyTarget);
 
-    // FIXME: disabled the transfer to be able to use Mainnet token addresses (e.g. USDC) while working against local testnet
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
     isJobMap[newJobPayableAddress] = true;
     Job(newJobPayableAddress).initialize(this, _creator, _offeredValues, _invitedArbiters);

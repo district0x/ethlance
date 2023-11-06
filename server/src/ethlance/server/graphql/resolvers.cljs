@@ -327,7 +327,7 @@
                  "    then 'candidate'"
                  "end as from_user_type,"
 
-                "case"
+                 "case"
                  "  when j.job_slash_creator ilike jsfm.user_slash_id"
                  "    then 'employer'"
                  "  when ja.user_slash_id ilike jsfm.user_slash_id"

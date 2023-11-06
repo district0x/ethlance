@@ -523,7 +523,7 @@
                      worker-token-balance-after (<? (smart-contracts/contract-call :token :balance-of [worker]))
                      worker-token-change (bn/- (bn/number worker-token-balance-after) (bn/number worker-token-balance-before))
                      max-withdrawable-amounts (map contract-constants/token-value-vec->map
-                                                        (js->clj (<! (smart-contracts/contract-call [:job job-address] :max-withdrawable-amounts [employer] {:from employer}))))
+                                                        (js->clj (<! (smart-contracts/contract-call [:job job-address] :max-withdrawable-amounts [] {:from employer}))))
 
                      ;   5. Employer withdraws remaining ERC20 tokens (based on Job#maxWithdrawableAmounts)
                      _ (<! (smart-contracts/contract-send [:job job-address] :withdraw-funds [max-withdrawable-amounts] {:from employer}))

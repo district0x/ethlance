@@ -16,19 +16,15 @@
     [ethlance.server.ipfs]
     [ethlance.server.syncer]
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
-    [tests.graphql.generator]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-    [ethlance.shared.utils :as shared-utils]
     [mount.core :as mount]
+    [ethlance.shared.utils :include-macros true :refer [slurp] :as shared-utils]
     [taoensso.timbre :refer [merge-config!] :as log]))
 
 (def environment (shared-utils/get-environment))
 
-(def graphql-config
-  {:port 6300
-   :sign-in-secret "SECRET"
-   :graphiql (= environment "dev")})
+(println "Ethlance server starting in environment:" environment)
 
 (def contracts-var
   (condp = environment
@@ -37,9 +33,7 @@
     "dev" #'smart-contracts-dev/smart-contracts))
 
 (def default-config
-  {
-   :web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
-   ; :web3 {:url  "ws://127.0.0.1:8545"} ; "ws://d0x-vm:8549"
+  {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
    :web3-events {:events
                  {:ethlance/job-created [:ethlance :JobCreated]
                   :ethlance/invoice-created [:ethlance :InvoiceCreated]
@@ -54,7 +48,7 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block 0 ; 53; (:last-processed-block (read-edn-sync "ethlance-events.log"))
+                 :from-block 0 ; (:last-processed-block (read-edn-sync "ethlance-events.log"))
                  :block-step 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
@@ -65,7 +59,9 @@
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false
                      :auto-mining? false}
-   :graphql graphql-config
+   :graphql {:port 6300
+             :sign-in-secret "SECRET"
+             :graphiql (= environment "dev")}
    :district/db {:user "ethlanceuser"
                  :host "localhost"
                  :database "ethlance"
@@ -78,20 +74,38 @@
    :logging {:level "debug"
              :console? true}})
 
+(def config-qa (cljs.reader/read-string (slurp "../config/server-config-qa.edn")))
+(def config-prod (cljs.reader/read-string (slurp "../config/server-config-prod.edn")))
+(def config-dev
+  {:ipfs
+   {:host "https://ipfs.infura.io:5001"
+    :endpoint "/api/v0"
+    :gateway "https://ethlance-qa.infura-ipfs.io/ipfs"
+    :auth {:username "xxx"
+           :password "xxx"}}})
+
+(defn env-config [env]
+  (println ">>> env-config" env "\n ---> prod" config-prod)
+  (println ">>> env-config" env "\n ---> qa" config-qa)
+  (shared-utils/deep-merge
+    default-config
+    (condp = env
+      "prod" config-prod
+      "qa" config-qa
+      "dev" config-dev)))
+
 (defn -main [& _]
   (log/info "Initializing Server...")
   (async-helpers/extend-promises-as-channels!)
-  (println "starting with " default-config)
-  (merge-config!
-   {:ns-blacklist ["district.server.smart-contracts"]})
+  (merge-config! {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go
-   (try
-     (let [start-result (-> (mount/with-args {:config {:default default-config}})
-                               (mount/start))]
-       (log/warn "Started" {:components start-result
-                            :config @config}))
-     (catch js/Error e
-       (log/error "Something went wrong when starting the application" {:error e})))))
+    (try
+      (let [start-result (-> (mount/with-args
+                               {:config {:default (env-config environment)}})
+                             (mount/start))]
+        (log/warn "Started" {:components start-result :config @config}))
+      (catch js/Error e
+        (log/error "Something went wrong when starting the application" {:error e})))))
 
 
 ; When compiled for a command-line target, whatever function *main-cli-fn* is

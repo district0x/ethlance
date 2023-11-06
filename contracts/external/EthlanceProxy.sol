@@ -3,13 +3,11 @@ pragma solidity ^0.8.0;
 
 import "./DelegateProxy.sol";
 import "./ds-auth/auth.sol";
-// import "../JobStorage.sol";
 
 /**
  * @title Forwarder proxy contract with editable target
  */
-contract MutableForwarder is DelegateProxy, DSAuth {
-  // Storage layout is inherited from JobStorage
+contract EthlanceProxy is DelegateProxy, DSAuth {
   address public target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
 
   /**
@@ -22,10 +20,10 @@ contract MutableForwarder is DelegateProxy, DSAuth {
     target = _target;
   }
 
-  receive() external payable {
-    // This method doesn't (and shouldn't) do anything. It's here to be able to receive Ether only
-    // When Job gets created, ETH gets transferred to it (EthlanceStructs.transferToJob)
-  }
+  // event Received(address, uint);
+  // receive() external payable {
+  //   payable(target).transfer(msg.value);
+  // }
 
   fallback() external payable {
     delegatedFwd(target, msg.data);

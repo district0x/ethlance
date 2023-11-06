@@ -9,6 +9,9 @@
     "buffer": "6.0.3",
     "chalk": "2.3.0",
     "cors": "2.8.4",
+    "eth-sig-util": "^3.0.1",
+    "ethers": "6.1.0",
+    "evm-proxy-detection": "1.1.0",
     "express": "4.17.1",
     "fetch-blob": "1.0.2",
     "graphql": "14.2.1",
@@ -18,17 +21,14 @@
     "jsedn": "0.4.1",
     "jsonwebtoken": "8.5.1",
     "pg": "8.8.0",
-    "shadow-cljs": "2.20.20",
+    "shadow-cljs": "2.25.7",
     "web3": "1.7.3",
     "ws": "4.0.0",
-    "xmlhttprequest": "1.8.0",
-    "xregexp": "5.1.1",
     "xhr2": "0.2.1",
-    "evm-proxy-detection": "1.1.0",
-    "ethers": "6.1.0"
+    "xmlhttprequest": "1.8.0",
+    "xregexp": "5.1.1"
   },
   "@comment dependencies": {
-    "eth-sig-util": "2.4.4",
     "w3c-xmlhttprequest": "^3.0.4",
     "ethereumjs-wallet": "0.6.0"
   },
