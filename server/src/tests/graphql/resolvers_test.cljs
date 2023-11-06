@@ -132,37 +132,42 @@
                                                    [:job/id
                                                     :job/accepted-arbiter-address
                                                     :job/employer-address
-                                                    [:job/stories [:total-count
-                                                                   [:items
-                                                                    [:job/id
-                                                                     :job-story/id
-                                                                     [:job-story/employer-feedback [:job/id
-                                                                                                    :job-story/id
-                                                                                                    :feedback/rating
-                                                                                                    :feedback/to-user-type
-                                                                                                    :feedback/from-user-type]]
-                                                                     [:job-story/candidate-feedback [:job/id
-                                                                                                     :job-story/id
-                                                                                                     :feedback/rating
-                                                                                                     :feedback/to-user-type
-                                                                                                     :feedback/from-user-type]]]]]]]]}))
+                                                    [:job/stories
+                                                     [:total-count
+                                                      [:items
+                                                       [:job/id
+                                                        :job-story/id
+                                                        [:job-story/employer-feedback
+                                                         [:job/id
+                                                          :job-story/id
+                                                          :feedback/rating
+                                                          :feedback/to-user-type
+                                                          :feedback/from-user-type]]
+                                                        [:job-story/candidate-feedback
+                                                         [:job/id
+                                                          :job-story/id
+                                                          :feedback/rating
+                                                          :feedback/to-user-type
+                                                          :feedback/from-user-type]]]]]]]]}))
 
                  job-story-query (<! (run-query {:url api-endpoint
                                                  :access-token access-token
                                                  :query [:job-story {:job-story/id 0 :job/id job-id}
                                                          [:job/id
                                                           :job-story/id
-                                                          [:job-story/dispute [:total-count
-                                                                               [:items
-                                                                                [:job/id
-                                                                                 :job-story/id
-                                                                                 :dispute/reason]]]]
-                                                          [:job-story/invoices [:total-count
-                                                                                [:items
-                                                                                 [:job/id
-                                                                                  :job-story/id
-                                                                                  :invoice/id
-                                                                                  :invoice/amount-paid]]]]]]}))
+                                                          [:job-story/dispute
+                                                           [:total-count
+                                                            [:items
+                                                             [:job/id
+                                                              :job-story/id
+                                                              :dispute/reason]]]]
+                                                          [:job-story/invoices
+                                                           [:total-count
+                                                            [:items
+                                                             [:job/id
+                                                              :job-story/id
+                                                              :invoice/id
+                                                              :invoice/amount-paid]]]]]]}))
 
                  dispute-query (<! (run-query {:url api-endpoint
                                                :access-token access-token

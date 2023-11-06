@@ -125,18 +125,18 @@
 (defn c-invite-candidate []
   (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
         candidate-address (:address params)
-
         active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         jobs-query [:job-search {:search-params {:creator active-user} :order-by :dateCreated}
-                    [[:items [:job/id
-                              :job/title
-                              :job/date-created
-                              [:job-stories
-                               [[:items
-                                 [:job-story/id
-                                  [:invitation-message [:message/id]]
-                                  [:proposal-message [:message/id]]
-                                  [:candidate [:user/id]]]]]]]]]]
+                    [[:items
+                      [:job/id
+                       :job/title
+                       :job/date-created
+                       [:job-stories
+                        [[:items
+                          [:job-story/id
+                           [:invitation-message [:message/id]]
+                           [:proposal-message [:message/id]]
+                           [:candidate [:user/id]]]]]]]]]]
         result @(re/subscribe [::gql/query
                                {:queries [jobs-query]}
                                {:id :JobsWithStoriesForInvitationDropdown

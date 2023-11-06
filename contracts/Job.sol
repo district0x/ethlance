@@ -108,7 +108,7 @@ contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
     require(true
             || acceptedArbiter == address(0)
             || acceptedArbiter == _arbiter
-            || JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, block.timestamp),
+            || isAcceptedArbiterIdle(block.timestamp),
             "Another arbiter (non-idle) had been accepted before. Only 1 can be accepted.");
     require(isAmongstInvitedArbiters(_arbiter), "Arbiter to be accepted must be amongst invited arbiters");
     require(isCallerJobCreator(msg.sender), "Only job creator (employer) can accept quote for arbitration");
@@ -122,6 +122,10 @@ contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
 
   function isAcceptedArbiterIdle() public view returns (bool) {
     return JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, block.timestamp);
+  }
+
+  function isAcceptedArbiterIdle(uint timeNow) public view returns (bool) {
+    return JobHelpers.isAcceptedArbiterIdle(disputeIds, disputes, ARBITER_IDLE_TIMEOUT, timeNow);
   }
 
   /**
@@ -347,6 +351,10 @@ contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
     ethlance.emitFundsWithdrawn(address(this), msg.sender, withdrawAmounts);
   }
 
+  function maxWithdrawableAmounts() public view returns(EthlanceStructs.TokenValue[] memory) {
+    return EthlanceStructs.maxWithdrawableAmounts(msg.sender, depositIds, deposits);
+  }
+
   function endJob() external hasNoOutstandingPayments {
     for(uint i = 0; i < depositorsLength(); i++) {
       address depositor = getDepositor(i);
@@ -564,7 +572,7 @@ contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
    * It calls either {_acceptQuoteForArbitration} or {_recordAddedFunds} or {addFundsAndPayInvoice} based on decoding `msg.data`
    */
   receive() external ongoingJob payable {
-    ethlance.emitFundsIn(address(this), EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
+    _recordAddedFunds(msg.sender, EthlanceStructs.makeTokenValue(msg.value, EthlanceStructs.TokenType.ETH));
   }
 
   fallback() external payable {
