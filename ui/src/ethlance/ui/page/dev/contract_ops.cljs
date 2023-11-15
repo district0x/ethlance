@@ -7,7 +7,8 @@
     [ethlance.ui.component.select-input :refer [c-select-input]]
 
     [district.ui.smart-contracts.queries :as contract-queries]
-    [district.ui.web3-tx.events :as web3-events]))
+    [district.ui.web3-tx.events :as web3-events]
+    [clojure.edn :as edn]))
 
 ; ------------ EVENTS ----------------
 (def state-key :page.dev.contract-ops)
@@ -66,6 +67,16 @@
                :on-tx-success [::mint-token-tx-success token-type]
                :on-tx-error [::mint-token-tx-error]}]]]})))
 
+(re/reg-event-db
+  :page.dev.contract-ops/update-app-db-query
+  (fn [db [_ query]]
+    (assoc-in db [state-key :app-db-query] query)))
+
+(re/reg-event-db
+  :page.dev.contract-ops/make-app-db-query
+  (fn [db [_ query]]
+    (assoc-in db [state-key :app-db-query-vector] (clojure.edn/read-string query))))
+
 ; ------------ SUBSCRIPTIONS ----------------
 (re/reg-sub
   :page.dev.contract-ops/token-amount
@@ -82,7 +93,47 @@
   (fn [db _]
     (get-in db [state-key :minted-token-id])))
 
+(re/reg-sub
+  :page.dev.contract-ops/app-db-query-input
+  (fn [db _]
+    (get-in db [state-key :app-db-query])))
+
+(re/reg-sub
+  :page.dev.contract-ops/app-db-query-results
+  (fn [db _]
+    (get-in db (get-in db [state-key :app-db-query-vector]))))
+
+(re/reg-sub
+  :page.dev.contract-ops/app-db-result-keys
+  :<- [:page.dev.contract-ops/app-db-query-results]
+  (fn [query-result _]
+    (if (map? query-result)
+      (keys query-result)
+      "Not a map")))
+
 ; ----------------- VIEWS -------------------
+
+(defn c-app-db []
+  (let [query-input (re/subscribe [:page.dev.contract-ops/app-db-query-input])
+        query-results (re/subscribe [:page.dev.contract-ops/app-db-query-results])
+        result-keys (re/subscribe [:page.dev.contract-ops/app-db-result-keys])
+        ]
+    [:div {:style {:margin "1em" :border "solid 1px"}}
+     [:label "Enter query for app-db (ENTER to query)"]
+     [:input {:value @query-input
+              :on-change (fn [event]
+                           (set! (.. js/window -zeOnChangeEvent) event)
+                           (re/dispatch [:page.dev.contract-ops/update-app-db-query (-> event .-target .-value)]))
+              :on-key-up (fn [event]
+                           (if (= "Enter" (.-key event))
+                                       (re/dispatch [:page.dev.contract-ops/make-app-db-query @query-input])))}]
+     [:h3 {:style {:font-size "2em"}} "Keys"]
+     [:pre {:style {:font-family "Monospace" :font-weight "bold"}}
+      (with-out-str (cljs.pprint/pprint @result-keys))]
+     [:h3 {:style {:font-size "2em"}} "Content"]
+     [:pre {:style {:font-family "Monospace"}}
+      (with-out-str (cljs.pprint/pprint @query-results))]]))
+
 (defn c-mint-tokens []
   (let [token-amount (re/subscribe [:page.dev.contract-ops/token-amount])
         selected-token (re/subscribe [:page.dev.contract-ops/token-info])
@@ -118,4 +169,5 @@
     [:div
      [:h1 "Contract operations"]
      [:h2 {:style {:font-size "3em"}}"Mint tokens"]
-     [c-mint-tokens]]))
+     [c-mint-tokens]
+     [c-app-db]]))
