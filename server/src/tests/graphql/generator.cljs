@@ -26,7 +26,7 @@
    11 "Accounting & Consulting"
    12 "Other"})
 
-(def languages (map (zipmap constants/languages constants/languages) ["English" "español"]))
+(def languages (map (zipmap constants/languages constants/languages) ["English" "Estonian"]))
 
 (defn generate-user-languages [conn user-addresses]
   (safe-go
@@ -196,7 +196,7 @@
                                                             :job-story-message/type :invitation
                                                             :job-story/id story-id})))))))
 
-(defn generate-disputes [conn stories-ids [employer _ _]]
+(defn generate-disputes [conn stories-ids [employer _candidate arbiter]]
   (safe-go
    (doseq [story-id stories-ids]
      (when (rand-nth [true false])
@@ -204,7 +204,7 @@
                                                             :message/type :job-story-message
                                                             :job-story-message/type :raise-dispute
                                                             :job-story/id story-id})))
-       (<? (ethlance-db/add-message conn (generate-message {:message/creator employer
+       (<? (ethlance-db/add-message conn (generate-message {:message/creator arbiter
                                                             :message/type :job-story-message
                                                             :job-story-message/type :resolve-dispute
                                                             :job-story/id story-id})))))))
