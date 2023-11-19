@@ -20,10 +20,10 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout ethlance code
         uses: actions/checkout@v4
       
-      - name: Checkout tools repo
+      - name: Checkout ethlance-configs repo
         uses: actions/checkout@v4
         with:
           repository: district0x/ethlance-config
@@ -31,12 +31,10 @@ jobs:
           token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
           ref: docker_build
 
-      - name: list repo
+      - name: Copy configs
         run: |
-          echo "Checking repo contents"
-          ls -lah 
-          ls -lah ethlance-config/
-          # ls -lah config/
+          cp -r ethlance-config/config .
+          ls -lah config/
       
       # - name: Set up QEMU
       #   uses: docker/setup-qemu-action@v2
