@@ -61,4 +61,4 @@ jobs:
           file: docker-builds/${{ matrix.image }}/Dockerfile
           build-args: BUILD_ENV=${{ matrix.env }}
           push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/streamtide-${{ matrix.image }}:latest-${{ matrix.env }}
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.image }}:latest-${{ matrix.env }}
