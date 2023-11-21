@@ -1,44 +1,12 @@
 (ns ethlance.shared.smart-contracts-prod)
 
 (def smart-contracts
-  {:ethlance-registry
-   {:name "EthlanceRegistry" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-user
-   {:name "EthlanceUser" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-user-factory
-   {:name "EthlanceUserFactory" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-user-factory-fwd
-   {:name "MutableForwarder" :address "0x0000000000000000000000000000000000000000" :forwards-to "ethlance-user-factory"}
-
-   :ethlance-comment
-   {:name "EthlanceComment" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-feedback
-   {:name "EthlanceFeedback" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-invoice
-   {:name "EthlanceInvoice" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-dispute
-   {:name "EthlanceDispute" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-token-store
-   {:name "EthlanceTokenStore" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-work-contract
-   {:name "EthlanceWorkContract" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-job-store
-   {:name "EthlanceJobStore" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-job-factory
-   {:name "EthlanceJobFactory" :address "0x0000000000000000000000000000000000000000"}
-
-   :ethlance-job-factory-fwd
-   {:name "MutableForwarder" :address "0x0000000000000000000000000000000000000000" :forwards-to "ethlance-job-factory"}
-
-   :token
-   {:name "TestToken" :address "0x0000000000000000000000000000000000000000"}})
+  {:token {:name "TestToken" :address "0x0000000000000000000000000000000000000000"}
+   :test-nft {:name "TestNft" :address "0x0000000000000000000000000000000000000000"}
+   :test-multi-token {:name "TestMultiToken" :address "0x0000000000000000000000000000000000000000"}
+   :ethlance-structs {:name "EthlanceStructs" :address "0x0000000000000000000000000000000000000000"}
+   :job-helpers {:name "JobHelpers" :address "0x0000000000000000000000000000000000000000"}
+   :job {:name "Job" :address "0x0000000000000000000000000000000000000000"}
+   :mutable-forwarder {:name "MutableForwarder" :address "0x0000000000000000000000000000000000000000"}
+   :ethlance {:name "EthlanceProxy" :address "0x0000000000000000000000000000000000000000" :forwards-to :ethlance-impl}
+   :ethlance-impl {:name "Ethlance" :address "0x0000000000000000000000000000000000000000"}})
