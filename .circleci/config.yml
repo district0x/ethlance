@@ -1,7 +1,4 @@
 version: 2.1
-orbs:
-  aws-cli: circleci/aws-cli@4.0
-  aws-ecr: circleci/aws-ecr@9.0
 jobs:
   test:
     working_directory: ~/ethlance
@@ -21,6 +18,7 @@ jobs:
           POSTGRES_DB: ethlance-test
     steps:
       - checkout
+
       - restore_cache:
           name: Restore ethlance top-level npm package cache
           keys:
@@ -28,6 +26,7 @@ jobs:
       - run:
           name: Install ethlance top-level node modules
           command: yarn install
+
       - restore_cache:
           name: Restore ethlance server npm package cache
           keys:
@@ -52,60 +51,8 @@ jobs:
           name: Run test suite
           command: bb run-server-tests
   
-  docker_build:
-      # working_directory: ~/ethlance
-      # docker:
-        # - image: account-id.dkr.ecr.us-east-1.amazonaws.com/org/repo:0.1
-        #   aws_auth:
-      machine:
-        image: ubuntu-2204:2022.07.1
-      steps:
-        - checkout
-        - aws-ecr/build_and_push_image:
-            attach_workspace: true
-            auth:
-              - aws-cli/setup:
-                  aws_access_key_id: $AWS_ACCESS_KEY_ID
-                  aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
-            create_repo: false
-            dockerfile: docker-builds/server/Dockerfile
-            path: workspace
-            platform: linux/amd64
-            push_image: false
-            region: us-west-2
-            repo: my-sample-repo
-            tag: test
-            workspace_root: .
-
-        # - run:
-        #     name: Checkout ethlance-configs repo
-        #     command: |
-        #       git clone https://github.com/district0x/ethlance-config.git
-        #       cd ethlance-config
-        #       git checkout docker_build
-        # - run:
-        #     name: Copy configs
-        #     command: |
-        #       cp -r ethlance-config/config .
-        #       ls -lah config/
-        - run:
-            name: Build and push
-            command: |
-              echo "done building"
-              # docker build -t ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.image }}:latest-${{ matrix.env }} -f docker-builds/${{ matrix.image }}/Dockerfile --build-arg BUILD_ENV=${{ matrix.env }} .
-              # docker push ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.image }}:latest-${{ matrix.env }}
-
 workflows:
   build:
     jobs:
       - test:
           context: district0x    
-      - docker_build:
-          context: district0x    
-          matrix:
-            parameters: 
-              image:
-              - server
-              - ui
-              env:
-                - qa

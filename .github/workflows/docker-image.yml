@@ -16,11 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Ethlance build and test
     services:
-      # ganache:
-      #   image: trufflesuite/ganache:v7.9.1
-      #   options: >-
-      #     -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8550, -b 0.5, --chain.allowUnlimitedContractSize=true 
-      #   # cmd: [-v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8550, -b 0.5, --chain.allowUnlimitedContractSize=true]
       ipfs-daemon:
         image: district0x/ipfs-daemon:latest
       postgres:
@@ -62,10 +57,6 @@ jobs:
         run: | 
           docker run --rm -d --name ganache  trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
 
-      - name: Run ganache service
-        run: | 
-          docker run --rm -d --name ganache  trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
-        
       - name: Get yarn cache directory for top-level ethlance packages
         id: yarn-cache-top-level-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
