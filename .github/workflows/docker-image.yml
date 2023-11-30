@@ -61,7 +61,55 @@ jobs:
       - name: Run ganache service
         run: | 
           docker run --rm -d --name ganache  trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
+
+      - name: Run ganache service
+        run: | 
+          docker run --rm -d --name ganache  trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
         
+      - name: Get yarn cache directory for top-level ethlance packages
+        id: yarn-cache-top-level-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      
+      - name: Get yarn cache directory for ethlance Server packages
+        id: yarn-cache-server-path
+        run: |
+          cd server 
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      - name: Get yarn cache directory for ethlance UI packages
+        id: yarn-cache-ui-path
+        run: |
+          cd server 
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          cd ..
+      
+      - name: Restore Top level cache directory for Ethlance
+        uses: actions/cache@v3
+        id: yarn-cache-top-level # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-top-level-path.outputs.dir }}
+          key: ${{ runner.os }}-ethlance-top-level-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ethlance-top-level-yarn-
+
+      - name: Install ethlance top-level node modules
+        run: | 
+          yarn install
+
+
+      - name: Restore server cache directory for Ethlance
+        uses: actions/cache@v3
+        id: yarn-cache-server # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-server-path.outputs.dir }}
+          key: ${{ runner.os }}-ethlance-server-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ethlance-server-yarn-
+
+      - name: Install ethlance server node modules
+        run: | 
+          cd server && yarn install
+                    
           
   # docker_build:
   #   strategy:
