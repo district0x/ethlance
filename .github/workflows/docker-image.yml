@@ -50,7 +50,7 @@ jobs:
 
       - name: Run ganache service
         run: | 
-          docker run --rm -d --name ganache  trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
+          docker run --rm -d --name ganache -p 8550:8550 trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
 
       # - name: Get yarn cache directory for top-level ethlance packages
       #   id: yarn-cache-top-level-path
