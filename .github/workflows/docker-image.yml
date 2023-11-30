@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    name: Ethlance build and test
+    name: Test and deploy contracts
     env:
       ETHLANCE_ENV: qa   
     services:
@@ -89,6 +89,9 @@ jobs:
         run: | 
           npx truffle migrate --network ethlance.mad.is-testnet --reset
 
+      - name: Stop Ganache service
+        run: docker rm -f ganache 
+          
   docker_build:
     needs: testing
     strategy:
@@ -97,7 +100,7 @@ jobs:
         env: ["qa"]
     permissions:
       contents: read
-    name: Docker Build
+    name: Build Docker images
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ethlance code
