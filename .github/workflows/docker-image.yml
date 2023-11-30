@@ -10,13 +10,61 @@ permissions:
   contents: read
 
 jobs:
+  testing:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    name: Ethlance build and test
+    services:
+      ganache:
+        image: trufflesuite/ganache:v7.9.1
+        options: >-
+          -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8550, -b 0.5, --chain.allowUnlimitedContractSize=true 
+        # cmd: [-v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8550, -b 0.5, --chain.allowUnlimitedContractSize=true]
+      ipfs-daemon:
+        image: district0x/ipfs-daemon:latest
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: pass
+          POSTGRES_USER: ethlanceuser
+          POSTGRES_DB: ethlance-test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout ethlance code
+        uses: actions/checkout@v4
+      
+      - name: Checkout ethlance-configs repo
+        uses: actions/checkout@v4
+        with:
+          repository: district0x/ethlance-config
+          path: ethlance-config
+          token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
+          ref: docker_build
+
+      - name: Copy configs
+        run: |
+          cp -r ethlance-config/config .
+          ls -lah config/
+
+      - name: Copy configs
+        run: |
+          cp -r ethlance-config/config .
+          ls -lah config/
+      
   docker_build:
     strategy:
       matrix:
         image: ["server", "ui"]
         env: ["qa"]
     permissions:
-      contents: read # for actions/checkout to fetch code
+      contents: read
     name: Docker Build
     runs-on: ubuntu-latest
     steps:
