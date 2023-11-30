@@ -97,23 +97,10 @@ jobs:
         run: | 
           npx truffle migrate --network ganache-test --reset
 
-      - name: Run test suite
+      - name: Deploy contracts test network
         run: | 
-          bb run-server-tests
+          npx truffle migrate --network ethlance.mad.is-testnet --reset
 
-      # - name: Restore UI cache directory for Ethlance
-      #   uses: actions/cache@v3
-      #   id: yarn-cache-ui # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-      #   with:
-      #     path: ./ui/node_modules
-      #     key: ${{ runner.os }}-ethlance-server-yarn-${{ hashFiles('ui/yarn.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-ethlance-server-yarn-
-
-      # - name: Install ethlance ui node modules
-      #   run: | 
-      #     cd ui && yarn install
-                    
           
   # docker_build:
   #   strategy:
