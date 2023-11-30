@@ -32,7 +32,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
     steps:
       - name: Checkout ethlance code
         uses: actions/checkout@v4
@@ -54,26 +53,9 @@ jobs:
         run: | 
           docker run --rm -d --name ganache -p 8550:8550 trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
 
-      # - name: Get yarn cache directory for top-level ethlance packages
-      #   id: yarn-cache-top-level-path
-      #   run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-      
-      # - name: Get yarn cache directory for ethlance Server packages
-      #   id: yarn-cache-server-path
-      #   run: |
-      #     cd server 
-      #     echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-
-      # - name: Get yarn cache directory for ethlance UI packages
-      #   id: yarn-cache-ui-path
-      #   run: |
-      #     cd ui 
-      #     echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-      #     cd ..
-      
       - name: Restore Top level cache directory for Ethlance
         uses: actions/cache@v3
-        id: yarn-cache-top-level # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        id: yarn-cache-top-level
         with:
           path: ./node_modules
           key: ${{ runner.os }}-ethlance-top-level-yarn-${{ hashFiles('yarn.lock') }}
@@ -86,12 +68,18 @@ jobs:
 
       - name: Restore Server cache directory for Ethlance
         uses: actions/cache@v3
-        id: yarn-cache-server # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        id: yarn-cache-server
         with:
           path: ./server/node_modules
           key: ${{ runner.os }}-ethlance-server-yarn-${{ hashFiles('server/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-ethlance-server-yarn-
+
+
+      - name: Install ethlance server node modules
+        run: | 
+          cd server 
+          yarn install
 
       - name: Deploy contracts
         run: | 
@@ -101,56 +89,56 @@ jobs:
         run: | 
           npx truffle migrate --network ethlance.mad.is-testnet --reset
 
-          
-  # docker_build:
-  #   strategy:
-  #     matrix:
-  #       image: ["server", "ui"]
-  #       env: ["qa"]
-  #   permissions:
-  #     contents: read
-  #   name: Docker Build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout ethlance code
-  #       uses: actions/checkout@v4
+  docker_build:
+    needs: testing
+    strategy:
+      matrix:
+        image: ["server", "ui"]
+        env: ["qa"]
+    permissions:
+      contents: read
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ethlance code
+        uses: actions/checkout@v4
       
-  #     - name: Checkout ethlance-configs repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: district0x/ethlance-config
-  #         path: ethlance-config
-  #         token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
-  #         ref: docker_build
+      - name: Checkout ethlance-configs repo
+        uses: actions/checkout@v4
+        with:
+          repository: district0x/ethlance-config
+          path: ethlance-config
+          token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
+          ref: docker_build
 
-  #     - name: Copy configs
-  #       run: |
-  #         cp -r ethlance-config/config .
-  #         ls -lah config/
+      - name: Copy configs
+        run: |
+          cp -r ethlance-config/config .
+          ls -lah config/
       
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-  #     - name: Login to Amazon ECR
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-  #     - name: Build and push
-  #       uses: docker/build-push-action@v4
-  #       with:
-  #         context: .
-  #         platforms: linux/amd64,linux/arm64
-  #         file: docker-builds/${{ matrix.image }}/Dockerfile
-  #         build-args: BUILD_ENV=${{ matrix.env }}
-  #         push: true
-  #         tags: ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.image }}:latest-${{ matrix.env }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: docker-builds/${{ matrix.image }}/Dockerfile
+          build-args: BUILD_ENV=${{ matrix.env }}
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.image }}:latest-${{ matrix.env }}
