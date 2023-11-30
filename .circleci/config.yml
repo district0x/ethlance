@@ -31,14 +31,17 @@ jobs:
           name: Restore ethlance server npm package cache
           keys:
             - npm-dependencies-ethlance-{{ checksum "server/yarn.lock" }}
+
       - run:
           name: Install ethlance server node modules
           command: cd server && yarn install
+
       - save_cache:
           name: Save ethlance server npm package cache
           key: npm-dependencies-ethlance-{{ checksum "server/yarn.lock" }}
           paths:
             - ./server/node_modules
+
       - save_cache:
           name: Save ethlance top-level npm package cache
           key: npm-dependencies-ethlance-{{ checksum "yarn.lock" }}
