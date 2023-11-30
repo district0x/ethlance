@@ -13,8 +13,10 @@ jobs:
   testing:
     permissions:
       contents: read
-    runs-on: 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0
+    runs-on: ubuntu-latest
     name: Ethlance build and test
+    env:
+      ETHLANCE_ENV: qa   
     services:
       ipfs-daemon:
         image: district0x/ipfs-daemon:latest
