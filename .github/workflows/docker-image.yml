@@ -2,9 +2,8 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "add_dockerfiles", "newlance", "test_new_workflow" ]
+    branches: [ "master", "main", "newlance"]
   pull_request:
-    branches: [ "add_dockerfiles", "newlance" ]
       
 permissions:
   contents: read
