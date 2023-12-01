@@ -43,10 +43,10 @@ jobs:
           token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
           ref: docker_build
 
-      - name: Copy configs
-        run: |
-          cp -r ethlance-config/config .
-          ls -lah config/
+      # - name: Copy configs
+      #   run: |
+      #     cp -r ethlance-config/config .
+      #     ls -lah config/
 
       - name: Run ganache service
         run: | 
@@ -95,9 +95,9 @@ jobs:
       - name: Run server tests
         run: bb run-server-tests
 
-      # - name: Deploy contracts to ethlance.mad.is-testnet
-      #   run: | 
-      #     npx truffle migrate --network ethlance.mad.is-testnet --reset
+      - name: Deploy contracts to ethlance.mad.is-testnet
+        run: | 
+          npx truffle migrate --network ethlance.mad.is-testnet --reset
 
       - name: Stop Ganache service
         run: docker rm -f ganache 

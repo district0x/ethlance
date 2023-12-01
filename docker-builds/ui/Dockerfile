@@ -21,7 +21,6 @@ FROM init as build_stage
 ## Smart contracts
 WORKDIR /build/ethlance
 RUN yarn && ETHLANCE_ENV=qa npx truffle compile 
-#migrate --network ethlance.mad.is-testnet --reset
 
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui
 RUN yarn && \
@@ -38,6 +37,5 @@ COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build_stage /build/ethlance/resources /deploy/resources
 COPY --from=build_stage /build/ethlance/resources/public/contracts /deploy/ui/contracts/
 COPY --from=build_stage /build/ethlance/ui/resources/public /deploy/ui/
-COPY --from=build_stage  /build/ethlance/resources/public /streamtide/resources/public/
 
 EXPOSE 80
