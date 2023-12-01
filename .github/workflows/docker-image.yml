@@ -2,22 +2,115 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "add_dockerfiles", "newlance" ]
+    branches: [ "master", "main", "newlance"]
   pull_request:
-    branches: [ "add_dockerfiles", "newlance" ]
       
 permissions:
   contents: read
 
 jobs:
+  testing:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    name: Test and deploy contracts
+    env:
+      ETHLANCE_ENV: qa   
+    services:
+      ipfs-daemon:
+        image: district0x/ipfs-daemon:latest
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: pass
+          POSTGRES_USER: ethlanceuser
+          POSTGRES_DB: ethlance-test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout ethlance code
+        uses: actions/checkout@v4
+      
+      - name: Checkout ethlance-configs repo
+        uses: actions/checkout@v4
+        with:
+          repository: district0x/ethlance-config
+          path: ethlance-config
+          token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
+          ref: docker_build
+
+      - name: Copy configs
+        run: |
+          cp -r ethlance-config/config .
+          ls -lah config/
+
+      - name: Run ganache service
+        run: | 
+          docker run --rm -d --name ganache -p 8550:8550 trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
+
+      - name: Restore Top level cache directory for Ethlance
+        uses: actions/cache@v3
+        id: yarn-cache-top-level
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-ethlance-top-level-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ethlance-top-level-yarn-
+
+      - name: Install ethlance top-level node modules
+        run: | 
+          yarn install
+
+      - name: Restore Server cache directory for Ethlance
+        uses: actions/cache@v3
+        id: yarn-cache-server
+        with:
+          path: ./server/node_modules
+          key: ${{ runner.os }}-ethlance-server-yarn-${{ hashFiles('server/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ethlance-server-yarn-
+
+
+      - name: Install ethlance server node modules
+        run: | 
+          cd server 
+          yarn install
+
+      - name: Deploy contracts to ganache-test
+        run: | 
+          npx truffle migrate --network ganache-test --reset
+      
+      - name: Setup Babashka
+        uses: turtlequeue/setup-babashka@v1.5.0
+        with:
+          babashka-version: 1.3.186
+      
+      - name: Check bb version
+        run: bb --version
+          
+      - name: Run server tests
+        run: bb run-server-tests
+
+      # - name: Deploy contracts to ethlance.mad.is-testnet
+      #   run: | 
+      #     npx truffle migrate --network ethlance.mad.is-testnet --reset
+
+      - name: Stop Ganache service
+        run: docker rm -f ganache 
+          
   docker_build:
+    needs: testing
     strategy:
       matrix:
         image: ["server", "ui"]
         env: ["qa"]
     permissions:
-      contents: read # for actions/checkout to fetch code
-    name: Docker Build
+      contents: read
+    name: Build Docker images
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ethlance code
