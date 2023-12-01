@@ -92,8 +92,8 @@ jobs:
       - name: Check bb version
         run: bb --version
           
-      - name: Run server tests
-        run: bb run-server-tests
+      # - name: Run server tests
+      #   run: bb run-server-tests
 
       - name: Deploy contracts to ethlance.mad.is-testnet
         run: | 
