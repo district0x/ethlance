@@ -95,9 +95,9 @@ jobs:
       - name: Run server tests
         run: bb run-server-tests
 
-      - name: Deploy contracts to ethlance.mad.is-testnet
-        run: | 
-          npx truffle migrate --network ethlance.mad.is-testnet --reset
+      # - name: Deploy contracts to ethlance.mad.is-testnet
+      #   run: | 
+      #     npx truffle migrate --network ethlance.mad.is-testnet --reset
 
       - name: Stop Ganache service
         run: docker rm -f ganache 
