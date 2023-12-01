@@ -81,11 +81,22 @@ jobs:
           cd server 
           yarn install
 
-      - name: Deploy contracts
+      - name: Deploy contracts to ganache-test
         run: | 
           npx truffle migrate --network ganache-test --reset
+      
+      - name: Setup Babashka
+        uses: turtlequeue/setup-babashka@v1.5.0
+        with:
+          babashka-version: 0.8.156
+      
+      - name: Check bb runs
+        run: bb --version
+          
+      - name: Run server tests
+        run: bb run-server-tests
 
-      - name: Deploy contracts test network
+      - name: Deploy contracts to ethlance.mad.is-testnet
         run: | 
           npx truffle migrate --network ethlance.mad.is-testnet --reset
 
