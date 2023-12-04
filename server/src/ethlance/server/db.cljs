@@ -925,6 +925,16 @@
                           :join [:Job [:= :Job.job/id :JobStory.job/id]]
                           :where [:= :job-story/id job-story-id]})))))
 
+(defn get-arbiter-id-by-job-story-id [conn job-story-id]
+  (safe-go
+   (:id (<? (db/get conn {:select [[:JobArbiter.user/id :id]]
+                          :from [:JobStory]
+                          :join [:Job [:= :Job.job/id :JobStory.job/id]
+                                 :JobArbiter [:= :Job.job/id :JobArbiter.job/id]]
+                          :where [:and
+                                  [:= :job-story/id job-story-id]
+                                  [:= :job-arbiter/status "accepted"]]})))))
+
 (defn update-job-story-status [conn job-story-id status]
   (safe-go
     (<? (db/get conn {:update :JobStory

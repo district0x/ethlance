@@ -1012,6 +1012,21 @@
                                        :message/text text
                                        :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
 
+(defn re-calculate-user-average-rating [user-id job-story-id]
+  (db/with-async-resolver-tx conn
+    (let [employer (<? (ethlance-db/get-employer-id-by-job-story-id conn job-story-id))
+          candidate (<? (ethlance-db/get-candidate-id-by-job-story-id conn job-story-id))
+          arbiter (<? (ethlance-db/get-arbiter-id-by-job-story-id conn job-story-id))
+          mean (:mean (<? (db/get conn {:select [[(sql/call :avg :feedback/rating) :mean]]
+                                  :from [:JobStoryFeedbackMessage]
+                                  :where [:and
+                                          [:ilike user-id :user/id]
+                                          [:= :job-story/id job-story-id]]})))]
+      (cond
+        (= employer user-id) (ethlance-db/update-row! conn :Employer {:user/id user-id :employer/rating mean})
+        (= candidate user-id) (ethlance-db/update-row! conn :Candidate {:user/id user-id :candidate/rating mean})
+        (= arbiter user-id) (ethlance-db/update-row! conn :Arbiter {:user/id user-id :arbiter/rating mean})))))
+
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
   ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
@@ -1025,7 +1040,7 @@
                                                {:select [[:JobStory.job-story/status :status]]
                                                 :from [:JobStory]
                                                 :where [:= :job-story/id job-story-id]})))
-          arbiter-feedback-before-ending? (and (not= previous-status "ended-by-feedback")
+          arbiter-feedback-before-ending? (and (not= previous-status "finished")
                                                (not feedback-from-participants?))]
 
       (when feedback-from-participants?
@@ -1039,6 +1054,8 @@
                                          :message/text text
                                          :feedback/rating rating
                                          :user/id to}))
+      (re-calculate-user-average-rating to job-story-id)
+
       true
       )))
 
