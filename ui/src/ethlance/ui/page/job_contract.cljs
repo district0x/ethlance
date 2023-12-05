@@ -245,12 +245,19 @@
                                    :arbiter)
 
                                  :arbiter
-                                 (cond
+                                 (when
                                    (or
                                      (given-feedback? :employer :candidate feedbacks)
                                      (given-feedback? :candidate :employer feedbacks))
-                                   (if (given-feedback? :arbiter :candidate feedbacks)
+                                   (cond
+                                     (and (not (given-feedback? :arbiter :employer feedbacks))
+                                          (not (given-feedback? :arbiter :candidate feedbacks)))
+                                     :candidate
+                                     (and (not (given-feedback? :arbiter :employer feedbacks))
+                                          (given-feedback? :arbiter :candidate feedbacks))
                                      :employer
+                                     (and (not (given-feedback? :arbiter :candidate feedbacks))
+                                          (given-feedback? :arbiter :employer feedbacks))
                                      :candidate)))
 
         open-invoices? (not (empty? open-invoices))

@@ -35,7 +35,6 @@
 
 (defn ^:export init []
   (let [main-config (ui.config/get-config environment)]
-    (println ">>> ethlance.ui.core/init starting with CONFIG: " main-config)
     (util.injection/inject-data-scroll! {:injection-selector "#app"})
 
     ;; Initialize our district re-mount components

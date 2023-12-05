@@ -10,10 +10,12 @@
   (let [multiplier (clojure.math/pow 10 decimals)]
     (/ (.round js/Math (* multiplier amount)) multiplier)))
 
-(defn human-amount [amount token-type]
-  (case (keyword token-type)
-    :eth (wei->eth amount)
-    amount))
+(defn human-amount [amount token-type & [decimals]]
+  (if (not (nil? decimals))
+    (round decimals (/ amount (clojure.math/pow 10 decimals)))
+    (case (keyword token-type)
+      :eth (wei->eth amount)
+      amount)))
 
 (defn machine-amount [amount token-type]
   (case (keyword token-type)

@@ -401,6 +401,7 @@
     tokenDetail_type: Keyword
     tokenDetail_name: String
     tokenDetail_symbol: String
+    tokenDetail_decimals: Int
   }
 
 

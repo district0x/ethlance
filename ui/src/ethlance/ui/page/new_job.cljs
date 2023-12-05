@@ -16,6 +16,7 @@
             [ethlance.ui.component.search-input :refer [c-chip-search-input]]
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.text-input :refer [c-text-input]]
+            [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.subscriptions :as subs]
@@ -90,7 +91,8 @@
             token-with-id? (#{:erc721 :erc1155} @*token-type)
             disabled? (or
                         (not (s/valid? :page.new-job/create @form-values))
-                        @tx-in-progress?)]
+                        @tx-in-progress?)
+            token-decimals (re/subscribe [:page.new-job/token-decimals])]
         [c-main-layout {:container-opts {:class :new-job-main-container}}
          [:div.forms-left
           [:div.title "New job"]
@@ -170,10 +172,11 @@
             [:erc1155 [c-radio-secondary-element "Multi-Token (ERC-1155)"]]]
            (when token-with-amount?
              [:div.token-address-input
-              [c-text-input
+              ; Specialized for tokens (takes account the decimals from the contract)
+              [c-token-amount-input
                {:value @*token-amount
-                :on-change #(re/dispatch [:page.new-job/set-token-amount %])
-                :placeholder "Token Amount"}]
+                :decimals @token-decimals
+                :on-change #(re/dispatch [:page.new-job/set-token-amount %])}]
               [:div.token-label "(amount)"]])
            (when with-token?
              [:div.token-address-input

@@ -80,10 +80,18 @@
           token-name (when (has-contract-method? contract-instance "name")
                        (<! (promise->chan (w3-eth/contract-call contract-instance :name [] {}))))
           token-symbol (when (has-contract-method? contract-instance "symbol")
-                         (<! (promise->chan (w3-eth/contract-call contract-instance :symbol [] {}))))]
+                         (<! (promise->chan (w3-eth/contract-call contract-instance :symbol [] {}))))
+          token-decimals (case token-type
+                           :eth 18
+                           :erc721 0
+                           :erc1155 1
+                           :erc20 (if (has-contract-method? contract-instance "decimals")
+                                    (<! (promise->chan (w3-eth/contract-call contract-instance :decimals [] {})))
+                                    18))]
       {:address contract-address
        :type token-type
        :name token-name
        :symbol token-symbol
+       :decimals token-decimals
        :web3-instance web3-instance
        :contract-instance contract-instance})))

@@ -467,6 +467,7 @@ contract Job is IERC721Receiver, IERC1155Receiver, DSAuth, JobStorage {
 
     disputes[_invoiceId] = dispute;
     invoices[_invoiceId] = invoice;
+    ethlance.emitFundsOut(address(this), _valueForInvoicer);
     ethlance.emitDisputeResolved(address(this), _invoiceId, _valueForInvoicer, _ipfsData);
   }
 

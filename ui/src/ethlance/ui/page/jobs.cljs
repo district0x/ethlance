@@ -15,6 +15,7 @@
             [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
             [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
+            [ethlance.ui.component.token-info :refer [c-token-info]]
             [ethlance.ui.util.tokens :as tokens]
             [ethlance.ui.component.mobile-search-filter
              :refer
@@ -77,16 +78,14 @@
                                      :beginner "Novice ($)"
                                      :intermediate "Professional ($$)"
                                      :expert "Expert ($$$)")
-        amount (str
-                 (tokens/human-amount (:job/token-amount job) (:job/token-type job))
-                 " "
-                 (get-in job [:token-details :token-detail/symbol]) " (" (get-in job [:token-details :token-detail/name]) ")")]
+        token-details (get-in job [:token-details])
+        amount (:job/token-amount job)]
     [:div.job-detail-table
      [:div.name "Payment Type"]
      [:div.value (str/title bid-option)]
 
      [:div.name "Funds available"]
-     [:div.value amount]
+     [:div.value [c-token-info amount token-details]]
 
      [:div.name "Experience Level"]
      [:div.value formatted-experience-level]
@@ -231,6 +230,7 @@
                     [:token-details
                      [:token-detail/id
                       :token-detail/type
+                      :token-detail/decimals
                       :token-detail/name
                       :token-detail/symbol]]
 
