@@ -225,7 +225,7 @@
                  {})
         *participant-name (get-in results [participant-type :user :user/name])
         *participant-address (get-in results [participant-type :user/id])
-        *participant-rating (get-in results [participant-type :arbiter/rating])
+        *participant-rating (get-in results [participant-type rating-kw])
         *participant-country (get-in results [participant-type :user :user/country])
         *participant-profile-image (get-in results [participant-type :user :user/profile-image])]
     [:a.arbiter-detail (util.navigation/link-params
