@@ -9,7 +9,13 @@ jobs:
           ETHLANCE_ENV: qa
       # Secondary container images on common network.
       - image: trufflesuite/ganache:v7.9.1
-        command: [-v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine", -p 8550, -b 0.5, --chain.allowUnlimitedContractSize=true]
+        command:
+          [
+            -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine",
+            -p 8550,
+            -b 0.5,
+            --chain.allowUnlimitedContractSize=true,
+          ]
       - image: district0x/ipfs-daemon:latest
       - image: postgres:latest
         environment:
@@ -53,9 +59,9 @@ jobs:
       - run:
           name: Run test suite
           command: bb run-server-tests
-  
+
 workflows:
   build:
     jobs:
       - test:
-          context: district0x    
+          context: district0x
