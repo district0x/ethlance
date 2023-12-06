@@ -24,7 +24,7 @@ RUN yarn && ETHLANCE_ENV=qa npx truffle compile
 
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui
 RUN yarn && \
-    ETHLANCE_ENV=qa npx shadow-cljs -A:local-deps release dev-ui && \
+    ETHLANCE_ENV=qa npx shadow-cljs release dev-ui && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 
 FROM nginx:alpine
