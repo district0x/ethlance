@@ -36,7 +36,8 @@
    :job/token-address "0x1111111111111111111111111111111111111111"
    :job/token-id 0
    :job/with-arbiter? false
-   :job/invited-arbiters #{}})
+   :job/invited-arbiters #{}
+   :job/token-decimals 18})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -294,7 +295,7 @@
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
                           address-placeholder)
-          offered-value {:value token-amount
+          offered-value {:value (str token-amount)
                          :token
                          {:tokenId (:job/token-id job-fields)
                           :tokenContract
