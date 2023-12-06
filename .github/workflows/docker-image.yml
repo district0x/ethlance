@@ -20,7 +20,9 @@ jobs:
       ipfs-daemon:
         image: district0x/ipfs-daemon:latest
       postgres:
-        image: postgres
+        image: postgres:latest
+        ports:
+          - 5432:5432        
         env:
           POSTGRES_PASSWORD: pass
           POSTGRES_USER: ethlanceuser
