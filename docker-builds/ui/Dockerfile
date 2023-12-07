@@ -1,14 +1,17 @@
+ARG ETHLANCE_ENV=qa
 FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
 USER root
 
-RUN npm i -g truffle@v5.11
+# RUN npm i -g truffle@v5.11
 ENV ETHLANCE_SOURCE_ROOT=/build/ethlance
 ENV ETHLANCE_SERVER_ROOT=/build/ethlance/server
-ENV ETHLANCE_ENV=qa
+ENV ETHLANCE_ENV=$ETHLANCE_ENV
 ENV DEPLOY_TARGET=/deploy/
 
 WORKDIR /build/ethlance
 COPY . .
+
+RUN cat shared/src/ethlance/shared/smart_contracts_${ETHLANCE_ENV}.cljs
 
 WORKDIR /build/ethlance-config
 COPY config .
@@ -16,12 +19,8 @@ COPY config .
 WORKDIR /build
 RUN git clone https://github.com/district0x/d0x-libs
 
+
 FROM init as build_stage
-
-## Smart contracts
-WORKDIR /build/ethlance
-RUN yarn && ETHLANCE_ENV=qa npx truffle compile 
-
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui
 RUN yarn && \
     ETHLANCE_ENV=qa npx shadow-cljs release dev-ui && \

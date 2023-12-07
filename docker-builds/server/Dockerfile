@@ -2,14 +2,16 @@ ARG BUILD_ENV=qa
 FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
 USER root
 
-RUN npm i -g truffle@v5.11
+# RUN npm i -g truffle@v5.11
 ENV ETHLANCE_SOURCE_ROOT=/build/ethlance
 ENV ETHLANCE_SERVER_ROOT=/build/ethlance/server
-ENV ETHLANCE_ENV=qa
+ENV ETHLANCE_ENV=$BUILD_ENV
 ENV DEPLOY_TARGET=/deploy/
 
 WORKDIR /build/ethlance
 COPY . .
+
+RUN cat shared/src/ethlance/shared/smart_contracts_${ETHLANCE_ENV}.cljs
 
 WORKDIR /build/ethlance-config
 COPY config .
@@ -17,12 +19,11 @@ COPY config .
 WORKDIR /build
 RUN git clone https://github.com/district0x/d0x-libs
 
-
 FROM init as build_server
 
 ## Smart contracts
-WORKDIR /build/ethlance
-RUN yarn && ETHLANCE_ENV=qa npx truffle compile 
+# WORKDIR /build/ethlance
+# RUN yarn && ETHLANCE_ENV=qa npx truffle compile 
 #migrate --network ethlance.mad.is-testnet --reset
 
 # Release deployment
@@ -32,8 +33,8 @@ RUN yarn && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 
 # Release deployment
-WORKDIR ${ETHLANCE_SERVER_ROOT}
-RUN yarn && npx shadow-cljs -A:local-deps release dev-server
+WORKDIR ${ETHLANCE_SOURCE_ROOT}/server
+RUN yarn && npx shadow-cljs release dev-server
 
 FROM node:18
 ENV ETHLANCE_SOURCE_ROOT=/deploy
