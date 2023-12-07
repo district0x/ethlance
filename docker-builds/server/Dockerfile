@@ -1,5 +1,5 @@
-ARG BUILD_ENV=qa
 FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
+ARG BUILD_ENV=qa
 USER root
 
 # RUN npm i -g truffle@v5.11

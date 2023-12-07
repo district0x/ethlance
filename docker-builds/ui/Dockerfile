@@ -1,11 +1,11 @@
-ARG ETHLANCE_ENV=qa
 FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
+ARG BUILD_ENV=qa
 USER root
 
 # RUN npm i -g truffle@v5.11
 ENV ETHLANCE_SOURCE_ROOT=/build/ethlance
 ENV ETHLANCE_SERVER_ROOT=/build/ethlance/server
-ENV ETHLANCE_ENV=$ETHLANCE_ENV
+ENV ETHLANCE_ENV=$BUILD_ENV
 ENV DEPLOY_TARGET=/deploy/
 
 WORKDIR /build/ethlance
