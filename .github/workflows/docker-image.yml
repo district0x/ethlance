@@ -92,10 +92,6 @@ jobs:
       - name: Run server tests
         run: bb run-server-tests
 
-      - name: Deploy contracts to ethlance.mad.is-testnet
-        run: |
-          npx truffle migrate --network ethlance.mad.is-testnet --reset
-
       - name: Stop Ganache service
         run: docker rm -f ganache
 
@@ -142,6 +138,16 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build base image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: docker-builds/base/Dockerfile
+          build-args: BUILD_ENV=${{ matrix.env }}
+          push: false
+          tags: ethlance-base:latest
 
       - name: Build and push
         uses: docker/build-push-action@v4
