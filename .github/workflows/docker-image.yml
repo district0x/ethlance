@@ -147,6 +147,7 @@ jobs:
           file: docker-builds/base/Dockerfile
           build-args: BUILD_ENV=${{ matrix.env }}
           push: false
+          load: true
           tags: ethlance-base:latest
 
       - name: Build and push
