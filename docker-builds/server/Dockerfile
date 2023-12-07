@@ -2,7 +2,6 @@ FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:
 ARG BUILD_ENV=qa
 USER root
 
-# RUN npm i -g truffle@v5.11
 ENV ETHLANCE_SOURCE_ROOT=/build/ethlance
 ENV ETHLANCE_SERVER_ROOT=/build/ethlance/server
 ENV ETHLANCE_ENV=$BUILD_ENV
@@ -20,11 +19,6 @@ WORKDIR /build
 RUN git clone https://github.com/district0x/d0x-libs
 
 FROM init as build_server
-
-## Smart contracts
-# WORKDIR /build/ethlance
-# RUN yarn && ETHLANCE_ENV=qa npx truffle compile 
-#migrate --network ethlance.mad.is-testnet --reset
 
 # Release deployment
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui 

@@ -2,7 +2,6 @@ FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:
 ARG BUILD_ENV=qa
 USER root
 
-# RUN npm i -g truffle@v5.11
 ENV ETHLANCE_SOURCE_ROOT=/build/ethlance
 ENV ETHLANCE_SERVER_ROOT=/build/ethlance/server
 ENV ETHLANCE_ENV=$BUILD_ENV
