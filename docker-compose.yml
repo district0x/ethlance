@@ -37,7 +37,7 @@ services:
 
     #  Collect deps, compiles and deploys contracts
     base:
-        image: ethlance_base:latest
+        image: ethlance-base:local
         container_name: ethlance-base
         command: ["exit", "0"]
         build:

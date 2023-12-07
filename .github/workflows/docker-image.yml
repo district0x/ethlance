@@ -9,9 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  # testing:
-  #   permissions:
-  #     contents: read
+  # build_test:
   #   runs-on: ubuntu-latest
   #   name: Test and deploy contracts
   #   env:
@@ -71,15 +69,19 @@ jobs:
   #         restore-keys: |
   #           ${{ runner.os }}-ethlance-server-yarn-
 
-
   #     - name: Install ethlance server node modules
   #       run: |
   #         cd server
   #         yarn install
+  #         cd ..
 
   #     - name: Deploy contracts to ganache-test
   #       run: |
   #         npx truffle migrate --network ganache-test --reset
+
+  #     - name: Deploy contracts for ${{ matrix.env }}
+  #       run: |
+  #         ETHLANCE_ENV=${{ matrix.env }} npx truffle migrate --network ethlance.mad.is-testnet --reset
 
   #     - name: Setup Babashka
   #       uses: turtlequeue/setup-babashka@v1.5.0
@@ -121,6 +123,23 @@ jobs:
           cp -r ethlance-config/config .
           ls -lah config/
 
+      - name: Restore Top level cache directory for Ethlance
+        uses: actions/cache@v3
+        id: yarn-cache-top-level
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-ethlance-top-level-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ethlance-top-level-yarn-
+
+      - name: Install ethlance top-level node modules
+        run: |
+          yarn install
+
+      - name: Deploy contracts for ${{ matrix.env }}
+        run: |
+          ETHLANCE_ENV=${{ matrix.env }} npx truffle migrate --network ethlance.mad.is-testnet --reset
+
       - name: Set up QEMU
         id: setup-qemu
         uses: docker/setup-qemu-action@v2
@@ -140,33 +159,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build base image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64
-          file: docker-builds/base/Dockerfile
-          builder: ${{ steps.setup-buildx.outputs.name }}
-          build-args: BUILD_ENV=${{ matrix.env }}
-          push: false
-          load: true
-          tags: ethlance-base:latest
-      
-      - name: Inspect base image
-        run: |
-          docker image ls
-
-      - name: Build and push Server
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          builder: ${{ steps.setup-buildx.outputs.name }}          
-          platforms: linux/amd64
-          file: docker-builds/server/Dockerfile
-          build-args: BUILD_ENV=${{ matrix.env }}
-          push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }}
-
       - name: Build and push UI
         uses: docker/build-push-action@v4
         with:
@@ -177,3 +169,14 @@ jobs:
           build-args: BUILD_ENV=${{ matrix.env }}
           push: true
           tags: ${{ secrets.ECR_REGISTRY }}/ethlance-ui:latest-${{ matrix.env }}
+
+      - name: Build and push Server
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          platforms: linux/amd64
+          file: docker-builds/server/Dockerfile
+          build-args: BUILD_ENV=${{ matrix.env }}
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }}
