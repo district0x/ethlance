@@ -99,7 +99,6 @@ jobs:
     needs: testing
     strategy:
       matrix:
-        image: ["server", "ui"]
         env: ["qa"]
     permissions:
       contents: read
@@ -150,12 +149,22 @@ jobs:
           load: true
           tags: ethlance-base:latest
 
-      - name: Build and push
+      - name: Build and push Server
         uses: docker/build-push-action@v4
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          file: docker-builds/${{ matrix.image }}/Dockerfile
+          file: docker-builds/server/Dockerfile
           build-args: BUILD_ENV=${{ matrix.env }}
           push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.image }}:latest-${{ matrix.env }}
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }}
+
+      - name: Build and push UI
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: docker-builds/ui/Dockerfile
+          build-args: BUILD_ENV=${{ matrix.env }}
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-ui:latest-${{ matrix.env }}
