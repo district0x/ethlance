@@ -20,7 +20,7 @@
    [c-profile-image {:src (get-in data [:user :user/profile-image])}]
    [:div.name (get-in data [:user :user/name])]
     [:div.rating
-     [c-rating {:default-rating (get-in data [(keyword data-prefix "rating")])}]
+     [c-rating {:rating (get-in data [(keyword data-prefix "rating")])}]
      [:span.num-feedback (str "(" (get-in data [(keyword data-prefix "feedback") :total-count]) ")")]]
     [:div.location (get-in data [:user :user/country])]])
 
@@ -63,9 +63,10 @@
                        [:user/id
                         :candidate/rating
                         [:candidate/feedback [:total-count]]
-                        [:user [:user/name
-                               :user/country
-                               :user/profile-image]]]]]]
+                        [:user
+                         [:user/name
+                          :user/country
+                          :user/profile-image]]]]]]
                     [:creation-message
                      [:message/id :message/date-created]]]]]]
 

@@ -648,11 +648,12 @@
                       :job/token-id
                       :balance
 
-                      [:token-details [:token-detail/id
-                                       :token-detail/type
-                                       :token-detail/name
-                                       :token-detail/decimals
-                                       :token-detail/symbol]]
+                      [:token-details
+                       [:token-detail/id
+                        :token-detail/type
+                        :token-detail/name
+                        :token-detail/decimals
+                        :token-detail/symbol]]
                       [:invoices
                        [[:items
                          [:id
