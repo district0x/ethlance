@@ -85,7 +85,7 @@
      [:div.value (str/title bid-option)]
 
      [:div.name "Funds available"]
-     [:div.value [c-token-info amount token-details]]
+     [:div.value [c-token-info amount token-details :show-address? false]]
 
      [:div.name "Experience Level"]
      [:div.value formatted-experience-level]
