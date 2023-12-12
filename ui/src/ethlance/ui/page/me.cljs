@@ -134,11 +134,15 @@
                                 [:arbitration/status]]]]
                              [:token-details [:token-detail/id
                                               :token-detail/name
-                                              :token-detail/symbol]]]]]]
+                                              :token-detail/symbol
+                                              :token-detail/decimals]]]]]]
         result @(re/subscribe [::gql/query {:queries [job-query]}])
         [loading? processing?] (map result [:graphql/loading? :graphql/preprocessing?])
         jobs (get-in result [:job-search :items])
-        remuneration (fn [job] (str (tokens/human-amount (:job/token-amount job) (:job/token-type job))
+        remuneration (fn [job] (str (tokens/human-amount
+                                      (:job/token-amount job)
+                                      (:job/token-type job)
+                                      (get-in job [:token-details :token-detail/decimals] ))
                                     " " (-> job :token-details :token-detail/symbol)))
         arbitration-info (fn [job]
                            (let [arbitration-status (:arbitration/status (first (get-in job [:arbitrations :items])))]
@@ -262,7 +266,8 @@
                       [:token-details
                        [:token-detail/id
                         :token-detail/name
-                        :token-detail/symbol]]]]]]
+                        :token-detail/symbol
+                        :token-detail/decimals]]]]]]
                   :invoice/status
                   :invoice/id
                   :invoice/amount-requested
@@ -284,7 +289,8 @@
         invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
         amount-requested-fn (fn [invoice]
                               (str (tokens/human-amount (:invoice/amount-requested invoice)
-                                                        (get-in invoice [:job-story :job :job/token-type]))
+                                                        (get-in invoice [:job-story :job :job/token-type])
+                                                        (get-in invoice [:job-story :job :token-details :token-detail/decimals]))
                                     " " (get-in invoice [:job-story :job :token-details :token-detail/symbol])))
         table [{:title "Job Title" :source #(get-in % [:job-story :job :job/title])}
                {:title "Candidate" :source user-name-fn}
@@ -346,7 +352,8 @@
                            [:token-details
                             [:token-detail/id
                              :token-detail/name
-                             :token-detail/symbol]]]]]]]]
+                             :token-detail/symbol
+                             :token-detail/decimals]]]]]]]]
         disputes-result @(re/subscribe [::gql/query {:queries [query]}])
         [loading? processing?] (map disputes-result [:graphql/loading? :graphql/preprocessing?])
         pagination {:total-count (get-in disputes-result [:dispute-search :total-count])
@@ -360,7 +367,10 @@
         dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
         contract-link-fn (fn [dispute] {:route :route.job/contract :params {:job-story-id (:job-story/id dispute)}})
         amount-fn (fn [amount-source invoice]
-                              (str (tokens/human-amount (amount-source invoice) (get-in invoice [:job :job/token-type]))
+                              (str (tokens/human-amount
+                                     (amount-source invoice)
+                                     (get-in invoice [:job :job/token-type])
+                                     (get-in invoice [:job :token-details :token-detail/decimals]))
                                     " " (get-in invoice [:job :token-details :token-detail/symbol])))
         truncated-dispute-fn (fn [text-source invoice]
                                (let [text (get-in invoice [text-source] "")

@@ -93,29 +93,20 @@
   (let [id (:feedback/to-user-address (graphql-utils/gql->clj root))]
     (user-resolver nil {:user/id id} nil)))
 
-(defn user->is-registered-candidate-resolver [root _ _]
+(defn user->is-registered-for-role-resolver [role root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
-      (log/debug "user->is-registered-candidate-resolver" user)
-      (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
-                                          :from [:Candidate]
-                                          :where [:= id :Candidate.user/id]}))))))))
-
-(defn user->is-registered-employer-resolver [root _ _]
-  (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)
+          role-table (keyword (clojure.string/capitalize (name role)))
+          role-column (keyword (str (name role-table)  ".user") :id)
+          res (<? (db/get conn {:select [[(sql/call :count :*) :count]]
+                                :from [role-table]
+                                :where [:= id role-column]}))]
       (log/debug "user->is-registered-employer-resolver" user)
-      (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
-                                          :from [:Employer]
-                                          :where [:= id :Employer.user/id]}))))))))
+      (not (= 0 (int (:count res)))))))
 
-(defn user->is-registered-arbiter-resolver [root _ _]
-  (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
-      (log/debug "user->is-registered-arbiter-resolver" user)
-      (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
-                                          :from [:Arbiter]
-                                          :where [:= id :Arbiter.user/id]}))))))))
+(def user->is-registered-candidate-resolver (partial user->is-registered-for-role-resolver :candidate))
+(def user->is-registered-employer-resolver (partial user->is-registered-for-role-resolver :employer))
+(def user->is-registered-arbiter-resolver (partial user->is-registered-for-role-resolver :arbiter))
 
 (defn user->languages-resolvers [root _ _]
   (db/with-async-resolver-conn conn
