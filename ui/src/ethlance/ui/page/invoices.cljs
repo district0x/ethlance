@@ -46,7 +46,8 @@
                    [:token-detail/id
                     :token-detail/type
                     :token-detail/name
-                    :token-detail/symbol]]
+                    :token-detail/symbol
+                    :token-detail/decimals]]
                   [:invoice {:invoice/id invoice-id :job/id contract-address}
                    [:id
                     :job/id
@@ -90,7 +91,8 @@
 
           invoice-payable? (not= "paid" (get-in invoice [:invoice/status]))
           info-panel [["Invoiced Amount" (when-not (:graphql/loading? result)
-                                           [c-token-info (:invoice/amount-requested invoice) (:token-details job)])]
+                                           [c-token-info (:invoice/amount-requested invoice)
+                                            (:token-details job)])]
                       ["Hours Worked" (get-in invoice [:invoice/hours-worked])]
                       ["Hourly Rate" (get-in invoice [:invoice/hourly-rate])]
                       ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]]
