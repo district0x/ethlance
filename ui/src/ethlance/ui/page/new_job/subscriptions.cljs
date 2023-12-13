@@ -23,7 +23,13 @@
 (re/reg-sub :page.new-job/title (create-get-handler :job/title))
 
 (re/reg-sub :page.new-job/token-type (create-get-handler :job/token-type))
-(re/reg-sub :page.new-job/token-amount (create-get-handler :job/token-amount))
+(re/reg-sub :page.new-job/token-decimals (create-get-handler :job/token-decimals))
+; (re/reg-sub :page.new-job/token-amount (create-get-handler :job/token-amount))
+(re/reg-sub
+  :page.new-job/token-amount
+  (fn [db _]
+    (get-in db [new-job.events/state-key :job/token-amount :human-amount])))
+
 (re/reg-sub :page.new-job/token-address (create-get-handler :job/token-address))
 (re/reg-sub :page.new-job/token-id (create-get-handler :job/token-id))
 

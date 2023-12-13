@@ -36,7 +36,8 @@
    :job/token-address "0x1111111111111111111111111111111111111111"
    :job/token-id 0
    :job/with-arbiter? false
-   :job/invited-arbiters #{}})
+   :job/invited-arbiters #{}
+   :job/token-decimals 18})
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -80,10 +81,16 @@
 ; The simple setter implementation for eventual production
 ; (re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
 
+(re/reg-event-db
+  :page.new-job/decimals-response
+  (fn [db [_ decimals]]
+    (println ">>> DECIMALS RESPONSE" decimals)
+    (assoc-in db [state-key :job/token-decimals] decimals)))
+
 ; Implementation to auto-fill testnet token data with address
 (re/reg-event-fx
   :page.new-job/set-token-type
-  (fn [cofx [_ token-type]]
+  (fn [{:keys [db] :as cofx} [_ token-type]]
     (let [token-type->contract-name {:erc20 :token
                                      :erc721 :test-nft
                                      :erc1155 :test-multi-token}
@@ -91,8 +98,23 @@
                           (when (token-type token-type->contract-name)
                             (district.ui.smart-contracts.queries/contract-address
                               (:db cofx)
-                              (token-type token-type->contract-name))))]
-      {:db (-> (:db cofx)
+                              (token-type token-type->contract-name))))
+          erc20-decimals (fn []
+                           [:web3/call
+                            {:fns
+                             [{:instance (w3n-eth/contract-at
+                                           (district.ui.web3.queries/web3 db)
+                                           (ethlance.shared.contract-constants/abi token-type)
+                                           (token-address token-type))
+                               :fn :decimals
+                               :args []
+                               :on-success [:page.new-job/decimals-response]
+                               :on-error [:page.new-job/decimals-response]}]}])
+          default-decimals (if (= token-type :eth) 18 0)
+          other-token-decimals (fn [] [:dispatch [:page.new-job/decimals-response default-decimals]])
+          decimals-fx-fn (if (= :erc20 token-type) erc20-decimals other-token-decimals)]
+      {:fx [(decimals-fx-fn)]
+       :db (-> db
                (assoc-in ,,, [state-key :job/token-address] (token-address token-type))
                (assoc-in ,,, [state-key :job/token-type] token-type))})))
 
@@ -268,14 +290,12 @@
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
-          token-amount (if (= token-type :eth)
-                         (eth->wei (:job/token-amount job-fields))
-                         (:job/token-amount job-fields))
+          token-amount (get-in job-fields [:job/token-amount :token-amount])
           address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
                           address-placeholder)
-          offered-value {:value token-amount
+          offered-value {:value (str token-amount)
                          :token
                          {:tokenId (:job/token-id job-fields)
                           :tokenContract

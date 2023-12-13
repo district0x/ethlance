@@ -24,12 +24,6 @@
 (re/reg-sub :page.new-invoice/message (create-get-handler :message))
 
 (re/reg-sub
-  :page.new-invoice/token-details
-  (fn [db _]
-    (let [token-details (get-in db [:district.ui.server-config :token-details])]
-      (reduce (fn [acc detail] (assoc acc (:id detail) detail)) {} token-details))))
-
-(re/reg-sub
   :page.new-invoice/job-token
   :<- [:page.new-invoice/invoiced-job]
   (fn [job _]
@@ -48,7 +42,7 @@
   (fn [[token-details invoice-amount conversion-rates] _]
     (let [from-currency (:symbol token-details)
           to-currency :USD
-          amount (or invoice-amount 0)
+          amount (or (:human-amount invoice-amount) 0)
           rate (get-in conversion-rates [from-currency to-currency])
           sum-usd #(util.tokens/round 2 (* amount rate))]
       (cond

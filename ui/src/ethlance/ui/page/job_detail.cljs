@@ -19,6 +19,7 @@
             [ethlance.ui.component.text-input :refer [c-text-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
             [ethlance.ui.component.pagination :as pagination]
+            [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
             [district.ui.graphql.subs :as gql]
             [ethlance.ui.util.component :refer [<sub >evt]]
             [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
@@ -56,6 +57,7 @@
                           [:token-detail/id
                            :token-detail/type
                            :token-detail/name
+                           :token-detail/decimals
                            :token-detail/symbol]]
                          [:invoices
                           [:total-count
@@ -225,7 +227,7 @@
                  {})
         *participant-name (get-in results [participant-type :user :user/name])
         *participant-address (get-in results [participant-type :user/id])
-        *participant-rating (get-in results [participant-type :arbiter/rating])
+        *participant-rating (get-in results [participant-type rating-kw])
         *participant-country (get-in results [participant-type :user :user/country])
         *participant-profile-image (get-in results [participant-type :user :user/profile-image])]
     [:a.arbiter-detail (util.navigation/link-params
@@ -505,22 +507,22 @@
 
 (defn c-add-funds [contract-address token-id token-details]
   (let [amount @(re/subscribe [:page.job-detail/add-funds-amount])
-        step (if (= (:token-detail/type token-details) :eth) 0.001 1)
         adding-funds? (re/subscribe [:page.job-detail/adding-funds?])
-        add-funds-tx-in-progress? (re/subscribe [:page.job-detail/add-funds-tx-in-progress?])
-        ]
+        add-funds-tx-in-progress? (re/subscribe [:page.job-detail/add-funds-tx-in-progress?])]
     (if @adding-funds?
       [:div.add-funds
-       [c-text-input
-        {:placeholder "Token amount"
-         :step step
-         :type :number
-         :default-value nil
-         :value amount
-         :on-change #(re/dispatch [:page.job-detail/set-add-funds-amount (js/parseFloat %)])}]
+       [c-token-amount-input
+        {:value (:human-amount amount)
+         :placeholder "Token amount"
+         :decimals (:token-detail/decimals token-details)
+         :on-change #(re/dispatch [:page.job-detail/set-add-funds-amount %])}]
        [c-button {:on-click (fn []
                               (when (not @add-funds-tx-in-progress?)
-                                (>evt [:page.job-detail/finish-adding-funds contract-address token-details token-id amount])))
+                                (>evt [:page.job-detail/finish-adding-funds
+                                       contract-address
+                                       token-details
+                                       token-id
+                                       (:token-amount amount)])))
                   :disabled? @add-funds-tx-in-progress?
                   :size :small}
         [c-button-label "Confirm"]]]
@@ -600,7 +602,7 @@
            [:div
             [:div.button.primary.active
              {:style (when (or @end-job-tx-in-progress? has-unpaid-invoices? has-unresolved-disputes?) {:background :gray})
-              :disabled? @end-job-tx-in-progress?
+              :disabled @end-job-tx-in-progress?
               :on-click (fn []
                           (when (and can-end-job? (not @end-job-tx-in-progress?))
                             (re/dispatch [:page.job-detail/end-job {:job/id contract-address :employer employer-id}])))}
@@ -646,10 +648,12 @@
                       :job/token-id
                       :balance
 
-                      [:token-details [:token-detail/id
-                                       :token-detail/type
-                                       :token-detail/name
-                                       :token-detail/symbol]]
+                      [:token-details
+                       [:token-detail/id
+                        :token-detail/type
+                        :token-detail/name
+                        :token-detail/decimals
+                        :token-detail/symbol]]
                       [:invoices
                        [[:items
                          [:id

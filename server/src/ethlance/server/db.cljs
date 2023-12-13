@@ -137,6 +137,7 @@
      [:token-detail/type :text not-nil] ; #{:eth :erc20 :erc721 :erc1155}
      [:token-detail/name :text]
      [:token-detail/symbol :text]
+     [:token-detail/decimals :integer not-nil]
      ;; PK
      [(sql/call :primary-key :token-detail/id)]]
     :list-keys []}
@@ -925,6 +926,16 @@
                           :join [:Job [:= :Job.job/id :JobStory.job/id]]
                           :where [:= :job-story/id job-story-id]})))))
 
+(defn get-arbiter-id-by-job-story-id [conn job-story-id]
+  (safe-go
+   (:id (<? (db/get conn {:select [[:JobArbiter.user/id :id]]
+                          :from [:JobStory]
+                          :join [:Job [:= :Job.job/id :JobStory.job/id]
+                                 :JobArbiter [:= :Job.job/id :JobArbiter.job/id]]
+                          :where [:and
+                                  [:= :job-story/id job-story-id]
+                                  [:= :job-arbiter/status "accepted"]]})))))
+
 (defn update-job-story-status [conn job-story-id status]
   (safe-go
     (<? (db/get conn {:update :JobStory
@@ -959,7 +970,8 @@
                      {:token-detail/id (:address token-details)
                       :token-detail/type (:type token-details)
                       :token-detail/name (:name token-details)
-                      :token-detail/symbol (:symbol token-details)}))))
+                      :token-detail/symbol (:symbol token-details)
+                      :token-detail/decimals (:decimals token-details)}))))
 
 (defn ready-state?
   []

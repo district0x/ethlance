@@ -71,7 +71,7 @@
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300
                                         :total-slides (count children)
-                                        :visible-slides 2}
+                                        :visible-slides 1}
     [:div.slider-outer
      [:> react-carousel/Slider
       (for [[idx child] (map-indexed vector children)]

@@ -21,7 +21,7 @@ contract TestToken is IERC20 {
   //
   string public name = "TestToken";
   string public symbol = "TEST";
-  uint8 public decimals = 0;
+  uint8 public decimals = 2;
 
 
   //

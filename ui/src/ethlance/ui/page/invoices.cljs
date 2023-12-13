@@ -20,7 +20,7 @@
    [c-profile-image {:src (get-in data [:user :user/profile-image])}]
    [:div.name (get-in data [:user :user/name])]
     [:div.rating
-     [c-rating {:default-rating (get-in data [(keyword data-prefix "rating")])}]
+     [c-rating {:rating (get-in data [(keyword data-prefix "rating")])}]
      [:span.num-feedback (str "(" (get-in data [(keyword data-prefix "feedback") :total-count]) ")")]]
     [:div.location (get-in data [:user :user/country])]])
 
@@ -46,7 +46,8 @@
                    [:token-detail/id
                     :token-detail/type
                     :token-detail/name
-                    :token-detail/symbol]]
+                    :token-detail/symbol
+                    :token-detail/decimals]]
                   [:invoice {:invoice/id invoice-id :job/id contract-address}
                    [:id
                     :job/id
@@ -63,9 +64,10 @@
                        [:user/id
                         :candidate/rating
                         [:candidate/feedback [:total-count]]
-                        [:user [:user/name
-                               :user/country
-                               :user/profile-image]]]]]]
+                        [:user
+                         [:user/name
+                          :user/country
+                          :user/profile-image]]]]]]
                     [:creation-message
                      [:message/id :message/date-created]]]]]]
 
@@ -89,7 +91,8 @@
 
           invoice-payable? (not= "paid" (get-in invoice [:invoice/status]))
           info-panel [["Invoiced Amount" (when-not (:graphql/loading? result)
-                                           [c-token-info (:invoice/amount-requested invoice) (:token-details job)])]
+                                           [c-token-info (:invoice/amount-requested invoice)
+                                            (:token-details job)])]
                       ["Hours Worked" (get-in invoice [:invoice/hours-worked])]
                       ["Hourly Rate" (get-in invoice [:invoice/hourly-rate])]
                       ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]]

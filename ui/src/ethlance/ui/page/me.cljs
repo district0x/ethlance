@@ -23,14 +23,38 @@
       (let [{active-page :name
              active-params :param
              active-query :query} @*active-page
+            active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+            default-active {"candidate" :my-candidate-contract-listing
+                            "employer" :my-employer-job-listing
+                            "arbiter" :my-arbiter-dispute-listing}
+            query [:user {:user/id active-user}
+                   [:user/is-registered-candidate
+                    :user/is-registered-arbiter
+                    :user/is-registered-employer]]
+
+            results @(re/subscribe [::gql/query {:queries [query]}])
+            *current-sidebar-choice (keyword (:sidebar active-query))
+            user-role (some (fn [[role-name has-it?]]
+                              (if has-it?
+                                role-name
+                                false))
+                            [["candidate" (get-in results [:user :user/is-registered-candidate])]
+                             ["employer" (get-in results [:user :user/is-registered-employer])]
+                             ["arbiter" (get-in results [:user :user/is-registered-arbiter])]])
+            tab-active-from-url? (= *current-sidebar-choice id-value)
+            active-for-role-by-default? (and
+                                          (= id-value (get default-active user-role))
+                                          (not (contains? active-query :sidebar)))
+            active? (if tab-active-from-url?
+                      tab-active-from-url?
+                      active-for-role-by-default?)
             updated-query (-> (or active-query {})
                               (assoc  :sidebar id-value)
-                              (dissoc :tab))
-            *current-sidebar-choice (keyword (:sidebar active-query))]
+                              (dissoc :tab))]
         [:div.nav-element
          [:a.link
           {:title (str "Navigate to '" label "'")
-           :class [(when (= *current-sidebar-choice id-value) "active")]
+           :class [(when active? "active")]
            :href (util.navigation/resolve-route {:route active-page :params active-params :query updated-query})
            :on-click (util.navigation/create-handler {:route active-page :params active-params :query updated-query})}
           label]]))))
@@ -110,11 +134,15 @@
                                 [:arbitration/status]]]]
                              [:token-details [:token-detail/id
                                               :token-detail/name
-                                              :token-detail/symbol]]]]]]
+                                              :token-detail/symbol
+                                              :token-detail/decimals]]]]]]
         result @(re/subscribe [::gql/query {:queries [job-query]}])
         [loading? processing?] (map result [:graphql/loading? :graphql/preprocessing?])
         jobs (get-in result [:job-search :items])
-        remuneration (fn [job] (str (tokens/human-amount (:job/token-amount job) (:job/token-type job))
+        remuneration (fn [job] (str (tokens/human-amount
+                                      (:job/token-amount job)
+                                      (:job/token-type job)
+                                      (get-in job [:token-details :token-detail/decimals] ))
                                     " " (-> job :token-details :token-detail/symbol)))
         arbitration-info (fn [job]
                            (let [arbitration-status (:arbitration/status (first (get-in job [:arbitrations :items])))]
@@ -238,7 +266,8 @@
                       [:token-details
                        [:token-detail/id
                         :token-detail/name
-                        :token-detail/symbol]]]]]]
+                        :token-detail/symbol
+                        :token-detail/decimals]]]]]]
                   :invoice/status
                   :invoice/id
                   :invoice/amount-requested
@@ -260,7 +289,8 @@
         invoice-date-created-fn (partial formatted-date #(get-in % [:creation-message :message/date-created]))
         amount-requested-fn (fn [invoice]
                               (str (tokens/human-amount (:invoice/amount-requested invoice)
-                                                        (get-in invoice [:job-story :job :job/token-type]))
+                                                        (get-in invoice [:job-story :job :job/token-type])
+                                                        (get-in invoice [:job-story :job :token-details :token-detail/decimals]))
                                     " " (get-in invoice [:job-story :job :token-details :token-detail/symbol])))
         table [{:title "Job Title" :source #(get-in % [:job-story :job :job/title])}
                {:title "Candidate" :source user-name-fn}
@@ -322,7 +352,8 @@
                            [:token-details
                             [:token-detail/id
                              :token-detail/name
-                             :token-detail/symbol]]]]]]]]
+                             :token-detail/symbol
+                             :token-detail/decimals]]]]]]]]
         disputes-result @(re/subscribe [::gql/query {:queries [query]}])
         [loading? processing?] (map disputes-result [:graphql/loading? :graphql/preprocessing?])
         pagination {:total-count (get-in disputes-result [:dispute-search :total-count])
@@ -336,7 +367,10 @@
         dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
         contract-link-fn (fn [dispute] {:route :route.job/contract :params {:job-story-id (:job-story/id dispute)}})
         amount-fn (fn [amount-source invoice]
-                              (str (tokens/human-amount (amount-source invoice) (get-in invoice [:job :job/token-type]))
+                              (str (tokens/human-amount
+                                     (amount-source invoice)
+                                     (get-in invoice [:job :job/token-type])
+                                     (get-in invoice [:job :token-details :token-detail/decimals]))
                                     " " (get-in invoice [:job :token-details :token-detail/symbol])))
         truncated-dispute-fn (fn [text-source invoice]
                                (let [text (get-in invoice [text-source] "")
@@ -413,25 +447,24 @@
 
 (defn c-sidebar
   []
-  (fn []
-    [:div.sidebar
-     [:div.section
-      [:div.label "As Employer"]
-      [c-nav-sidebar-element "My Jobs" :my-employer-job-listing]
-      [c-nav-sidebar-element "My Contracts" :my-employer-contract-listing]
-      [c-nav-sidebar-element "My Invoices" :my-employer-invoice-listing]
-      [c-nav-sidebar-element "My Disputes" :my-employer-dispute-listing]]
+  [:div.sidebar
+   [:div.section
+    [:div.label "As Employer"]
+    [c-nav-sidebar-element "My Jobs" :my-employer-job-listing]
+    [c-nav-sidebar-element "My Contracts" :my-employer-contract-listing]
+    [c-nav-sidebar-element "My Invoices" :my-employer-invoice-listing]
+    [c-nav-sidebar-element "My Disputes" :my-employer-dispute-listing]]
 
-     [:div.section
-      [:div.label "As Candidate"]
-      [c-nav-sidebar-element "My Contracts" :my-candidate-contract-listing]
-      [c-nav-sidebar-element "My Invoices" :my-candidate-invoice-listing]
-      [c-nav-sidebar-element "My Disputes" :my-candidate-dispute-listing]]
+   [:div.section
+    [:div.label "As Candidate"]
+    [c-nav-sidebar-element "My Contracts" :my-candidate-contract-listing]
+    [c-nav-sidebar-element "My Invoices" :my-candidate-invoice-listing]
+    [c-nav-sidebar-element "My Disputes" :my-candidate-dispute-listing]]
 
-     [:div.section
-      [:div.label "As Arbiter"]
-      [c-nav-sidebar-element "My Jobs" :my-arbiter-job-listing]
-      [c-nav-sidebar-element "My Disputes" :my-arbiter-dispute-listing]]]))
+   [:div.section
+    [:div.label "As Arbiter"]
+    [c-nav-sidebar-element "My Jobs" :my-arbiter-job-listing]
+    [c-nav-sidebar-element "My Disputes" :my-arbiter-dispute-listing]]])
 
 (defn c-mobile-navigation
   []

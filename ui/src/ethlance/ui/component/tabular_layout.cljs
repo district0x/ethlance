@@ -49,6 +49,7 @@
         *active-tab-index (r/atom (or default-tab 0))]
     (fn [{:keys [default-tab] :as opts} & opts-children]
       (let [opts (dissoc opts :default-tab)
+            opts-children (remove nil? opts-children)
             tab-parts (partition 2 opts-children)
             tab-options (map-indexed #(-> %2 first (assoc :index %1)) tab-parts)
             tab-children (mapv second tab-parts)

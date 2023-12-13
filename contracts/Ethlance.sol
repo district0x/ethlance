@@ -204,11 +204,11 @@ contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
     address payable newJobPayableAddress = payable(address(uint160(newJob)));
     MutableForwarder(newJobPayableAddress).setTarget(jobProxyTarget);
 
+    emit JobCreated(newJobPayableAddress, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp(), Job(newJobPayableAddress).version());
+
     EthlanceStructs.transferToJob(_creator, address(this), newJobPayableAddress, _offeredValues);
     isJobMap[newJobPayableAddress] = true;
     Job(newJobPayableAddress).initialize(this, _creator, _offeredValues, _invitedArbiters);
-
-    emit JobCreated(newJobPayableAddress, _creator, _offeredValues, _invitedArbiters, _ipfsData, timestamp(), Job(newJobPayableAddress).version());
 
     return newJob;
   }

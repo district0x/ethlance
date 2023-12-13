@@ -93,29 +93,20 @@
   (let [id (:feedback/to-user-address (graphql-utils/gql->clj root))]
     (user-resolver nil {:user/id id} nil)))
 
-(defn user->is-registered-candidate-resolver [root _ _]
+(defn user->is-registered-for-role-resolver [role root _ _]
   (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
-      (log/debug "user->is-registered-candidate-resolver" user)
-      (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
-                                          :from [:Candidate]
-                                          :where [:= id :Candidate.user/id]}))))))))
-
-(defn user->is-registered-employer-resolver [root _ _]
-  (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
+    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)
+          role-table (keyword (clojure.string/capitalize (name role)))
+          role-column (keyword (str (name role-table)  ".user") :id)
+          res (<? (db/get conn {:select [[(sql/call :count :*) :count]]
+                                :from [role-table]
+                                :where [:= id role-column]}))]
       (log/debug "user->is-registered-employer-resolver" user)
-      (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
-                                          :from [:Employer]
-                                          :where [:= id :Employer.user/id]}))))))))
+      (not (= 0 (int (:count res)))))))
 
-(defn user->is-registered-arbiter-resolver [root _ _]
-  (db/with-async-resolver-conn conn
-    (let [{:keys [:user/id] :as user} (graphql-utils/gql->clj root)]
-      (log/debug "user->is-registered-arbiter-resolver" user)
-      (not (= 0 (:count (<? (db/get conn {:select [[(sql/call :count :*) :count]]
-                                          :from [:Arbiter]
-                                          :where [:= id :Arbiter.user/id]}))))))))
+(def user->is-registered-candidate-resolver (partial user->is-registered-for-role-resolver :candidate))
+(def user->is-registered-employer-resolver (partial user->is-registered-for-role-resolver :employer))
+(def user->is-registered-arbiter-resolver (partial user->is-registered-for-role-resolver :arbiter))
 
 (defn user->languages-resolvers [root _ _]
   (db/with-async-resolver-conn conn
@@ -1012,6 +1003,21 @@
                                        :message/text text
                                        :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
 
+(defn re-calculate-user-average-rating [user-id job-story-id]
+  (db/with-async-resolver-tx conn
+    (let [employer (<? (ethlance-db/get-employer-id-by-job-story-id conn job-story-id))
+          candidate (<? (ethlance-db/get-candidate-id-by-job-story-id conn job-story-id))
+          arbiter (<? (ethlance-db/get-arbiter-id-by-job-story-id conn job-story-id))
+          mean (:mean (<? (db/get conn {:select [[(sql/call :avg :feedback/rating) :mean]]
+                                  :from [:JobStoryFeedbackMessage]
+                                  :where [:and
+                                          [:ilike user-id :user/id]
+                                          [:= :job-story/id job-story-id]]})))]
+      (cond
+        (= employer user-id) (ethlance-db/update-row! conn :Employer {:user/id user-id :employer/rating mean})
+        (= candidate user-id) (ethlance-db/update-row! conn :Candidate {:user/id user-id :candidate/rating mean})
+        (= arbiter user-id) (ethlance-db/update-row! conn :Arbiter {:user/id user-id :arbiter/rating mean})))))
+
 (defn leave-feedback-mutation [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
   ; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
@@ -1025,7 +1031,7 @@
                                                {:select [[:JobStory.job-story/status :status]]
                                                 :from [:JobStory]
                                                 :where [:= :job-story/id job-story-id]})))
-          arbiter-feedback-before-ending? (and (not= previous-status "ended-by-feedback")
+          arbiter-feedback-before-ending? (and (not= previous-status "finished")
                                                (not feedback-from-participants?))]
 
       (when feedback-from-participants?
@@ -1039,6 +1045,8 @@
                                          :message/text text
                                          :feedback/rating rating
                                          :user/id to}))
+      (re-calculate-user-average-rating to job-story-id)
+
       true
       )))
 

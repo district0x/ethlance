@@ -5,6 +5,7 @@
             [ethlance.ui.component.main-layout :refer [c-main-layout]]
             [ethlance.ui.component.select-input :refer [c-select-input]]
             [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+            [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
             [re-frame.core :as re]))
 
 (defmethod page :route.invoice/new []
@@ -28,6 +29,7 @@
                        [:token-detail/id
                         :token-detail/type
                         :token-detail/name
+                        :token-detail/decimals
                         :token-detail/symbol]]]]]]]]]]
         search-results (re/subscribe [::gql/query {:queries [query]}
                                       {:id :CandidateJobStoriesForInvoice
@@ -48,7 +50,8 @@
                               (sort-by :job-story/date-created ,,,)
                               reverse)
             token-display-name (-> @job-token :symbol (or ,,, "") name)
-            token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))]
+            token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
+            job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
          [:div.title "New Invoice"]
          [:div.left-form
@@ -77,12 +80,10 @@
            [:div.post-label "$"]]
           [:div.input-stripe
            [:div.label "Invoice Amount"]
-           [:input
-            {:type "number"
-             :min 0
-             :step 0.01
-             :value @*invoice-amount
-             :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount (-> % .-target .-value)])}]
+           [c-token-amount-input
+            {:value (:human-amount @*invoice-amount)
+             :decimals job-token-decimals
+             :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount %])}]
            [:div.post-label token-display-name]]
           [:div.usd-estimate @estimated-usd]]
 

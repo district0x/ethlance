@@ -47,7 +47,8 @@
     (let [eth-token-details {:address "0x0000000000000000000000000000000000000000"
                              :name "Ether"
                              :symbol "ETH"
-                             :type :eth}]
+                             :type :eth
+                             :decimals 18}]
       (if (not (<? (ethlance-db/get-token conn token-address)))
         (if (= :eth token-type)
           (ethlance-db/store-token-details conn eth-token-details)

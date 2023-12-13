@@ -460,11 +460,10 @@
 
 (re/reg-event-fx
   :page.job-detail/finish-adding-funds
-  (fn [{:keys [db] :as cofx} [_ job-address token-details token-id amount]]
+  (fn [{:keys [db] :as cofx} [_ job-address token-details token-id tx-amount]]
     (let [funder (accounts-queries/active-account (:db cofx))
           tx-opts-base {:from funder :gas 10000000}
           token-type (:token-detail/type token-details)
-          tx-amount (util.tokens/machine-amount amount token-type)
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value tx-amount)
                     tx-opts-base)

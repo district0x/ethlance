@@ -226,13 +226,18 @@
         invoice-id (:invoice/id forwarded-event-data)
         token-type (:token-type forwarded-event-data)
         raw-amount (:token-amount forwarded-event-data)
+        amount (case token-type
+                 :eth raw-amount
+                 :erc20 (Math/floor raw-amount)
+                 :erc721 1
+                 :erc1155 (Math/floor raw-amount))
         token-address (:token-address forwarded-event-data)
         token-id (:token-id forwarded-event-data)
         address-placeholder "0x0000000000000000000000000000000000000000"
         token-address (if (not (= token-type :eth))
                         token-address
                         address-placeholder)
-        offered-value {:value (str raw-amount)
+        offered-value {:value (str amount)
                        :token
                        {:tokenId token-id
                         :tokenContract

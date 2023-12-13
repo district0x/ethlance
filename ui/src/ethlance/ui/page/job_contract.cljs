@@ -155,7 +155,8 @@
                                 [:token-details [:token-detail/id
                                                  :token-detail/type
                                                  :token-detail/name
-                                                 :token-detail/symbol]]]]
+                                                 :token-detail/symbol
+                                                 :token-detail/decimals]]]]
                          [:proposal-message message-fields]
                          [:proposal-accepted-message message-fields]
                          [:invitation-message message-fields]
@@ -245,12 +246,19 @@
                                    :arbiter)
 
                                  :arbiter
-                                 (cond
+                                 (when
                                    (or
                                      (given-feedback? :employer :candidate feedbacks)
                                      (given-feedback? :candidate :employer feedbacks))
-                                   (if (given-feedback? :arbiter :candidate feedbacks)
+                                   (cond
+                                     (and (not (given-feedback? :arbiter :employer feedbacks))
+                                          (not (given-feedback? :arbiter :candidate feedbacks)))
+                                     :candidate
+                                     (and (not (given-feedback? :arbiter :employer feedbacks))
+                                          (given-feedback? :arbiter :candidate feedbacks))
                                      :employer
+                                     (and (not (given-feedback? :arbiter :candidate feedbacks))
+                                          (given-feedback? :arbiter :employer feedbacks))
                                      :candidate)))
 
         open-invoices? (not (empty? open-invoices))
@@ -389,7 +397,10 @@
                          [:job/token-type
                           :job/token-address
                           :job/token-id
-                          [:token-details [:token-detail/name :token-detail/symbol]]
+                          [:token-details
+                           [:token-detail/name
+                            :token-detail/symbol
+                            :token-detail/decimals]]
                           [:job/arbiter
                            [:user/id
                             [:user
@@ -423,8 +434,9 @@
                                    first)
         token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
         token-type (keyword (get-in @invoice-result [:job-story :job :job/token-type]))
+        decimals (get-in @invoice-result [:job-story :job :token-details :token-detail/decimals])
         candidate-invoiced-amount (get-in latest-unpaid-invoice [:invoice/amount-requested])
-        human-amount (tokens/human-amount candidate-invoiced-amount token-type)
+        human-amount (tokens/human-amount candidate-invoiced-amount token-type decimals)
 
         has-invoice? (not (nil? latest-unpaid-invoice))
         has-arbiter? (not (nil? (get-in @invoice-result [:job-story :job :job/arbiter])))
@@ -441,11 +453,8 @@
      {:key "candidate-tabular-layout"
       :default-tab 0}
 
-     {:label "Accept invitation"}
-     (if invitation-to-accept?
-       [c-accept-invitation message-params]
-       [:div.message-input-container
-        [c-information "No invitations to accept"]])
+     (when invitation-to-accept? {:label "Accept invitation"})
+     (when invitation-to-accept? [c-accept-invitation message-params])
 
      {:label "Create invoice"}
      [:div.message-input-container
@@ -495,7 +504,10 @@
                          [:job/token-type
                           :job/token-address
                           :job/token-id
-                          [:token-details [:token-detail/name :token-detail/symbol]]]]
+                          [:token-details
+                           [:token-detail/name
+                            :token-detail/symbol
+                            :token-detail/decimals]]]]
                         [:job-story/employer-feedback [:message/id]]
                         [:job-story/candidate-feedback [:message/id]]
                         [:job-story/invoices
@@ -516,6 +528,7 @@
         job-id (get-in @invoice-result [:job-story :job/id])
         job-story-id (get-in @invoice-result [:job-story :job-story/id])
         token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
+        decimals (get-in @invoice-result [:job-story :job :token-details :token-detail/decimals])
         token-type (keyword (get-in @invoice-result [:job-story :job :job/token-type]))
         token-address (get-in @invoice-result [:job-story :job :job/token-address])
         token-id (get-in @invoice-result [:job-story :job :job/token-id])
@@ -533,7 +546,7 @@
         dispute-candidate-percentage (re/subscribe [:page.job-contract/dispute-candidate-percentage])
         dispute-text (re/subscribe [:page.job-contract/dispute-text])
         candidate-invoiced-amount (get-in latest-disputed-invoice [:invoice/amount-requested])
-        human-amount (tokens/human-amount candidate-invoiced-amount token-type)
+        human-amount (tokens/human-amount candidate-invoiced-amount token-type decimals)
         resolution-percentage (/ @dispute-candidate-percentage 100)
         resolved-amount (.toFixed (* human-amount resolution-percentage) 3)
         resolution-contract-amount (* candidate-invoiced-amount resolution-percentage)
@@ -625,7 +638,8 @@
                        [:token-detail/id
                         :token-detail/type
                         :token-detail/symbol
-                        :token-detail/name]]]]]]
+                        :token-detail/name
+                        :token-detail/decimals]]]]]]
             result @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
             job-story (:job-story result)
 

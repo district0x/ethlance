@@ -42,7 +42,7 @@
 (re/reg-event-fx :page.new-invoice/initialize-page initialize-page)
 (re/reg-event-fx :page.new-invoice/set-hours-worked (create-assoc-handler :hours-worked parse-int))
 (re/reg-event-fx :page.new-invoice/set-hourly-rate (create-assoc-handler :hourly-rate parse-float))
-(re/reg-event-fx :page.new-invoice/set-invoice-amount (create-assoc-handler :invoice-amount parse-float))
+(re/reg-event-fx :page.new-invoice/set-invoice-amount (create-assoc-handler :invoice-amount))
 (re/reg-event-fx :page.new-invoice/set-message (create-assoc-handler :message))
 
 (re/reg-event-fx
@@ -60,7 +60,7 @@
   :page.new-invoice/send
   (fn [{:keys [db]}]
     (let [db-invoice (get-in db [state-key])
-          ipfs-invoice {:invoice/amount-requested (:invoice-amount db-invoice)
+          ipfs-invoice {:invoice/amount-requested (get-in db-invoice [:invoice-amount :token-amount])
                         :invoice/hours-worked (:hours-worked db-invoice)
                         :invoice/hourly-rate (:hourly-rate db-invoice)
                         :message/text (:message db-invoice)
@@ -79,13 +79,12 @@
           contract-address (:job/id job-fields)
           creator (accounts-queries/active-account (:db cofx))
           token-type (keyword (:job/token-type job-fields))
-          invoice-amount (:invoice-amount invoice-fields)
-          token-amount (util.tokens/machine-amount invoice-amount token-type)
+          invoice-amount (get-in invoice-fields [:invoice-amount :token-amount])
           address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
                           address-placeholder)
-          offered-value {:value token-amount
+          offered-value {:value (str invoice-amount)
                          :token
                          {:tokenId (:job/token-id job-fields)
                           :tokenContract
