@@ -453,11 +453,8 @@
      {:key "candidate-tabular-layout"
       :default-tab 0}
 
-     {:label "Accept invitation"}
-     (if invitation-to-accept?
-       [c-accept-invitation message-params]
-       [:div.message-input-container
-        [c-information "No invitations to accept"]])
+     (when invitation-to-accept? {:label "Accept invitation"})
+     (when invitation-to-accept? [c-accept-invitation message-params])
 
      {:label "Create invoice"}
      [:div.message-input-container
