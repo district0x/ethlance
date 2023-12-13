@@ -1,0 +1,49 @@
+version: "3.1"
+services:
+    db-postgresql:
+        image: postgres
+        restart: always
+        environment:
+            POSTGRES_USER: test
+            POSTGRES_PASSWORD: test
+            POSTGRES_DB: test
+    server:
+        image: ethlance-server:latest
+        container_name: ethlance-server
+        build:
+            context: .
+            dockerfile: "docker-builds/server/Dockerfile"
+            args:
+                ETHLANCE_ENV: "qa"
+        ports:
+            - 6300:6300
+        command: ["node", "ethlance_server.js"]
+        environment:
+            ETHLANCE_ENV: "qa"
+    ui:
+        image: ethlance-ui:latest
+        container_name: ethlance-ui
+        ports:
+            - 9080:80
+        build:
+            context: .
+            dockerfile: "docker-builds/ui/Dockerfile"
+            args:
+                ETHLANCE_ENV: "qa"
+        depends_on:
+            - server
+        environment:
+            ETHLANCE_ENV: "qa"
+
+    #  Collect deps, compiles and deploys contracts
+    base:
+        image: ethlance-base:local
+        container_name: ethlance-base
+        command: ["exit", "0"]
+        build:
+            context: .
+            dockerfile: "docker-builds/base/Dockerfile"
+            args:
+                ETHLANCE_ENV: "qa"
+        environment:
+            ETHLANCE_ENV: "qa"
