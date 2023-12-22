@@ -15,6 +15,7 @@
     [ethlance.server.graphql.server]
     [ethlance.server.ipfs]
     [ethlance.server.syncer]
+    [ethlance.shared.config :as shared-config]
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
@@ -74,8 +75,6 @@
    :logging {:level "debug"
              :console? true}})
 
-(def config-qa (cljs.reader/read-string (slurp "../config/server-config-qa.edn")))
-(def config-prod (cljs.reader/read-string (slurp "../config/server-config-prod.edn")))
 (def config-dev
   {:ipfs
    {:host "https://ipfs.infura.io:5001"
@@ -85,17 +84,15 @@
            :password "xxx"}}})
 
 (defn env-config [env]
-  (println ">>> env-config" env "\n ---> prod" config-prod)
-  (println ">>> env-config" env "\n ---> qa" config-qa)
   (shared-utils/deep-merge
     default-config
-    (condp = env
-      "prod" config-prod
-      "qa" config-qa
-      "dev" config-dev)))
+    (if (= env "dev")
+      config-dev
+      shared-config/config)))
 
 (defn -main [& _]
   (log/info "Initializing Server...")
+  (log/info "Using config: " (env-config environment))
   (async-helpers/extend-promises-as-channels!)
   (merge-config! {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go

@@ -4,7 +4,7 @@
             [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
             [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
             [ethlance.shared.graphql.schema :refer [schema]]
-            [ethlance.shared.utils :include-macros true :refer [slurp]]
+            [ethlance.shared.config :as shared-config]
             [district.graphql-utils]
             [taoensso.timbre :refer [merge-config!] :as log]
             [ethlance.shared.utils :include-macros true :refer [slurp] :as shared-utils]
@@ -71,8 +71,6 @@
                       :to-currencies [:USD :ETH]}})
 
 
-(def config-qa (cljs.reader/read-string (slurp "../config/ui-config-qa.edn")))
-(def config-prod (cljs.reader/read-string (slurp "../config/ui-config-prod.edn")))
 (def config-dev
   {:logging {:level :debug}
    :router {:routes routes/dev-routes}
@@ -90,7 +88,6 @@
   ([env]
    (shared-utils/deep-merge
      default-config
-     (condp = env
-       "prod" config-prod
-       "qa" config-qa
-       "dev" config-dev))))
+     (if (= env "dev")
+       config-dev
+       shared-config/config))))
