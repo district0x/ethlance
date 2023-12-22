@@ -16,7 +16,7 @@
     "solc": "0.8.21"
   },
   "resolutions": {
-    "solc": "0.8.21"
+    "solc": "0.8.19"
   },
   "engines": {
     "node": "^18.17.0"
