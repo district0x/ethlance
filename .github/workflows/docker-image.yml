@@ -132,9 +132,9 @@ jobs:
         run: |
           yarn install
 
-      - name: Deploy contracts for ${{ matrix.env }}
-        run: |
-          ETHLANCE_ENV=${{ matrix.env }} npx truffle migrate --network ethlance.mad.is-testnet --reset
+      # - name: Deploy contracts for ${{ matrix.env }}
+      #   run: |
+      #     ETHLANCE_ENV=${{ matrix.env }} npx truffle migrate --network ethlance.mad.is-testnet --reset
 
       - name: Set up QEMU
         id: setup-qemu
