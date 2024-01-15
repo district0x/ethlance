@@ -50,7 +50,6 @@
     :scroll-top? true
     :html5? true}
    :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
-   ; :web3 {:url "http://d0x-vm:8545"} ; "https://mainnet.infura.io/"
    :web3-tx {:disable-using-localstorage? true}
    :ipfs
    {:endpoint "/api/v0"

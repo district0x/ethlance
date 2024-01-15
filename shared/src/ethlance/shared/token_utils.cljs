@@ -1,8 +1,6 @@
 (ns ethlance.shared.token-utils
   (:require [cljs-web3-next.eth :as w3-eth]
             [cljs-web3-next.core :as w3-core]
-            ; ["xmlhttprequest" :refer [XMLHttpRequest]]
-            ; [ajax.core :as ajax.core]
             [oops.core :refer [ocall ocall+ oget oget+ oset! oapply oapply+]]
             ["xhr2" :as xhr2]
             ["ethers" :refer [ethers]]
@@ -73,7 +71,8 @@
 (defn get-token-details [token-type contract-address]
   (go
     (let [abi (get ethlance.shared.contract-constants/abi token-type)
-          web3-instance (w3-core/create-web3 nil provider-url)
+          ; web3-instance (w3-core/create-web3 nil provider-url)
+          web3-instance @district.server.web3/web3
           contract-instance (w3-eth/contract-at web3-instance abi contract-address)
           has-contract-method? (fn [contract method]
                                  (.hasOwnProperty (.-methods contract) method))

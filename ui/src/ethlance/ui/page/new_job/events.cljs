@@ -165,10 +165,7 @@
           offered-value (get-job-creation-param db :offered-value)
           ipfs-hash (get-job-creation-param db :ipfs-hash)
           arbiters (get-job-creation-param db :arbiters)
-          tx-opts-base {:from employer
-                        ; :ignore-forward? true
-                        :gas "1000000"
-                        }
+          tx-opts-base {:from employer :gas "1000000"}
           token-type (get-job-creation-param db :token-type)
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value (:value offered-value))
@@ -353,6 +350,7 @@
 (re/reg-event-db
   ::create-job-tx-error
   (fn [db event]
+    (println ">>> ethlance.ui.page.new-job.events ::create-job-tx-error" event)
     {:db (set-tx-in-progress db false)
      :dispatch [::notification.events/show "Error with creating new job transaction"]}))
 

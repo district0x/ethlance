@@ -87,7 +87,7 @@ module.exports = {
                                      }),
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
-      network_id: '*',
+      network_id: 421614,
       from: "0x642fAE80d3C74559A18B0558A518cDBF6b047968" // 1st address
     }
 

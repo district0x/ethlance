@@ -1,5 +1,6 @@
 (ns ethlance.server.core
   (:require
+    ["fs" :as fs]
     [alphabase.base58 :as base58]
     [alphabase.hex :as hex]
     [district.server.async-db]
@@ -31,10 +32,15 @@
   (condp = environment
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
-    "dev" #'smart-contracts-dev/smart-contracts))
+    ; "dev" #'smart-contracts-dev/smart-contracts
+    "dev" #'smart-contracts-qa/smart-contracts
+    ))
+
+(defn read-edn-sync [path]
+  (cljs.reader/read-string (.readFileSync fs path "utf8")))
 
 (def default-config
-  {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
+  {:web3 {:url  "ws://127.0.0.1:8549"}
    :web3-events {:events
                  {:ethlance/job-created [:ethlance :JobCreated]
                   :ethlance/invoice-created [:ethlance :InvoiceCreated]
@@ -49,11 +55,11 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block 0 ; (:last-processed-block (read-edn-sync "ethlance-events.log"))
-                 :block-step 1000
+                 :from-block (:last-processed-block (read-edn-sync "ethlance-events.log"))
+                 :block-step 5 ; 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
-                 :skip-past-events-replay? true
+                 :skip-past-events-replay? false
                  :write-events-into-file? true
                  :checkpoint-file "ethlance-events.log"}
    :smart-contracts {:contracts-var contracts-var

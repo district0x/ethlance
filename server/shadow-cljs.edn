@@ -15,7 +15,8 @@
            :closure-defines {goog.DEBUG true}
 
            :release
-           {:compiler-options {:optimizations :simple :source-map true}}}
+           {:compiler-options {:optimizations :simple
+                               :source-map true}}}
 
           :server-tests
           {:target :node-test
