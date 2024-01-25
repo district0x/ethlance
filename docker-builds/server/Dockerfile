@@ -35,7 +35,8 @@ RUN yarn && \
 
 # Release deployment
 WORKDIR "${ETHLANCE_SOURCE_ROOT}/server"
-RUN yarn && npx shadow-cljs release dev-server
+RUN yarn && npx shadow-cljs release dev-server && echo -n "{:last-processed-block 9622279}" > ethlance-events.log
+
 
 FROM node:18
 ENV ETHLANCE_SOURCE_ROOT=/deploy
