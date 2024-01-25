@@ -9,7 +9,7 @@ ENV ETHLANCE_ENV=$BUILD_ENV
 ENV DEPLOY_TARGET=/deploy/
 
 ENV SMART_CONTRACTS_PATH="/build/ethlance/shared/src/ethlance/shared/smart_contracts_${BUILD_ENV}.cljs"
-ENV SMART_CONTRACTS_BUILD_PATH="/build/ethlance/resources/public/contracts"
+ENV SMART_CONTRACTS_BUILD_PATH="/build/ethlance/resources/public/contracts/build"
 ENV ETHLANCE_CONFIG_PATH="/build/ethlance/config/${ETHLANCE_COMPONENT}-config-${BUILD_ENV}.edn"
 
 WORKDIR /build/ethlance
