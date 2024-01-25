@@ -35,7 +35,7 @@ RUN yarn && \
 
 # Release deployment
 WORKDIR "${ETHLANCE_SOURCE_ROOT}/server"
-RUN yarn && npx shadow-cljs release dev-server && echo -n "{:last-processed-block 9622279}" > ethlance-events.log
+RUN yarn && npx shadow-cljs release dev-server
 
 
 FROM node:18
@@ -50,4 +50,5 @@ COPY --from=build_server /build/ethlance/server/node_modules /deploy/server/node
 COPY --from=build_server /build/ethlance/server/package.json /build/ethlance/server/out/ethlance_server* /deploy/server/
 COPY --from=build_server /build/ethlance/resources/public/contracts /deploy/ui/contracts/
 COPY --from=build_server /build/ethlance/ui/resources/public/* /deploy/ui/
+RUN echo -n "{:last-processed-block 9622279}" > ethlance-events.log
 CMD [ "node", "ethlance_server.js" ]
