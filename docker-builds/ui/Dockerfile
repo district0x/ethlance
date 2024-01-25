@@ -2,10 +2,15 @@ FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:
 ARG BUILD_ENV=qa
 USER root
 
+ENV ETHLANCE_COMPONENT="ui"
 ENV ETHLANCE_SOURCE_ROOT=/build/ethlance
 ENV ETHLANCE_SERVER_ROOT=/build/ethlance/server
 ENV ETHLANCE_ENV=$BUILD_ENV
 ENV DEPLOY_TARGET=/deploy/
+
+ENV SMART_CONTRACTS_PATH="/build/ethlance/shared/src/ethlance/shared/smart_contracts_${BUILD_ENV}.cljs"
+ENV SMART_CONTRACTS_BUILD_PATH="/build/ethlance/resources/public/contracts"
+ENV ETHLANCE_CONFIG_PATH="/build/ethlance/config/${ETHLANCE_COMPONENT}-config-${BUILD_ENV}.edn"
 
 WORKDIR /build/ethlance
 COPY . .
