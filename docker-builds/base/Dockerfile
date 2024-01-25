@@ -19,4 +19,4 @@ RUN git clone https://github.com/district0x/d0x-libs
 
 ## Deploy Smart contracts
 WORKDIR /build/ethlance
-RUN yarn && ETHLANCE_ENV=qa npx truffle migrate --network ethlance.mad.is-testnet --reset
+# RUN yarn && ETHLANCE_ENV=qa npx truffle migrate --network ethlance.mad.is-testnet --reset

@@ -28,7 +28,8 @@ FROM init as build_server
 # Release deployment
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui 
 RUN yarn && \
-    ETHLANCE_ENV=qa npx shadow-cljs release dev-ui && \
+    ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile && \
+    ETHLANCE_ENV="${BUILD_ENV}" npx shadow-cljs release dev-ui && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 
 # Release deployment
