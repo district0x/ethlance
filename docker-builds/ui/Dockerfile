@@ -25,9 +25,11 @@ COPY config .
 
 
 FROM init as build_stage
+WORKDIR $ETHLANCE_SOURCE_ROOT
+RUN yarn install && ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile
+
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui
-RUN yarn && \
-    ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile && \
+RUN yarn install && \
     ETHLANCE_ENV="${BUILD_ENV}" npx shadow-cljs release dev-ui && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 

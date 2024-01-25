@@ -24,11 +24,12 @@ WORKDIR /build
 # RUN git clone https://github.com/district0x/d0x-libs
 
 FROM init as build_server
+WORKDIR $ETHLANCE_SOURCE_ROOT
+RUN yarn install && ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile
 
 # Release deployment
 WORKDIR $ETHLANCE_SOURCE_ROOT/ui 
 RUN yarn && \
-    ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile && \
     ETHLANCE_ENV="${BUILD_ENV}" npx shadow-cljs release dev-ui && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 
