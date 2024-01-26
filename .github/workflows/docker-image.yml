@@ -106,19 +106,6 @@ jobs:
       - name: Checkout ethlance code
         uses: actions/checkout@v4
 
-      - name: Checkout ethlance-configs repo
-        uses: actions/checkout@v4
-        with:
-          repository: district0x/ethlance-config
-          path: ethlance-config
-          token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
-          ref: docker_build
-
-      - name: Copy configs
-        run: |
-          cp -r ethlance-config/config .
-          ls -lah config/
-
       - name: Restore Top level cache directory for Ethlance
         uses: actions/cache@v3
         id: yarn-cache-top-level
@@ -150,6 +137,19 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Checkout ethlance-configs repo
+        uses: actions/checkout@v4
+        with:
+          repository: district0x/ethlance-config
+          path: ethlance-config
+          token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
+          ref: docker_build
+
+      - name: Copy configs
+        run: |
+          cp -r ethlance-config/config .
+          ls -lah config/
 
       - name: Build and push UI
         uses: docker/build-push-action@v4
