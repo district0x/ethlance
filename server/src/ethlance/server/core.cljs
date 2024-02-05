@@ -7,12 +7,12 @@
     [district.server.config :refer [config]]
     [district.server.db.honeysql-extensions]
     [district.server.db]
+    [ethlance.server.db]
+    [district.server.web3]
     [district.server.logging]
     [district.server.smart-contracts]
     [district.server.web3-events]
-    [district.server.web3]
     [district.shared.async-helpers :as async-helpers :refer [safe-go]]
-    [ethlance.server.db]
     [ethlance.server.graphql.server]
     [ethlance.server.ipfs]
     [ethlance.server.syncer]
@@ -32,8 +32,7 @@
   (condp = environment
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
-    ; "dev" #'smart-contracts-dev/smart-contracts
-    "dev" #'smart-contracts-qa/smart-contracts
+    "dev" #'smart-contracts-dev/smart-contracts
     ))
 
 (defn read-edn-sync [path]
@@ -55,13 +54,15 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block (:last-processed-block (read-edn-sync "ethlance-events.log"))
+                 :from-block 1000
                  :block-step 5 ; 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
                  :skip-past-events-replay? false
                  :write-events-into-file? true
-                 :checkpoint-file "ethlance-events.log"}
+                 :load-checkpoint ethlance.server.db/load-processed-events-checkpoint
+                 :save-checkpoint ethlance.server.db/save-processed-events-checkpoint
+                 }
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false
