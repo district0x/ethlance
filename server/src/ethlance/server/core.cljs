@@ -3,8 +3,8 @@
     ["fs" :as fs]
     [alphabase.base58 :as base58]
     [alphabase.hex :as hex]
-    [district.server.async-db]
     [district.server.config :refer [config]]
+    [district.server.async-db]
     [district.server.db.honeysql-extensions]
     [district.server.db]
     [ethlance.server.db]
@@ -105,7 +105,9 @@
   (safe-go
     (try
       (let [start-result (-> (mount/with-args
-                               {:config {:default (env-config environment)}})
+                               {:config
+                                {:env-name "SERVER_CONFIG_PATH"
+                                 :default (env-config environment)}})
                              (mount/start))]
         (log/warn "Started" {:components start-result :config @config}))
       (catch js/Error e

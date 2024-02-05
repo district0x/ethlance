@@ -33,10 +33,7 @@
 
 (def default-config
   ; config of https://github.com/district0x/district-ui-smart-contracts
-  {:smart-contracts {:format :truffle-json
-                     :load-path "../resources/public/contracts/build/"
-                     :contracts contracts-var}
-   :logging
+  {:logging
    {:level :info
     :console? true}
    :reagent-render
@@ -49,13 +46,7 @@
     :default-route :route/home
     :scroll-top? true
     :html5? true}
-   :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
    :web3-tx {:disable-using-localstorage? true}
-   :ipfs
-   {:endpoint "/api/v0"
-    :host "http://host-machine:5001"
-    :gateway "http://ipfs.localhost:8080/ipfs"}
-   :server-config {:url "http://d0x-vm:6300/config" :format :json}
    :graphql
    {:schema schema
     :url "http://d0x-vm:6300/graphql"
@@ -73,7 +64,18 @@
 (def config-dev
   {:logging {:level :debug}
    :router {:routes routes/dev-routes}
+   :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
 
+   :server-config {:url "http://d0x-vm:6300/config" :format :json}
+
+   :smart-contracts {:format :truffle-json
+                     :load-path "../resources/public/contracts/build/"
+                     :contracts contracts-var}
+
+   ; :ipfs
+   ; {:endpoint "/api/v0"
+   ;  :host "http://host-machine:5001"
+   ;  :gateway "http://ipfs.localhost:8080/ipfs"}
    :ipfs
    {:host "https://ipfs.infura.io:5001"
     :endpoint "/api/v0"

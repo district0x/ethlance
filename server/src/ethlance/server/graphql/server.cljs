@@ -52,7 +52,7 @@
                                             :timestamp timestamp}))}))]
 
     (js-invoke app "get" "/config" (fn [req res] ; Add JSON /config endpoint for district-ui-config
-                                     (.then (ui-config/fetch-config)
+                                     (.then (ui-config/fetch-config {:env-name "UI_CONFIG_PATH"})
                                             (fn [config]
                                               (.setHeader res "Access-Control-Allow-Origin", "*")
                                               (.json res (clj->js config))))))
