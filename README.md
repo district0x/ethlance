@@ -72,6 +72,49 @@ ipfs config --json Gateway.HTTPHeaders.Access-Control-Allow-Headers '["X-Request
 ipfs config --json Gateway.Writable true
 ```
 
+# Building & deployment
+
+## 1. Smart contracts
+The ethlance smart contracts should (for now) be deployed manually. As a result of the compilation process, the environment specific clojure files with contract addresses get written (e.g. `shared/src/ethlance/shared/smart_contracts_qa.cljs` for QA) and must be committed to git to make them available for deployment of browser & server applications.
+
+During clojure application deployment (browser, server), the contracts must only be compiled, which will generate JSON ABI files under `<ethlance-root>/resources/public/contracts/build/`
+
+Compilation:
+1. `ETHLANCE_ENV=qa npx truffle compile` (replacing the network with one suitable for the env)
+2. This generates ABI JSON files under `<ethlance-root>/resources/public/contracts/build/`
+3. Server app needs to access them during runtime:
+  - configured via `[:smart-contracts :contracts-build-path]`
+4. UI (browser app) needs them available: should be served by Nginx (or your web server of choice)
+  - get loaded from urls like `http://d0x-vm:6500/contracts/build/TestToken.json`
+
+## 2. Server (<ethlance-root>/server)
+To build Server (consists mainly of graphql API):
+1. The following ENV variables need to be set:
+  - `export ETHLANCE_ENV=qa`
+2. Compile with `clj -A:dev:shadow-clj release dev-server`
+  - will result a single file in `out/ethlance_server.js` (and accompanying `ethlance_server.js.map` source map)
+3. Before running it the smart contract ABI JSON files need to be in a location defined in the EDN file `ETHLNCE_CONFIG_PATH` at EDN path `[:smart-contracts :contracts-build-path]`
+  - if it's a relative path, it gets resolved in relation to where the server process gets started
+
+Running server:
+1. Earlier the server config was compiled into the generated JS file. Now it will be loaded during runtime (at application startup) from the variable specified under `:config :env-name`. As for now it is `ETHLANCE_CONFIG_PATH`.
+2. Also earlier the UI (browser app) config was baked into the compiled JS file for the UI. Now it gets served via `/config` endpoint from a location pointed to ENV variable `UI_CONFIG_PATH` (contents loaded at run time from the file system). Thus, starting the server:
+  - `export ETHLANCE_ENV=qa`
+  - `export SERVER_CONFIG_PATH=/path/to/server-config-qa.edn `
+  - `export UI_CONFIG_PATH=/path/to/ui-config-qa.edn`
+  - `node out/ethlance_server.js`
+
+## 3. Browser (<ethlance-root>/ui)
+1. The following ENV variables need to be set:
+  - `export ETHLANCE_ENV=qa`
+2. Compile with `clj -A:dev:shadow-clj release dev-ui`
+  - the generated JS file (single) will be under `<ethlance-root>/ui/resources/public/main.js`
+3. To serve the web page, configure the web server to serve the files under `<ethlance-root>/ui/resources/public`
+  - there are some other files, like CSS, JS and index.html that the web server needs to serve too
+4. The web server must also serve the ABI JSON files generated in _1. Smart contracts_
+  - for that, they can be copied from the build step or re-compiled and moved to where the web server can serve them
+  - the expected HTTP path will be `/contracts/build/<ABI JSON FILE>.json` (e.g. `/contracts/build/Ethlance.json`)
+
 # Contributing
 
 Anyone is welcome to contribute to the ethlance project, here are some brief guidelines:
