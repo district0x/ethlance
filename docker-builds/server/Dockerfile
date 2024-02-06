@@ -38,7 +38,8 @@ RUN yarn && \
 WORKDIR "${ETHLANCE_SOURCE_ROOT}/server"
 RUN yarn && npx shadow-cljs release dev-server
 
-
+ARG BUILD_ENV=qa
+ARG ETHLANCE_ENV=qa
 FROM node:18
 ENV ETHLANCE_SOURCE_ROOT=/deploy
 ENV ETHLANCE_SERVER_ROOT=/deploy/server
