@@ -52,6 +52,10 @@
     :url "http://d0x-vm:6300/graphql"
     :jwt-sign-secret "SECRET"
     :gql-name->kw token-type-fixed-gql-name->kw}
+
+   :smart-contracts {:format :truffle-json
+                     :load-method :request
+                     :contracts contracts-var}
    :root-url "http://d0x-vm:6500"
    :github
    {:client-id "83e6a6043ca4ae50f8b0"}
@@ -63,14 +67,8 @@
 
 (def config-dev
   {:logging {:level :debug}
-   :router {:routes routes/dev-routes}
    :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
-
    :server-config {:url "http://d0x-vm:6300/config" :format :json}
-
-   :smart-contracts {:format :truffle-json
-                     :load-path "../resources/public/contracts/build/"
-                     :contracts contracts-var}
 
    ; :ipfs
    ; {:endpoint "/api/v0"
@@ -80,15 +78,21 @@
    {:host "https://ipfs.infura.io:5001"
     :endpoint "/api/v0"
     :gateway "https://ethlance-qa.infura-ipfs.io/ipfs"
-    :auth {:username "xxx"
-           :password "xxx"}}
-   })
+    :auth {:username "2DWc3aSeqUSU5fMM64UuGvpMuPS"
+           :password "c0fed9d891d419e72f41ee451b1055ec"}}})
+
+(def config-qa
+  {:server-config {:url "http://ethlance-api.qa.district0x"}})
+
+(def config-prod
+  {:server-config {:url "http://api.ethlance.com"}})
 
 (defn get-config
   ([] (get-config environment))
   ([env]
    (shared-utils/deep-merge
      default-config
-     (if (= env "dev")
-       config-dev
-       shared-config/config))))
+     (case env
+       "dev" config-dev
+       "qa" config-qa
+       "prod" config-prod))))
