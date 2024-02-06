@@ -11,6 +11,7 @@ ENV DEPLOY_TARGET=/deploy/
 ENV SMART_CONTRACTS_PATH="/build/ethlance/shared/src/ethlance/shared/smart_contracts_${BUILD_ENV}.cljs"
 ENV SMART_CONTRACTS_BUILD_PATH="/build/ethlance/resources/public/contracts/build"
 ENV ETHLANCE_CONFIG_PATH="/build/ethlance/config/${ETHLANCE_COMPONENT}-config-${BUILD_ENV}.edn"
+ENV UI_CONFIG_PATH="/build/ethlance/config/ui-config-${BUILD_ENV}.edn"
 
 WORKDIR /build/ethlance
 COPY . .
@@ -43,8 +44,12 @@ ENV ETHLANCE_SOURCE_ROOT=/deploy
 ENV ETHLANCE_SERVER_ROOT=/deploy/server
 ENV ETHLANCE_ENV=qa
 ENV DEPLOY_TARGET=/deploy
+ENV UI_CONFIG_PATH="/deploy/resources/config/ui-config-${BUILD_ENV}.edn"
+ENV SERVER_CONFIG_PATH="/deploy/resources/config/server-config-${BUILD_ENV}.edn"
 WORKDIR "${ETHLANCE_SERVER_ROOT}"
 
+COPY --from=build_server /build/ethlance-config/ui-config-${ETHLANCE_ENV}.edn /deploy/resources/config/ui-config-${ETHLANCE_ENV}.edn
+COPY --from=build_server /build/ethlance-config/server-config-${ETHLANCE_ENV}.edn /deploy/resources/config/server-config-${ETHLANCE_ENV}.edn
 COPY --from=build_server /build/ethlance/resources /deploy/resources
 COPY --from=build_server /build/ethlance/server/node_modules /deploy/server/node_modules/
 COPY --from=build_server /build/ethlance/server/package.json /build/ethlance/server/out/ethlance_server* /deploy/server/

@@ -25,6 +25,7 @@ COPY config .
 
 
 FROM init as build_stage
+ENV ETHLANCE_ENV=qa
 WORKDIR $ETHLANCE_SOURCE_ROOT
 RUN yarn install && ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile
 
