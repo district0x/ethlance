@@ -982,20 +982,22 @@
 
 
 (defn load-processed-events-checkpoint [callback]
-  (db/with-async-resolver-conn
-    conn
-    (let [result-chan (db/get conn {:select [:*]
-                                    :from [:ContractEventCheckpoint]
-                                    :order-by [[:created-at :desc]]})]
-      (take! result-chan (fn [result] (callback nil (clojure.walk/keywordize-keys (get result :checkpoint))))))))
+  (.then
+    (district.server.async-db/get-connection)
+    (fn [conn]
+      (let [result-chan (db/get conn {:select [:*]
+                                      :from [:ContractEventCheckpoint]
+                                      :order-by [[:created-at :desc]]})]
+        (take! result-chan (fn [result] (callback nil (clojure.walk/keywordize-keys (get result :checkpoint)))))))))
 
 (defn save-processed-events-checkpoint [checkpoint & [callback]]
-  (db/with-async-resolver-conn
-    conn
-    (let [result-chan (db/run! conn {:insert-into :ContractEventCheckpoint
-                                     :values [{:checkpoint (.stringify js/JSON (clj->js checkpoint))
-                                               :created-at (new js/Date)}]} )]
-      (when (fn? callback) (take! result-chan callback)))))
+  (.then
+    (district.server.async-db/get-connection)
+    (fn [conn]
+      (let [result-chan (db/run! conn {:insert-into :ContractEventCheckpoint
+                                       :values [{:checkpoint (.stringify js/JSON (clj->js checkpoint))
+                                                 :created-at (new js/Date)}]} )]
+        (when (fn? callback) (take! result-chan callback))))))
 
 (defn ready-state?
   []

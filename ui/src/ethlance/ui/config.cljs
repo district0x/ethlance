@@ -74,15 +74,17 @@
    ; {:endpoint "/api/v0"
    ;  :host "http://host-machine:5001"
    ;  :gateway "http://ipfs.localhost:8080/ipfs"}
-   :ipfs
-   {:host "https://ipfs.infura.io:5001"
-    :endpoint "/api/v0"
-    :gateway "https://ethlance-qa.infura-ipfs.io/ipfs"
-    :auth {:username "2DWc3aSeqUSU5fMM64UuGvpMuPS"
-           :password "c0fed9d891d419e72f41ee451b1055ec"}}})
+   ; :ipfs
+   ; {:host "https://ipfs.infura.io:5001"
+   ;  :endpoint "/api/v0"
+   ;  :gateway "https://ethlance-qa.infura-ipfs.io/ipfs"
+   ;  :auth {:username "2DWc3aSeqUSU5fMM64UuGvpMuPS"
+   ;         :password "c0fed9d891d419e72f41ee451b1055ec"}}
+   }
+  )
 
 (def config-qa
-  {:server-config {:url "http://ethlance-api.qa.district0x"}})
+  {:server-config {:url "https://ethlance-api.qa.district0x.io/config"}})
 
 (def config-prod
   {:server-config {:url "http://api.ethlance.com"}})
