@@ -1,6 +1,7 @@
 'use strict';
 const ETHLANCE_ENV = process.env.ETHLANCE_ENV || "dev";
-
+const ETHLANCE_MNEMONIC = process.env.ETHLANCE_MNEMONIC;
+const ETHLANCE_ETH_NODE_ADDRESS = process.env.ETHLANCE_ETH_NODE_ADDRESS;
 
 const smartContractsPaths = {
   "dev" : '/shared/src/ethlance/shared/smart_contracts_dev.cljs',
@@ -24,7 +25,8 @@ parameters.dev = parameters.qa;
 
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const mnemonic = "easy leave proof verb wait patient fringe laptop intact opera slab shine";
+const DEFAULT_DEV_MNEMONIC = "easy leave proof verb wait patient fringe laptop intact opera slab shine";
+const mnemonic = ETHLANCE_MNEMONIC || DEFAULT_DEV_MNEMONIC;
 
 module.exports = {
   env: ETHLANCE_ENV,
@@ -35,7 +37,7 @@ module.exports = {
 
   compilers: {
     solc: {
-      version: "0.8.21",
+      version: "0.8.17",
       settings: {
         optimizer: {
           enabled: true,
@@ -77,6 +79,17 @@ module.exports = {
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*',
       from: "0xeba108B12593336bBa461b8a6e7DC5A4b597Bc7E" // 6) address
+    },
+
+    "arbitrum-sepolia": {
+      provider: new HDWalletProvider({mnemonic: {phrase: mnemonic},
+                                      providerOrUrl: ETHLANCE_ETH_NODE_ADDRESS ||  'https://sepolia-rollup.arbitrum.io/rpc'
+                                     }),
+      gas: 6e6, // gas limit
+      gasPrice: 20e9, // 20 gwei, default for ganache
+      network_id: 421614,
+      from: "0x642fAE80d3C74559A18B0558A518cDBF6b047968" // 1st address
     }
+
   }
 }

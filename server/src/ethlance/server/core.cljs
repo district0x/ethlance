@@ -1,20 +1,22 @@
 (ns ethlance.server.core
   (:require
+    ["fs" :as fs]
     [alphabase.base58 :as base58]
     [alphabase.hex :as hex]
-    [district.server.async-db]
     [district.server.config :refer [config]]
+    [district.server.async-db]
     [district.server.db.honeysql-extensions]
     [district.server.db]
+    [ethlance.server.db]
+    [district.server.web3]
     [district.server.logging]
     [district.server.smart-contracts]
     [district.server.web3-events]
-    [district.server.web3]
     [district.shared.async-helpers :as async-helpers :refer [safe-go]]
-    [ethlance.server.db]
     [ethlance.server.graphql.server]
     [ethlance.server.ipfs]
     [ethlance.server.syncer]
+    [ethlance.shared.config :as shared-config]
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
@@ -30,10 +32,14 @@
   (condp = environment
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
-    "dev" #'smart-contracts-dev/smart-contracts))
+    "dev" #'smart-contracts-dev/smart-contracts
+    ))
+
+(defn read-edn-sync [path]
+  (cljs.reader/read-string (.readFileSync fs path "utf8")))
 
 (def default-config
-  {:web3 {:url  "ws://127.0.0.1:8549"} ; "ws://d0x-vm:8549"
+  {:web3 {:url  "ws://127.0.0.1:8549"}
    :web3-events {:events
                  {:ethlance/job-created [:ethlance :JobCreated]
                   :ethlance/invoice-created [:ethlance :InvoiceCreated]
@@ -48,13 +54,15 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block 0 ; (:last-processed-block (read-edn-sync "ethlance-events.log"))
-                 :block-step 1000
+                 :from-block 1000
+                 :block-step 5 ; 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
-                 :skip-past-events-replay? true
+                 :skip-past-events-replay? false
                  :write-events-into-file? true
-                 :checkpoint-file "ethlance-events.log"}
+                 :load-checkpoint ethlance.server.db/load-processed-events-checkpoint
+                 :save-checkpoint ethlance.server.db/save-processed-events-checkpoint
+                 }
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false
@@ -74,8 +82,6 @@
    :logging {:level "debug"
              :console? true}})
 
-(def config-qa (cljs.reader/read-string (slurp "../config/server-config-qa.edn")))
-(def config-prod (cljs.reader/read-string (slurp "../config/server-config-prod.edn")))
 (def config-dev
   {:ipfs
    {:host "https://ipfs.infura.io:5001"
@@ -85,23 +91,23 @@
            :password "xxx"}}})
 
 (defn env-config [env]
-  (println ">>> env-config" env "\n ---> prod" config-prod)
-  (println ">>> env-config" env "\n ---> qa" config-qa)
   (shared-utils/deep-merge
     default-config
-    (condp = env
-      "prod" config-prod
-      "qa" config-qa
-      "dev" config-dev)))
+    (if (= env "dev")
+      config-dev
+      shared-config/config)))
 
 (defn -main [& _]
   (log/info "Initializing Server...")
+  (log/info "Using config: " (env-config environment))
   (async-helpers/extend-promises-as-channels!)
   (merge-config! {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go
     (try
       (let [start-result (-> (mount/with-args
-                               {:config {:default (env-config environment)}})
+                               {:config
+                                {:env-name "SERVER_CONFIG_PATH"
+                                 :default (env-config environment)}})
                              (mount/start))]
         (log/warn "Started" {:components start-result :config @config}))
       (catch js/Error e

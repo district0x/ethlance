@@ -33,17 +33,28 @@
 
 (def environment (shared-utils/get-environment))
 
+(defn fetch-config-from-server [url callback]
+  (let []
+    (-> (js/fetch url)
+        (.then ,,, (fn [response]
+                     (.json response)))
+        (.then ,,, (fn [config]
+                     (callback (js->clj config {:keywordize-keys true})))))))
+
 (defn ^:export init []
   (let [main-config (ui.config/get-config environment)]
     (util.injection/inject-data-scroll! {:injection-selector "#app"})
 
-    ;; Initialize our district re-mount components
-    (-> (mount/with-args main-config)
-        (mount/start))
+    (fetch-config-from-server
+      (get-in main-config [:server-config :url])
+      (fn [config]
+        ;; Initialize our district re-mount components
+        (-> (mount/with-args (shared-utils/deep-merge main-config config))
+            (mount/start))
 
-    (reg-co-fx! :ethlance {:fx :store :cofx :store})
+        (reg-co-fx! :ethlance {:fx :store :cofx :store})
 
-    ;; Initialize our re-frame app state
-    (re/dispatch-sync [:ethlance/initialize main-config])
+        ;; Initialize our re-frame app state
+        (re/dispatch-sync [:ethlance/initialize (shared-utils/deep-merge main-config config)])))
 
     ::started))

@@ -3,7 +3,7 @@
   component for creating the in-memory database upon initial load."
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
-            [cljs.core.async :as async :refer [go-loop <!]]
+            [cljs.core.async :as async :refer [go-loop <! take!]]
             [com.rpl.specter :as $ :include-macros true]
             [cuerdas.core :as str]
             [district.server.async-db :as db]
@@ -433,7 +433,14 @@
     [[:event/comparable-id :integer]
      [:event/string :varchar]
 
-     [(sql/call :primary-key :event/comparable-id)]]}])
+     [(sql/call :primary-key :event/comparable-id)]]}
+
+    {:table-name :ContractEventCheckpoint
+      :table-columns
+      [[:id :serial]
+       [:checkpoint :json]
+       [:created-at :timestamp]
+       [(sql/call :primary-key :id)]]}])
 
 (defn print-db
   "(print-db) prints all db tables to the repl
@@ -972,6 +979,25 @@
                       :token-detail/name (:name token-details)
                       :token-detail/symbol (:symbol token-details)
                       :token-detail/decimals (:decimals token-details)}))))
+
+
+(defn load-processed-events-checkpoint [callback]
+  (.then
+    (district.server.async-db/get-connection)
+    (fn [conn]
+      (let [result-chan (db/get conn {:select [:*]
+                                      :from [:ContractEventCheckpoint]
+                                      :order-by [[:created-at :desc]]})]
+        (take! result-chan (fn [result] (callback nil (clojure.walk/keywordize-keys (get result :checkpoint)))))))))
+
+(defn save-processed-events-checkpoint [checkpoint & [callback]]
+  (.then
+    (district.server.async-db/get-connection)
+    (fn [conn]
+      (let [result-chan (db/run! conn {:insert-into :ContractEventCheckpoint
+                                       :values [{:checkpoint (.stringify js/JSON (clj->js checkpoint))
+                                                 :created-at (new js/Date)}]} )]
+        (when (fn? callback) (take! result-chan callback))))))
 
 (defn ready-state?
   []

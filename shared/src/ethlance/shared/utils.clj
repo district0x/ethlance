@@ -14,5 +14,11 @@
       (println "Building with environment:" env))
     env))
 
+(defmacro read-from-env-path
+  [env-name]
+  (let [path-from-env (System/getenv env-name)]
+    (when-not (nil? path-from-env)
+      (clojure.core/slurp path-from-env))))
+
 (defmacro slurp [file]
   (clojure.core/slurp file))

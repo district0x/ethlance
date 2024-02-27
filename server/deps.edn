@@ -60,14 +60,16 @@
  :aliases
  {:shadow-cljs
   {:extra-deps
-   {thheller/shadow-cljs {:mvn/version "2.25.7"}}
+   {thheller/shadow-cljs {:mvn/version "2.26.2"}}
    :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :local-deps
   {:override-deps
    {is.d0x/district-server-smart-contracts {:local/root "../../d0x-libs/server/district-server-smart-contracts"}
     is.d0x/district-server-web3-events {:local/root "../../d0x-libs/server/district-server-web3-events"}
+    is.d0x/district-server-config {:local/root "../../d0x-libs/server/district-server-config"}
     is.d0x/cljs-ipfs-http-client {:local/root "../../d0x-libs/shared/cljs-ipfs-http-client"}
-    is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}}
+    is.d0x/cljs-web3-next {:local/root "../../d0x-libs/shared/cljs-web3-next"}
+    }
    }
   :dev
   {:extra-deps
