@@ -188,6 +188,12 @@
     (println ">>> ::create-job-tx-receipt" result)))
 
 (re/reg-event-fx
+  ::tx-hash-error
+  (fn [cofx result]
+    (println ">>> ⚠️ ⚠️   ::tx-hash-error" result)))
+
+
+(re/reg-event-fx
   ::erc20-allowance-approval-success
   (fn [cofx result]
     (println ">>> ::erc20-allowance-approval-success" result)

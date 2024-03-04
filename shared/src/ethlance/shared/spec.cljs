@@ -13,10 +13,10 @@
 
 (s/def :user/name #(length? % 3 80))
 (s/def :user/email email?)
-(s/def :user/country (partial contains? constants/countries))
+(s/def :user/country (partial contains? (set constants/countries)))
 (s/def :user/languages (fn [languages]
                          (and (pos? (count languages))
-                              (set/subset? languages constants/languages))))
+                              (set/subset? languages (set constants/languages)))))
 ; (s/def :user/profile-image is-ipfs/multihash) ; TODO: figure out how to use is-ipfs
 (s/def :user/profile-image string?)
 

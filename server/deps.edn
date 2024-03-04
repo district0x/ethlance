@@ -36,7 +36,7 @@
 
   district0x/district-validation {:mvn/version "1.0.0" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
   district0x/error-handling {:mvn/version "1.0.4"}
-  district0x/graphql-query {:mvn/version "1.0.6"}
+  is.d0x/graphql-query {:mvn/version "1.0.7"}
 
   cljs-http/cljs-http {:mvn/version "0.1.46"}
   binaryage/oops {:mvn/version "0.7.2"}
