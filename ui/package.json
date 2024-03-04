@@ -9,7 +9,7 @@
     "create-react-class": "15.7.0",
     "dataloader": "^2.1.0",
     "events": "^3.3.0",
-    "graphql": "0.13.2",
+    "graphql": "15.8.0",
     "highlight.js": "11.1.0",
     "is-ipfs": "^7.0.3",
     "karma": "6.3.0",
@@ -28,5 +28,8 @@
     "web3": "1.7.3",
     "xhr2": "0.2.1",
     "xregexp": "5.1.1"
+  },
+  "//": {
+    "graphql": "0.13.2"
   }
 }

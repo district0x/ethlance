@@ -99,7 +99,6 @@
 
 (defn -main [& _]
   (log/info "Initializing Server...")
-  (log/info "Using config: " (env-config environment))
   (async-helpers/extend-promises-as-channels!)
   (merge-config! {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go

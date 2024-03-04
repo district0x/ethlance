@@ -115,7 +115,7 @@
      :placeholder ""
      :auto-suggestion-listing constants/languages
      :allow-custom-chips? false
-     :chip-listing (set (:user/languages form-values))
+     :chip-listing (:user/languages form-values)
      :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]])
 
 
