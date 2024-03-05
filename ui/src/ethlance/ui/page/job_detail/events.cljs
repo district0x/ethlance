@@ -1,23 +1,27 @@
 (ns ethlance.ui.page.job-detail.events
-  (:require [district.ui.router.effects :as router.effects]
-            [district.ui.router.queries :as router.queries]
-            [district.ui.conversion-rates.queries :as conversion-rates.queries]
-            [district.ui.web3.queries :as web3-queries]
-            [district.ui.smart-contracts.queries :as contract-queries]
-            [ethlance.ui.event.utils :as event.utils]
-            [district.ui.notification.events :as notification.events]
-            [ethlance.ui.util.tokens :as util.tokens]
-            [ethlance.shared.utils :refer [eth->wei]]
-            [cljs-web3-next.eth :as w3n-eth]
-            [district.ui.web3-tx.events :as web3-events]
-            [ethlance.shared.contract-constants :as contract-constants]
-            [district.ui.smart-contracts.queries :as contract-queries]
-            [ethlance.shared.utils :refer [eth->wei base58->hex]]
-            [district.ui.web3-accounts.queries :as accounts-queries]
-            [re-frame.core :as re]))
+  (:require
+    [cljs-web3-next.eth :as w3n-eth]
+    [district.ui.conversion-rates.queries :as conversion-rates.queries]
+    [district.ui.notification.events :as notification.events]
+    [district.ui.router.effects :as router.effects]
+    [district.ui.router.queries :as router.queries]
+    [district.ui.smart-contracts.queries :as contract-queries]
+    [district.ui.smart-contracts.queries :as contract-queries]
+    [district.ui.web3-accounts.queries :as accounts-queries]
+    [district.ui.web3-tx.events :as web3-events]
+    [district.ui.web3.queries :as web3-queries]
+    [ethlance.shared.contract-constants :as contract-constants]
+    [ethlance.shared.utils :refer [eth->wei]]
+    [ethlance.shared.utils :refer [eth->wei base58->hex]]
+    [ethlance.ui.event.utils :as event.utils]
+    [ethlance.ui.util.tokens :as util.tokens]
+    [re-frame.core :as re]))
+
 
 ;; Page State
 (def state-key :page.job-detail)
+
+
 (def state-default
   {:add-funds-tx-in-progress? false
    :end-job-tx-in-progress? false
@@ -30,36 +34,47 @@
    :job-arbiter-idle false
    :show-invite-arbiters false})
 
+
 (def interceptors [re/trim-v])
+
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]}]
   (let [page-state (get db state-key)]
-    {
-     ; :fx [[:dispatch [:page.job-detail/fetch-job-arbiter-status]]]
+    {;; :fx [[:dispatch [:page.job-detail/fetch-job-arbiter-status]]]
      ::router.effects/watch-active-page
      [{:id :page.job-detail/initialize-page
        :name :route.job/detail
-       :dispatch [:page.job-detail/fetch-proposals]
-       }]
+       :dispatch [:page.job-detail/fetch-proposals]}]
      :db (assoc-in db [state-key] state-default)}))
 
-(defn set-add-funds-tx-in-progress [db in-progress?]
+
+(defn set-add-funds-tx-in-progress
+  [db in-progress?]
   (assoc-in db [state-key :add-funds-tx-in-progress?] in-progress?))
 
-(defn set-end-job-tx-in-progress [db in-progress?]
+
+(defn set-end-job-tx-in-progress
+  [db in-progress?]
   (assoc-in db [state-key :end-job-tx-in-progress?] in-progress?))
 
-(defn set-invite-arbiters-tx-in-progress [db in-progress?]
+
+(defn set-invite-arbiters-tx-in-progress
+  [db in-progress?]
   (assoc-in db [state-key :invite-arbiters-tx-in-progress?] in-progress?))
+
+
 ;;
 ;; Registered Events
 ;;
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
+
+
 (defn create-logging-handler
   ([] (create-logging-handler ""))
   ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
+
 
 ;; TODO: switch based on dev environment
 (re/reg-event-fx :page.job-detail/initialize-page initialize-page)
@@ -69,13 +84,15 @@
 
 (re/reg-event-fx :page.job-detail/set-arbitrations-offset (create-assoc-handler :arbitrations-offset))
 
+
 (re/reg-event-db
   :page.job-detail/set-arbitration-token-amount
   (fn [db [_ token-amount]]
     (-> db
         (assoc-in ,,, [state-key :arbitration-token-amount] token-amount)
         (assoc-in ,,, [state-key :arbitration-token-amount-usd]
-                  (util.tokens/round 2 (* token-amount (conversion-rates.queries/conversion-rate db :ETH :USD)))))))
+                      (util.tokens/round 2 (* token-amount (conversion-rates.queries/conversion-rate db :ETH :USD)))))))
+
 
 (re/reg-event-db
   :page.job-detail/set-arbitration-token-amount-usd
@@ -83,9 +100,11 @@
     (-> db
         (assoc-in ,,, [state-key :arbitration-token-amount-usd] usd-amount)
         (assoc-in ,,, [state-key :arbitration-token-amount]
-                  (util.tokens/round 4 (* usd-amount (conversion-rates.queries/conversion-rate db :USD :ETH)))))))
+                      (util.tokens/round 4 (* usd-amount (conversion-rates.queries/conversion-rate db :USD :ETH)))))))
+
 
 (re/reg-event-fx :page.job-detail/set-show-invite-arbiters (create-assoc-handler :show-invite-arbiters))
+
 
 (re/reg-event-db
   :page.job-detail/set-arbitration-to-accept
@@ -96,6 +115,7 @@
                           nil
                           arbitration)]
       (assoc-in db db-path toggled-value))))
+
 
 (def job-story-requested-fields
   [:job-story/id
@@ -114,6 +134,7 @@
      [:creator
       [:user/id :user/name]]]]])
 
+
 (re/reg-event-fx
   :page.job-proposal/send
   [interceptors]
@@ -129,6 +150,7 @@
                               job-story-requested-fields]]
                    :on-success [:page.job-detail/fetch-proposals]}]})))
 
+
 (re/reg-event-fx
   :page.job-proposal/remove
   [interceptors]
@@ -141,6 +163,7 @@
                   {:queries [[:remove-job-proposal {:job-story/id job-story-id}
                               job-story-requested-fields]]
                    :on-success [:page.job-detail/fetch-proposals]}]})))
+
 
 (re/reg-event-fx
   :page.job-detail/fetch-proposals
@@ -156,8 +179,9 @@
                                         :offset (get-in db [state-key :proposal-offset])}
                      [:total-count
                       [:items job-story-requested-fields]]]]
-                  :on-success [:proposal-stories-success]
-                  :on-error [:proposal-stories-error]}]})))
+                   :on-success [:proposal-stories-success]
+                   :on-error [:proposal-stories-error]}]})))
+
 
 (re/reg-event-fx
   :proposal-stories-success
@@ -173,6 +197,7 @@
       {:db (-> db
                (assoc ,,, :job-stories id-mapped)
                (assoc-in ,,, [state-key :proposal-total-count] (:total-count result)))})))
+
 
 (re/reg-event-fx
   :proposal-stories-error
@@ -193,7 +218,9 @@
                  :on-success [:page.job-detail/arbitration-to-ipfs-success event]
                  :on-error [:page.job-detail/arbitration-to-ipfs-failure event]}}))
 
-(defn set-quote-for-arbitration-tx [cofx [_event-name forwarded-event-data ipfs-data]]
+
+(defn set-quote-for-arbitration-tx
+  [cofx [_event-name forwarded-event-data ipfs-data]]
   (let [job-address (:job/id forwarded-event-data)
         arbiter-address (:user/id forwarded-event-data)
         token-type (:job-arbiter/fee-currency-id forwarded-event-data)
@@ -209,8 +236,8 @@
         instance (contract-queries/instance (:db cofx) :job job-address)
         tx-opts {:from arbiter-address :gas 10000000}
         ipfs-hash (base58->hex (:Hash ipfs-data))
-        ; TODO: decide if sending to IPFS would serve for anything or all the
-        ;       information involved is already in the contract & QuoteForArbitrationEvent
+        ;; TODO: decide if sending to IPFS would serve for anything or all the
+        ;;       information involved is already in the contract & QuoteForArbitrationEvent
         contract-args [[(clj->js offered-value)]]]
     {:dispatch [::web3-events/send-tx
                 {:instance instance
@@ -222,7 +249,9 @@
                  :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to set quote successful"]
                  :on-tx-error [::set-quote-for-arbitration-tx-error]}]}))
 
-(defn accept-quote-for-arbitration-tx [cofx [_event-name forwarded-event-data]]
+
+(defn accept-quote-for-arbitration-tx
+  [cofx [_event-name forwarded-event-data]]
   (let [job-address (:job/id forwarded-event-data)
         arbiter-address (:user/id forwarded-event-data)
         employer-address (:employer forwarded-event-data)
@@ -249,15 +278,17 @@
                  :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to accept quote successful"]
                  :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
 
-(defn invite-arbiters [{:keys [db] :as cofx} [_event-name event-data]]
+
+(defn invite-arbiters
+  [{:keys [db] :as cofx} [_event-name event-data]]
   (let [job-address (:job/id event-data)
         arbiter-addresses (:arbiters event-data)
         employer-address (:employer event-data)
         instance (contract-queries/instance db :job job-address)
         tx-opts {:from employer-address :gas 10000000}
         contract-args [employer-address arbiter-addresses]]
-     {:db (set-invite-arbiters-tx-in-progress db true)
-      :dispatch [::web3-events/send-tx
+    {:db (set-invite-arbiters-tx-in-progress db true)
+     :dispatch [::web3-events/send-tx
                 {:instance instance
                  :fn :invite-arbiters
                  :args contract-args
@@ -267,7 +298,9 @@
                  :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to invite arbiters successful"]
                  :on-tx-error [::invite-arbiters-tx-error]}]}))
 
-(defn end-job-tx [{:keys [db] :as cofx} [_event-name event-data]]
+
+(defn end-job-tx
+  [{:keys [db] :as cofx} [_event-name event-data]]
   (let [job-address (:job/id event-data)
         employer-address (:employer event-data)
         instance (contract-queries/instance (:db cofx) :job job-address)
@@ -283,6 +316,7 @@
                  :on-tx-success [:page.job-detail/end-job-tx-success]
                  :on-tx-error [::end-job-tx-error]}]}))
 
+
 (re/reg-event-fx :page.job-detail/set-quote-for-arbitration send-arbitration-data-to-ipfs)
 (re/reg-event-fx :page.job-detail/accept-quote-for-arbitration accept-quote-for-arbitration-tx)
 (re/reg-event-fx :page.job-detail/arbitration-to-ipfs-success set-quote-for-arbitration-tx)
@@ -297,21 +331,28 @@
 
 (re/reg-event-fx :page.job-detail/end-job end-job-tx)
 (re/reg-event-fx ::end-job-tx-hash-error (create-logging-handler))
+
+
 (re/reg-event-fx
   ::end-job-tx-error
   (fn [{:keys [db]} _]
     {:db (set-end-job-tx-in-progress db false)}))
 
+
 (re/reg-event-fx :page.job-detail/invite-arbiters invite-arbiters)
+
+
 (re/reg-event-db
   ::invite-arbiters-tx-error
   (fn [db _]
     (set-invite-arbiters-tx-in-progress db false)))
 
+
 (re/reg-event-db
   ::invite-arbiters-tx-hash-error
   (fn [db _]
     (set-invite-arbiters-tx-in-progress db false)))
+
 
 (re/reg-event-fx
   :page.job-detail/fetch-job-arbiter-status
@@ -326,17 +367,20 @@
                    :on-error [::job-arbiter-status-error]}]
       {:web3/call {:web3 web3-instance :fns [to-call]}})))
 
+
 (re/reg-event-db
   ::job-arbiter-status-success
   (fn [db [_ job-address arbiter-idle?]]
     (println ">>> ::job-arbiter-status-success received" job-address arbiter-idle?)
     (assoc-in db [state-key :job-arbiter-idle] arbiter-idle?)))
 
+
 (re/reg-event-db
   ::job-arbiter-status-error
   (fn [db event]
     (println ">>> ::job-arbiter-status-error" event)
     db))
+
 
 (re/reg-event-fx
   :page.job-detail/arbitration-tx-success
@@ -347,10 +391,12 @@
      :fx [[:dispatch [:page.job-detail/arbitrations-updated]]
           [:dispatch [::notification.events/show message]]]}))
 
+
 (re/reg-event-db
   :page.job-detail/set-selected-arbiters
   (fn [db [_ selection]]
     (assoc-in db [state-key :selected-arbiters] selection)))
+
 
 (re/reg-event-fx
   :page.job-detail/end-job-tx-success
@@ -359,8 +405,10 @@
      :fx [[:dispatch [:page.job-detail/job-updated]]
           [:dispatch [::notification.events/show "Transaction to end job processed successfully"]]]}))
 
+
 (re/reg-event-fx :page.job-detail/set-add-funds-amount (create-assoc-handler :add-funds-amount))
 (re/reg-event-fx :page.job-detail/start-adding-funds (create-assoc-handler :adding-funds?))
+
 
 (re/reg-event-fx
   ::send-add-funds-tx
@@ -380,6 +428,7 @@
                          :on-tx-hash-error [::tx-hash-error]
                          :on-tx-success [::add-funds-tx-success]
                          :on-tx-error [::add-funds-tx-error]}]]]})))
+
 
 (re/reg-event-fx
   ::erc20-allowance-amount-success
@@ -403,10 +452,12 @@
                          [::send-add-funds-tx funds-params]
                          increase-allowance-event)]]})))
 
+
 (re/reg-event-fx
   ::erc20-allowance-amount-error
   (fn [cofx result]
     (println ">>> ::erc20-allowance-amount-error" result)))
+
 
 (re/reg-event-fx
   ::ensure-erc20-allowance
@@ -418,11 +469,12 @@
           owner (:funder funds-params)
           spender (:receiver funds-params)]
       {:fx [[:web3/call {:fns
-                          [{:instance erc20-instance
-                            :fn :allowance
-                            :args [owner spender]
-                            :on-success [::erc20-allowance-amount-success funds-params]
-                            :on-error [::erc20-allowance-amount-error]}]}]]})))
+                         [{:instance erc20-instance
+                           :fn :allowance
+                           :args [owner spender]
+                           :on-success [::erc20-allowance-amount-success funds-params]
+                           :on-error [::erc20-allowance-amount-error]}]}]]})))
+
 
 (re/reg-event-fx
   ::safe-transfer-with-add-funds
@@ -458,6 +510,7 @@
                                              :on-tx-error [::add-funds-tx-error]}]]
       {:fx [[:dispatch safe-transfer-with-create-job-tx]]})))
 
+
 (re/reg-event-fx
   :page.job-detail/finish-adding-funds
   (fn [{:keys [db] :as cofx} [_ job-address token-details token-id tx-amount]]
@@ -490,6 +543,7 @@
       {:db (set-add-funds-tx-in-progress db true)
        :fx [[:dispatch [(get next-event token-type) funds-params]]]})))
 
+
 (re/reg-event-fx
   ::add-funds-tx-success
   (fn [{:keys [db]} [event-name tx-data]]
@@ -500,6 +554,7 @@
                (set-add-funds-tx-in-progress ,,, false))
        :fx [[:dispatch [::notification.events/show "Transaction to add funds processed successfully"]]
             [:dispatch [:page.job-detail/job-updated]]]})))
+
 
 (re/reg-event-db
   ::add-funds-tx-error

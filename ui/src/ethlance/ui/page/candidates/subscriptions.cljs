@@ -1,9 +1,10 @@
 (ns ethlance.ui.page.candidates.subscriptions
   (:require
-   [re-frame.core :as re]
-   [ethlance.ui.util.graphql :as graphql-util]
-   [ethlance.ui.page.candidates.events :as candidates.events]
-   [ethlance.ui.subscription.utils :as subscription.utils]))
+    [ethlance.ui.page.candidates.events :as candidates.events]
+    [ethlance.ui.subscription.utils :as subscription.utils]
+    [ethlance.ui.util.graphql :as graphql-util]
+    [re-frame.core :as re]))
+
 
 (def create-get-handler #(subscription.utils/create-get-handler candidates.events/state-key %))
 
@@ -22,6 +23,7 @@
 (re/reg-sub :page.candidates/max-hourly-rate (create-get-handler :max-hourly-rate))
 (re/reg-sub :page.candidates/min-num-feedbacks (create-get-handler :min-num-feedbacks))
 (re/reg-sub :page.candidates/country (create-get-handler :country))
+
 
 (re/reg-sub
   :page.candidates/search-params

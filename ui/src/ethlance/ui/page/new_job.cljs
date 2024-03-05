@@ -1,29 +1,31 @@
 (ns ethlance.ui.page.new-job
-  (:require [district.ui.component.page :refer [page]]
-            [ethlance.shared.constants :as constants]
-            [ethlance.ui.component.button :refer [c-button c-button-label]]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [district.ui.graphql.subs :as gql]
-            [district.ui.web3-tx.events :as tx-events]
-            [district.ui.smart-contracts.queries :as contract-queries]
-            [ethlance.ui.page.new-job.events :as new-job.events]
-            [ethlance.ui.component.radio-select
-             :refer
-             [c-radio-secondary-element c-radio-select]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.text-input :refer [c-text-input]]
-            [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
-            [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
-            [ethlance.ui.util.component :refer [<sub >evt]]
-            [ethlance.ui.subscriptions :as subs]
-            [ethlance.ui.util.navigation :as navigation]
-            [ethlance.ui.util.job :as util.job]
-            [re-frame.core :as re]
-            [clojure.spec.alpha :as s]))
+  (:require
+    [clojure.spec.alpha :as s]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.smart-contracts.queries :as contract-queries]
+    [district.ui.web3-tx.events :as tx-events]
+    [ethlance.shared.constants :as constants]
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.radio-select
+     :refer
+     [c-radio-secondary-element c-radio-select]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+    [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
+    [ethlance.ui.page.new-job.events :as new-job.events]
+    [ethlance.ui.subscriptions :as subs]
+    [ethlance.ui.util.component :refer [<sub >evt]]
+    [ethlance.ui.util.job :as util.job]
+    [ethlance.ui.util.navigation :as navigation]
+    [re-frame.core :as re]))
+
 
 (defn c-arbiter-for-hire
   [arbiter]
@@ -45,27 +47,33 @@
          :on-click #(re/dispatch [:page.new-job/uninvite-arbiter (:user/id arbiter)])}
         [c-button-label "Uninvite"]])]))
 
-(defn- c-submit-button [{:keys [:on-submit :disabled?]}]
+
+(defn- c-submit-button
+  [{:keys [:on-submit :disabled?]}]
   [:div.form-submit
    {:class (when disabled? "disabled")
     :on-click (fn [] (when-not disabled? (>evt on-submit)))}
    [:span "Create"]
    [c-icon {:name :ic-arrow-right :size :smaller}]])
 
-(defn radio-options-from-vector [options]
+
+(defn radio-options-from-vector
+  [options]
   (map (fn [[kw desc]] [kw [c-radio-secondary-element desc]]) options))
 
-(defn c-job-creation-form []
+
+(defn c-job-creation-form
+  []
   (let [arbiters-query [:arbiter-search {:limit 1000}
                         [[:items [:user/id
                                   [:user [:user/id
                                           :user/name
                                           :user/profile-image]]
-                                   :arbiter/bio
-                                   :arbiter/professional-title
-                                   :arbiter/rating
-                                   :arbiter/fee
-                                   :arbiter/fee-currency-id]]]]
+                                  :arbiter/bio
+                                  :arbiter/professional-title
+                                  :arbiter/rating
+                                  :arbiter/fee
+                                  :arbiter/fee-currency-id]]]]
         arbiters-result (re/subscribe [::gql/query {:queries [arbiters-query]}])
         *bid-option (re/subscribe [:page.new-job/bid-option])
         *category (re/subscribe [:page.new-job/category])
@@ -172,7 +180,7 @@
             [:erc1155 [c-radio-secondary-element "Multi-Token (ERC-1155)"]]]
            (when token-with-amount?
              [:div.token-address-input
-              ; Specialized for tokens (takes account the decimals from the contract)
+              ;; Specialized for tokens (takes account the decimals from the contract)
               [c-token-amount-input
                {:value @*token-amount
                 :decimals @token-decimals
@@ -211,12 +219,15 @@
           [:div.label "Create"]
           [c-icon {:name :ic-arrow-right :size :small}]]]))))
 
-(defn c-invite-to-create-employer-profile [user-id]
+
+(defn c-invite-to-create-employer-profile
+  [user-id]
   [c-main-layout {:container-opts {:class :new-job-main-container}}
    [:div "Set up your employer profile to be able to create new jobs"]
    [:div.button
     {:on-click (navigation/create-handler {:route :route.me/sign-up :query {:tab "employer"}})}
     "Go to employer profile page"]])
+
 
 (defmethod page :route.job/new []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))

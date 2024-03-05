@@ -1,28 +1,31 @@
 (ns ethlance.ui.page.arbiters
-  (:require [district.ui.component.page :refer [page]]
-            [district.ui.router.events :as router-events]
-            [ethlance.shared.constants :as constants]
-            [ethlance.ui.util.tokens :as tokens]
-            [ethlance.shared.enumeration.currency-type :as enum.currency]
-            [ethlance.ui.component.currency-input :refer [c-currency-input]]
-            [ethlance.ui.component.error-message :refer [c-error-message]]
-            [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.mobile-search-filter
-             :refer
-             [c-mobile-search-filter]]
-            [ethlance.ui.component.pagination :refer [c-pagination]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-            [ethlance.ui.component.text-input :refer [c-text-input]]
-            [district.ui.graphql.subs :as gql]
-            [re-frame.core :as re]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router-events]
+    [ethlance.shared.constants :as constants]
+    [ethlance.shared.enumeration.currency-type :as enum.currency]
+    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+    [ethlance.ui.component.error-message :refer [c-error-message]]
+    [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.mobile-search-filter
+     :refer
+     [c-mobile-search-filter]]
+    [ethlance.ui.component.pagination :refer [c-pagination]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+    [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.util.tokens :as tokens]
+    [re-frame.core :as re]))
 
-(defn cf-arbiter-search-filter []
+
+(defn cf-arbiter-search-filter
+  []
   (let [*category (re/subscribe [:page.arbiters/category])
         *feedback-max-rating (re/subscribe [:page.arbiters/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.arbiters/feedback-min-rating])
@@ -81,14 +84,18 @@
          :color :secondary
          :default-search-text "Search Countries"}]])))
 
-(defn c-arbiter-search-filter []
+
+(defn c-arbiter-search-filter
+  []
   [:div.search-filter
    [cf-arbiter-search-filter]])
+
 
 (defn c-arbiter-mobile-search-filter
   []
   [c-mobile-search-filter
    [cf-arbiter-search-filter]])
+
 
 (defn c-arbiter-element
   [{:keys [:user/id] :as arbiter}]
@@ -97,35 +104,36 @@
     [:div.profile-image [c-profile-image {:src (-> arbiter :user :user/profile-image)}]]
     [:div.name (get-in arbiter [:user :user/name])]]
    [:div.price (tokens/fiat-amount-with-symbol (-> arbiter :arbiter/fee-currency-id)
-                                             (-> arbiter :arbiter/fee))]
+                                               (-> arbiter :arbiter/fee))]
    [:div.tags
     (doall
-     (for [tag-label (get-in arbiter [:skills])]
-       ^{:key (str "tag-" tag-label)}
-       [c-tag {:on-click #(re/dispatch [:page.arbiters/add-skill tag-label])
-               :title (str "Add '" tag-label "' to Search")}
-        [c-tag-label tag-label]]))]
+      (for [tag-label (get-in arbiter [:skills])]
+        ^{:key (str "tag-" tag-label)}
+        [c-tag {:on-click #(re/dispatch [:page.arbiters/add-skill tag-label])
+                :title (str "Add '" tag-label "' to Search")}
+         [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating (-> arbiter :arbiter/rating)}]
     [:div.label (str "(" (-> arbiter :arbiter/feedback :total-count) ")")]]
    [:div.location (get-in arbiter [:user :user/country])]])
 
 
-(defn c-arbiter-listing []
+(defn c-arbiter-listing
+  []
   (let [query-params (re/subscribe [:page.arbiters/search-params])
         query [:arbiter-search @query-params
-                   [:total-count
-                    [:items [:user/id
-                             [:user [:user/id
-                                     :user/name
-                                     :user/country
-                                     :user/profile-image]]
-                             [:arbiter/feedback [:total-count]]
-                             :arbiter/categories
-                             :arbiter/skills
-                             :arbiter/rating
-                             :arbiter/fee
-                             :arbiter/fee-currency-id]]]]
+               [:total-count
+                [:items [:user/id
+                         [:user [:user/id
+                                 :user/name
+                                 :user/country
+                                 :user/profile-image]]
+                         [:arbiter/feedback [:total-count]]
+                         :arbiter/categories
+                         :arbiter/skills
+                         :arbiter/rating
+                         :arbiter/fee
+                         :arbiter/fee-currency-id]]]]
         results (re/subscribe [::gql/query {:queries [query]} {:id @query-params}])
         *limit (re/subscribe [:page.arbiters/limit])
         *offset (re/subscribe [:page.arbiters/offset])
@@ -162,6 +170,7 @@
          :limit @*limit
          :offset @*offset
          :set-offset-event :page.arbiters/set-offset}])]))
+
 
 (defmethod page :route.user/arbiters []
   (let [*skills (re/subscribe [:page.arbiters/skills])]

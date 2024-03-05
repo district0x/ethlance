@@ -1,7 +1,7 @@
 (ns ethlance.ui.component.circle-button
   "Circle button, which usually displays an icon"
   (:require
-   [ethlance.ui.component.icon :refer [c-icon]]))
+    [ethlance.ui.component.icon :refer [c-icon]]))
 
 
 (defn c-circle-icon-button
@@ -53,10 +53,10 @@
           class-hide (when hide? "hide")]
       [:a.ethlance-circle-button.ethlance-circle-icon-button
        (merge
-        opts
-        {:class [class-color class-size class-disabled class-hide]
-         :on-click
-         (fn [e]
-           (when (and on-click (not disabled?))
-             (on-click e)))})
+         opts
+         {:class [class-color class-size class-disabled class-hide]
+          :on-click
+          (fn [e]
+            (when (and on-click (not disabled?))
+              (on-click e)))})
        [c-icon {:name name :color color :size size}]])))

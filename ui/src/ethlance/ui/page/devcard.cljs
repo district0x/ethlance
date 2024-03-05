@@ -1,17 +1,19 @@
 (ns ethlance.ui.page.devcard
   "Development Page for showing off different reagent components"
-  (:require [district.ui.component.page :refer [page]]
-            [ethlance.shared.constants :as constants]
-            [ethlance.ui.component.button :refer [c-button c-button-label]]
-            [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
-            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.scrollable :refer [c-scrollable]]
-            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [ethlance.shared.constants :as constants]
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
+    [ethlance.ui.component.checkbox :refer [c-labeled-checkbox]]
+    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.scrollable :refer [c-scrollable]]
+    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]))
+
 
 (defmethod page :route.devcard/index []
   (fn []
@@ -228,17 +230,17 @@
          [c-scrollable {:forceVisible true :autoHide false}
           [:ul
            (doall
-            (for [i (range 30)]
-              ^{:key (str "el-" i)}
-              [:li (str "Element " (inc i))]))]]]
+             (for [i (range 30)]
+               ^{:key (str "el-" i)}
+               [:li (str "Element " (inc i))]))]]]
 
         [:div.scrollable-fixed-horizontal
          [c-scrollable {:forceVisible true :autoHide false}
           [:div
            (doall
-            (for [i (range 30)]
-              ^{:key (str "el-" i)}
-              [:span (str "Element " (inc i))]))]]]]]
+             (for [i (range 30)]
+               ^{:key (str "el-" i)}
+               [:span (str "Element " (inc i))]))]]]]]
 
       [:div.dark-grouping
        [:div.title "Ethlance Scrollable (dark)"]
@@ -247,12 +249,12 @@
          [c-scrollable {:maxHeight 400 :forceVisible true :autoHide false}
           [:ul
            (doall
-            (for [i (range 30)]
-              [:li (str "Element " (inc i))]))]]]
+             (for [i (range 30)]
+               [:li (str "Element " (inc i))]))]]]
 
         [:div.scrollable-fixed-horizontal
          [c-scrollable {}
           [:div
            (doall
-            (for [i (range 30)]
-              [:span (str "Element " (inc i))]))]]]]]]]))
+             (for [i (range 30)]
+               [:span (str "Element " (inc i))]))]]]]]]]))

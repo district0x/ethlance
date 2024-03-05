@@ -1,11 +1,15 @@
 (ns ethlance.ui.component.rating
-  (:require [reagent.core :as r]))
+  (:require
+    [reagent.core :as r]))
+
 
 (def rating-star-src-primary "/images/icons/ethlance-star-icon-primary.svg")
 (def rating-star-src-black "/images/icons/ethlance-star-icon-black.svg")
 (def rating-star-src-white "/images/icons/ethlance-star-icon-white.svg")
 
-(defn c-star []
+
+(defn c-star
+  []
   (fn [{:keys [active? color index on-change size]
         :or {color :primary size :default}}]
     (let [color-src (case color
@@ -30,6 +34,7 @@
         :style {:width (str size-value "px")
                 :height (str size-value "px")}
         :class [active-class size-class]}])))
+
 
 (defn c-rating
   "Rating Component, for displaying feedback within ethlance.

@@ -1,5 +1,6 @@
 (ns ethlance.shared.graphql.schema)
 
+
 (def schema
   "The main GraphQL Schema"
   "

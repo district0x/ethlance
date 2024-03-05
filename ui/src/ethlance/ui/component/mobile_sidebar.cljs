@@ -1,16 +1,15 @@
 (ns ethlance.ui.component.mobile-sidebar
   ""
   (:require
-   [reagent.core :as r]
-   
-   ;; Ethlance Components
-   [ethlance.ui.component.icon :refer [c-icon]]))
+    ;; Ethlance Components
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [reagent.core :as r]))
 
 
 (defn c-mobile-sidebar
   [& children]
   (let [*open? (r/atom false)]
-    (fn []  
+    (fn []
       [:div.mobile-sidebar
        {:class (when @*open? "open")}
        [:div.nav-button

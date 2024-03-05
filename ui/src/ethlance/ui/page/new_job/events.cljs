@@ -1,26 +1,32 @@
 (ns ethlance.ui.page.new-job.events
   (:require
+    ["web3" :as w3]
     [alphabase.hex :as hex]
+    [cljs-web3-next.eth :as w3n-eth]
+    [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
     [district.ui.router.events :as router-events]
-    [cljs-web3-next.eth :as w3n-eth]
-    [ethlance.ui.event.utils :as event.utils]
-    [ethlance.shared.utils :refer [eth->wei base58->hex js-obj->clj-map]]
-    [re-frame.core :as re]
-    ["web3" :as w3]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
-    [district.ui.web3.queries :as web3-queries]
     [district.ui.web3-tx.events :as web3-events]
-    [district.ui.notification.events :as notification.events]
-    [ethlance.shared.contract-constants :as contract-constants]))
+    [district.ui.web3.queries :as web3-queries]
+    [ethlance.shared.contract-constants :as contract-constants]
+    [ethlance.shared.utils :refer [eth->wei base58->hex js-obj->clj-map]]
+    [ethlance.ui.event.utils :as event.utils]
+    [re-frame.core :as re]))
+
 
 (def state-key :page.new-job)
 (def new-job-params-path [state-key :job-creation-params])
-(defn get-job-creation-param [db param-key]
+
+
+(defn get-job-creation-param
+  [db param-key]
   (get-in db (conj new-job-params-path param-key)))
 
+
 (def interceptors [re/trim-v])
+
 
 (def state-default
   {:job/title "Rauamaak on meie saak"
@@ -39,6 +45,7 @@
    :job/invited-arbiters #{}
    :job/token-decimals 18})
 
+
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   []
@@ -47,12 +54,15 @@
      :name :route.job/new
      :dispatch [:page.new-job/auto-fill-form]}]})
 
+
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
+
 
 (re/reg-event-db
   :page.new-job/auto-fill-form
   (fn [db]
     (assoc-in db [state-key] state-default)))
+
 
 (re/reg-event-fx :page.new-job/initialize-page initialize-page)
 (re/reg-event-fx :page.new-job/set-bid-option (create-assoc-handler :job/bid-option))
@@ -65,11 +75,13 @@
 (re/reg-event-fx :page.new-job/set-required-skills (create-assoc-handler :job/required-skills))
 (re/reg-event-fx :page.new-job/set-with-arbiter? (create-assoc-handler :job/with-arbiter?))
 
+
 (re/reg-event-db
   :page.new-job/invite-arbiter
   (fn [db [_ arbiter]]
     (assoc-in db [state-key :job/invited-arbiters]
               (conj (get-in db [state-key :job/invited-arbiters]) arbiter))))
+
 
 (re/reg-event-db
   :page.new-job/uninvite-arbiter
@@ -78,8 +90,8 @@
               (disj (get-in db [state-key :job/invited-arbiters]) arbiter))))
 
 
-; The simple setter implementation for eventual production
-; (re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
+;; The simple setter implementation for eventual production
+;; (re/reg-event-fx :page.new-job/set-token-type (create-assoc-handler :job/token-type))
 
 (re/reg-event-db
   :page.new-job/decimals-response
@@ -87,7 +99,8 @@
     (println ">>> DECIMALS RESPONSE" decimals)
     (assoc-in db [state-key :job/token-decimals] decimals)))
 
-; Implementation to auto-fill testnet token data with address
+
+;; Implementation to auto-fill testnet token data with address
 (re/reg-event-fx
   :page.new-job/set-token-type
   (fn [{:keys [db] :as cofx} [_ token-type]]
@@ -123,6 +136,7 @@
 (re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :job/token-address))
 (re/reg-event-fx :page.new-job/set-token-id (create-assoc-handler :job/token-id))
 
+
 (def db->ipfs-mapping
   {:job/bid-option :job/bid-option
    :job/category :job/category
@@ -134,6 +148,7 @@
    :job/title :job/title
    :job/invited-arbiters :job/invited-arbiters})
 
+
 (defn- db-job->ipfs-job
   "Useful for renaming map keys by reducing over a map of keyword -> keyword
   where: key is the name of the resulting map key and value is the key of the
@@ -144,8 +159,11 @@
   [job-data acc ipfs-key db-key]
   (assoc acc ipfs-key (job-data db-key)))
 
-(defn set-tx-in-progress [db in-progress?]
+
+(defn set-tx-in-progress
+  [db in-progress?]
   (assoc-in db [state-key :tx-in-progress?] in-progress?))
+
 
 (re/reg-event-fx
   :page.new-job/create
@@ -157,6 +175,7 @@
                    :args [(js/Blob. [ipfs-job])]
                    :on-success [:job-to-ipfs-success]
                    :on-error [:job-to-ipfs-failure]}})))
+
 
 (re/reg-event-fx
   ::send-create-job-tx
@@ -182,10 +201,12 @@
                          :on-tx-success [::create-job-tx-success]
                          :on-tx-error [::create-job-tx-error]}]]]})))
 
+
 (re/reg-event-fx
   ::create-job-tx-receipt
   (fn [cofx result]
     (println ">>> ::create-job-tx-receipt" result)))
+
 
 (re/reg-event-fx
   ::tx-hash-error
@@ -199,10 +220,12 @@
     (println ">>> ::erc20-allowance-approval-success" result)
     {:fx [[:dispatch [::send-create-job-tx]]]}))
 
+
 (re/reg-event-fx
   ::erc20-allowance-approval-error
   (fn [cofx result]
     (println ">>> ::erc20-allowance-approval-error" result)))
+
 
 (re/reg-event-fx
   ::erc20-allowance-amount-success
@@ -228,10 +251,12 @@
                          [::send-create-job-tx]
                          increase-allowance-event)]]})))
 
+
 (re/reg-event-fx
   ::erc20-allowance-amount-error
   (fn [cofx result]
     (println ">>> ::erc20-allowance-amount-error" result)))
+
 
 (re/reg-event-fx
   ::ensure-erc20-allowance
@@ -243,16 +268,19 @@
           owner (get-job-creation-param db :employer)
           spender (contract-queries/contract-address db :ethlance)]
       {:fx [[:web3/call {:fns
-                          [{:instance erc20-instance
-                            :fn :allowance
-                            :args [owner spender]
-                            :on-success [::erc20-allowance-amount-success] ; handler needs to read app-db
-                            :on-error [::erc20-allowance-amount-error]}]}]]})))
+                         [{:instance erc20-instance
+                           :fn :allowance
+                           :args [owner spender]
+                           :on-success [::erc20-allowance-amount-success] ; handler needs to read app-db
+                           :on-error [::erc20-allowance-amount-error]}]}]]})))
 
-(defn job-creation-params [db]
+
+(defn job-creation-params
+  [db]
   {:offered-value nil
    :arbiters nil
    :ipfs-hash nil})
+
 
 (re/reg-event-fx
   ::safe-transfer-with-create-job
@@ -286,6 +314,7 @@
       {:db (set-tx-in-progress db true)
        :fx [[:dispatch safe-transfer-with-create-job-tx]]})))
 
+
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
@@ -315,19 +344,22 @@
           next-event {:eth ::send-create-job-tx
                       :erc20 ::ensure-erc20-allowance
                       :erc721 ::safe-transfer-with-create-job
-                      :erc1155 ::safe-transfer-with-create-job}
-          ]
+                      :erc1155 ::safe-transfer-with-create-job}]
       {:db (assoc-in (:db cofx) new-job-params-path new-job-params)
        :fx [[:dispatch [(get next-event token-type)]]]})))
+
 
 (re/reg-event-fx
   ::tx-hash
   (fn [db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
 
-(defn async-request-event [{:keys [contract event block-number callback]}]
+
+(defn async-request-event
+  [{:keys [contract event block-number callback]}]
   (let []
     (-> (w3n-eth/get-past-events contract event {:from-block block-number :to-block block-number})
         (.then ,,, callback))))
+
 
 (re/reg-event-fx
   ::create-job-tx-success
@@ -336,22 +368,23 @@
       (println ">>> ::create-job-tx-success" tx-data)
       {:db (set-tx-in-progress db false)
        :fx [[:dispatch [::notification.events/show "Transaction to create job processed successfully"]]
-            ; When creating job via ERC721/1155 callback (onERC{721,1155}Received), the event data is part of the
-            ; tx-receipt, but doesn't have event name, making it difficult to find and decode. Thus this workaround:
-            ;   - requesting the JobCreated event directly from Ethlance and receiving it correctly decoded
+            ;; When creating job via ERC721/1155 callback (onERC{721,1155}Received), the event data is part of the
+            ;; tx-receipt, but doesn't have event name, making it difficult to find and decode. Thus this workaround:
+            ;;   - requesting the JobCreated event directly from Ethlance and receiving it correctly decoded
             (if job-from-event
               [:dispatch-later [{:ms 1000 :dispatch [::router-events/navigate :route.job/detail {:id (get-in tx-data [:events :Job-created :return-values :job])}]}]]
               (async-request-event {:event "allEvents"
                                     :block-number (:block-number tx-data)
                                     :contract (district.ui.smart-contracts.queries/instance db :ethlance)
                                     :callback (fn [result]
-                                                ; Delaying navigation to give server time to process the contract event
+                                                ;; Delaying navigation to give server time to process the contract event
                                                 (js/setTimeout
                                                   #(re/dispatch
                                                      [::router-events/navigate
                                                       :route.job/detail
                                                       {:id (get (js-obj->clj-map (.-returnValues (first result))) "job")}])
                                                   1000))}))]})))
+
 
 (re/reg-event-db
   ::create-job-tx-error
@@ -360,7 +393,8 @@
     {:db (set-tx-in-progress db false)
      :dispatch [::notification.events/show "Error with creating new job transaction"]}))
 
+
 (re/reg-event-fx
   ::job-to-ipfs-failure
   (fn [_ _]
-  {:dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))
+    {:dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))

@@ -1,10 +1,13 @@
 (ns ethlance.ui.component.search-input
-  (:require [cuerdas.core :as string]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [reagent.core :as r]
-            ["react" :as react]))
+  (:require
+    ["react" :as react]
+    [cuerdas.core :as string]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [reagent.core :as r]))
+
 
 (def blur-delay-ms 200)
+
 
 (defn filter-selections
   [search-text selections label-fn]
@@ -13,6 +16,7 @@
          (filter #(string/includes? (string/lower (label-fn %)) (string/lower search-text)))
          vec)
     nil))
+
 
 (defn next-element
   "Get the next element in `xs` after element `v`."
@@ -23,6 +27,7 @@
       (>= (inc index) (count xs)) (first xs)
       :else (get xs (inc index)))))
 
+
 (defn previous-element
   "Get the previous element in `xs` before element `v`."
   [xs v]
@@ -32,7 +37,9 @@
       (= index 0) (last xs)
       :else (get xs (dec index)))))
 
-(defn c-chip [{:keys [on-close]} label]
+
+(defn c-chip
+  [{:keys [on-close]} label]
   [:div.ethlance-chip
    {:title label}
    [:span.label label]
@@ -40,6 +47,7 @@
     {:on-click on-close
      :title (str "Remove '" label "'")}
     [c-icon {:name :close :size :x-small :color :black :inline? false}]]])
+
 
 (defn c-chip-search-input
   "A standalone component for handling chip search inputs.

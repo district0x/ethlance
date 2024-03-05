@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.text-input
   (:require
-   [reagent.core :as r]))
+    [reagent.core :as r]))
+
 
 (defn c-text-input
   "Default Text Input Component

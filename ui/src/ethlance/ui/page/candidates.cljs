@@ -1,31 +1,33 @@
 (ns ethlance.ui.page.candidates
   "General Candidate Listings on ethlance"
-  (:require [cuerdas.core :as str]
-            [district.ui.component.page :refer [page]]
-            [district.ui.router.events :as router-events]
-            [ethlance.shared.constants :as constants]
-            [district.ui.graphql.subs :as gql]
-            [ethlance.ui.util.tokens :as tokens]
-            [ethlance.shared.enumeration.currency-type :as enum.currency]
-            [ethlance.ui.component.currency-input :refer [c-currency-input]]
-            [ethlance.ui.component.error-message :refer [c-error-message]]
-            [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.mobile-search-filter
-             :refer
-             [c-mobile-search-filter]]
-            [ethlance.ui.component.pagination :refer [c-pagination]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [ethlance.ui.component.radio-select
-             :refer
-             [c-radio-search-filter-element c-radio-select]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-            [ethlance.ui.component.text-input :refer [c-text-input]]
-            [re-frame.core :as re]))
+  (:require
+    [cuerdas.core :as str]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router-events]
+    [ethlance.shared.constants :as constants]
+    [ethlance.shared.enumeration.currency-type :as enum.currency]
+    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+    [ethlance.ui.component.error-message :refer [c-error-message]]
+    [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.mobile-search-filter
+     :refer
+     [c-mobile-search-filter]]
+    [ethlance.ui.component.pagination :refer [c-pagination]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.radio-select
+     :refer
+     [c-radio-search-filter-element c-radio-select]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+    [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.util.tokens :as tokens]
+    [re-frame.core :as re]))
+
 
 (defn cf-candidate-search-filter
   "Component Fragment for the candidate search filter."
@@ -90,17 +92,21 @@
           :color :secondary
           :default-search-text "Search Countries"}]]])))
 
+
 (defn c-candidate-search-filter
   []
   [:div.search-filter
    [cf-candidate-search-filter]])
+
 
 (defn c-candidate-mobile-search-filter
   []
   [c-mobile-search-filter
    [cf-candidate-search-filter]])
 
-(defn c-candidate-element [candidate]
+
+(defn c-candidate-element
+  [candidate]
   [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {:tab "candidate"}])}
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
@@ -109,17 +115,18 @@
    [:div.price (tokens/fiat-amount-with-symbol (-> candidate :candidate/rate-currency-id) (-> candidate :candidate/rate))]
    [:div.tags
     (doall
-     (for [tag-label (-> candidate :candidate/skills)]
-       ^{:key (str "tag-" tag-label)}
-       [c-tag {:on-click #(re/dispatch  [:page.candidates/add-skill tag-label])
-               :title (str "Add '" tag-label "' to Search")}
-        [c-tag-label tag-label]]))]
+      (for [tag-label (-> candidate :candidate/skills)]
+        ^{:key (str "tag-" tag-label)}
+        [c-tag {:on-click #(re/dispatch  [:page.candidates/add-skill tag-label])
+                :title (str "Add '" tag-label "' to Search")}
+         [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating (-> candidate :candidate/rating)}]
     [:div.label (str "(" (-> candidate :candidate/feedback :total-count) ")")]]])
 
 
-(defn c-candidate-listing []
+(defn c-candidate-listing
+  []
   (let [*limit (re/subscribe [:page.candidates/limit])
         *offset (re/subscribe [:page.candidates/offset])
         query-params (re/subscribe [:page.candidates/search-params])]
@@ -161,9 +168,9 @@
 
            :else
            (doall
-            (for [candidate candidate-listing]
-              ^{:key (str "candidate-" (hash candidate))}
-              [c-candidate-element candidate])))
+             (for [candidate candidate-listing]
+               ^{:key (str "candidate-" (hash candidate))}
+               [c-candidate-element candidate])))
 
          ;; Pagination
          (when (seq candidate-listing)
@@ -172,6 +179,7 @@
              :limit (or @*limit 20)
              :offset (or @*offset 0)
              :set-offset-event :page.candidates/set-offset}])]))))
+
 
 (defmethod page :route.user/candidates []
   (let [*skills (re/subscribe [:page.candidates/skills])]

@@ -1,7 +1,7 @@
 (ns ethlance.ui.component.error-message
   (:require
-   [reagent.core :as r]
-   [taoensso.timbre :as log]))
+    [reagent.core :as r]
+    [taoensso.timbre :as log]))
 
 
 (defn c-error-message
@@ -13,7 +13,7 @@
     (fn []
       [:div.error-message
        [:div.logo
-        [:img {:src "/images/svg/ethlance_spinner.svg"}]] ;; FIXME
+        [:img {:src "/images/svg/ethlance_spinner.svg"}]] ; FIXME
        [:div.message message]
        (when details
          [:div.show-button

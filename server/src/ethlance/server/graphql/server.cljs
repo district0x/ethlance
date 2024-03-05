@@ -1,15 +1,17 @@
 (ns ethlance.server.graphql.server
-  (:require [cljs.nodejs :as nodejs]
-            [cljs.reader :refer [read-string]]
-            [district.server.config :as config]
-            [district.shared.async-helpers :refer [promise->]]
-            [ethlance.server.graphql.middlewares :as middlewares]
-            [ethlance.server.graphql.resolvers :as resolvers]
-            [ethlance.server.ui-config :as ui-config]
-            [ethlance.shared.graphql.schema :as schema]
-            [ethlance.shared.utils :as shared-utils]
-            [mount.core :as mount :refer [defstate]]
-            [taoensso.timbre :as log]))
+  (:require
+    [cljs.nodejs :as nodejs]
+    [cljs.reader :refer [read-string]]
+    [district.server.config :as config]
+    [district.shared.async-helpers :refer [promise->]]
+    [ethlance.server.graphql.middlewares :as middlewares]
+    [ethlance.server.graphql.resolvers :as resolvers]
+    [ethlance.server.ui-config :as ui-config]
+    [ethlance.shared.graphql.schema :as schema]
+    [ethlance.shared.utils :as shared-utils]
+    [mount.core :as mount :refer [defstate]]
+    [taoensso.timbre :as log]))
+
 
 (nodejs/enable-util-print!)
 
@@ -23,12 +25,15 @@
 
 (declare start stop)
 
+
 (defstate ^{:on-reload :noop} graphql
   :start (start (merge (:graphql @config/config)
                        (:graphql (mount/args))))
   :stop (stop graphql))
 
-(defn start [opts]
+
+(defn start
+  [opts]
   (let [executable-schema (makeExecutableSchema (clj->js {:typeDefs (gql schema/schema)
                                                           :resolvers resolvers/resolvers-map}))
         schema-with-middleware (applyMiddleware executable-schema
@@ -51,7 +56,8 @@
                                             :current-user user
                                             :timestamp timestamp}))}))]
 
-    (js-invoke app "get" "/config" (fn [req res] ; Add JSON /config endpoint for district-ui-config
+    (js-invoke app "get" "/config" (fn [req res]
+                                     ;; Add JSON /config endpoint for district-ui-config
                                      (.then (ui-config/fetch-config {:env-name "UI_CONFIG_PATH"})
                                             (fn [config]
                                               (.setHeader res "Access-Control-Allow-Origin", "*")
@@ -62,17 +68,21 @@
                  (log/info "Graphql with express middleware server started...")
                  (js->clj url :keywordize-keys true)))))
 
-(defn stop [graphql]
+
+(defn stop
+  [graphql]
   (promise-> @graphql
              (fn [{:keys [server]}]
                (js/Promise.
-                (fn [resolve _]
-                  (js-invoke server "close" (fn []
-                                              (log/debug "Graphql server stopped...")
-                                              (resolve ::stopped))))))))
+                 (fn [resolve _]
+                   (js-invoke server "close" (fn []
+                                               (log/debug "Graphql server stopped...")
+                                               (resolve ::stopped))))))))
+
 
 ;; TODO : implement restart
-(defn restart []
+(defn restart
+  []
   (log/debug "restarting graphql server")
   #_(let [opts (merge (:graphql @config/config)
                     (:graphql (mount/args)))]

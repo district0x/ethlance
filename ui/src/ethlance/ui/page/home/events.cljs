@@ -5,17 +5,20 @@
     [re-frame.core :as re]))
 
 
-(defn logged-in? [active-account active-session-user-id]
+(defn logged-in?
+  [active-account active-session-user-id]
   (and
     (not-any? nil? [active-account active-session-user-id])
     (ethlance.shared.utils/ilike= active-account active-session-user-id)))
+
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
   (let []
     (when-not (logged-in? (accounts-queries/active-account db)
-                    (get-in db [:active-session :user/id]))
+                          (get-in db [:active-session :user/id]))
       {:fx [[:dispatch [:modal/open ::sign-in]]]})))
+
 
 (re/reg-event-fx :page.home/initialize-page initialize-page)

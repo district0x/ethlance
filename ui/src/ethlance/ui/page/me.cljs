@@ -1,23 +1,26 @@
 (ns ethlance.ui.page.me
-  (:require [district.ui.component.page :refer [page]]
-            [district.ui.router.subs :as router.subs]
-            [district.ui.router.events :as router.events]
-            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [ethlance.ui.component.pagination :refer [c-pagination-ends]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
-            [ethlance.ui.component.table :refer [c-table]]
-            [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-            [ethlance.ui.component.button :refer [c-button c-button-label]]
-            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-            [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
-            [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
-            [district.ui.graphql.subs :as gql]
-            [ethlance.ui.util.tokens :as tokens]
-            [re-frame.core :as re]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router.events]
+    [district.ui.router.subs :as router.subs]
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
+    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.mobile-sidebar :refer [c-mobile-sidebar]]
+    [ethlance.ui.component.pagination :refer [c-pagination-ends]]
+    [ethlance.ui.component.table :refer [c-table]]
+    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
+    [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
+    [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
+    [ethlance.ui.util.tokens :as tokens]
+    [re-frame.core :as re]))
 
-(defn c-nav-sidebar-element [label id-value]
+
+(defn c-nav-sidebar-element
+  [label id-value]
   (let [*active-page (re/subscribe [::router.subs/active-page])]
     (fn []
       (let [{active-page :name
@@ -59,6 +62,7 @@
            :on-click (util.navigation/create-handler {:route active-page :params active-params :query updated-query})}
           label]]))))
 
+
 (defn c-table-listing
   "Produces tabl ewith headers
 
@@ -92,26 +96,32 @@
        :offset offset
        :set-offset-event :page.me/set-pagination-offset}]]))
 
-(defn tab-navigate-handler [sidebar tab]
+
+(defn tab-navigate-handler
+  [sidebar tab]
   (fn []
     (re/dispatch [::router.events/navigate
                   :route.me/index
                   {}
                   {:sidebar sidebar :tab tab}])))
 
-(defn spinner-until-data-ready [loading-states component-when-loading-finished]
+
+(defn spinner-until-data-ready
+  [loading-states component-when-loading-finished]
   (if (not-every? false? loading-states)
     [c-loading-spinner]
     component-when-loading-finished))
 
-(defn c-job-listing [user-type]
+
+(defn c-job-listing
+  [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "active")
         tab-to-index {"active" 0 "finished" 1}
-        ; Currently nothing sets the job status as finished (only job-story status)
-        ; Withdrawing all funds (on job details page) sets job to "ended" status
-        ; Alternatively the :status search param could accept array
+        ;; Currently nothing sets the job status as finished (only job-story status)
+        ;; Withdrawing all funds (on job details page) sets job to "ended" status
+        ;; Alternatively the :status search param could accept array
         status-search-param (if (= tab "finished") "ended" tab)
         tab-index (get tab-to-index tab 0)
         limit @(re/subscribe [:page.me/pagination-limit])
@@ -139,11 +149,12 @@
         result @(re/subscribe [::gql/query {:queries [job-query]}])
         [loading? processing?] (map result [:graphql/loading? :graphql/preprocessing?])
         jobs (get-in result [:job-search :items])
-        remuneration (fn [job] (str (tokens/human-amount
-                                      (:job/token-amount job)
-                                      (:job/token-type job)
-                                      (get-in job [:token-details :token-detail/decimals] ))
-                                    " " (-> job :token-details :token-detail/symbol)))
+        remuneration (fn [job]
+                       (str (tokens/human-amount
+                              (:job/token-amount job)
+                              (:job/token-type job)
+                              (get-in job [:token-details :token-detail/decimals]))
+                            " " (-> job :token-details :token-detail/symbol)))
         arbitration-info (fn [job]
                            (let [arbitration-status (:arbitration/status (first (get-in job [:arbitrations :items])))]
                              (when arbitration-status (str "Arbitration: " arbitration-status))))
@@ -174,10 +185,14 @@
        [:div.listing.my-employer-job-listing
         [c-table-listing jobs-table jobs job-link-fn pagination]])]))
 
-(defn c-my-employer-job-listing []
+
+(defn c-my-employer-job-listing
+  []
   [c-job-listing :creator])
 
-(defn c-contract-listing [user-type user-address]
+
+(defn c-contract-listing
+  [user-type user-address]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "invitation")
@@ -243,7 +258,9 @@
        [:div.listing.my-employer-job-listing
         [c-table-listing jobs-table jobs contract-link-fn pagination]])]))
 
-(defn c-invoice-listing [user-type user-address]
+
+(defn c-invoice-listing
+  [user-type user-address]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "pending")
@@ -291,7 +308,7 @@
                               (str (tokens/human-amount (:invoice/amount-requested invoice)
                                                         (get-in invoice [:job-story :job :job/token-type])
                                                         (get-in invoice [:job-story :job :token-details :token-detail/decimals]))
-                                    " " (get-in invoice [:job-story :job :token-details :token-detail/symbol])))
+                                   " " (get-in invoice [:job-story :job :token-details :token-detail/symbol])))
         table [{:title "Job Title" :source #(get-in % [:job-story :job :job/title])}
                {:title "Candidate" :source user-name-fn}
                {:title "Amount Requested" :source amount-requested-fn}
@@ -318,7 +335,9 @@
        [:div.listing.my-employer-job-listing
         [c-table-listing table invoices invoice-link-fn pagination]])]))
 
-(defn c-dispute-listing [user-type]
+
+(defn c-dispute-listing
+  [user-type]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "dispute-raised")
@@ -367,11 +386,11 @@
         dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
         contract-link-fn (fn [dispute] {:route :route.job/contract :params {:job-story-id (:job-story/id dispute)}})
         amount-fn (fn [amount-source invoice]
-                              (str (tokens/human-amount
-                                     (amount-source invoice)
-                                     (get-in invoice [:job :job/token-type])
-                                     (get-in invoice [:job :token-details :token-detail/decimals]))
-                                    " " (get-in invoice [:job :token-details :token-detail/symbol])))
+                    (str (tokens/human-amount
+                           (amount-source invoice)
+                           (get-in invoice [:job :job/token-type])
+                           (get-in invoice [:job :token-details :token-detail/decimals]))
+                         " " (get-in invoice [:job :token-details :token-detail/symbol])))
         truncated-dispute-fn (fn [text-source invoice]
                                (let [text (get-in invoice [text-source] "")
                                      max-chars 20]
@@ -409,41 +428,58 @@
        [:div.listing.my-employer-job-listing
         [c-table-listing resolved-table disputes contract-link-fn pagination]])]))
 
-(defn c-my-employer-contract-listing []
+
+(defn c-my-employer-contract-listing
+  []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
     [c-contract-listing :employer active-user]))
 
-(defn c-my-employer-invoice-listing []
+
+(defn c-my-employer-invoice-listing
+  []
   (let [employer (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
     [c-invoice-listing :employer employer]))
 
-(defn c-my-employer-dispute-listing []
+
+(defn c-my-employer-dispute-listing
+  []
   (c-dispute-listing :employer))
+
 
 ;;
 ;; Candidate Sections
 ;;
 
-(defn c-my-candidate-contract-listing []
+(defn c-my-candidate-contract-listing
+  []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
     [c-contract-listing :candidate active-user]))
 
-(defn c-my-candidate-invoice-listing []
+
+(defn c-my-candidate-invoice-listing
+  []
   (let [candidate (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))]
     [c-invoice-listing :candidate candidate]))
 
-(defn c-my-candidate-dispute-listing []
+
+(defn c-my-candidate-dispute-listing
+  []
   [c-dispute-listing :candidate])
+
 
 ;;
 ;; Arbiter Sections
 ;;
 
-(defn c-my-arbiter-job-listing []
+(defn c-my-arbiter-job-listing
+  []
   [c-job-listing :arbiter])
 
-(defn c-my-arbiter-dispute-listing []
+
+(defn c-my-arbiter-dispute-listing
+  []
   [c-dispute-listing :arbiter])
+
 
 (defn c-sidebar
   []
@@ -466,13 +502,16 @@
     [c-nav-sidebar-element "My Jobs" :my-arbiter-job-listing]
     [c-nav-sidebar-element "My Disputes" :my-arbiter-dispute-listing]]])
 
+
 (defn c-mobile-navigation
   []
   (fn []
     [c-mobile-sidebar
      [c-sidebar]]))
 
-(defn c-listing []
+
+(defn c-listing
+  []
   (let [active-page (re/subscribe [::router.subs/active-page])]
     (fn []
       (let [{page :name
@@ -497,6 +536,7 @@
            :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
 
            (throw (ex-info "Unable to determine sidebar choice" *current-sidebar-choice)))]))))
+
 
 (defmethod page :route.me/index []
   (fn []

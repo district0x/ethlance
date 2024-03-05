@@ -1,34 +1,36 @@
 (ns ethlance.ui.page.jobs
   "General Job Listings on ethlance"
-  (:require [cuerdas.core :as str]
-            [district.format :as format]
-            [district.ui.component.page :refer [page]]
-            [ethlance.ui.component.pagination :refer [c-pagination]]
-            [district.ui.router.events :as router-events]
-            [inflections.core :as inflections]
-            [district.ui.graphql.subs :as gql]
-            [ethlance.shared.constants :as constants]
-            [ethlance.shared.enumeration.currency-type :as enum.currency]
-            [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.util.navigation :as util.navigation]
-            [ethlance.ui.component.currency-input :refer [c-currency-input]]
-            [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.token-info :refer [c-token-info]]
-            [ethlance.ui.util.tokens :as tokens]
-            [ethlance.ui.component.mobile-search-filter
-             :refer
-             [c-mobile-search-filter]]
-            [ethlance.ui.component.radio-select
-             :refer
-             [c-radio-search-filter-element c-radio-select]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-            [ethlance.ui.component.text-input :refer [c-text-input]]
-            [re-frame.core :as re]))
+  (:require
+    [cuerdas.core :as str]
+    [district.format :as format]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router-events]
+    [ethlance.shared.constants :as constants]
+    [ethlance.shared.enumeration.currency-type :as enum.currency]
+    [ethlance.ui.component.currency-input :refer [c-currency-input]]
+    [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.mobile-search-filter
+     :refer
+     [c-mobile-search-filter]]
+    [ethlance.ui.component.pagination :refer [c-pagination]]
+    [ethlance.ui.component.radio-select
+     :refer
+     [c-radio-search-filter-element c-radio-select]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+    [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.component.token-info :refer [c-token-info]]
+    [ethlance.ui.util.navigation :as util.navigation]
+    [ethlance.ui.util.tokens :as tokens]
+    [inflections.core :as inflections]
+    [re-frame.core :as re]))
+
 
 (defn c-user-employer-detail
   [employer]
@@ -50,6 +52,7 @@
       (when rating-count [:div.rating-label (str "(" rating-count ")")])]
      [:div.location country]]))
 
+
 (defn c-user-arbiter-detail
   [arbiter]
   (let [name (get-in arbiter [:user :user/name])
@@ -70,6 +73,7 @@
       [c-rating {:size :small :color :primary :default-rating rating}]
       (when rating-count [:div.rating-label (str "(" rating-count ")")])]
      [:div.location country]]))
+
 
 (defn c-job-detail-table
   [{:job/keys [bid-option required-experience-level estimated-project-length required-availability] :as job}]
@@ -95,6 +99,7 @@
 
      [:div.name "Availability"]
      [:div.value (str/title required-availability)]]))
+
 
 (defn cf-job-search-filter
   "Component Fragment for the job search filter."
@@ -185,7 +190,7 @@
   "A single job element component composed from the job data."
   [{:job/keys [title description date-created required-skills arbiter employer id] :as job}]
   (let [proposals-count (get-in job [:job-stories :total-count])
-        ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
+        ;; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
         relative-ago (format/time-ago (new js/Date date-created))
         pluralized-proposals (inflections/pluralize proposals-count "proposal")]
     [:div.job-element
@@ -195,11 +200,11 @@
      [:div.date (str "Posted " relative-ago " | " pluralized-proposals)]
      [:div.tags
       (doall
-       (for [skill-label required-skills]
-         ^{:key (str "tag-" skill-label)}
-         [c-tag {:on-click #(re/dispatch [:page.jobs/add-skill skill-label])
-                 :title (str "Add '" skill-label "' to Search")}
-          [c-tag-label skill-label]]))]
+        (for [skill-label required-skills]
+          ^{:key (str "tag-" skill-label)}
+          [c-tag {:on-click #(re/dispatch [:page.jobs/add-skill skill-label])
+                  :title (str "Add '" skill-label "' to Search")}
+           [c-tag-label skill-label]]))]
 
      [:div.users
       [c-user-employer-detail employer]
@@ -209,7 +214,8 @@
       [c-job-detail-table job]]]))
 
 
-(defn c-job-listing []
+(defn c-job-listing
+  []
   (fn []
     (let [query-params (re/subscribe [:page.jobs/job-search-params])
           query [:job-search @query-params
@@ -277,11 +283,12 @@
              [c-job-element job])))
 
        (when (seq job-listing)
-           [c-pagination
-            {:total-count total-count
-             :limit (or @*limit 10)
-             :offset (or @*offset 0)
-             :set-offset-event :page.jobs/set-offset}])])))
+         [c-pagination
+          {:total-count total-count
+           :limit (or @*limit 10)
+           :offset (or @*offset 0)
+           :set-offset-event :page.jobs/set-offset}])])))
+
 
 (defmethod page :route.job/jobs []
   (let [*skills (re/subscribe [:page.jobs/skills])]

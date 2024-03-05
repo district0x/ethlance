@@ -1,6 +1,6 @@
 (ns ethlance.ui.component.icon
   (:require
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
+    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
 (def icon-listing

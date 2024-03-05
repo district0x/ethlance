@@ -11,6 +11,7 @@
   (fn [db]
     (get-in db [sign-up.events/state-key :user/profile-image])))
 
+
 (re/reg-sub
   :page.sign-up/form
   (fn [db]

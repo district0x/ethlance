@@ -2,7 +2,7 @@
   "Includes functions for using clojure.spec to conform data at
   runtime."
   (:require
-   [clojure.spec.alpha :as s]))
+    [clojure.spec.alpha :as s]))
 
 
 (defn strict-conform
@@ -25,6 +25,6 @@
   (if (s/valid? spec value)
     value
     (throw (ex-info
-            (str "Failed Strict Spec Conform: " (s/explain-str spec value))
-            {:type ::spec-strict-conform
-             :message (s/explain-str spec value)}))))
+             (str "Failed Strict Spec Conform: " (s/explain-str spec value))
+             {:type ::spec-strict-conform
+              :message (s/explain-str spec value)}))))

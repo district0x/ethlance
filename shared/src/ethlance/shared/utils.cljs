@@ -1,13 +1,18 @@
 (ns ethlance.shared.utils
-  (:require-macros [ethlance.shared.utils])
-  (:require [alphabase.base58 :as base58]
-            [alphabase.hex :as hex]
-            [goog.date.relative :as gdate]
-            [goog.object]
-            ["web3" :as w3]))
+  (:require
+    ["web3" :as w3]
+    [alphabase.base58 :as base58]
+    [alphabase.hex :as hex]
+    [goog.date.relative :as gdate]
+    [goog.object])
+  (:require-macros
+    [ethlance.shared.utils]))
 
-(defn now []
+
+(defn now
+  []
   (.getTime (js/Date.)))
+
 
 (defn base58->hex
   "Useful for converting IPFS hash to a format suitable for storing in Solidity
@@ -21,6 +26,7 @@
        hex/encode
        (str "0x" ,,,)))
 
+
 (defn hex->base58
   "Useful for converting Solidity bytes memory _ipfsData back to IPFS hash
 
@@ -32,11 +38,21 @@
       hex/decode
       base58/encode))
 
-(defn eth->wei [eth-amount] (.toWei (.-utils w3) (str eth-amount)))
-(defn wei->eth [wei-amount] (.fromWei (.-utils w3) (str wei-amount)))
 
-(defn millis->relative-time [millis]
+(defn eth->wei
+  [eth-amount]
+  (.toWei (.-utils w3) (str eth-amount)))
+
+
+(defn wei->eth
+  [wei-amount]
+  (.fromWei (.-utils w3) (str wei-amount)))
+
+
+(defn millis->relative-time
+  [millis]
   (gdate/format (new js/Date (js/parseInt millis))))
+
 
 (defn ilike=
   "Makes case insensitive comparison of string representation of all arguments
@@ -48,7 +64,9 @@
   [& args]
   (apply = (map #(clojure.string/lower-case (str %)) args)))
 
+
 (def ilike!= (comp not ilike=))
+
 
 (defn js-obj->clj-map
   [obj]
@@ -58,6 +76,7 @@
             result
             (assoc result key v))))
       (reduce {} (.getKeys goog/object obj))))
+
 
 (defn deep-merge
   "Merges nested maps, left to right (overwriting existing values)

@@ -1,7 +1,7 @@
 (ns ethlance.shared.enumeration.payment-type
   "Represents an enumeration type for different types of payment."
   (:require
-   [ethlance.shared.enumeration :as enum]))
+    [ethlance.shared.enumeration :as enum]))
 
 
 (def enum-payment

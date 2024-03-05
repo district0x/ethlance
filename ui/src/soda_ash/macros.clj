@@ -2,9 +2,8 @@
 
 
 (def semantic-ui-react-tags
-  ; List from https://github.com/Semantic-Org/Semantic-UI-React/blob/master/src/index.js
-  '[
-    Confirm
+  ;; List from https://github.com/Semantic-Org/Semantic-UI-React/blob/master/src/index.js
+  '[Confirm
     Pagination
     PaginationItem
     Portal
@@ -14,7 +13,7 @@
     TextArea
     TransitionablePortal
 
-    ; Collections
+    ;; Collections
     Breadcrumb
     BreadcrumbDivider
     BreadcrumbSection
@@ -53,7 +52,7 @@
     TableHeaderCell
     TableRow
 
-    ; Elements
+    ;; Elements
     Button
     ButtonContent
     ButtonGroup
@@ -112,7 +111,7 @@
     StepGroup
     StepTitle
 
-    ; Modules
+    ;; Modules
     Accordion
     AccordionAccordion
     AccordionContent
@@ -169,7 +168,7 @@
     Transition
     TransitionGroup
 
-    ; Views
+    ;; Views
     Advertisement
 
     Card
@@ -212,24 +211,28 @@
     Statistic
     StatisticGroup
     StatisticLabel
-    StatisticValue
-
-    ])
+    StatisticValue])
 
 
-(def reserved-tags #{"Comment"
-                     "List"})
+(def reserved-tags
+  #{"Comment"
+    "List"})
 
 
 (println ">>> ETHLANCE semantic-ash evaluated")
-(defn create-semantic-ui-react-component [tag]
+
+
+(defn create-semantic-ui-react-component
+  [tag]
   (let [tag-name (if (reserved-tags (name tag))
                    (-> tag name (str "SA") symbol)
                    tag)]
-    `(def ~tag-name (reagent.core/adapt-react-class
-                     (aget js/semanticUIReact ~(name tag))))))
+    `(def ~tag-name
+       (reagent.core/adapt-react-class
+         (aget js/semanticUIReact ~(name tag))))))
 
 
-(defmacro export-semantic-ui-react-components []
+(defmacro export-semantic-ui-react-components
+  []
   `(do ~@(map create-semantic-ui-react-component
               semantic-ui-react-tags)))

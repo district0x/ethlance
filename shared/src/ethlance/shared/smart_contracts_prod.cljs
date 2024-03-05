@@ -1,5 +1,6 @@
 (ns ethlance.shared.smart-contracts-prod)
 
+
 (def smart-contracts
   {:token {:name "TestToken" :address "0x0000000000000000000000000000000000000000"}
    :test-nft {:name "TestNft" :address "0x0000000000000000000000000000000000000000"}

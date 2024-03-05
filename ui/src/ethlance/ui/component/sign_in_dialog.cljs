@@ -1,27 +1,28 @@
 (ns ethlance.ui.component.sign-in-dialog
   "Sign In Dialog, which makes use of modal component."
   (:require
-   [re-frame.core :as re]
-
-   ;; re-frame Prerequisites
-   [ethlance.ui.component.modal.subscriptions]
-   [ethlance.ui.events]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.icon :refer [c-icon]]
-   [ethlance.ui.component.button :refer [c-button c-button-label]]
-   [ethlance.ui.component.modal :refer [c-modal]]))
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
+    ;; Ethlance Components
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.modal :refer [c-modal]]
+    ;; re-frame Prerequisites
+    [ethlance.ui.component.modal.subscriptions]
+    [ethlance.ui.events]
+    [re-frame.core :as re]))
 
 
-(defn open! []
+(defn open!
+  []
   (re/dispatch [:modal/open ::sign-in]))
 
 
-(defn close! []
+(defn close!
+  []
   (re/dispatch [:modal/close]))
 
 
-(defn sign-in! []
+(defn sign-in!
+  []
   (re/dispatch [:user/sign-in])
   (close!))
 
@@ -40,8 +41,8 @@
             :class "close-button"
             :color :secondary
             :title "Close Dialog"}]
-          ; FIXME: Get actual image. The current one is placeholder and displaces the design
-          ; [:img.sign-in-dialog {:src "/images/svg/sign_in_dialog.svg"}]
+          ;; FIXME: Get actual image. The current one is placeholder and displaces the design
+          ;; [:img.sign-in-dialog {:src "/images/svg/sign_in_dialog.svg"}]
           [:h1 "Sign In and Verify Address"]
           [:p "After clicking \"Continue\", a wallet dialogue will prompt you to verify your unique address."]
           [:p "Once you verify, you will be signed in to the network."]
@@ -50,4 +51,3 @@
             {:color :primary
              :on-click sign-in!}
             [c-button-label [:span "Continue"]]]]]]))))
-

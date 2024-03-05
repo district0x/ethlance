@@ -1,5 +1,6 @@
 (ns ethlance.shared.utils
-   (:refer-clojure :exclude [slurp]))
+  (:refer-clojure :exclude [slurp]))
+
 
 (defmacro get-environment
   "Gets the environment variable ETHLANCE_ENV value *during build time*
@@ -14,11 +15,14 @@
       (println "Building with environment:" env))
     env))
 
+
 (defmacro read-from-env-path
   [env-name]
   (let [path-from-env (System/getenv env-name)]
     (when-not (nil? path-from-env)
       (clojure.core/slurp path-from-env))))
 
-(defmacro slurp [file]
+
+(defmacro slurp
+  [file]
   (clojure.core/slurp file))

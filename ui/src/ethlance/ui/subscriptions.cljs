@@ -15,15 +15,18 @@
     [ethlance.ui.page.new-job.subscriptions]
     [re-frame.core :as re]))
 
+
 (re/reg-sub
   ::config
   (fn [db _]
     (get db :ethlance/config)))
 
+
 (re/reg-sub
   ::active-session
   (fn [db _]
     (get db :active-session)))
+
 
 (re/reg-sub
   ::active-account-has-session?

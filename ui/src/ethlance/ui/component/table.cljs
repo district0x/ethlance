@@ -1,5 +1,6 @@
 (ns ethlance.ui.component.table)
 
+
 (defn c-table
   "Ethlance Table Component.
 
@@ -46,23 +47,21 @@
     [:tbody
      [:tr
       (doall
-       (for [[i header] (map-indexed vector headers)]
-         ^{:key (str "header-" i)}
-         [:th header]))]
+        (for [[i header] (map-indexed vector headers)]
+          ^{:key (str "header-" i)}
+          [:th header]))]
      (doall
-      (for [[i row] (map-indexed vector rows)]
-        (if (map? row)
+       (for [[i row] (map-indexed vector rows)]
+         (if (map? row)
 
-          ^{:key (str "row-" i)}
-          [:tr.clickable (:row-link row)
-           (for [[i elem] (map-indexed vector (:row-cells row))]
-             ^{:key (str "elem-" i)}
-             [:td elem])]
+           ^{:key (str "row-" i)}
+           [:tr.clickable (:row-link row)
+            (for [[i elem] (map-indexed vector (:row-cells row))]
+              ^{:key (str "elem-" i)}
+              [:td elem])]
 
-          ^{:key (str "row-" i)}
-          [:tr
-           (for [[i elem] (map-indexed vector row)]
-             ^{:key (str "elem-" i)}
-             [:td elem])]
-          )
-        ))]]])
+           ^{:key (str "row-" i)}
+           [:tr
+            (for [[i elem] (map-indexed vector row)]
+              ^{:key (str "elem-" i)}
+              [:td elem])])))]]])

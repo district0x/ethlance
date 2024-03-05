@@ -1,10 +1,9 @@
 (ns ethlance.ui.page.jobs.subscriptions
   (:require
-   [re-frame.core :as re]
-
-   [ethlance.ui.util.graphql :as util.graphql]
-   [ethlance.ui.page.jobs.events :as jobs.events]
-   [ethlance.ui.subscription.utils :as subscription.utils]))
+    [ethlance.ui.page.jobs.events :as jobs.events]
+    [ethlance.ui.subscription.utils :as subscription.utils]
+    [ethlance.ui.util.graphql :as util.graphql]
+    [re-frame.core :as re]))
 
 
 (def create-get-handler #(subscription.utils/create-get-handler jobs.events/state-key %))
@@ -27,6 +26,7 @@
 (re/reg-sub :page.jobs/min-num-feedbacks (create-get-handler :min-num-feedbacks))
 (re/reg-sub :page.jobs/payment-type (create-get-handler :payment-type))
 (re/reg-sub :page.jobs/experience-level (create-get-handler :experience-level))
+
 
 (re/reg-sub
   :page.jobs/job-search-params

@@ -1,9 +1,8 @@
 (ns ethlance.ui.page.employers.subscriptions
   (:require
-   [re-frame.core :as re]
-   
-   [ethlance.ui.page.employers.events :as employers.events]
-   [ethlance.ui.subscription.utils :as subscription.utils]))
+    [ethlance.ui.page.employers.events :as employers.events]
+    [ethlance.ui.subscription.utils :as subscription.utils]
+    [re-frame.core :as re]))
 
 
 (def create-get-handler #(subscription.utils/create-get-handler employers.events/state-key %))

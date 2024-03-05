@@ -1,7 +1,8 @@
 (ns ethlance.ui.effects
   (:require
-    [re-frame.core :as re]
-    [cljs-web3.core :as web3]))
+    [cljs-web3.core :as web3]
+    [re-frame.core :as re]))
+
 
 ;; TODO : move this to maybe re-frame-web3-fx
 (re/reg-fx

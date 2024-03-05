@@ -1,6 +1,8 @@
 (ns ethlance.ui.component.checkbox
-  (:require [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
-            [reagent.core :as r]))
+  (:require
+    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]
+    [reagent.core :as r]))
+
 
 (defn c-labeled-checkbox
   "Checkbox Input Component
@@ -34,14 +36,14 @@
             opts (dissoc opts :label :on-change :default-checked? :checked?)]
         [:div.ethlance-checkbox
          (merge
-          opts
-          {:on-click
-           (fn []
-             (when on-change
-               (on-change (not checked?)))
-             (swap! *checked? not))
+           opts
+           {:on-click
+            (fn []
+              (when on-change
+                (on-change (not checked?)))
+              (swap! *checked? not))
 
-           :class (when checked? "checked")})
+            :class (when checked? "checked")})
          [c-inline-svg {:src "/images/svg/checkbox.svg"
                         :width 24
                         :height 24}]

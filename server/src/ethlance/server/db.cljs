@@ -1,30 +1,35 @@
 (ns ethlance.server.db
   "Represents the ethlance in-memory sqlite database. Contains a mount
   component for creating the in-memory database upon initial load."
-  (:require [clojure.pprint :as pprint]
-            [clojure.set :as set]
-            [cljs.core.async :as async :refer [go-loop <! take!]]
-            [com.rpl.specter :as $ :include-macros true]
-            [cuerdas.core :as str]
-            [district.server.async-db :as db]
-            [district.server.config :refer [config]]
-            [district.server.db.column-types :as column-types :refer [not-nil]]
-            [district.shared.async-helpers :refer [<? safe-go]]
-            [honeysql.core :as sql]
-            [mount.core :as mount :refer [defstate]]
-            [taoensso.timbre :as log]))
+  (:require
+    [cljs.core.async :as async :refer [go-loop <! take!]]
+    [clojure.pprint :as pprint]
+    [clojure.set :as set]
+    [com.rpl.specter :as $ :include-macros true]
+    [cuerdas.core :as str]
+    [district.server.async-db :as db]
+    [district.server.config :refer [config]]
+    [district.server.db.column-types :as column-types :refer [not-nil]]
+    [district.shared.async-helpers :refer [<? safe-go]]
+    [honeysql.core :as sql]
+    [mount.core :as mount :refer [defstate]]
+    [taoensso.timbre :as log]))
+
 
 (declare start stop)
 (defonce db-state (atom nil))
+
 
 (def mount-state-key
   "Key defining our mount component within the district configuration"
   :ethlance/db)
 
+
 (defstate ^{:on-reload :noop} ethlance-db
   :start (start (merge (get @config mount-state-key)
                        (mount-state-key (mount/args))))
   :stop (stop))
+
 
 (def database-schema
   "Represents the database schema, consisting of tables, and their
@@ -189,8 +194,8 @@
    {:table-name :Job
     :table-columns
     [[:job/id column-types/address] ; add unique & not null constraints
-                                    ; https://github.com/seancorfield/honeysql/blob/develop/doc/clause-reference.md
-                                    ; https://github.com/district0x/d0x-libs/blob/master/server/district-server-db/src/district/server/db/column_types.cljs
+     ;; https://github.com/seancorfield/honeysql/blob/develop/doc/clause-reference.md
+     ;; https://github.com/district0x/d0x-libs/blob/master/server/district-server-db/src/district/server/db/column_types.cljs
      [:job/creator column-types/address]
      [:job/title :varchar not-nil]
      [:job/description :varchar not-nil]
@@ -200,14 +205,14 @@
      [:job/date-updated :bigint]
      [:job/required-experience-level :text]
 
-     ; new fields (remove previous 3 :job/{:token/token-version/reward})
+     ;; new fields (remove previous 3 :job/{:token/token-version/reward})
      [:job/token-type :text]
      [:job/token-amount :bigint]
      [:job/token-address :text]
      [:job/token-id :integer]
 
-     ; These fields had :ethlance-job/estimated-project-length prefix
-     ; (originally from EthlanceJob table). Find places where to rename
+     ;; These fields had :ethlance-job/estimated-project-length prefix
+     ;; (originally from EthlanceJob table). Find places where to rename
      [:job/estimated-project-length :text]
      [:job/invitation-only? :bool]
      [:job/required-availability :text]
@@ -240,8 +245,7 @@
      [(sql/call :primary-key :job/id :user/id)]
 
      ;; FKs
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     ]}
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]}
 
    {:table-name :JobSkill
     :table-columns
@@ -276,8 +280,7 @@
      [:job/file-id :integer]
 
      ;; FKs
-     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
-     ]
+     [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]]
     :list-keys []}
 
    {:table-name :Message
@@ -306,7 +309,7 @@
      [:job-story/proposal-rate (sql/call :numeric (sql/inline 81) (sql/inline 3))] ; To cover the max value of Solidity's int256 (e.g. amount in ERC20) & support 3 places of precision
      [:job-story/proposal-rate-currency-id :varchar]
 
-     ; The following used to be :ethlance-job-story/...
+     ;; The following used to be :ethlance-job-story/...
      [:job-story/candidate :varchar]
      [:job-story/date-contract-active :bigint]
 
@@ -333,8 +336,7 @@
 
    {:table-name :JobStoryInvoiceMessage
     :table-columns
-    [
-     [:job-story/id :integer]
+    [[:job-story/id :integer]
      [:message/id :integer]
      [:invoice/status :varchar]
      [:invoice/hours-worked :integer]
@@ -399,8 +401,8 @@
 
      ;; FKs
      [(sql/call :foreign-key :token-detail/id) (sql/call :references :TokenDetail :token-detail/id) (sql/raw "ON DELETE CASCADE")]
-     ; FIXME: Disabled due to JobCreated and FundsIn event order (FundsIn comes first, before job has been created)
-     ; [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
+     ;; FIXME: Disabled due to JobCreated and FundsIn event order (FundsIn comes first, before job has been created)
+     ;; [(sql/call :foreign-key :job/id) (sql/call :references :Job :job/id) (sql/raw "ON DELETE CASCADE")]
      ]
     :list-keys []}
 
@@ -412,8 +414,7 @@
      [:file/directory-hash :varchar]
 
      ;; PK
-     [(sql/call :primary-key :file/id)]
-     ]
+     [(sql/call :primary-key :file/id)]]
     :list-keys []}
 
    {:table-name :MessageFile
@@ -435,12 +436,13 @@
 
      [(sql/call :primary-key :event/comparable-id)]]}
 
-    {:table-name :ContractEventCheckpoint
-      :table-columns
-      [[:id :serial]
-       [:checkpoint :json]
-       [:created-at :timestamp]
-       [(sql/call :primary-key :id)]]}])
+   {:table-name :ContractEventCheckpoint
+    :table-columns
+    [[:id :serial]
+     [:checkpoint :json]
+     [:created-at :timestamp]
+     [(sql/call :primary-key :id)]]}])
+
 
 (defn print-db
   "(print-db) prints all db tables to the repl
@@ -448,21 +450,23 @@
   ([_] (print-db nil))
   ([conn table]
    (safe-go
-    (let [select (fn [& [select-fields & r]]
-                   (pprint/print-table (<? (db/all conn (->> (partition 2 r)
-                                                             (map vec)
-                                                             (into {:select select-fields}))))))
-          all-tables (if table
-                       [(name table)]
-                       (->> (<? (db/all conn {:select [:name] :from [:sqlite-master] :where [:= :type "table"]}))
-                            (map :name)))]
-      (doseq [t all-tables]
-        (println "#######" (str/upper t) "#######")
-        (select [:*] :from [(keyword t)]))))))
+     (let [select (fn [& [select-fields & r]]
+                    (pprint/print-table (<? (db/all conn (->> (partition 2 r)
+                                                              (map vec)
+                                                              (into {:select select-fields}))))))
+           all-tables (if table
+                        [(name table)]
+                        (->> (<? (db/all conn {:select [:name] :from [:sqlite-master] :where [:= :type "table"]}))
+                             (map :name)))]
+       (doseq [t all-tables]
+         (println "#######" (str/upper t) "#######")
+         (select [:*] :from [(keyword t)]))))))
+
 
 #_(defn table-exists?
   [name]
   (contains? (set (list-tables)) name))
+
 
 (defn- get-table-schema
   "Retrieve the given table schema defined by `table-name` from the
@@ -485,11 +489,14 @@
                        (when (= name :primary-key)
                          args))))))))
 
-(defn- get-table-columns-by-type [table-name type-pred]
+
+(defn- get-table-columns-by-type
+  [table-name type-pred]
   (let [table-schema (get-table-schema table-name)]
     (->> (:table-columns table-schema)
          (filter (comp keyword? first))
          (filter (comp type-pred second)))))
+
 
 (defn- get-table-column-names
   "Retrieves the table column names for a given table schema defined by their `table-name`."
@@ -499,59 +506,66 @@
          (map first)
          (filter keyword?))))
 
-(defn filter-tables [table-names schema]
+
+(defn filter-tables
+  [table-names schema]
   (filter #((set table-names) (:table-name %)) schema))
+
 
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
   [conn]
   (safe-go
-   (log/info "Creating Sqlite Database...")
-   (doseq [{:keys [table-name table-columns]} database-schema]
-     (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))))
+    (log/info "Creating Sqlite Database...")
+    (doseq [{:keys [table-name table-columns]} database-schema]
+      (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))))
+
 
 (defn drop-db!
   "Drops all of the database tables defined in the `database-schema`."
   [conn]
   (safe-go
-   (log/info "Dropping Sqlite Database...")
-   (doseq [{:keys [table-name]} (reverse database-schema)]
-     (log/debug (str/format "Dropping Database Table '%s' ..." table-name) {:conn conn})
-     (<? (db/run! conn {:drop-table [:if-exists table-name]}))
-     #_(log/debug "DONE"))))
+    (log/info "Dropping Sqlite Database...")
+    (doseq [{:keys [table-name]} (reverse database-schema)]
+      (log/debug (str/format "Dropping Database Table '%s' ..." table-name) {:conn conn})
+      (<? (db/run! conn {:drop-table [:if-exists table-name]}))
+      #_(log/debug "DONE"))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
 ;; Row manipulation utils ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 
 (def auto-increment-types #{:serial})
+
 
 (defn insert-row!
   "Inserts into the given `table-name` with the given `item`. The
   table-name and item structure are defined in the `database-schema`."
   [conn table-name item]
   (safe-go
-   (if (get-table-schema table-name)
-     (let [table-column-names (set (get-table-column-names table-name))
-           auto-increment-columns (get-table-columns-by-type table-name auto-increment-types)
-           ;; remove auto increment columns that are nil in the item
-           item (select-keys item (set/difference
+    (if (get-table-schema table-name)
+      (let [table-column-names (set (get-table-column-names table-name))
+            auto-increment-columns (get-table-columns-by-type table-name auto-increment-types)
+            ;; remove auto increment columns that are nil in the item
+            item (select-keys item (set/difference
 
-                                   table-column-names
+                                     table-column-names
 
-                                   (->> auto-increment-columns
-                                        (filter (fn [col] (nil? (get item col)))))))
-           statement {:insert-into table-name
-                      :columns (keys item)
-                      :values [(->> (vals item)
-                                    (map #(if (keyword? %) (name %) %)))]
-                      :returning [:*]}]
-       (not-empty (try
-                    (first (<? (db/run! conn statement)))
-                    (catch js/Error e
-                      (log/error "Error executing insert statement" {:error e
-                                                                     :statement statement})))))
-     (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
+                                     (->> auto-increment-columns
+                                          (filter (fn [col] (nil? (get item col)))))))
+            statement {:insert-into table-name
+                       :columns (keys item)
+                       :values [(->> (vals item)
+                                     (map #(if (keyword? %) (name %) %)))]
+                       :returning [:*]}]
+        (not-empty (try
+                     (first (<? (db/run! conn statement)))
+                     (catch js/Error e
+                       (log/error "Error executing insert statement" {:error e
+                                                                      :statement statement})))))
+      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
+
 
 (defn update-row!
   "Updates the given `table-name` with the given `item`. The table-name
@@ -564,25 +578,25 @@
   "
   [conn table-name item]
   (safe-go
-   (if-let [table-schema (get-table-schema table-name)]
-     (do
-       (assert (seq (:id-keys table-schema))
-               (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
-       (let [table-column-names (get-table-column-names table-name)
-             item (select-keys item table-column-names)
-             statement {:update table-name
-                        :set item
-                        :where (concat
-                                [:and]
-                                (for [id-key (:id-keys table-schema)]
-                                  [:= id-key (get item id-key)]))
-                        :returning [:*]}]
-         (not-empty (try
-                      (<? (db/run! conn statement))
-                      (catch js/Error e
-                        (log/error "Error executing update statement" {:error e :statement statement})
-                        (throw e))))))
-     (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
+    (if-let [table-schema (get-table-schema table-name)]
+      (do
+        (assert (seq (:id-keys table-schema))
+                (str/format ":id-keys for table schema '%s' is required for updating rows." table-name))
+        (let [table-column-names (get-table-column-names table-name)
+              item (select-keys item table-column-names)
+              statement {:update table-name
+                         :set item
+                         :where (concat
+                                  [:and]
+                                  (for [id-key (:id-keys table-schema)]
+                                    [:= id-key (get item id-key)]))
+                         :returning [:*]}]
+          (not-empty (try
+                       (<? (db/run! conn statement))
+                       (catch js/Error e
+                         (log/error "Error executing update statement" {:error e :statement statement})
+                         (throw e))))))
+      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
 
 (defn get-row
@@ -597,20 +611,20 @@
   "
   [conn table-name item & fields]
   (safe-go
-   (if-let [table-schema (get-table-schema table-name)]
-     (do
-       (assert (seq (:id-keys table-schema))
-               (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
-       (let [table-column-names (get-table-column-names table-name)
-             item (select-keys item table-column-names)
-             fields (or fields table-column-names)]
-         (not-empty (<? (db/get conn {:select fields
-                                      :from [table-name]
-                                      :where (concat
-                                              [:and]
-                                              (for [id-key (:id-keys table-schema)]
-                                                [:= id-key (get item id-key)]))})))))
-     (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
+    (if-let [table-schema (get-table-schema table-name)]
+      (do
+        (assert (seq (:id-keys table-schema))
+                (str/format ":id-keys for table schema '%s' is required for getting rows." table-name))
+        (let [table-column-names (get-table-column-names table-name)
+              item (select-keys item table-column-names)
+              fields (or fields table-column-names)]
+          (not-empty (<? (db/get conn {:select fields
+                                       :from [table-name]
+                                       :where (concat
+                                                [:and]
+                                                (for [id-key (:id-keys table-schema)]
+                                                  [:= id-key (get item id-key)]))})))))
+      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
 
 (defn get-list
@@ -628,28 +642,29 @@
   "
   [conn table-name item & fields]
   (safe-go
-   (if-let [table-schema (get-table-schema table-name)]
-     (do
-       (assert (sequential? (:list-keys table-schema))
-               (str/format ":list-keys for table schema '%s' is required for getting rows." table-name))
-       (let [table-column-names (get-table-column-names table-name)
-             item (select-keys item table-column-names)
-             fields (or fields table-column-names)
-             list-keys (:list-keys table-schema)
-             where-clause (if (> (count list-keys) 0)
-                            (concat
-                             [:and]
-                             (for [list-key list-keys]
-                               [:= list-key (get item list-key)]))
-                            [:= 1 1])]
-         (not-empty (<? (db/all conn {:select fields
-                                      :from [table-name]
-                                      :where where-clause})))))
-     (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
+    (if-let [table-schema (get-table-schema table-name)]
+      (do
+        (assert (sequential? (:list-keys table-schema))
+                (str/format ":list-keys for table schema '%s' is required for getting rows." table-name))
+        (let [table-column-names (get-table-column-names table-name)
+              item (select-keys item table-column-names)
+              fields (or fields table-column-names)
+              list-keys (:list-keys table-schema)
+              where-clause (if (> (count list-keys) 0)
+                             (concat
+                               [:and]
+                               (for [list-key list-keys]
+                                 [:= list-key (get item list-key)]))
+                             [:= 1 1])]
+          (not-empty (<? (db/all conn {:select fields
+                                       :from [table-name]
+                                       :where where-clause})))))
+      (log/error (str/format "Unable to find table schema for '%s'" table-name)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
 ;; Application level db access ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 (defn- add-new-associations
   "Returns map suitablefor honeysql with upsert semantics to store associated model.
   Association is identified by address (foreign key)"
@@ -662,11 +677,13 @@
      :on-conflict [fk-column column]
      :do-update-set [column]}))
 
+
 (defn- remove-old-associations
   "Deletes rows identified by address"
   [address table]
   (let [fk-column :user/id]
     {:delete-from table :where [:= fk-column address]}))
+
 
 (defn- add-missing-values
   "Helper to populate tables with normalized values (e.g. languages, skills, categories)
@@ -675,13 +692,17 @@
   [table values]
   {:insert-into table :values (map vector values) :on-conflict nil :do-nothing []})
 
-(defn update-associated-values [conn user-id [pk-table target-table column values]]
+
+(defn update-associated-values
+  [conn user-id [pk-table target-table column values]]
   (safe-go
     (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
     (<? (db/run! conn (remove-old-associations user-id target-table)))
     (<? (db/run! conn (add-new-associations user-id target-table column values)))))
 
-(defn upsert-user [conn user]
+
+(defn upsert-user
+  [conn user]
   (let [values (select-keys user (get-table-column-names :Users))
         target [nil :UserLanguage :language/id (:user/languages user)]]
     (safe-go
@@ -693,7 +714,9 @@
                                :do-update-set (keys values))})))
     (update-associated-values conn (:user/id user) target)))
 
-(defn upsert-candidate [conn user]
+
+(defn upsert-candidate
+  [conn user]
   (let [candidate (select-keys user (get-table-column-names :Candidate))]
     (safe-go
       (<? (db/run! conn {:insert-into :Candidate
@@ -702,11 +725,12 @@
                                             :do-update-set (keys candidate))}))
       (doseq [address [(:user/id user)]
               target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
-                      [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
-                      ]]
+                      [:Skill :CandidateSkill :skill/id (:candidate/skills user)]]]
         (update-associated-values conn address target)))))
 
-(defn upsert-employer [conn user]
+
+(defn upsert-employer
+  [conn user]
   (safe-go
     (let [employer (select-keys user (get-table-column-names :Employer))]
       (<? (db/run! conn {:insert-into :Employer
@@ -714,7 +738,9 @@
                          :upsert (array-map :on-conflict [:user/id]
                                             :do-update-set (keys employer))})))))
 
-(defn upsert-arbiter [conn user]
+
+(defn upsert-arbiter
+  [conn user]
   (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
     (safe-go
       (<? (db/run! conn {:insert-into :Arbiter
@@ -722,48 +748,52 @@
                          :upsert (array-map :on-conflict [:user/id]
                                             :do-update-set (keys arbiter))})))))
 
-(defn upsert-user! [conn {:keys [user candidate employer arbiter]}]
+
+(defn upsert-user!
+  [conn {:keys [user candidate employer arbiter]}]
   (safe-go
     (when user (upsert-user conn user))
     (when candidate (upsert-candidate conn candidate))
     (when employer (upsert-employer conn employer))
     (when arbiter (upsert-arbiter conn arbiter))))
 
-; (defn upsert-user! [conn {:user/keys [type] :as user}]
-;   (safe-go
-;    (let [values (select-keys user (get-table-column-names :Users))
-;          _ (<? (db/run! conn
-;                         {:insert-into :Users,
-;                          :values [values]
-;                          :upsert
-;                          (array-map :on-conflict [:user/id]
-;                                     :do-update-set (keys values))}))]
-;      (case type
-;        :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
-;                   (<? (db/run! conn {:insert-into :Arbiter
-;                                      :values [arbiter]
-;                                      :upsert (array-map :on-conflict [:user/id]
-;                                                         :do-update-set (keys arbiter))})))
-;        :employer (let [employer (select-keys user (get-table-column-names :Employer))]
-;                    (<? (db/run! conn {:insert-into :Employer
-;                                       :values [employer]
-;                                       :upsert (array-map :on-conflict [:user/id]
-;                                                          :do-update-set (keys employer))})))
-;        :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
-;                     (<? (db/run! conn {:insert-into :Candidate
-;                                        :values [candidate]
-;                                        :upsert (array-map :on-conflict [:user/id]
-;                                                           :do-update-set (keys candidate))}))
-;                     (doseq [address [(:user/id user)]
-;                             target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
-;                                     [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
-;                                     [nil :UserLanguage :language/id (:user/languages user)]]]
-;                       (let [[pk-table table column values] target]
-;                         (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
-;                         (<? (db/run! conn (remove-old-associations address table)))
-;                         (<? (db/run! conn (add-new-associations address table column values))))))))))
 
-(defn upsert-user-social-accounts! [conn user-social-accounts]
+;; (defn upsert-user! [conn {:user/keys [type] :as user}]
+;;   (safe-go
+;;    (let [values (select-keys user (get-table-column-names :Users))
+;;          _ (<? (db/run! conn
+;;                         {:insert-into :Users,
+;;                          :values [values]
+;;                          :upsert
+;;                          (array-map :on-conflict [:user/id]
+;;                                     :do-update-set (keys values))}))]
+;;      (case type
+;;        :arbiter (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
+;;                   (<? (db/run! conn {:insert-into :Arbiter
+;;                                      :values [arbiter]
+;;                                      :upsert (array-map :on-conflict [:user/id]
+;;                                                         :do-update-set (keys arbiter))})))
+;;        :employer (let [employer (select-keys user (get-table-column-names :Employer))]
+;;                    (<? (db/run! conn {:insert-into :Employer
+;;                                       :values [employer]
+;;                                       :upsert (array-map :on-conflict [:user/id]
+;;                                                          :do-update-set (keys employer))})))
+;;        :candidate (let [candidate (select-keys user (get-table-column-names :Candidate))]
+;;                     (<? (db/run! conn {:insert-into :Candidate
+;;                                        :values [candidate]
+;;                                        :upsert (array-map :on-conflict [:user/id]
+;;                                                           :do-update-set (keys candidate))}))
+;;                     (doseq [address [(:user/id user)]
+;;                             target [[:Category :CandidateCategory :category/id (:candidate/categories user)]
+;;                                     [:Skill :CandidateSkill :skill/id (:candidate/skills user)]
+;;                                     [nil :UserLanguage :language/id (:user/languages user)]]]
+;;                       (let [[pk-table table column values] target]
+;;                         (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
+;;                         (<? (db/run! conn (remove-old-associations address table)))
+;;                         (<? (db/run! conn (add-new-associations address table column values))))))))))
+
+(defn upsert-user-social-accounts!
+  [conn user-social-accounts]
   (safe-go
     (let [values (select-keys user-social-accounts (get-table-column-names :UserSocialAccounts))]
       (<? (db/run! conn
@@ -773,23 +803,31 @@
                     (array-map :on-conflict [:user/id]
                                :do-update-set (keys values))})))))
 
-(defn add-skills [conn job-id skills]
+
+(defn add-skills
+  [conn job-id skills]
   (safe-go
     (doseq [skill skills]
       (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
 
-(defn add-job-arbiter [conn job-id user-address]
-  (safe-go
-   (<? (insert-row! conn :JobArbiter {:job/id job-id
-                                      :user/id user-address
-                                      :job-arbiter/status "invited"
-                                      :job-arbiter/date-created (.now js/Date)}))))
 
-(defn update-arbitration [conn params]
+(defn add-job-arbiter
+  [conn job-id user-address]
   (safe-go
-   (<? (update-row! conn :JobArbiter params))))
+    (<? (insert-row! conn :JobArbiter {:job/id job-id
+                                       :user/id user-address
+                                       :job-arbiter/status "invited"
+                                       :job-arbiter/date-created (.now js/Date)}))))
 
-(defn add-job [conn job]
+
+(defn update-arbitration
+  [conn params]
+  (safe-go
+    (<? (update-row! conn :JobArbiter params))))
+
+
+(defn add-job
+  [conn job]
   (safe-go
     (let [skills (:job/required-skills job)
           job-fields (dissoc job :job/required-skills)
@@ -804,15 +842,21 @@
           (doseq [arbiter (:invited-arbiters job)]
             (<? (add-job-arbiter conn job-id-from-ipfs arbiter))))))))
 
-(defn update-job [conn job-id job-data]
-  (safe-go
-  (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
-(defn update-job-story [conn job-story-id job-story-data]
+(defn update-job
+  [conn job-id job-data]
   (safe-go
-  (<? (update-row! conn :JobStory (assoc job-story-data :job-story/id job-story-id)))))
+    (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
-(defn get-invoice-message [conn job-story-id invoice-id]
+
+(defn update-job-story
+  [conn job-story-id job-story-data]
+  (safe-go
+    (<? (update-row! conn :JobStory (assoc job-story-data :job-story/id job-story-id)))))
+
+
+(defn get-invoice-message
+  [conn job-story-id invoice-id]
   (safe-go
     (<? (db/get conn {:select [:*]
                       :from [:JobStoryInvoiceMessage]
@@ -820,136 +864,158 @@
                               [:= :job-story/id job-story-id]
                               [:= :invoice/ref-id invoice-id]]}))))
 
-(defn update-job-story-invoice-message  [conn msg]
+
+(defn update-job-story-invoice-message
+  [conn msg]
   (safe-go
-   (<? (update-row! conn :JobStoryInvoiceMessage msg))))
+    (<? (update-row! conn :JobStoryInvoiceMessage msg))))
+
 
 (defn add-message
   "Inserts a Message. Returns autoincrement id"
   [conn message]
   (safe-go
-   (let [msg-id (-> (<? (insert-row! conn :Message message))
-                    :message/id)
-         story-status (case (:job-story-message/type message)
-                        :proposal "proposal"
-                        :invitation "invitation"
-                        "created")
-         job-story-common-fields {:job/id (:job/id message)
-                                  :job-story/date-created (:message/date-created message)
-                                  :job-story/status story-status
-                                  :job-story/proposal-rate (:job-story/proposal-rate message)}
-         job-story-params (case (:job-story-message/type message)
-                            :proposal (merge job-story-common-fields {:job-story/proposal-message-id msg-id
-                                                                      :job-story/candidate (:candidate message)})
-                            :invitation (merge job-story-common-fields {:job-story/invitation-message-id msg-id
-                                                                        :job-story/candidate (:candidate message)})
-                            job-story-common-fields)
-         job-story-id (or (:job-story/id message)
-                          (:job-story/id (<? (insert-row! conn :JobStory job-story-params))))
-         message (assoc message :message/id msg-id :job-story/id job-story-id)]
-     (case (:message/type message)
-       :job-story-message
-       (do
-         (<? (insert-row! conn :JobStoryMessage (assoc message
-                                                       :message/id msg-id
-                                                       :job-story/id job-story-id)))
-         (<? (case (:job-story-message/type message)
-               :raise-dispute
-               (update-job-story-invoice-message conn {:job-story/id job-story-id
-                                                       :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                       :invoice/dispute-raised-message-id msg-id
-                                                       :invoice/status "dispute-raised"})
+    (let [msg-id (-> (<? (insert-row! conn :Message message))
+                     :message/id)
+          story-status (case (:job-story-message/type message)
+                         :proposal "proposal"
+                         :invitation "invitation"
+                         "created")
+          job-story-common-fields {:job/id (:job/id message)
+                                   :job-story/date-created (:message/date-created message)
+                                   :job-story/status story-status
+                                   :job-story/proposal-rate (:job-story/proposal-rate message)}
+          job-story-params (case (:job-story-message/type message)
+                             :proposal (merge job-story-common-fields {:job-story/proposal-message-id msg-id
+                                                                       :job-story/candidate (:candidate message)})
+                             :invitation (merge job-story-common-fields {:job-story/invitation-message-id msg-id
+                                                                         :job-story/candidate (:candidate message)})
+                             job-story-common-fields)
+          job-story-id (or (:job-story/id message)
+                           (:job-story/id (<? (insert-row! conn :JobStory job-story-params))))
+          message (assoc message :message/id msg-id :job-story/id job-story-id)]
+      (case (:message/type message)
+        :job-story-message
+        (do
+          (<? (insert-row! conn :JobStoryMessage (assoc message
+                                                        :message/id msg-id
+                                                        :job-story/id job-story-id)))
+          (<? (case (:job-story-message/type message)
+                :raise-dispute
+                (update-job-story-invoice-message conn {:job-story/id job-story-id
+                                                        :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                        :invoice/dispute-raised-message-id msg-id
+                                                        :invoice/status "dispute-raised"})
 
-               :resolve-dispute (update-job-story-invoice-message conn
-                                                                  {:job-story/id job-story-id
-                                                                   :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                                   :invoice/dispute-resolved-message-id msg-id
-                                                                   :invoice/status "dispute-resolved"})
-               :proposal (update-row! conn :JobStory (assoc message
-                                                            :job-story/id (:job-story/id message)
-                                                            :job-story/proposal-message-id msg-id))
-               :invitation (update-row! conn :JobStory (assoc message
-                                                              :job-story/id (:job-story/id message)
-                                                              :job-story/invitation-message-id msg-id))
-               :accept-proposal (update-row! conn :JobStory (assoc message
-                                                                   :job-story/status "active"
-                                                                   :job-story/candidate (:candidate message)
-                                                                   :job-story/id (:job-story/id message)
-                                                                   :job-story/date-contract-active (:message/date-created message)))
-               :accept-invitation (update-row! conn :JobStory (assoc message
-                                                                     :job-story/status "active"
-                                                                     :job-story/id (:job-story/id message)
-                                                                     :job-story/date-contract-active (:message/date-created message)))
-               :invoice (insert-row! conn :JobStoryInvoiceMessage message)
-               :payment (update-job-story-invoice-message conn
-                                                          {:job-story/id job-story-id
-                                                           :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
-                                                           :invoice/payment-message-id msg-id
-                                                           :invoice/status "paid"})
-               :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
+                :resolve-dispute (update-job-story-invoice-message conn
+                                                                   {:job-story/id job-story-id
+                                                                    :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                                    :invoice/dispute-resolved-message-id msg-id
+                                                                    :invoice/status "dispute-resolved"})
+                :proposal (update-row! conn :JobStory (assoc message
+                                                             :job-story/id (:job-story/id message)
+                                                             :job-story/proposal-message-id msg-id))
+                :invitation (update-row! conn :JobStory (assoc message
+                                                               :job-story/id (:job-story/id message)
+                                                               :job-story/invitation-message-id msg-id))
+                :accept-proposal (update-row! conn :JobStory (assoc message
+                                                                    :job-story/status "active"
+                                                                    :job-story/candidate (:candidate message)
+                                                                    :job-story/id (:job-story/id message)
+                                                                    :job-story/date-contract-active (:message/date-created message)))
+                :accept-invitation (update-row! conn :JobStory (assoc message
+                                                                      :job-story/status "active"
+                                                                      :job-story/id (:job-story/id message)
+                                                                      :job-story/date-contract-active (:message/date-created message)))
+                :invoice (insert-row! conn :JobStoryInvoiceMessage message)
+                :payment (update-job-story-invoice-message conn
+                                                           {:job-story/id job-story-id
+                                                            :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                            :invoice/payment-message-id msg-id
+                                                            :invoice/status "paid"})
+                :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
-       :direct-message
-       (<? (insert-row! conn :DirectMessage message)))
-     {:job-story/id job-story-id :message/id msg-id})))
+        :direct-message
+        (<? (insert-row! conn :DirectMessage message)))
+      {:job-story/id job-story-id :message/id msg-id})))
+
 
 (defn add-job-story
   "Inserts a JobStory. Returns autoincrement id"
   [conn job-story]
   (safe-go
-   (:job-story/id (<? (insert-row! conn :JobStory job-story)))))
+    (:job-story/id (<? (insert-row! conn :JobStory job-story)))))
 
-(defn add-job-story-message [conn job-story-message]
+
+(defn add-job-story-message
+  [conn job-story-message]
   (safe-go
-   (<? (insert-row! conn :JobStoryMessage job-story-message))))
+    (<? (insert-row! conn :JobStoryMessage job-story-message))))
 
-(defn add-message-file [conn message-id file]
+
+(defn add-message-file
+  [conn message-id file]
   (safe-go
-   (let [{:file/keys [id]} (<? (insert-row! conn :File file))]
-     (<? (insert-row! conn :MessageFile {:message/id message-id
-                                         :file/id id})))))
+    (let [{:file/keys [id]} (<? (insert-row! conn :File file))]
+      (<? (insert-row! conn :MessageFile {:message/id message-id
+                                          :file/id id})))))
 
-(defn update-job-candidate [conn job-id user-address]
+
+(defn update-job-candidate
+  [conn job-id user-address]
   (safe-go
-   (<? (update-row! conn :EthlanceJob {:ethlance-job/id job-id
-                                       :ethlance-job/candidate user-address}))))
+    (<? (update-row! conn :EthlanceJob {:ethlance-job/id job-id
+                                        :ethlance-job/candidate user-address}))))
 
-(defn get-job-story-id-by-job-id [conn job-id]
+
+(defn get-job-story-id-by-job-id
+  [conn job-id]
   (safe-go
-   (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
-                          :from [[:JobStory :js]]
-                          :join [[:Job :j] [:= :js.job/id :j.job/id]]
-                          :where [:ilike :j.job/id job-id]})))))
+    (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
+                           :from [[:JobStory :js]]
+                           :join [[:Job :j] [:= :js.job/id :j.job/id]]
+                           :where [:ilike :j.job/id job-id]})))))
 
-(defn get-candidate-id-by-job-story-id [conn job-story-id]
+
+(defn get-candidate-id-by-job-story-id
+  [conn job-story-id]
   (safe-go
-   (:id (<? (db/get conn {:select [[:job-story/candidate :id]]
-                          :from [:JobStory]
-                          :where [:= :job-story/id job-story-id]})))))
+    (:id (<? (db/get conn {:select [[:job-story/candidate :id]]
+                           :from [:JobStory]
+                           :where [:= :job-story/id job-story-id]})))))
 
-(defn get-employer-id-by-job-story-id [conn job-story-id]
+
+(defn get-employer-id-by-job-story-id
+  [conn job-story-id]
   (safe-go
-   (:id (<? (db/get conn {:select [[:Job.job/creator :id]]
-                          :from [:JobStory]
-                          :join [:Job [:= :Job.job/id :JobStory.job/id]]
-                          :where [:= :job-story/id job-story-id]})))))
+    (:id (<? (db/get conn {:select [[:Job.job/creator :id]]
+                           :from [:JobStory]
+                           :join [:Job [:= :Job.job/id :JobStory.job/id]]
+                           :where [:= :job-story/id job-story-id]})))))
 
-(defn get-arbiter-id-by-job-story-id [conn job-story-id]
+
+(defn get-arbiter-id-by-job-story-id
+  [conn job-story-id]
   (safe-go
-   (:id (<? (db/get conn {:select [[:JobArbiter.user/id :id]]
-                          :from [:JobStory]
-                          :join [:Job [:= :Job.job/id :JobStory.job/id]
-                                 :JobArbiter [:= :Job.job/id :JobArbiter.job/id]]
-                          :where [:and
-                                  [:= :job-story/id job-story-id]
-                                  [:= :job-arbiter/status "accepted"]]})))))
+    (:id (<? (db/get conn {:select [[:JobArbiter.user/id :id]]
+                           :from [:JobStory]
+                           :join [:Job [:= :Job.job/id :JobStory.job/id]
+                                  :JobArbiter [:= :Job.job/id :JobArbiter.job/id]]
+                           :where [:and
+                                   [:= :job-story/id job-story-id]
+                                   [:= :job-arbiter/status "accepted"]]})))))
 
-(defn update-job-story-status [conn job-story-id status]
+
+(defn update-job-story-status
+  [conn job-story-id status]
   (safe-go
     (<? (db/get conn {:update :JobStory
                       :set {:job-story/status status}
                       :where [:= :job-story/id job-story-id]}))))
 
-(defn set-job-story-invoice-status-for-job [conn job-id invoice-id status]
+
+(defn set-job-story-invoice-status-for-job
+  [conn job-id invoice-id status]
   (safe-go
     (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
       (<? (db/run! conn {:update :JobStoryInvoiceMessage
@@ -958,20 +1024,26 @@
                                  [:= :job-story/id job-story-id]
                                  [:= :invoice/ref-id invoice-id]]})))))
 
-(defn add-contribution [conn job-id contributor-address contribution-id amount]
-  (safe-go
-   (<? (insert-row! conn :JobContribution {:job/id job-id
-                                           :user/id contributor-address
-                                           :job-contribution/amount amount
-                                           :job-contribution/id contribution-id}))))
 
-(defn get-token [conn token-address]
+(defn add-contribution
+  [conn job-id contributor-address contribution-id amount]
+  (safe-go
+    (<? (insert-row! conn :JobContribution {:job/id job-id
+                                            :user/id contributor-address
+                                            :job-contribution/amount amount
+                                            :job-contribution/id contribution-id}))))
+
+
+(defn get-token
+  [conn token-address]
   (safe-go
     (<? (db/get conn {:select [:*]
-                          :from [:TokenDetail]
-                          :where [:= :TokenDetail.token-detail/id token-address]}))))
+                      :from [:TokenDetail]
+                      :where [:= :TokenDetail.token-detail/id token-address]}))))
 
-(defn store-token-details [conn token-details]
+
+(defn store-token-details
+  [conn token-details]
   (safe-go
     (<? (insert-row! conn :TokenDetail
                      {:token-detail/id (:address token-details)
@@ -981,7 +1053,8 @@
                       :token-detail/decimals (:decimals token-details)}))))
 
 
-(defn load-processed-events-checkpoint [callback]
+(defn load-processed-events-checkpoint
+  [callback]
   (.then
     (district.server.async-db/get-connection)
     (fn [conn]
@@ -990,14 +1063,17 @@
                                       :order-by [[:created-at :desc]]})]
         (take! result-chan (fn [result] (callback nil (clojure.walk/keywordize-keys (get result :checkpoint)))))))))
 
-(defn save-processed-events-checkpoint [checkpoint & [callback]]
+
+(defn save-processed-events-checkpoint
+  [checkpoint & [callback]]
   (.then
     (district.server.async-db/get-connection)
     (fn [conn]
       (let [result-chan (db/run! conn {:insert-into :ContractEventCheckpoint
                                        :values [{:checkpoint (.stringify js/JSON (clj->js checkpoint))
-                                                 :created-at (new js/Date)}]} )]
+                                                 :created-at (new js/Date)}]})]
         (when (fn? callback) (take! result-chan callback))))))
+
 
 (defn ready-state?
   []
@@ -1012,19 +1088,21 @@
           (<! (async/timeout 1000))
           (recur))))))
 
+
 (defn start
   "Start the ethlance-db mount component."
   [{:keys [resync?] :as opts}]
   (safe-go
-   (let [conn (<? (db/get-connection))]
-     (log/info "Starting Ethlance DB component" opts)
-     (when resync?
-       (log/info "Database module called with a resync flag.")
-       (<? (drop-db! conn)))
-     (<? (create-db! conn))
-     (reset! db-state :db/ready)
-     (log/info "Ethlance DB component started")
-     @db-state)))
+    (let [conn (<? (db/get-connection))]
+      (log/info "Starting Ethlance DB component" opts)
+      (when resync?
+        (log/info "Database module called with a resync flag.")
+        (<? (drop-db! conn)))
+      (<? (create-db! conn))
+      (reset! db-state :db/ready)
+      (log/info "Ethlance DB component started")
+      @db-state)))
+
 
 (defn stop
   "Stop the ethlance-db mount component."

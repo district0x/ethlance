@@ -1,7 +1,9 @@
 (ns ethlance.ui.component.select-input
-  (:require [cuerdas.core :as string]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [reagent.core :as r]))
+  (:require
+    [cuerdas.core :as string]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [reagent.core :as r]))
+
 
 (defn filter-selections
   [search-text selections label-fn]
@@ -9,6 +11,7 @@
     (->> selections
          (filter #(string/includes? (string/lower (label-fn %)) (string/lower search-text))))
     selections))
+
 
 (defn c-select-input
   "Select Input Component for a dropdown listing of selections. Can also
@@ -105,13 +108,13 @@
                         :inline? false}]])
             [:div.selection-listing
              (doall
-              (for [selection (filter-selections @*search-text selections label-fn)]
-                ^{:key (str "selection-" (value-fn selection))}
-                [:div.selection
-                 {:on-click
-                  (fn []
-                    (reset! *current-default-selection selection)
-                    (reset! *search-text "")
-                    (reset! *open? false)
-                    (when on-select (on-select selection)))}
-                 (label-fn selection)]))]])]))))
+               (for [selection (filter-selections @*search-text selections label-fn)]
+                 ^{:key (str "selection-" (value-fn selection))}
+                 [:div.selection
+                  {:on-click
+                   (fn []
+                     (reset! *current-default-selection selection)
+                     (reset! *search-text "")
+                     (reset! *open? false)
+                     (when on-select (on-select selection)))}
+                  (label-fn selection)]))]])]))))
