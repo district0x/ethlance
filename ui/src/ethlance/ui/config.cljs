@@ -68,20 +68,7 @@
 (def config-dev
   {:logging {:level :debug}
    :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
-   :server-config {:url "http://d0x-vm:6300/config" :format :json}
-
-   ; :ipfs
-   ; {:endpoint "/api/v0"
-   ;  :host "http://host-machine:5001"
-   ;  :gateway "http://ipfs.localhost:8080/ipfs"}
-   ; :ipfs
-   ; {:host "https://ipfs.infura.io:5001"
-   ;  :endpoint "/api/v0"
-   ;  :gateway "https://ethlance-qa.infura-ipfs.io/ipfs"
-   ;  :auth {:username "2DWc3aSeqUSU5fMM64UuGvpMuPS"
-   ;         :password "c0fed9d891d419e72f41ee451b1055ec"}}
-   }
-  )
+   :server-config {:url "http://d0x-vm:6300/config" :format :json}})
 
 (def config-qa
   {:server-config {:url "https://ethlance-api.qa.district0x.io/config"}})
