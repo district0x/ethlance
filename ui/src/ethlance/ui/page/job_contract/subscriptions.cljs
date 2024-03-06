@@ -1,9 +1,7 @@
 (ns ethlance.ui.page.job-contract.subscriptions
   (:require
     [district.parsers :refer [parse-int]]
-    [district.ui.graphql.queries :as ui-gql-queries]
     [district.ui.router.queries :as ui-router-queries]
-    [ethlance.shared.utils :refer [ilike=]]
     [ethlance.ui.page.job-contract.events :as job-contract.events]
     [ethlance.ui.subscription.utils :as subscription.utils]
     [re-frame.core :as re]))
@@ -29,4 +27,3 @@
 
 (re/reg-sub :page.job-contract/feedback-rating (create-get-handler :feedback-rating))
 (re/reg-sub :page.job-contract/feedback-text (create-get-handler :feedback-text))
-(re/reg-sub :page.job-contract/feedback-recipient (create-get-handler :feedback-recipient))

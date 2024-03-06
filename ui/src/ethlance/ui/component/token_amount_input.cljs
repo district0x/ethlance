@@ -2,7 +2,7 @@
   (:require
     [ethlance.ui.component.text-input :as text-input]
     [ethlance.ui.util.tokens :as util-tokens]
-    [reagent.core :as r]))
+    [cljs.math]))
 
 
 (defn c-token-amount-input

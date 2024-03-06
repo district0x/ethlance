@@ -107,7 +107,7 @@
                                                (-> arbiter :arbiter/fee))]
    [:div.tags
     (doall
-      (for [tag-label (get-in arbiter [:skills])]
+      (for [tag-label (get arbiter :skills)]
         ^{:key (str "tag-" tag-label)}
         [c-tag {:on-click #(re/dispatch [:page.arbiters/add-skill tag-label])
                 :title (str "Add '" tag-label "' to Search")}

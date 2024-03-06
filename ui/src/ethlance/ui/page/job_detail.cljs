@@ -1,15 +1,13 @@
 (ns ethlance.ui.page.job-detail
   (:require
+    [clojure.set]
+    [clojure.string]
     [district.format :as format]
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
-    [ethlance.shared.utils :refer [millis->relative-time ilike!= ilike=]]
-    [ethlance.shared.utils :as shared-utils]
+    [ethlance.shared.utils :refer [ilike!= ilike=]]
     [ethlance.ui.component.button :refer [c-button c-button-label]]
-    [ethlance.ui.component.carousel
-     :refer
-     [c-carousel c-carousel-old c-feedback-slide]]
-    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.carousel :refer [c-carousel-old c-feedback-slide]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :as pagination]
@@ -17,23 +15,21 @@
     [ethlance.ui.component.rating :refer [c-rating]]
     [ethlance.ui.component.scrollable :refer [c-scrollable]]
     [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-    [ethlance.ui.component.select-input :refer [c-select-input]]
     [ethlance.ui.component.table :refer [c-table]]
     [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
     [ethlance.ui.component.text-input :refer [c-text-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
     [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
     [ethlance.ui.component.token-info :refer [c-token-info]]
-    [ethlance.ui.util.component :refer [<sub >evt]]
+    [ethlance.ui.util.component :refer [>evt]]
     [ethlance.ui.util.job :as util.job]
     [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
     [ethlance.ui.util.tokens :as token-utils]
-    [ethlance.ui.util.tokens :as util.tokens]
     [re-frame.core :as re]))
 
 
 (defn c-token-values
-  [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name] :as opts}]
+  [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name]}]
   (let [token-type (keyword token-type)
         step (if (= token-type :eth) 0.001 1)]
     (cond
@@ -84,9 +80,9 @@
         job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
         invoices (map (fn [invoice]
                         {:name (get-in invoice [:creation-message :creator :user/name])
-                         :amount (str (util.tokens/human-amount (get-in invoice [:invoice/amount-requested]) job-token-symbol) " " job-token-symbol)
+                         :amount (str (token-utils/human-amount (get invoice :invoice/amount-requested) job-token-symbol) " " job-token-symbol)
                          :timestamp (format/time-ago (new js/Date (get-in invoice [:creation-message :message/date-created])))
-                         :status (get-in invoice [:invoice/status])})
+                         :status (get invoice :invoice/status)})
                       (-> result :job :invoices :items))]
     [:div.invoice-listing
      [:div.label "Invoices"]
@@ -131,13 +127,11 @@
   [job]
   (let [contract-address (:id @(re/subscribe [:district.ui.router.subs/active-page-params]))
         active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        raw-token-amount (get-in job [:job/token-amount])
 
         *bid-option (:job/bid-option job)
-        *job-token-type (get-in job [:job/token-type] "")
-        *job-token-id (get-in job [:job/token-id])
-        *job-token-address (get-in job [:job/token-address])
-        *job-token-amount (util.tokens/human-amount raw-token-amount *job-token-type)
+        *job-token-type (get job :job/token-type "")
+        *job-token-id (get job :job/token-id)
+        *job-token-address (get job :job/token-address)
         *token-detail-name (get-in job [:token-details :token-detail/name])
         *token-detail-symbol (get-in job [:token-details :token-detail/symbol])
         *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
@@ -207,11 +201,11 @@
            :value (if my-proposal? (:message @my-proposal) @*proposal-text)
            :on-change #(re/dispatch [:page.job-detail/set-proposal-text %])}]]
 
-        (if my-proposal-withdrawable?
+        (when my-proposal-withdrawable?
           [c-button {:color :warning :on-click (fn [] (>evt [:page.job-proposal/remove my-job-story-id]))
                      :size :small}
            [c-button-label "Remove"]])
-        (if (not my-proposal?)
+        (when (not my-proposal?)
           [c-button {:style (when (not can-send-proposals?) {:background :gray})
                      :on-click (fn []
                                  (when can-send-proposals?
@@ -255,9 +249,8 @@
 (defn c-accept-arbiter-quote
   []
   (let [arbitration-to-accept @(re/subscribe [:page.job-detail/arbitration-to-accept])
-        job-address (get-in arbitration-to-accept [:job/id])
+        job-address (get arbitration-to-accept :job/id)
         employer-address (get-in arbitration-to-accept [:job :job/employer-address])
-        arbiter-address (get-in arbitration-to-accept [:arbiter :user/id])
         arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))]
     [:div.proposal-form
      [:div.label "Accept arbiter quote"]
@@ -272,7 +265,7 @@
       [c-text-input
        {:placeholder ""
         :disabled true
-        :value (token-utils/human-amount (get-in arbitration-to-accept [:arbitration/fee]) :eth)}]
+        :value (token-utils/human-amount (get arbitration-to-accept :arbitration/fee) :eth)}]
       [:label "ETH (Ether)"]]
 
      (when arbiter-to-be-assigned?
@@ -308,15 +301,13 @@
                                       {:refetch-on #{:page.job-detail/arbitrations-updated}}])
 
         all-arbiters (get-in search-result [:arbiter-search :items])
-        already-added (map #(get-in % [:arbiter]) (get-in search-result [:job :arbitrations :items]))
+        already-added (map #(get % :arbiter) (get-in search-result [:job :arbitrations :items]))
         uninvited-arbiters (clojure.set/difference (set all-arbiters) (set already-added))
 
         employer-address (get-in search-result [:job :job/employer-address])
-        arbiter-address-fn (fn [arbiter] (get-in arbiter [:user :user/id]))
-
         nothing-added? (empty? @selected-arbiters)
         arbiter-info-fn (fn [arbiter]
-                          (clojure.string.join
+                          (clojure.string/join
                             [(get-in arbiter [:user :user/name])
                              " "
                              (apply str (repeat (:arbiter/rating arbiter) "⭐"))
@@ -357,7 +348,7 @@
         token-amount-usd (re/subscribe [:page.job-detail/arbitration-token-amount-usd])
         quote-set? (= "quote-set" (:arbitration/status arbitration-by-current-user))
         invited? (= "invited" (:arbitration/status arbitration-by-current-user))
-        job-address (get-in arbitration-by-current-user [:job/id])
+        job-address (get arbitration-by-current-user :job/id)
         active-user (get-in arbitration-by-current-user [:arbiter :user/id])]
     (if invited?
       [:div.proposal-form
@@ -445,8 +436,6 @@
         arbitration-to-accept @(re/subscribe [:page.job-detail/arbitration-to-accept])
         job-arbiter (get-in result [:job :job/arbiter :user/id])
         job-arbitration (first (filter #(ilike= job-arbiter (get-in % [:arbiter :user/id])) arbitrations))
-        arbiter-quoted-amount (:arbitration/fee job-arbitration)
-        employer-address (get-in result [:job :job/employer-address])
 
         arbiter-accepted? (= "accepted" (:arbitration/status job-arbitration))
         arbiter-selected? (not (nil? arbitration-to-accept))
@@ -464,7 +453,7 @@
                    [[:span (cond
                              (ilike= active-user (get-in arbitration [:arbiter :user/id]))
                              "⭐"
-                             (= "accepted" (get-in arbitration [:arbitration/status]))
+                             (= "accepted" (get arbitration :arbitration/status))
                              "✅")]
                     [:span (get-in arbitration [:arbiter :user :user/name])]
                     [c-token-info (:arbitration/fee arbitration) (:fee-token-details arbitration)]
@@ -563,7 +552,6 @@
         *title (:job/title results)
         *description (:job/description results)
         *sub-title (:job/category results)
-        *experience (:job/required-experience-level results)
         job-creation-time (.fromTimestamp goog.date.DateTime (:job/date-created results))
         *posted-time-relative (str "Posted " (format/time-ago job-creation-time))
         *posted-time-absolute (str "(" (format/format-local-date job-creation-time) ")")
@@ -585,9 +573,9 @@
 
         employer-id (get-in results [:job/employer :user/id])
         arbiter-id (get-in results [:job/arbiter :user/id])
-        has-accepted-arbiter? (not (nil? (get-in results [:job/arbiter])))
-        token-details (get-in results [:token-details])
-        job-balance (get-in results [:balance])
+        has-accepted-arbiter? (not (nil? (get results :job/arbiter)))
+        token-details (get results :token-details)
+        job-balance (get results :balance)
 
         invoices (get-in results [:invoices :items])
         unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)

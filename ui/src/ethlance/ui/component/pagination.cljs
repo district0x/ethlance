@@ -74,7 +74,6 @@
                offset
                set-offset-event]}]
     (let [total-count (or total-count 0)
-          current-page (-> offset (/ limit) ceil inc)
           num-pages (-> total-count (/ limit) ceil)
           prev-offset (- offset limit)
           prev-offset (if (< prev-offset 0) 0 prev-offset)

@@ -1,6 +1,5 @@
 (ns ethlance.ui.page.job-detail.subscriptions
   (:require
-    [district.ui.conversion-rates.subs :as rates-subs]
     [ethlance.shared.utils :refer [ilike=]]
     [ethlance.ui.page.job-detail.events :as job-detail.events]
     [ethlance.ui.subscription.utils :as subscription.utils]
@@ -65,14 +64,14 @@
                                                (get-in story [:proposal-message :creator :user/id])
                                                ""))
                    :job-story/id (:job-story/id story)
-                   :proposal-message (get-in story [:proposal-message])
+                   :proposal-message (get story :proposal-message)
                    :candidate-name (or
                                      (get-in story [:candidate :user :user/name])
                                      (get-in story [:proposal-message :creator :user/name]))
-                   :rate (get-in story [:job-story/proposal-rate])
+                   :rate (get story :job-story/proposal-rate)
                    :message (get-in story [:proposal-message :message/text])
-                   :created-at (get-in story [:job-story/date-created])
-                   :status (get-in story [:job-story/status])}))
+                   :created-at (get story :job-story/date-created)
+                   :status (get story :job-story/status)}))
            ;; Keeps the current-user's proposal at the top of the list
            (sort-by (fn [story] [(if (:current-user? story) 1 0) (:created-at story)]))
            reverse))))

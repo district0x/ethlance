@@ -2,14 +2,12 @@
   (:require
     [district.graphql-utils]
     [district.ui.component.router :as router]
-    [ethlance.shared.config :as shared-config]
     [ethlance.shared.graphql.schema :refer [schema]]
     [ethlance.shared.routes :as routes]
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-    [ethlance.shared.utils :include-macros true :refer [slurp] :as shared-utils]
-    [taoensso.timbre :refer [merge-config!] :as log]))
+    [ethlance.shared.utils :include-macros true :as shared-utils]))
 
 
 ;; gql-name->kw transforms "erc20" to :erc-20

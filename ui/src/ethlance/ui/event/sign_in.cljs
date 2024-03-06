@@ -42,8 +42,8 @@
   (fn [cofx [_ event-data]]
     (-> cofx
         (assoc-in ,,, [:db :active-session] (select-keys (:sign-in event-data) [:jwt :user/id]))
-        (assoc-in ,,, [:store] (select-keys (:sign-in event-data) [:jwt :user/id]))
-        (assoc-in ,,, [:fx] [[:dispatch [:district.ui.graphql.events/set-authorization-token (get-in event-data [:sign-in :jwt])]]]))))
+        (assoc ,,, :store (select-keys (:sign-in event-data) [:jwt :user/id]))
+        (assoc ,,, :fx [[:dispatch [:district.ui.graphql.events/set-authorization-token (get-in event-data [:sign-in :jwt])]]]))))
 
 
 ;; Intermediates

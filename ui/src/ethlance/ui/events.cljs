@@ -20,15 +20,10 @@
     [re-frame.core :as re]))
 
 
-(defn has-active-session?
-  []
-  (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
-
-
 (re/reg-event-fx
   :ethlance/initialize
   [(re/inject-cofx :store)]
-  (fn [{:keys [db store]} [_ config]]
+  (fn [{:keys [db]} [_ config]]
     (let [updated-db (-> db
                          (assoc :ethlance/config config)
                          (assoc :active-session (select-keys (akiroz.re-frame.storage/<-store :ethlance) [:jwt :user/id])))]

@@ -51,7 +51,6 @@
                               :items
                               (sort-by :job-story/date-created ,,,)
                               reverse)
-            token-display-name (-> @job-token :symbol (or ,,, "") name)
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
             job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}

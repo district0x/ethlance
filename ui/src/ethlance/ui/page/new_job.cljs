@@ -3,8 +3,6 @@
     [clojure.spec.alpha :as s]
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
-    [district.ui.smart-contracts.queries :as contract-queries]
-    [district.ui.web3-tx.events :as tx-events]
     [ethlance.shared.constants :as constants]
     [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.icon :refer [c-icon]]
@@ -19,9 +17,7 @@
     [ethlance.ui.component.text-input :refer [c-text-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
     [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
-    [ethlance.ui.page.new-job.events :as new-job.events]
-    [ethlance.ui.subscriptions :as subs]
-    [ethlance.ui.util.component :refer [<sub >evt]]
+    [ethlance.ui.util.component :refer [>evt]]
     [ethlance.ui.util.job :as util.job]
     [ethlance.ui.util.navigation :as navigation]
     [re-frame.core :as re]))
@@ -46,15 +42,6 @@
          :color :warning
          :on-click #(re/dispatch [:page.new-job/uninvite-arbiter (:user/id arbiter)])}
         [c-button-label "Uninvite"]])]))
-
-
-(defn- c-submit-button
-  [{:keys [:on-submit :disabled?]}]
-  [:div.form-submit
-   {:class (when disabled? "disabled")
-    :on-click (fn [] (when-not disabled? (>evt on-submit)))}
-   [:span "Create"]
-   [c-icon {:name :ic-arrow-right :size :smaller}]])
 
 
 (defn radio-options-from-vector
@@ -94,7 +81,6 @@
     (fn []
       (let [arbiters (get-in @arbiters-result [:arbiter-search :items])
             with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
-            with-nft? (#{:erc721} @*token-type)
             token-with-amount? (#{:erc20 :erc1155 :eth} @*token-type)
             token-with-id? (#{:erc721 :erc1155} @*token-type)
             disabled? (or
@@ -221,7 +207,7 @@
 
 
 (defn c-invite-to-create-employer-profile
-  [user-id]
+  []
   [c-main-layout {:container-opts {:class :new-job-main-container}}
    [:div "Set up your employer profile to be able to create new jobs"]
    [:div.button

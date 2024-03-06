@@ -31,7 +31,7 @@
     {:offset (get-in db [arbiters.events/state-key :offset])
      :limit (get-in db [arbiters.events/state-key :limit])  :search-params
      (graphql-util/prepare-search-params
-       (get-in db [arbiters.events/state-key] {})
+       (get db arbiters.events/state-key {})
        [[:skills #(into [] %)]
         [:category second]
         [:feedback-min-rating]

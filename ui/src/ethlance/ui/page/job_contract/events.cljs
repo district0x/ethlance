@@ -1,6 +1,5 @@
 (ns ethlance.ui.page.job-contract.events
   (:require
-    ["web3" :as w3]
     [district.ui.graphql.events :as gql-events]
     [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
@@ -10,17 +9,13 @@
     [district.ui.web3.queries]
     [district0x.re-frame.web3-fx]
     [ethlance.shared.contract-constants :as contract-constants]
-    [ethlance.shared.utils :refer [eth->wei base58->hex]]
+    [ethlance.shared.utils :refer [base58->hex]]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]))
 
 
 ;; Page State
 (def state-key :page.job-contract)
-
-
-(def state-default
-  {})
 
 
 (defn initialize-page
@@ -40,7 +35,7 @@
 
 (defn create-logging-handler
   ([] (create-logging-handler ""))
-  ([text] (fn [db args] (println ">>> Received event in" state-key " " text " with args:" args))))
+  ([text] (fn [_db args] (println ">>> Received event in" state-key " " text " with args:" args))))
 
 
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
@@ -83,7 +78,7 @@
 
 
 (defn send-feedback
-  [{:keys [db]} [_event-name params]]
+  [_cofx [_event-name params]]
   (let [job-story-id (:job-story/id params)
         text (:text params)
         rating (:rating params)
@@ -132,7 +127,7 @@
 
 (defn raise-dispute
   [{:keys [db]}
-   [_ {invoice-id :invoice/id job-id :job/id job-story-id :job-story/id :as event}]]
+   [_ {invoice-id :invoice/id job-id :job/id job-story-id :job-story/id}]]
   (let [ipfs-dispute {:message/text (get-in db [state-key :dispute-text])
                       :message/creator (accounts-queries/active-account db)
                       :job/id job-id
@@ -165,7 +160,7 @@
 
 (re/reg-event-fx
   :page.job-contract/accept-proposal
-  (fn [{:keys [db]} [_ proposal-data]]
+  (fn [_cofx [_ proposal-data]]
     (let [to-ipfs {:candidate (:candidate proposal-data)
                    :employer (:employer proposal-data)
                    :job-story-message/type :accept-proposal
@@ -176,7 +171,7 @@
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [to-ipfs])]
                    :on-success [:accept-proposal-to-ipfs-success to-ipfs]
-                   :on-error [:accept-proposal-to-ipfs-failure to-ipfs]}})))
+                   :on-error [::accept-proposal-to-ipfs-failure to-ipfs]}})))
 
 
 (re/reg-event-fx
@@ -200,7 +195,7 @@
 
 (re/reg-event-fx
   ::accept-proposal-to-ipfs-failure
-  (fn [{:keys [db]} event]
+  (fn [_cofx event]
     (println ">>> :invitation-to-ipfs-failure" event)))
 
 
@@ -215,7 +210,7 @@
 
 (re/reg-event-fx
   ::accept-proposal-tx-failure
-  (fn [{:keys [db]} event]
+  (fn [_cofx _event]
     {:dispatch [::notification.events/show "Error processing accept proposal transaction"]}))
 
 
@@ -227,7 +222,7 @@
 
 (re/reg-event-fx
   ::dispute-tx-success
-  (fn [{:keys [db]} [event-name message]]
+  (fn [{:keys [db]} [_event-name message]]
     {:db (clear-forms db)
      :fx [[:dispatch [:page.job-contract/refetch-messages]]
           [:dispatch [::notification.events/show message]]]}))

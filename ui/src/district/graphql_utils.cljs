@@ -181,7 +181,7 @@
 
 
 (defn add-scalar-type
-  [schema-ast {:keys [:name :description :serialize :parseValue :parseLiteral]
+  [schema-ast {:keys [:name :serialize :parseValue :parseLiteral]
                :or {serialize identity
                     parseValue identity
                     parseLiteral identity}

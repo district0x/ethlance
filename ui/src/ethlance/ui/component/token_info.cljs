@@ -3,7 +3,8 @@
   (:require
     [district.ui.conversion-rates.subs :as rates-subs]
     [ethlance.ui.util.tokens :as util.tokens]
-    [re-frame.core :as re]))
+    [re-frame.core :as re]
+    [clojure.string]))
 
 
 (defn token-info-str
@@ -29,7 +30,7 @@
         token-decimals (:token-detail/decimals token-detail)
         display-amount (util.tokens/human-amount token-amount token-type token-decimals)
         token-symbol (:token-detail/symbol token-detail)
-        dollar-amount (if (= token-type :eth)
+        dollar-amount (when (= token-type :eth)
                         (util.tokens/round 2 (* display-amount @(re/subscribe [::rates-subs/conversion-rate :ETH :USD]))))
         display-type (if (= token-type :eth)
                        (str "$" dollar-amount)

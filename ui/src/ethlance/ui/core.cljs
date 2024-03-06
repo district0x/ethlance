@@ -38,12 +38,9 @@
 
 (defn fetch-config-from-server
   [url callback]
-  (let []
-    (-> (js/fetch url)
-        (.then ,,, (fn [response]
-                     (.json response)))
-        (.then ,,, (fn [config]
-                     (callback (js->clj config {:keywordize-keys true})))))))
+  (-> (js/fetch url)
+      (.then ,,, (fn [response] (.json response)))
+      (.then ,,, (fn [config] (callback (js->clj config {:keywordize-keys true}))))))
 
 
 (defn ^:export init

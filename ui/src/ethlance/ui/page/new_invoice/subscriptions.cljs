@@ -1,6 +1,5 @@
 (ns ethlance.ui.page.new-invoice.subscriptions
   (:require
-    [district.ui.conversion-rates.queries :as rates-queries]
     [district.ui.conversion-rates.subs :as rates-subs]
     [ethlance.ui.page.new-invoice.events :as new-invoice.events]
     [ethlance.ui.subscription.utils :as subscription.utils]
@@ -32,7 +31,7 @@
      :amount (-> job :job :job/token-amount)
      :id (-> job :job :job/token-id)
      :name (-> job :job :token-details :token-detail/name)
-     :symbol (or (keyword (-> job :job :token-details :token-detail/symbol)))}))
+     :symbol (keyword (-> job :job :token-details :token-detail/symbol))}))
 
 
 (re/reg-sub

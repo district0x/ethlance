@@ -17,9 +17,6 @@
      [c-mobile-search-filter]]
     [ethlance.ui.component.pagination :refer [c-pagination]]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
-    [ethlance.ui.component.radio-select
-     :refer
-     [c-radio-search-filter-element c-radio-select]]
     [ethlance.ui.component.rating :refer [c-rating]]
     [ethlance.ui.component.search-input :refer [c-chip-search-input]]
     [ethlance.ui.component.select-input :refer [c-select-input]]

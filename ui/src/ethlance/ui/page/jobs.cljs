@@ -27,7 +27,6 @@
     [ethlance.ui.component.text-input :refer [c-text-input]]
     [ethlance.ui.component.token-info :refer [c-token-info]]
     [ethlance.ui.util.navigation :as util.navigation]
-    [ethlance.ui.util.tokens :as tokens]
     [inflections.core :as inflections]
     [re-frame.core :as re]))
 
@@ -35,17 +34,14 @@
 (defn c-user-employer-detail
   [employer]
   (let [name (get-in employer [:user :user/name])
-        rating (get-in employer [:employer/rating])
+        rating (get employer :employer/rating)
         rating-count (get-in employer [:employer/feedback :total-count])
         country (get-in employer [:user :user/country])
-        address (get-in employer [:user/id])]
+        address (get employer :user/id)]
     [:div.user-detail.employer
-     {:on-click (util.navigation/create-handler {:route :route.user/profile
-                                                 :params {:address address}
-                                                 :query {:tab :employer}})
-      :href (util.navigation/resolve-route {:route :route.user/profile
-                                            :params {:address address}
-                                            :query {:tab :employer}})}
+     (util.navigation/link-params {:route :route.user/profile
+                                   :params {:address address}
+                                   :query {:tab :employer}})
      [:div.name name]
      [:div.rating-container
       [c-rating {:size :small :color :primary :default-rating rating}]
@@ -56,17 +52,14 @@
 (defn c-user-arbiter-detail
   [arbiter]
   (let [name (get-in arbiter [:user :user/name])
-        rating (get-in arbiter [:employer/rating])
+        rating (get arbiter :employer/rating)
         rating-count (get-in arbiter [:arbiter/feedback :total-count])
         country (get-in arbiter [:user :user/country])
-        address (get-in arbiter [:user/id])]
+        address (get arbiter :user/id)]
     [:div.user-detail.arbiter
-     {:on-click (util.navigation/create-handler {:route :route.user/profile
-                                                 :params {:address address}
-                                                 :query {:tab :arbiter}})
-      :href (util.navigation/resolve-route {:route :route.user/profile
-                                            :params {:address address}
-                                            :query {:tab :arbiter}})}
+     (util.navigation/link-params {:route :route.user/profile
+                                   :params {:address address}
+                                   :query {:tab :arbiter}})
      [c-inline-svg {:class "arbiter-icon" :src "images/svg/hammer.svg"}]
      [:div.name name]
      [:div.rating-container
@@ -82,7 +75,7 @@
                                      :beginner "Novice ($)"
                                      :intermediate "Professional ($$)"
                                      :expert "Expert ($$$)")
-        token-details (get-in job [:token-details])
+        token-details (get job :token-details)
         amount (:job/token-amount job)]
     [:div.job-detail-table
      [:div.name "Payment Type"]
@@ -194,7 +187,8 @@
         relative-ago (format/time-ago (new js/Date date-created))
         pluralized-proposals (inflections/pluralize proposals-count "proposal")]
     [:div.job-element
-     [:div.title {:on-click (fn [event] (re/dispatch [::router-events/navigate :route.job/detail {:id id}]))}
+     [:a.title (util.navigation/link-params {:route :route.job/detail
+                                             :params {:id id}})
       title]
      [:div.description description]
      [:div.date (str "Posted " relative-ago " | " pluralized-proposals)]

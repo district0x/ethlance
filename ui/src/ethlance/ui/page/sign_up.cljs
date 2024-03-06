@@ -23,8 +23,7 @@
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
     [ethlance.ui.page.sign-up.events :as sign-up.events]
     [ethlance.ui.page.sign-up.subscriptions]
-    [ethlance.ui.subscriptions :as subs]
-    [ethlance.ui.util.component :refer [<sub >evt]]
+    [ethlance.ui.util.component :refer [>evt]]
     [ethlance.ui.util.navigation :as navigation-utils]
     [re-frame.core :as re]
     [reagent.core :as r]
@@ -84,35 +83,6 @@
      :default-search-text "Search Countries"}]])
 
 
-(defn- c-user-github-input
-  [{:keys [:form-values :gh-client-id :root-url]}]
-  [:div.form-connect-github
-   [c-button
-    {:size :large
-     :disabled? (not (nil? (:user/github-username form-values)))
-     :href (str "https://github.com/login/oauth/authorize?"
-                "client_id=" gh-client-id
-                "&scope=user"
-                "&redirect_uri="
-                (navigation-utils/url-encode (str root-url "/me/sign-up?tab=candidate&social=github")))}
-    [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]])
-
-
-(defn- c-user-linkedin-input
-  [{:keys [:form-values :linkedin-client-id :root-url]}]
-  [:div.form-connect-linkedin
-   [c-button
-    {:size :large
-     :disabled? (not (nil? (:user/linkedin-username form-values)))
-     :href (str "https://www.linkedin.com/oauth/v2/authorization?"
-                "client_id=" linkedin-client-id
-                "&scope=r_liteprofile%20r_emailaddress"
-                "&response_type=code"
-                "&redirect_uri="
-                (navigation-utils/url-encode (str root-url "/me/sign-up?tab=candidate&social=linkedin")))}
-    [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]])
-
-
 (defn- c-user-languages-input
   [{:keys [:form-values]}]
   [:<>
@@ -152,8 +122,8 @@
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [candidate-query user-query]}])
         sign-up-form (re/subscribe [:page.sign-up/form])
-        form-values (merge (get-in @results [:candidate])
-                           (get-in @results [:user])
+        form-values (merge (get @results :candidate)
+                           (get @results :user)
                            @sign-up-form)
         form-validation (validate-keys form-values)]
     [:div.candidate-sign-up
@@ -220,8 +190,8 @@
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [employer-query user-query]}])
         sign-up-form (re/subscribe [:page.sign-up/form])
-        form-values (merge (get-in @results [:employer])
-                           (get-in @results [:user])
+        form-values (merge (get @results :employer)
+                           (get @results :user)
                            @sign-up-form)
         form-validation (validate-keys form-values)]
     [:div.employer-sign-up
@@ -262,8 +232,8 @@
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [arbiter-query user-query]}])
         sign-up-form (re/subscribe [:page.sign-up/form])
-        form-values (merge (get-in @results [:arbiter])
-                           (get-in @results [:user])
+        form-values (merge (get @results :arbiter)
+                           (get @results :user)
                            @sign-up-form)
         form-validation (validate-keys form-values)]
     [:div.arbiter-sign-up

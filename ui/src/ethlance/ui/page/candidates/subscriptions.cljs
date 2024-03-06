@@ -32,7 +32,7 @@
      :limit (get-in db [candidates.events/state-key :limit])
      :search-params
      (graphql-util/prepare-search-params
-       (get-in db [candidates.events/state-key] {})
+       (get db candidates.events/state-key {})
        [[:skills #(into [] %)]
         [:category second]
         [:feedback-max-rating]

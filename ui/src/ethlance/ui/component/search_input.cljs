@@ -91,7 +91,7 @@
     (r/create-class
       {:display-name "ethlance-chip-search-input"
        :component-did-mount
-       (fn [this]
+       (fn [_this]
          (let [root-dom (.-current react-ref)
                search-input (.querySelector root-dom ".search-input")]
            (.addEventListener

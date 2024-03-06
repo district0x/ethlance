@@ -3,8 +3,8 @@
     [cljs-web3-next.eth :as w3-eth]
     [cljs-web3-next.helpers :as web3-helpers]
     [clojure.math]
-    [ethlance.shared.utils :refer [wei->eth eth->wei]]
-    [re-frame.core :as re]))
+    [clojure.walk]
+    [ethlance.shared.utils :refer [wei->eth eth->wei]]))
 
 
 (defn round

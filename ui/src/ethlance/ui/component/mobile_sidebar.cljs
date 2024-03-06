@@ -1,5 +1,4 @@
 (ns ethlance.ui.component.mobile-sidebar
-  ""
   (:require
     ;; Ethlance Components
     [ethlance.ui.component.icon :refer [c-icon]]

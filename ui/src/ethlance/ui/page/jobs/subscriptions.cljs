@@ -15,8 +15,6 @@
 
 (re/reg-sub :page.jobs/offset (create-get-handler :offset))
 (re/reg-sub :page.jobs/limit (create-get-handler :limit))
-(re/reg-sub :page.jobs/job-listing (create-get-handler :job-listing))
-(re/reg-sub :page.jobs/job-listing-state (create-get-handler :job-listing/state))
 (re/reg-sub :page.jobs/skills (create-get-handler :skills))
 (re/reg-sub :page.jobs/category (create-get-handler :category))
 (re/reg-sub :page.jobs/feedback-max-rating (create-get-handler :feedback-max-rating))
@@ -31,7 +29,7 @@
 (re/reg-sub
   :page.jobs/job-search-params
   (fn [db _]
-    (let [page-state (get-in db [jobs.events/state-key] {})
+    (let [page-state (get db jobs.events/state-key {})
           filters [[:skills #(into [] %)]
                    [:category second]
                    [:feedback-max-rating]

@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.main-layout
   (:require
     [akiroz.re-frame.storage]
+    [clojure.string]
     [district.ui.component.notification :as component.notification]
     [district.ui.router.subs :as router.subs]
     [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
@@ -25,11 +26,6 @@
         name-part-from-route-name (name route-name)
         name-parts (flatten [app-name ":" name-parts-from-route-ns name-part-from-route-name])]
     (clojure.string/join " " (map clojure.string/capitalize name-parts))))
-
-
-(defn has-active-session?
-  []
-  (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
 
 
 (defn c-main-layout

@@ -9,7 +9,6 @@
     [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
     [ethlance.ui.event.sign-in]
-    [ethlance.ui.subscriptions :as ethlance-subs]
     [ethlance.ui.util.navigation :as util.navigation]
     [print.foo :include-macros true]
     [re-frame.core :as re]))
@@ -23,8 +22,7 @@
                 :user/name
                 :user/email
                 :user/profile-image]]
-        result (re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:ethlance.user-profile-updated}}])
-        profile-image (get-in @result [:user :user/profile-image])]
+        result (re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:ethlance.user-profile-updated}}])]
     [:a.profile (util.navigation/link-params {:route :route.user/profile :params {:address active-account}})
      (when (not (:graphql/loading? @result))
        [c-profile-image {:size :small :src (get-in @result [:user :user/profile-image])}])
@@ -39,11 +37,9 @@
   "Main Navigation bar seen while the site is in desktop-mode."
   []
   (let [active-account (re/subscribe [::accounts-subs/active-account])
-        active-session (re/subscribe [::ethlance-subs/active-session])
         balance-eth (re/subscribe [::balances-subs/active-account-balance])]
     (fn []
-      (let [active-user-id (or (:user/id @active-session) @active-account)
-            eth-balance (web3-utils/wei->eth-number (or @balance-eth 0))]
+      (let [eth-balance (web3-utils/wei->eth-number (or @balance-eth 0))]
         [:div.main-navigation-bar
          [c-ethlance-logo
           {:color :white

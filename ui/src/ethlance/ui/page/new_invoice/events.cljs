@@ -1,19 +1,16 @@
 (ns ethlance.ui.page.new-invoice.events
   (:require
-    [cljs-web3-next.eth :as web3-eth]
-    [cljs-web3-next.helpers :as web3-helpers]
     [district.parsers :refer [parse-float parse-int]]
     [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
     [district.ui.router.events :as router-events]
-    [district.ui.smart-contracts.queries :as contract-queries]
     ;; TODO: extract for Event decoding
     [district.ui.smart-contracts.queries :as smart-contracts.queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
     [district.ui.web3.queries :as web3-queries]
     [ethlance.shared.contract-constants :as contract-constants]
-    [ethlance.shared.utils :refer [eth->wei base58->hex]]
+    [ethlance.shared.utils :refer [base58->hex]]
     [ethlance.ui.event.utils :as event.utils]
     [ethlance.ui.util.tokens :as util.tokens]
     [re-frame.core :as re]))
@@ -57,14 +54,14 @@
           load-eth-rate [:dispatch [:district.ui.conversion-rates.events/load-conversion-rates
                                     {:from-currencies [token-type] :to-currencies [:USD]}]]]
       (if (= token-type :eth)
-        (assoc-in updated-cofx [:fx] [load-eth-rate])
+        (assoc updated-cofx :fx [load-eth-rate])
         updated-cofx))))
 
 
 (re/reg-event-fx
   :page.new-invoice/send
   (fn [{:keys [db]}]
-    (let [db-invoice (get-in db [state-key])
+    (let [db-invoice (get db state-key)
           ipfs-invoice {:invoice/amount-requested (get-in db-invoice [:invoice-amount :token-amount])
                         :invoice/hours-worked (:hours-worked db-invoice)
                         :invoice/hourly-rate (:hourly-rate db-invoice)
@@ -99,7 +96,7 @@
           tx-opts {:from creator :gas 10000000}
           ipfs-hash (-> ipfs-event :Hash base58->hex)]
       {:dispatch [::web3-events/send-tx
-                  {:instance (contract-queries/instance (:db cofx) :job contract-address)
+                  {:instance (smart-contracts.queries/instance (:db cofx) :job contract-address)
                    :fn :create-invoice
                    :args [[(clj->js offered-value)] ipfs-hash]
                    :tx-opts tx-opts
@@ -111,38 +108,30 @@
 
 (re/reg-event-db
   ::invoice-to-ipfs-failure
-  (fn [db event]
-    (println ">>> ethlance.ui.page.new-invoice.events EVENT :invoice-to-ipfs-failure" event)
-    db))
+  (fn [_db event]
+    (println ">>> ethlance.ui.page.new-invoice.events EVENT :invoice-to-ipfs-failure" event)))
 
 
 (re/reg-event-fx
   ::tx-hash
-  (fn [db event] (println ">>> ethlance.ui.page.new-invoice.events :tx-hash" event)))
+  (fn [_db event] (println ">>> ethlance.ui.page.new-invoice.events :tx-hash" event)))
 
 
 (re/reg-event-fx
   ::web3-tx-localstorage
-  (fn [db event] (println ">>> ethlance.ui.page.new-invoice.events :web3-tx-localstorage" event)))
-
-
-(def invoice-data (atom nil))
+  (fn [_db event] (println ">>> ethlance.ui.page.new-invoice.events :web3-tx-localstorage" event)))
 
 
 (re/reg-event-fx
   ::send-invoice-tx-success
-  (fn [{:keys [db]} [event-name ipfs-job tx-data]]
-    (let [web3 (web3-queries/web3 db)
-          contract-instance (smart-contracts.queries/instance db :ethlance)
-          raw-event (get-in tx-data [:events :0 :raw])
-          invoice-created (util.tokens/parse-event web3 contract-instance raw-event :Invoice-created)
-          job-story-id (:job-story/id ipfs-job)]
+  (fn [{:keys [db]} [_event-name ipfs-job _tx-data]]
+    (let [job-story-id (:job-story/id ipfs-job)]
       (re/dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}])
       {:dispatch [::notification.events/show "Transaction to create invoice processed successfully"]
-       :db (assoc-in db [state-key] state-default)})))
+       :db (assoc db state-key state-default)})))
 
 
 (re/reg-event-db
   ::send-invoice-tx-error
-  (fn [db event]
+  (fn [_db event]
     (println ">>> got :create-job-tx-error event:" event)))

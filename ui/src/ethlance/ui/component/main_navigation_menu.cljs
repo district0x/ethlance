@@ -6,7 +6,7 @@
     [ethlance.ui.component.icon :refer [c-icon]]
     [ethlance.ui.subscriptions :as ethlance-subs]
     [ethlance.ui.util.navigation :as util.navigation]
-    [re-frame.core :as re :refer [subscribe]]))
+    [re-frame.core :as re]))
 
 
 (defn- c-menu-item
@@ -36,7 +36,7 @@
                   :user/name
                   :user/profile-image]]
           result (re/subscribe [::gql/query {:queries [query]}])
-          active-user (get-in @result [:user])]
+          active-user (get @result :user)]
       [:div.main-navigation-menu
        [c-menu-item {:name :new-job :label "New Job" :route :route.job/new}]
        [c-menu-item {:name :jobs :label "Jobs" :route :route.job/jobs}]

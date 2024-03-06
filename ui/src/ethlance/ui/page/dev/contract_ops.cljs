@@ -1,12 +1,12 @@
 (ns ethlance.ui.page.dev.contract-ops
   (:require
     [clojure.edn :as edn]
+    [cljs.pprint]
     [district.ui.component.page :refer [page]]
-    [district.ui.router.subs :as router.subs]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-tx.events :as web3-events]
-    [ethlance.ui.component.main-layout :refer [c-main-layout]]
-    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [district.ui.web3-accounts.queries]
+    [ethlance.ui.config]
     [re-frame.core :as re]))
 
 
@@ -43,7 +43,7 @@
 
 (re/reg-event-db
   ::mint-token-tx-error
-  (fn [db [_ tx-receipt]]
+  (fn [_ [_ tx-receipt]]
     (println ">>> ::mint-token-tx-error" tx-receipt)))
 
 
@@ -141,7 +141,7 @@
                            (set! (.. js/window -zeOnChangeEvent) event)
                            (re/dispatch [:page.dev.contract-ops/update-app-db-query (-> event .-target .-value)]))
               :on-key-up (fn [event]
-                           (if (= "Enter" (.-key event))
+                           (when (= "Enter" (.-key event))
                              (re/dispatch [:page.dev.contract-ops/make-app-db-query @query-input])))}]
      [:h3 {:style {:font-size "2em"}} "Keys"]
      [:pre {:style {:font-family "Monospace" :font-weight "bold"}}
@@ -154,7 +154,6 @@
 (defn c-mint-tokens
   []
   (let [token-amount (re/subscribe [:page.dev.contract-ops/token-amount])
-        selected-token (re/subscribe [:page.dev.contract-ops/token-info])
         minted-token-id (re/subscribe [:page.dev.contract-ops/minted-token-id])
         tokens {:erc20 :token
                 :erc721 :test-nft

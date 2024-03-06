@@ -2,16 +2,13 @@
   (:require
     [cljsjs.graphql]
     [clojure.string :as string]
-    [district.format :as format]
-    [district.graphql-utils :as utils]
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
     [district.ui.router.events :as router-events]
     [district.ui.router.subs :as router-subs]
-    [ethlance.shared.utils :refer [ilike= ilike!=]]
+    [ethlance.shared.utils :refer [ilike=]]
     [ethlance.ui.component.button :refer [c-button c-button-label c-button-icon-label]]
     [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
-    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :refer [c-pagination-ends]]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -50,8 +47,8 @@
 (defn prepare-candidate-jobs
   [story]
   {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-created])
-   :status (get-in story [:job-story/status])})
+   :start-date (get story :job-story/date-created)
+   :status (get story :job-story/status)})
 
 
 (defn c-job-activity
@@ -96,9 +93,9 @@
 (defn prepare-arbitrations
   [arbitration]
   {:title (get-in arbitration [:job :job/title])
-   :start-date (get-in arbitration [:arbitration/date-arbiter-accepted]) ;
-   :fee (str (get-in arbitration [:arbitration/fee]) " " (get-in arbitration [:arbitration/fee-currency-id]))
-   :status (get-in arbitration [:arbitration/status])})
+   :start-date (get arbitration :arbitration/date-arbiter-accepted) ;
+   :fee (str (get arbitration :arbitration/fee) " " (get arbitration :arbitration/fee-currency-id))
+   :status (get arbitration :arbitration/status)})
 
 
 (defn c-arbitration-activity
@@ -212,19 +209,9 @@
   [:div.feedback-listing
    [:div.title "Feedback"]
    [:div.sub-title sub-title]
-   (if (not (empty? feedback-list))
+   (if (not-empty feedback-list)
      (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))
      [:div.info-message "This user is yet to receive feedback"])])
-
-
-(def log (.-log js/console))
-
-
-(defn prepare-ratings
-  [rating]
-  {:rating (:feedback/rating rating)
-   :from (get-in rating [:feedback/from-user :user/name])
-   :text (:feedback/text rating)})
 
 
 (defn prepare-feedback-cards
@@ -233,13 +220,6 @@
    :text (:feedback/text item)
    :image-url (-> item :feedback/from-user :user/profile-image)
    :author (get-in item [:feedback/from-user :user/name])})
-
-
-(defn prepare-employer-jobs
-  [story]
-  {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-created])
-   :status (get-in story [:job :job/status])})
 
 
 (defn c-missing-profile-notification
@@ -261,8 +241,7 @@
 
 (defn c-candidate-profile
   []
-  (let [page-params (re/subscribe [::router-subs/active-page-params])
-        user-address @(re/subscribe [:page.profile/viewed-user-address])
+  (let [user-address @(re/subscribe [:page.profile/viewed-user-address])
         query [:candidate {:user/id user-address}
                [:candidate/professional-title
                 :candidate/skills
@@ -478,11 +457,11 @@
 
 
 (defmethod page :route.user/profile []
-  (let [{:keys [name params query]} @(re/subscribe [::router-subs/active-page])
+  (let [{:keys [_name _params query]} @(re/subscribe [::router-subs/active-page])
         user-address @(re/subscribe [:page.profile/viewed-user-address])
         tabs {"candidate" 0 "employer" 1 "arbiter" 2}
         default-tab (get tabs (:tab query) 0)
-        navigate-to (fn [tab name params]
+        navigate-to (fn [tab name _params]
                       (when name (re/dispatch [::router-events/navigate
                                                :route.user/profile
                                                {:address user-address}

@@ -19,7 +19,7 @@
     :or {file-accept-pred (constantly true)}}]
   (let [allow-drop #(.preventDefault %)
         handle-files-select (fn [files]
-                              (if-let [f (aget files 0)]
+                              (when-let [f (aget files 0)]
                                 (let [fprops {:name (.-name f)
                                               :type (.-type f)
                                               :size (.-size f)

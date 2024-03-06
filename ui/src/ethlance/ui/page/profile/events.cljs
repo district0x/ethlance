@@ -2,10 +2,9 @@
   (:require
     [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
-    [district.ui.router.queries :refer [active-page-params]]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.web3-tx.events :as web3-events]
-    [ethlance.shared.utils :refer [eth->wei base58->hex]]
+    [ethlance.shared.utils :refer [base58->hex]]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]))
 
@@ -22,12 +21,11 @@
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
-  (let [page-state (get db state-key)]
-    {::router.effects/watch-active-page
-     [{:id :page.profile/initialize-page
-       :name :route.user/profile
-       :dispatch []}]
-     :db (assoc-in db [state-key] state-default)}))
+  {::router.effects/watch-active-page
+   [{:id :page.profile/initialize-page
+     :name :route.user/profile
+     :dispatch []}]
+   :db (assoc db state-key state-default)})
 
 
 (defn clear-forms
@@ -50,7 +48,7 @@
 
 (re/reg-event-fx
   :page.profile/invite-candidate
-  (fn [{:keys [db]} [_ invitation-data]]
+  (fn [_cofx [_ invitation-data]]
     (let [ipfs-invitation {:candidate (:candidate invitation-data)
                            :employer (:employer invitation-data)
                            :job-story-message/type :invitation
@@ -104,33 +102,31 @@
 
 (re/reg-event-db
   ::tx-hash-error
-  (fn [db event]
+  (fn [_db event]
     (println ">>>ui.page.profile ::tx-hash-error" event)))
 
 
 (re/reg-event-db
   ::invitation-to-ipfs-failure
-  (fn [db event]
-    (println ">>> :invitation-to-ipfs-failure" event)
-    db))
+  (fn [_db event]
+    (println ">>> :invitation-to-ipfs-failure" event)))
 
 
 (re/reg-event-fx
   ::invite-candidate-tx-success
-  (fn [{:keys [db]} event]
+  (fn [{:keys [db]} _event]
     {:db (clear-forms db)
      :dispatch [::notification.events/show "Transaction to invite candidate processed successfully"]}))
 
 
 (re/reg-event-db
   ::invite-candidate-tx-failure
-  (fn [db event]
-    (println ">>> ::invite-candidate-tx-failure" event)
-    db))
+  (fn [_db event]
+    (println ">>> ::invite-candidate-tx-failure" event)))
 
 
 (re/reg-event-fx
   ::invite-arbiter-tx-success
-  (fn [{:keys [db] :as cofx} event]
+  (fn [{:keys [db]} _event]
     {:db (clear-forms db)
      :dispatch [::notification.events/show "Transaction to invite arbiter processed successfully"]}))

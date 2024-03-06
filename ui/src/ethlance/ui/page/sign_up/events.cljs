@@ -1,12 +1,9 @@
 (ns ethlance.ui.page.sign-up.events
   (:require
-    [district.parsers :as parsers]
     [district.ui.graphql.events :as gql-events]
     [district.ui.logging.events :as logging]
-    [district.ui.web3-accounts.events :as accounts-events]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [ethlance.ui.event.utils :as event.utils]
-    [ethlance.ui.util.component :refer [>evt]]
     [re-frame.core :as re]))
 
 
@@ -40,15 +37,10 @@
 (def interceptors [re/trim-v])
 
 
-(re/reg-event-fx
+(re/reg-event-db
   :page.sign-up/initialize-page
-  (fn [{:keys [db]}]
-    {:db (assoc-in db [state-key] state-default)
-     ;; :forward-events
-     ;; {:register ::accounts-loaded?
-     ;;  :events #{::accounts-events/accounts-changed}
-     ;;  :dispatch-to [:page.sign-up/initial-query]}
-     }))
+  (fn [db _]
+    (assoc db state-key state-default)))
 
 
 (re/reg-event-fx
@@ -160,7 +152,7 @@
 
 (re/reg-event-fx
   :navigate-to-profile
-  (fn [cofx [_ address tab]]
+  (fn [_cofx [_ address tab]]
     {:fx [[:dispatch [:district.ui.router.events/navigate :route.user/profile {:address address} {:tab tab}]]
           [:dispatch [:district.ui.user-profile-updated]]]}))
 

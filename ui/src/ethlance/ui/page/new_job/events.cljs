@@ -1,7 +1,5 @@
 (ns ethlance.ui.page.new-job.events
   (:require
-    ["web3" :as w3]
-    [alphabase.hex :as hex]
     [cljs-web3-next.eth :as w3n-eth]
     [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
@@ -11,7 +9,7 @@
     [district.ui.web3-tx.events :as web3-events]
     [district.ui.web3.queries :as web3-queries]
     [ethlance.shared.contract-constants :as contract-constants]
-    [ethlance.shared.utils :refer [eth->wei base58->hex js-obj->clj-map]]
+    [ethlance.shared.utils :refer [base58->hex js-obj->clj-map]]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]))
 
@@ -61,7 +59,7 @@
 (re/reg-event-db
   :page.new-job/auto-fill-form
   (fn [db]
-    (assoc-in db [state-key] state-default)))
+    (assoc db state-key state-default)))
 
 
 (re/reg-event-fx :page.new-job/initialize-page initialize-page)
@@ -169,7 +167,7 @@
   :page.new-job/create
   [interceptors]
   (fn [{:keys [db]}]
-    (let [db-job (get-in db [state-key])
+    (let [db-job (get db state-key)
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-job])]
@@ -179,7 +177,7 @@
 
 (re/reg-event-fx
   ::send-create-job-tx
-  (fn [{:keys [db] :as cofx} _]
+  (fn [{:keys [db]} _]
     (let [employer (get-job-creation-param db :employer)
           offered-value (get-job-creation-param db :offered-value)
           ipfs-hash (get-job-creation-param db :ipfs-hash)
@@ -204,32 +202,32 @@
 
 (re/reg-event-fx
   ::create-job-tx-receipt
-  (fn [cofx result]
+  (fn [_cofx result]
     (println ">>> ::create-job-tx-receipt" result)))
 
 
 (re/reg-event-fx
   ::tx-hash-error
-  (fn [cofx result]
+  (fn [_cofx result]
     (println ">>> ⚠️ ⚠️   ::tx-hash-error" result)))
 
 
 (re/reg-event-fx
   ::erc20-allowance-approval-success
-  (fn [cofx result]
+  (fn [_cofx result]
     (println ">>> ::erc20-allowance-approval-success" result)
     {:fx [[:dispatch [::send-create-job-tx]]]}))
 
 
 (re/reg-event-fx
   ::erc20-allowance-approval-error
-  (fn [cofx result]
+  (fn [_cofx result]
     (println ">>> ::erc20-allowance-approval-error" result)))
 
 
 (re/reg-event-fx
   ::erc20-allowance-amount-success
-  (fn [{:keys [db] :as cofx} [_ result]]
+  (fn [{:keys [db]} [_ result]]
     (println ">>> ::erc20-allowance-amount-success" result (type result))
     (let [offered-value (get-job-creation-param db :offered-value)
           amount (:value offered-value)
@@ -254,13 +252,13 @@
 
 (re/reg-event-fx
   ::erc20-allowance-amount-error
-  (fn [cofx result]
+  (fn [_cofx result]
     (println ">>> ::erc20-allowance-amount-error" result)))
 
 
 (re/reg-event-fx
   ::ensure-erc20-allowance
-  (fn [{:keys [db] :as cofx} _]
+  (fn [{:keys [db] :as _cofx} _]
     (let [offered-value (get-job-creation-param db :offered-value)
           erc20-address (get-in offered-value [:token :tokenContract :tokenAddress])
           erc20-abi (:erc20 ethlance.shared.contract-constants/abi)
@@ -276,7 +274,7 @@
 
 
 (defn job-creation-params
-  [db]
+  [_db]
   {:offered-value nil
    :arbiters nil
    :ipfs-hash nil})
@@ -284,7 +282,7 @@
 
 (re/reg-event-fx
   ::safe-transfer-with-create-job
-  (fn [{:keys [db] :as cofx} _]
+  (fn [{:keys [db] :as _cofx} _]
     (let [offered-value (get-job-creation-param db :offered-value)
           amount (:value offered-value)
           token-address (get-in offered-value [:token :tokenContract :tokenAddress])
@@ -318,7 +316,6 @@
 (re/reg-event-fx
   :job-to-ipfs-success
   (fn [cofx event]
-    (println ">>> :job-to-ipfs-success" event)
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
@@ -351,19 +348,18 @@
 
 (re/reg-event-fx
   ::tx-hash
-  (fn [db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
+  (fn [_db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
 
 
 (defn async-request-event
   [{:keys [contract event block-number callback]}]
-  (let []
-    (-> (w3n-eth/get-past-events contract event {:from-block block-number :to-block block-number})
-        (.then ,,, callback))))
+  (-> (w3n-eth/get-past-events contract event {:from-block block-number :to-block block-number})
+      (.then ,,, callback)))
 
 
 (re/reg-event-fx
   ::create-job-tx-success
-  (fn [{:keys [db]} [event-name tx-data]]
+  (fn [{:keys [db]} [_event-name tx-data]]
     (let [job-from-event (get-in tx-data [:events :Job-created :return-values :job])]
       (println ">>> ::create-job-tx-success" tx-data)
       {:db (set-tx-in-progress db false)

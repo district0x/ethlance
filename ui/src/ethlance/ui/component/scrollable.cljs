@@ -28,7 +28,7 @@
       {:display-name "c-scrollable"
 
        :component-did-mount
-       (fn [this]
+       (fn [_this]
          (let [elnode (.-current react-ref)
                simplebar (simplebar elnode (clj->js opts))]
            (reset! *instance simplebar)))

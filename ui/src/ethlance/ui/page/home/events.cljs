@@ -15,10 +15,9 @@
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
-  (let []
-    (when-not (logged-in? (accounts-queries/active-account db)
-                          (get-in db [:active-session :user/id]))
-      {:fx [[:dispatch [:modal/open ::sign-in]]]})))
+  (when-not (logged-in? (accounts-queries/active-account db)
+                        (get-in db [:active-session :user/id]))
+    {:fx [[:dispatch [:modal/open ::sign-in]]]}))
 
 
 (re/reg-event-fx :page.home/initialize-page initialize-page)

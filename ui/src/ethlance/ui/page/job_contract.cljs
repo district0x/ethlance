@@ -1,5 +1,6 @@
 (ns ethlance.ui.page.job-contract
   (:require
+    [clojure.string]
     [district.format :as format]
     [district.parsers :refer [parse-int]]
     [district.ui.component.page :refer [page]]
@@ -92,18 +93,12 @@
 
 (defn invoice-detail
   [job-story amount-field invoice]
-  (let [amount (tokens/human-amount
-                 (-> invoice :invoice/amount-requested)
-                 (-> job-story :job :job/token-type))
-        token-name (-> job-story :job :token-details :token-detail/name)
-        token-symbol (-> job-story :job :token-details :token-detail/symbol)]
-    [c-token-info (:invoice/amount-requested invoice) (get-in job-story [:job :token-details])]))
+  [c-token-info (amount-field invoice) (get-in job-story [:job :token-details])])
 
 
 (defn extract-chat-messages
   [job-story current-user]
-  (let [job-story-id (-> job-story :job-story :job-story/id)
-        add-to-details (fn [message additional-detail]
+  (let [add-to-details (fn [message additional-detail]
                          (when message
                            (assoc message :details (conj (:details message) additional-detail))))
         format-proposal-amount (fn [job-story]
@@ -197,18 +192,14 @@
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])]
-    (fn [job-story-id]
-      (let [chat-messages (extract-chat-messages (:job-story @messages-result) active-user)]
-        [c-chat-log chat-messages]))))
+    [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)]))
 
 
 (defn c-feedback-panel
-  [feedbacker feedback-recipients]
+  [feedbacker]
   (let [job-story-id (re/subscribe [:page.job-contract/job-story-id])
         feedback-text (re/subscribe [:page.job-contract/feedback-text])
         feedback-rating (re/subscribe [:page.job-contract/feedback-rating])
-        feedback-recipient (re/subscribe [:page.job-contract/feedback-recipient])
-
         user-fields [:user [:user/id :user/name]]
         query [:job-story {:job-story/id @job-story-id}
                [:job-story/id
@@ -239,9 +230,9 @@
                                          [(:feedback/from-user-type fb)
                                           (:feedback/to-user-type fb)])
                                        feedbacks)
-        feedback-between? (fn [participants feedbacks from to]
+        feedback-between? (fn [feedbacks from to]
                             (some #(= % [from to]) feedbacks))
-        given-feedback? (partial feedback-between? participants normalized-feedback-users)
+        given-feedback? (partial feedback-between? normalized-feedback-users)
         feedback-receiver-role (case feedbacker
                                  :employer
                                  (cond
@@ -286,7 +277,6 @@
         all-feedbacks-done? (and (empty? open-invoices)
                                  (nil? feedback-receiver-role))
 
-        new-feedback-recipients (dissoc participants feedbacker)
         next-feedback-receiver (get participants feedback-receiver-role)]
     [:div.feedback-input-container
      (when open-invoices?
@@ -351,13 +341,6 @@
   (let [text (re/subscribe [:page.job-contract/accept-proposal-message-text])
         proposal-data (assoc (select-keys message-params [:job/id :job-story/id :candidate :employer])
                              :text @text)
-        query [:job-story {:job-story/id (:job-story/id message-params)}
-               [:job-story/id
-                [:proposal-message [:message/id]]
-                :job-story/status]]
-        result (re/subscribe [::gql/query {:queries [query]}
-                              {:refetch-on #{:page.job-contract/refetch-messages}}])
-
         can-accept? (= :proposal (:job-story/status message-params))]
     (if can-accept?
       [:div.message-input-container
@@ -403,19 +386,14 @@
    [c-accept-proposal-message message-params]
 
    {:label "Leave Feedback"}
-   [c-feedback-panel :employer (select-keys message-params [:candidate :arbiter])]])
+   [c-feedback-panel :employer]])
 
 
 (defn c-candidate-options
   [{job-story-status :job-story/status ; TODO: take into account for limiting actions (feedback, disputes)
     job-id :job/id
-    employer :employer
-    arbiter :arbiter
-    candidate :candidate
-    current-user-role :current-user-role
     :as message-params}]
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        *active-page-params (re/subscribe [::router.subs/active-page-params])
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])
         job-story-id (-> @*active-page-params :job-story-id parse-int)
 
         invoice-query [:job-story {:job-story/id job-story-id}
@@ -470,8 +448,7 @@
         has-arbiter? (not (nil? (get-in @invoice-result [:job-story :job :job/arbiter])))
         can-dispute? (and has-invoice?
                           has-arbiter?
-                          (nil? (get-in latest-unpaid-invoice [:dispute-raised-message])))
-        dispute-available? (and has-invoice? can-dispute?)
+                          (nil? (get latest-unpaid-invoice :dispute-raised-message)))
         dispute-unavailable-message (cond
                                       (not has-arbiter?) "This job doesn't yet have an arbiter so disputes can't be created."
                                       has-invoice? "You have already raised a dispute on your latest invoice. One invoice can only be disputed once."
@@ -518,7 +495,7 @@
        [c-information dispute-unavailable-message])
 
      {:label "Leave Feedback"}
-     [c-feedback-panel :candidate (select-keys message-params [:employer :arbiter])]]))
+     [c-feedback-panel :candidate]]))
 
 
 (defn c-arbiter-options
@@ -637,7 +614,7 @@
 
      {:label "Leave Feedback"}
      (if feedback-available-for-arbiter?
-       [c-feedback-panel :arbiter (select-keys message-params [:candidate :employer])]
+       [c-feedback-panel :arbiter]
        [c-information "Leaving feedback becomes available after employer or candidate have given their feedback (and thus terminated the job contract)"])]))
 
 
@@ -693,10 +670,6 @@
                                (assoc ,,, :job-story/status (:job-story/status job-story))
                                (assoc ,,, :job-story/id job-story-id)
                                (assoc ,,, :current-user-role current-user-role))
-
-            token-type (keyword (get-in job-story [:job :job/token-type]))
-            raw-amount (get-in job-story [:job :job/token-amount])
-            human-amount (tokens/human-amount raw-amount token-type)
             profile {:title (get-in job-story [:job :job/title])
                      :job/id (:job/id job-story)
                      :status (get-in job-story [:job-story/status])

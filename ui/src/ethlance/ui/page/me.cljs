@@ -4,8 +4,6 @@
     [district.ui.graphql.subs :as gql]
     [district.ui.router.events :as router.events]
     [district.ui.router.subs :as router.subs]
-    [ethlance.ui.component.button :refer [c-button c-button-label]]
-    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
     [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -13,7 +11,7 @@
     [ethlance.ui.component.pagination :refer [c-pagination-ends]]
     [ethlance.ui.component.table :refer [c-table]]
     [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-    [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
+    [ethlance.ui.util.dates :refer [formatted-date]]
     [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
     [ethlance.ui.util.tokens :as tokens]
     [re-frame.core :as re]))
@@ -193,8 +191,7 @@
 
 (defn c-contract-listing
   [user-type user-address]
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        url-query @(re/subscribe [::router.subs/active-page-query])
+  (let [url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "invitation")
         tab-to-index {"invitation" 0 "proposal" 1 "active" 2 "finished" 3}
         tab-index (get tab-to-index tab 0)
@@ -261,8 +258,7 @@
 
 (defn c-invoice-listing
   [user-type user-address]
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        url-query @(re/subscribe [::router.subs/active-page-query])
+  (let [url-query @(re/subscribe [::router.subs/active-page-query])
         tab (or (:tab url-query) "pending")
         tab-to-index {"pending" 0 "paid" 1}
         tab-index (get tab-to-index tab 0)
@@ -313,7 +309,7 @@
                {:title "Candidate" :source user-name-fn}
                {:title "Amount Requested" :source amount-requested-fn}
                {:title "Created at" :source invoice-date-created-fn}
-               {:title "Status" :source #(get-in % [:invoice/status])}]
+               {:title "Status" :source #(get % :invoice/status)}]
         invoice-link-fn (fn [invoice]
                           {:route :route.invoice/index
                            :params {:job-id (:job/id invoice) :invoice-id (:invoice/id invoice)}})
@@ -380,10 +376,9 @@
                     :offset offset}
         disputes (get-in  disputes-result [:dispute-search :items])
         candidate-name-fn (fn [invoice] (get-in invoice [:candidate :user :user/name]))
-        arbiter-name-fn (fn [invoice] (get-in invoice [:arbiter :user :user/name]))
         arbiter-name-fn (fn [invoice] (get-in invoice [:dispute-resolved-message :creator :user/name]))
-        dispute-date-created-fn (partial formatted-date #(get-in % [:dispute/date-created]))
-        dispute-date-resolved-fn (partial formatted-date #(get-in % [:dispute/date-resolved]))
+        dispute-date-created-fn (partial formatted-date #(get % :dispute/date-created))
+        dispute-date-resolved-fn (partial formatted-date #(get % :dispute/date-resolved))
         contract-link-fn (fn [dispute] {:route :route.job/contract :params {:job-story-id (:job-story/id dispute)}})
         amount-fn (fn [amount-source invoice]
                     (str (tokens/human-amount
@@ -392,7 +387,7 @@
                            (get-in invoice [:job :token-details :token-detail/decimals]))
                          " " (get-in invoice [:job :token-details :token-detail/symbol])))
         truncated-dispute-fn (fn [text-source invoice]
-                               (let [text (get-in invoice [text-source] "")
+                               (let [text (get invoice text-source "")
                                      max-chars 20]
                                  (if (empty? text)
                                    ""
@@ -514,9 +509,7 @@
   []
   (let [active-page (re/subscribe [::router.subs/active-page])]
     (fn []
-      (let [{page :name
-             params :param
-             query :query} @active-page
+      (let [{query :query} @active-page
             *current-sidebar-choice (or (keyword (:sidebar query)) :my-employer-job-listing)]
         [:div.listing
          (case *current-sidebar-choice
@@ -535,7 +528,7 @@
            :my-arbiter-job-listing [c-my-arbiter-job-listing]
            :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
 
-           (throw (ex-info "Unable to determine sidebar choice" *current-sidebar-choice)))]))))
+           (throw (ex-info "Unable to determine sidebar choice" {:current-sidebar-choice *current-sidebar-choice})))]))))
 
 
 (defmethod page :route.me/index []

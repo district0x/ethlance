@@ -1,6 +1,6 @@
 (ns ethlance.ui.util.urls
   (:require
-    [ethlance.ui.config :as ui-config]
+    [clojure.string]
     [re-frame.core :as re]))
 
 

@@ -1,9 +1,6 @@
 (ns ethlance.ui.page.jobs.events
   (:require
     [district.parsers :refer [parse-int]]
-    [district.ui.graphql.events :as gql-events]
-    [district.ui.router.effects :as router.effects]
-    [ethlance.shared.constants :as constants]
     [ethlance.ui.event.templates :as event.templates]
     [ethlance.ui.event.utils :as event.utils]
     [re-frame.core :as re]))
@@ -31,8 +28,7 @@
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
-  (let [page-state (get db state-key)]
-    {:db (assoc-in db [state-key] state-default)}))
+  {:db (assoc db state-key state-default)})
 
 
 (defn add-skill
