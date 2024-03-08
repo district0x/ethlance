@@ -287,9 +287,7 @@
            user-address-map (into {} (map vector default-user-types user-addresses))
            categories (take 3 constants/categories)
            skills ["Solidity" "Clojure"]
-           jobs (map (fn [jid] {:job-id jid})
-                     (range 0 3)
-                     (cycle [:standard-bounties :ethlance-job]))
+           jobs (map (fn [jid] {:job-id jid}) (range 0 3))
            stories-ids (range 0 5)]
        (<? (generate-users conn user-address-map))
        (<? (generate-categories conn categories user-addresses))

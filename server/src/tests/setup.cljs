@@ -1,8 +1,6 @@
 (ns tests.setup
   (:require
-    [cljs.nodejs :as nodejs]
     [district.server.logging]
-    ; Needs ETHLANCE_ENV=qa during truffle migrate
     [district.server.smart-contracts]
     [district.server.web3]
     [ethlance.shared.smart-contracts-qa :refer [smart-contracts]]
@@ -14,7 +12,7 @@
 
 (defn setup-test-env
   []
-  (-> (mount/with-args {:web3 {:url "ws://localhost:8550"} ; d0x-vm: "ws://d0x-vm:8549" hostia: "ws://192.168.32.1:7545"
+  (-> (mount/with-args {:web3 {:url "ws://localhost:8550"}
                         :smart-contracts
                         {:contracts-var #'smart-contracts
                          :contracts-build-path "../resources/public/contracts/build"}

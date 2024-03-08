@@ -148,7 +148,7 @@
   (testing "Job#addCandidate"
     (async done
            (go
-             (let [[_owner employer worker candidate-a candidate-b] (<! (web3-eth/accounts @web3))
+             (let [[_owner employer worker candidate-a _candidate-b] (<! (web3-eth/accounts @web3))
                    job-data (<! (create-initialized-job [(partial fund-in-eth 0.01)]))
                    job-address (:job job-data)
                    empty-ipfs-data "0x0"]

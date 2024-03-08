@@ -1,9 +1,8 @@
 (ns ethlance.server.ui-config
   (:require
+    [cljs.reader]
     [cljs-node-io.core :as io]
     [cljs-node-io.fs :refer [file?]]
-    [district.server.async-db :as db :include-macros true]
-    [district.shared.async-helpers :refer [<? safe-go]]
     [ethlance.shared.utils :refer [deep-merge]]))
 
 

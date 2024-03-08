@@ -1,5 +1,6 @@
 (ns ethlance.server.graphql.resolvers
   (:require
+    [camel-snake-kebab.core]
     [clojure.string :as string]
     [district.graphql-utils :as graphql-utils]
     [district.server.async-db :as db :include-macros true]
@@ -152,11 +153,10 @@
 
 
 (defn job->token-details-resolver
-  [parent args context info]
+  [parent _args _context _info]
   (log/debug "job->token-details-resolver" parent)
   (db/with-async-resolver-conn conn
-                               (let [clj-parent (js->clj parent)
-                                     token-address (get (js->clj parent :keywordize-keys) "job_tokenAddress")
+                               (let [token-address (get (js->clj parent :keywordize-keys) "job_tokenAddress")
                                      query {:select [:*]
                                             :from [:TokenDetail]
                                             :where [:= :TokenDetail.token-detail/id token-address]}]
@@ -164,11 +164,10 @@
 
 
 (defn arbitration->fee-token-details-resolver
-  [parent args context info]
+  [parent _args _context _info]
   (log/debug "job->token-details-resolver" parent)
   (db/with-async-resolver-conn conn
-                               (let [clj-parent (js->clj parent)
-                                     token-address  "0x0000000000000000000000000000000000000000" ; arbiter fees are always ETH
+                               (let [token-address  "0x0000000000000000000000000000000000000000" ; arbiter fees are always ETH
                                      query {:select [:*]
                                             :from [:TokenDetail]
                                             :where [:= :TokenDetail.token-detail/id token-address]}]
@@ -176,7 +175,7 @@
 
 
 (defn participant->user-resolver
-  [parent args context info]
+  [parent _args _context _info]
   (log/debug "participant->user-resolver")
   (db/with-async-resolver-conn conn
                                (let [clj-parent (graphql-utils/gql->clj parent)
@@ -188,7 +187,7 @@
 
 
 (defn job->employer-resolver
-  [parent args context info]
+  [parent args _context _info]
   (db/with-async-resolver-conn conn
                                (log/debug "job->employer-resolver contract:" (:contract args))
                                (let [contract (:job/id (graphql-utils/gql->clj parent))
@@ -204,7 +203,7 @@
 
 
 (defn job->arbiter-resolver
-  [parent args context info]
+  [parent args _context _info]
   (db/with-async-resolver-conn conn
                                (log/debug "job->arbiter-resolver contract:" (:contract args))
                                (let [contract (:job/id (graphql-utils/gql->clj parent))
@@ -215,7 +214,7 @@
 
 
 (defn employer-resolver
-  [raw-parent {:keys [:user/id] :as args} _]
+  [raw-parent args _]
   (db/with-async-resolver-conn conn
                                (log/debug "employer-resolver" args)
                                (let [address-from-args (:user/id args)
@@ -346,16 +345,6 @@
                                  (<? (paged-query conn query limit offset)))))
 
 
-(def ^:private user-type-query
-  {:select [:type]
-   :from [[{:union [{:select [:Candidate.user/id ["Candidate" :type]]
-                     :from [:Candidate]}
-                    {:select [:Employer.user/id ["Employer" :type]]
-                     :from [:Employer]}
-                    {:select [:Arbiter.user/id ["Arbiter" :type]]
-                     :from [:Arbiter]}]} :a]]})
-
-
 (def feedback-user-type-query
   {:select [(sql/raw
               (clojure.string/join
@@ -442,11 +431,10 @@
 
 
 (defn job-story->proposal-accepted-message-resolver
-  [raw-parent args _]
+  [raw-parent _args _]
   (db/with-async-resolver-conn conn
                                (log/debug "job-story->proposal-accepted-message-resolver")
-                               (let [address-from-args (:user/id args)
-                                     parent (graphql-utils/gql->clj raw-parent)
+                               (let [parent (graphql-utils/gql->clj raw-parent)
                                      job-story-id (:job-story/id parent)
                                      query {:select [:*]
                                             :from [:JobStoryMessage]
@@ -459,11 +447,10 @@
 
 
 (defn job-story->invitation-message-resolver
-  [raw-parent args _]
+  [raw-parent _args _]
   (db/with-async-resolver-conn conn
                                (log/debug "job-story->proposal-message-resolver")
-                               (let [address-from-args (:user/id args)
-                                     parent (graphql-utils/gql->clj raw-parent)
+                               (let [parent (graphql-utils/gql->clj raw-parent)
                                      invitation-message-id (:job-story/invitation-message-id parent)
                                      invitation-message-query {:select [:*]
                                                                :from [:Message]
@@ -473,11 +460,10 @@
 
 
 (defn job-story->invitation-accepted-message-resolver
-  [raw-parent args _]
+  [raw-parent _args _]
   (db/with-async-resolver-conn conn
                                (log/debug "job-story-invitation-accepted-message-resolver")
-                               (let [address-from-args (:user/id args)
-                                     parent (graphql-utils/gql->clj raw-parent)
+                               (let [parent (graphql-utils/gql->clj raw-parent)
                                      job-story-id (:job-story/id parent)
                                      query {:select [:*]
                                             :from [:JobStoryMessage]
@@ -490,7 +476,7 @@
 
 
 (defn job-story->direct-messages-resolver
-  [raw-parent args {:keys [:current-user :timestamp] :as ctx}]
+  [raw-parent _args {:keys [:current-user] }]
   (db/with-async-resolver-conn conn
                                (log/debug "job-story->direct-message-resolver")
                                (let [parent (graphql-utils/gql->clj raw-parent)
@@ -511,8 +497,7 @@
   [_ {:keys [:limit :offset
              :user/id
              :search-params
-             :order-by :order-direction]
-      :as args} _]
+             :order-by :order-direction]} _]
   (db/with-async-resolver-conn conn
                                (log/debug "candidate-search-resolver")
                                (let [search-params (js-obj->clj-map search-params)
@@ -568,26 +553,6 @@
                                                                                          (graphql-utils/gql-name->kw order-by))
                                                                                     (or (keyword order-direction) :asc)]]))]
                                  (<? (paged-query conn query limit offset)))))
-
-
-(defn candidate->candidate-categories-resolver
-  [root _ _]
-  (db/with-async-resolver-conn conn
-                               (let [{:keys [:user/id] :as candidate} (graphql-utils/gql->clj root)]
-                                 (log/debug "candidate->candidate-categories-resolver" candidate)
-                                 (map :category/id (<? (db/all conn {:select [:*]
-                                                                     :from [:CandidateCategory]
-                                                                     :where [:= id :CandidateCategory.user/id]}))))))
-
-
-(defn candidate->candidate-skills-resolver
-  [root _ _]
-  (db/with-async-resolver-conn conn
-                               (let [{:keys [:user/id] :as candidate} (graphql-utils/gql->clj root)]
-                                 (log/debug "candidate->candidate-skills-resolver" candidate)
-                                 (map :skill/id (<? (db/all conn {:select [:*]
-                                                                  :from [:CandidateSkill]
-                                                                  :where [:= id :CandidateSkill.user/id]}))))))
 
 
 (defn participant->categories-resolver
@@ -739,9 +704,9 @@
 
 
 (defn message-resolver
-  [root args _]
+  [root _args _]
   (db/with-async-resolver-conn conn
-                               (let [{message-id :message/id :as root-clj} (graphql-utils/gql->clj root)]
+                               (let [{message-id :message/id} (graphql-utils/gql->clj root)]
                                  (log/debug "message-resolver")
                                  (<? (db/get conn {:select [:*] :from [:Message] :where [:= :message/id message-id]})))))
 
@@ -757,13 +722,12 @@
 
 
 (defn invoice->sub-message-resolver
-  [invoice-message-column root args _]
+  [invoice-message-column root _args _]
   (db/with-async-resolver-conn conn
                                (let [root-obj (graphql-utils/gql->clj root)
                                      job-story-id (:job-story/id root-obj)
                                      invoice-id (:invoice/id root-obj)
-                                     invoice-message-column (keyword :JobStoryInvoiceMessage.invoice invoice-message-column)
-                                     message-id (:message/id root-obj)]
+                                     invoice-message-column (keyword :JobStoryInvoiceMessage.invoice invoice-message-column)]
                                  (log/debug (str "invoice->sub-message-resolver for " invoice-message-column " job-story-id:") job-story-id)
                                  (<? (db/get conn (dispute-message-query job-story-id invoice-id invoice-message-column))))))
 
@@ -816,7 +780,7 @@
 
 
 (defn job-resolver
-  [parent {:keys [:contract :job/id] :as args} _]
+  [parent args _]
   (db/with-async-resolver-conn conn
                                (log/debug "job-resolver")
                                (let [contract-from-parent (:job/id (graphql-utils/gql->clj parent))
@@ -824,12 +788,12 @@
                                      contract-address (or contract-from-parent contract-from-args)
                                      job (<? (db/get conn (sql-helpers/merge-where job-query [:= contract-address :Job.job/id])))
                                      skills (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id (:job/id job)]}))
-                                     job-full (assoc-in job [:job/required-skills] (map :skill/id skills))]
+                                     job-full (assoc job :job/required-skills (map :skill/id skills))]
                                  job-full)))
 
 
 (defn job->required-skills-resolver
-  [parent args _]
+  [parent _args _]
   (db/with-async-resolver-conn conn
                                (let [job-id (:job/id (graphql-utils/gql->clj parent))]
                                  (map :skill/id (<? (db/all conn {:select [:JobSkill.skill/id] :from [:JobSkill] :where [:= :JobSkill.job/id job-id]}))))))
@@ -844,8 +808,7 @@
 
 
 (defn job-search-resolver
-  [_ {:keys [:job/id
-             :search-params
+  [_ {:keys [:search-params
              :limit
              :offset
              :order-by
@@ -932,7 +895,7 @@
 
 
 (defn job-story-list-resolver
-  [parent args _]
+  [_parent args _]
   (db/with-async-resolver-conn conn
                                (log/debug "job-story-list-resolver" args)
                                (let [contract (:job-contract args)
@@ -944,8 +907,6 @@
 
 (defn job-story-search-resolver
   [_ {:keys [:search-params
-             :limit
-             :offset
              :order-by
              :order-direction] :as args} _]
   (db/with-async-resolver-conn conn
@@ -1081,10 +1042,10 @@
 
 
 (defn job->invoices-resolver
-  [root {:keys [:limit :offset] :as args} _]
+  [root {:keys [:limit :offset]} _]
   (db/with-async-resolver-conn conn
                                (let [parsed-root (graphql-utils/gql->clj root)
-                                     job-id (:job/id (graphql-utils/gql->clj root))
+                                     job-id (:job/id parsed-root)
                                      query (-> invoice-query
                                                (sql-helpers/merge-where [:= job-id :Job.job/id]))
                                      result-pages (<? (paged-query conn query limit offset))]
@@ -1093,10 +1054,10 @@
 
 
 (defn job->balance-resolver
-  [root {:keys [:limit :offset] :as args} _]
+  [root _args _]
   (db/with-async-resolver-conn conn
                                (let [parsed-root (graphql-utils/gql->clj root)
-                                     job-id (:job/id (graphql-utils/gql->clj root))
+                                     job-id (:job/id parsed-root)
                                      query {:select [(sql/call :sum :job-funding/amount)]
                                             :from [:JobFunding]
                                             :where [:= :JobFunding.job/id job-id]}
@@ -1134,16 +1095,6 @@
                                true)))
 
 
-;; This is done by employer (invitation)
-(defn send-proposal-message-mutation
-  [_ {:keys [:to :text]} {:keys [:current-user :timestamp]}]
-  (db/with-async-resolver-tx conn
-                             (<? (ethlance-db/add-message conn {:message/type :direct-message
-                                                                :message/date-created timestamp
-                                                                :message/creator (:user/id current-user)
-                                                                :message/text text
-                                                                :direct-message/recipient to})))) ; FIXME: this should be job-story-message,
-
 (defn re-calculate-user-average-rating
   [user-id job-story-id]
   (db/with-async-resolver-tx conn
@@ -1162,7 +1113,7 @@
 
 
 (defn leave-feedback-mutation
-  [_ {:keys [:job-story/id :text :rating :to] :as params} {:keys [current-user timestamp]}]
+  [_ {:keys [:job-story/id :text :rating :to]} {:keys [current-user timestamp]}]
   ;; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
                              (let [job-story-id id
@@ -1195,7 +1146,7 @@
 
 
 (defn update-user-mutation
-  [_ params {:keys [timestamp]}]
+  [_ params _]
   (db/with-async-resolver-tx conn
                              (let [user-id (:user/id params)
                                    user (js-obj->clj-map (:user params))
@@ -1237,7 +1188,7 @@
 
 
 (defn remove-job-proposal-mutation
-  [_ gql-params {:keys [current-user timestamp]}]
+  [_ gql-params _]
   (db/with-async-resolver-conn conn
                                (let [message-params {:job-story/status "deleted" :job-story/id (:job-story/id gql-params)}]
                                  (first (<? (ethlance-db/update-row! conn :JobStory message-params))))))
@@ -1337,14 +1288,6 @@
     (if-not current-user
       (throw (js/Error. "Authentication required"))
       (next root args context info))))
-
-
-(defn validate-input
-  [next]
-  (fn [root args context info]
-    (let [some-invalid (some #(not %) (vals (validate-keys (:input args))))]
-      (if some-invalid (throw (js/Error "Invalid form data sent to server"))
-          (next root args context info)))))
 
 
 (def resolvers-map

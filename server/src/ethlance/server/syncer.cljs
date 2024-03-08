@@ -31,7 +31,7 @@
 
 (defn get-timestamp
   ([] (get-timestamp {}))
-  ([event] (.now js/Date)))
+  ([_event] (.now js/Date)))
 
 
 (defn build-ethlance-job-data-from-ipfs-object
@@ -56,7 +56,7 @@
                              :symbol "ETH"
                              :type :eth
                              :decimals 18}]
-      (if (not (<? (ethlance-db/get-token conn token-address)))
+      (when (not (<? (ethlance-db/get-token conn token-address)))
         (if (= :eth token-type)
           (ethlance-db/store-token-details conn eth-token-details)
           (ethlance-db/store-token-details conn (<! (token-utils/get-token-details token-type token-address))))))))
@@ -82,7 +82,7 @@
                              :job/token-amount (:token-amount offered-value)
                              :job/token-address token-address
                              :job/token-id (:token-id offered-value)
-                             :invited-arbiters (get-in args [:invited-arbiters] [])}
+                             :invited-arbiters (get args :invited-arbiters [])}
                             (build-ethlance-job-data-from-ipfs-object ipfs-job-content))]
       (<? (ensure-db-token-details token-type token-address conn))
       (<? (ethlance-db/add-job conn for-the-db)))))
@@ -116,8 +116,6 @@
   (safe-go
     (log/info "Handling event handle-invoice-paid")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
-          job-story-id (:job-story/id ipfs-data)
-          invoicer (:invoicer args)
           invoice-message {:job-story/id (:job-story/id ipfs-data)
                            :invoice/id (or (:invoice/id ipfs-data) (:invoice-id ipfs-data))
                            :message/type :job-story-message
@@ -134,10 +132,9 @@
 
 
 (defn handle-dispute-raised
-  [conn _ {:keys [args] :as dispute-raised-event}]
+  [conn _ {:keys [args]}]
   (safe-go
     (log/info "Handling event dispute-raised")
-    (println ">>> handle-dispute-raised" {:args args :dispute-raised-event dispute-raised-event})
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           job-id (:job args)
           invoice-id (:invoice-id args)
@@ -145,7 +142,6 @@
                                       :from [:JobStoryInvoiceMessage]
                                       :join [:JobStory [:= :JobStory.job/id job-id]]
                                       :where [:= :JobStoryInvoiceMessage.invoice/ref-id invoice-id]}))
-          _ (println ">>> handle-dispute-raised job-story" job-story)
           dispute-message {:job-story/id (:job-story/id job-story)
                            :message/type :job-story-message
                            :job-story-message/type :raise-dispute
@@ -157,7 +153,7 @@
 
 
 (defn handle-dispute-resolved
-  [conn _ {:keys [args] :as dispute-resolved-event}]
+  [conn _ {:keys [args]}]
   (safe-go
     (log/info "Handling event dispute-resolved")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
@@ -183,19 +179,11 @@
 
 
 (defn handle-candidate-added
-  [conn _ {:keys [args] :as event}]
+  [conn _ {:keys [args]}]
   (safe-go
-    (log/info "Handling event candidate-added")
+    (log/info "Handling event candidate-added" args)
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           job-id (:job args)
-          candidate-id (:candidate args)
-          job-story (<? (db/get conn {:select [:JobStory.job-story/id]
-                                      :from [:JobStory]
-                                      :where [:and
-                                              [:= :JobStory.job-story/candidate candidate-id]
-                                              [:= :JobStory.job/id job-id]
-                                              [:!= :JobStory.job-story/status "finished"]]
-                                      :order-by [[:job-story/date-created :desc]]}))
           job-story-message-type (:job-story-message/type ipfs-data)
           message {:job-story/id (:job-story/id ipfs-data)
                    :job/id job-id
@@ -209,9 +197,9 @@
 
 
 (defn handle-quote-for-arbitration-set
-  [conn _ {:keys [args] :as event}]
+  [conn _ {:keys [args]}]
   (safe-go
-    (log/info (str ">>> Handling event quote-for-arbitration-set" args))
+    (log/info (str "Handling event quote-for-arbitration-set" args))
     (let [quoted-value (offered-vec->flat-map (first (:quote args)))
           token-type (enum-val->token-type (:token-type quoted-value))
           for-the-db {:job/id (:job args)
@@ -229,7 +217,7 @@
 
 
 (defn handle-quote-for-arbitration-accepted
-  [conn _ {:keys [args] :as event}]
+  [conn _ {:keys [args]}]
   (safe-go
     (log/info (str ">>> Handling event quote-for-arbitration-accepted" args))
     (let [arbiter-id (:arbiter args)
@@ -243,22 +231,21 @@
                                            [:= :JobArbiter.job-arbiter/status "accepted"]]}
           previous-accepted-arbiter (<? (db/get conn previous-accepted-query))]
       (when previous-accepted-arbiter
-        (do
-          (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :job-arbiter/status "replaced")))
-          (<? (ethlance-db/add-message conn
-                                       {:job-story/id (<? (ethlance-db/get-job-story-id-by-job-id conn job-id))
-                                        :message/type :job-story-message
-                                        :job-story-message/type :feedback
-                                        :message/creator system-message-address
-                                        :message/text "Was replaced as arbiter due to inactivity"
-                                        :message/date-created (get-timestamp)
-                                        :feedback/rating 1
-                                        :user/id (:user/id previous-accepted-arbiter)}))))
+        (<? (ethlance-db/update-arbitration conn (assoc previous-accepted-arbiter :job-arbiter/status "replaced")))
+        (<? (ethlance-db/add-message conn
+                                     {:job-story/id (<? (ethlance-db/get-job-story-id-by-job-id conn job-id))
+                                      :message/type :job-story-message
+                                      :job-story-message/type :feedback
+                                      :message/creator system-message-address
+                                      :message/text "Was replaced as arbiter due to inactivity"
+                                      :message/date-created (get-timestamp)
+                                      :feedback/rating 1
+                                      :user/id (:user/id previous-accepted-arbiter)})))
       (<? (ethlance-db/update-arbitration conn new-accepted-arbiter)))))
 
 
 (defn handle-arbiters-invited
-  [conn _ {:keys [args] :as event}]
+  [conn _ {:keys [args]}]
   (safe-go
     (log/info (str ">>> Handling event ArbitersInvited" args))
     (let [job-id (:job args)
@@ -275,9 +262,9 @@
 
 
 (defn handle-job-ended
-  [conn _ {:keys [args] :as event}]
+  [conn _ {:keys [args]}]
   (safe-go
-    (log/info (str ">>> Handling event job-ended" args))
+    (log/info (str "Handling event job-ended" args))
     (let [job-id (:job args)
           job-status "ended"
           stories (<? (db/all conn {:select [:JobStory.job-story/id]

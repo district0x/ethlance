@@ -25,9 +25,6 @@
 ;; (s/def :user/profile-image is-ipfs/multihash) ; TODO: figure out how to use is-ipfs
 (s/def :user/profile-image string?)
 
-(s/def :user/github-code string?)
-(s/def :user/github-username (s/nilable string?))
-
 
 ;; Used on ethlance.ui.page.sign-up to validate form fields
 ;; but fails when there's no logged in user
@@ -36,15 +33,8 @@
 
 (s/def :user/id #(or (nil? %) (string? %)))
 
-(s/def :user/linkedin-code string?)
-(s/def :user/linkedin-redirect-uri string?)
-(s/def :user/is-registered-candidate boolean?)
-(s/def :user/date-updated int?)
-(s/def :candidate/date-updated int?)
-
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)
-(s/def :candidate/rate-currency-id keyword?)
 
 
 (s/def :candidate/categories
@@ -57,14 +47,13 @@
   (fn [skills]
     (and (pos? (count skills))
          (<= (count skills) 30)
-         (set/subset? skills constants/skills))))
+         (set/subset? skills (set constants/skills)))))
 
 
 (s/def :candidate/bio bio?)
 
 (s/def :employer/professional-title professional-title?)
 (s/def :employer/bio bio?)
-(s/def :employer/date-updated int?)
 
 (s/def :arbiter/professional-title professional-title?)
 (s/def :arbiter/bio bio?)

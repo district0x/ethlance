@@ -7,7 +7,8 @@
     [cljs-web3-next.core :as w3-core]
     [cljs-web3-next.eth :as w3-eth]
     [clojure.core.async :as async :refer [<! go] :include-macros true]
-    [oops.core :refer [ocall ocall+ oget oget+ oset! oapply oapply+]]))
+    [ethlance.shared.contract-constants]
+    [oops.core :refer [oget]]))
 
 
 ;; Needed because cljs-ajax doesn't find XMLHttpRequest on Node.js

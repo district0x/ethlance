@@ -1,8 +1,6 @@
 (ns ethlance.server.core
   (:require
     ["fs" :as fs]
-    [alphabase.base58 :as base58]
-    [alphabase.hex :as hex]
     [district.server.async-db]
     [district.server.config :refer [config]]
     [district.server.db]
@@ -20,7 +18,7 @@
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
-    [ethlance.shared.utils :include-macros true :refer [slurp] :as shared-utils]
+    [ethlance.shared.utils :include-macros true :as shared-utils]
     [mount.core :as mount]
     [taoensso.timbre :refer [merge-config!] :as log]))
 
@@ -35,11 +33,6 @@
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
     "dev" #'smart-contracts-dev/smart-contracts))
-
-
-(defn read-edn-sync
-  [path]
-  (cljs.reader/read-string (.readFileSync fs path "utf8")))
 
 
 (def default-config

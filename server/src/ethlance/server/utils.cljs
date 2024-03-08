@@ -1,5 +1,6 @@
 (ns ethlance.server.utils
   (:require
+    [cljs.reader]
     [cljs-ipfs-api.files :as ipfs-files]
     [clojure.string :as str]
     [taoensso.timbre :as log]))

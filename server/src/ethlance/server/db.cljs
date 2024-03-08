@@ -5,6 +5,7 @@
     [cljs.core.async :as async :refer [go-loop <! take!]]
     [clojure.pprint :as pprint]
     [clojure.set :as set]
+    [clojure.walk]
     [com.rpl.specter :as $ :include-macros true]
     [cuerdas.core :as str]
     [district.server.async-db :as db]
@@ -696,7 +697,7 @@
 (defn update-associated-values
   [conn user-id [pk-table target-table column values]]
   (safe-go
-    (if-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
+    (when-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
     (<? (db/run! conn (remove-old-associations user-id target-table)))
     (<? (db/run! conn (add-new-associations user-id target-table column values)))))
 
@@ -830,7 +831,6 @@
   [conn job]
   (safe-go
     (let [skills (:job/required-skills job)
-          job-fields (dissoc job :job/required-skills)
           job-id-from-ipfs (:job/id job)
           job-exists-query {:select [(sql/call :exists {:select [1] :from [:Job] :where [:= :Job.job/id job-id-from-ipfs]})]}
           job-exists? (:exists (<? (db/get conn job-exists-query)))]

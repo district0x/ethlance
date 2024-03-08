@@ -2,7 +2,6 @@
   (:require
     [bignumber.core :as bn]
     [cljs-web3-next.eth :as web3-eth]
-    [cljs-web3-next.eth]
     [cljs.core.async :refer [<! go]]
     [cljs.test :refer-macros [deftest is testing async]]
     [district.server.smart-contracts :as smart-contracts]
@@ -144,8 +143,9 @@
                    job-token-balance (<! (smart-contracts/contract-call :test-multi-token :balance-of [created-job token-id]))]
 
                (is (= (int job-token-balance) sent-amount))
-               (done)))))
+               (done))))))
 
+(deftest payment-in-multi-token
   (testing "Batch payment in multi-token (ERC1155)"
     (async done
            (go

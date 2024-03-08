@@ -56,7 +56,7 @@
                                             :current-user user
                                             :timestamp timestamp}))}))]
 
-    (js-invoke app "get" "/config" (fn [req res]
+    (js-invoke app "get" "/config" (fn [_req res]
                                      ;; Add JSON /config endpoint for district-ui-config
                                      (.then (ui-config/fetch-config {:env-name "UI_CONFIG_PATH"})
                                             (fn [config]

@@ -3,6 +3,7 @@
     ["web3" :as w3]
     [alphabase.base58 :as base58]
     [alphabase.hex :as hex]
+    [clojure.string]
     [goog.date.relative :as gdate]
     [goog.object])
   (:require-macros

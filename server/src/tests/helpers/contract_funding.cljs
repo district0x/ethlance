@@ -148,7 +148,7 @@
                                                additional-opts))
            create-job-event (<! (smart-contracts/contract-event-in-tx :ethlance :JobCreated tx-receipt))
            created-job-address (:job create-job-event)]
-       (if (= nil create-job-event) (throw (str "Job creation failed for values" offered-values)) nil)
+       (if (= nil create-job-event) (throw (js/Error. (str "Job creation failed for values" offered-values))) nil)
        {:ethlance (smart-contracts/contract-address :ethlance)
         :job created-job-address
         :employer employer
