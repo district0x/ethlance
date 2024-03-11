@@ -150,7 +150,7 @@
                (for [chip current-chip-listing]
                  ^{:key (str "chip-" (value-fn chip))}
                  [c-chip
-                  {:on-close #(-update-chip-listing (disj current-chip-listing chip))}
+                  {:on-close #(-update-chip-listing (disj (into #{} current-chip-listing) chip))}
                   (label-fn chip)]))
              [:input.search-input
               {:type "text"

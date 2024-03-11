@@ -592,7 +592,7 @@
      [:div.main
       [:div.title *title]
       [:div.sub-title *sub-title] ; TODO: where this comes from
-      [:div.description *description]
+      [:div.description {:style {:white-space "pre"}} *description]
       [:div.label "Required Skills"]
       [:div.skill-listing
        (for [skill *required-skills] [c-tag {:key skill} [c-tag-label skill]])]

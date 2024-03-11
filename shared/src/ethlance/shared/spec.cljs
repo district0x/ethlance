@@ -14,6 +14,9 @@
 (s/def :user/name #(length? % 3 80))
 (s/def :user/email email?)
 (s/def :user/country (partial contains? (set constants/countries)))
+(s/def :user/languages (fn [languages]
+                         (and (pos? (count languages))
+                              (set/subset? languages (set constants/languages)))))
 
 
 (s/def :user/languages
@@ -35,6 +38,10 @@
 
 (s/def :candidate/professional-title professional-title?)
 (s/def :candidate/rate not-neg?)
+(s/def :candidate/rate-currency-id keyword?)
+(s/def :candidate/categories (fn [categories]
+                               (and (pos? (count categories))
+                                    (set/subset? categories constants/categories))))
 
 
 (s/def :candidate/categories

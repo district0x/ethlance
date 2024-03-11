@@ -7,7 +7,7 @@
     #mixin.box-shadow.none();
     background-color: transparent;
     border-radius: 0;
-    
+
     > .candidate-profile , > .employer-profile , > .arbiter-profile {
       #mixin.box-shadow.main();
       background-color: white;
@@ -17,12 +17,12 @@
 
       display: grid;
       grid-template-areas:
-        'title          title' 
+        'title          title'
         'biography      detail-listing'
         'rating         detail-listing'
         'location       detail-listing'
         'button-listing detail-listing';
-      
+
       grid-template-rows: repeat(5, auto);
       grid-template-columns: 5fr 2fr;
 
@@ -37,7 +37,7 @@
         grid-template-rows: repeat(6, auto);
         grid-template-columns: auto;
       }
-      
+
       @media #media[mobile-query] {
         padding: 1.5em;
       }
@@ -72,7 +72,7 @@
           font-size: 0.9em;
           font-weight: 300;
           padding: 0.5em 1.4em;
-          
+
         }
       }
 
@@ -82,11 +82,12 @@
         padding-right: 1em;
         font-size: 1.2em;
         line-height: 1.5em;
+        white-space: pre;
       }
 
       > .detail-listing {
         grid-area: detail-listing;
-        
+
         // defaults for each of the detail listings.
         .listings() {
           display: flex;
@@ -99,7 +100,7 @@
             font-size: 1.1em;
             padding: 1em 0;
           }
-          
+
           > .ethlance-tag {
             margin: 0.5em 0;
           }
@@ -115,7 +116,7 @@
         display: flex;
         align-items: center;
         margin: 1em 1em;
-        
+
         > span {
           padding: 0 0.5em;
         }
@@ -133,14 +134,14 @@
         display: flex;
         align-items: center;
         margin: 1em 0;
-        
+
         @media #media[tablet-query] {
           justify-content: space-around;
         }
 
         > .button {
           margin: 0 0.5em;
-          
+
           @media #media[tablet-query] {
             width: 40%;
           }
@@ -173,7 +174,7 @@
         color: #color[secondary-accent];
         padding: 0.5em 0;
       }
-      
+
       > .scrollable {
         > .ethlance-table {
           width: 600px;
