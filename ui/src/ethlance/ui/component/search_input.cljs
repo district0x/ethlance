@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.search-input
   (:require
     ["react" :as react]
+    [com.wsscode.fuzzy :as fz]
     [cuerdas.core :as string]
     [ethlance.ui.component.icon :refer [c-icon]]
     [reagent.core :as r]))
@@ -11,12 +12,9 @@
 
 (defn filter-selections
   [search-text selections label-fn]
-  (if (and (seq search-text) (seq selections))
-    (->> selections
-         (filter #(string/includes? (string/lower (label-fn %)) (string/lower search-text)))
-         vec)
-    nil))
-
+  (let [fuzzy-options (map (fn [sel] {::fz/string (label-fn sel)}) selections)]
+    (when (and (seq search-text) (seq selections))
+      (map ::fz/string (fz/fuzzy-match {::fz/search-input search-text ::fz/options fuzzy-options})))))
 
 (defn next-element
   "Get the next element in `xs` after element `v`."
