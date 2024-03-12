@@ -284,14 +284,7 @@
         [:div.location location]
         [:div.detail-listing
          [c-tag-list "Languages" languages]
-         [c-tag-list "Skills" skills]]
-        [:div.button-listing
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :github :label-text "Github"}]]
-         [c-button
-          {:size :normal}
-          [c-button-icon-label {:icon-name :linkedin :label-text "LinkedIn"}]]]]
+         [c-tag-list "Skills" skills]]]
 
        [c-missing-profile-notification :candidate])
      (when has-candidate-profile? (c-job-activity :candidate))
