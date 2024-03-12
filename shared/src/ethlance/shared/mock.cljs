@@ -1,8 +1,8 @@
 (ns ethlance.shared.mock
   "Sets of mock data"
   (:require
-   [ethlance.shared.random :as random]
-   [ethlance.shared.constants :as constants]))
+    [ethlance.shared.constants :as constants]
+    [ethlance.shared.random :as random]))
 
 
 (def first-names
@@ -18,6 +18,7 @@
     "John"
     "Barney"})
 
+
 (def last-names
   #{"Batman"
     "Doe"
@@ -31,6 +32,7 @@
     "Covid"
     "Spiderman"})
 
+
 (def first-title-category
   #{"Graphical"
     "Programming"
@@ -41,11 +43,13 @@
     "Business"
     "Game"})
 
+
 (def second-title-category
   #{"Architect"
     "Programmer"
     "Developer"
     "Engineer"})
+
 
 (defn generate-job-title
   []
@@ -54,6 +58,7 @@
        (rand-nth (vec second-title-category))
        (when (random/pick-rand-by-dist [[25 true] [75 false]])
          " Assistant")))
+
 
 (defn generate-mock-job
   []
@@ -67,22 +72,22 @@
    :employer nil
    :payment-type
    (random/pick-rand-by-dist
-    [[60 :hourly-rate]
-     [20 :fixed-price]
-     [20 :annual-salary]])
+     [[60 :hourly-rate]
+      [20 :fixed-price]
+      [20 :annual-salary]])
    :experience-level
    (random/pick-rand-by-dist
-    [[30 :novice]
-     [60 :professional]
-     [10 :expert]])
+     [[30 :novice]
+      [60 :professional]
+      [10 :expert]])
    :project-length
    (random/pick-rand-by-dist
-    [[5  :unknown]
-     [15 :months]
-     [70 :weeks]
-     [10 :days]])
+     [[5  :unknown]
+      [15 :months]
+      [70 :weeks]
+      [10 :days]])
    :availability
    (random/pick-rand-by-dist
-    [[20 :part-time]
-     [80 :full-time]])
+     [[20 :part-time]
+      [80 :full-time]])
    :country (rand-nth (into [] constants/countries))})

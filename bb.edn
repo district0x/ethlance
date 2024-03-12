@@ -46,7 +46,11 @@
          run-server {:doc "Start Node.js API server process"
                      :task (do
                              (println "Starting Ethlance API server")
-                             (shell {:dir "server"} "node out/ethlance_server.js"))}
+                             (shell {:dir "server"
+                                     :extra-env {"ETHLANCE_ENV" "dev"
+                                                 "UI_CONFIG_PATH" "../config/ui-config-dev.edn"
+                                                 "SERVER_CONFIG_PATH" "../config/server-config-dev.edn"}}
+                                    "node out/ethlance_server.js"))}
          repl {:doc "Start REPL. Usage: bb repl [ui|server|test]"
                :requires ([clojure.edn :as edn])
                :task (let [build-arg (or (first *command-line-args*) "ui")

@@ -1,32 +1,33 @@
 (ns ethlance.shared.routes)
 
 
-(def routes [["/" :route/home]
+(def routes
+  [["/" :route/home]
 
-             ;; Users
-             ["/arbiters" :route.user/arbiters]
-             ["/candidates" :route.user/candidates]
-             ["/employers" :route.user/employers]
-             ["/user/" :route.user/profile]
-             ["/user/:address" :route.user/profile]
+   ;; Users
+   ["/arbiters" :route.user/arbiters]
+   ["/candidates" :route.user/candidates]
+   ["/employers" :route.user/employers]
+   ["/user/" :route.user/profile]
+   ["/user/:address" :route.user/profile]
 
-             ;; Jobs
-             ["/jobs" :route.job/jobs]
-             ["/jobs/new" :route.job/new]
-             ["/jobs/contract/:job-story-id" :route.job/contract]
-             ["/jobs/:id" :route.job/detail]
+   ;; Jobs
+   ["/jobs" :route.job/jobs]
+   ["/jobs/new" :route.job/new]
+   ["/jobs/contract/:job-story-id" :route.job/contract]
+   ["/jobs/:id" :route.job/detail]
 
-             ;; Invoices
-             ["/invoices/new" :route.invoice/new]
-             ["/invoices/:job-id/:invoice-id" :route.invoice/index]
+   ;; Invoices
+   ["/invoices/new" :route.invoice/new]
+   ["/invoices/:job-id/:invoice-id" :route.invoice/index]
 
-             ;; Me
-             ["/me" :route.me/index]
-             ["/me/sign-up" :route.me/sign-up]
+   ;; Me
+   ["/me" :route.me/index]
+   ["/me/sign-up" :route.me/sign-up]
 
-             ;; Misc.
-             ["/how-it-works" :route.misc/how-it-works]
-             ["/about" :route.misc/about]])
+   ;; Misc.
+   ["/how-it-works" :route.misc/how-it-works]
+   ["/about" :route.misc/about]])
 
 
 (def dev-routes

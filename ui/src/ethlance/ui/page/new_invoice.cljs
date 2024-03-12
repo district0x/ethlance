@@ -1,12 +1,14 @@
 (ns ethlance.ui.page.new-invoice
-  (:require [district.ui.component.page :refer [page]]
-            [district.ui.graphql.subs :as gql]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
-            [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
-            [re-frame.core :as re]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+    [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
+    [re-frame.core :as re]))
+
 
 (defmethod page :route.invoice/new []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -49,7 +51,6 @@
                               :items
                               (sort-by :job-story/date-created ,,,)
                               reverse)
-            token-display-name (-> @job-token :symbol (or ,,, "") name)
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
             job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}

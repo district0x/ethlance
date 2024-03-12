@@ -1,10 +1,9 @@
 (ns ethlance.ui.page.jobs.subscriptions
   (:require
-   [re-frame.core :as re]
-
-   [ethlance.ui.util.graphql :as util.graphql]
-   [ethlance.ui.page.jobs.events :as jobs.events]
-   [ethlance.ui.subscription.utils :as subscription.utils]))
+    [ethlance.ui.page.jobs.events :as jobs.events]
+    [ethlance.ui.subscription.utils :as subscription.utils]
+    [ethlance.ui.util.graphql :as util.graphql]
+    [re-frame.core :as re]))
 
 
 (def create-get-handler #(subscription.utils/create-get-handler jobs.events/state-key %))
@@ -16,8 +15,6 @@
 
 (re/reg-sub :page.jobs/offset (create-get-handler :offset))
 (re/reg-sub :page.jobs/limit (create-get-handler :limit))
-(re/reg-sub :page.jobs/job-listing (create-get-handler :job-listing))
-(re/reg-sub :page.jobs/job-listing-state (create-get-handler :job-listing/state))
 (re/reg-sub :page.jobs/skills (create-get-handler :skills))
 (re/reg-sub :page.jobs/category (create-get-handler :category))
 (re/reg-sub :page.jobs/feedback-max-rating (create-get-handler :feedback-max-rating))
@@ -28,10 +25,11 @@
 (re/reg-sub :page.jobs/payment-type (create-get-handler :payment-type))
 (re/reg-sub :page.jobs/experience-level (create-get-handler :experience-level))
 
+
 (re/reg-sub
   :page.jobs/job-search-params
   (fn [db _]
-    (let [page-state (get-in db [jobs.events/state-key] {})
+    (let [page-state (get db jobs.events/state-key {})
           filters [[:skills #(into [] %)]
                    [:category second]
                    [:feedback-max-rating]

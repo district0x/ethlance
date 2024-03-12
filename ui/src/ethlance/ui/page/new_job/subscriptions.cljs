@@ -1,9 +1,8 @@
 (ns ethlance.ui.page.new-job.subscriptions
   (:require
-   [re-frame.core :as re]
-
-   [ethlance.ui.page.new-job.events :as new-job.events]
-   [ethlance.ui.subscription.utils :as subscription.utils]))
+    [ethlance.ui.page.new-job.events :as new-job.events]
+    [ethlance.ui.subscription.utils :as subscription.utils]
+    [re-frame.core :as re]))
 
 
 (def create-get-handler #(subscription.utils/create-get-handler new-job.events/state-key %))
@@ -24,11 +23,14 @@
 
 (re/reg-sub :page.new-job/token-type (create-get-handler :job/token-type))
 (re/reg-sub :page.new-job/token-decimals (create-get-handler :job/token-decimals))
-; (re/reg-sub :page.new-job/token-amount (create-get-handler :job/token-amount))
+
+
+;; (re/reg-sub :page.new-job/token-amount (create-get-handler :job/token-amount))
 (re/reg-sub
   :page.new-job/token-amount
   (fn [db _]
     (get-in db [new-job.events/state-key :job/token-amount :human-amount])))
+
 
 (re/reg-sub :page.new-job/token-address (create-get-handler :job/token-address))
 (re/reg-sub :page.new-job/token-id (create-get-handler :job/token-id))

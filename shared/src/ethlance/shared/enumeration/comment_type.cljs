@@ -1,6 +1,7 @@
 (ns ethlance.shared.enumeration.comment-type
   (:require
-   [ethlance.shared.enumeration :as enum]))
+    [ethlance.shared.enumeration :as enum]))
+
 
 (def enum-comment-type
   {::work-contract 0

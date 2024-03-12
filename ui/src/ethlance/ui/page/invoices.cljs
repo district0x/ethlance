@@ -1,28 +1,30 @@
 (ns ethlance.ui.page.invoices
-  (:require [district.ui.component.page :refer [page]]
-            [reagent.ratom]
-            [ethlance.shared.utils :as shared-utils]
-            [ethlance.ui.util.tokens :as tokens]
-            [ethlance.ui.util.dates :refer [relative-ago formatted-date]]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [re-frame.core :as re]
-            [district.ui.router.subs :as router.subs]
-            [district.ui.graphql.subs :as gql]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [ethlance.ui.component.token-info :refer [c-token-info]]
-            [ethlance.ui.util.navigation :as util.navigation]
-            [ethlance.ui.component.rating :refer [c-rating]]))
+  (:require
+    [clojure.string]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.token-info :refer [c-token-info]]
+    [ethlance.ui.util.dates :refer [formatted-date]]
+    [ethlance.ui.util.navigation :as util.navigation]
+    [re-frame.core :as re]
+    [reagent.ratom]))
 
-(defn c-participant-user-info [data-prefix data]
+
+(defn c-participant-user-info
+  [data-prefix data]
   [:div.profile.employer
    [:div.label (clojure.string/capitalize (name data-prefix))]
    [c-profile-image {:src (get-in data [:user :user/profile-image])}]
    [:div.name (get-in data [:user :user/name])]
-    [:div.rating
-     [c-rating {:rating (get-in data [(keyword data-prefix "rating")])}]
-     [:span.num-feedback (str "(" (get-in data [(keyword data-prefix "feedback") :total-count]) ")")]]
-    [:div.location (get-in data [:user :user/country])]])
+   [:div.rating
+    [c-rating {:rating (get-in data [(keyword data-prefix "rating")])}]
+    [:span.num-feedback (str "(" (get data (keyword data-prefix "feedback") :total-count) ")")]]
+   [:div.location (get-in data [:user :user/country])]])
+
 
 (defmethod page :route.invoice/index []
   (fn []
@@ -74,12 +76,10 @@
           result @(re/subscribe [::gql/query {:queries [query]}
                                  {:refetch-on #{:page.invoices/refetch-invoice}}])
 
-          job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
           job (:job result)
-          job-title (:title job)
-          invoice (get-in job [:invoice])
-          employer (get-in job [:job/employer])
-          arbiter (get-in job [:job/arbiter])
+          invoice (get job :invoice)
+          employer (get job :job/employer)
+          arbiter (get job :job/arbiter)
           candidate (get-in invoice [:job-story :candidate])
 
           invoice-to-pay {:job/id contract-address
@@ -89,12 +89,12 @@
                           :payer (:user/id employer)
                           :receiver (:user/id candidate)}
 
-          invoice-payable? (not= "paid" (get-in invoice [:invoice/status]))
+          invoice-payable? (not= "paid" (get invoice :invoice/status))
           info-panel [["Invoiced Amount" (when-not (:graphql/loading? result)
                                            [c-token-info (:invoice/amount-requested invoice)
                                             (:token-details job)])]
-                      ["Hours Worked" (get-in invoice [:invoice/hours-worked])]
-                      ["Hourly Rate" (get-in invoice [:invoice/hourly-rate])]
+                      ["Hours Worked" (get invoice :invoice/hours-worked)]
+                      ["Hourly Rate" (get invoice :invoice/hourly-rate)]
                       ["Invoiced On" (formatted-date #(get-in % [:creation-message :message/date-created]) invoice)]]]
       [c-main-layout {:container-opts {:class :invoice-detail-main-container}}
        [:div.title "Invoice"]
@@ -113,7 +113,7 @@
 
        (if invoice-payable?
          [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}
-           [:span "Pay Invoice"]
-            [c-icon {:name :ic-arrow-right :size :small :color :white}]]
+          [:span "Pay Invoice"]
+          [c-icon {:name :ic-arrow-right :size :small :color :white}]]
          [:div.button {:style {:background-color :gray}}
-           [:span "Invoice Paid"]])])))
+          [:span "Invoice Paid"]])])))

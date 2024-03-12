@@ -7,7 +7,7 @@
   ["john.doe@gmail.com"
    "jane.doe@gmail.com"
    "test@hotmail.com"
-   "bacon_cheeseburger@yahoo.ca" 
+   "bacon_cheeseburger@yahoo.ca"
    "xXEthSlayerXx@gmail.com"
    "2TheMoon@dogemail.com"
    "2ManyCooks@yahoo.com"

@@ -1,6 +1,8 @@
 (ns ethlance.ui.component.tabular-layout
-  (:require [ethlance.ui.component.select-input :refer [c-select-input]]
-            [reagent.core :as r]))
+  (:require
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [reagent.core :as r]))
+
 
 (defn c-tabular-layout
   "Tabular Layout used within several pages on Ethlance.
@@ -58,15 +60,15 @@
          [:div.tab-listing
           {:class tab-count-class}
           (doall
-           (for [{:keys [index label on-click]} tab-options]
-             ^{:key (str "tab-" index)}
-             [:div.tab
-              {:class (when (= @*active-tab-index index) "active")
-               :on-click (fn [event]
-                           (reset! *active-tab-index index)
-                           (when on-click
-                             (on-click event)))}
-              [:span.label label]]))]
+            (for [{:keys [index label on-click]} tab-options]
+              ^{:key (str "tab-" index)}
+              [:div.tab
+               {:class (when (= @*active-tab-index index) "active")
+                :on-click (fn [event]
+                            (reset! *active-tab-index index)
+                            (when on-click
+                              (on-click event)))}
+               [:span.label label]]))]
 
          [:div.mobile-tab-listing
           [c-select-input

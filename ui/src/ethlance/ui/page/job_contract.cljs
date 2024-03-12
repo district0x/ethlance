@@ -1,24 +1,28 @@
 (ns ethlance.ui.page.job-contract
-  (:require [district.parsers :refer [parse-int]]
-            [district.ui.component.page :refer [page]]
-            [district.ui.router.subs :as router.subs]
-            [ethlance.ui.util.tokens :as tokens]
-            [district.format :as format]
-            [ethlance.shared.utils :refer [ilike=]]
-            [district.ui.graphql.subs :as gql]
-            [ethlance.ui.component.button :refer [c-button c-button-label]]
-            [ethlance.ui.component.chat :refer [c-chat-log]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.radio-select :refer [c-radio-secondary-element c-radio-select]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-            [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
-            [ethlance.ui.component.text-input :refer [c-text-input]]
-            [ethlance.ui.component.token-info :refer [c-token-info] :as token-info]
-            [ethlance.ui.util.navigation :as util.navigation]
-            [re-frame.core :as re]))
+  (:require
+    [clojure.string]
+    [district.format :as format]
+    [district.parsers :refer [parse-int]]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.subs :as router.subs]
+    [ethlance.shared.utils :refer [ilike=]]
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
+    [ethlance.ui.component.chat :refer [c-chat-log]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.radio-select :refer [c-radio-secondary-element c-radio-select]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
+    [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+    [ethlance.ui.component.token-info :refer [c-token-info] :as token-info]
+    [ethlance.ui.util.navigation :as util.navigation]
+    [ethlance.ui.util.tokens :as tokens]
+    [re-frame.core :as re]))
 
-(defn profile-link-handlers [user-type address]
+
+(defn profile-link-handlers
+  [user-type address]
   {:on-click (util.navigation/create-handler
                {:route :route.user/profile
                 :params {:address address}
@@ -27,6 +31,7 @@
            {:route :route.user/profile
             :params {:address address}
             :query {:tab user-type}})})
+
 
 (defn c-job-detail-table
   [{:keys [status funds employer candidate arbiter]}]
@@ -47,22 +52,27 @@
    [:div.name "Arbiter"]
    [:a.value (profile-link-handlers :arbiter (:address arbiter)) (:name arbiter)]])
 
+
 (defn c-header-profile
   [{:keys [title] :as details}]
   [:div.header-profile
    [:div.title "Job Contract"]
    [:a.job-name
-     (util.navigation/link-params {:route :route.job/detail :params {:id (:job/id details)}})
+    (util.navigation/link-params {:route :route.job/detail :params {:id (:job/id details)}})
     title]
    [:div.job-details
     [c-job-detail-table details]]])
 
-(defn c-information [text]
+
+(defn c-information
+  [text]
   [:div.feedback-input-container {:style {:opacity "50%"}}
    [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
     text]])
 
-(defn common-chat-fields [current-user entity field-fn details]
+
+(defn common-chat-fields
+  [current-user entity field-fn details]
   (let [direction (fn [viewer creator]
                     (if (ilike= viewer creator)
                       :sent :received))
@@ -80,17 +90,15 @@
                          detail-or-fn))
                      details)})))
 
-(defn invoice-detail [job-story amount-field invoice]
-  (let [amount (tokens/human-amount
-                 (-> invoice :invoice/amount-requested)
-                 (-> job-story :job :job/token-type))
-        token-name (-> job-story :job :token-details :token-detail/name)
-        token-symbol (-> job-story :job :token-details :token-detail/symbol)]
-    [c-token-info (:invoice/amount-requested invoice) (get-in job-story [:job :token-details])]))
 
-(defn extract-chat-messages [job-story current-user]
-  (let [job-story-id (-> job-story :job-story :job-story/id)
-        add-to-details (fn [message additional-detail]
+(defn invoice-detail
+  [job-story amount-field invoice]
+  [c-token-info (amount-field invoice) (get-in job-story [:job :token-details])])
+
+
+(defn extract-chat-messages
+  [job-story current-user]
+  (let [add-to-details (fn [message additional-detail]
                          (when message
                            (assoc message :details (conj (:details message) additional-detail))))
         format-proposal-amount (fn [job-story]
@@ -100,16 +108,16 @@
         invitation (common-fields :invitation-message ["Sent job invitation"])
         invitation-accepted (common-fields :invitation-accepted-message ["Accepted invitation"])
         proposal (-> (common-fields :proposal-message ["Sent job proposal"])
-                      (add-to-details ,,, (format-proposal-amount job-story)))
+                     (add-to-details ,,, (format-proposal-amount job-story)))
         proposal-accepted (common-fields :proposal-accepted-message ["Accepted proposal"])
         arbiter-feedback (map #(common-chat-fields current-user % :message ["Feedback for arbiter"])
                               (:job-story/arbiter-feedback job-story))
         employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for employer"])
-                              (:job-story/employer-feedback job-story))
+                               (:job-story/employer-feedback job-story))
         candidate-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"])
-                              (:job-story/candidate-feedback job-story))
+                                (:job-story/candidate-feedback job-story))
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
-                              (:direct-messages job-story))
+                             (:direct-messages job-story))
         invoice-link (fn [invoice]
                        [:a (util.navigation/link-params
                              {:route :route.invoice/index
@@ -139,10 +147,12 @@
          (flatten ,,,)
          (remove nil?)
          (sort-by :timestamp)
-         ; (reverse ,,,) ; Uncomment to see more recent messages at the top
+         ;; (reverse ,,,) ; Uncomment to see more recent messages at the top
          )))
 
-(defn c-chat [job-story-id]
+
+(defn c-chat
+  [job-story-id]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         message-fields [:message/id
                         :message/text
@@ -165,9 +175,9 @@
                          [:job-story/arbiter-feedback [:message/id
                                                        [:message message-fields]]]
                          [:job-story/employer-feedback [:message/id
-                                                       [:message message-fields]]]
-                         [:job-story/candidate-feedback [:message/id
                                                         [:message message-fields]]]
+                         [:job-story/candidate-feedback [:message/id
+                                                         [:message message-fields]]]
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
                          [:job-story/invoices [[:items [:id
                                                         :invoice/id
@@ -182,16 +192,14 @@
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])]
-    (fn [job-story-id]
-      (let [chat-messages (extract-chat-messages (:job-story @messages-result) active-user)]
-        [c-chat-log chat-messages]))))
+    [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)]))
 
-(defn c-feedback-panel [feedbacker feedback-recipients]
+
+(defn c-feedback-panel
+  [feedbacker]
   (let [job-story-id (re/subscribe [:page.job-contract/job-story-id])
         feedback-text (re/subscribe [:page.job-contract/feedback-text])
         feedback-rating (re/subscribe [:page.job-contract/feedback-rating])
-        feedback-recipient (re/subscribe [:page.job-contract/feedback-recipient])
-
         user-fields [:user [:user/id :user/name]]
         query [:job-story {:job-story/id @job-story-id}
                [:job-story/id
@@ -218,12 +226,13 @@
                       :candidate (get-in results [:job-story :candidate :user])
                       :arbiter (get-in results [:job-story :job :job/arbiter :user])}
 
-        normalized-feedback-users (map (fn [fb] [(:feedback/from-user-type fb)
-                                                 (:feedback/to-user-type fb)])
+        normalized-feedback-users (map (fn [fb]
+                                         [(:feedback/from-user-type fb)
+                                          (:feedback/to-user-type fb)])
                                        feedbacks)
-        feedback-between? (fn [participants feedbacks from to]
+        feedback-between? (fn [feedbacks from to]
                             (some #(= % [from to]) feedbacks))
-        given-feedback? (partial feedback-between? participants normalized-feedback-users)
+        given-feedback? (partial feedback-between? normalized-feedback-users)
         feedback-receiver-role (case feedbacker
                                  :employer
                                  (cond
@@ -268,7 +277,6 @@
         all-feedbacks-done? (and (empty? open-invoices)
                                  (nil? feedback-receiver-role))
 
-        new-feedback-recipients (dissoc participants feedbacker)
         next-feedback-receiver (get participants feedback-receiver-role)]
     [:div.feedback-input-container
      (when open-invoices?
@@ -302,7 +310,9 @@
                                              :to (:user/id next-feedback-receiver)}])}
          [c-button-label "Send Feedback"]]])]))
 
-(defn c-direct-message [recipients]
+
+(defn c-direct-message
+  [recipients]
   (let [text (re/subscribe [:page.job-contract/message-text])
         recipient (re/subscribe [:page.job-contract/message-recipient])
         job-story-id (re/subscribe [:page.job-contract/job-story-id])]
@@ -325,17 +335,12 @@
                                                                           :job-story/id @job-story-id}])}
       [c-button-label "Send Message"]]]))
 
-(defn c-accept-proposal-message [message-params]
+
+(defn c-accept-proposal-message
+  [message-params]
   (let [text (re/subscribe [:page.job-contract/accept-proposal-message-text])
         proposal-data (assoc (select-keys message-params [:job/id :job-story/id :candidate :employer])
                              :text @text)
-        query [:job-story {:job-story/id (:job-story/id message-params)}
-               [:job-story/id
-                [:proposal-message [:message/id]]
-                :job-story/status]]
-        result (re/subscribe [::gql/query {:queries [query]}
-                              {:refetch-on #{:page.job-contract/refetch-messages}}])
-
         can-accept? (= :proposal (:job-story/status message-params))]
     (if can-accept?
       [:div.message-input-container
@@ -348,9 +353,11 @@
         [c-button-label "Accept Proposal"]]]
 
       [:div.message-input-container
-        [c-information "No proposals to accept"]])))
+       [c-information "No proposals to accept"]])))
 
-(defn c-accept-invitation [message-params]
+
+(defn c-accept-invitation
+  [message-params]
   (let [text (re/subscribe [:page.job-contract/accept-invitation-message-text])
         job-story-id (re/subscribe [:page.job-contract/job-story-id])]
     [:div.message-input-container
@@ -365,7 +372,9 @@
                                           :job-story/id @job-story-id}])}
       [c-button-label "Accept Invitation"]]]))
 
-(defn c-employer-options [message-params]
+
+(defn c-employer-options
+  [message-params]
   [c-tabular-layout
    {:key "employer-tabular-layout"
     :default-tab 1}
@@ -377,17 +386,14 @@
    [c-accept-proposal-message message-params]
 
    {:label "Leave Feedback"}
-   [c-feedback-panel :employer (select-keys message-params [:candidate :arbiter])]])
+   [c-feedback-panel :employer]])
 
-(defn c-candidate-options [{job-story-status :job-story/status ; TODO: take into account for limiting actions (feedback, disputes)
-                           job-id :job/id
-                           employer :employer
-                           arbiter :arbiter
-                           candidate :candidate
-                           current-user-role :current-user-role
-                           :as message-params}]
-  (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-        *active-page-params (re/subscribe [::router.subs/active-page-params])
+
+(defn c-candidate-options
+  [{job-story-status :job-story/status ; TODO: take into account for limiting actions (feedback, disputes)
+    job-id :job/id
+    :as message-params}]
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])
         job-story-id (-> @*active-page-params :job-story-id parse-int)
 
         invoice-query [:job-story {:job-story/id job-story-id}
@@ -442,8 +448,7 @@
         has-arbiter? (not (nil? (get-in @invoice-result [:job-story :job :job/arbiter])))
         can-dispute? (and has-invoice?
                           has-arbiter?
-                          (nil? (get-in latest-unpaid-invoice [:dispute-raised-message])))
-        dispute-available? (and has-invoice? can-dispute?)
+                          (nil? (get latest-unpaid-invoice :dispute-raised-message)))
         dispute-unavailable-message (cond
                                       (not has-arbiter?) "This job doesn't yet have an arbiter so disputes can't be created."
                                       has-invoice? "You have already raised a dispute on your latest invoice. One invoice can only be disputed once."
@@ -461,7 +466,7 @@
       [:div.info-message "Click here to create new invoice for this job"]
       [c-button {:color :primary
                  :on-click (util.navigation/create-handler {:route :route.invoice/new})}
-         [c-button-label "Go to create invoice"]]]
+       [c-button-label "Go to create invoice"]]]
 
 
      {:label "Send Message"}
@@ -486,13 +491,15 @@
                                              :invoice/id (:invoice/id latest-unpaid-invoice)}])}
          [c-button-label "Raise Dispute"]]]
 
-       ; else: can't dispute
+       ;; else: can't dispute
        [c-information dispute-unavailable-message])
 
      {:label "Leave Feedback"}
-     [c-feedback-panel :candidate (select-keys message-params [:employer :arbiter])]]))
+     [c-feedback-panel :candidate]]))
 
-(defn c-arbiter-options [message-params]
+
+(defn c-arbiter-options
+  [message-params]
   (let [*active-page-params (re/subscribe [::router.subs/active-page-params])
         job-story-id (-> @*active-page-params :job-story-id parse-int)
 
@@ -533,9 +540,10 @@
         token-address (get-in @invoice-result [:job-story :job :job/token-address])
         token-id (get-in @invoice-result [:job-story :job :job/token-id])
         invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
-        dispute-open? (fn [invoice] (and
-                                     (not (nil? (:dispute-raised-message invoice)))
-                                     (nil? (:dispute-resolved-message invoice))))
+        dispute-open? (fn [invoice]
+                        (and
+                          (not (nil? (:dispute-raised-message invoice)))
+                          (nil? (:dispute-resolved-message invoice))))
         latest-disputed-invoice (->> invoices
                                      (filter dispute-open? ,,,)
                                      (sort-by #(get-in % [:creation-message :message/date-created]) > ,,,)
@@ -560,7 +568,7 @@
      {:label "Send Message"}
      [c-direct-message (select-keys message-params [:candidate :employer])]
 
-     {:label "Resolve Dispute" :active? true} ;; TODO: conditionally show
+     {:label "Resolve Dispute" :active? true} ; TODO: conditionally show
      (if dispute-to-resolve?
        [:div.dispute-input-container
         [:div {:style {:gap "2em" :display "flex"}}
@@ -601,15 +609,18 @@
                                                              :token-id token-id}])}
          [c-button-label "Resolve Dispute"]]]
 
-       ; Else
+       ;; Else
        [c-information "There are no invoices with unresolved disputes for this job story"])
 
      {:label "Leave Feedback"}
      (if feedback-available-for-arbiter?
-       [c-feedback-panel :arbiter (select-keys message-params [:candidate :employer])]
+       [c-feedback-panel :arbiter]
        [c-information "Leaving feedback becomes available after employer or candidate have given their feedback (and thus terminated the job contract)"])]))
 
-(defn c-guest-options [])
+
+(defn c-guest-options
+  [])
+
 
 (defmethod page :route.job/contract []
   (let [*active-page-params (re/subscribe [::router.subs/active-page-params])]
@@ -659,10 +670,6 @@
                                (assoc ,,, :job-story/status (:job-story/status job-story))
                                (assoc ,,, :job-story/id job-story-id)
                                (assoc ,,, :current-user-role current-user-role))
-
-            token-type (keyword (get-in job-story [:job :job/token-type]))
-            raw-amount (get-in job-story [:job :job/token-amount])
-            human-amount (tokens/human-amount raw-amount token-type)
             profile {:title (get-in job-story [:job :job/title])
                      :job/id (:job/id job-story)
                      :status (get-in job-story [:job-story/status])

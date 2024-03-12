@@ -1,6 +1,6 @@
 (ns ethlance.shared.enumeration.availability
   (:require
-   [ethlance.shared.enumeration :as enum]))
+    [ethlance.shared.enumeration :as enum]))
 
 
 (def enum-availability

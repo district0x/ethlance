@@ -1,9 +1,11 @@
 (ns ethlance.ui.component.carousel
-  (:require [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [reagent.core :as r]
-            ["pure-react-carousel" :as react-carousel]))
+  (:require
+    ["pure-react-carousel" :as react-carousel]
+    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [reagent.core :as r]))
+
 
 (defn c-carousel-old
   "Carousel Component for displaying multiple 'slides' of content
@@ -31,30 +33,31 @@
     :or {default-index 0}}]
   (let [*current-index (r/atom default-index)]
     (r/create-class
-     {:display-name "ethlance-carousel"
-      :reagent-render
-      (fn [_ & children]
-        (let [first-slide? (<= @*current-index 0)
-              last-slide? (>= @*current-index (dec (count children)))]
-          [:div.ethlance-carousel
-           [:div.slide-listing
-            (when-not first-slide?
-              [:div.left-slide])
-            [:div.current-slide
-             (nth children @*current-index)]
-            (when-not last-slide?
-              [:div.right-slide])]
-           [:div.button-listing
-            [:div.back-button
-             [c-circle-icon-button
-              {:name :ic-arrow-left
-               :hide? first-slide?
-               :on-click #(swap! *current-index dec)}]]
-            [:div.forward-button
-             [c-circle-icon-button
-              {:name :ic-arrow-right
-               :hide? last-slide?
-               :on-click #(swap! *current-index inc)}]]]]))})))
+      {:display-name "ethlance-carousel"
+       :reagent-render
+       (fn [_ & children]
+         (let [first-slide? (<= @*current-index 0)
+               last-slide? (>= @*current-index (dec (count children)))]
+           [:div.ethlance-carousel
+            [:div.slide-listing
+             (when-not first-slide?
+               [:div.left-slide])
+             [:div.current-slide
+              (nth children @*current-index)]
+             (when-not last-slide?
+               [:div.right-slide])]
+            [:div.button-listing
+             [:div.back-button
+              [c-circle-icon-button
+               {:name :ic-arrow-left
+                :hide? first-slide?
+                :on-click #(swap! *current-index dec)}]]
+             [:div.forward-button
+              [c-circle-icon-button
+               {:name :ic-arrow-right
+                :hide? last-slide?
+                :on-click #(swap! *current-index inc)}]]]]))})))
+
 
 (defn c-feedback-slide
   [{:keys [id rating author text image-url class]}]
@@ -66,7 +69,9 @@
    [:div.message text]
    [:div.name author]])
 
-(defn c-carousel [{:keys []} & children]
+
+(defn c-carousel
+  [{:keys []} & children]
   [:div.ethlance-new-carousel
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300

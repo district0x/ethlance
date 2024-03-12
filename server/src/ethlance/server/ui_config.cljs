@@ -1,12 +1,13 @@
 (ns ethlance.server.ui-config
   (:require
-    [district.shared.async-helpers :refer [<? safe-go]]
+    [cljs.reader]
+    [cljs-node-io.core :as io]
     [cljs-node-io.fs :refer [file?]]
-    [district.server.async-db :as db :include-macros true]
-    [ethlance.shared.utils :refer [deep-merge]]
-    [cljs-node-io.core :as io]))
+    [ethlance.shared.utils :refer [deep-merge]]))
+
 
 (def env js/process.env)
+
 
 (defn fetch-config
   "Returns EDN contents from `config-path` (relative to the folder where node process was started)"

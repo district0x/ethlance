@@ -1,11 +1,11 @@
 (ns ethlance.ui.event.sign-in
+  (:refer-clojure :exclude [resolve])
   (:require
+    [district.ui.graphql.events :as gql-events]
     [district.ui.logging.events :as logging.events]
     [district.ui.web3-accounts.queries :as account-queries]
     [district.ui.web3.queries :as web3-queries]
-    [district.ui.graphql.events :as gql-events]
-    [re-frame.core :as re])
-  (:refer-clojure :exclude [resolve]))
+    [re-frame.core :as re]))
 
 
 (re/reg-event-fx
@@ -17,9 +17,9 @@
   ;; - This will attempt to 'sign' the `data-str` using the given active
   ;; account. If the signed message is valid, the active ethereum account
   ;; will be signed in by providing the session with a JWT Token.
-    (fn [{:keys [db]} _]
-      (let [active-account (account-queries/active-account db)
-            data-str " Sign in to Ethlance! "]
+  (fn [{:keys [db]} _]
+    (let [active-account (account-queries/active-account db)
+          data-str " Sign in to Ethlance! "]
       {:web3/personal-sign
        {:web3 (web3-queries/web3 db)
         :data-str data-str
@@ -42,8 +42,9 @@
   (fn [cofx [_ event-data]]
     (-> cofx
         (assoc-in ,,, [:db :active-session] (select-keys (:sign-in event-data) [:jwt :user/id]))
-        (assoc-in ,,, [:store] (select-keys (:sign-in event-data) [:jwt :user/id]))
-        (assoc-in ,,, [:fx] [[:dispatch [:district.ui.graphql.events/set-authorization-token (get-in event-data [:sign-in :jwt])]]]))))
+        (assoc ,,, :store (select-keys (:sign-in event-data) [:jwt :user/id]))
+        (assoc ,,, :fx [[:dispatch [:district.ui.graphql.events/set-authorization-token (get-in event-data [:sign-in :jwt])]]]))))
+
 
 ;; Intermediates
 (re/reg-event-fx
@@ -51,10 +52,11 @@
   :user/-authenticate
   (fn [_ [_ {:keys [data-str]} data-signature]]
     {:dispatch [::gql-events/mutation
-                  {:queries [[:sign-in {:data-signature data-signature
-                                        :data data-str}
-                              [:jwt :user/id]]]
-                   :on-success [::store-active-session]}]}))
+                {:queries [[:sign-in {:data-signature data-signature
+                                      :data data-str}
+                            [:jwt :user/id]]]
+                 :on-success [::store-active-session]}]}))
+
 
 (comment
   (re/dispatch [:user/sign-in]))

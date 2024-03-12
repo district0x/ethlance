@@ -1,12 +1,10 @@
 (ns ethlance.ui.page.new-invoice.subscriptions
   (:require
-   [re-frame.core :as re]
-
-   [ethlance.ui.util.tokens :as util.tokens]
-   [district.ui.conversion-rates.queries :as rates-queries]
-   [district.ui.conversion-rates.subs :as rates-subs]
-   [ethlance.ui.page.new-invoice.events :as new-invoice.events]
-   [ethlance.ui.subscription.utils :as subscription.utils]))
+    [district.ui.conversion-rates.subs :as rates-subs]
+    [ethlance.ui.page.new-invoice.events :as new-invoice.events]
+    [ethlance.ui.subscription.utils :as subscription.utils]
+    [ethlance.ui.util.tokens :as util.tokens]
+    [re-frame.core :as re]))
 
 
 (def create-get-handler #(subscription.utils/create-get-handler new-invoice.events/state-key %))
@@ -23,6 +21,7 @@
 (re/reg-sub :page.new-invoice/invoice-amount (create-get-handler :invoice-amount))
 (re/reg-sub :page.new-invoice/message (create-get-handler :message))
 
+
 (re/reg-sub
   :page.new-invoice/job-token
   :<- [:page.new-invoice/invoiced-job]
@@ -32,7 +31,8 @@
      :amount (-> job :job :job/token-amount)
      :id (-> job :job :job/token-id)
      :name (-> job :job :token-details :token-detail/name)
-     :symbol (or (keyword (-> job :job :token-details :token-detail/symbol)))}))
+     :symbol (keyword (-> job :job :token-details :token-detail/symbol))}))
+
 
 (re/reg-sub
   :page.new-invoice/estimated-usd

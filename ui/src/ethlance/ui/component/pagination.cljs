@@ -1,10 +1,13 @@
 (ns ethlance.ui.component.pagination
-  (:require [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [re-frame.core :as re]))
+  (:require
+    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [re-frame.core :as re]))
+
 
 ;; Math Functions
 (def ceil (aget js/Math "ceil"))
+
 
 (defn c-pagination
   "Component for handling pagination wrt a given listing.
@@ -51,6 +54,7 @@
          :title "Go To Next Page"
          :on-click #(re/dispatch [set-offset-event next-offset])}]])))
 
+
 (defn c-pagination-ends
   "Component for handling pagination with <first,prev,next,final>
 
@@ -70,7 +74,6 @@
                offset
                set-offset-event]}]
     (let [total-count (or total-count 0)
-          current-page (-> offset (/ limit) ceil inc)
           num-pages (-> total-count (/ limit) ceil)
           prev-offset (- offset limit)
           prev-offset (if (< prev-offset 0) 0 prev-offset)

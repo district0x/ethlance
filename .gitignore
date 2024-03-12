@@ -13,3 +13,5 @@ designs/deploy
 tags
 temp
 release
+.clj-kondo
+.lsp

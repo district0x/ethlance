@@ -1,12 +1,15 @@
 (ns ethlance.ui.page.employers.events
-  (:require [district.parsers :refer [parse-int]]
-            [district.ui.router.effects :as router.effects]
-            [ethlance.shared.constants :as constants]
-            [ethlance.ui.event.templates :as event.templates]
-            [ethlance.ui.event.utils :as event.utils]
-            [re-frame.core :as re]))
+  (:require
+    [district.parsers :refer [parse-int]]
+    [district.ui.router.effects :as router.effects]
+    [ethlance.shared.constants :as constants]
+    [ethlance.ui.event.templates :as event.templates]
+    [ethlance.ui.event.utils :as event.utils]
+    [re-frame.core :as re]))
+
 
 (def state-key :page.employers)
+
 
 (def state-default
   {:offset 0
@@ -18,7 +21,9 @@
    :min-num-feedbacks nil
    :country nil})
 
+
 (def create-assoc-handler (partial event.utils/create-assoc-handler state-key))
+
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
@@ -28,10 +33,12 @@
      :name :route.user/employers
      :dispatch []}]})
 
+
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."
   [{:keys [db]} [_ new-skill]]
   {:db (update-in db [state-key :skills] conj new-skill)})
+
 
 (re/reg-event-fx :page.employers/initialize-page initialize-page)
 (re/reg-event-fx :page.employers/set-offset (create-assoc-handler :offset))

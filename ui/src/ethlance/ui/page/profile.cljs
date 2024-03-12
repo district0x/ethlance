@@ -1,50 +1,58 @@
 (ns ethlance.ui.page.profile
-  (:require [district.ui.component.page :refer [page]]
-            [ethlance.ui.page.profile.subscriptions]
-            [ethlance.ui.component.button :refer [c-button c-button-label c-button-icon-label]]
-            [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
-            [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.scrollable :refer [c-scrollable]]
-            [ethlance.ui.component.table :refer [c-table]]
-            [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-            [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
-            [ethlance.ui.component.pagination :refer [c-pagination-ends]]
-            [district.ui.router.subs :as router-subs]
-            [ethlance.ui.util.navigation :as navigation]
-            [district.ui.router.events :as router-events]
-            [ethlance.ui.page.profile.events :as profile-events]
-            [ethlance.shared.utils :refer [ilike= ilike!=]]
-            [district.format :as format]
-            [cljsjs.graphql]
-            [clojure.string :as string]
-            [ethlance.ui.util.dates :as util.dates]
-            [district.graphql-utils :as utils]
-            [district.ui.graphql.subs :as gql]
-            [re-frame.core :as re]))
+  (:require
+    [cljsjs.graphql]
+    [clojure.string :as string]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router-events]
+    [district.ui.router.subs :as router-subs]
+    [ethlance.shared.utils :refer [ilike=]]
+    [ethlance.ui.component.button :refer [c-button c-button-label c-button-icon-label]]
+    [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.pagination :refer [c-pagination-ends]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.scrollable :refer [c-scrollable]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.table :refer [c-table]]
+    [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
+    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+    [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+    [ethlance.ui.page.profile.events :as profile-events]
+    [ethlance.ui.page.profile.subscriptions]
+    [ethlance.ui.util.dates :as util.dates]
+    [ethlance.ui.util.navigation :as navigation]
+    [re-frame.core :as re]))
 
-(defn c-tag-list [name tags]
+
+(defn c-tag-list
+  [name tags]
   (let [container [:div {:class (string/lower-case name)} [:span name]]]
     (into container (map #(vector c-tag {} [c-tag-label %]) tags))))
 
-(defn- format-date-looking-column [column value]
+
+(defn- format-date-looking-column
+  [column value]
   (if (string/ends-with? (name column) "-date")
     (util.dates/formatted-date value)
     value))
 
-(defn c-job-activity-row [job column-names]
+
+(defn c-job-activity-row
+  [job column-names]
   (map #(conj [] :span (format-date-looking-column % (get job %))) column-names))
 
-(defn prepare-candidate-jobs [story]
-  {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-created])
-   :status (get-in story [:job-story/status])})
 
-(defn c-job-activity [user-role]
+(defn prepare-candidate-jobs
+  [story]
+  {:title (get-in story [:job :job/title])
+   :start-date (get story :job-story/date-created)
+   :status (get story :job-story/status)})
+
+
+(defn c-job-activity
+  [user-role]
   (let [keys-headers {:title "Title" :start-date "Created" :status "Status"}
         headers (map last keys-headers)
         column-names (map first keys-headers)
@@ -70,24 +78,28 @@
         total-count (get-in results [:job-story-search :total-count])
         jobs (map prepare-candidate-jobs (get-in results [:job-story-search :items]))]
     [:div.job-listing
-      [:div.title "Job Activity"]
-      [c-scrollable
-       {:forceVisible true :autoHide false}
-       (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) jobs))]
+     [:div.title "Job Activity"]
+     [c-scrollable
+      {:forceVisible true :autoHide false}
+      (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) jobs))]
 
-       [c-pagination-ends
-        {:total-count total-count
-         :limit limit
-         :offset offset
-         :set-offset-event :page.profile/set-pagination-offset}]]))
+     [c-pagination-ends
+      {:total-count total-count
+       :limit limit
+       :offset offset
+       :set-offset-event :page.profile/set-pagination-offset}]]))
 
-(defn prepare-arbitrations [arbitration]
+
+(defn prepare-arbitrations
+  [arbitration]
   {:title (get-in arbitration [:job :job/title])
-   :start-date (get-in arbitration [:arbitration/date-arbiter-accepted]) ;
-   :fee (str (get-in arbitration [:arbitration/fee]) " " (get-in arbitration [:arbitration/fee-currency-id]))
-   :status (get-in arbitration [:arbitration/status])})
+   :start-date (get arbitration :arbitration/date-arbiter-accepted) ;
+   :fee (str (get arbitration :arbitration/fee) " " (get arbitration :arbitration/fee-currency-id))
+   :status (get arbitration :arbitration/status)})
 
-(defn c-arbitration-activity []
+
+(defn c-arbitration-activity
+  []
   (let [keys-headers {:title "Title" :start-date "Hired" :fee "Fee" :status "Status"}
         headers (map last keys-headers)
         column-names (map first keys-headers)
@@ -96,33 +108,34 @@
         limit @(re/subscribe [:page.profile/pagination-limit])
         offset @(re/subscribe [:page.profile/pagination-offset])
         query [:arbiter {:user/id user-address}
-               [
-                [:arbitrations {:limit limit :offset offset}
+               [[:arbitrations {:limit limit :offset offset}
                  [:total-count
                   [:items
                    [:id
                     :arbitration/date-arbiter-accepted
-                   :arbitration/fee
-                   :arbitration/fee-currency-id
-                   :arbitration/status
-                   [:job
-                    [:job/title]]]]]]]]
+                    :arbitration/fee
+                    :arbitration/fee-currency-id
+                    :arbitration/status
+                    [:job
+                     [:job/title]]]]]]]]
         results @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{::profile-events/invite-arbiter-tx-success}}])
         total-count (get-in results [:arbiter :arbitrations :total-count])
         arbitrations (map prepare-arbitrations (get-in results [:arbiter :arbitrations :items]))]
     [:div.job-listing
-      [:div.title "Arbitrations"]
-      [c-scrollable
-       {:forceVisible true :autoHide false}
-       (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) arbitrations))]
+     [:div.title "Arbitrations"]
+     [c-scrollable
+      {:forceVisible true :autoHide false}
+      (into [c-table {:headers headers}] (map #(c-job-activity-row % column-names) arbitrations))]
 
-       [c-pagination-ends
-        {:total-count total-count
-         :limit limit
-         :offset offset
-         :set-offset-event :page.profile/set-pagination-offset}]]))
+     [c-pagination-ends
+      {:total-count total-count
+       :limit limit
+       :offset offset
+       :set-offset-event :page.profile/set-pagination-offset}]]))
 
-(defn c-invite-candidate []
+
+(defn c-invite-candidate
+  []
   (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
         candidate-address (:address params)
         active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
@@ -150,75 +163,71 @@
                               " (candidate already proposed)"))
         jobs (sort-by :job/date-created #(compare %2 %1)
                       (reduce (fn [acc job]
-                        (if (some #(ilike= candidate-address (-> % :candidate :user/id)) (-> job :job-stories :items))
-                          (conj acc (merge job {:comment (existing-relation job)
-                                                :job-story-exists? true}))
-                          (conj acc job)))
-                      []
-                      all-jobs))
+                                (if (some #(ilike= candidate-address (-> % :candidate :user/id)) (-> job :job-stories :items))
+                                  (conj acc (merge job {:comment (existing-relation job)
+                                                        :job-story-exists? true}))
+                                  (conj acc job)))
+                              []
+                              all-jobs))
         job-for-invitation (re/subscribe [:page.profile/job-for-invitation])
         invitation-text (re/subscribe [:page.profile/invitation-text])
         preselected-job (or @job-for-invitation (first jobs))
         job-story-exists? (:job-story-exists? preselected-job)]
     [:div.job-listing
-      [:div.title "Invite to a job"]
-      [c-select-input
-       {:selections jobs
-        :value-fn :job/id
-        :label-fn #(str (:job/title %) (:comment %))
-        :selection preselected-job
-        :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
-      [c-textarea-input {:value @invitation-text
-                         :disabled job-story-exists?
-                         :placeholder "Briefly describe to what and why you're inviting the candidate"
-                         :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
-      [c-button {:color :primary
-                 :disabled? job-story-exists?
-                 :on-click (fn []
-                             (when-not job-story-exists?
-                               (re/dispatch [:page.profile/invite-candidate
+     [:div.title "Invite to a job"]
+     [c-select-input
+      {:selections jobs
+       :value-fn :job/id
+       :label-fn #(str (:job/title %) (:comment %))
+       :selection preselected-job
+       :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
+     [c-textarea-input {:value @invitation-text
+                        :disabled job-story-exists?
+                        :placeholder "Briefly describe to what and why you're inviting the candidate"
+                        :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
+     [c-button {:color :primary
+                :disabled? job-story-exists?
+                :on-click (fn []
+                            (when-not job-story-exists?
+                              (re/dispatch [:page.profile/invite-candidate
                                             {:candidate candidate-address
                                              :text @invitation-text
                                              :job preselected-job
                                              :employer active-user}])))}
-        [c-button-label "Invite"]]]))
+      [c-button-label "Invite"]]]))
 
-(defn c-rating-box [rating]
+
+(defn c-rating-box
+  [rating]
   [:div.rating
    [c-rating {:rating (:average rating) :color :primary}]
    [:span (str "(" (:count rating) ")")]])
 
-(defn c-feedback-listing [sub-title feedback-list]
+
+(defn c-feedback-listing
+  [sub-title feedback-list]
   [:div.feedback-listing
-      [:div.title "Feedback"]
-      [:div.sub-title sub-title]
-      (if (not (empty? feedback-list))
-        (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))
-        [:div.info-message "This user is yet to receive feedback"])])
+   [:div.title "Feedback"]
+   [:div.sub-title sub-title]
+   (if (not-empty feedback-list)
+     (into [c-carousel {}] (map #(c-feedback-slide %) feedback-list))
+     [:div.info-message "This user is yet to receive feedback"])])
 
-(def log (.-log js/console))
 
-(defn prepare-ratings [rating]
-  {:rating (:feedback/rating rating)
-   :from (get-in rating [:feedback/from-user :user/name])
-   :text (:feedback/text rating)})
-
-(defn prepare-feedback-cards [item]
+(defn prepare-feedback-cards
+  [item]
   {:rating (:feedback/rating item)
    :text (:feedback/text item)
    :image-url (-> item :feedback/from-user :user/profile-image)
    :author (get-in item [:feedback/from-user :user/name])})
 
-(defn prepare-employer-jobs [story]
-  {:title (get-in story [:job :job/title])
-   :start-date (get-in story [:job-story/date-created])
-   :status (get-in story [:job :job/status])})
 
-(defn c-missing-profile-notification [profile-type]
+(defn c-missing-profile-notification
+  [profile-type]
   (let [viewing-user-address (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         viewed-user-address @(re/subscribe [:page.profile/viewed-user-address])
         viewing-own-profile? (ilike= viewing-user-address viewed-user-address)
-        subject (if viewing-own-profile? "You have" "This user has" )
+        subject (if viewing-own-profile? "You have" "This user has")
         posessive (if viewing-own-profile? "your" "their")
         role-str (name profile-type)]
     [:div.candidate-profile
@@ -229,9 +238,10 @@
                                                                  :query {:tab profile-type}}))
         [c-button-label "Go to profile setup"]])]))
 
-(defn c-candidate-profile []
-  (let [page-params (re/subscribe [::router-subs/active-page-params])
-        user-address @(re/subscribe [:page.profile/viewed-user-address])
+
+(defn c-candidate-profile
+  []
+  (let [user-address @(re/subscribe [:page.profile/viewed-user-address])
         query [:candidate {:user/id user-address}
                [:candidate/professional-title
                 :candidate/skills
@@ -288,7 +298,9 @@
      (when has-candidate-profile? [c-invite-candidate])
      (c-feedback-listing professional-title feedback-list)]))
 
-(defn c-employer-profile []
+
+(defn c-employer-profile
+  []
   (let [user-address (re/subscribe [:page.profile/viewed-user-address])
         query [:employer {:user/id @user-address}
                [:employer/professional-title
@@ -336,7 +348,9 @@
      (when has-employer-profile? (c-job-activity :employer))
      (c-feedback-listing professional-title feedback-list)]))
 
-(defn c-invite-arbiter []
+
+(defn c-invite-arbiter
+  []
   (let [{:keys [_ params _]} @(re/subscribe [::router-subs/active-page])
         invitee-address (:address params)
 
@@ -356,39 +370,41 @@
         all-jobs (get-in (first result) [:job-search :items] [])
         jobs (sort-by :job/date-created #(compare %2 %1)
                       (reduce (fn [acc job]
-                        (if (some #(ilike= invitee-address (-> % :arbiter :user/id)) (-> job :arbitrations :items))
-                          acc ; To show them in the list: (conj acc (merge job {:comment "(already invited)" :job-story-exists? true}))
-                          (conj acc job)))
-                      []
-                      all-jobs))
+                                (if (some #(ilike= invitee-address (-> % :arbiter :user/id)) (-> job :arbitrations :items))
+                                  acc ; To show them in the list: (conj acc (merge job {:comment "(already invited)" :job-story-exists? true}))
+                                  (conj acc job)))
+                              []
+                              all-jobs))
         job-for-invitation (re/subscribe [:page.profile/job-for-invitation])
         invitation-text (re/subscribe [:page.profile/invitation-text])
         preselected-job (or @job-for-invitation (first jobs))
         job-story-exists? (:job-story-exists? preselected-job)]
     [:div.job-listing
-      [:div.title "Invite Arbiter"]
-      [c-select-input
-       {:selections jobs
-        :value-fn :job/id
-        :label-fn #(str (:job/title %) (:comment %))
-        :selection preselected-job
-        :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
-      [c-textarea-input {:value @invitation-text
-                         :disabled job-story-exists?
-                         :placeholder "Briefly describe to what and why you're inviting the arbiter"
-                         :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
-      [c-button {:color :primary
-                 :disabled? job-story-exists?
-                 :on-click (fn []
-                             (when-not job-story-exists?
-                               (re/dispatch [:page.profile/invite-arbiter
+     [:div.title "Invite Arbiter"]
+     [c-select-input
+      {:selections jobs
+       :value-fn :job/id
+       :label-fn #(str (:job/title %) (:comment %))
+       :selection preselected-job
+       :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
+     [c-textarea-input {:value @invitation-text
+                        :disabled job-story-exists?
+                        :placeholder "Briefly describe to what and why you're inviting the arbiter"
+                        :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
+     [c-button {:color :primary
+                :disabled? job-story-exists?
+                :on-click (fn []
+                            (when-not job-story-exists?
+                              (re/dispatch [:page.profile/invite-arbiter
                                             {:arbiter invitee-address
                                              :text @invitation-text
                                              :job preselected-job
                                              :employer active-user}])))}
-        [c-button-label "Invite"]]]))
+      [c-button-label "Invite"]]]))
 
-(defn c-arbiter-profile []
+
+(defn c-arbiter-profile
+  []
   (let [user-address (re/subscribe [:page.profile/viewed-user-address])
         query [:arbiter {:user/id @user-address}
                [:arbiter/professional-title
@@ -404,12 +420,12 @@
                 [:arbiter/feedback
                  [:total-count
                   [:items
-                  [:message/id
-                   :feedback/text
-                   :feedback/rating
-                   [:feedback/from-user
-                    [:user/name
-                     :user/profile-image]]]]]]]]
+                   [:message/id
+                    :feedback/text
+                    :feedback/rating
+                    [:feedback/from-user
+                     [:user/name
+                      :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:arbiter :user :user/name])
         location (get-in @results [:arbiter :user :user/country])
@@ -439,15 +455,17 @@
      (when has-arbiter-profile? (c-arbitration-activity))
      (c-feedback-listing professional-title feedback-list)]))
 
+
 (defmethod page :route.user/profile []
-  (let [{:keys [name params query]} @(re/subscribe [::router-subs/active-page])
+  (let [{:keys [_name _params query]} @(re/subscribe [::router-subs/active-page])
         user-address @(re/subscribe [:page.profile/viewed-user-address])
         tabs {"candidate" 0 "employer" 1 "arbiter" 2}
         default-tab (get tabs (:tab query) 0)
-        navigate-to (fn [tab name params] (when name (re/dispatch [::router-events/navigate
-                                                                   :route.user/profile
-                                                                   {:address user-address}
-                                                                   (merge query {:tab tab})])))
+        navigate-to (fn [tab name _params]
+                      (when name (re/dispatch [::router-events/navigate
+                                               :route.user/profile
+                                               {:address user-address}
+                                               (merge query {:tab tab})])))
         navigate-to-candidate (partial navigate-to "candidate" user-address)
         navigate-to-employer (partial navigate-to "employer" user-address)
         navigate-to-arbiter (partial navigate-to "arbiter" user-address)]

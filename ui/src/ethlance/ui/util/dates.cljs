@@ -1,12 +1,14 @@
 (ns ethlance.ui.util.dates
   (:require
-
-    [district.format :as format]
+    [cljs-time.coerce :as t-coerce]
     [cljs-time.core :as t-core]
-    [cljs-time.coerce :as t-coerce]))
+    [district.format :as format]))
 
-(defn relative-ago [get-date-field data]
+
+(defn relative-ago
+  [get-date-field data]
   (format/time-ago (t-core/minus (t-core/now) (t-coerce/from-long (get-date-field data)))))
+
 
 (defn formatted-date
   ([data] (formatted-date identity data))

@@ -1,5 +1,6 @@
 (ns ethlance.shared.graphql-mutations-spec)
 
+
 {:mutation/sign-in
  {:data "string"
   :data-signature "string"}
@@ -76,36 +77,4 @@
 
  :mutation/linkedin-sign-up
  ;; Already implemented
- {}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- }
-
-
+ {}}

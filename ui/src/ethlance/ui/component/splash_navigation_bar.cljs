@@ -1,7 +1,9 @@
 (ns ethlance.ui.component.splash-navigation-bar
-  (:require [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-            [ethlance.ui.util.navigation :as util.navigation]
-            [reagent.core :as r]))
+  (:require
+    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+    [ethlance.ui.util.navigation :as util.navigation]
+    [reagent.core :as r]))
+
 
 (defn c-splash-navigation-link
   [{:keys [name route href *hover]}]
@@ -18,7 +20,9 @@
            navigation)
       name]]))
 
-(defn c-splash-navigation-bar []
+
+(defn c-splash-navigation-bar
+  []
   (let [*hover (r/atom nil)]
     (fn []
       [:div.splash-navigation-bar

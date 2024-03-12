@@ -1,13 +1,15 @@
 (ns ethlance.server.contract
   "Includes functions for working with ethereum contracts in an asynchronous manner."
-  (:require [clojure.core.async
-             :as
-             async
-             :refer
-             [>! chan close! go put!]
-             :include-macros
-             true]
-            [district.server.smart-contracts :as contracts]))
+  (:require
+    [clojure.core.async
+     :as
+     async
+     :refer
+     [>! chan close! go put!]
+     :include-macros
+     true]
+    [district.server.smart-contracts :as contracts]))
+
 
 (defn call
   "Call the given `contract-address` with the kebab-case formatted
@@ -36,14 +38,14 @@
         (if (instance? js/Promise result)
           (-> result
               (.then
-               ;; Success
-               (fn [result]
-                 (put! success-channel result)
-                 (close! error-channel))
-               ;; Failure
-               (fn [error-object]
-                 (put! error-channel error-object)
-                 (close! success-channel))))
+                ;; Success
+                (fn [result]
+                  (put! success-channel result)
+                  (close! error-channel))
+                ;; Failure
+                (fn [error-object]
+                  (put! error-channel error-object)
+                  (close! success-channel))))
           ;; No promise, pass the result to the success channel.
           (do (>! success-channel result)
               (close! error-channel)))))

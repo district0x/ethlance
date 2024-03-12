@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.email-input
   (:require
-   [reagent.core :as r]))
+    [reagent.core :as r]))
+
 
 (defn c-email-input
   [{:keys [default-value color]}]
@@ -17,11 +18,11 @@
             opts (dissoc opts :default-value :value :color :on-change :error?)]
         [:input.ethlance-email-input
          (merge
-          opts
-          {:class [class-color (when error? "error") (when @*dirty? "dirty")]
-           :value current-value
-           :on-change (fn [e]
-                        (reset! *dirty? true)
-                        (let [target-value (-> e .-target .-value)]
-                          (reset! *current-value target-value)
-                          (when on-change (on-change target-value))))})]))))
+           opts
+           {:class [class-color (when error? "error") (when @*dirty? "dirty")]
+            :value current-value
+            :on-change (fn [e]
+                         (reset! *dirty? true)
+                         (let [target-value (-> e .-target .-value)]
+                           (reset! *current-value target-value)
+                           (when on-change (on-change target-value))))})]))))

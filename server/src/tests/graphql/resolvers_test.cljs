@@ -1,20 +1,23 @@
 (ns tests.graphql.resolvers-test
-  (:require [cljs.core.async :refer [go <!]]
-            [cljs.nodejs :as nodejs]
-            [cljs.test :refer-macros [deftest is async use-fixtures]]
-            [clojure.string :as str]
-            [district.server.async-db :as async-db]
-            [district.server.logging]
-            [district.server.config]
-            [district.shared.async-helpers :as async-helpers :refer [safe-go <?]]
-            [ethlance.server.db :as ethlance-db]
-            [ethlance.server.graphql.server]
-            [ethlance.server.graphql.utils :refer [run-query]]
-            [mount.core :as mount]
-            [taoensso.timbre :as log]
-            [tests.graphql.generator :as generator]))
+  (:require
+    [cljs.core.async :refer [go <!]]
+    [cljs.nodejs :as nodejs]
+    [cljs.test :refer-macros [deftest is async use-fixtures]]
+    [clojure.string :as str]
+    [district.server.async-db :as async-db]
+    [district.server.config]
+    [district.server.logging]
+    [district.shared.async-helpers :as async-helpers :refer [safe-go <?]]
+    [ethlance.server.db :as ethlance-db]
+    [ethlance.server.graphql.server]
+    [ethlance.server.graphql.utils :refer [run-query]]
+    [mount.core :as mount]
+    [taoensso.timbre :as log]
+    [tests.graphql.generator :as generator]))
+
 
 (nodejs/enable-util-print!)
+
 
 ;; Contains {"userAddress": "0x4c3f13898913f15f12f902d6480178484063a6fb"} signed with secret-token
 
@@ -23,7 +26,9 @@
 (def secret-token "SECRET")
 (def test-db-name "ethlance-test")
 
-(defn set-up-db-and-graphql-api []
+
+(defn set-up-db-and-graphql-api
+  []
   (async done
          (safe-go
            (log/debug "Running before fixture")
@@ -48,9 +53,11 @@
              (log/info "Started" components))
            (done))))
 
+
 (use-fixtures :once
   {:before set-up-db-and-graphql-api
    :after (fn [] (log/debug "Running after fixture"))})
+
 
 (defn encode-user-type-in-address
   "Returns Ethereum address looking string with user-type in it (with non-hex characters replaced)"
@@ -59,10 +66,13 @@
         beginning (subs address-base 0 2)
         hexy-user (clojure.string/replace user-type #"[^a-f^A-F^0-9]" "f")
         ending (subs address-base (+ (count beginning) (count user-type)) (count address-base))]
-  (str beginning hexy-user ending)))
+    (str beginning hexy-user ending)))
 
-(defn user-address-pairs [user-type]
+
+(defn user-address-pairs
+  [user-type]
   [user-type (encode-user-type-in-address user-type)])
+
 
 (deftest test-resolvers
   (async done
@@ -193,55 +203,60 @@
              (is (= (users-addresses "CANDIDATE") (-> candidate-query :data :candidate :user/id str/trim)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :total-count)))
              (is (= 5 (-> candidate-query :data :candidate :candidate/feedback :items count)))
-             ; FIXME: update the generators to set up DB in a way that resolvers get the correct data
-             ; (is (= "Employer" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/from-user-type)))
-             ; (is (= "Candidate" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/to-user-type)))
+             ;; FIXME: update the generators to set up DB in a way that resolvers get the correct data
+             ;; (is (= "Employer" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/from-user-type)))
+             ;; (is (= "Candidate" (-> candidate-query :data :candidate :candidate/feedback :items first :feedback/to-user-type)))
 
              (is (= 0 (-> candidate-search-query-and :data :candidate-search :total-count)))
 
-             ; FIXME: update the generators to set up DB in a way that resolvers get the correct data
-             ; (is (every? #(= "Employer" %) (-> employer-query :data :employer :employer/feedback :items (#(map :feedback/to-user-type %)) )))
+             ;; FIXME: update the generators to set up DB in a way that resolvers get the correct data
+             ;; (is (every? #(= "Employer" %) (-> employer-query :data :employer :employer/feedback :items (#(map :feedback/to-user-type %)) )))
 
-             (is (every? #(= "Arbiter" %) (-> arbiter-query :data :employer :arbiter/feedback :items (#(map :feedback/to-user-type %)) )))
+             (is (every? #(= "Arbiter" %) (-> arbiter-query :data :employer :arbiter/feedback :items (#(map :feedback/to-user-type %)))))
 
              (let [employer-feedbacks (-> employer-query :data :employer :employer/feedback :items)
                    employer-feedback (-> job-query :data :job :job/stories :items first :job-story/employer-feedback)
                    candidate-feedbacks (-> candidate-query :data :candidate :candidate/feedback :items)
                    candidate-feedback (-> job-query :data :job :job/stories :items first :job-story/candidate-feedback)]
 
-               (is (= (-> (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                  (= (:job-story/id employer-feedback) (:job-story/id elem))))
+               (is (= (-> (filter (fn [elem]
+                                    (and (= job-id (:job/id elem))
+                                         (= (:job-story/id employer-feedback) (:job-story/id elem))))
                                   employer-feedbacks) first)
                       (-> job-query :data :job :job/stories :items first :job-story/employer-feedback)))
 
                (is (= (-> job-query :data :job :job/stories :items first :job-story/candidate-feedback)
-                      (-> (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                  (= (:job-story/id candidate-feedback) (:job-story/id elem))))
+                      (-> (filter (fn [elem]
+                                    (and (= job-id (:job/id elem))
+                                         (= (:job-story/id candidate-feedback) (:job-story/id elem))))
                                   candidate-feedbacks) first))))
 
              (let [job-story-invoices (-> job-story-query :data :job-story :job-story/invoices :items)
                    job-story-dispute (-> job-story-query :data :job-story :job-story/dispute :items)]
 
                (is (= (-> invoice-query :data :invoice)
-                      (first (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                     (= 0 (:job-story/id elem))
-                                                     (= invoice-id (:invoice/id elem))))
+                      (first (filter (fn [elem]
+                                       (and (= job-id (:job/id elem))
+                                            (= 0 (:job-story/id elem))
+                                            (= invoice-id (:invoice/id elem))))
                                      job-story-invoices))))
 
                (when-not (empty? job-story-dispute)
                  (is (= (-> dispute-query :data :dispute)
-                        (first (filter (fn [elem] (and (= job-id (:job/id elem))
-                                                       (= 0 (:job-story/id elem))))
+                        (first (filter (fn [elem]
+                                         (and (= job-id (:job/id elem))
+                                              (= 0 (:job-story/id elem))))
                                        job-story-dispute))))))
 
              (done)))))
 
+
 (deftest test-mutations
-    (async done
-           (go
-             (let [api-endpoint "http://localhost:4000/graphql"
-                   m1 (<! (run-query {:url api-endpoint
-                                      :access-token access-token
-                                      :type "mutation"
-                                      :query [:send-message {:to "EMPLOYER" :text "Some message text"}]}))])
-             (done))))
+  (async done
+         (go
+           (let [api-endpoint "http://localhost:4000/graphql"
+                 m1 (<! (run-query {:url api-endpoint
+                                    :access-token access-token
+                                    :type "mutation"
+                                    :query [:send-message {:to "EMPLOYER" :text "Some message text"}]}))])
+           (done))))

@@ -1,7 +1,8 @@
 (ns ethlance.ui.component.chat
   (:require
-    [ethlance.ui.component.profile-image :refer [c-profile-image]]
-    [district.format :as format]))
+    [district.format :as format]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]))
+
 
 ;; TODO: format 'text' into paragraphs <p>
 (defn c-chat-message
@@ -28,10 +29,10 @@
          [:span.full-name {:key (str "detail-full-name-" id)} full-name]
          [:div.info-listing
           (doall
-           (for [detail details]
-             ^{:key (str "detail-" detail)}
-             [:span.info detail]))]
-        ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
+            (for [detail details]
+              ^{:key (str "detail-" detail)}
+              [:span.info detail]))]
+         ;; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
          [:span.date-updated (format/time-ago (new js/Date timestamp))]]]
        [:div.text text]])))
 
@@ -54,7 +55,6 @@
   [chat-listing]
   [:div.ethlance-chat-log
    (doall
-    (for [message chat-listing]
-      (do
-         ^{:key (str "chat-message-" (:id message) "-" (hash (:text message)))}
-         [c-chat-message message])))])
+     (for [message chat-listing]
+       ^{:key (str "chat-message-" (:id message) "-" (hash (:text message)))}
+       [c-chat-message message]))])

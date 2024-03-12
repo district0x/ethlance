@@ -2,7 +2,9 @@
 
 (def ^:dynamic *dist-resolution* 10000000000)
 
-(defn get-distribution [norm-factor tupl]
+
+(defn get-distribution
+  [norm-factor tupl]
   (loop [cstart 0
          tupl tupl
          distrib []]
@@ -14,7 +16,9 @@
                (conj distrib [[cstart cend] value])))
       distrib)))
 
-(defn -pick-rand-by-dist [ds]
+
+(defn -pick-rand-by-dist
+  [ds]
   (let [r (rand *dist-resolution*)]
     (->> ds
          (filter (fn [[[start end] _]]
@@ -22,6 +26,7 @@
                         (> end r))))
          first
          second)))
+
 
 (defn pick-rand-by-dist
   "Pick a value from the provided tuple pairs, where the first value
@@ -53,6 +58,7 @@
         distrib (get-distribution norm-factor tupl)]
     (-pick-rand-by-dist distrib)))
 
+
 (defn pluck!
   "Plucks a random value from an atom containing a sequence, and updates
   the sequence with the plucked value removed. An empty sequence
@@ -63,6 +69,7 @@
     (let [val (rand-nth @*coll)]
       (swap! *coll (fn [v] (->> v (remove #(= val %)) (into (empty @*coll)))))
       val)))
+
 
 (defn rand-nth-n
   "Retrieve `n` random distinct values from the collection `coll` and return it as a sequence.

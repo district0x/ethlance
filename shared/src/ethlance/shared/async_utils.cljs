@@ -1,20 +1,22 @@
 (ns ethlance.shared.async-utils
-  (:require [clojure.core.async
-             :as
-             async
-             :refer
-             [<! close! go go-loop]
-             :include-macros
-             true]
-            [taoensso.timbre :as log]))
+  (:require
+    [clojure.core.async
+     :as
+     async
+     :refer
+     [<! close! go go-loop]
+     :include-macros
+     true]
+    [taoensso.timbre :as log]))
+
 
 (defn log-error-channel
   "Logs the error output and only returns the success-channel."
   [[success-channel error-channel]]
   (go
-   (when-let [err (<! error-channel)]
-     (log/error (str err))
-     (close! success-channel)))
+    (when-let [err (<! error-channel)]
+      (log/error (str err))
+      (close! success-channel)))
   success-channel)
 
 
@@ -27,10 +29,10 @@
   "
   [[success-channel error-channel]]
   (go
-   (when-let [err (<! error-channel)]
-     (close! success-channel)
-     (log/error (str err))
-     (throw (ex-info "Error on Async Error Channel" {:error-object err}))))
+    (when-let [err (<! error-channel)]
+      (close! success-channel)
+      (log/error (str err))
+      (throw (ex-info "Error on Async Error Channel" {:error-object err}))))
   success-channel)
 
 
@@ -39,9 +41,9 @@
   channel will return nil (closed channel)."
   [[success-channel error-channel]]
   (go
-   (when-let [result (<! success-channel)]
-     (close! error-channel)
-     (log/debug (str result))))
+    (when-let [result (<! success-channel)]
+      (close! error-channel)
+      (log/debug (str result))))
   error-channel)
 
 

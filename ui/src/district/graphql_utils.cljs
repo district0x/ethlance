@@ -1,18 +1,19 @@
 (ns district.graphql-utils
   (:require
-   [bignumber.core :as bn]
-   [camel-snake-kebab.core :as camel-snake]
-   [camel-snake-kebab.extras :as camel-snake-extras]
-   [cljs-time.coerce :as tc]
-   [cljs-time.core :as t]
-   [clojure.string :as string]
-   [clojure.walk :as walk]
-   [district.cljs-utils :refer [js-obj->clj kw->str]]
-   ["graphql" :as GraphQL]))
+    ["graphql" :as GraphQL]
+    [bignumber.core :as bn]
+    [camel-snake-kebab.core :as camel-snake]
+    [camel-snake-kebab.extras :as camel-snake-extras]
+    [cljs-time.coerce :as tc]
+    [cljs-time.core :as t]
+    [clojure.string :as string]
+    [clojure.walk :as walk]
+    [district.cljs-utils :refer [js-obj->clj kw->str]]))
 
-; (def GraphQL (if (exists? js/GraphQL)
-;                js/GraphQL
-;                (require "graphql")))
+
+;; (def GraphQL (if (exists? js/GraphQL)
+;;                js/GraphQL
+;;                (require "graphql")))
 
 
 (defn kw->gql-name
@@ -23,25 +24,26 @@
     (if (#{"ID" "ID!"} nm)
       nm
       (str
-       (when (string/starts-with? nm "__")
-         "__")
-       (when (and (keyword? kw)
-                  (namespace kw))
-         (str (string/replace (camel-snake/->camelCase (namespace kw)) "." "_") "_"))
-       (let [first-letter (first nm)
-             last-letter (last nm)
-             s (if (and (not= first-letter "_")
-                        (= first-letter (string/upper-case first-letter)))
-                 (camel-snake/->PascalCase nm)
-                 (camel-snake/->camelCase nm))]
-         (if (= last-letter "?")
-           (.slice s 0 -1)
-           s))
-       (when (string/ends-with? nm "?")
-         "_")))))
+        (when (string/starts-with? nm "__")
+          "__")
+        (when (and (keyword? kw)
+                   (namespace kw))
+          (str (string/replace (camel-snake/->camelCase (namespace kw)) "." "_") "_"))
+        (let [first-letter (first nm)
+              last-letter (last nm)
+              s (if (and (not= first-letter "_")
+                         (= first-letter (string/upper-case first-letter)))
+                  (camel-snake/->PascalCase nm)
+                  (camel-snake/->camelCase nm))]
+          (if (= last-letter "?")
+            (.slice s 0 -1)
+            s))
+        (when (string/ends-with? nm "?")
+          "_")))))
 
 
-(defn gql-name->kw [gql-name]
+(defn gql-name->kw
+  [gql-name]
   (when gql-name
     (let [k (name gql-name)]
       (if (string/starts-with? k "__")
@@ -63,19 +65,23 @@
        (clj->js)))
 
 
-(defn gql->clj [m]
+(defn gql->clj
+  [m]
   (->> m
        (js->clj)
-       (camel-snake-extras/transform-keys gql-name->kw )))
+       (camel-snake-extras/transform-keys gql-name->kw)))
 
 
-(defn gql-input->clj [input]
+(defn gql-input->clj
+  [input]
   (reduce (fn [result field]
             (assoc result (gql-name->kw field) (aget input field)))
           {}
           (js-keys input)))
 
-(defn clj->js-root-value [root-value & [opts]]
+
+(defn clj->js-root-value
+  [root-value & [opts]]
   (let [gql-name->kw (or (:gql-name->kw opts) gql-name->kw)
         kw->gql-name (or (:kw->gql-name opts) kw->gql-name)]
 
@@ -103,7 +109,8 @@
       :else root-value)))
 
 
-(defn js->clj-objects [res]
+(defn js->clj-objects
+  [res]
   (walk/prewalk (fn [x]
                   (if (and (nil? (type x))
                            (seq (js-keys x)))
@@ -112,13 +119,15 @@
                 (js->clj res :keywordize-keys true)))
 
 
-(defn js->clj-response [res & [opts]]
+(defn js->clj-response
+  [res & [opts]]
   (let [gql-name->kw (or (:gql-name->kw opts) gql-name->kw)
         resp (js->clj-objects res)]
     (update resp :data #(camel-snake-extras/transform-keys gql-name->kw %))))
 
 
-(defn add-fields-to-schema-types [schema-ast fields]
+(defn add-fields-to-schema-types
+  [schema-ast fields]
   (let [query-type (js-invoke schema-ast "getQueryType")
         type-map (js-invoke schema-ast "getTypeMap")]
     (doseq [type-key (js-keys type-map)]
@@ -157,6 +166,7 @@
    :parseLiteral (fn [ast]
                    (tc/from-long (aget ast "value")))})
 
+
 (def bignumber-scalar-type-config
   {:name "BigNumber"
    :description "bignumber.js"
@@ -170,11 +180,12 @@
                    (bn/number (aget ast "value")))})
 
 
-(defn add-scalar-type [schema-ast {:keys [:name :description :serialize :parseValue :parseLiteral]
-                                   :or {serialize identity
-                                        parseValue identity
-                                        parseLiteral identity}
-                                   :as scalar-type-config}]
+(defn add-scalar-type
+  [schema-ast {:keys [:name :serialize :parseValue :parseLiteral]
+               :or {serialize identity
+                    parseValue identity
+                    parseLiteral identity}
+               :as scalar-type-config}]
   (if (nil? (aget schema-ast "_typeMap" name))
     (aset schema-ast "_typeMap" name (new (aget GraphQL "GraphQLScalarType")
                                           (clj->js scalar-type-config)))
@@ -185,17 +196,20 @@
   schema-ast)
 
 
-(defn add-keyword-type [schema-ast & [{:keys [:disable-serialize?]}]]
+(defn add-keyword-type
+  [schema-ast & [{:keys [:disable-serialize?]}]]
   (add-scalar-type schema-ast (cond-> keyword-scalar-type-config
                                 disable-serialize? (dissoc :serialize))))
 
 
-(defn add-date-type [schema-ast & [{:keys [:disable-serialize?]}]]
+(defn add-date-type
+  [schema-ast & [{:keys [:disable-serialize?]}]]
   (add-scalar-type schema-ast (cond-> date-scalar-type-config
                                 disable-serialize? (dissoc :serialize))))
 
 
-(defn add-bignumber-type [schema-ast & [{:keys [:disable-serialize?]}]]
+(defn add-bignumber-type
+  [schema-ast & [{:keys [:disable-serialize?]}]]
   (add-scalar-type schema-ast (cond-> bignumber-scalar-type-config
                                 disable-serialize? (dissoc :serialize))))
 

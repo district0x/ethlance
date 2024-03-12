@@ -1,12 +1,14 @@
 (ns ethlance.ui.page.arbiters.events
-  (:require [district.parsers :refer [parse-int]]
-            [district.ui.router.effects :as router.effects]
-            [ethlance.shared.constants :as constants]
-            [ethlance.ui.event.templates :as event.templates]
-            [ethlance.ui.event.utils :as event.utils]
-            [re-frame.core :as re]))
+  (:require
+    [district.parsers :refer [parse-int]]
+    [ethlance.ui.event.templates :as event.templates]
+    [ethlance.ui.event.utils :as event.utils]
+    [re-frame.core :as re]))
+
 
 (def state-key :page.arbiters)
+
+
 (def state-default
   {:offset 0
    :limit 10
@@ -23,12 +25,14 @@
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   [{:keys [db]} _]
-  {:db (assoc-in db [state-key] state-default)})
+  {:db (assoc db state-key state-default)})
+
 
 (defn add-skill
   "Event FX Handler. Append skill to skill listing."
   [{:keys [db]} [_ new-skill]]
   {:db (update-in db [state-key :skills] conj new-skill)})
+
 
 ;;
 ;; Registered Events

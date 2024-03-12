@@ -1,6 +1,6 @@
 (ns ethlance.ui.component.modal.events
   (:require
-   [re-frame.core :as re]))
+    [re-frame.core :as re]))
 
 
 (defn open-modal!

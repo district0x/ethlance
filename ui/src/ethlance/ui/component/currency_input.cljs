@@ -1,5 +1,7 @@
 (ns ethlance.ui.component.currency-input
-  (:require [reagent.core :as r]))
+  (:require
+    [reagent.core :as r]))
+
 
 (defn c-currency-input
   "Currency Component based on the react 'number' input component.

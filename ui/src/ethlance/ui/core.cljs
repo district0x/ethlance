@@ -1,20 +1,25 @@
 (ns ethlance.ui.core
   (:require
     [akiroz.re-frame.storage :refer [reg-co-fx!]]
-    [district.ui.notification]
+    [cljsjs.apollo-fetch]
+    [cljsjs.dataloader]
     [district.ui.component.router]
     [district.ui.conversion-rates]
+    [district.ui.graphql]
     [district.ui.ipfs]
     [district.ui.logging]
+    [district.ui.notification]
     [district.ui.reagent-render]
     [district.ui.router]
+    [district.ui.server-config]
+    [district.ui.smart-contracts]
+    [district.ui.web3]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
-    [district.ui.server-config]
-    [district.ui.web3]
+    [district.ui.web3-tx]
     [district0x.re-frame.web3-fx]
-    [district.ui.smart-contracts]
-    [district.ui.web3-tx] ; to register effect :web3-tx-localstorage
+    [ethlance.shared.utils :as shared-utils]
+    ; to register effect :web3-tx-localstorage
     [ethlance.ui.config :as ui.config]
     [ethlance.ui.effects]
     [ethlance.ui.events]
@@ -22,26 +27,24 @@
     [ethlance.ui.subscriptions]
     [ethlance.ui.util.injection :as util.injection]
     [mount.core :as mount]
-    [cljsjs.apollo-fetch]
-    [cljsjs.dataloader]
-    [district.ui.graphql]
     [print.foo :include-macros true]
-    [ethlance.shared.utils :as shared-utils]
     [re-frame.core :as re]))
+
 
 (enable-console-print!)
 
 (def environment (shared-utils/get-environment))
 
-(defn fetch-config-from-server [url callback]
-  (let []
-    (-> (js/fetch url)
-        (.then ,,, (fn [response]
-                     (.json response)))
-        (.then ,,, (fn [config]
-                     (callback (js->clj config {:keywordize-keys true})))))))
 
-(defn ^:export init []
+(defn fetch-config-from-server
+  [url callback]
+  (-> (js/fetch url)
+      (.then ,,, (fn [response] (.json response)))
+      (.then ,,, (fn [config] (callback (js->clj config {:keywordize-keys true}))))))
+
+
+(defn ^:export init
+  []
   (let [main-config (ui.config/get-config environment)]
     (util.injection/inject-data-scroll! {:injection-selector "#app"})
 

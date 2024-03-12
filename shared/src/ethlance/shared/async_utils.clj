@@ -11,14 +11,14 @@
   "Pulls from success channel, logs error channel."
   [form]
   `(cljs.core.async/<!
-    (ethlance.shared.async-utils/log-error-channel ~form)))
+     (ethlance.shared.async-utils/log-error-channel ~form)))
 
 
 (defmacro <!-<throw
   "Pulls from success channel, throws on error channel."
   [form]
   `(cljs.core.async/<!
-    (ethlance.shared.async-utils/throw-error-channel ~form)))
+     (ethlance.shared.async-utils/throw-error-channel ~form)))
 
 
 (defmacro <ignore-<!
@@ -27,7 +27,7 @@
    ex. (is (<log-<! (my-func))) ;; test expects an error object"
   [form]
   `(cljs.core.async/<!
-    (ethlance.shared.async-utils/pull-error-channel ~form)))
+     (ethlance.shared.async-utils/pull-error-channel ~form)))
 
 
 (defmacro go-try
@@ -46,4 +46,4 @@
          (cond
            (aget e# "message") (taoensso.timbre/error (aget e# "message"))
            :else (taoensso.timbre/error e#)))
-     :done)))
+       :done)))

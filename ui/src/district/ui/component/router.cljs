@@ -4,7 +4,9 @@
     [district.ui.router.subs :as subs]
     [re-frame.core :refer [subscribe]]))
 
-(defn router []
+
+(defn router
+  []
   (let [active-page (subscribe [::subs/active-page])]
     (fn []
       (let [{:keys [:name :params :query]} @active-page]

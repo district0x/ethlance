@@ -1,7 +1,7 @@
 (ns ethlance.ui.component.button
   "An ethlance button component and additional child components."
   (:require
-   [ethlance.ui.component.icon :refer [c-icon]]))
+    [ethlance.ui.component.icon :refer [c-icon]]))
 
 
 (defn c-button
@@ -38,18 +38,18 @@
     (let [props (dissoc props :disabled? :active? :color :size)]
       (into [:a.button
              (merge
-              {:class [(case color
-                         :primary "primary"
-                         :secondary "secondary"
-                         :warning "warning")
-                       (when disabled? "disabled")
-                       (when active? "active")
-                       (condp = size
-                         :small "small"
-                         :normal ""
-                         :large "large"
-                         :auto "auto")]}
-              props)]
+               {:class [(case color
+                          :primary "primary"
+                          :secondary "secondary"
+                          :warning "warning")
+                        (when disabled? "disabled")
+                        (when active? "active")
+                        (condp = size
+                          :small "small"
+                          :normal ""
+                          :large "large"
+                          :auto "auto")]}
+               props)]
             children))))
 
 

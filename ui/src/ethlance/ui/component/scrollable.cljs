@@ -1,11 +1,15 @@
 (ns ethlance.ui.component.scrollable
   (:require
-   [reagent.core :as r]
-   ["react" :as react]
-   ["simplebar" :as simplebar]))
+    ["react" :as react]
+    ["simplebar" :as simplebar]
+    [reagent.core :as r]))
 
 
-(defn- c-scrollable-noop [_opts body] body)
+(defn- c-scrollable-noop
+  [_opts body]
+  body)
+
+
 (defn- c-scrollable-real
   "Scrollable container. Uses simplebar-react
 
@@ -21,21 +25,22 @@
   (let [*instance (r/atom nil)
         react-ref (react/createRef)]
     (r/create-class
-     {:display-name "c-scrollable"
+      {:display-name "c-scrollable"
 
-      :component-did-mount
-      (fn [this]
-        (let [elnode (.-current react-ref)
-              simplebar (simplebar elnode (clj->js opts))]
-          (reset! *instance simplebar)))
+       :component-did-mount
+       (fn [_this]
+         (let [elnode (.-current react-ref)
+               simplebar (simplebar elnode (clj->js opts))]
+           (reset! *instance simplebar)))
 
-      :component-will-unmount
-      (fn []
-        (.unMount @*instance))
+       :component-will-unmount
+       (fn []
+         (.unMount @*instance))
 
-      :reagent-render
-      (fn [_ child]
-        [:div.scrollable {:ref react-ref} child])})))
+       :reagent-render
+       (fn [_ child]
+         [:div.scrollable {:ref react-ref} child])})))
+
 
 (defn c-scrollable
   [opts val]

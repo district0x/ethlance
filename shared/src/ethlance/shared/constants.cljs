@@ -1,5 +1,6 @@
 (ns ethlance.shared.constants)
 
+
 (def countries
   ["United States"
    "Afghanistan"
@@ -198,6 +199,7 @@
    "Zambia"
    "Zimbabwe"])
 
+
 (def language-defs
   [{:name "Abkhaz" :native-name "аҧсуа"}
    {:name "Afar" :native-name "Afaraf"}
@@ -382,8 +384,10 @@
    {:name "Yoruba" :native-name "Yorùbá"}
    {:name "Zhuang, Chuang" :native-name "Saɯ cueŋƅ, Saw cuengh"}])
 
+
 (def languages
   (map :name language-defs))
+
 
 (def skills
   ["A/B testing"
@@ -625,7 +629,6 @@
     "Sales & Marketing"
     "Accounting & Consulting"
     "Other"})
-
 
 
 (def category-default "All Categories")

@@ -1,24 +1,27 @@
 (ns ethlance.ui.page.employers
   "General Employer Listings on ethlance"
-  (:require [district.ui.component.page :refer [page]]
-            [ethlance.shared.constants :as constants]
-            [ethlance.ui.component.error-message :refer [c-error-message]]
-            [ethlance.ui.component.info-message :refer [c-info-message]]
-            [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
-            [ethlance.ui.component.main-layout :refer [c-main-layout]]
-            [ethlance.ui.component.mobile-search-filter
-             :refer
-             [c-mobile-search-filter]]
-            [ethlance.ui.component.pagination :refer [c-pagination]]
-            [ethlance.ui.component.profile-image :refer [c-profile-image]]
-            [ethlance.ui.component.rating :refer [c-rating]]
-            [ethlance.ui.component.search-input :refer [c-chip-search-input]]
-            [ethlance.ui.component.select-input :refer [c-select-input]]
-            [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
-            [ethlance.ui.component.text-input :refer [c-text-input]]
-            [re-frame.core :as re]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [ethlance.shared.constants :as constants]
+    [ethlance.ui.component.error-message :refer [c-error-message]]
+    [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+    [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.mobile-search-filter
+     :refer
+     [c-mobile-search-filter]]
+    [ethlance.ui.component.pagination :refer [c-pagination]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    [ethlance.ui.component.rating :refer [c-rating]]
+    [ethlance.ui.component.search-input :refer [c-chip-search-input]]
+    [ethlance.ui.component.select-input :refer [c-select-input]]
+    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
+    [ethlance.ui.component.text-input :refer [c-text-input]]
+    [re-frame.core :as re]))
 
-(defn cf-employer-search-filter []
+
+(defn cf-employer-search-filter
+  []
   (let [*category (re/subscribe [:page.employers/category])
         *feedback-max-rating (re/subscribe [:page.employers/feedback-max-rating])
         *feedback-min-rating (re/subscribe [:page.employers/feedback-min-rating])
@@ -59,14 +62,18 @@
           :color :secondary
           :default-search-text "Search Countries"}]]])))
 
-(defn c-employer-search-filter []
+
+(defn c-employer-search-filter
+  []
   [:div.search-filter
    [cf-employer-search-filter]])
+
 
 (defn c-employer-mobile-search-filter
   []
   [c-mobile-search-filter
    [cf-employer-search-filter]])
+
 
 (defn c-employer-element
   [{:employer/keys [professional-title]}]
@@ -77,31 +84,33 @@
     [:div.title professional-title]]
    [:div.tags
     (doall
-     (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
-       ^{:key (str "tag-" tag-label)}
-       [c-tag {:on-click #(re/dispatch [:page.employers/add-skill tag-label])
-               :title (str "Add '" tag-label "' to Search")}
-        [c-tag-label tag-label]]))]
+      (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
+        ^{:key (str "tag-" tag-label)}
+        [c-tag {:on-click #(re/dispatch [:page.employers/add-skill tag-label])
+                :title (str "Add '" tag-label "' to Search")}
+         [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:default-rating 3}]
     [:div.label "(4)"]]
    [:div.location "New York, United States"]])
 
-(defn c-employer-listing []
+
+(defn c-employer-listing
+  []
   (let [*limit (re/subscribe [:page.employers/limit])
         *offset (re/subscribe [:page.employers/offset])
         *employer-listing-query
         (re/subscribe
-         [:gql/query
-          {:queries
-           [[:employer-search
-             {:limit @*limit
-              :offset @*offset}
-             [[:items [:user/id
-                       :employer/bio
-                       :employer/professional-title]]
-              :total-count
-              :end-cursor]]]}])]
+          [:gql/query
+           {:queries
+            [[:employer-search
+              {:limit @*limit
+               :offset @*offset}
+              [[:items [:user/id
+                        :employer/bio
+                        :employer/professional-title]]
+               :total-count
+               :end-cursor]]]}])]
     (fn []
       (let [{employer-search  :employer-search
              preprocessing?   :graphql/preprocessing?
@@ -125,9 +134,9 @@
 
            :else
            (doall
-            (for [employer employer-listing]
-              ^{:key (str "employer-" (hash employer))}
-              [c-employer-element employer])))
+             (for [employer employer-listing]
+               ^{:key (str "employer-" (hash employer))}
+               [c-employer-element employer])))
 
          ;; Pagination
          (when (seq employer-listing)
@@ -136,6 +145,7 @@
              :limit @*limit
              :offset @*offset
              :set-offset-event :page.employers/set-offset}])]))))
+
 
 (defmethod page :route.user/employers []
   (let [*skills (re/subscribe [:page.employers/skills])]

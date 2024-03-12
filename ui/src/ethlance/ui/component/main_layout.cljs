@@ -1,31 +1,32 @@
 (ns ethlance.ui.component.main-layout
-  (:require [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
-            [district.ui.component.notification :as component.notification]
-            [ethlance.ui.component.main-navigation-bar
-             :refer
-             [c-main-navigation-bar]]
-            [ethlance.ui.component.main-navigation-menu
-             :refer
-             [c-main-navigation-menu]]
-            [ethlance.ui.component.mobile-navigation-bar
-             :refer
-             [c-mobile-navigation-bar]]
-            [district.ui.router.subs :as router.subs]
-            [re-frame.core :as re]
-            [akiroz.re-frame.storage]
-            [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog] :as sidi]))
+  (:require
+    [akiroz.re-frame.storage]
+    [clojure.string]
+    [district.ui.component.notification :as component.notification]
+    [district.ui.router.subs :as router.subs]
+    [ethlance.ui.component.circle-button :refer [c-circle-icon-button]]
+    [ethlance.ui.component.main-navigation-bar
+     :refer
+     [c-main-navigation-bar]]
+    [ethlance.ui.component.main-navigation-menu
+     :refer
+     [c-main-navigation-menu]]
+    [ethlance.ui.component.mobile-navigation-bar
+     :refer
+     [c-mobile-navigation-bar]]
+    [ethlance.ui.component.sign-in-dialog :refer [c-sign-in-dialog] :as sidi]
+    [re-frame.core :as re]))
+
 
 (defn page-title-from-route-name
   "Example: :route.job/detail => Ethlance: Job Detail"
   [route-name]
   (let [app-name "Ethlance"
         name-parts-from-route-ns (rest (clojure.string/split (namespace route-name) "."))
-        name-part-from-route-name(name route-name)
+        name-part-from-route-name (name route-name)
         name-parts (flatten [app-name ":" name-parts-from-route-ns name-part-from-route-name])]
     (clojure.string/join " " (map clojure.string/capitalize name-parts))))
 
-(defn has-active-session? []
-  (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
 
 (defn c-main-layout
   "The main layout of each page in the ethlance ui.

@@ -2,7 +2,9 @@
   (:require
     [tests.setup]))
 
-(defn -main []
+
+(defn -main
+  []
   (println ">>> Running tests.repl/-main")
   (tests.setup/setup-test-env)
   (js/setInterval #(println "Exiting after waiting") 100000000))

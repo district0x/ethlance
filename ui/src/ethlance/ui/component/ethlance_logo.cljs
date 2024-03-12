@@ -1,7 +1,7 @@
 (ns ethlance.ui.component.ethlance-logo
   "The ethlance logo as an SVG image"
   (:require
-   [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
+    [ethlance.ui.component.inline-svg :refer [c-inline-svg]]))
 
 
 (def default-logo-url "/images/ethlance_logo.svg")
@@ -11,7 +11,7 @@
 (def black-logo-url "/images/ethlance_logo_bw.svg")
 
 
-(defn c-ethlance-logo 
+(defn c-ethlance-logo
   "Ethlance Logo Component which displays the ethlance logo.
   
   # Keyword Arguments

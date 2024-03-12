@@ -1,17 +1,22 @@
 (ns ethlance.ui.component.splash-mobile-navigation-bar
-  (:require [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-            [ethlance.ui.component.icon :refer [c-icon]]
-            [ethlance.ui.util.navigation :as util.navigation]
-            [reagent.core :as r]))
+  (:require
+    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.util.navigation :as util.navigation]
+    [reagent.core :as r]))
 
-(defn c-nav-link [{:keys [name route]}]
+
+(defn c-nav-link
+  [{:keys [name route]}]
   [:a.nav-link
    {:title name
     :on-click (util.navigation/create-handler {:route route})
     :href (util.navigation/resolve-route {:route route})}
    name])
 
-(defn c-splash-mobile-navigation-bar []
+
+(defn c-splash-mobile-navigation-bar
+  []
   (let [*open? (r/atom false)]
     (fn []
       [:div.splash-mobile-navigation-bar

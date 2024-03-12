@@ -1,10 +1,12 @@
 (ns ethlance.ui.events
   (:require
+    [akiroz.re-frame.storage]
     [day8.re-frame.forward-events-fx]
-    [ethlance.ui.page.home.events]
+    [district.ui.web3-accounts.events]
     [ethlance.ui.page.arbiters.events]
     [ethlance.ui.page.candidates.events]
     [ethlance.ui.page.employers.events]
+    [ethlance.ui.page.home.events]
     [ethlance.ui.page.invoices.events]
     [ethlance.ui.page.job-contract.events]
     [ethlance.ui.page.job-detail.events]
@@ -14,26 +16,20 @@
     [ethlance.ui.page.new-job.events]
     [ethlance.ui.page.profile.events]
     [ethlance.ui.page.sign-up.events]
-    [district.ui.web3-accounts.events]
     [print.foo]
-    [re-frame.core :as re]
-    [akiroz.re-frame.storage]))
+    [re-frame.core :as re]))
 
-(defn has-active-session? []
-  (not (nil? (akiroz.re-frame.storage/<-store :ethlance))))
 
 (re/reg-event-fx
   :ethlance/initialize
   [(re/inject-cofx :store)]
-  (fn [{:keys [db store]} [_ config]]
+  (fn [{:keys [db]} [_ config]]
     (let [updated-db (-> db
                          (assoc :ethlance/config config)
-                         (assoc :active-session (select-keys (akiroz.re-frame.storage/<-store :ethlance) [:jwt :user/id]))
-                         )]
+                         (assoc :active-session (select-keys (akiroz.re-frame.storage/<-store :ethlance) [:jwt :user/id])))]
       {:db updated-db
        :dispatch-n
-       [
-        [:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
+       [[:district.ui.graphql.events/set-authorization-token (get-in updated-db [:active-session :jwt])]
         [:page.home/initialize-page]
         [:page.jobs/initialize-page]
         [:page.me/initialize-page]

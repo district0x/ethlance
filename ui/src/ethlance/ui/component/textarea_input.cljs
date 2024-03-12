@@ -1,6 +1,7 @@
 (ns ethlance.ui.component.textarea-input
   (:require
-   [reagent.core :as r]))
+    [reagent.core :as r]))
+
 
 (defn c-textarea-input
   "Default TextArea Input Component
@@ -22,10 +23,10 @@
             opts (dissoc opts :default-value :value :color :on-change)]
         [:textarea.ethlance-textarea-input
          (merge
-          opts
-          {:class [class-color]
-           :value current-value
-           :on-change (fn [e]
-                        (let [target-value (-> e .-target .-value)]
-                          (reset! *current-value target-value)
-                          (when on-change (on-change target-value))))})]))))
+           opts
+           {:class [class-color]
+            :value current-value
+            :on-change (fn [e]
+                         (let [target-value (-> e .-target .-value)]
+                           (reset! *current-value target-value)
+                           (when on-change (on-change target-value))))})]))))

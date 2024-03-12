@@ -1,7 +1,9 @@
 (ns ethlance.shared.enumeration
   "General Enumeration functions."
-  (:require [bignumber.core :as bn]
-            [ethlance.shared.spec-utils :refer [strict-conform]]))
+  (:require
+    [bignumber.core :as bn]
+    [ethlance.shared.spec-utils :refer [strict-conform]]))
+
 
 (defn kw->val
   "Strict conversion of a keyword to a value within a map representing a

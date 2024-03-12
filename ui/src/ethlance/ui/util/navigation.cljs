@@ -1,7 +1,8 @@
 (ns ethlance.ui.util.navigation
   (:require
-   [district.ui.router.events :as router.events]
-   [re-frame.core :as re]))
+    [district.ui.router.events :as router.events]
+    [re-frame.core :as re]))
+
 
 (defn create-handler
   "Generate a re-frame dispatch function for buttons to navigate to other pages.
@@ -28,6 +29,7 @@
     (.preventDefault event)
     (re/dispatch [::router.events/navigate route params query])))
 
+
 (defn resolve-route
   "Resolve a given route with the given params and query
 
@@ -37,11 +39,13 @@
   [{:keys [route params query]}]
   @(re/subscribe [:district.ui.router.subs/resolve route params query]))
 
+
 (defn url-encode
   [string]
   (some-> string str (js/encodeURIComponent) (.replace "+" "%20")))
 
 
-(defn link-params [{:keys [route params query]}]
+(defn link-params
+  [{:keys [route params query]}]
   {:on-click (create-handler {:route route :params params :query query})
    :href (resolve-route {:route route :params params :query query})})

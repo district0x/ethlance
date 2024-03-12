@@ -49,6 +49,7 @@
 
   cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
   cljsjs/graphql {:mvn/version "0.13.1-0"}
+  com.wsscode/fuzzy {:mvn/version "1.0.0"}
   expound/expound {:mvn/version "0.8.4"}
   flib/simplebar {:mvn/version "5.0.7-SNAPSHOT"}
   funcool/bide {:mvn/version "1.7.0"} ; FIXME: district.ui.router requires it but older version is included by some other library

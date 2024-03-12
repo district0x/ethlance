@@ -1,5 +1,6 @@
 (ns ethlance.shared.ipfs-files-spec)
 
+
 {:ethlance/job-created
  {:job/title "string, max 100 chars"
   :job/description "string, max 5000 chars"

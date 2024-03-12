@@ -1,16 +1,14 @@
 (ns ethlance.ui.component.mobile-navigation-bar
   (:require
-   [reagent.core :as r]
-   [re-frame.core :as re]
-   [district.ui.router.subs :as ui.router.subs]
-
-   ;; Ethlance Components
-   [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
-   [ethlance.ui.component.profile-image :refer [c-profile-image]]
-   [ethlance.ui.component.icon :refer [c-icon]]
-
-   ;; Ethlance Utils
-   [ethlance.ui.util.navigation :as util.navigation]))
+    [district.ui.router.subs :as ui.router.subs]
+    ;; Ethlance Components
+    [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
+    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.profile-image :refer [c-profile-image]]
+    ;; Ethlance Utils
+    [ethlance.ui.util.navigation :as util.navigation]
+    [re-frame.core :as re]
+    [reagent.core :as r]))
 
 
 (defn- c-menu-item
@@ -27,7 +25,8 @@
        [:span.label label]])))
 
 
-(defn c-mobile-navigation-menu []
+(defn c-mobile-navigation-menu
+  []
   [:div.mobile-navigation-menu
    [c-menu-item {:name :new-job :label "New Job" :route :route.job/new}]
    [c-menu-item {:name :jobs :label "Jobs" :route :route.job/jobs}]
@@ -38,7 +37,8 @@
    [c-menu-item {:name :my-activity :label "My Activity" :route :route.me/index}]])
 
 
-(defn c-mobile-account-page []
+(defn c-mobile-account-page
+  []
   [:div.mobile-account-page
    [:div.account-profile
     [c-profile-image {}]
@@ -48,7 +48,8 @@
     [:span.usd-value "$1,337.00"]]])
 
 
-(defn c-mobile-navigation-bar []
+(defn c-mobile-navigation-bar
+  []
   (let [*open? (r/atom false)]
     (fn []
       [:div.mobile-navigation-bar

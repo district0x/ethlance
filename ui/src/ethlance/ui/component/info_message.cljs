@@ -1,7 +1,7 @@
 (ns ethlance.ui.component.info-message
   (:require
-   [reagent.core :as r]
-   [taoensso.timbre :as log]))
+    [reagent.core :as r]
+    [taoensso.timbre :as log]))
 
 
 (defn c-info-message

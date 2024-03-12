@@ -1,13 +1,12 @@
 (ns ethlance.ui.page.sign-up
   (:require
+    [clojure.spec.alpha :as s]
     [cuerdas.core :as str]
     [district.ui.component.page :refer [page]]
-    [ethlance.ui.component.modal.events]
-    [district.ui.router.events :as router-events]
-    [ethlance.ui.page.sign-up.events :as sign-up.events]
-    [district.ui.notification.subs :as noti-subs]
-    [district.ui.router.subs :as router.subs]
     [district.ui.graphql.subs :as gql]
+    [district.ui.notification.subs :as noti-subs]
+    [district.ui.router.events :as router-events]
+    [district.ui.router.subs :as router.subs]
     [ethlance.shared.constants :as constants]
     [ethlance.shared.spec :refer [validate-keys]]
     [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
@@ -16,22 +15,23 @@
     [ethlance.ui.component.file-drag-input :refer [c-file-drag-input]]
     [ethlance.ui.component.icon :refer [c-icon]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
+    [ethlance.ui.component.modal.events]
     [ethlance.ui.component.search-input :refer [c-chip-search-input]]
     [ethlance.ui.component.select-input :refer [c-select-input]]
     [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
     [ethlance.ui.component.text-input :refer [c-text-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+    [ethlance.ui.page.sign-up.events :as sign-up.events]
     [ethlance.ui.page.sign-up.subscriptions]
-    [ethlance.ui.subscriptions :as subs]
-    [ethlance.ui.util.component :refer [<sub >evt]]
+    [ethlance.ui.util.component :refer [>evt]]
     [ethlance.ui.util.navigation :as navigation-utils]
     [re-frame.core :as re]
     [reagent.core :as r]
-    [taoensso.timbre :as log]
-    [clojure.spec.alpha :as s]))
+    [taoensso.timbre :as log]))
 
 
-(defn- c-upload-image []
+(defn- c-upload-image
+  []
   (let [form-data (r/atom {})]
     (fn []
       [:div.upload-image
@@ -51,7 +51,8 @@
                                                (log/warn "Rejected file" {:name name :type type :size size} ::file-rejected))}]])))
 
 
-(defn- c-user-name-input [{:keys [:form-values :form-validation]}]
+(defn- c-user-name-input
+  [{:keys [:form-values :form-validation]}]
   [:div.form-name
    [c-text-input
     {:placeholder "Name"
@@ -60,7 +61,8 @@
      :on-change #(>evt [:page.sign-up/set-user-name %])}]])
 
 
-(defn- c-user-email-input [{:keys [:form-values :form-validation]}]
+(defn- c-user-email-input
+  [{:keys [:form-values :form-validation]}]
   [:div.form-email
    [c-email-input
     {:placeholder "Email"
@@ -69,7 +71,8 @@
      :on-change #(>evt [:page.sign-up/set-user-email %])}]])
 
 
-(defn- c-user-country-input [{:keys [:form-values]}]
+(defn- c-user-country-input
+  [{:keys [:form-values]}]
   [:div.form-country
    [c-select-input
     {:label "Select Country"
@@ -80,34 +83,8 @@
      :default-search-text "Search Countries"}]])
 
 
-(defn- c-user-github-input [{:keys [:form-values :gh-client-id :root-url]}]
-  [:div.form-connect-github
-   [c-button
-    {:size :large
-     :disabled? (not (nil? (:user/github-username form-values)))
-     :href (str "https://github.com/login/oauth/authorize?"
-                "client_id=" gh-client-id
-                "&scope=user"
-                "&redirect_uri="
-                (navigation-utils/url-encode (str root-url "/me/sign-up?tab=candidate&social=github")))}
-    [c-button-icon-label {:icon-name :github :label-text "Connect Github" :inline? false}]]])
-
-
-(defn- c-user-linkedin-input [{:keys [:form-values :linkedin-client-id :root-url]}]
-  [:div.form-connect-linkedin
-   [c-button
-    {:size :large
-     :disabled? (not (nil? (:user/linkedin-username form-values)))
-     :href (str "https://www.linkedin.com/oauth/v2/authorization?"
-                "client_id=" linkedin-client-id
-                "&scope=r_liteprofile%20r_emailaddress"
-                "&response_type=code"
-                "&redirect_uri="
-                (navigation-utils/url-encode (str root-url "/me/sign-up?tab=candidate&social=linkedin")))}
-    [c-button-icon-label {:icon-name :linkedin :label-text "Connect LinkedIn" :inline? false}]]])
-
-
-(defn- c-user-languages-input [{:keys [:form-values]}]
+(defn- c-user-languages-input
+  [{:keys [:form-values]}]
   [:<>
    [:div.label [:h2 "Languages You Speak"]]
    [c-chip-search-input
@@ -119,7 +96,8 @@
      :on-chip-listing-change #(>evt [:page.sign-up/set-user-languages %])}]])
 
 
-(defn- c-bio [{:keys [:on-change :value]}]
+(defn- c-bio
+  [{:keys [:on-change :value]}]
   [:<>
    [:div.label [:h2 "Your Biography"]]
    [c-textarea-input
@@ -128,21 +106,24 @@
      :on-change on-change}]])
 
 
-(defn- c-submit-button [{:keys [:on-submit :disabled?]}]
+(defn- c-submit-button
+  [{:keys [:on-submit :disabled?]}]
   [:div.form-submit
    {:class (when disabled? "disabled")
     :on-click (fn [] (when-not disabled? (>evt on-submit)))}
    [:span "Save"]
    [c-icon {:name :ic-arrow-right :size :smaller}]])
 
-(defn c-candidate-sign-up []
+
+(defn c-candidate-sign-up
+  []
   (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         candidate-query [:candidate {:user/id user-id} sign-up.events/candidate-fields]
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [candidate-query user-query]}])
         sign-up-form (re/subscribe [:page.sign-up/form])
-        form-values (merge (get-in @results [:candidate])
-                           (get-in @results [:user])
+        form-values (merge (get @results :candidate)
+                           (get @results :user)
                            @sign-up-form)
         form-validation (validate-keys form-values)]
     [:div.candidate-sign-up
@@ -202,14 +183,15 @@
        :disabled? (not (s/valid? :page.sign-up/update-candidate form-values))}]]))
 
 
-(defn c-employer-sign-up []
+(defn c-employer-sign-up
+  []
   (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         employer-query [:employer {:user/id user-id} sign-up.events/employer-fields]
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [employer-query user-query]}])
         sign-up-form (re/subscribe [:page.sign-up/form])
-        form-values (merge (get-in @results [:employer])
-                           (get-in @results [:user])
+        form-values (merge (get @results :employer)
+                           (get @results :user)
                            @sign-up-form)
         form-validation (validate-keys form-values)]
     [:div.employer-sign-up
@@ -242,56 +224,61 @@
       {:on-submit [:page.sign-up/update-employer form-values]
        :disabled? (not (s/valid? :page.sign-up/update-employer form-values))}]]))
 
-(defn c-arbiter-sign-up []
+
+(defn c-arbiter-sign-up
+  []
   (let [user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         arbiter-query [:arbiter {:user/id user-id} sign-up.events/arbiter-fields]
         user-query [:user {:user/id user-id} sign-up.events/user-fields]
         results (re/subscribe [::gql/query {:queries [arbiter-query user-query]}])
         sign-up-form (re/subscribe [:page.sign-up/form])
-        form-values (merge (get-in @results [:arbiter])
-                               (get-in @results [:user])
-                               @sign-up-form)
+        form-values (merge (get @results :arbiter)
+                           (get @results :user)
+                           @sign-up-form)
         form-validation (validate-keys form-values)]
-      [:div.arbiter-sign-up
-       [:div.form-container
-        [:div.label "Sign Up"]
-        [:div.first-forms
-         [:div.form-image
-          [c-upload-image]]
-         [c-user-name-input
-          {:form-values form-values
-           :form-validation form-validation}]
-         [c-user-email-input
-          {:form-values form-values
-           :form-validation form-validation}]
-         [:div.form-professional-title
-          [c-text-input
-           {:placeholder "Professional Title"
-            :value (:arbiter/professional-title form-values)
-            :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
-         [c-user-country-input
-          {:form-values form-values}]
-         [:div.form-hourly-rate
-          [c-currency-input
-           {:placeholder "Fixed Rate Per A Dispute" :color :primary
-            :value (:arbiter/fee form-values)
-            :on-change #(>evt [:page.sign-up/set-arbiter-fee (js/parseInt %)])}]]]
-        [:div.second-forms
-         [c-user-languages-input
-          {:form-values form-values}]
-         [c-bio
-          {:value (:arbiter/bio form-values)
-           :on-change #(>evt [:page.sign-up/set-arbiter-bio %])
-           :error? (not (:arbiter/bio form-validation))}]]]
-       [c-submit-button
-        {:on-submit [:page.sign-up/update-arbiter form-values]
-         :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))
+    [:div.arbiter-sign-up
+     [:div.form-container
+      [:div.label "Sign Up"]
+      [:div.first-forms
+       [:div.form-image
+        [c-upload-image]]
+       [c-user-name-input
+        {:form-values form-values
+         :form-validation form-validation}]
+       [c-user-email-input
+        {:form-values form-values
+         :form-validation form-validation}]
+       [:div.form-professional-title
+        [c-text-input
+         {:placeholder "Professional Title"
+          :value (:arbiter/professional-title form-values)
+          :on-change #(>evt [:page.sign-up/set-arbiter-professional-title %])}]]
+       [c-user-country-input
+        {:form-values form-values}]
+       [:div.form-hourly-rate
+        [c-currency-input
+         {:placeholder "Fixed Rate Per A Dispute" :color :primary
+          :value (:arbiter/fee form-values)
+          :on-change #(>evt [:page.sign-up/set-arbiter-fee (js/parseInt %)])}]]]
+      [:div.second-forms
+       [c-user-languages-input
+        {:form-values form-values}]
+       [c-bio
+        {:value (:arbiter/bio form-values)
+         :on-change #(>evt [:page.sign-up/set-arbiter-bio %])
+         :error? (not (:arbiter/bio form-validation))}]]]
+     [c-submit-button
+      {:on-submit [:page.sign-up/update-arbiter form-values]
+       :disabled? (not (s/valid? :page.sign-up/update-arbiter form-values))}]]))
 
-(defn c-api-error-notification [message open?]
+
+(defn c-api-error-notification
+  [message open?]
   [:div {:class ["notification-box" (when (not open?) "hidden")]}
-    [:div {:class ["ui negative message"]}
-     [:div {:class "header"} "Error"]
-     [:p message]]])
+   [:div {:class ["ui negative message"]}
+    [:div {:class "header"} "Error"]
+    [:p message]]])
+
 
 (defmethod page :route.me/sign-up []
   (let [active-page (re/subscribe [::router.subs/active-page])]

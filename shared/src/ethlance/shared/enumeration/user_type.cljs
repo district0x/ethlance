@@ -1,6 +1,7 @@
 (ns ethlance.shared.enumeration.user-type
   (:require
-   [ethlance.shared.enumeration :as enum]))
+    [ethlance.shared.enumeration :as enum]))
+
 
 (def enum-user-type
   {::guest 0
