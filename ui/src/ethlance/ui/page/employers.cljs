@@ -16,8 +16,8 @@
     [ethlance.ui.component.rating :refer [c-rating]]
     [ethlance.ui.component.search-input :refer [c-chip-search-input]]
     [ethlance.ui.component.select-input :refer [c-select-input]]
-    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
     [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.util.navigation :as navigation]
     [re-frame.core :as re]))
 
 
@@ -78,7 +78,9 @@
 
 (defn c-employer-element
   [{:employer/keys [professional-title] :as employer}]
-  [:div.employer-element
+  [:a.employer-element (navigation/link-params {:route :route.user/profile
+                                                :params {:address (:user/id employer)}
+                                                :query {:tab "employer"}})
    [:div.profile
     [:div.profile-image [c-profile-image {:src (get-in employer [:user :user/profile-image])}]]
     [:div.name (get-in employer [:user :user/name])]

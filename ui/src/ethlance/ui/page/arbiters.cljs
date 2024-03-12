@@ -20,6 +20,7 @@
     [ethlance.ui.component.select-input :refer [c-select-input]]
     [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
     [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.util.navigation :as navigation]
     [ethlance.ui.util.tokens :as tokens]
     [re-frame.core :as re]))
 
@@ -99,7 +100,9 @@
 
 (defn c-arbiter-element
   [{:keys [:user/id] :as arbiter}]
-  [:div.arbiter-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address id} {:tab "arbiter"}])}
+  [:a.arbiter-element (navigation/link-params {:route :route.user/profile
+                                               :params {:address id}
+                                               :query {:tab "arbiter"}})
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> arbiter :user :user/profile-image)}]]
     [:div.name (get-in arbiter [:user :user/name])]]
