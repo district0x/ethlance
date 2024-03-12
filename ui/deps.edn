@@ -45,7 +45,7 @@
   district0x/district-ui-server-config {:mvn/version "1.0.0"}
 
   district0x/district-ui-window-size {:mvn/version "1.0.1" :exclusions [cljsjs/react-with-addons reagent/reagent com.cognitect/transit-js]}
-  district0x/district-ui-graphql {:mvn/version "1.0.15"}
+  district0x/district-ui-graphql {:mvn/version "1.0.16"}
 
   cljsjs/apollo-fetch {:mvn/version "0.7.0-0"}
   cljsjs/graphql {:mvn/version "0.13.1-0"}
