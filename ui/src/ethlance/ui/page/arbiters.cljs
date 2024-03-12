@@ -114,7 +114,7 @@
          [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating (-> arbiter :arbiter/rating)}]
-    [:div.label (str "(" (-> arbiter :arbiter/feedback :total-count) ")")]]
+    [:div.label {:title "Number of reviews"} (str "(" (get-in arbiter [:arbiter/feedback :total-count] 0) ")")]]
    [:div.location (get-in arbiter [:user :user/country])]])
 
 

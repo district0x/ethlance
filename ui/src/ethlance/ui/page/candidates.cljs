@@ -119,7 +119,7 @@
          [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating (-> candidate :candidate/rating)}]
-    [:div.label (str "(" (-> candidate :candidate/feedback :total-count) ")")]]])
+    [:div.label {:title "Number of reviews"} (str "(" (get-in candidate [:candidate/feedback :total-count] 0) ")")]]])
 
 
 (defn c-candidate-listing

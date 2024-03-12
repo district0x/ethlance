@@ -672,7 +672,7 @@
                                (assoc ,,, :current-user-role current-user-role))
             profile {:title (get-in job-story [:job :job/title])
                      :job/id (:job/id job-story)
-                     :status (get-in job-story [:job-story/status])
+                     :status (get job-story :job-story/status)
                      :funds {:amount (get-in job-story [:job :balance])
                              :token-details (get-in job-story [:job :token-details])}
                      :employer {:name (get-in job-story [:job :job/employer :user :user/name])

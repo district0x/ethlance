@@ -27,8 +27,9 @@
 
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
-  [{:keys []} _]
-  {::router.effects/watch-active-page
+  [{:keys [db]} _]
+  {:db (assoc db state-key state-default)
+   ::router.effects/watch-active-page
    [{:id :page.employers/initialize-page
      :name :route.user/employers
      :dispatch []}]})
