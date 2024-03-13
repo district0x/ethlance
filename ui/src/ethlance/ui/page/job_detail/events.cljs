@@ -136,7 +136,7 @@
   [interceptors]
   (fn [{:keys [db]} [contract-address token-type]]
     (let [text (get-in db [state-key :job/proposal-text])
-          token-amount (util.tokens/machine-amount (get-in db [state-key :job/proposal-token-amount]) token-type)
+          token-amount (get-in db [state-key :job/proposal-token-amount :token-amount])
           proposal {:contract contract-address
                     :text text
                     :rate (js/parseFloat token-amount)}]

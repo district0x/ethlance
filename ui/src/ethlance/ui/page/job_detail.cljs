@@ -133,7 +133,9 @@
         *job-token-id (get job :job/token-id)
         *job-token-address (get job :job/token-address)
         *token-detail-name (get-in job [:token-details :token-detail/name])
-        *token-detail-symbol (get-in job [:token-details :token-detail/symbol])
+        token-detail-symbol (get-in job [:token-details :token-detail/symbol])
+        token-display-name (name (or token-detail-symbol *job-token-type ""))
+        token-decimals (get-in job [:token-details :token-detail/decimals])
         *proposal-token-amount (re/subscribe [:page.job-detail/proposal-token-amount])
         *proposal-text (re/subscribe [:page.job-detail/proposal-text])
 
@@ -186,14 +188,15 @@
      (if candidate-role?
        [:div.proposal-form
         [:div.label "Send Proposal"]
-        [c-token-values {:disabled? (not can-send-proposals?)
-                         :token-type *job-token-type
-                         :token-amount (if my-proposal? (:rate @my-proposal) @*proposal-token-amount)
-                         :token-id *job-token-id
-                         :token-address *job-token-address
-                         :token-name *token-detail-name
-                         :token-symbol *token-detail-symbol}]
-        [:label "The amount is for payment type: " (str *bid-option)]
+        [:div
+         [c-token-amount-input
+          {:value (if my-proposal? (token-utils/human-amount (:rate @my-proposal) *job-token-type token-decimals) (:human-amount @*proposal-token-amount))
+           :placeholder "Token amount"
+           :decimals token-decimals
+           :disabled (not can-send-proposals?)
+           :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount %])}]
+         [:label.post-label token-display-name]]
+        [:label "The amount is for payment type: " (util.job/get-in-pair-vector util.job/bid-option *bid-option)]
         [:div.description-input
          [c-textarea-input
           {:disabled (not can-send-proposals?)
