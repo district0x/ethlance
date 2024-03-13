@@ -12,9 +12,11 @@
 
 (defn filter-selections
   [search-text selections label-fn]
-  (let [fuzzy-options (map (fn [sel] {::fz/string (label-fn sel)}) selections)]
+  (println ">>> filter-selections" selections)
+  (let [fuzzy-options (map (fn [sel] {::fz/string (label-fn sel)
+                                      :original-val sel}) selections)]
     (when (and (seq search-text) (seq selections))
-      (map ::fz/string (fz/fuzzy-match {::fz/search-input search-text ::fz/options fuzzy-options})))))
+      (map :original-val (fz/fuzzy-match {::fz/search-input search-text ::fz/options fuzzy-options})))))
 
 (defn next-element
   "Get the next element in `xs` after element `v`."
