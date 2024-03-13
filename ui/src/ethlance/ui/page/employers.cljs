@@ -2,6 +2,7 @@
   "General Employer Listings on ethlance"
   (:require
     [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
     [ethlance.shared.constants :as constants]
     [ethlance.ui.component.error-message :refer [c-error-message]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
@@ -15,8 +16,8 @@
     [ethlance.ui.component.rating :refer [c-rating]]
     [ethlance.ui.component.search-input :refer [c-chip-search-input]]
     [ethlance.ui.component.select-input :refer [c-select-input]]
-    [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
     [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.util.navigation :as navigation]
     [re-frame.core :as re]))
 
 
@@ -76,23 +77,18 @@
 
 
 (defn c-employer-element
-  [{:employer/keys [professional-title]}]
-  [:div.employer-element
+  [{:employer/keys [professional-title] :as employer}]
+  [:a.employer-element (navigation/link-params {:route :route.user/profile
+                                                :params {:address (:user/id employer)}
+                                                :query {:tab "employer"}})
    [:div.profile
-    [:div.profile-image [c-profile-image {}]]
-    [:div.name "Brian Curran"]
+    [:div.profile-image [c-profile-image {:src (get-in employer [:user :user/profile-image])}]]
+    [:div.name (get-in employer [:user :user/name])]
     [:div.title professional-title]]
-   [:div.tags
-    (doall
-      (for [tag-label #{"System Administration" "Game Design" "C++" "HopScotch Master"}]
-        ^{:key (str "tag-" tag-label)}
-        [c-tag {:on-click #(re/dispatch [:page.employers/add-skill tag-label])
-                :title (str "Add '" tag-label "' to Search")}
-         [c-tag-label tag-label]]))]
    [:div.rating
-    [c-rating {:default-rating 3}]
-    [:div.label "(4)"]]
-   [:div.location "New York, United States"]])
+    [c-rating {:rating (-> employer :employer/rating)}]
+    [:div.label {:title "Number of reviews"} (str "(" (get-in employer [:employer/feedback :total-count] 0) ")")]]
+   [:div.location (get-in employer [:user :user/country])]])
 
 
 (defn c-employer-listing
@@ -101,12 +97,17 @@
         *offset (re/subscribe [:page.employers/offset])
         *employer-listing-query
         (re/subscribe
-          [:gql/query
+          [::gql/query
            {:queries
             [[:employer-search
               {:limit @*limit
                :offset @*offset}
               [[:items [:user/id
+                        [:user
+                         [:user/id
+                          :user/name
+                          :user/country
+                          :user/profile-image]]
                         :employer/bio
                         :employer/professional-title]]
                :total-count

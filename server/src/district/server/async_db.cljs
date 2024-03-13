@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [get run!])
   (:require
     ["pg" :as pg]
-    [cljs.core.async :refer [<! go]]
+    [cljs.core.async :refer [<!]]
     [clojure.string :as str]
     [district.server.config :refer [config]]
     [district.server.logging]

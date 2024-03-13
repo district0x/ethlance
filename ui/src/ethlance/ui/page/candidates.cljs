@@ -4,7 +4,6 @@
     [cuerdas.core :as str]
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
-    [district.ui.router.events :as router-events]
     [ethlance.shared.constants :as constants]
     [ethlance.shared.enumeration.currency-type :as enum.currency]
     [ethlance.ui.component.currency-input :refer [c-currency-input]]
@@ -22,6 +21,7 @@
     [ethlance.ui.component.select-input :refer [c-select-input]]
     [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
     [ethlance.ui.component.text-input :refer [c-text-input]]
+    [ethlance.ui.util.navigation :as navigation]
     [ethlance.ui.util.tokens :as tokens]
     [re-frame.core :as re]))
 
@@ -104,7 +104,9 @@
 
 (defn c-candidate-element
   [candidate]
-  [:div.candidate-element {:on-click #(re/dispatch [::router-events/navigate :route.user/profile {:address (-> candidate :user/id)} {:tab "candidate"}])}
+  [:a.candidate-element (navigation/link-params {:route :route.user/profile
+                                                 :params {:address (-> candidate :user/id)}
+                                                 :query {:tab "candidate"}})
    [:div.profile
     [:div.profile-image [c-profile-image {:src (-> candidate :user :user/profile-image)}]]
     [:div.name (-> candidate :user :user/name)]
@@ -119,7 +121,7 @@
          [c-tag-label tag-label]]))]
    [:div.rating
     [c-rating {:rating (-> candidate :candidate/rating)}]
-    [:div.label (str "(" (-> candidate :candidate/feedback :total-count) ")")]]])
+    [:div.label {:title "Number of reviews"} (str "(" (get-in candidate [:candidate/feedback :total-count] 0) ")")]]])
 
 
 (defn c-candidate-listing
