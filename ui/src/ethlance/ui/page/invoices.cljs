@@ -16,13 +16,14 @@
 
 (defn c-participant-user-info
   [data-prefix data]
+  (println ">>> c-participant-user-info" {:data-prefix data-prefix :data data})
   [:div.profile.employer
    [:div.label (clojure.string/capitalize (name data-prefix))]
    [c-profile-image {:src (get-in data [:user :user/profile-image])}]
    [:div.name (get-in data [:user :user/name])]
    [:div.rating
     [c-rating {:rating (get-in data [(keyword data-prefix "rating")])}]
-    [:span.num-feedback (str "(" (get data (keyword data-prefix "feedback") :total-count) ")")]]
+    [:span.num-feedback (str "(" (get-in data [(keyword data-prefix "feedback") :total-count]) ")")]]
    [:div.location (get-in data [:user :user/country])]])
 
 

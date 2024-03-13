@@ -6,7 +6,7 @@
 
 
 (defn c-token-amount-input
-  [{:keys [decimals on-change :disabled] :as opts}]
+  [{:keys [decimals on-change] :as opts}]
   (let [text-input-opts (dissoc opts :decimals)
         ;; Even though tokens (including ETH) can have 18 decimals, using so many in the UI isn't practical
         max-ui-decimals 3

@@ -130,9 +130,6 @@
 
         *bid-option (:job/bid-option job)
         *job-token-type (get job :job/token-type "")
-        *job-token-id (get job :job/token-id)
-        *job-token-address (get job :job/token-address)
-        *token-detail-name (get-in job [:token-details :token-detail/name])
         token-detail-symbol (get-in job [:token-details :token-detail/symbol])
         token-display-name (name (or token-detail-symbol *job-token-type ""))
         token-decimals (get-in job [:token-details :token-detail/decimals])
