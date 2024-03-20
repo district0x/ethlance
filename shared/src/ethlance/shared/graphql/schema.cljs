@@ -52,15 +52,6 @@
 
     employer(user_id : ID!): Employer
 
-    employerSearch(
-      user_id: ID,
-      professionalTitle: String,
-      orderBy: EmployerListOrderBy,
-      orderDirection: OrderDirection,
-      limit: Int,
-      offset: Int,
-    ): EmployerList
-
     arbiter(user_id : ID!): Arbiter
 
     arbiterSearch(
@@ -383,18 +374,6 @@
     ): FeedbackList
 
     jobStories: JobStoryList
-  }
-
-  type EmployerList {
-    items: [Employer]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
-
-  enum EmployerListOrderBy {
-    dateUpdated
-    dateRegistered
   }
 
   type TokenDetails {

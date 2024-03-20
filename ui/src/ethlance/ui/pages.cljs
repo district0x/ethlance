@@ -6,7 +6,6 @@
     [ethlance.ui.page.dev.contract-ops]
     ;; Development Pages
     [ethlance.ui.page.devcard]
-    [ethlance.ui.page.employers]
     ;; Splash Page
     [ethlance.ui.page.home]
     ;; Misc Pages
