@@ -28,29 +28,6 @@
     [re-frame.core :as re]))
 
 
-(defn c-token-values
-  [{:keys [token-type token-amount token-address token-id disabled? token-symbol token-name]}]
-  (let [token-type (keyword token-type)
-        step (if (= token-type :eth) 0.001 1)]
-    (cond
-      (= :erc721 token-type)
-      [:div "The payment will be NFT (ERC721)"]
-
-      (#{:eth :erc1155 :erc20} token-type)
-      [:div.amount-input
-       [c-text-input
-        {:placeholder "Token amount"
-         :step step
-         :type :number
-         :default-value nil
-         :disabled disabled?
-         :value token-amount
-         :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount (js/parseFloat %)])}]
-       [:a {:href (token-utils/address->token-info-url token-address) :target "_blank"}
-        [:label token-symbol]
-        [:label (str "(" (or token-name (name token-type)) ")")]]])))
-
-
 (defn c-invoice-listing
   [contract-address]
   (let [invoices-query [:job {:job/id contract-address}
