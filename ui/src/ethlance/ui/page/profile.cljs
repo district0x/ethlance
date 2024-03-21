@@ -7,7 +7,7 @@
     [district.ui.router.events :as router-events]
     [district.ui.router.subs :as router-subs]
     [ethlance.shared.utils :refer [ilike=]]
-    [ethlance.ui.component.button :refer [c-button c-button-label c-button-icon-label]]
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :refer [c-pagination-ends]]
@@ -19,6 +19,7 @@
     [ethlance.ui.component.tabular-layout :refer [c-tabular-layout]]
     [ethlance.ui.component.tag :refer [c-tag c-tag-label]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
+    [ethlance.ui.component.token-info :as token-info]
     [ethlance.ui.page.profile.events :as profile-events]
     [ethlance.ui.page.profile.subscriptions]
     [ethlance.ui.util.dates :as util.dates]
@@ -94,7 +95,7 @@
   [arbitration]
   {:title (get-in arbitration [:job :job/title])
    :start-date (get arbitration :arbitration/date-arbiter-accepted) ;
-   :fee (str (get arbitration :arbitration/fee) " " (get arbitration :arbitration/fee-currency-id))
+   :fee (token-info/token-info-str (get arbitration :arbitration/fee) (get arbitration :fee-token-details))
    :status (get arbitration :arbitration/status)})
 
 
@@ -114,8 +115,13 @@
                    [:id
                     :arbitration/date-arbiter-accepted
                     :arbitration/fee
-                    :arbitration/fee-currency-id
                     :arbitration/status
+                    [:fee-token-details
+                     [:token-detail/id
+                      :token-detail/type
+                      :token-detail/name
+                      :token-detail/symbol
+                      :token-detail/decimals]]
                     [:job
                      [:job/title]]]]]]]]
         results @(re/subscribe [::gql/query {:queries [query]} {:refetch-on #{::profile-events/invite-arbiter-tx-success}}])
@@ -398,8 +404,9 @@
 
 (defn c-arbiter-profile
   []
-  (let [user-address (re/subscribe [:page.profile/viewed-user-address])
-        query [:arbiter {:user/id @user-address}
+  (let [viewed-user-address (re/subscribe [:page.profile/viewed-user-address])
+        logged-in-user-address (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        query [:arbiter {:user/id @viewed-user-address}
                [:arbiter/professional-title
                 :arbiter/bio
                 :arbiter/rating
@@ -409,7 +416,9 @@
                  [:user/name
                   :user/profile-image
                   :user/country
-                  :user/languages]]
+                  :user/languages
+                  :user/is-registered-employer
+                  :user/is-registered-arbiter]]
                 [:arbiter/feedback
                  [:total-count
                   [:items
@@ -428,7 +437,8 @@
         languages (get-in @results [:arbiter :user :user/languages])
         feedback-list (map prepare-feedback-cards (get-in @results [:arbiter :arbiter/feedback :items]))
         rating {:average (get-in @results [:arbiter :arbiter/rating]) :count (count feedback-list)}
-        has-arbiter-profile? (not (nil? biography))]
+        has-arbiter-profile? (get-in @results [:arbiter :user :user/is-registered-arbiter])
+        viewing-own-profile? (ethlance.shared.utils/ilike= @viewed-user-address logged-in-user-address)]
     [:<>
      (if has-arbiter-profile?
        [:div.arbiter-profile
@@ -444,7 +454,7 @@
          [c-tag-list "Languages" languages]]]
 
        [c-missing-profile-notification :arbiter])
-     (when has-arbiter-profile? [c-invite-arbiter])
+     (when (and has-arbiter-profile? (not viewing-own-profile?)) [c-invite-arbiter])
      (when has-arbiter-profile? (c-arbitration-activity))
      (c-feedback-listing professional-title feedback-list)]))
 

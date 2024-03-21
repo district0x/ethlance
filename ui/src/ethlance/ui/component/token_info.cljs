@@ -10,12 +10,12 @@
 (defn token-info-str
   [token-amount token-detail]
   (let [token-type (:token-detail/type token-detail)
-        token-name (:token-detail/name token-detail)
+        token-symbol (:token-detail/symbol token-detail)
         decimals (:token-detail/decimals token-detail)]
     (str (util.tokens/human-amount token-amount token-type decimals)
          " "
-         (if token-name
-           token-name
+         (if token-symbol
+           (name token-symbol)
            (clojure.string/upper-case (name (or token-type :?)))))))
 
 
