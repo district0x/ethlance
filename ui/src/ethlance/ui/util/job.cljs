@@ -23,3 +23,7 @@
 (def required-availability
   [[:full-time "Full time"]
    [:part-time "Part time"]])
+
+(defn get-in-pair-vector
+  [pair-vector key]
+  (get (into {} pair-vector) key))

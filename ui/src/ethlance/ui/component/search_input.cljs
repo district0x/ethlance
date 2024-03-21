@@ -12,7 +12,6 @@
 
 (defn filter-selections
   [search-text selections label-fn]
-  (println ">>> filter-selections" selections)
   (let [fuzzy-options (map (fn [sel] {::fz/string (label-fn sel)
                                       :original-val sel}) selections)]
     (when (and (seq search-text) (seq selections))

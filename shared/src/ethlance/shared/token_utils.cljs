@@ -105,7 +105,7 @@
           token-decimals (case token-type
                            :eth 18
                            :erc721 0
-                           :erc1155 1
+                           :erc1155 0
                            :erc20 (if (has-contract-method? contract-instance "decimals")
                                     (<! (promise->chan (w3-eth/contract-call contract-instance :decimals [] {})))
                                     18))]

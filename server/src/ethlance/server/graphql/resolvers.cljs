@@ -732,27 +732,6 @@
                                  (<? (db/get conn (dispute-message-query job-story-id invoice-id invoice-message-column))))))
 
 
-(defn employer-search-resolver
-  [_ {:keys [:limit :offset
-             :user/id
-             :professional-title
-             :order-by :order-direction]
-      :as args} _]
-  (db/with-async-resolver-conn conn
-                               (log/debug "employer-search-resolver" args)
-                               (let [query (cond-> employer-query
-
-                                             id (sql-helpers/merge-where [:= id :Employer.user/id])
-
-                                             professional-title (sql-helpers/merge-where [:= professional-title :Employer.employer/professional-title])
-
-                                             order-by (sql-helpers/merge-order-by [[(get {:date-registered :user/date-registered
-                                                                                          :date-updated :user/date-updated}
-                                                                                         (graphql-utils/gql-name->kw order-by))
-                                                                                    (or (keyword order-direction) :asc)]]))]
-                                 (<? (paged-query conn query limit offset)))))
-
-
 (def ^:private job-query
   {:select [:Job.job/id
             :Job.job/bid-option
@@ -1296,7 +1275,6 @@
            :candidate candidate-resolver
            :candidateSearch candidate-search-resolver
            :employer employer-resolver
-           :employerSearch employer-search-resolver
            :arbiter arbiter-resolver
            :arbiterSearch arbiter-search-resolver
            :job job-resolver

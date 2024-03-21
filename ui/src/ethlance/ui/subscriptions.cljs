@@ -6,7 +6,6 @@
     [ethlance.ui.component.modal.subscriptions]
     [ethlance.ui.page.arbiters.subscriptions]
     [ethlance.ui.page.candidates.subscriptions]
-    [ethlance.ui.page.employers.subscriptions]
     [ethlance.ui.page.invoices.subscriptions]
     [ethlance.ui.page.job-contract.subscriptions]
     [ethlance.ui.page.job-detail.subscriptions]
