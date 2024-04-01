@@ -278,26 +278,26 @@
 
 
 (defn handle-job-funds-change
-  [outflow? conn _ {:keys [args] :as event}]
+  [movement-sign-fn conn _ {:keys [args] :as event}]
   (safe-go
-    (log/info (str "handle-job-funds-change outflow?" outflow? " | event: " event))
+    (log/info (str "handle-job-funds-change outflow?" (quote movement-sign-fn) " | event: " event))
     (let [funds (:funds args)
           funds-map (map offered-vec->flat-map funds)
-          amount-sign-fn (if outflow? (partial * -1) identity)
           job-id (:job args)
           funding-base {:tx (:transaction-hash event)
                         :job/id job-id
                         :job-funding/created-at (get-timestamp)}
-          extract-token-info (fn [funds]
+         extract-token-info (fn [funds]
                                [(-> funds :token-type enum-val->token-type)
                                 (:token-address funds)])
           tokens-info (map extract-token-info funds-map)
           funding-updates (map (fn [tv]
-                                 (merge funding-base {:job-funding/amount (amount-sign-fn (:token-amount tv))
+                                 (merge funding-base {:job-funding/amount (movement-sign-fn (:token-amount tv))
                                                       :token-detail/id (:token-address tv)}))
                                funds-map)]
-      (doseq [[token-type token-address] tokens-info] (<? (ensure-db-token-details token-type token-address conn)))
-      (doseq [funding funding-updates] (<? (ethlance-db/insert-row! conn :JobFunding funding))))))
+      (doseq [[token-type token-address] tokens-info] (ensure-db-token-details token-type token-address conn))
+      (doseq [funding funding-updates]
+        (ethlance-db/insert-row! conn :JobFunding funding :ignore-conflict-on [:tx])))))
 
 
 (defn handle-test-event
@@ -382,8 +382,8 @@
                          :ethlance/quote-for-arbitration-accepted handle-quote-for-arbitration-accepted
                          :ethlance/job-ended handle-job-ended
                          :ethlance/arbiters-invited handle-arbiters-invited
-                         :ethlance/funds-in (partial handle-job-funds-change false)
-                         :ethlance/funds-out (partial handle-job-funds-change true)}
+                         :ethlance/funds-in (partial handle-job-funds-change +)
+                         :ethlance/funds-out (partial handle-job-funds-change -)}
 
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
         callback-ids (doall (for [[event-key] event-callbacks]
