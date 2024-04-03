@@ -11,6 +11,8 @@
     [ethlance.server.db :as ethlance-db]
     [ethlance.server.event-replay-queue :as replay-queue]
     [ethlance.server.ipfs :as ipfs]
+    [ethlance.server.tracing.api :as t-api]
+    [ethlance.server.tracing.macros :refer-macros [go! safe-go!]]
     [ethlance.server.utils :as server-utils]
     [ethlance.shared.contract-constants :refer [offered-vec->flat-map
                                                 enum-val->token-type]]
@@ -64,14 +66,16 @@
 
 (defn handle-job-created
   [conn _ {:keys [args] :as event}]
-  (safe-go
-    (log/info (str ">>> Handling event job-created" args))
+  (safe-go!
+    (log/info (str ">>> Handling event job-created" args " | " (t-api/get-active-span)))
     (println ">>> ipfs-data | type ipfs-data" {:ipfs-data (:ipfs-data args) :event event})
-    (let [ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
+    (let [span (t-api/get-active-span)
+          ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
           ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
           offered-value (offered-vec->flat-map (first (:offered-values args)))
           token-address (:token-address offered-value)
           token-type (enum-val->token-type (:token-type offered-value))
+          token-amount (:token-amount offered-value)
           for-the-db (merge {:job/id (:job args)
                              :job/status  "active" ; draft -> active -> finished hiring -> closed
                              :job/creator (:creator args)
@@ -79,13 +83,24 @@
                              :job/date-updated (get-timestamp event)
 
                              :job/token-type token-type
-                             :job/token-amount (:token-amount offered-value)
+                             :job/token-amount token-amount
                              :job/token-address token-address
                              :job/token-id (:token-id offered-value)
                              :invited-arbiters (get args :invited-arbiters [])}
                             (build-ethlance-job-data-from-ipfs-object ipfs-job-content))]
-      (<? (ensure-db-token-details token-type token-address conn))
-      (<? (ethlance-db/add-job conn for-the-db)))))
+      (t-api/add-event! span "job-details" {:ipfs-hash ipfs-hash :job-id (:job args) :token-type token-type :token-amount token-amount})
+      (t-api/start-active-span
+        "ensure-token-details"
+        (fn [span]
+          (go!
+            (<? (ensure-db-token-details token-type token-address conn))
+            (t-api/end-span! span))))
+      (t-api/start-active-span
+        "db.add-job"
+        (fn [span]
+          (go!
+            (<? (ethlance-db/add-job conn for-the-db))
+            (t-api/end-span! span)))))))
 
 
 (defn handle-invoice-created
@@ -279,25 +294,34 @@
 
 (defn handle-job-funds-change
   [movement-sign-fn conn _ {:keys [args] :as event}]
-  (safe-go
-    (log/info (str "handle-job-funds-change outflow?" (quote movement-sign-fn) " | event: " event))
-    (let [funds (:funds args)
+  (safe-go!
+    (log/info (str "handle-job-funds-change"))
+    (let [span (t-api/get-active-span)
+          funds (:funds args)
           funds-map (map offered-vec->flat-map funds)
           job-id (:job args)
           funding-base {:tx (:transaction-hash event)
                         :job/id job-id
                         :job-funding/created-at (get-timestamp)}
-         extract-token-info (fn [funds]
+          extract-token-info (fn [funds]
                                [(-> funds :token-type enum-val->token-type)
                                 (:token-address funds)])
           tokens-info (map extract-token-info funds-map)
           funding-updates (map (fn [tv]
-                                 (merge funding-base {:job-funding/amount (movement-sign-fn (:token-amount tv))
-                                                      :token-detail/id (:token-address tv)}))
+                                 (merge
+                                   funding-base
+                                   {:job-funding/amount (movement-sign-fn (:token-amount tv))
+                                    :token-detail/id (:token-address tv)}))
                                funds-map)]
       (doseq [[token-type token-address] tokens-info] (ensure-db-token-details token-type token-address conn))
       (doseq [funding funding-updates]
-        (ethlance-db/insert-row! conn :JobFunding funding :ignore-conflict-on [:tx])))))
+        (t-api/add-event! span "funding-details" funding)
+        (t-api/start-active-span
+          "add-funding-to-db"
+          (fn [span]
+            (go!
+              (<? (ethlance-db/insert-row! conn :JobFunding funding :ignore-conflict-on [:tx]))
+              (t-api/end-span! span))))))))
 
 
 (defn handle-test-event
@@ -334,34 +358,39 @@
                                      {}
                                      web3-events-map)]
     (fn [err {:keys [:block-number] :as event}]
-      (safe-go
+      (safe-go!
         (let [contract-key (-> event :contract :contract-key)
               event-key (-> event :event)
               handler (get contract-ev->handler [contract-key event-key])
+              span (t-api/start-span (str (name contract-key) "." (name event-key)))
               conn (<? (db/get-connection))]
-          (println ">>> syncer DISPATCHER handling" {:contract-key contract-key :event-key event-key :handler handler :event event})
           (try
             (let [block-timestamp (<? (block-timestamp block-number))
                   event (-> event
-                            (update :event camel-snake-kebab/->kebab-case)
-                            (update-in [:args :version] bn/number)
-                            (update-in [:args :timestamp] (fn [timestamp]
-                                                            (if timestamp
-                                                              (bn/number timestamp)
-                                                              block-timestamp))))
+                            (update ,,, :event camel-snake-kebab/->kebab-case)
+                            (update-in ,,, [:args :version] bn/number)
+                            (update-in ,,, [:args :timestamp] (fn [timestamp]
+                                                                (if timestamp
+                                                                  (bn/number timestamp)
+                                                                  block-timestamp))))
                   _ (db/begin-tx conn)
-                  res (handler conn err event)
+                  res (t-api/with-span-context span #(handler conn err event))
                   _ (db/commit-tx conn)]
+              (t-api/set-span-ok! span)
               ;; Calling a handler can throw or return a go block (when using safe-go)
               ;; in the case of async ones, the go block will return the js/Error.
               ;; In either cases push the event to the queue, so it can be replayed later
               (when (satisfies? ReadPort res)
                 (let [r (<! res)]
                   (when (instance? js/Error r)
-                    (throw r))))
+                    (throw r))
+                  (t-api/set-span-ok! span)
+                  (t-api/end-span! span)))
               res)
             (catch js/Error error
               (replay-queue/push-event conn event)
+              (t-api/set-span-error! span error)
+              (t-api/end-span! span)
               (db/rollback-tx conn)
               (throw error))
             (finally
