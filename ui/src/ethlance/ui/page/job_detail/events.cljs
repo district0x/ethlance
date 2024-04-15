@@ -279,7 +279,7 @@
         arbiter-addresses (:arbiters event-data)
         employer-address (:employer event-data)
         instance (contract-queries/instance db :job job-address)
-        tx-opts {:from employer-address :gas 10000000}
+        tx-opts {:from employer-address}
         contract-args [employer-address arbiter-addresses]]
     {:db (set-invite-arbiters-tx-in-progress db true)
      :dispatch [::web3-events/send-tx
