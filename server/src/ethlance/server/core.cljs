@@ -7,6 +7,7 @@
     [district.server.db.honeysql-extensions]
     [district.server.logging]
     [district.server.smart-contracts]
+    [ethlance.server.tracing.core]
     [district.server.web3]
     [district.server.web3-events]
     [district.shared.async-helpers :as async-helpers :refer [safe-go]]

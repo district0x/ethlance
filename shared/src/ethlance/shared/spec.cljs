@@ -2,6 +2,7 @@
   (:require
     ;; ["is-ipfs" :as is-ipfs]
     [cljs.spec.alpha :as s]
+    [cljs.pprint]
     [clojure.set :as set]
     [district.validation :refer [length? email? not-neg?]]
     [ethlance.shared.constants :as constants]
@@ -110,4 +111,10 @@
 
 (defn validate-keys
   [props]
+  ; FIXME: remove debug print after figuring out why candidate profile couldn't be saved
+  ;        https://github.com/district0x/ethlance/issues/391
+  (println "ethlance.shared.spec/validate-keys" )
+  (cljs.pprint/pprint {:props props
+                       :validation (map-kv-vals #(s/valid? %1 %2) props)
+                       :explain (map-kv-vals #(s/explain-str %1 %2) props)})
   (map-kv-vals #(s/valid? %1 %2) props))
