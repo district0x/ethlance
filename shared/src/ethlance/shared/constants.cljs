@@ -617,18 +617,18 @@
 
 
 (def categories
-  #{"Web, Mobile & Software Dev"
-    "IT & Networking"
-    "Data Science & Analytics"
-    "Design & Creative"
-    "Writing"
-    "Translation"
-    "Legal"
+  #{"Accounting & Consulting"
     "Admin Support"
     "Customer Service"
+    "Data Science & Analytics"
+    "Design & Creative"
+    "IT & Networking"
+    "Legal"
+    "Other"
     "Sales & Marketing"
-    "Accounting & Consulting"
-    "Other"})
+    "Translation"
+    "Web, Mobile & Software Dev"
+    "Writing"})
 
 
 (def category-default "All Categories")
