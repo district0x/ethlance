@@ -93,7 +93,7 @@
                           :tokenContract
                           {:tokenType (contract-constants/token-type->enum-val token-type)
                            :tokenAddress token-address}}}
-          tx-opts {:from creator :gas 10000000}
+          tx-opts {:from creator}
           ipfs-hash (-> ipfs-event :Hash base58->hex)]
       {:dispatch [::web3-events/send-tx
                   {:instance (smart-contracts.queries/instance (:db cofx) :job contract-address)

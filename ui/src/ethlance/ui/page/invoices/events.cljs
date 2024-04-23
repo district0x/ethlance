@@ -42,7 +42,7 @@
   ::invoice-to-ipfs-success
   (fn [cofx [_event invoice ipfs-event]]
     (let [contract-address (:job/id invoice)
-          tx-opts {:from (:payer invoice) :gas 10000000}
+          tx-opts {:from (:payer invoice)}
           invoice-id (:invoice-id invoice)
           ipfs-hash (-> ipfs-event :Hash base58->hex)]
       {:dispatch [::web3-events/send-tx

@@ -228,7 +228,7 @@
                         {:tokenType (contract-constants/token-type->enum-val token-type)
                          :tokenAddress address-placeholder}}}
         instance (contract-queries/instance (:db cofx) :job job-address)
-        tx-opts {:from arbiter-address :gas 10000000}
+        tx-opts {:from arbiter-address}
         ipfs-hash (base58->hex (:Hash ipfs-data))
         ;; TODO: decide if sending to IPFS would serve for anything or all the
         ;;       information involved is already in the contract & QuoteForArbitrationEvent
@@ -260,7 +260,7 @@
                         {:tokenType (contract-constants/token-type->enum-val token-type)
                          :tokenAddress address-placeholder}}}
         instance (contract-queries/instance (:db cofx) :job job-address)
-        tx-opts {:from employer-address :gas 10000000 :value amount-in-wei}
+        tx-opts {:from employer-address :value amount-in-wei}
         contract-args [arbiter-address [(clj->js offered-value)]]]
     {:dispatch [::web3-events/send-tx
                 {:instance instance
@@ -298,7 +298,7 @@
   (let [job-address (:job/id event-data)
         employer-address (:employer event-data)
         instance (contract-queries/instance (:db cofx) :job job-address)
-        tx-opts {:from employer-address :gas 10000000}]
+        tx-opts {:from employer-address}]
     {:db (set-end-job-tx-in-progress db true)
      :dispatch [::web3-events/send-tx
                 {:instance instance
@@ -408,7 +408,7 @@
   ::send-add-funds-tx
   (fn [{:keys [db]} [_ funds-params]]
     (let [token-type (:token-type funds-params)
-          tx-opts-base {:from (:funder funds-params) :gas 10000000}
+          tx-opts-base {:from (:funder funds-params)}
           offered-value (:offered-value funds-params)
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value (:value offered-value))

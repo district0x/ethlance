@@ -146,7 +146,7 @@
           ipfs-hash (base58->hex (:Hash ipfs-event))
           invoice-id (:invoice/id dispute-details)
           job-contract-address (:job/id dispute-details)
-          tx-opts {:from creator :gas 10000000}]
+          tx-opts {:from creator}]
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance db :job job-contract-address)
                    :fn :raiseDispute
@@ -181,7 +181,7 @@
           ipfs-hash (base58->hex (:Hash ipfs-event))
           job-contract-address (:job/id ipfs-accept)
           candidate (:candidate ipfs-accept)
-          tx-opts {:from creator :gas 10000000}]
+          tx-opts {:from creator}]
       {:dispatch [::web3-events/send-tx
                   {:instance (contract-queries/instance db :job job-contract-address)
                    :fn :add-candidate
@@ -269,7 +269,7 @@
                         {:tokenType (contract-constants/token-type->enum-val token-type)
                          :tokenAddress token-address}}}
         instance (contract-queries/instance (:db cofx) :job job-address)
-        tx-opts {:from creator :gas 10000000}
+        tx-opts {:from creator}
         ipfs-hash (base58->hex (:Hash ipfs-data))
         contract-args [invoice-id [(clj->js offered-value)] ipfs-hash]]
     {:dispatch [::web3-events/send-tx
