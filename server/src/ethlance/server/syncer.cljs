@@ -223,7 +223,6 @@
                       :job-arbiter/fee-currency-id (if (keyword? token-type)
                                                      (name token-type)
                                                      (str token-type))
-                      :job-arbiter/date-accepted (get-timestamp)
                       :job-arbiter/status "quote-set"}]
       (<? (ethlance-db/update-arbitration conn for-the-db)))))
 
@@ -239,6 +238,7 @@
           job-id (:job args)
           new-accepted-arbiter {:job/id job-id
                                 :user/id arbiter-id
+                                :job-arbiter/date-accepted (get-timestamp)
                                 :job-arbiter/status "accepted"}
           previous-accepted-query {:select [:JobArbiter.job/id :JobArbiter.user/id]
                                    :from [:JobArbiter]
