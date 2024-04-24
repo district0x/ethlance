@@ -83,11 +83,11 @@
 
 (re/reg-event-db
   :page.job-detail/set-arbitration-token-amount
-  (fn [db [_ token-amount]]
+  (fn [db [_ {:keys [human-amount]}]]
     (-> db
-        (assoc-in ,,, [state-key :arbitration-token-amount] token-amount)
+        (assoc-in ,,, [state-key :arbitration-token-amount] human-amount)
         (assoc-in ,,, [state-key :arbitration-token-amount-usd]
-                      (util.tokens/round 2 (* token-amount (conversion-rates.queries/conversion-rate db :ETH :USD)))))))
+                      (util.tokens/round 2 (* human-amount (conversion-rates.queries/conversion-rate db :ETH :USD)))))))
 
 
 (re/reg-event-db
