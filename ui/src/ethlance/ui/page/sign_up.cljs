@@ -40,7 +40,7 @@
                            :label "Upload file"
                            :file-accept-pred (fn [{:keys [name type size]}]
                                                (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
-                                               (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml"} type)
+                                               (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "image/webp"} type)
                                                     (< size 1500000)))
                            :on-file-accepted (fn [{:keys [name type size]}]
                                                (swap! form-data update-in [:file-info] dissoc :error)

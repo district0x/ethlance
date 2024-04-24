@@ -183,7 +183,7 @@
           offered-value (get-job-creation-param db :offered-value)
           ipfs-hash (get-job-creation-param db :ipfs-hash)
           arbiters (get-job-creation-param db :arbiters)
-          tx-opts-base {:from employer :gas "1000000"}
+          tx-opts-base {:from employer}
           token-type (get-job-creation-param db :token-type)
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value (:value offered-value))
