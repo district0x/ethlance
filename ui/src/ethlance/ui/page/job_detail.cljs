@@ -276,12 +276,13 @@
                           arbiter-fields]]]
         search-result @(re/subscribe [::gql/query {:queries [arbiters-query job-query]}
                                       {:refetch-on #{:page.job-detail/arbitrations-updated}}])
-
-        all-arbiters (get-in search-result [:arbiter-search :items])
-        already-added (map #(get % :arbiter) (get-in search-result [:job :arbitrations :items]))
-        uninvited-arbiters (clojure.set/difference (set all-arbiters) (set already-added))
-
         employer-address (get-in search-result [:job :job/employer-address])
+        all-arbiters (get-in search-result [:arbiter-search :items])
+        not-employer (fn [arbiter] (ilike!= employer-address (get-in arbiter [:user :user/id])))
+        arbiters-without-current-employer (filter not-employer all-arbiters)
+        already-added (map #(get % :arbiter) (get-in search-result [:job :arbitrations :items]))
+        uninvited-arbiters (clojure.set/difference (set arbiters-without-current-employer) (set already-added))
+
         nothing-added? (empty? @selected-arbiters)
         arbiter-info-fn (fn [arbiter]
                           (clojure.string/join
@@ -327,7 +328,6 @@
         invited? (= "invited" (:arbitration/status arbitration-by-current-user))
         job-address (get arbitration-by-current-user :job/id)
         active-user (get-in arbitration-by-current-user [:arbiter :user/id])]
-    (println ">>> c-set-arbiter-quote token-amount" @token-amount)
     (if invited?
       [:div.proposal-form
        [:div.label "Set quote to be arbiter"]
