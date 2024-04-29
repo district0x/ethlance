@@ -12,7 +12,7 @@
   "Returns original value if the val is zero expressing string (e.g. 0 or 0.0)
   When it becomes non-zero (e.g. 0.01) then returns the result (transform-fn val)"
   [val transform-fn]
-  (if (non-zero-fraction? val)
+  (if (non-zero-fraction? (str val))
     (transform-fn val)
     val))
 

@@ -41,7 +41,7 @@
     :row-cells [[:span \"First cell\" \"Second cell\" etc]]}
   ]
   "
-  [{:keys [headers]} & rows]
+  [{:keys [headers empty-message] :or {empty-message "No data yet to show"}} & rows]
   [:div.ethlance-table
    [:table
     [:tbody
@@ -50,18 +50,21 @@
         (for [[i header] (map-indexed vector headers)]
           ^{:key (str "header-" i)}
           [:th header]))]
-     (doall
-       (for [[i row] (map-indexed vector rows)]
-         (if (map? row)
+     (if (empty? rows)
+       [:tr
+        [:td {:style {:text-align "center"} :col-span (count headers)} empty-message]]
+       (doall
+         (for [[i row] (map-indexed vector rows)]
+           (if (map? row)
 
-           ^{:key (str "row-" i)}
-           [:tr.clickable (:row-link row)
-            (for [[i elem] (map-indexed vector (:row-cells row))]
-              ^{:key (str "elem-" i)}
-              [:td elem])]
+             ^{:key (str "row-" i)}
+             [:tr.clickable (:row-link row)
+              (for [[i elem] (map-indexed vector (:row-cells row))]
+                ^{:key (str "elem-" i)}
+                [:td elem])]
 
-           ^{:key (str "row-" i)}
-           [:tr
-            (for [[i elem] (map-indexed vector row)]
-              ^{:key (str "elem-" i)}
-              [:td elem])])))]]])
+             ^{:key (str "row-" i)}
+             [:tr
+              (for [[i elem] (map-indexed vector row)]
+                ^{:key (str "elem-" i)}
+                [:td elem])]))))]]])

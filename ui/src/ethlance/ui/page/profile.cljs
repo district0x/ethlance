@@ -179,28 +179,29 @@
         invitation-text (re/subscribe [:page.profile/invitation-text])
         preselected-job (or @job-for-invitation (first jobs))
         job-story-exists? (:job-story-exists? preselected-job)]
-    [:div.job-listing
-     [:div.title "Invite to a job"]
-     [c-select-input
-      {:selections jobs
-       :value-fn :job/id
-       :label-fn #(str (:job/title %) (:comment %))
-       :selection preselected-job
-       :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
-     [c-textarea-input {:value @invitation-text
-                        :disabled job-story-exists?
-                        :placeholder "Briefly describe to what and why you're inviting the candidate"
-                        :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
-     [c-button {:color :primary
-                :disabled? job-story-exists?
-                :on-click (fn []
-                            (when-not job-story-exists?
-                              (re/dispatch [:page.profile/invite-candidate
-                                            {:candidate candidate-address
-                                             :text @invitation-text
-                                             :job preselected-job
-                                             :employer active-user}])))}
-      [c-button-label "Invite"]]]))
+    (when (seq jobs)
+      [:div.job-listing
+       [:div.title "Invite to a job"]
+       [c-select-input
+        {:selections jobs
+         :value-fn :job/id
+         :label-fn #(str (:job/title %) (:comment %))
+         :selection preselected-job
+         :on-select #(re/dispatch [:page.profile/set-job-for-invitation %])}]
+       [c-textarea-input {:value @invitation-text
+                          :disabled job-story-exists?
+                          :placeholder "Briefly describe to what and why you're inviting the candidate"
+                          :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
+       [c-button {:color :primary
+                  :disabled? job-story-exists?
+                  :on-click (fn []
+                              (when-not job-story-exists?
+                                (re/dispatch [:page.profile/invite-candidate
+                                              {:candidate candidate-address
+                                               :text @invitation-text
+                                               :job preselected-job
+                                               :employer active-user}])))}
+        [c-button-label "Invite"]]])))
 
 
 (defn c-rating-box
