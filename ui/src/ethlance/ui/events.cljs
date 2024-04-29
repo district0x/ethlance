@@ -2,7 +2,7 @@
   (:require
     [akiroz.re-frame.storage]
     [day8.re-frame.forward-events-fx]
-    [district.ui.web3-accounts.events]
+    [district.ui.web3-accounts.events :as accounts-events]
     [ethlance.ui.page.arbiters.events]
     [ethlance.ui.page.candidates.events]
     [ethlance.ui.page.home.events]
@@ -18,6 +18,16 @@
     [print.foo]
     [re-frame.core :as re]))
 
+
+(re/reg-event-fx
+  ::accounts-changed
+  (fn [_cofx [_event-name [new-active-account]]]
+    {:fx [[:dispatch [::accounts-events/set-active-account new-active-account]]]}))
+
+(re/reg-event-fx
+  ::listen-account-changes
+  (fn [_cofx _event]
+    {:fx [[:district.ui.web3-accounts.effects/watch-accounts {:on-change [::accounts-changed]}]]}))
 
 (re/reg-event-fx
   :ethlance/initialize
@@ -40,4 +50,5 @@
         [:page.job-detail/initialize-page]
         [:page.new-job/initialize-page]
         [:page.invoices/initialize-page]
-        [:page.new-invoice/initialize-page]]})))
+        [:page.new-invoice/initialize-page]]
+       :dispatch-later [{:ms 1000 :dispatch [::listen-account-changes]}]})))
