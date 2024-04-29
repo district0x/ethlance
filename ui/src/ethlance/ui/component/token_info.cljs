@@ -37,7 +37,7 @@
                        (clojure.string/upper-case (name (or token-type ""))))
         address (:token-detail/id token-detail)
         short-address (str (subs address 0 5) "...")
-        token-link-parts (if show-address?
+        token-link-parts (if (and show-address? (not (= :eth token-type)))
                            [display-type short-address]
                            [display-type])]
     [:div (str display-amount " " token-symbol)
