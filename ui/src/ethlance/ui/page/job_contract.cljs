@@ -403,6 +403,7 @@
         invoice-query [:job-story {:job-story/id job-story-id}
                        [:job/id
                         :job-story/id
+                        :job-story/status
                         [:job
                          [:job/token-type
                           :job/token-address
@@ -453,6 +454,7 @@
         can-dispute? (and has-invoice?
                           has-arbiter?
                           (nil? (get latest-unpaid-invoice :dispute-raised-message)))
+        job-active? (= :active (get-in @invoice-result [:job-story :job-story/status]))
         dispute-unavailable-message (cond
                                       (not has-arbiter?) "This job doesn't yet have an arbiter so disputes can't be created."
                                       has-invoice? "You have already raised a dispute on your latest invoice. One invoice can only be disputed once."
@@ -465,12 +467,13 @@
      (when invitation-to-accept? {:label "Accept invitation"})
      (when invitation-to-accept? [c-accept-invitation message-params])
 
-     {:label "Create invoice"}
-     [:div.message-input-container
-      [:div.info-message "Click here to create new invoice for this job"]
-      [c-button {:color :primary
-                 :on-click (util.navigation/create-handler {:route :route.invoice/new})}
-       [c-button-label "Go to create invoice"]]]
+     (when job-active? {:label "Create Invoice"})
+     (when job-active?
+       [:div.message-input-container
+        [:div.info-message "Click here to create new invoice for this job"]
+        [c-button {:color :primary
+                   :on-click (util.navigation/create-handler {:route :route.invoice/new})}
+         [c-button-label "Go to create invoice"]]])
 
 
      {:label "Send Message"}
@@ -498,8 +501,8 @@
        ;; else: can't dispute
        [c-information dispute-unavailable-message])
 
-     {:label "Leave Feedback"}
-     [c-feedback-panel :candidate]]))
+     (when job-active? {:label "Leave Feedback"})
+     (when job-active? [c-feedback-panel :candidate])]))
 
 
 (defn c-arbiter-options
