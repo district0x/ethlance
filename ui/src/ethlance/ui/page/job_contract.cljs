@@ -313,17 +313,21 @@
 
 (defn c-direct-message
   [recipients]
-  (let [text (re/subscribe [:page.job-contract/message-text])
+  (let [non-nil-recipients (into {} (filter second recipients))
+        text (re/subscribe [:page.job-contract/message-text])
         recipient (re/subscribe [:page.job-contract/message-recipient])
         job-story-id (re/subscribe [:page.job-contract/job-story-id])]
     [:div.message-input-container
      [:span.selection-label "Recipient:"]
      (into [c-radio-select
-            {:selection @recipient
-             :on-selection #(re/dispatch [:page.job-contract/set-message-recipient %])}]
+            (merge
+              {:selection @recipient
+               :on-selection #(re/dispatch [:page.job-contract/set-message-recipient %])}
+              (when (= (count (keys non-nil-recipients)) 1)
+                {:default-selection (first (vals non-nil-recipients))}))]
            (map (fn [[user-type address]]
                   [address [c-radio-secondary-element (clojure.string/capitalize (name user-type))]])
-                recipients))
+                non-nil-recipients))
 
      [:div.label "Message"]
      [c-textarea-input {:placeholder ""
