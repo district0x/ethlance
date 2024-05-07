@@ -185,12 +185,15 @@
   (let [proposals-count (get-in job [:job-stories :total-count])
         ;; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
         relative-ago (format/time-ago (new js/Date date-created))
-        pluralized-proposals (inflections/pluralize proposals-count "proposal")]
+        pluralized-proposals (inflections/pluralize proposals-count "proposal")
+        max-description-length 675
+        description-truncation-suffix (if (> (count description) max-description-length) "..." "")
+        short-description (str (subs description 0 (min (count description) max-description-length)) description-truncation-suffix)]
     [:div.job-element
      [:a.title (util.navigation/link-params {:route :route.job/detail
                                              :params {:id id}})
       title]
-     [:div.description description]
+     [:div.description short-description]
      [:div.date (str "Posted " relative-ago " | " pluralized-proposals)]
      [:div.tags
       (doall
