@@ -160,13 +160,15 @@
                         :message/date-created]
         messages-query [:job-story {:job-story/id job-story-id}
                         [:job-story/proposal-rate
-                         [:job [:job/token-type
-                                :job/token-address
-                                [:token-details [:token-detail/id
-                                                 :token-detail/type
-                                                 :token-detail/name
-                                                 :token-detail/symbol
-                                                 :token-detail/decimals]]]]
+                         [:job
+                          [:job/token-type
+                           :job/token-address
+                           [:token-details
+                            [:token-detail/id
+                             :token-detail/type
+                             :token-detail/name
+                             :token-detail/symbol
+                             :token-detail/decimals]]]]
                          [:proposal-message message-fields]
                          [:proposal-accepted-message message-fields]
                          [:invitation-message message-fields]
@@ -179,20 +181,24 @@
                          [:job-story/candidate-feedback [:message/id
                                                          [:message message-fields]]]
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
-                         [:job-story/invoices [[:items [:id
-                                                        :invoice/id
-                                                        :job-story/id
-                                                        :job/id
-                                                        :invoice/amount-requested
-                                                        :invoice/amount-paid
-                                                        [:creation-message message-fields]
-                                                        [:payment-message message-fields]
-                                                        [:dispute-raised-message message-fields]
-                                                        [:dispute-resolved-message message-fields]]]]]]]
+                         [:job-story/invoices
+                          [[:items
+                            [:id
+                             :invoice/id
+                             :job-story/id
+                             :job/id
+                             :invoice/amount-requested
+                             :invoice/amount-paid
+                             [:creation-message message-fields]
+                             [:payment-message message-fields]
+                             [:dispute-raised-message message-fields]
+                             [:dispute-resolved-message message-fields]]]]]]]
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
-                                       {:refetch-on #{:page.job-contract/refetch-messages}}])]
-    [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)]))
+                                       {:refetch-on #{:page.job-contract/refetch-messages}}])
+        graphql-data-ready? (and (not (:graphql/loading? @messages-result)) (not (:graphql/processing? @messages-result)))]
+    (when graphql-data-ready?
+      [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)])))
 
 
 (defn c-feedback-panel
@@ -687,15 +693,21 @@
                      :candidate {:name (get-in job-story [:candidate :user :user/name])
                                  :address candidate-id}
                      :arbiter {:name (get-in job-story [:job :job/arbiter :user :user/name])
-                               :address arbiter-id}}]
+                               :address arbiter-id}}
+            job-participant-viewing? (not (nil? current-user-role))
+            graphql-data-ready? (and (not (:graphql/loading? result)) (not (:graphql/processing? result)))]
         [c-main-layout {:container-opts {:class :job-contract-main-container :random (rand)}}
-         [:div.header-container
-          (when-not (:graphql/loading? result) [c-header-profile profile])
-          [c-chat job-story-id]]
+         (if job-participant-viewing?
+           [:<>
+            [:div.header-container
+             (when graphql-data-ready? [c-header-profile profile])
+             [c-chat job-story-id]]
 
-         [:div.options-container
-          (case current-user-role
-            :employer [c-employer-options message-params]
-            :candidate [c-candidate-options message-params]
-            :arbiter [c-arbiter-options message-params]
-            [c-guest-options])]]))))
+            [:div.options-container
+             (case current-user-role
+               :employer [c-employer-options message-params]
+               :candidate [c-candidate-options message-params]
+               :arbiter [c-arbiter-options message-params]
+               [c-guest-options])]]
+           [:div.header-container
+            [c-information "Only the users involved in the job can see the contract details"]])]))))
