@@ -160,13 +160,15 @@
                         :message/date-created]
         messages-query [:job-story {:job-story/id job-story-id}
                         [:job-story/proposal-rate
-                         [:job [:job/token-type
-                                :job/token-address
-                                [:token-details [:token-detail/id
-                                                 :token-detail/type
-                                                 :token-detail/name
-                                                 :token-detail/symbol
-                                                 :token-detail/decimals]]]]
+                         [:job
+                          [:job/token-type
+                           :job/token-address
+                           [:token-details
+                            [:token-detail/id
+                             :token-detail/type
+                             :token-detail/name
+                             :token-detail/symbol
+                             :token-detail/decimals]]]]
                          [:proposal-message message-fields]
                          [:proposal-accepted-message message-fields]
                          [:invitation-message message-fields]
@@ -179,20 +181,24 @@
                          [:job-story/candidate-feedback [:message/id
                                                          [:message message-fields]]]
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
-                         [:job-story/invoices [[:items [:id
-                                                        :invoice/id
-                                                        :job-story/id
-                                                        :job/id
-                                                        :invoice/amount-requested
-                                                        :invoice/amount-paid
-                                                        [:creation-message message-fields]
-                                                        [:payment-message message-fields]
-                                                        [:dispute-raised-message message-fields]
-                                                        [:dispute-resolved-message message-fields]]]]]]]
+                         [:job-story/invoices
+                          [[:items
+                            [:id
+                             :invoice/id
+                             :job-story/id
+                             :job/id
+                             :invoice/amount-requested
+                             :invoice/amount-paid
+                             [:creation-message message-fields]
+                             [:payment-message message-fields]
+                             [:dispute-raised-message message-fields]
+                             [:dispute-resolved-message message-fields]]]]]]]
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
-                                       {:refetch-on #{:page.job-contract/refetch-messages}}])]
-    [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)]))
+                                       {:refetch-on #{:page.job-contract/refetch-messages}}])
+        graphql-data-ready? (and (not (:graphql/loading? @messages-result)) (not (:graphql/processing? @messages-result)))]
+    (when graphql-data-ready?
+      [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)])))
 
 
 (defn c-feedback-panel
@@ -313,17 +319,21 @@
 
 (defn c-direct-message
   [recipients]
-  (let [text (re/subscribe [:page.job-contract/message-text])
+  (let [non-nil-recipients (into {} (filter second recipients))
+        text (re/subscribe [:page.job-contract/message-text])
         recipient (re/subscribe [:page.job-contract/message-recipient])
         job-story-id (re/subscribe [:page.job-contract/job-story-id])]
     [:div.message-input-container
      [:span.selection-label "Recipient:"]
      (into [c-radio-select
-            {:selection @recipient
-             :on-selection #(re/dispatch [:page.job-contract/set-message-recipient %])}]
+            (merge
+              {:selection @recipient
+               :on-selection #(re/dispatch [:page.job-contract/set-message-recipient %])}
+              (when (= (count (keys non-nil-recipients)) 1)
+                {:default-selection (first (vals non-nil-recipients))}))]
            (map (fn [[user-type address]]
                   [address [c-radio-secondary-element (clojure.string/capitalize (name user-type))]])
-                recipients))
+                non-nil-recipients))
 
      [:div.label "Message"]
      [c-textarea-input {:placeholder ""
@@ -399,6 +409,7 @@
         invoice-query [:job-story {:job-story/id job-story-id}
                        [:job/id
                         :job-story/id
+                        :job-story/status
                         [:job
                          [:job/token-type
                           :job/token-address
@@ -449,6 +460,7 @@
         can-dispute? (and has-invoice?
                           has-arbiter?
                           (nil? (get latest-unpaid-invoice :dispute-raised-message)))
+        job-active? (= :active (get-in @invoice-result [:job-story :job-story/status]))
         dispute-unavailable-message (cond
                                       (not has-arbiter?) "This job doesn't yet have an arbiter so disputes can't be created."
                                       has-invoice? "You have already raised a dispute on your latest invoice. One invoice can only be disputed once."
@@ -461,12 +473,13 @@
      (when invitation-to-accept? {:label "Accept invitation"})
      (when invitation-to-accept? [c-accept-invitation message-params])
 
-     {:label "Create invoice"}
-     [:div.message-input-container
-      [:div.info-message "Click here to create new invoice for this job"]
-      [c-button {:color :primary
-                 :on-click (util.navigation/create-handler {:route :route.invoice/new})}
-       [c-button-label "Go to create invoice"]]]
+     (when job-active? {:label "Create Invoice"})
+     (when job-active?
+       [:div.message-input-container
+        [:div.info-message "Click here to create new invoice for this job"]
+        [c-button {:color :primary
+                   :on-click (util.navigation/create-handler {:route :route.invoice/new})}
+         [c-button-label "Go to create invoice"]]])
 
 
      {:label "Send Message"}
@@ -494,8 +507,8 @@
        ;; else: can't dispute
        [c-information dispute-unavailable-message])
 
-     {:label "Leave Feedback"}
-     [c-feedback-panel :candidate]]))
+     (when job-active? {:label "Leave Feedback"})
+     (when job-active? [c-feedback-panel :candidate])]))
 
 
 (defn c-arbiter-options
@@ -680,15 +693,21 @@
                      :candidate {:name (get-in job-story [:candidate :user :user/name])
                                  :address candidate-id}
                      :arbiter {:name (get-in job-story [:job :job/arbiter :user :user/name])
-                               :address arbiter-id}}]
+                               :address arbiter-id}}
+            job-participant-viewing? (not (nil? current-user-role))
+            graphql-data-ready? (and (not (:graphql/loading? result)) (not (:graphql/processing? result)))]
         [c-main-layout {:container-opts {:class :job-contract-main-container :random (rand)}}
-         [:div.header-container
-          (when-not (:graphql/loading? result) [c-header-profile profile])
-          [c-chat job-story-id]]
+         (if job-participant-viewing?
+           [:<>
+            [:div.header-container
+             (when graphql-data-ready? [c-header-profile profile])
+             [c-chat job-story-id]]
 
-         [:div.options-container
-          (case current-user-role
-            :employer [c-employer-options message-params]
-            :candidate [c-candidate-options message-params]
-            :arbiter [c-arbiter-options message-params]
-            [c-guest-options])]]))))
+            [:div.options-container
+             (case current-user-role
+               :employer [c-employer-options message-params]
+               :candidate [c-candidate-options message-params]
+               :arbiter [c-arbiter-options message-params]
+               [c-guest-options])]]
+           [:div.header-container
+            [c-information "Only the users involved in the job can see the contract details"]])]))))

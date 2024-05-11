@@ -81,7 +81,7 @@
           next-offset (if (>= next-offset total-count) offset next-offset)
           first-offset 0
           last-offset (* (- num-pages 1) limit)]
-      [:div.button-listing
+      [:div.button-listing (when (<= num-pages 2) {:style {:display :none}})
        [c-circle-icon-button
         {:name :ic-arrow-left2
          :disabled? (= offset 0)

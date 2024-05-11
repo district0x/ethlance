@@ -2,7 +2,10 @@
   (:require
     [akiroz.re-frame.storage]
     [day8.re-frame.forward-events-fx]
+    [district.ui.web3.queries :as web3-queries]
+    [cljs-web3-next.utils :as w3n-utils]
     [district.ui.web3-accounts.events :as accounts-events]
+    [district.ui.web3-account-balances.events :as account-balances-events]
     [ethlance.ui.page.arbiters.events]
     [ethlance.ui.page.candidates.events]
     [ethlance.ui.page.home.events]
@@ -21,8 +24,10 @@
 
 (re/reg-event-fx
   ::accounts-changed
-  (fn [_cofx [_event-name [new-active-account]]]
-    {:fx [[:dispatch [::accounts-events/set-active-account new-active-account]]]}))
+  (fn [{:keys [db]} [_event-name [new-active-account]]]
+    {:fx [[:dispatch [::accounts-events/set-active-account
+                      (w3n-utils/address->checksum (web3-queries/web3 db) new-active-account)]]
+          [:dispatch [::account-balances-events/load-account-balances]]]}))
 
 (re/reg-event-fx
   ::listen-account-changes
