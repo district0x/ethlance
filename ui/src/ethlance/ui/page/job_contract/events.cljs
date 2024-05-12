@@ -98,9 +98,7 @@
   (let [job-story-id (:job-story/id params)
         text (:text params)
         to (:to params)
-        mutation-params {:job-story/id job-story-id
-                         :text text
-                         :to to}]
+        mutation-params {:job-story/id job-story-id :text text}]
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation
                       {:queries [[:send-message mutation-params]]
@@ -202,7 +200,7 @@
 (re/reg-event-fx
   ::accept-proposal-tx-success
   (fn [{:keys [db]} event]
-    (println ">>> ::send-invitation-tx-success" event)
+    (println ">>> ::accept-proposal-tx-success" event)
     {:db (clear-forms db)
      :fx [[:dispatch [:page.job-contract/refetch-messages]]
           [:dispatch [::notification.events/show "Transaction to accept proposal processed successfully"]]]}))
