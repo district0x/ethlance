@@ -52,7 +52,8 @@
                               (sort-by :job-story/date-created ,,,)
                               reverse)
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
-            job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])]
+            job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])
+            no-job-selected? (nil? @*invoiced-job)]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
          [:div.title "New Invoice"]
          [:div.left-form
@@ -70,6 +71,7 @@
             {:type "number"
              :min 0
              :value @*hours-worked
+             :disabled no-job-selected?
              :on-change #(re/dispatch [:page.new-invoice/set-hours-worked (-> % .-target .-value)])}]]
           [:div.input-stripe
            [:div.label "Hourly Rate"]
@@ -77,6 +79,7 @@
             {:type "number"
              :min 0
              :value @*hourly-rate
+             :disabled no-job-selected?
              :on-change #(re/dispatch [:page.new-invoice/set-hourly-rate (-> % .-target .-value)])}]
            [:div.post-label "$"]]
           [:div.input-stripe
@@ -84,6 +87,7 @@
            [c-token-amount-input
             {:value (:human-amount @*invoice-amount)
              :decimals job-token-decimals
+             :disabled no-job-selected?
              :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount %])}]
            [:div.post-label token-display-name]]
           [:div.usd-estimate @estimated-usd]]
@@ -92,6 +96,7 @@
           [:div.label "Message"]
           [c-textarea-input
            {:value @*message
+            :disabled no-job-selected?
             :on-change #(re/dispatch [:page.new-invoice/set-message %])
             :placeholder ""}]]
 
