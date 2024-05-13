@@ -40,7 +40,6 @@
 
 (re/reg-event-fx :page.job-contract/initialize-page initialize-page)
 (re/reg-event-fx :page.job-contract/set-message-text (create-assoc-handler :message-text))
-(re/reg-event-fx :page.job-contract/set-message-recipient (create-assoc-handler :message-recipient))
 
 
 (re/reg-event-fx :page.job-contract/set-accept-proposal-message-text
@@ -56,7 +55,6 @@
 
 (re/reg-event-fx :page.job-contract/set-feedback-rating (create-assoc-handler :feedback-rating))
 (re/reg-event-fx :page.job-contract/set-feedback-text (create-assoc-handler :feedback-text))
-(re/reg-event-fx :page.job-contract/set-feedback-recipient (create-assoc-handler :feedback-recipient))
 
 (re/reg-event-db :page.job-contract/dispute-to-ipfs-failure (create-logging-handler))
 (re/reg-event-fx :page.job-contract/tx-hash (create-logging-handler))
@@ -97,7 +95,6 @@
   [{:keys [db]} [_event-name params]]
   (let [job-story-id (:job-story/id params)
         text (:text params)
-        to (:to params)
         mutation-params {:job-story/id job-story-id :text text}]
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation
