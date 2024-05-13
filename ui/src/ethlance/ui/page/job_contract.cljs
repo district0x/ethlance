@@ -324,17 +324,6 @@
         recipient (re/subscribe [:page.job-contract/message-recipient])
         job-story-id (re/subscribe [:page.job-contract/job-story-id])]
     [:div.message-input-container
-     [:span.selection-label "Recipient:"]
-     (into [c-radio-select
-            (merge
-              {:selection @recipient
-               :on-selection #(re/dispatch [:page.job-contract/set-message-recipient %])}
-              (when (= (count (keys non-nil-recipients)) 1)
-                {:default-selection (first (vals non-nil-recipients))}))]
-           (map (fn [[user-type address]]
-                  [address [c-radio-secondary-element (clojure.string/capitalize (name user-type))]])
-                non-nil-recipients))
-
      [:div.label "Message"]
      [c-textarea-input {:placeholder ""
                         :value @text

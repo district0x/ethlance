@@ -9,6 +9,7 @@
     [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.carousel :refer [c-carousel-old c-feedback-slide]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :as pagination]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -20,13 +21,24 @@
     [ethlance.ui.component.text-input :refer [c-text-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
     [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
-    [ethlance.ui.component.token-info :refer [c-token-info]]
+    [ethlance.ui.component.token-info :as token-info :refer [c-token-info]]
     [ethlance.ui.util.component :refer [>evt]]
     [ethlance.ui.util.job :as util.job]
     [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
     [ethlance.ui.util.tokens :as token-utils]
     [re-frame.core :as re]))
 
+
+(defn spinner-until-data-ready
+  [loading-states component-when-loading-finished]
+  (if (not-every? false? loading-states)
+    [c-loading-spinner]
+    component-when-loading-finished))
+
+(defn hidden-until-data-ready
+  [loading-states component-when-loading-finished]
+  (when (every? false? loading-states)
+    component-when-loading-finished))
 
 (defn c-invoice-listing
   [contract-address]
@@ -54,10 +66,10 @@
                                  :user/name
                                  :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [invoices-query]}])
-        job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
+        token-details (get-in result [:job :token-details])
         invoices (map (fn [invoice]
                         {:name (get-in invoice [:creation-message :creator :user/name])
-                         :amount (str (token-utils/human-amount (get invoice :invoice/amount-requested) job-token-symbol) " " job-token-symbol)
+                         :amount (token-info/token-info-str (get invoice :invoice/amount-requested) token-details)
                          :timestamp (format/time-ago (new js/Date (get-in invoice [:creation-message :message/date-created])))
                          :status (get invoice :invoice/status)})
                       (-> result :job :invoices :items))]
@@ -144,14 +156,12 @@
       {:forceVisible true :autoHide false}
       (into [c-table {:headers ["" "Candidate" "Rate" "Created" "Status"]}]
             (map (fn [proposal]
-                   [[:span (if (:current-user? proposal) "⭐" "")]
-                    [:a (util.navigation/link-params
-                          {:route :route.job/contract
-                           :params {:job-story-id (:job-story/id proposal)}})
-                     [:span (:candidate-name proposal)]]
-                    [c-token-info (:rate proposal) (:token-details job)]
-                    [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
-                    [:span (:status proposal)]])
+                   {:row-link (link-params {:route :route.job/contract :params {:job-story-id (:job-story/id proposal)}})
+                    :row-cells [[:span (if (:current-user? proposal) "⭐" "")]
+                                [:span (:candidate-name proposal)]
+                                [:div (token-info/token-info-str (:rate proposal) (:token-details job))]
+                                [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
+                                [:span (:status proposal)]]})
                  @proposals))]
      [pagination/c-pagination-ends
       {:total-count proposal-total-count
@@ -655,13 +665,12 @@
           query-results (re/subscribe [::gql/query
                                        {:queries [job-query]}
                                        {:refetch-on #{:page.job-detail/job-updated}}])
+          [loading? processing?] (map @query-results [:graphql/loading? :graphql/preprocessing?])
           results (:job @query-results)]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
-       (when (not (:graphql/loading? @query-results)) [c-job-info-section results])
-
-       (when (not (:graphql/loading? @query-results)) [c-proposals-section results])
-       [c-arbitrations-section contract-address]
-
-       [c-invoice-listing contract-address]
-
-       [c-employer-feedback contract-address]])))
+       [spinner-until-data-ready [loading? processing?]
+        [c-job-info-section results]]
+       [hidden-until-data-ready [loading? processing?] [c-proposals-section results]]
+       [hidden-until-data-ready [loading? processing?] [c-arbitrations-section contract-address]]
+       [hidden-until-data-ready [loading? processing?] [c-invoice-listing contract-address]]
+       [hidden-until-data-ready [loading? processing?] [c-employer-feedback contract-address]]])))

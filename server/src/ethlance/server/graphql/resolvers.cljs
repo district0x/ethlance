@@ -482,16 +482,10 @@
                                (log/debug "job-story->direct-message-resolver")
                                (let [parent (graphql-utils/gql->clj raw-parent)
                                      job-story-id (:job-story/id parent)
-                                     user-id (:user/id current-user)
-                                     _ (println ">>> job-story->direct-messages-resolver" {:job-story-id job-story-id :user-id user-id})
                                      query {:select [:*]
                                             :from [:DirectMessage]
                                             :join [:Message [:= :Message.message/id :DirectMessage.message/id]]
-                                            :where [:and
-                                                    [:= :DirectMessage.job-story/id job-story-id]
-                                                    [:or
-                                                     [:ilike :DirectMessage.direct-message/recipient user-id]
-                                                     [:ilike :Message.message/creator user-id]]]}]
+                                            :where [:= :DirectMessage.job-story/id job-story-id]}]
                                  (<? (db/all conn query)))))
 
 
@@ -1062,7 +1056,6 @@
   (db/with-async-resolver-tx conn
                              (log/debug "send-message-mutation")
                              (let [job-story-id (:job-story/id message-params)
-                                   recipient (:to message-params)
                                    text (:text message-params)
                                    job-story-message-type (graphql-utils/gql-name->kw (:job-story-message/type message-params))
                                    message-type (or (graphql-utils/gql-name->kw (:message/type message-params)) :direct-message)]
@@ -1071,7 +1064,6 @@
                                                                   :job-story-message/type job-story-message-type
                                                                   :message/date-created timestamp
                                                                   :message/creator (:user/id current-user)
-                                                                  :direct-message/recipient recipient
                                                                   :message/text text}))
                                true)))
 

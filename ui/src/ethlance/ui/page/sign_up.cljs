@@ -35,20 +35,21 @@
   (let [form-data (r/atom {})]
     (fn []
       [:div.upload-image
-       [c-file-drag-input {:form-data form-data
-                           :id :file-info
-                           :label "Upload file"
-                           :file-accept-pred (fn [{:keys [name type size]}]
-                                               (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
-                                               (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "image/webp"} type)
-                                                    (< size 1500000)))
-                           :on-file-accepted (fn [{:keys [name type size]}]
-                                               (swap! form-data update-in [:file-info] dissoc :error)
-                                               (log/info "Accepted file" {:name name :type type :size size} ::file-accepted)
-                                               (re/dispatch [:page.sign-up/upload-user-image @form-data]))
-                           :on-file-rejected (fn [{:keys [name type size]}]
-                                               (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif or .svg file selected with size less than 1.5 Mb"})
-                                               (log/warn "Rejected file" {:name name :type type :size size} ::file-rejected))}]])))
+       [c-file-drag-input
+        {:form-data form-data
+         :id :file-info
+         :label "Upload file"
+         :file-accept-pred (fn [{:keys [name type size]}]
+                             (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
+                             (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "image/webp"} type)
+                                  (< size 1500000)))
+         :on-file-accepted (fn [{:keys [name type size]}]
+                             (swap! form-data update-in [:file-info] dissoc :error)
+                             (log/info "Accepted file" {:name name :type type :size size} ::file-accepted)
+                             (re/dispatch [:page.sign-up/upload-user-image @form-data]))
+         :on-file-rejected (fn [{:keys [name type size]}]
+                             (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif or .svg file selected with size less than 1.5 Mb"})
+                             (log/warn "Rejected file" {:name name :type type :size size} ::file-rejected))}]])))
 
 
 (defn- c-user-name-input

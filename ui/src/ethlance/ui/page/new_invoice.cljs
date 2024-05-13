@@ -52,7 +52,9 @@
                               (sort-by :job-story/date-created ,,,)
                               reverse)
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
-            job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])]
+            job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])
+            no-job-selected? (nil? @*invoiced-job)
+            focus-on-element (fn [id _event] (.focus (.getElementById js/document id)))]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
          [:div.title "New Invoice"]
          [:div.left-form
@@ -64,26 +66,33 @@
              :label-fn (comp :job/title :job)
              :selection @*invoiced-job
              :on-select #(re/dispatch [:page.new-invoice/set-invoiced-job %])}]]
-          [:div.input-stripe
-           [:div.label "Hours Worked (Optional)"]
+          [:div.input-stripe {:on-click (partial focus-on-element "invoice-hours-input")}
+           [:div.label "Hours Worked"]
            [:input
-            {:type "number"
+            {:id "invoice-hours-input"
+             :type "number"
              :min 0
              :value @*hours-worked
-             :on-change #(re/dispatch [:page.new-invoice/set-hours-worked (-> % .-target .-value)])}]]
-          [:div.input-stripe
+             :disabled no-job-selected?
+             :on-change #(re/dispatch [:page.new-invoice/set-hours-worked (-> % .-target .-value)])}]
+           [:div.post-label "h"]]
+          [:div.input-stripe {:on-click (partial focus-on-element "invoice-hourly-rate-input")}
            [:div.label "Hourly Rate"]
            [:input
-            {:type "number"
+            {:id "invoice-hourly-rate-input"
+             :type "number"
              :min 0
              :value @*hourly-rate
+             :disabled no-job-selected?
              :on-change #(re/dispatch [:page.new-invoice/set-hourly-rate (-> % .-target .-value)])}]
            [:div.post-label "$"]]
-          [:div.input-stripe
+          [:div.input-stripe {:on-click (partial focus-on-element "invoice-amount-input")}
            [:div.label "Invoice Amount"]
            [c-token-amount-input
-            {:value (:human-amount @*invoice-amount)
+            {:id "invoice-amount-input"
+             :value (:human-amount @*invoice-amount)
              :decimals job-token-decimals
+             :disabled no-job-selected?
              :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount %])}]
            [:div.post-label token-display-name]]
           [:div.usd-estimate @estimated-usd]]
@@ -92,6 +101,7 @@
           [:div.label "Message"]
           [c-textarea-input
            {:value @*message
+            :disabled no-job-selected?
             :on-change #(re/dispatch [:page.new-invoice/set-message %])
             :placeholder ""}]]
 
