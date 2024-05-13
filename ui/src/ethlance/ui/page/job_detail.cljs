@@ -35,6 +35,11 @@
     [c-loading-spinner]
     component-when-loading-finished))
 
+(defn hidden-until-data-ready
+  [loading-states component-when-loading-finished]
+  (when (every? false? loading-states)
+    component-when-loading-finished))
+
 (defn c-invoice-listing
   [contract-address]
   (let [invoices-query [:job {:job/id contract-address}
@@ -665,10 +670,7 @@
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
        [spinner-until-data-ready [loading? processing?]
         [c-job-info-section results]]
-
-       (when (not (:graphql/loading? @query-results)) [c-proposals-section results])
-       [c-arbitrations-section contract-address]
-
-       [c-invoice-listing contract-address]
-
-       [c-employer-feedback contract-address]])))
+       [hidden-until-data-ready [loading? processing?] [c-proposals-section results]]
+       [hidden-until-data-ready [loading? processing?] [c-arbitrations-section contract-address]]
+       [hidden-until-data-ready [loading? processing?] [c-invoice-listing contract-address]]
+       [hidden-until-data-ready [loading? processing?] [c-employer-feedback contract-address]]])))
