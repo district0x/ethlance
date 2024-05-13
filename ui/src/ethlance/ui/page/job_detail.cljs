@@ -21,7 +21,7 @@
     [ethlance.ui.component.text-input :refer [c-text-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
     [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
-    [ethlance.ui.component.token-info :refer [c-token-info]]
+    [ethlance.ui.component.token-info :as token-info :refer [c-token-info]]
     [ethlance.ui.util.component :refer [>evt]]
     [ethlance.ui.util.job :as util.job]
     [ethlance.ui.util.navigation :refer [link-params] :as util.navigation]
@@ -151,14 +151,12 @@
       {:forceVisible true :autoHide false}
       (into [c-table {:headers ["" "Candidate" "Rate" "Created" "Status"]}]
             (map (fn [proposal]
-                   [[:span (if (:current-user? proposal) "⭐" "")]
-                    [:a (util.navigation/link-params
-                          {:route :route.job/contract
-                           :params {:job-story-id (:job-story/id proposal)}})
-                     [:span (:candidate-name proposal)]]
-                    [c-token-info (:rate proposal) (:token-details job)]
-                    [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
-                    [:span (:status proposal)]])
+                   {:row-link (link-params {:route :route.job/contract :params {:job-story-id (:job-story/id proposal)}})
+                    :row-cells [[:span (if (:current-user? proposal) "⭐" "")]
+                                [:span (:candidate-name proposal)]
+                                [:div (token-info/token-info-str (:rate proposal) (:token-details job))]
+                                [:span (format/time-ago (new js/Date (:created-at proposal)))] ; TODO: remove new js/Date after switching to district.ui.graphql that converts Date GQL type automatically
+                                [:span (:status proposal)]]})
                  @proposals))]
      [pagination/c-pagination-ends
       {:total-count proposal-total-count

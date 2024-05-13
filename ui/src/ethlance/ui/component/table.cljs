@@ -61,7 +61,7 @@
              [:tr.clickable (:row-link row)
               (for [[i elem] (map-indexed vector (:row-cells row))]
                 ^{:key (str "elem-" i)}
-                [:td elem])]
+                [:td [:a {:href (get-in row [:row-link :href])} elem]])]
 
              ^{:key (str "row-" i)}
              [:tr
