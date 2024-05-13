@@ -61,10 +61,10 @@
                                  :user/name
                                  :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [invoices-query]}])
-        job-token-symbol (get-in result [:job :token-details :token-detail/symbol])
+        token-details (get-in result [:job :token-details])
         invoices (map (fn [invoice]
                         {:name (get-in invoice [:creation-message :creator :user/name])
-                         :amount (str (token-utils/human-amount (get invoice :invoice/amount-requested) job-token-symbol) " " job-token-symbol)
+                         :amount (token-info/token-info-str (get invoice :invoice/amount-requested) token-details)
                          :timestamp (format/time-ago (new js/Date (get-in invoice [:creation-message :message/date-created])))
                          :status (get invoice :invoice/status)})
                       (-> result :job :invoices :items))]
