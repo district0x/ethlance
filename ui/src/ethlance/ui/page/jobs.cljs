@@ -256,18 +256,17 @@
                        [:user/name
                         :user/country]]
                       [:arbiter/feedback [:total-count]]]]]]]]
-          search-results @(re/subscribe [::gql/query {:queries [query]}
-                                         {:id @query-params}])
-          job-listing-state (get search-results :graphql/loading?)
-          loading? (contains? #{:start :loading} job-listing-state)
-          job-listing (get-in (first search-results) [:job-search :items])
-          total-count (get-in (first search-results) [:job-search :total-count])
+          search-results @(re/subscribe [::gql/query {:queries [query]}])
+          processing? (get search-results :graphql/preprocessing?)
+          loading? (get search-results :graphql/loading?)
+          job-listing (get-in search-results [:job-search :items])
+          total-count (get-in search-results [:job-search :total-count])
           *limit (re/subscribe [:page.jobs/limit])
           *offset (re/subscribe [:page.jobs/offset])]
       [:<>
        (cond
          ;; Is the job listing loading?
-         loading?
+         (not-every? false? [loading? processing?])
          [c-loading-spinner]
 
          ;; Is the job listing empty?
