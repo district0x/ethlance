@@ -94,6 +94,7 @@
            [c-text-input
             {:placeholder "Name"
              :value @*name
+             :maxlength 100
              :on-change #(re/dispatch [:page.new-job/set-title %])}]]
           [:div.category-input
            [c-select-input
@@ -153,6 +154,7 @@
            [c-textarea-input
             {:placeholder "Enter Description"
              :value @*description
+             :maxlength 4000
              :on-change #(re/dispatch [:page.new-job/set-description %])}]]
 
           [:div.forms-of-payment.chip
