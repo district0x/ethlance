@@ -9,6 +9,7 @@
     [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.carousel :refer [c-carousel-old c-feedback-slide]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
+    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :as pagination]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -27,6 +28,12 @@
     [ethlance.ui.util.tokens :as token-utils]
     [re-frame.core :as re]))
 
+
+(defn spinner-until-data-ready
+  [loading-states component-when-loading-finished]
+  (if (not-every? false? loading-states)
+    [c-loading-spinner]
+    component-when-loading-finished))
 
 (defn c-invoice-listing
   [contract-address]
@@ -655,9 +662,11 @@
           query-results (re/subscribe [::gql/query
                                        {:queries [job-query]}
                                        {:refetch-on #{:page.job-detail/job-updated}}])
+          [loading? processing?] (map @query-results [:graphql/loading? :graphql/preprocessing?])
           results (:job @query-results)]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
-       (when (not (:graphql/loading? @query-results)) [c-job-info-section results])
+       [spinner-until-data-ready [loading? processing?]
+        [c-job-info-section results]]
 
        (when (not (:graphql/loading? @query-results)) [c-proposals-section results])
        [c-arbitrations-section contract-address]
