@@ -97,7 +97,6 @@
   [{:keys [db]} [_event-name params]]
   (let [job-story-id (:job-story/id params)
         text (:text params)
-        to (:to params)
         mutation-params {:job-story/id job-story-id :text text}]
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation

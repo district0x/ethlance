@@ -318,10 +318,8 @@
 
 
 (defn c-direct-message
-  [recipients]
-  (let [non-nil-recipients (into {} (filter second recipients))
-        text (re/subscribe [:page.job-contract/message-text])
-        recipient (re/subscribe [:page.job-contract/message-recipient])
+  []
+  (let [text (re/subscribe [:page.job-contract/message-text])
         job-story-id (re/subscribe [:page.job-contract/job-story-id])]
     [:div.message-input-container
      [:div.label "Message"]
@@ -330,7 +328,6 @@
                         :on-change #(re/dispatch [:page.job-contract/set-message-text %])}]
      [c-button {:color :primary
                 :on-click #(re/dispatch [:page.job-contract/send-message {:text @text
-                                                                          :to @recipient
                                                                           :job-story/id @job-story-id}])}
       [c-button-label "Send Message"]]]))
 
@@ -379,7 +376,7 @@
     :default-tab 1}
 
    {:label "Send Message"}
-   [c-direct-message (select-keys message-params [:candidate :arbiter])]
+   [c-direct-message]
 
    {:label "Accept Proposal"}
    [c-accept-proposal-message message-params]
@@ -472,7 +469,7 @@
 
 
      {:label "Send Message"}
-     [c-direct-message (select-keys message-params [:employer :arbiter])]
+     [c-direct-message]
 
      {:label "Raise Dispute"}
      (if can-dispute?
@@ -568,7 +565,7 @@
       :default-tab 0}
 
      {:label "Send Message"}
-     [c-direct-message (select-keys message-params [:candidate :employer])]
+     [c-direct-message]
 
      {:label "Resolve Dispute" :active? true} ; TODO: conditionally show
      (if dispute-to-resolve?
