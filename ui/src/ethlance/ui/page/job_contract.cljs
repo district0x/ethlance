@@ -337,7 +337,8 @@
   (let [text (re/subscribe [:page.job-contract/accept-proposal-message-text])
         proposal-data (assoc (select-keys message-params [:job/id :job-story/id :candidate :employer])
                              :text @text)
-        can-accept? (= :proposal (:job-story/status message-params))]
+        can-accept? (= :proposal (:job-story/status message-params))
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     (if can-accept?
       [:div.message-input-container
        [:div.label "Message"]
@@ -345,6 +346,7 @@
                           :value @text
                           :on-change #(re/dispatch [:page.job-contract/set-accept-proposal-message-text %])}]
        [c-button {:color :primary
+                  :disabled? @button-disabled?
                   :on-click #(re/dispatch [:page.job-contract/accept-proposal proposal-data])}
         [c-button-label "Accept Proposal"]]]
 
@@ -451,7 +453,8 @@
                                       (not has-arbiter?) "This job doesn't yet have an arbiter so disputes can't be created."
                                       has-invoice? "You have already raised a dispute on your latest invoice. One invoice can only be disputed once."
                                       :else "Raising dispute becomes available after creating an invoice.")
-        dispute-text (re/subscribe [:page.job-contract/dispute-text])]
+        dispute-text (re/subscribe [:page.job-contract/dispute-text])
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     [c-tabular-layout
      {:key "candidate-tabular-layout"
       :default-tab 0}
@@ -484,6 +487,7 @@
                            :value @dispute-text
                            :on-change #(re/dispatch [:page.job-contract/set-dispute-text %])}]
         [c-button {:color :primary
+                   :disabled? @button-disabled?
                    :on-click #(re/dispatch [:page.job-contract/raise-dispute
                                             {:job/id job-id
                                              :job-story/id job-story-id
@@ -559,7 +563,8 @@
         resolution-contract-amount (* candidate-invoiced-amount resolution-percentage)
         feedback-available-for-arbiter? (or
                                           (not-empty (get-in @invoice-result [:job-story :job-story/employer-feedback]))
-                                          (not-empty (get-in @invoice-result [:job-story :job-story/candidate-feedback])))]
+                                          (not-empty (get-in @invoice-result [:job-story :job-story/candidate-feedback])))
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     [c-tabular-layout
      {:key "arbiter-tabular-layout"
       :default-tab 0}
@@ -598,7 +603,9 @@
         [c-textarea-input {:placeholder "Please explain the reasoning behind the resolution"
                            :value @dispute-text
                            :on-change #(re/dispatch [:page.job-contract/set-dispute-text %])}]
-        [c-button {:color :primary :on-click #(re/dispatch [:page.job-contract/resolve-dispute
+        [c-button {:color :primary
+                   :disabled? @button-disabled?
+                   :on-click #(re/dispatch [:page.job-contract/resolve-dispute
                                                             {:job/id job-id
                                                              :job-story/id job-story-id
                                                              :invoice/id invoice-id

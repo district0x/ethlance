@@ -26,3 +26,4 @@
 
 (re/reg-sub :page.job-contract/feedback-rating (create-get-handler :feedback-rating))
 (re/reg-sub :page.job-contract/feedback-text (create-get-handler :feedback-text))
+(re/reg-sub :page.job-contract/buttons-disabled? (create-get-handler :buttons-disabled?))
