@@ -2,7 +2,7 @@
   (:require
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
-    [ethlance.ui.component.icon :refer [c-icon]]
+    [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.select-input :refer [c-select-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
@@ -54,7 +54,10 @@
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
             job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])
             no-job-selected? (nil? @*invoiced-job)
-            focus-on-element (fn [id _event] (.focus (.getElementById js/document id)))]
+            focus-on-element (fn [id _event] (.focus (.getElementById js/document id)))
+            validations (re/subscribe [:page.new-invoice/validations])
+            tx-in-progress? @(re/subscribe [:page.new-invoice/tx-in-progress?])
+            button-disabled? (not (every? true? (vals @validations)))]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
          [:div.title "New Invoice"]
          [:div.left-form
@@ -105,6 +108,7 @@
             :on-change #(re/dispatch [:page.new-invoice/set-message %])
             :placeholder ""}]]
 
-         [:div.button {:on-click #(re/dispatch [:page.new-invoice/send])}
-          [:div.label "Send"]
-          [c-icon {:name :ic-arrow-right :size :small}]]]))))
+         [c-button
+          {:on-click #(re/dispatch [:page.new-invoice/send])
+           :disabled? (or button-disabled? tx-in-progress?)}
+          [c-button-label "Send"]]]))))

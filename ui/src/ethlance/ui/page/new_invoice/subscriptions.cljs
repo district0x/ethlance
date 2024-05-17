@@ -20,6 +20,7 @@
 (re/reg-sub :page.new-invoice/hourly-rate (create-get-handler :hourly-rate))
 (re/reg-sub :page.new-invoice/invoice-amount (create-get-handler :invoice-amount))
 (re/reg-sub :page.new-invoice/message (create-get-handler :message))
+(re/reg-sub :page.new-invoice/tx-in-progress? (create-get-handler :tx-in-progress?))
 
 
 (re/reg-sub
@@ -53,3 +54,16 @@
         (str "Estimated $" (sum-usd) " (1 " (name from-currency) " = " rate " " (name to-currency) ")")
 
         :else ""))))
+
+(re/reg-sub
+  ::form-fields
+  (fn [db _]
+    (select-keys (get db new-invoice.events/state-key) [:invoiced-job :invoice-amount])))
+
+(re/reg-sub
+  :page.new-invoice/validations
+  :<- [::form-fields]
+  (fn [{:keys [invoiced-job invoice-amount]}]
+    {:invoiced-job (not (nil? invoiced-job))
+     :invoice-amount (and (not (nil? (get invoice-amount :token-amount)))
+                          (> (:token-amount invoice-amount) 0))}))
