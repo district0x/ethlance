@@ -238,7 +238,8 @@
   (let [arbitration-to-accept @(re/subscribe [:page.job-detail/arbitration-to-accept])
         job-address (get arbitration-to-accept :job/id)
         employer-address (get-in arbitration-to-accept [:job :job/employer-address])
-        arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))]
+        arbiter-to-be-assigned? (= "quote-set" (:arbitration/status arbitration-to-accept))
+        arbiter-tx-in-progress? (re/subscribe [:page.job-detail/arbiter-tx-in-progress?])]
     [:div.proposal-form
      [:div.label "Accept arbiter quote"]
      [:div.amount-input
@@ -258,6 +259,7 @@
      (when arbiter-to-be-assigned?
        [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
                   :size :small
+                  :disabled? @arbiter-tx-in-progress?
                   :on-click (fn []
                               (when arbitration-to-accept
                                 (>evt [:page.job-detail/accept-quote-for-arbitration
@@ -337,7 +339,8 @@
         quote-set? (= "quote-set" (:arbitration/status arbitration-by-current-user))
         invited? (= "invited" (:arbitration/status arbitration-by-current-user))
         job-address (get arbitration-by-current-user :job/id)
-        active-user (get-in arbitration-by-current-user [:arbiter :user/id])]
+        active-user (get-in arbitration-by-current-user [:arbiter :user/id])
+        arbiter-tx-in-progress? (re/subscribe [:page.job-detail/arbiter-tx-in-progress?])]
     (if invited?
       [:div.proposal-form
        [:div.label "Set quote to be arbiter"]
@@ -361,6 +364,7 @@
        [c-button
         {:style (when quote-set? {:background :gray})
          :size :small
+         :disabled? @arbiter-tx-in-progress?
          :on-click (fn []
                      (when invited? (>evt [:page.job-detail/set-quote-for-arbitration
                                            {:job/id job-address
