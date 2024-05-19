@@ -21,7 +21,8 @@
 (defn initialize-page
   "Event FX Handler. Setup listener to dispatch an event when the page is active/visited."
   []
-  {::router.effects/watch-active-page
+  {:fx [[:dispatch [:page.job-contract/set-dispute-candidate-percentage "50"]]]
+   ::router.effects/watch-active-page
    [{:id :page.job-contract/initialize-page
      :name :route.job/contract
      :dispatch []}]})

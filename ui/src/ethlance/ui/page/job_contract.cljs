@@ -575,7 +575,7 @@
      {:label "Resolve Dispute" :active? true} ; TODO: conditionally show
      (if dispute-to-resolve?
        [:div.dispute-input-container
-        [:div {:style {:gap "2em" :display "flex"}}
+        [:div {:style {:gap "2em"}}
          [:label "Amount (%) of the invoiced amount for the candidate. Invoice ref.id: " invoice-id]
          [:div
           [c-text-input
@@ -589,14 +589,14 @@
             :style {:width "200px"}}]
           [:datalist {:id "percentage-markers"
                       :style {:display "flex"
-                              :flex-direction "column"
+                              :flex-direction "row"
                               :justify-content "space-between"
-                              :writing-mode "vertical-lr"
+                              :writing-mode "horizontal-tb"
                               :width "200px"}}
            (into [:<>]
                  (map #(vector :option {:value % :label (str %) :style {:padding "0"}})
                       (range 0 101 25)))]]
-         [:label
+         [:div
           "Candidate gets: " @dispute-candidate-percentage "%"
           " or " resolved-amount " " token-symbol " of the requested " human-amount " " token-symbol]]
         [:div.label "Explanation:"]
