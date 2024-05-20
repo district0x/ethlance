@@ -53,24 +53,6 @@
        :fx [[:dispatch [:district.ui.conversion-rates.events/load-conversion-rates
                         {:from-currencies [token-type] :to-currencies [:USD]}]]]})))
 
-
-(re/reg-event-fx
-  :page.new-invoice/send
-  (fn [{:keys [db]}]
-    (let [db-invoice (get db state-key)
-          ipfs-invoice {:invoice/amount-requested (get-in db-invoice [:invoice-amount :token-amount])
-                        :invoice/hours-worked (:hours-worked db-invoice)
-                        :invoice/hourly-rate (:hourly-rate db-invoice)
-                        :message/text (:message db-invoice)
-                        :job/id (-> db-invoice :invoiced-job :job/id)
-                        :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]
-      {:fx [[:dispatch [::set-tx-in-progress true]]]
-       :ipfs/call {:func "add"
-                   :args [(js/Blob. [ipfs-invoice])]
-                   :on-success [::invoice-to-ipfs-success ipfs-invoice]
-                   :on-error [::invoice-to-ipfs-failure ipfs-invoice]}})))
-
-
 (re/reg-event-fx
   ::invoice-to-ipfs-success
   (fn [cofx [_event ipfs-job ipfs-event]]
@@ -108,6 +90,23 @@
   (fn [_cofx _event]
     {:fx [[:dispatch [::notification.events/show "Error uploading job data to IPFS. Not publishing transaction"]]
           [:dispatch [::set-tx-in-progress false]]]}))
+
+
+(re/reg-event-fx
+  :page.new-invoice/send
+  (fn [{:keys [db]}]
+    (let [db-invoice (get db state-key)
+          ipfs-invoice {:invoice/amount-requested (get-in db-invoice [:invoice-amount :token-amount])
+                        :invoice/hours-worked (:hours-worked db-invoice)
+                        :invoice/hourly-rate (:hourly-rate db-invoice)
+                        :message/text (:message db-invoice)
+                        :job/id (-> db-invoice :invoiced-job :job/id)
+                        :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]
+      {:fx [[:dispatch [::set-tx-in-progress true]]
+            [:ipfs/call {:func "add"
+                         :args [(js/Blob. [ipfs-invoice])]
+                         :on-success [::invoice-to-ipfs-success ipfs-invoice]
+                         :on-error [::invoice-to-ipfs-failure ipfs-invoice]}]]})))
 
 
 (re/reg-event-fx
