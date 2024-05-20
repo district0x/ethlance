@@ -131,7 +131,15 @@
   (safe-go
     (log/info "Handling event handle-invoice-paid")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
-          invoice-message {:job-story/id (:job-story/id ipfs-data)
+          invoice-id (:invoice-id args)
+          job-story-id (:job-story/id ipfs-data)
+          invoice-message (<? (db/get conn {:select [:*]
+                                            :from [:JobStoryInvoiceMessage]
+                                            :where [:and
+                                                    [:= :JobStoryInvoiceMessage.job-story/id job-story-id]
+                                                    [:= :JobStoryInvoiceMessage.invoice/ref-id invoice-id]]}))
+          requested-value (:invoice/amount-requested invoice-message)
+          invoice-message {:job-story/id job-story-id
                            :invoice/id (or (:invoice/id ipfs-data) (:invoice-id ipfs-data))
                            :message/type :job-story-message
                            :job-story-message/type :payment
@@ -141,6 +149,7 @@
                            :invoice/hours-worked (:invoice/hours-worked ipfs-data)
                            :invoice/hourly-rate (:invoice/hourly-rate ipfs-data)
                            :invoice/date-paid (get-timestamp)
+                           :invoice/amount-paid requested-value
                            :invoice/status "paid"}]
 
       (<? (ethlance-db/add-message conn invoice-message)))))

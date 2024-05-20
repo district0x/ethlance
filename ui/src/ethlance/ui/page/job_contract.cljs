@@ -145,8 +145,14 @@
                               (get-in job-story [:job-story/invoices :items]))
         dispute-creation (map #(common-chat-fields current-user % identity ["Dispute was created"])
                               (map :dispute-raised-message (get-in job-story [:job-story/invoices :items])))
-        dispute-resolution (map #(common-chat-fields current-user % identity ["Dispute was resolved"])
-                                (map :dispute-resolved-message (get-in job-story [:job-story/invoices :items])))]
+        payout-details (fn [invoice]
+                         (str "Payout: "
+                              (token-info/token-info-str (get invoice :invoice/amount-paid) (get-in job-story [:job :token-details]))
+                              " of the requested "
+                              (token-info/token-info-str (get invoice :invoice/amount-requested) (get-in job-story [:job :token-details]))))
+        dispute-resolution (map #(common-chat-fields current-user % :dispute-resolved-message ["Dispute was resolved"
+                                                                                               payout-details])
+                                (get-in job-story [:job-story/invoices :items]))]
     (->> [dispute-creation dispute-resolution
           invitation invitation-accepted
           proposal proposal-accepted

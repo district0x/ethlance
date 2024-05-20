@@ -500,6 +500,7 @@
                 :resolve-dispute (update-job-story-invoice-message conn
                                                                    {:job-story/id job-story-id
                                                                     :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
+                                                                    :invoice/amount-paid (:invoice/amount-paid message)
                                                                     :invoice/dispute-resolved-message-id msg-id
                                                                     :invoice/status "dispute-resolved"})
                 :proposal (update-row! conn :JobStory (assoc message
@@ -522,6 +523,7 @@
                                                            {:job-story/id job-story-id
                                                             :message/id (:message/id (<? (get-invoice-message conn job-story-id (:invoice/id message))))
                                                             :invoice/payment-message-id msg-id
+                                                            :invoice/amount-paid (:invoice/amount-paid message)
                                                             :invoice/status "paid"})
                 :feedback  (insert-row! conn :JobStoryFeedbackMessage message))))
 
