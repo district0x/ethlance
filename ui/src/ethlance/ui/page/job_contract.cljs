@@ -504,8 +504,8 @@
        ;; else: can't dispute
        [c-information dispute-unavailable-message])
 
-     (when job-active? {:label "Leave Feedback"})
-     (when job-active? [c-feedback-panel :candidate])]))
+     {:label "Leave Feedback"}
+     [c-feedback-panel :candidate]]))
 
 
 (defn c-arbiter-options
