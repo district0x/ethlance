@@ -8,11 +8,9 @@
     [district.ui.smart-contracts.queries :as smart-contracts.queries]
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
-    [district.ui.web3.queries :as web3-queries]
     [ethlance.shared.contract-constants :as contract-constants]
     [ethlance.shared.utils :refer [base58->hex]]
     [ethlance.ui.event.utils :as event.utils]
-    [ethlance.ui.util.tokens :as util.tokens]
     [re-frame.core :as re]))
 
 
@@ -44,38 +42,19 @@
 (re/reg-event-fx :page.new-invoice/set-hourly-rate (create-assoc-handler :hourly-rate parse-float))
 (re/reg-event-fx :page.new-invoice/set-invoice-amount (create-assoc-handler :invoice-amount))
 (re/reg-event-fx :page.new-invoice/set-message (create-assoc-handler :message))
+(re/reg-event-fx ::set-tx-in-progress (create-assoc-handler :tx-in-progress?))
 
 
 (re/reg-event-fx
   :page.new-invoice/set-invoiced-job
   (fn [cofx [_ job]]
-    (let [token-type (get-in job [:job :token-details :token-detail/type])
-          updated-cofx {:db (assoc-in (:db cofx) [state-key :invoiced-job] job)}
-          load-eth-rate [:dispatch [:district.ui.conversion-rates.events/load-conversion-rates
-                                    {:from-currencies [token-type] :to-currencies [:USD]}]]]
-      (if (= token-type :eth)
-        (assoc updated-cofx :fx [load-eth-rate])
-        updated-cofx))))
-
+    (let [token-type (get-in job [:job :token-details :token-detail/type])]
+      {:db (assoc-in (:db cofx) [state-key :invoiced-job] job)
+       :fx [[:dispatch [:district.ui.conversion-rates.events/load-conversion-rates
+                        {:from-currencies [token-type] :to-currencies [:USD]}]]]})))
 
 (re/reg-event-fx
-  :page.new-invoice/send
-  (fn [{:keys [db]}]
-    (let [db-invoice (get db state-key)
-          ipfs-invoice {:invoice/amount-requested (get-in db-invoice [:invoice-amount :token-amount])
-                        :invoice/hours-worked (:hours-worked db-invoice)
-                        :invoice/hourly-rate (:hourly-rate db-invoice)
-                        :message/text (:message db-invoice)
-                        :job/id (-> db-invoice :invoiced-job :job/id)
-                        :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]
-      {:ipfs/call {:func "add"
-                   :args [(js/Blob. [ipfs-invoice])]
-                   :on-success [:invoice-to-ipfs-success ipfs-invoice]
-                   :on-error [:invoice-to-ipfs-failure ipfs-invoice]}})))
-
-
-(re/reg-event-fx
-  :invoice-to-ipfs-success
+  ::invoice-to-ipfs-success
   (fn [cofx [_event ipfs-job ipfs-event]]
     (let [invoice-fields (get-in cofx [:db state-key])
           job-fields (-> invoice-fields :invoiced-job :job)
@@ -106,10 +85,28 @@
                    :on-tx-error [::send-invoice-tx-error ipfs-job]}]})))
 
 
-(re/reg-event-db
+(re/reg-event-fx
   ::invoice-to-ipfs-failure
-  (fn [_db event]
-    (println ">>> ethlance.ui.page.new-invoice.events EVENT :invoice-to-ipfs-failure" event)))
+  (fn [_cofx _event]
+    {:fx [[:dispatch [::notification.events/show "Error uploading job data to IPFS. Not publishing transaction"]]
+          [:dispatch [::set-tx-in-progress false]]]}))
+
+
+(re/reg-event-fx
+  :page.new-invoice/send
+  (fn [{:keys [db]}]
+    (let [db-invoice (get db state-key)
+          ipfs-invoice {:invoice/amount-requested (get-in db-invoice [:invoice-amount :token-amount])
+                        :invoice/hours-worked (:hours-worked db-invoice)
+                        :invoice/hourly-rate (:hourly-rate db-invoice)
+                        :message/text (:message db-invoice)
+                        :job/id (-> db-invoice :invoiced-job :job/id)
+                        :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]
+      {:fx [[:dispatch [::set-tx-in-progress true]]
+            [:ipfs/call {:func "add"
+                         :args [(js/Blob. [ipfs-invoice])]
+                         :on-success [::invoice-to-ipfs-success ipfs-invoice]
+                         :on-error [::invoice-to-ipfs-failure ipfs-invoice]}]]})))
 
 
 (re/reg-event-fx
@@ -118,20 +115,24 @@
 
 
 (re/reg-event-fx
-  ::web3-tx-localstorage
-  (fn [_db event] (println ">>> ethlance.ui.page.new-invoice.events :web3-tx-localstorage" event)))
+  ::tx-hash-error
+  (fn [_cofx _event]
+    {:fx [[:dispatch [::notification.events/show "Error processing the create invoice transaction"]]
+          [:dispatch [::set-tx-in-progress false]]]}))
 
 
 (re/reg-event-fx
   ::send-invoice-tx-success
   (fn [{:keys [db]} [_event-name ipfs-job _tx-data]]
     (let [job-story-id (:job-story/id ipfs-job)]
-      (re/dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}])
-      {:dispatch [::notification.events/show "Transaction to create invoice processed successfully"]
+      {:fx [[:dispatch [::notification.events/show "Transaction to create invoice processed successfully"]]
+            [:dispatch [::router-events/navigate :route.job/contract {:job-story-id job-story-id}]]
+            [:dispatch [::set-tx-in-progress false]]]
        :db (assoc db state-key state-default)})))
 
 
-(re/reg-event-db
+(re/reg-event-fx
   ::send-invoice-tx-error
-  (fn [_db event]
-    (println ">>> got :create-job-tx-error event:" event)))
+  (fn [_cofx _event]
+    {:fx [[:dispatch [::notification.events/show "Error processing the create invoice transaction"]]
+          [:dispatch [::set-tx-in-progress false]]]}))

@@ -24,6 +24,7 @@
   {:add-funds-tx-in-progress? false
    :end-job-tx-in-progress? false
    :invite-arbiters-in-progress? false
+   :arbiter-tx-in-progress? false
    :proposal-offset 0
    :proposal-limit 3
    :arbitrations-offset 0
@@ -79,6 +80,8 @@
 (re/reg-event-fx :page.job-detail/set-proposal-offset (create-assoc-handler :proposal-offset))
 
 (re/reg-event-fx :page.job-detail/set-arbitrations-offset (create-assoc-handler :arbitrations-offset))
+(re/reg-event-fx ::set-arbiter-tx-in-progress (create-assoc-handler :arbiter-tx-in-progress?))
+
 
 
 (re/reg-event-db
@@ -199,6 +202,11 @@
   (fn [{:keys [db]} error]
     (merge db [state-key :graphql-error] error)))
 
+(re/reg-event-fx
+  ::arbitration-to-ipfs-failed
+  (fn [_cofx _event]
+    {:fx [[:dispatch [::notification.events/show "Sending arbitration data to IPFS failed"]]
+          [:dispatch [::set-arbiter-tx-in-progress false]]]}))
 
 (defn send-arbitration-data-to-ipfs
   [_cofx [_ event]]
@@ -207,11 +215,18 @@
                                        :user/id
                                        :job-arbiter/fee
                                        :job-arbiter/fee-currency-id])]
-    {:ipfs/call {:func "add"
+    {:fx [[:dispatch [::set-arbiter-tx-in-progress true]]]
+     :ipfs/call {:func "add"
                  :args [(js/Blob. [ipfs-arbitration])]
                  :on-success [:page.job-detail/arbitration-to-ipfs-success event]
-                 :on-error [:page.job-detail/arbitration-to-ipfs-failure event]}}))
+                 :on-error [::arbitration-to-ipfs-failed]}}))
 
+
+(re/reg-event-fx
+  ::arbitration-tx-failed
+  (fn [_cofx _event]
+    {:fx [[:dispatch [::notification.events/show "Sending arbitration transaction failed"]]
+          [:dispatch [::set-arbiter-tx-in-progress false]]]}))
 
 (defn set-quote-for-arbitration-tx
   [cofx [_event-name forwarded-event-data ipfs-data]]
@@ -233,15 +248,16 @@
         ;; TODO: decide if sending to IPFS would serve for anything or all the
         ;;       information involved is already in the contract & QuoteForArbitrationEvent
         contract-args [[(clj->js offered-value)]]]
-    {:dispatch [::web3-events/send-tx
-                {:instance instance
-                 :fn :set-quote-for-arbitration
-                 :args contract-args
-                 :tx-opts tx-opts
-                 :tx-hash [::arbitration-tx-hash]
-                 :on-tx-hash-error [::set-quote-for-arbitration-tx-hash-error]
-                 :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to set quote successful"]
-                 :on-tx-error [::set-quote-for-arbitration-tx-error]}]}))
+    {:fx [[:dispatch [::set-arbiter-tx-in-progress true]]
+          [:dispatch [::web3-events/send-tx
+                      {:instance instance
+                       :fn :set-quote-for-arbitration
+                       :args contract-args
+                       :tx-opts tx-opts
+                       :tx-hash [::arbitration-tx-hash]
+                       :on-tx-hash-error [::arbitration-tx-failed]
+                       :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to set quote successful"]
+                       :on-tx-error [::set-quote-for-arbitration-tx-error]}]]]}))
 
 
 (defn accept-quote-for-arbitration-tx
@@ -262,15 +278,16 @@
         instance (contract-queries/instance (:db cofx) :job job-address)
         tx-opts {:from employer-address :value amount-in-wei}
         contract-args [arbiter-address [(clj->js offered-value)]]]
-    {:dispatch [::web3-events/send-tx
-                {:instance instance
-                 :fn :accept-quote-for-arbitration
-                 :args contract-args
-                 :tx-opts tx-opts
-                 :tx-hash [::arbitration-tx-hash]
-                 :on-tx-hash-error [::accept-quote-for-arbitration-tx-hash-error]
-                 :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to accept quote successful"]
-                 :on-tx-error [::accept-quote-for-arbitration-tx-error]}]}))
+    {:fx [[:dispatch [::set-arbiter-tx-in-progress true]]
+          [:dispatch [::web3-events/send-tx
+                      {:instance instance
+                       :fn :accept-quote-for-arbitration
+                       :args contract-args
+                       :tx-opts tx-opts
+                       :tx-hash [::arbitration-tx-hash]
+                       :on-tx-hash-error [::arbitration-tx-failed]
+                       :on-tx-success [:page.job-detail/arbitration-tx-success "Transaction to accept quote successful"]
+                       :on-tx-error [::arbitration-tx-failed]}]]]}))
 
 
 (defn invite-arbiters
@@ -314,14 +331,10 @@
 (re/reg-event-fx :page.job-detail/set-quote-for-arbitration send-arbitration-data-to-ipfs)
 (re/reg-event-fx :page.job-detail/accept-quote-for-arbitration accept-quote-for-arbitration-tx)
 (re/reg-event-fx :page.job-detail/arbitration-to-ipfs-success set-quote-for-arbitration-tx)
-(re/reg-event-db :page.job-detail/arbitration-to-ipfs-failure (create-logging-handler))
 
 (re/reg-event-fx ::arbitration-tx-hash (create-logging-handler))
-(re/reg-event-fx ::set-quote-for-arbitration-tx-hash-error (create-logging-handler))
 (re/reg-event-fx ::set-quote-for-arbitration-tx-error (create-logging-handler))
 
-(re/reg-event-fx ::accept-quote-for-arbitration-tx-hash-error (create-logging-handler))
-(re/reg-event-fx ::accept-quote-for-arbitration-tx-error (create-logging-handler))
 
 (re/reg-event-fx :page.job-detail/end-job end-job-tx)
 (re/reg-event-fx ::end-job-tx-hash-error (create-logging-handler))
@@ -365,7 +378,6 @@
 (re/reg-event-db
   ::job-arbiter-status-success
   (fn [db [_ job-address arbiter-idle?]]
-    (println ">>> ::job-arbiter-status-success received" job-address arbiter-idle?)
     (assoc-in db [state-key :job-arbiter-idle] arbiter-idle?)))
 
 
@@ -382,7 +394,8 @@
     {:db (-> (:db cofx)
              (set-invite-arbiters-tx-in-progress ,,, false)
              (assoc ,,, state-key state-default))
-     :fx [[:dispatch [:page.job-detail/arbitrations-updated]]
+     :fx [[:dispatch [::set-arbiter-tx-in-progress false]]
+          [:dispatch [:page.job-detail/arbitrations-updated]]
           [:dispatch [::notification.events/show message]]]}))
 
 

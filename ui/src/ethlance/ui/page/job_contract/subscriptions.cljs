@@ -17,7 +17,6 @@
 
 
 (re/reg-sub :page.job-contract/message-text (create-get-handler :message-text))
-(re/reg-sub :page.job-contract/message-recipient (create-get-handler :message-recipient))
 
 (re/reg-sub :page.job-contract/accept-proposal-message-text (create-get-handler :accept-proposal-message-text))
 (re/reg-sub :page.job-contract/accept-invitation-message-text (create-get-handler :accept-invitation-message-text))
@@ -27,3 +26,4 @@
 
 (re/reg-sub :page.job-contract/feedback-rating (create-get-handler :feedback-rating))
 (re/reg-sub :page.job-contract/feedback-text (create-get-handler :feedback-text))
+(re/reg-sub :page.job-contract/buttons-disabled? (create-get-handler :buttons-disabled?))

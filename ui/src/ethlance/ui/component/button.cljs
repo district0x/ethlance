@@ -38,18 +38,20 @@
     (let [props (dissoc props :disabled? :active? :color :size)]
       (into [:a.button
              (merge
-               {:class [(case color
-                          :primary "primary"
-                          :secondary "secondary"
-                          :warning "warning")
-                        (when disabled? "disabled")
-                        (when active? "active")
-                        (condp = size
-                          :small "small"
-                          :normal ""
-                          :large "large"
-                          :auto "auto")]}
-               props)]
+               props
+               {:class
+                [(case color
+                   :primary "primary"
+                   :secondary "secondary"
+                   :warning "warning")
+                 (when disabled? "disabled")
+                 (when active? "active")
+                 (condp = size
+                   :small "small"
+                   :normal ""
+                   :large "large"
+                   :auto "auto")]}
+               (when disabled? {:on-click (fn [_] (println ">>> c-button noop because disabled? true"))}))]
             children))))
 
 
