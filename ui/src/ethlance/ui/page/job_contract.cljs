@@ -72,16 +72,20 @@
 
 
 (defn common-chat-fields
-  [current-user entity field-fn details]
+  [involved-users current-user entity field-fn details]
   (let [direction (fn [viewer creator]
                     (if (ilike= viewer creator)
                       :sent :received))
-        message (field-fn entity)]
+        message (field-fn entity)
+        sender (-> message :creator :user/id)
+        involved-reversed (reduce-kv #(assoc %1 %3 %2) {} involved-users)]
     (when message
       {:id (str "dispute-creation-msg-" (-> message :message/id))
        :direction (direction current-user (-> message :creator :user/id))
+       :user-type (get involved-reversed sender)
        :text (-> message :message/text)
        :full-name (-> message :creator :user/name)
+       :sender-user-id (-> message :creator :user/id)
        :timestamp (-> message :message/date-created)
        :image-url (-> message :creator :user/profile-image)
        :details (map (fn [detail-or-fn]
@@ -97,13 +101,14 @@
 
 
 (defn extract-chat-messages
-  [job-story current-user]
+  [job-story current-user involved-users]
   (let [add-to-details (fn [message additional-detail]
                          (when message
                            (assoc message :details (conj (:details message) additional-detail))))
         format-proposal-amount (fn [job-story]
                                  (token-info/token-info-str (-> job-story :job-story/proposal-rate) (get-in job-story [:job :token-details])))
-        common-fields (partial common-chat-fields current-user job-story)
+        common-fields (partial common-chat-fields involved-users current-user job-story)
+        common-chat-fields (partial common-chat-fields involved-users)
 
         invitation (common-fields :invitation-message ["Sent job invitation"])
         invitation-accepted (common-fields :invitation-accepted-message ["Accepted invitation"])
@@ -129,7 +134,8 @@
                                                     invoice-link])
                               (get-in job-story [:job-story/invoices :items]))
         payment-messages (map #(common-chat-fields current-user % :payment-message
-                                                   [(fn [invoice] (str "Invoice #" (:invoice/id invoice) " paid"))
+                                                   [(fn [invoice]
+                                                      (str "Invoice #" (:invoice/id invoice) " paid"))
                                                     (partial invoice-detail job-story :invoice/amount-paid)
                                                     invoice-link])
                               (get-in job-story [:job-story/invoices :items]))
@@ -152,7 +158,7 @@
 
 
 (defn c-chat
-  [job-story-id]
+  [job-story-id involved-users]
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         message-fields [:message/id
                         :message/text
@@ -189,6 +195,7 @@
                              :job/id
                              :invoice/amount-requested
                              :invoice/amount-paid
+                             :invoice/status
                              [:creation-message message-fields]
                              [:payment-message message-fields]
                              [:dispute-raised-message message-fields]
@@ -198,7 +205,7 @@
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])
         graphql-data-ready? (and (not (:graphql/loading? @messages-result)) (not (:graphql/processing? @messages-result)))]
     (when graphql-data-ready?
-      [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user)])))
+      [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user involved-users)])))
 
 
 (defn c-feedback-panel
@@ -694,7 +701,7 @@
            [:<>
             [:div.header-container
              (when graphql-data-ready? [c-header-profile profile])
-             [c-chat job-story-id]]
+             [c-chat job-story-id involved-users]]
 
             [:div.options-container
              (case current-user-role
