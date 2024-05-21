@@ -116,13 +116,14 @@
                      (add-to-details ,,, (format-proposal-amount job-story)))
         proposal-accepted (common-fields :proposal-accepted-message ["Accepted proposal"])
         feedback-stars (fn [fb] [c-rating {:color :white :size :small :rating (:feedback/rating fb)}])
-        arbiter-feedback (map #(common-chat-fields current-user % :message ["Feedback for arbiter"
+        feedback-receiver (fn [fb] (str "Feedback for " (get-in fb [:feedback/to-user :user/name])))
+        arbiter-feedback (map #(common-chat-fields current-user % :message [feedback-receiver
                                                                             feedback-stars])
                               (:job-story/arbiter-feedback job-story))
-        employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for employer"
+        employer-feedback (map #(common-chat-fields current-user % :message [feedback-receiver
                                                                              feedback-stars])
                                (:job-story/employer-feedback job-story))
-        candidate-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"
+        candidate-feedback (map #(common-chat-fields current-user % :message [feedback-receiver
                                                                               feedback-stars])
                                 (:job-story/candidate-feedback job-story))
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
@@ -194,12 +195,15 @@
 
                          [:job-story/arbiter-feedback [:message/id
                                                        :feedback/rating
+                                                       [:feedback/to-user [:user/id :user/name]]
                                                        [:message message-fields]]]
                          [:job-story/employer-feedback [:message/id
                                                         :feedback/rating
+                                                        [:feedback/to-user [:user/id :user/name]]
                                                         [:message message-fields]]]
                          [:job-story/candidate-feedback [:message/id
                                                          :feedback/rating
+                                                         [:feedback/to-user [:user/id :user/name]]
                                                          [:message message-fields]]]
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
                          [:job-story/invoices
