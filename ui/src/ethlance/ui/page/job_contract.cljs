@@ -222,7 +222,7 @@
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])
-        graphql-data-ready? (and (not (:graphql/loading? @messages-result)) (not (:graphql/processing? @messages-result)))]
+        graphql-data-ready? (get-in @messages-result [:job-story :job-story/invoices])]
     (when graphql-data-ready?
       [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user involved-users)])))
 
@@ -714,7 +714,7 @@
                      :arbiter {:name (get-in job-story [:job :job/arbiter :user :user/name])
                                :address arbiter-id}}
             job-participant-viewing? (not (nil? current-user-role))
-            graphql-data-ready? (and (not (:graphql/loading? result)) (not (:graphql/processing? result)))]
+            graphql-data-ready? (get-in result [:job-story :job])]
         [c-main-layout {:container-opts {:class :job-contract-main-container :random (rand)}}
          (if job-participant-viewing?
            [:<>
