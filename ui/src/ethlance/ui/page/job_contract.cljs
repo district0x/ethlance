@@ -116,13 +116,14 @@
                      (add-to-details ,,, (format-proposal-amount job-story)))
         proposal-accepted (common-fields :proposal-accepted-message ["Accepted proposal"])
         feedback-stars (fn [fb] [c-rating {:color :white :size :small :rating (:feedback/rating fb)}])
-        arbiter-feedback (map #(common-chat-fields current-user % :message ["Feedback for arbiter"
+        feedback-receiver (fn [fb] (str "Feedback for " (get-in fb [:feedback/to-user :user/name])))
+        arbiter-feedback (map #(common-chat-fields current-user % :message [feedback-receiver
                                                                             feedback-stars])
                               (:job-story/arbiter-feedback job-story))
-        employer-feedback (map #(common-chat-fields current-user % :message ["Feedback for employer"
+        employer-feedback (map #(common-chat-fields current-user % :message [feedback-receiver
                                                                              feedback-stars])
                                (:job-story/employer-feedback job-story))
-        candidate-feedback (map #(common-chat-fields current-user % :message ["Feedback for candidate"
+        candidate-feedback (map #(common-chat-fields current-user % :message [feedback-receiver
                                                                               feedback-stars])
                                 (:job-story/candidate-feedback job-story))
         direct-messages (map #(common-chat-fields current-user % identity ["Direct message"])
@@ -145,8 +146,16 @@
                               (get-in job-story [:job-story/invoices :items]))
         dispute-creation (map #(common-chat-fields current-user % identity ["Dispute was created"])
                               (map :dispute-raised-message (get-in job-story [:job-story/invoices :items])))
-        dispute-resolution (map #(common-chat-fields current-user % identity ["Dispute was resolved"])
-                                (map :dispute-resolved-message (get-in job-story [:job-story/invoices :items])))]
+        payout-details (fn [invoice]
+                         (str (get-in invoice [:dispute-raised-message :creator :user/name])
+                              " received "
+                              (token-info/token-info-str (get invoice :invoice/amount-paid) (get-in job-story [:job :token-details]))
+                              " (out of "
+                              (token-info/token-info-str (get invoice :invoice/amount-requested) (get-in job-story [:job :token-details]))
+                              " invoiced)"))
+        dispute-resolution (map #(common-chat-fields current-user % :dispute-resolved-message ["Dispute was resolved"
+                                                                                               payout-details])
+                                (get-in job-story [:job-story/invoices :items]))]
     (->> [dispute-creation dispute-resolution
           invitation invitation-accepted
           proposal proposal-accepted
@@ -186,12 +195,15 @@
 
                          [:job-story/arbiter-feedback [:message/id
                                                        :feedback/rating
+                                                       [:feedback/to-user [:user/id :user/name]]
                                                        [:message message-fields]]]
                          [:job-story/employer-feedback [:message/id
                                                         :feedback/rating
+                                                        [:feedback/to-user [:user/id :user/name]]
                                                         [:message message-fields]]]
                          [:job-story/candidate-feedback [:message/id
                                                          :feedback/rating
+                                                         [:feedback/to-user [:user/id :user/name]]
                                                          [:message message-fields]]]
                          [:direct-messages (into message-fields [:message/creator :direct-message/recipient])]
                          [:job-story/invoices
@@ -210,7 +222,7 @@
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])
-        graphql-data-ready? (and (not (:graphql/loading? @messages-result)) (not (:graphql/processing? @messages-result)))]
+        graphql-data-ready? (get-in @messages-result [:job-story :job-story/invoices])]
     (when graphql-data-ready?
       [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user involved-users)])))
 
@@ -297,7 +309,8 @@
         all-feedbacks-done? (and (empty? open-invoices)
                                  (nil? feedback-receiver-role))
 
-        next-feedback-receiver (get participants feedback-receiver-role)]
+        next-feedback-receiver (get participants feedback-receiver-role)
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     [:div.feedback-input-container
      (when open-invoices?
        [c-information "There are still unpaid invoices. Feedback can be given after they have been paid"])
@@ -323,6 +336,7 @@
                            :on-change #(re/dispatch [:page.job-contract/set-feedback-text %])}]
 
         [c-button {:color :primary
+                   :disabled? @button-disabled?
                    :on-click #(re/dispatch [:page.job-contract/send-feedback
                                             {:job-story/id @job-story-id
                                              :text @feedback-text
@@ -334,13 +348,15 @@
 (defn c-direct-message
   []
   (let [text (re/subscribe [:page.job-contract/message-text])
-        job-story-id (re/subscribe [:page.job-contract/job-story-id])]
+        job-story-id (re/subscribe [:page.job-contract/job-story-id])
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     [:div.message-input-container
      [:div.label "Message"]
      [c-textarea-input {:placeholder ""
                         :value @text
                         :on-change #(re/dispatch [:page.job-contract/set-message-text %])}]
      [c-button {:color :primary
+                :disabled? @button-disabled?
                 :on-click #(re/dispatch [:page.job-contract/send-message {:text @text
                                                                           :job-story/id @job-story-id}])}
       [c-button-label "Send Message"]]]))
@@ -702,7 +718,7 @@
                      :arbiter {:name (get-in job-story [:job :job/arbiter :user :user/name])
                                :address arbiter-id}}
             job-participant-viewing? (not (nil? current-user-role))
-            graphql-data-ready? (and (not (:graphql/loading? result)) (not (:graphql/processing? result)))]
+            graphql-data-ready? (get-in result [:job-story :job])]
         [c-main-layout {:container-opts {:class :job-contract-main-container :random (rand)}}
          (if job-participant-viewing?
            [:<>
