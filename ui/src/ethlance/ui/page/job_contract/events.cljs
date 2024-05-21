@@ -85,10 +85,24 @@
                          :rating rating
                          :to to}]
     {:fx [[:dispatch [::gql-events/mutation {:queries [[:leave-feedback mutation-params]]
+                                             :on-success [::graphql-mutation-success]
+                                             :on-error [::graphql-mutation-error]
                                              :id :SendEmployerFeedbackMutation}]]
+          [:dispatch [::set-buttons-disabled true]]]}))
+
+
+(re/reg-event-fx
+  ::graphql-mutation-success
+  (fn [_cofx _event-v]
+    {:fx [[:dispatch [::set-buttons-disabled false]]
           [:dispatch [:page.job-contract/refetch-messages]]
           [:dispatch [:page.job-contract/clear-message-forms]]]}))
 
+(re/reg-event-fx
+  ::graphql-mutation-error
+  (fn [_cofx _event-v]
+    {:fx [[:dispatch [::set-buttons-disabled false]]
+          [:dispatch [:page.job-contract/refetch-messages]]]}))
 
 (defn send-message
   [{:keys [db]} [_event-name params]]
@@ -98,8 +112,10 @@
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation
                       {:queries [[:send-message mutation-params]]
+                       :on-success [::graphql-mutation-success]
+                       :on-error [::graphql-mutation-error]
                        :id :SendDirectMessageMutation}]]
-          [:dispatch [:page.job-contract/refetch-messages]]]}))
+          [:dispatch [::set-buttons-disabled true]]]}))
 
 
 (defn accept-invitation

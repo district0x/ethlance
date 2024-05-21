@@ -309,7 +309,8 @@
         all-feedbacks-done? (and (empty? open-invoices)
                                  (nil? feedback-receiver-role))
 
-        next-feedback-receiver (get participants feedback-receiver-role)]
+        next-feedback-receiver (get participants feedback-receiver-role)
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     [:div.feedback-input-container
      (when open-invoices?
        [c-information "There are still unpaid invoices. Feedback can be given after they have been paid"])
@@ -335,6 +336,7 @@
                            :on-change #(re/dispatch [:page.job-contract/set-feedback-text %])}]
 
         [c-button {:color :primary
+                   :disabled? @button-disabled?
                    :on-click #(re/dispatch [:page.job-contract/send-feedback
                                             {:job-story/id @job-story-id
                                              :text @feedback-text
@@ -346,13 +348,15 @@
 (defn c-direct-message
   []
   (let [text (re/subscribe [:page.job-contract/message-text])
-        job-story-id (re/subscribe [:page.job-contract/job-story-id])]
+        job-story-id (re/subscribe [:page.job-contract/job-story-id])
+        button-disabled? (re/subscribe [:page.job-contract/buttons-disabled?])]
     [:div.message-input-container
      [:div.label "Message"]
      [c-textarea-input {:placeholder ""
                         :value @text
                         :on-change #(re/dispatch [:page.job-contract/set-message-text %])}]
      [c-button {:color :primary
+                :disabled? @button-disabled?
                 :on-click #(re/dispatch [:page.job-contract/send-message {:text @text
                                                                           :job-story/id @job-story-id}])}
       [c-button-label "Send Message"]]]))
