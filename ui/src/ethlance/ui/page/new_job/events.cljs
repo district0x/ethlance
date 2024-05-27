@@ -127,6 +127,7 @@
       {:fx [(decimals-fx-fn)]
        :db (-> db
                (assoc-in ,,, [state-key :job/token-address] (token-address token-type))
+               (assoc-in ,,, [state-key :job/token-amount] 1)
                (assoc-in ,,, [state-key :job/token-type] token-type))})))
 
 
@@ -323,7 +324,9 @@
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
-          token-amount (get-in job-fields [:job/token-amount :token-amount])
+          token-amount (if (= token-type :erc721)
+                         1
+                         (get-in job-fields [:job/token-amount :token-amount]))
           address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
