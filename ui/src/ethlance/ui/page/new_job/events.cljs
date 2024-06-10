@@ -95,7 +95,6 @@
 (re/reg-event-db
   :page.new-job/decimals-response
   (fn [db [_ decimals]]
-    (println ">>> DECIMALS RESPONSE" decimals)
     (assoc-in db [state-key :job/token-decimals] decimals)))
 
 
@@ -128,6 +127,7 @@
       {:fx [(decimals-fx-fn)]
        :db (-> db
                (assoc-in ,,, [state-key :job/token-address] (token-address token-type))
+               (assoc-in ,,, [state-key :job/token-amount] 1)
                (assoc-in ,,, [state-key :job/token-type] token-type))})))
 
 
@@ -172,8 +172,8 @@
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
       {:ipfs/call {:func "add"
                    :args [(js/Blob. [ipfs-job])]
-                   :on-success [:job-to-ipfs-success]
-                   :on-error [:job-to-ipfs-failure]}})))
+                   :on-success [::job-to-ipfs-success]
+                   :on-error [::job-to-ipfs-failure]}})))
 
 
 (re/reg-event-fx
@@ -209,27 +209,28 @@
 
 (re/reg-event-fx
   ::tx-hash-error
-  (fn [_cofx result]
-    (println ">>> ⚠️ ⚠️   ::tx-hash-error" result)))
+  (fn [{:keys [db]} result]
+    {:db (set-tx-in-progress db false)
+     :fx [[:dispatch [::notification.events/show "Error with sending transaction"]]]}))
 
 
 (re/reg-event-fx
   ::erc20-allowance-approval-success
   (fn [_cofx result]
-    (println ">>> ::erc20-allowance-approval-success" result)
-    {:fx [[:dispatch [::send-create-job-tx]]]}))
+    {:fx [[:dispatch [::notification.events/show "Got the ERC20 allowance approval confirmation"]]
+          [:dispatch [::send-create-job-tx]]]}))
 
 
 (re/reg-event-fx
   ::erc20-allowance-approval-error
-  (fn [_cofx result]
-    (println ">>> ::erc20-allowance-approval-error" result)))
+  (fn [{:keys [db]} result]
+    {:db (set-tx-in-progress db false)
+     :fx [[:dispatch [::notification.events/show "Error obtaining allowance for the ERC20 token"]]]}))
 
 
 (re/reg-event-fx
   ::erc20-allowance-amount-success
   (fn [{:keys [db]} [_ result]]
-    (println ">>> ::erc20-allowance-amount-success" result (type result))
     (let [offered-value (get-job-creation-param db :offered-value)
           amount (:value offered-value)
           erc20-address (get-in offered-value [:token :tokenContract :tokenAddress])
@@ -243,6 +244,7 @@
                                      :fn :approve
                                      :args [spender amount]
                                      :tx-opts {:from owner}
+                                     :on-tx-hash-error [::tx-hash-error]
                                      :on-tx-success [::erc20-allowance-approval-success]
                                      :on-tx-error [::erc20-allowance-approval-error]}]]
       {:db (set-tx-in-progress db true)
@@ -253,8 +255,9 @@
 
 (re/reg-event-fx
   ::erc20-allowance-amount-error
-  (fn [_cofx result]
-    (println ">>> ::erc20-allowance-amount-error" result)))
+  (fn [{:keys [db]} result]
+    {:db (set-tx-in-progress db false)
+     :fx [[:dispatch [::notification.events/show "Couldn't get the ERC20 allowance amount"]]]}))
 
 
 (re/reg-event-fx
@@ -308,6 +311,7 @@
                                              :fn :safe-transfer-from
                                              :args safe-transfer-args
                                              :tx-opts {:from owner}
+                                             :on-tx-hash-error [::tx-hash-error]
                                              :on-tx-success [::create-job-tx-success]
                                              :on-tx-error [::create-job-tx-error]}]]
       {:db (set-tx-in-progress db true)
@@ -315,12 +319,14 @@
 
 
 (re/reg-event-fx
-  :job-to-ipfs-success
+  ::job-to-ipfs-success
   (fn [cofx event]
     (let [creator (accounts-queries/active-account (:db cofx))
           job-fields (get-in cofx [:db state-key])
           token-type (:job/token-type job-fields)
-          token-amount (get-in job-fields [:job/token-amount :token-amount])
+          token-amount (if (= token-type :erc721)
+                         1
+                         (get-in job-fields [:job/token-amount :token-amount]))
           address-placeholder "0x0000000000000000000000000000000000000000"
           token-address (if (not (= token-type :eth))
                           (:job/token-address job-fields)
@@ -393,5 +399,6 @@
 
 (re/reg-event-fx
   ::job-to-ipfs-failure
-  (fn [_ _]
-    {:dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))
+  (fn [{:keys [db]} _]
+    {:db (set-tx-in-progress db false)
+     :dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))
