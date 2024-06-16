@@ -11,6 +11,7 @@
     [district.server.async-db :as db]
     [district.server.config :refer [config]]
     [ethlance.server.db.schema :refer [database-schema]]
+    [ethlance.server.tracing.macros :refer-macros [go! safe-go!]]
     [district.shared.async-helpers :refer [<? safe-go]]
     [honeysql.core :as sql]
     [mount.core :as mount :refer [defstate]]
@@ -37,7 +38,7 @@
    (print-db :users) prints only users table"
   ([_] (print-db nil))
   ([conn table]
-   (safe-go
+   (go!
      (let [select (fn [& [select-fields & r]]
                     (pprint/print-table (<? (db/all conn (->> (partition 2 r)
                                                               (map vec)
@@ -103,7 +104,7 @@
 (defn create-db!
   "Creates the database with tables defined in the `database-schema`."
   [conn]
-  (safe-go
+  (go!
     (log/info "Creating Sqlite Database...")
     (doseq [{:keys [table-name table-columns]} database-schema]
       (<? (db/run! conn {:create-table [table-name :if-not-exists] :with-columns [table-columns]})))))
@@ -112,7 +113,7 @@
 (defn drop-db!
   "Drops all of the database tables defined in the `database-schema`."
   [conn]
-  (safe-go
+  (go!
     (log/info "Dropping Sqlite Database...")
     (doseq [{:keys [table-name]} (reverse database-schema)]
       (log/debug (str/format "Dropping Database Table '%s' ..." table-name) {:conn conn})
@@ -131,7 +132,7 @@
   "Inserts into the given `table-name` with the given `item`. The
   table-name and item structure are defined in the `database-schema`."
   [conn table-name item & {:keys [ignore-conflict-on]}]
-  (safe-go
+  (go!
     (if (get-table-schema table-name)
       (let [table-column-names (set (get-table-column-names table-name))
             auto-increment-columns (get-table-columns-by-type table-name auto-increment-types)
@@ -168,7 +169,7 @@
   least one id-key in order to correctly update a row.
   "
   [conn table-name item]
-  (safe-go
+  (go!
     (if-let [table-schema (get-table-schema table-name)]
       (do
         (assert (seq (:id-keys table-schema))
@@ -201,7 +202,7 @@
   - If `fields` are not supplied, all of the table columns are returned.
   "
   [conn table-name item & fields]
-  (safe-go
+  (go!
     (if-let [table-schema (get-table-schema table-name)]
       (do
         (assert (seq (:id-keys table-schema))
@@ -232,7 +233,7 @@
   returned.
   "
   [conn table-name item & fields]
-  (safe-go
+  (go!
     (if-let [table-schema (get-table-schema table-name)]
       (do
         (assert (sequential? (:list-keys table-schema))
@@ -286,7 +287,7 @@
 
 (defn update-associated-values
   [conn user-id [pk-table target-table column values]]
-  (safe-go
+  (go!
     (when-not (nil? pk-table) (<? (db/run! conn (add-missing-values pk-table values))))
     (<? (db/run! conn (remove-old-associations user-id target-table)))
     (<? (db/run! conn (add-new-associations user-id target-table column values)))))
@@ -296,7 +297,7 @@
   [conn user]
   (let [values (select-keys user (get-table-column-names :Users))
         target [nil :UserLanguage :language/id (:user/languages user)]]
-    (safe-go
+    (go!
       (<? (db/run! conn
                    {:insert-into :Users,
                     :values [values]
@@ -309,7 +310,7 @@
 (defn upsert-candidate
   [conn user]
   (let [candidate (select-keys user (get-table-column-names :Candidate))]
-    (safe-go
+    (go!
       (<? (db/run! conn {:insert-into :Candidate
                          :values [candidate]
                          :upsert (array-map :on-conflict [:user/id]
@@ -322,7 +323,7 @@
 
 (defn upsert-employer
   [conn user]
-  (safe-go
+  (go!
     (let [employer (select-keys user (get-table-column-names :Employer))]
       (<? (db/run! conn {:insert-into :Employer
                          :values [employer]
@@ -333,7 +334,7 @@
 (defn upsert-arbiter
   [conn user]
   (let [arbiter (select-keys user (get-table-column-names :Arbiter))]
-    (safe-go
+    (go!
       (<? (db/run! conn {:insert-into :Arbiter
                          :values [arbiter]
                          :upsert (array-map :on-conflict [:user/id]
@@ -342,7 +343,7 @@
 
 (defn upsert-user!
   [conn {:keys [user candidate employer arbiter]}]
-  (safe-go
+  (go!
     (when user (upsert-user conn user))
     (when candidate (upsert-candidate conn candidate))
     (when employer (upsert-employer conn employer))
@@ -350,7 +351,7 @@
 
 
 ;; (defn upsert-user! [conn {:user/keys [type] :as user}]
-;;   (safe-go
+;;   (go!
 ;;    (let [values (select-keys user (get-table-column-names :Users))
 ;;          _ (<? (db/run! conn
 ;;                         {:insert-into :Users,
@@ -385,7 +386,7 @@
 
 (defn upsert-user-social-accounts!
   [conn user-social-accounts]
-  (safe-go
+  (go!
     (let [values (select-keys user-social-accounts (get-table-column-names :UserSocialAccounts))]
       (<? (db/run! conn
                    {:insert-into :UserSocialAccounts,
@@ -397,14 +398,14 @@
 
 (defn add-skills
   [conn job-id skills]
-  (safe-go
+  (go!
     (doseq [skill skills]
       (<? (insert-row! conn :JobSkill {:job/id job-id :skill/id skill})))))
 
 
 (defn add-job-arbiter
   [conn job-id user-address]
-  (safe-go
+  (go!
     (<? (insert-row! conn :JobArbiter {:job/id job-id
                                        :user/id user-address
                                        :job-arbiter/status "invited"
@@ -413,13 +414,13 @@
 
 (defn update-arbitration
   [conn params]
-  (safe-go
+  (go!
     (<? (update-row! conn :JobArbiter params))))
 
 
 (defn add-job
   [conn job]
-  (safe-go
+  (go!
     (let [skills (:job/required-skills job)
           job-id-from-ipfs (:job/id job)
           job-exists-query {:select [(sql/call :exists {:select [1] :from [:Job] :where [:= :Job.job/id job-id-from-ipfs]})]}
@@ -435,19 +436,19 @@
 
 (defn update-job
   [conn job-id job-data]
-  (safe-go
+  (go!
     (<? (update-row! conn :Job (assoc job-data :job/id job-id)))))
 
 
 (defn update-job-story
   [conn job-story-id job-story-data]
-  (safe-go
+  (go!
     (<? (update-row! conn :JobStory (assoc job-story-data :job-story/id job-story-id)))))
 
 
 (defn get-invoice-message
   [conn job-story-id invoice-id]
-  (safe-go
+  (go!
     (<? (db/get conn {:select [:*]
                       :from [:JobStoryInvoiceMessage]
                       :where [:and
@@ -457,14 +458,14 @@
 
 (defn update-job-story-invoice-message
   [conn msg]
-  (safe-go
+  (go!
     (<? (update-row! conn :JobStoryInvoiceMessage msg))))
 
 
 (defn add-message
   "Inserts a Message. Returns autoincrement id"
   [conn message]
-  (safe-go
+  (go!
     (let [msg-id (-> (<? (insert-row! conn :Message message))
                      :message/id)
           story-status (case (:job-story-message/type message)
@@ -535,19 +536,19 @@
 (defn add-job-story
   "Inserts a JobStory. Returns autoincrement id"
   [conn job-story]
-  (safe-go
+  (go!
     (:job-story/id (<? (insert-row! conn :JobStory job-story)))))
 
 
 (defn add-job-story-message
   [conn job-story-message]
-  (safe-go
+  (go!
     (<? (insert-row! conn :JobStoryMessage job-story-message))))
 
 
 (defn add-message-file
   [conn message-id file]
-  (safe-go
+  (go!
     (let [{:file/keys [id]} (<? (insert-row! conn :File file))]
       (<? (insert-row! conn :MessageFile {:message/id message-id
                                           :file/id id})))))
@@ -555,14 +556,14 @@
 
 (defn update-job-candidate
   [conn job-id user-address]
-  (safe-go
+  (go!
     (<? (update-row! conn :EthlanceJob {:ethlance-job/id job-id
                                         :ethlance-job/candidate user-address}))))
 
 
 (defn get-job-story-id-by-job-id
   [conn job-id]
-  (safe-go
+  (go!
     (:id (<? (db/get conn {:select [[:js.job-story/id :id]]
                            :from [[:JobStory :js]]
                            :join [[:Job :j] [:= :js.job/id :j.job/id]]
@@ -571,7 +572,7 @@
 
 (defn get-candidate-id-by-job-story-id
   [conn job-story-id]
-  (safe-go
+  (go!
     (:id (<? (db/get conn {:select [[:job-story/candidate :id]]
                            :from [:JobStory]
                            :where [:= :job-story/id job-story-id]})))))
@@ -579,7 +580,7 @@
 
 (defn get-employer-id-by-job-story-id
   [conn job-story-id]
-  (safe-go
+  (go!
     (:id (<? (db/get conn {:select [[:Job.job/creator :id]]
                            :from [:JobStory]
                            :join [:Job [:= :Job.job/id :JobStory.job/id]]
@@ -588,7 +589,7 @@
 
 (defn get-arbiter-id-by-job-story-id
   [conn job-story-id]
-  (safe-go
+  (go!
     (:id (<? (db/get conn {:select [[:JobArbiter.user/id :id]]
                            :from [:JobStory]
                            :join [:Job [:= :Job.job/id :JobStory.job/id]
@@ -600,7 +601,7 @@
 
 (defn update-job-story-status
   [conn job-story-id status]
-  (safe-go
+  (go!
     (<? (db/get conn {:update :JobStory
                       :set {:job-story/status status}
                       :where [:= :job-story/id job-story-id]}))))
@@ -608,7 +609,7 @@
 
 (defn set-job-story-invoice-status-for-job
   [conn job-id invoice-id status]
-  (safe-go
+  (go!
     (let [job-story-id (<? (get-job-story-id-by-job-id conn job-id))]
       (<? (db/run! conn {:update :JobStoryInvoiceMessage
                          :set {:invoice/status status}
@@ -619,7 +620,7 @@
 
 (defn add-contribution
   [conn job-id contributor-address contribution-id amount]
-  (safe-go
+  (go!
     (<? (insert-row! conn :JobContribution {:job/id job-id
                                             :user/id contributor-address
                                             :job-contribution/amount amount
@@ -628,7 +629,7 @@
 
 (defn get-token
   [conn token-address]
-  (safe-go
+  (go!
     (<? (db/get conn {:select [:*]
                       :from [:TokenDetail]
                       :where [:= :TokenDetail.token-detail/id token-address]}))))
@@ -636,7 +637,7 @@
 
 (defn store-token-details
   [conn token-details]
-  (safe-go
+  (go!
     (<? (insert-row! conn :TokenDetail
                      {:token-detail/id (:address token-details)
                       :token-detail/type (:type token-details)
@@ -684,7 +685,7 @@
 (defn start
   "Start the ethlance-db mount component."
   [{:keys [resync?] :as opts}]
-  (safe-go
+  (go!
     (let [conn (<? (db/get-connection))]
       (log/info "Starting Ethlance DB component" opts)
       (when resync?
