@@ -1,5 +1,5 @@
-FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
 ARG BUILD_ENV
+FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
 USER root
 
 ENV ETHLANCE_COMPONENT="server"
@@ -24,6 +24,7 @@ COPY config .
 WORKDIR /build
 # RUN git clone https://github.com/district0x/d0x-libs
 
+ARG BUILD_ENV
 FROM init as build_server
 WORKDIR $ETHLANCE_SOURCE_ROOT
 RUN yarn install && ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile
@@ -38,6 +39,7 @@ RUN yarn && \
 WORKDIR "${ETHLANCE_SOURCE_ROOT}/server"
 RUN yarn && npx shadow-cljs release dev-server
 
+ARG BUILD_ENV
 FROM node:18
 ENV ETHLANCE_SOURCE_ROOT=/deploy
 ENV ETHLANCE_SERVER_ROOT=/deploy/server

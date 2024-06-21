@@ -1,5 +1,5 @@
+ARG BUILD_ENV
 FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
-ARG BUILD_ENV=qa
 USER root
 
 ENV ETHLANCE_COMPONENT="ui"
@@ -15,7 +15,7 @@ ENV ETHLANCE_CONFIG_PATH="/build/ethlance/config/${ETHLANCE_COMPONENT}-config-${
 WORKDIR /build/ethlance
 COPY . .
 
-RUN cat shared/src/ethlance/shared/smart_contracts_${ETHLANCE_ENV}.cljs
+RUN cat shared/src/ethlance/shared/smart_contracts_${BUILD_ENV}.cljs
 
 WORKDIR /build/ethlance-config
 COPY config .
@@ -23,9 +23,9 @@ COPY config .
 # WORKDIR /build
 # RUN git clone https://github.com/district0x/d0x-libs
 
-
+ARG BUILD_ENV
 FROM init as build_stage
-ENV ETHLANCE_ENV=qa
+ENV ETHLANCE_ENV=${BUILD_ENV}
 WORKDIR $ETHLANCE_SOURCE_ROOT
 RUN yarn install && ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile
 
@@ -34,8 +34,9 @@ RUN yarn install && \
     ETHLANCE_ENV="${BUILD_ENV}" npx shadow-cljs release dev-ui && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 
+ARG BUILD_ENV
 FROM nginx:alpine
-ENV ETHLANCE_ENV=qa
+ENV ETHLANCE_ENV=${BUILD_ENV}
 
 COPY docker-builds/ui/ethlance.conf /etc/nginx/conf.d/
 COPY docker-builds/ui/default.conf /etc/nginx/conf.d/default.conf
