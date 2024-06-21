@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "master", "main", "newlance"]
+    branches: [ "master", "main", "newlance", "build_prod"]
   pull_request:
 
 permissions:
@@ -98,7 +98,7 @@ jobs:
     needs: run_tests
     strategy:
       matrix:
-        env: ["qa"]
+        env: ["qa", "prod"]
     permissions:
       contents: read
     runs-on: ubuntu-latest
