@@ -1,5 +1,5 @@
 FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0 as init
-ARG BUILD_ENV=qa
+ARG BUILD_ENV
 USER root
 
 ENV ETHLANCE_COMPONENT="server"
@@ -29,7 +29,7 @@ WORKDIR $ETHLANCE_SOURCE_ROOT
 RUN yarn install && ETHLANCE_ENV="${BUILD_ENV}" npx truffle compile
 
 # Release deployment
-WORKDIR $ETHLANCE_SOURCE_ROOT/ui 
+WORKDIR $ETHLANCE_SOURCE_ROOT/ui
 RUN yarn && \
     ETHLANCE_ENV="${BUILD_ENV}" npx shadow-cljs release dev-ui && \
     ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
@@ -38,8 +38,6 @@ RUN yarn && \
 WORKDIR "${ETHLANCE_SOURCE_ROOT}/server"
 RUN yarn && npx shadow-cljs release dev-server
 
-ARG BUILD_ENV=qa
-ARG ETHLANCE_ENV=qa
 FROM node:18
 ENV ETHLANCE_SOURCE_ROOT=/deploy
 ENV ETHLANCE_SERVER_ROOT=/deploy/server
@@ -49,8 +47,8 @@ ENV UI_CONFIG_PATH="/deploy/resources/config/ui-config-${BUILD_ENV}.edn"
 ENV SERVER_CONFIG_PATH="/deploy/resources/config/server-config-${BUILD_ENV}.edn"
 WORKDIR "${ETHLANCE_SERVER_ROOT}"
 
-COPY --from=build_server /build/ethlance-config/ui-config-${ETHLANCE_ENV}.edn /deploy/resources/config/ui-config-${ETHLANCE_ENV}.edn
-COPY --from=build_server /build/ethlance-config/server-config-${ETHLANCE_ENV}.edn /deploy/resources/config/server-config-${ETHLANCE_ENV}.edn
+COPY --from=build_server /build/ethlance-config/ui-config-${BUILD_ENV}.edn /deploy/resources/config/ui-config-${BUILD_ENV}.edn
+COPY --from=build_server /build/ethlance-config/server-config-${BUILD_ENV}.edn /deploy/resources/config/server-config-${BUILD_ENV}.edn
 COPY --from=build_server /build/ethlance/resources /deploy/resources
 COPY --from=build_server /build/ethlance/server/node_modules /deploy/server/node_modules/
 COPY --from=build_server /build/ethlance/server/package.json /build/ethlance/server/out/ethlance_server* /deploy/server/
