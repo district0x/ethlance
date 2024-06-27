@@ -1004,16 +1004,17 @@
 
 (defn job-story->invoices-resolver
   [root {:keys [:statuses :limit :offset] :as args} _]
-  (db/with-async-resolver-conn conn
-                               (let [parsed-root (graphql-utils/gql->clj root)
-                                     job-story-id (:job-story/id (graphql-utils/gql->clj root))
-                                     snake-statuses (map camel-snake-kebab.core/->kebab-case statuses)
-                                     query (cond-> invoice-query
-                                             job-story-id (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])
-                                             statuses (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status snake-statuses]))
-                                     result-pages (<? (paged-query conn query limit offset))]
-                                 (log/debug "job-story->invoices-resolver RESULT-PAGES" job-story-id " | statuses" statuses)
-                                 result-pages)))
+  (db/with-async-resolver-conn
+    conn
+    (let [parsed-root (graphql-utils/gql->clj root)
+          job-story-id (:job-story/id (graphql-utils/gql->clj root))
+          snake-statuses (map camel-snake-kebab.core/->kebab-case statuses)
+          query (cond-> invoice-query
+                  job-story-id (sql-helpers/merge-where [:= job-story-id :JobStory.job-story/id])
+                  statuses (sql-helpers/merge-where [:in :JobStoryInvoiceMessage.invoice/status snake-statuses]))
+          result-pages (<? (paged-query conn query limit offset))]
+      (log/debug "job-story->invoices-resolver RESULT-PAGES" job-story-id " | statuses" statuses)
+      result-pages)))
 
 
 (defn job->invoices-resolver
