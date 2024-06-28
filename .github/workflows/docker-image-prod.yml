@@ -1,0 +1,88 @@
+name: Docker Prod Image
+
+on:
+  push:
+    branches: [ "master", "main", "newlance", "build_prod"]
+
+permissions:
+  contents: read
+
+jobs:
+  docker_build_prod:
+    name: Build images and deploy contracts
+    strategy:
+      matrix:
+        env: ["prod"]
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ethlance code
+        uses: actions/checkout@v4
+
+      - name: Restore Top level cache directory for Ethlance
+        uses: actions/cache@v3
+        id: yarn-cache-top-level
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-ethlance-top-level-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ethlance-top-level-yarn-
+
+      - name: Install ethlance top-level node modules
+        run: |
+          yarn install
+
+      - name: Set up QEMU
+        id: setup-qemu
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Checkout ethlance-configs repo
+        uses: actions/checkout@v4
+        with:
+          repository: district0x/ethlance-config
+          path: ethlance-config
+          token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
+          ref: master
+
+      - name: Copy configs
+        run: |
+          cp -r ethlance-config/config .
+          ls -lah config/
+
+      - name: Build and push UI
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          file: docker-builds/ui/Dockerfile
+          build-args: BUILD_ENV=${{ matrix.env }}
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-ui:latest-${{ matrix.env }}
+
+      - name: Build and push Server
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          platforms: linux/amd64
+          file: docker-builds/server/Dockerfile
+          build-args: BUILD_ENV=${{ matrix.env }}
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }}
