@@ -101,6 +101,7 @@
 (defn -main
   [& _]
   (log/info "Initializing Server...")
+  (log/info "NEW and IMPROVED (debuggin)") ; TODO: remove this
   (async-helpers/extend-promises-as-channels!)
   (merge-config! {:ns-blacklist ["district.server.smart-contracts"]})
   (safe-go

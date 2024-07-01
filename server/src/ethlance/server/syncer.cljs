@@ -3,9 +3,12 @@
     [bignumber.core :as bn]
     [camel-snake-kebab.core :as camel-snake-kebab]
     [cljs.core.async.impl.protocols :refer [ReadPort]]
-    [clojure.core.async :as async :refer [<!] :include-macros true]
+    [cljs-web3-next.core :as web3-core]
+    [cljs-web3-next.eth :as web3-eth]
+    [clojure.core.async :as async :refer [<! go] :include-macros true]
     [district.server.async-db :as db]
     [district.server.smart-contracts :as smart-contracts]
+    [district.server.web3 :refer [ping-start ping-stop web3]]
     [district.server.web3-events :as web3-events]
     [district.shared.async-helpers :refer [<? safe-go]]
     [ethlance.server.db :as ethlance-db]
@@ -31,6 +34,26 @@
   :stop (stop))
 
 
+(defonce reload-timeout (atom nil))
+(defonce last-block-number (atom -1))
+
+(defn- reload-handler [interval]
+  (js/setInterval
+    (fn []
+      (go
+        (let [connected? (true? (<! (web3-eth/is-listening? @web3)))]
+          (when connected?
+            (do
+              (log/debug (str "disconnecting from provider to force reload. Last block: " @last-block-number))
+              (web3-core/disconnect @web3))))))
+    interval))
+
+(defn reload-timeout-start [{:keys [:reload-interval]}]
+  (reset! reload-timeout (reload-handler reload-interval)))
+
+(defn reload-timeout-stop []
+  (js/clearInterval @reload-timeout))
+
 (defn get-timestamp
   ([] (get-timestamp {}))
   ([_event] (.now js/Date)))
@@ -52,7 +75,7 @@
 
 (defn ensure-db-token-details
   [token-type token-address conn]
-  (safe-go
+  (go!
     (let [eth-token-details {:address "0x0000000000000000000000000000000000000000"
                              :name "Ether"
                              :symbol "ETH"
@@ -105,7 +128,7 @@
 
 (defn handle-invoice-created
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info "Handling event handle-invoice-created")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           job-story-id (:job-story/id ipfs-data)
@@ -128,7 +151,7 @@
 
 (defn handle-invoice-paid
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info "Handling event handle-invoice-paid")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           invoice-id (:invoice-id args)
@@ -157,7 +180,7 @@
 
 (defn handle-dispute-raised
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info "Handling event dispute-raised")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           job-id (:job args)
@@ -178,7 +201,7 @@
 
 (defn handle-dispute-resolved
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info "Handling event dispute-resolved")
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           ;; job-id (:job args) ; FIXME: after re-deploying the contracts can use this added event field to get the job contract address (instead of relying on IPFS)
@@ -204,7 +227,7 @@
 
 (defn handle-candidate-added
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info "Handling event candidate-added" args)
     (let [ipfs-data (<? (server-utils/get-ipfs-meta @ipfs/ipfs (shared-utils/hex->base58 (:ipfs-data args))))
           job-id (:job args)
@@ -222,7 +245,7 @@
 
 (defn handle-quote-for-arbitration-set
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info (str "Handling event quote-for-arbitration-set" args))
     (let [quoted-value (offered-vec->flat-map (first (:quote args)))
           token-type (enum-val->token-type (:token-type quoted-value))
@@ -241,7 +264,7 @@
 
 (defn handle-quote-for-arbitration-accepted
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info (str ">>> Handling event quote-for-arbitration-accepted" args))
     (let [arbiter-id (:arbiter args)
           job-id (:job args)
@@ -270,7 +293,7 @@
 
 (defn handle-arbiters-invited
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info (str ">>> Handling event ArbitersInvited" args))
     (let [job-id (:job args)
           arbiters (:arbiters args)]
@@ -287,7 +310,7 @@
 
 (defn handle-job-ended
   [conn _ {:keys [args]}]
-  (safe-go
+  (go!
     (log/info (str "Handling event job-ended" args))
     (let [job-id (:job args)
           job-status "ended"
@@ -303,7 +326,8 @@
 
 (defn handle-job-funds-change
   [movement-sign-fn conn _ {:keys [args] :as event}]
-  (safe-go!
+  (println ">>> handle-job-funds-change START")
+  (go!
     (log/info (str "handle-job-funds-change"))
     (let [span (t-api/get-active-span)
           funds (:funds args)
@@ -329,6 +353,7 @@
           "add-funding-to-db"
           (fn [span]
             (go!
+              (println ">>> handle-job-funds-change INSERT")
               (<? (ethlance-db/insert-row! conn :JobFunding funding :ignore-conflict-on [:tx]))
               (t-api/end-span! span))))))))
 
@@ -359,51 +384,53 @@
   (memoize block-timestamp*))
 
 
-(defn- build-dispatcher
+(defn- build-single-event-dispatcher
   "Dispatcher is a function you can call with a event map and it will process it with syncer."
-  [web3-events-map events-callbacks]
-  (let [contract-ev->handler (reduce (fn [r [ev-ns-key [contract-key ev-key]]]
-                                       (assoc r [contract-key ev-key] (get events-callbacks ev-ns-key)))
-                                     {}
-                                     web3-events-map)]
-    (fn [err {:keys [:block-number] :as event}]
-      (safe-go!
-        (let [contract-key (-> event :contract :contract-key)
-              event-key (-> event :event)
-              handler (get contract-ev->handler [contract-key event-key])
-              span (t-api/start-span (str (name contract-key) "." (name event-key)))
-              conn (<? (db/get-connection))]
-          (try
-            (let [block-timestamp (<? (block-timestamp block-number))
-                  event (-> event
-                            (update ,,, :event camel-snake-kebab/->kebab-case)
-                            (update-in ,,, [:args :version] bn/number)
-                            (update-in ,,, [:args :timestamp] (fn [timestamp]
-                                                                (if timestamp
-                                                                  (bn/number timestamp)
-                                                                  block-timestamp))))
-                  _ (db/begin-tx conn)
-                  res (t-api/with-span-context span #(handler conn err event))
-                  _ (db/commit-tx conn)]
-              (t-api/set-span-ok! span)
-              ;; Calling a handler can throw or return a go block (when using safe-go)
-              ;; in the case of async ones, the go block will return the js/Error.
-              ;; In either cases push the event to the queue, so it can be replayed later
-              (when (satisfies? ReadPort res)
-                (let [r (<! res)]
-                  (when (instance? js/Error r)
-                    (throw r))
-                  (t-api/set-span-ok! span)
-                  (t-api/end-span! span)))
-              res)
-            (catch js/Error error
-              (replay-queue/push-event conn event)
-              (t-api/set-span-error! span error)
-              (t-api/end-span! span)
-              (db/rollback-tx conn)
-              (throw error))
-            (finally
-              (db/release-connection conn))))))))
+  [handler]
+  (fn [err {:keys [:block-number] :as event}]
+    (go!
+      (println ">>> build-single-event-dispatcher processing: " (-> event :event))
+      (let [contract-key (-> event :contract :contract-key)
+            event-key (-> event :event)
+            span (t-api/start-span (str (name contract-key) "." (name event-key)))
+            conn (<? (db/get-connection))]
+        (try
+          (println ">>> 1. START inside try")
+          (let [block-timestamp (<? (block-timestamp block-number))
+                event (-> event
+                          (update ,,, :event camel-snake-kebab/->kebab-case)
+                          (update-in ,,, [:args :version] bn/number)
+                          (update-in ,,, [:args :timestamp] (fn [timestamp]
+                                                              (if timestamp
+                                                                (bn/number timestamp)
+                                                                block-timestamp))))
+                _ (db/begin-tx conn)
+                res (t-api/with-span-context span #(handler conn err event))
+                _ (db/commit-tx conn)]
+            (println "Event processed normally (handler returned result (not chan))" event)
+            (t-api/set-span-ok! span)
+            ;; Calling a handler can throw or return a go block (when using safe-go)
+            ;; in the case of async ones, the go block will return the js/Error.
+            ;; In either cases push the event to the queue, so it can be replayed later
+            (when (satisfies? ReadPort res)
+              (let [r (<! res)]
+                (when (instance? js/Error r)
+                  (throw r))
+                (t-api/set-span-ok! span)
+                (log/info "Event processed normally (handler returned channel)" event)
+                (t-api/end-span! span)))
+
+            (println ">>> 2. END of inside try")
+            res)
+          (catch js/Error error
+            (log/error "Error in processing" event)
+            (replay-queue/push-event conn event)
+            (t-api/set-span-error! span error)
+            (t-api/end-span! span)
+            (db/rollback-tx conn)
+            (throw error))
+          (finally
+            (db/release-connection conn)))))))
 
 
 (defn start
@@ -422,18 +449,21 @@
                          :ethlance/arbiters-invited handle-arbiters-invited
                          :ethlance/funds-in (partial handle-job-funds-change +)
                          :ethlance/funds-out (partial handle-job-funds-change -)}
-
-        dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
-        callback-ids (doall (for [[event-key] event-callbacks]
-                              (web3-events/register-callback! event-key dispatcher)))]
+        callback-ids (doall (for [[event-key callback] event-callbacks]
+                              (web3-events/register-callback! event-key (build-single-event-dispatcher callback))))]
+    (web3-events/register-after-past-events-dispatched-callback!
+      (fn []
+        (log/warn "Syncing past events finished")
+        (ping-start {:ping-interval 10000})
+        (reload-timeout-start {:reload-interval 7200000})))
     (log/debug "Syncer started")
-    {:callback-ids callback-ids
-     :dispatcher dispatcher}))
+    {:callback-ids callback-ids}))
 
 
 (defn stop
   "Stop the syncer mount component."
   []
   (log/debug "Stopping Syncer...")
+  (ping-stop)
   #_(unregister-callbacks!
      [::EthlanceEvent]))
