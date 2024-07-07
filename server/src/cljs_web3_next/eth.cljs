@@ -64,9 +64,11 @@
 
 (defn subscribe-events [contract-instance event opts & [callback]]
   (log/info ">>> cljs-web3-next.eth/subscribe-events" {:contract-instance contract-instance :event event :opts opts})
-  (oapply+ (oget contract-instance "events")
-           (web3-helpers/camel-case (name event)) ; https://web3js.readthedocs.io/en/v1.7.1/web3-eth-contract.html#contract-events
-           [(web3-helpers/cljkk->js opts) callback]))
+  (if (nil? contract-instance)
+    (log/error "Tried to subscribe-events with nil contract instance" {:event event :opts opts})
+    (oapply+ (oget contract-instance "events")
+             (web3-helpers/camel-case (name event)) ; https://web3js.readthedocs.io/en/v1.7.1/web3-eth-contract.html#contract-events
+             [(web3-helpers/cljkk->js opts) callback])))
 
 (defn subscribe-logs [provider opts & [callback]]
   (js-invoke (aget provider "eth") "subscribe" "logs" (web3-helpers/cljkk->js opts) callback))
