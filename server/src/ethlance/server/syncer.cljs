@@ -436,6 +436,7 @@
 (defn start
   []
   (log/debug "Starting Syncer...")
+  (log/debug "NEW 2024-07-07 #1")
   (let [event-callbacks {:ethlance/job-created handle-job-created
                          :ethlance/candidate-added handle-candidate-added
                          :ethlance/test-event handle-test-event
@@ -451,11 +452,12 @@
                          :ethlance/funds-out (partial handle-job-funds-change -)}
         callback-ids (doall (for [[event-key callback] event-callbacks]
                               (web3-events/register-callback! event-key (build-single-event-dispatcher callback))))]
-    (web3-events/register-after-past-events-dispatched-callback!
-      (fn []
-        (log/warn "Syncing past events finished")
-        (ping-start {:ping-interval 10000})
-        (reload-timeout-start {:reload-interval 7200000})))
+    ; TODO: Turning off temporarily to see if this causes server process crash
+    ; (web3-events/register-after-past-events-dispatched-callback!
+    ;   (fn []
+    ;     (log/warn "Syncing past events finished")
+    ;     (ping-start {:ping-interval 10000})
+    ;     (reload-timeout-start {:reload-interval 7200000})))
     (log/debug "Syncer started")
     {:callback-ids callback-ids}))
 
