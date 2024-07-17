@@ -21,6 +21,7 @@
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
     [ethlance.shared.utils :include-macros true :as shared-utils]
     [mount.core :as mount]
+    [ethlance.basic-syncer.core :as basic-syncer]
     [taoensso.timbre :refer [merge-config!] :as log]))
 
 
@@ -110,7 +111,8 @@
                                 {:env-name "SERVER_CONFIG_PATH"
                                  :default (env-config environment)}})
                              (mount/start))]
-        (log/warn "Started" {:components start-result :config @config}))
+        (log/warn "Started" {:components start-result :config @config})
+        (basic-syncer/start-from-ethlance-server-config! @config))
       (catch js/Error e
         (log/error "Something went wrong when starting the application" {:error e})))))
 
