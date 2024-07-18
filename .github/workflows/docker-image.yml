@@ -160,7 +160,7 @@ jobs:
           file: docker-builds/ui/Dockerfile
           build-args: BUILD_ENV=${{ matrix.env }}
           push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-ui:latest-${{ matrix.env }}
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-ui:latest-${{ matrix.env }},${{ secrets.ECR_REGISTRY }}/ethlance-ui:${{ matrix.env }}-${{ github.sha }}
 
       - name: Build and push Server
         uses: docker/build-push-action@v4
@@ -171,4 +171,4 @@ jobs:
           file: docker-builds/server/Dockerfile
           build-args: BUILD_ENV=${{ matrix.env }}
           push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }}
+          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }},${{ secrets.ECR_REGISTRY }}/ethlance-server:${{ matrix.env }}-${{ github.sha }}
