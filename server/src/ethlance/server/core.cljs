@@ -53,12 +53,11 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block 1000
+                 :from-block 1653
                  :block-step 5 ; 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
                  :skip-past-events-replay? false
-                 :write-events-into-file? true
                  :load-checkpoint ethlance.server.db/load-processed-events-checkpoint
                  :save-checkpoint ethlance.server.db/save-processed-events-checkpoint}
    :smart-contracts {:contracts-var contracts-var
