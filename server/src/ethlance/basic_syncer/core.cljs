@@ -14,8 +14,11 @@
        (.readFileSync fs ,,,)
        (.parse js/JSON ,,,)))
 
+(def last-config (atom nil))
+
 (defn start-from-ethlance-server-config! [config]
   (log/info ">>> START start-from-ethlance-server-config!")
+  (reset! last-config config)
   (let [ethereum-node (get-in config [:web3 :url])
         ethlance-json-path (str (get-in config [:smart-contracts :contracts-build-path]) "/Ethlance.json")
         ethlance-json (read-json ethlance-json-path)

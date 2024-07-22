@@ -33,9 +33,12 @@
   (new (.-Contract (.-eth web3)) abi address))
 
 (def last-event (atom nil))
+(def last-config (atom nil))
 
 (defn subscribe! [ethereum-node ethlance-abi ethlance-address]
   (log/info "web3-subscribe/subscribe WITH:" {:ethereum-node ethereum-node :ethlance-address ethlance-address :ethlance-abi ethlance-abi})
+  (reset! last-config [ethereum-node ethlance-abi ethlance-address])
+
   (let [web3 (init-web3 ethereum-node)
         contract (init-contract web3 ethlance-abi ethlance-address)]
     (.allEvents (g/get contract "events")
