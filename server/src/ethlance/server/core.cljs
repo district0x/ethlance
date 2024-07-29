@@ -58,8 +58,10 @@
                  :dispatch-logging? true
                  :crash-on-event-fail? true
                  :skip-past-events-replay? false
-                 :load-checkpoint ethlance.server.db/load-processed-events-checkpoint
-                 :save-checkpoint ethlance.server.db/save-processed-events-checkpoint}
+                 :checkpoint-file "blockchain-sync-checkpoint.txt"
+                 ; :load-checkpoint ethlance.server.db/load-processed-events-checkpoint
+                 ; :save-checkpoint ethlance.server.db/save-processed-events-checkpoint
+                 }
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false

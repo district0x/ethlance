@@ -367,6 +367,7 @@
                                      {}
                                      web3-events-map)]
     (fn [err {:keys [:block-number] :as event}]
+      (log/info "OLD dispatcher PROCESSING" event)
       (safe-go!
         (let [contract-key (-> event :contract :contract-key)
               event-key (-> event :event)
@@ -393,11 +394,14 @@
                 (let [r (<! res)]
                   (when (instance? js/Error r)
                     (throw r))
+
+                  (log/info "✅OLD dispatcher FINISHED OK" event)
                   (t-api/set-span-ok! span)
                   (t-api/end-span! span)))
               res)
             (catch js/Error error
               (replay-queue/push-event conn event)
+              (log/info "⚠️ OLD dispatcher FINISHED ERROR" event)
               (t-api/set-span-error! span error)
               (t-api/end-span! span)
               (db/rollback-tx conn)
