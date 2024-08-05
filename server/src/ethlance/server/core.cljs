@@ -59,7 +59,8 @@
                  :skip-past-events-replay? false
                  :write-events-into-file? true
                  :load-checkpoint ethlance.server.db/load-processed-events-checkpoint
-                 :save-checkpoint ethlance.server.db/save-processed-events-checkpoint}
+                 :save-checkpoint ethlance.server.db/save-processed-events-checkpoint
+                 }
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
                      :print-gas-usage? false

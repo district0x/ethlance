@@ -66,15 +66,21 @@
 
 (defn handle-job-created
   [conn _ {:keys [args] :as event}]
-  (safe-go!
-    (log/info (str ">>> Handling event job-created" args " | " (t-api/get-active-span)))
+  (go!
+    (log/info (str ">>> Handling event job-created: " args " | " (t-api/get-active-span)))
     (println ">>> ipfs-data | type ipfs-data" {:ipfs-data (:ipfs-data args) :event event})
-    (let [span (t-api/get-active-span)
+    (let [_ (println "1. BEFORE SPAN")
+          span (t-api/get-active-span)
+          _ (println "2. BEFORE base58")
           ipfs-hash (shared-utils/hex->base58 (:ipfs-data args))
+          _ (println "3. BEFORE get-ipfs-meta")
           ipfs-job-content (<? (server-utils/get-ipfs-meta @ipfs/ipfs ipfs-hash))
+          _ (println "4. BEFORE offered-vec->flat-map" ipfs-job-content)
           offered-value (offered-vec->flat-map (first (:offered-values args)))
+          _ (println ">>> handle-job-created 1:" offered-value)
           token-address (:token-address offered-value)
           token-type (enum-val->token-type (:token-type offered-value))
+          _ (println ">>> handle-job-created 2:" token-type)
           token-amount (:token-amount offered-value)
           for-the-db (merge {:job/id (:job args)
                              :job/status  "active" ; draft -> active -> finished hiring -> closed
@@ -88,6 +94,7 @@
                              :job/token-id (:token-id offered-value)
                              :invited-arbiters (get args :invited-arbiters [])}
                             (build-ethlance-job-data-from-ipfs-object ipfs-job-content))]
+      (println ">>> handle-job-created" for-the-db)
       (t-api/add-event! span "job-details" {:ipfs-hash ipfs-hash :job-id (:job args) :token-type token-type :token-amount token-amount})
       (t-api/start-active-span
         "ensure-token-details"
@@ -99,8 +106,10 @@
         "db.add-job"
         (fn [span]
           (go!
-            (<? (ethlance-db/add-job conn for-the-db))
-            (t-api/end-span! span)))))))
+            (let [res (<? (ethlance-db/add-job conn for-the-db))]
+              (println ">>> handle-job-created RES: " res)
+              (t-api/end-span! span)
+              res)))))))
 
 
 (defn handle-invoice-created
@@ -304,7 +313,7 @@
 (defn handle-job-funds-change
   [movement-sign-fn conn _ {:keys [args] :as event}]
   (safe-go!
-    (log/info (str "handle-job-funds-change"))
+    (log/info (str "handle-job-funds-change" event))
     (let [span (t-api/get-active-span)
           funds (:funds args)
           funds-map (map offered-vec->flat-map funds)
