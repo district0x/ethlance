@@ -368,7 +368,8 @@
   ::create-job-tx-success
   (fn [{:keys [db]} [_event-name tx-data]]
     (let [job-from-event (get-in tx-data [:events :Job-created :return-values :job])]
-      (println ">>> ::create-job-tx-success" tx-data)
+      (println ">>> ::create-job-tx-success tx-data:" tx-data)
+      (println ">>> ::create-job-tx-success job-from-event:" job-from-event)
       {:db (set-tx-in-progress db false)
        :fx [[:dispatch [::notification.events/show "Transaction to create job processed successfully"]]
             ;; When creating job via ERC721/1155 callback (onERC{721,1155}Received), the event data is part of the
@@ -380,6 +381,8 @@
                                     :block-number (:block-number tx-data)
                                     :contract (district.ui.smart-contracts.queries/instance db :ethlance)
                                     :callback (fn [result]
+                                                (println ">>> ::create-job-tx-success GOT event for ERC721/1155:" result)
+                                                (println ">>> ::create-job-tx-success GOT event for PARSED:" (js-obj->clj-map (.-returnValues (first result))))
                                                 ;; Delaying navigation to give server time to process the contract event
                                                 (js/setTimeout
                                                   #(re/dispatch
