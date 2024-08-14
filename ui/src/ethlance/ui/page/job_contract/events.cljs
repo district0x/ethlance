@@ -122,12 +122,13 @@
   [{:keys [db]} [_event-name params]]
   (let [job-story-id (:job-story/id params)
         text (:text params)
-        to (:to params)
+        ; to (:to params)
         mutation-params {:job-story/id job-story-id
                          :job-story-message/type :accept-invitation
                          :message/type :job-story-message
                          :text text
-                         :to to}]
+                         ; :to to
+                         }]
     {:db (clear-forms db)
      :fx [[:dispatch [::gql-events/mutation
                       {:queries [[:send-message mutation-params]]

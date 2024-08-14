@@ -33,12 +33,14 @@
 
 (defn get-ipfs-meta
   [conn meta-hash]
+  (log/info (str ">>> 1 of 3: IPFS get-ipfs-meta " meta-hash))
   (js/Promise.
     (fn [resolve reject]
-      (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
+      (log/info (str "2 of 3: Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
       (ipfs-files/fget (str "/ipfs/" meta-hash)
                        {:req-opts {:compress false}}
                        (fn [err content]
+                         (log/info (str "3 of 3: ethlance.server.utils/get-ipfs-meta IPFS callback" {:err err :content content}))
                          (cond
                            err
                            (let [err-txt "Error when retrieving metadata from ipfs"]
@@ -46,6 +48,7 @@
                                                         :connection conn
                                                         :error err})
                                         ::get-ipfs-meta)
+                             (println ">>> get-ipfs-meta REJECT")
                              (reject (str err-txt " : " err)))
 
                            (empty? content)
