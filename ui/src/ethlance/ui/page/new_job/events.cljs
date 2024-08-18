@@ -1,5 +1,6 @@
 (ns ethlance.ui.page.new-job.events
   (:require
+    [cljs.core.async :as async :refer [<!] :refer-macros [go]]
     [cljs-web3-next.eth :as w3n-eth]
     [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
@@ -12,6 +13,7 @@
     [ethlance.shared.contract-constants :as contract-constants]
     [ethlance.shared.utils :refer [base58->hex js-obj->clj-map]]
     [ethlance.ui.event.utils :as event.utils]
+    [ethlance.ui.util.tokens :as util.tokens]
     [re-frame.core :as re]))
 
 
@@ -165,15 +167,59 @@
 
 
 (re/reg-event-fx
+  ::job-to-ipfs-success
+  (fn [cofx event]
+    (println ">>> :job-to-ipfs-success")
+    (let [creator (accounts-queries/active-account (:db cofx))
+          job-fields (get-in cofx [:db state-key])
+          token-type (:job/token-type job-fields)
+          token-amount (if (= token-type :erc721)
+                         1
+                         (get-in job-fields [:job/token-amount :token-amount]))
+          address-placeholder "0x0000000000000000000000000000000000000000"
+          token-address (if (not (= token-type :eth))
+                          (:job/token-address job-fields)
+                          address-placeholder)
+          offered-value {:value (str token-amount)
+                         :token
+                         {:tokenId (:job/token-id job-fields)
+                          :tokenContract
+                          {:tokenType (contract-constants/token-type->enum-val token-type)
+                           :tokenAddress token-address}}}
+          invited-arbiters (if (:job/with-arbiter? job-fields)
+                             (into [] (:job/invited-arbiters job-fields))
+                             [])
+          new-job-params {:offered-value offered-value
+                          :token-type token-type
+                          :employer creator
+                          :arbiters invited-arbiters
+                          :ipfs-hash (base58->hex (get-in event [1 :Hash]))}
+          next-event {:eth ::send-create-job-tx
+                      :erc20 ::ensure-erc20-allowance
+                      :erc721 ::safe-transfer-with-create-job
+                      :erc1155 ::safe-transfer-with-create-job}]
+      {:db (assoc-in (:db cofx) new-job-params-path new-job-params)
+       :fx [[:dispatch [(get next-event token-type)]]]})))
+
+
+(re/reg-event-fx
+  ::job-to-ipfs-failure
+  (fn [{:keys [db]} _]
+    (println ">>> :job-to-ipfs-failure")
+    {:db (set-tx-in-progress db false)
+     :dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))
+
+
+(re/reg-event-fx
   :page.new-job/create
   [interceptors]
   (fn [{:keys [db]}]
     (let [db-job (get db state-key)
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
-      {:ipfs/call {:func "add"
-                   :args [(js/Blob. [ipfs-job])]
-                   :on-success [::job-to-ipfs-success]
-                   :on-error [::job-to-ipfs-failure]}})))
+      {:fx [[:ipfs/call {:func "add"
+                         :args [(js/Blob. [ipfs-job])]
+                         :on-success [::job-to-ipfs-success]
+                         :on-error [::job-to-ipfs-failure]}]]})))
 
 
 (re/reg-event-fx
@@ -195,16 +241,9 @@
                          :args [employer [(clj->js offered-value)] arbiters ipfs-hash]
                          :tx-opts tx-opts
                          :tx-hash [::tx-hash]
-                         :on-tx-receipt [::create-job-tx-receipt]
                          :on-tx-hash-error [::tx-hash-error]
                          :on-tx-success [::create-job-tx-success]
                          :on-tx-error [::create-job-tx-error]}]]]})))
-
-
-(re/reg-event-fx
-  ::create-job-tx-receipt
-  (fn [_cofx result]
-    (println ">>> ::create-job-tx-receipt" result)))
 
 
 (re/reg-event-fx
@@ -319,41 +358,6 @@
 
 
 (re/reg-event-fx
-  ::job-to-ipfs-success
-  (fn [cofx event]
-    (let [creator (accounts-queries/active-account (:db cofx))
-          job-fields (get-in cofx [:db state-key])
-          token-type (:job/token-type job-fields)
-          token-amount (if (= token-type :erc721)
-                         1
-                         (get-in job-fields [:job/token-amount :token-amount]))
-          address-placeholder "0x0000000000000000000000000000000000000000"
-          token-address (if (not (= token-type :eth))
-                          (:job/token-address job-fields)
-                          address-placeholder)
-          offered-value {:value (str token-amount)
-                         :token
-                         {:tokenId (:job/token-id job-fields)
-                          :tokenContract
-                          {:tokenType (contract-constants/token-type->enum-val token-type)
-                           :tokenAddress token-address}}}
-          invited-arbiters (if (:job/with-arbiter? job-fields)
-                             (into [] (:job/invited-arbiters job-fields))
-                             [])
-          new-job-params {:offered-value offered-value
-                          :token-type token-type
-                          :employer creator
-                          :arbiters invited-arbiters
-                          :ipfs-hash (base58->hex (get-in event [1 :Hash]))}
-          next-event {:eth ::send-create-job-tx
-                      :erc20 ::ensure-erc20-allowance
-                      :erc721 ::safe-transfer-with-create-job
-                      :erc1155 ::safe-transfer-with-create-job}]
-      {:db (assoc-in (:db cofx) new-job-params-path new-job-params)
-       :fx [[:dispatch [(get next-event token-type)]]]})))
-
-
-(re/reg-event-fx
   ::tx-hash
   (fn [_db event] (println ">>> ethlance.ui.page.new-job.events :tx-hash" event)))
 
@@ -364,32 +368,33 @@
       (.then ,,, callback)))
 
 
+(defn redirect-from-job-created-tx-receipt [web3 transaction-hash]
+  (w3n-eth/get-transaction-receipt web3 transaction-hash
+    (fn [err receipt]
+      (let [job-created (util.tokens/parse-event-in-tx-receipt :JobCreated receipt)]
+        (println "redirect-from-job-created-tx-receipt" {:err err :receipt receipt :parsed job-created :type (type job-created)})
+        (re/dispatch
+          [::router-events/navigate
+           :route.job/detail
+           {:id (:job (first job-created))}])))))
+
 (re/reg-event-fx
   ::create-job-tx-success
   (fn [{:keys [db]} [_event-name tx-data]]
-    (let [job-from-event (get-in tx-data [:events :Job-created :return-values :job])]
+    (let [job-from-event (get-in tx-data [:events :Job-created :return-values :job])
+          parsed-event (util.tokens/parse-event-in-tx-receipt :JobCreated tx-data)]
       (println ">>> ::create-job-tx-success tx-data:" tx-data)
       (println ">>> ::create-job-tx-success job-from-event:" job-from-event)
+      (println ">>> ::create-job-tx-success parsed-event:" parsed-event)
       {:db (set-tx-in-progress db false)
        :fx [[:dispatch [::notification.events/show "Transaction to create job processed successfully"]]
             ;; When creating job via ERC721/1155 callback (onERC{721,1155}Received), the event data is part of the
             ;; tx-receipt, but doesn't have event name, making it difficult to find and decode. Thus this workaround:
-            ;;   - requesting the JobCreated event directly from Ethlance and receiving it correctly decoded
+            ;;   - requesting the transaction receipt (that then has JobCreated event), decoding it and getting the
+            ;;     created job address from there
             (if job-from-event
               [:dispatch-later [{:ms 1000 :dispatch [::router-events/navigate :route.job/detail {:id (get-in tx-data [:events :Job-created :return-values :job])}]}]]
-              (async-request-event {:event "allEvents"
-                                    :block-number (:block-number tx-data)
-                                    :contract (district.ui.smart-contracts.queries/instance db :ethlance)
-                                    :callback (fn [result]
-                                                (println ">>> ::create-job-tx-success GOT event for ERC721/1155:" result)
-                                                (println ">>> ::create-job-tx-success GOT event for PARSED:" (js-obj->clj-map (.-returnValues (first result))))
-                                                ;; Delaying navigation to give server time to process the contract event
-                                                (js/setTimeout
-                                                  #(re/dispatch
-                                                     [::router-events/navigate
-                                                      :route.job/detail
-                                                      {:id (get (js-obj->clj-map (.-returnValues (first result))) "job")}])
-                                                  1000))}))]})))
+              (redirect-from-job-created-tx-receipt (web3-queries/web3 db) (:transaction-hash tx-data)))]})))
 
 
 (re/reg-event-db
@@ -398,10 +403,3 @@
     (println ">>> ethlance.ui.page.new-job.events ::create-job-tx-error" event)
     {:db (set-tx-in-progress db false)
      :dispatch [::notification.events/show "Error with creating new job transaction"]}))
-
-
-(re/reg-event-fx
-  ::job-to-ipfs-failure
-  (fn [{:keys [db]} _]
-    {:db (set-tx-in-progress db false)
-     :dispatch [::notification.events/show "Error with loading new job data to IPFS"]}))

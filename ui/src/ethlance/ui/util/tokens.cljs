@@ -1,10 +1,14 @@
 (ns ethlance.ui.util.tokens
   (:require
+    [cljs.core.async :as async]
     [cljs-web3-next.eth :as w3-eth]
     [cljs-web3-next.helpers :as web3-helpers]
     [clojure.math]
     [clojure.walk]
-    [ethlance.shared.utils :refer [wei->eth eth->wei]]))
+    [district.ui.smart-contracts.queries]
+    [district.ui.web3.queries :as web3-queries]
+    [ethlance.shared.utils :refer [wei->eth eth->wei]]
+    [re-frame.db :refer [app-db]]))
 
 
 (defn round
@@ -66,3 +70,20 @@
         remove-unnecessary-keys
         web3-helpers/js->cljkk
         clojure.walk/keywordize-keys)))
+
+
+(defn parse-event-in-tx-receipt [event receipt]
+  (let [getter-fn identity
+        {:keys [:logs]} (web3-helpers/js->cljkk receipt)
+        contract-instance (district.ui.smart-contracts.queries/instance @app-db :ethlance)
+        {:keys [:signature] :as event-interface} (web3-helpers/event-interface contract-instance event)
+        sought-event? (fn [{:keys [:topics]}] (= signature (first topics)))
+        web3 (web3-queries/web3 @app-db)
+        decode-event-data (fn [{:keys [:data :topics]}] (w3-eth/decode-log web3 (:inputs event-interface) data (drop 1 topics)))
+        clojurize (fn [return-values] (web3-helpers/return-values->clj return-values event-interface))]
+    (println "parse-event-in-tx-receipt" {:logs logs :signature signature})
+    (->> logs
+         (filter sought-event? ,,,)
+         (map decode-event-data ,,,)
+         (map clojurize ,,,)
+         getter-fn ,,,)))
