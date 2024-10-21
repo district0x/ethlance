@@ -1,5 +1,6 @@
 const edn = require ("jsedn");
 const {env, smart_contracts_path, contracts_build_directory} = require ('../truffle-config.js');
+console.log(">>> Migra 3: env", env);
 const {copy, encodeContractEDN, readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, setSmartContractForwardsTo, linkBytecode} = require("./utils");
 
 const Ethlance = artifacts.require("Ethlance");

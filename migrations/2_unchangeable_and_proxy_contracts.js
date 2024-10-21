@@ -54,7 +54,8 @@ async function deploy_EthlanceStructs(deployer, opts){
 
 async function deploy_JobHelpers(deployer, opts){
   let jobHelpers = await deployer.deploy(JobHelpers, {...opts, gas: 6e6});
-  deployer.link(JobHelpers, Job);
+  // Linking to Job to be done in deploy_Job()
+  // deployer.link(JobHelpers, Job);
   assignContract(jobHelpers, "JobHelpers", "job-helpers");
 }
 
@@ -114,6 +115,7 @@ function writeSmartContracts() {
 //
 module.exports = async function(deployer, network, accounts) {
   const gas = 4e6;
+  console.log("Deploying FROM:", deployer.options.from);
   const from = deployer.options.from || accounts[0];
   const opts = {gas: gas, from: from};
 

@@ -4,6 +4,7 @@ node_modules
 .cpcache
 ui/out/**
 server/out/**
+server/out-syncer/**
 yarn-error.log
 ui/resources/public/js
 ui/resources/public/css

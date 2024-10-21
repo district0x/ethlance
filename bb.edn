@@ -43,6 +43,12 @@
                                    command-args (format "-A:dev:shadow-cljs%s watch dev-server" (clojure.string.join "" aliases))]
                                 (println "Starting watch dev-server args:" command-args)
                                 (clojure {:dir "server"} command-args))}
+         watch-syncer {:doc "Watch and compile syncer code changes CLJS -> JS in server/src/ethlance/server/syncer*"
+                       :requires ([babashka.cli :as cli])
+                       :task (let [aliases (or *command-line-args* [])
+                                   command-args (format "-A:dev:shadow-cljs%s watch new-syncer" (clojure.string.join "" aliases))]
+                                (println "Starting watch dev-server args:" command-args)
+                                (clojure {:dir "server"} command-args))}
          run-server {:doc "Start Node.js API server process"
                      :task (do
                              (println "Starting Ethlance API server")
@@ -60,6 +66,7 @@
                            [build-id folder] (case build-arg
                                                    "ui" [:dev-ui "ui"]
                                                    "server" [:dev-server "server"]
+                                                   "syncer" [:new-syncer "server"]
                                                    "test" [:test-repl "server"])
                            _ (println ">>> build-id folder" build-id folder)
                            parse-port (fn [folder] (get-in (clojure.edn/read-string (slurp (str folder "/shadow-cljs.edn"))) [:nrepl :port]))

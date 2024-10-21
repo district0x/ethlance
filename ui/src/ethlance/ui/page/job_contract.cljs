@@ -396,7 +396,6 @@
      [c-button {:color :primary
                 :on-click #(re/dispatch [:page.job-contract/accept-invitation
                                          {:text @text
-                                          ; :to (:employer message-params)
                                           :job-story/id @job-story-id}])}
       [c-button-label "Accept Invitation"]]]))
 
