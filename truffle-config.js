@@ -2,10 +2,13 @@
 const ETHLANCE_ENV = process.env.ETHLANCE_ENV || "dev";
 const ETHLANCE_MNEMONIC = process.env.ETHLANCE_MNEMONIC;
 const ETHLANCE_ETH_NODE_ADDRESS = process.env.ETHLANCE_ETH_NODE_ADDRESS;
+const ETHLANCE_DEPLOYER_ADDRESS = process.env.ETHLANCE_DEPLOYER_ADDRESS
+const ETHLANCE_DEPLOY_SEED = process.env.ETHLANCE_DEPLOY_SEED
 
 const smartContractsPaths = {
   "dev" : '/shared/src/ethlance/shared/smart_contracts_dev.cljs',
   "qa" : '/shared/src/ethlance/shared/smart_contracts_qa.cljs',
+  "qa-base" : '/shared/src/ethlance/shared/smart_contracts_qa_base.cljs',
   "prod" :'/shared/src/ethlance/shared/smart_contracts_prod.cljs'
 };
 
@@ -89,7 +92,16 @@ module.exports = {
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: 421614,
       from: "0x642fAE80d3C74559A18B0558A518cDBF6b047968" // 1st address
-    }
+    },
 
+    "base-sepolia": {
+      provider: new HDWalletProvider({mnemonic: {phrase: ETHLANCE_DEPLOY_SEED},
+                                      providerOrUrl: ETHLANCE_ETH_NODE_ADDRESS ||  'https://sepolia.base.org'
+                                     }),
+      gas: 6e6, // gas limit
+      gasPrice: 20e9, // 20 gwei, default for ganache
+      network_id: 84532,
+      from: ETHLANCE_DEPLOYER_ADDRESS
+    }
   }
 }

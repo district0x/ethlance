@@ -645,15 +645,21 @@
                       :token-detail/decimals (:decimals token-details)}))))
 
 
+(def get-checkpoint-query
+  {:select [:*]
+   :from [:ContractEventCheckpoint]
+   :order-by [[:created-at :desc]]})
+
 (defn load-processed-events-checkpoint
   [callback]
   (.then
     (district.server.async-db/get-connection)
     (fn [conn]
-      (let [result-chan (db/get conn {:select [:*]
-                                      :from [:ContractEventCheckpoint]
-                                      :order-by [[:created-at :desc]]})]
-        (take! result-chan (fn [result] (callback nil (clojure.walk/keywordize-keys (get result :checkpoint)))))))))
+      (let [result-chan (db/get conn get-checkpoint-query)]
+        (async/take! result-chan
+               (fn [result]
+                 (println ">>> load-processed-events-checkpoint LOADED" result)
+                 (callback nil (clojure.walk/keywordize-keys (get result :checkpoint)))))))))
 
 
 (defn save-processed-events-checkpoint
@@ -661,10 +667,40 @@
   (.then
     (district.server.async-db/get-connection)
     (fn [conn]
-      (let [result-chan (db/run! conn {:insert-into :ContractEventCheckpoint
-                                       :values [{:checkpoint (.stringify js/JSON (clj->js checkpoint))
-                                                 :created-at (new js/Date)}]})]
-        (when (fn? callback) (take! result-chan callback))))))
+      (async/go
+        (let [old-checkpoint-row (<! (db/get conn get-checkpoint-query))
+              old-checkpoint (clojure.walk/keywordize-keys (get old-checkpoint-row :checkpoint))
+              old-last-block-number (:last-processed-block old-checkpoint)
+              new-last-block-number (:last-processed-block checkpoint)
+
+              old-log-indexes (or (:processed-log-indexes old-checkpoint) [])
+              new-log-indexes (or (:processed-log-indexes checkpoint) [])
+
+              aggregated-log-indexes (if (= old-last-block-number new-last-block-number)
+                                       (conj old-log-indexes new-log-indexes)
+                                       new-log-indexes)
+              new-checkpoint (-> checkpoint
+                                 (dissoc ,,, :started-at)
+                                 (assoc :last-processed-block (:last-processed-block checkpoint)
+                                        ))
+              new-checkpoint (if (empty? aggregated-log-indexes)
+                               new-checkpoint
+                               (assoc new-checkpoint :processed-log-indexes aggregated-log-indexes))
+
+              started-at (or (:started-at checkpoint) (new js/Date))
+              insert-query {:insert-into :ContractEventCheckpoint
+                            :values [{:checkpoint (.stringify js/JSON (clj->js new-checkpoint))
+                                      :created-at (new js/Date)}]}
+              update-query {:update :ContractEventCheckpoint
+                            :set {:checkpoint (.stringify js/JSON (clj->js new-checkpoint))}
+                            :where [:= :id (:id old-checkpoint-row)]}
+              result-chan (db/run! conn (if (or
+                                              (> started-at (:created-at old-checkpoint-row))
+                                              (nil? old-checkpoint))
+                                          insert-query
+                                          update-query))]
+          (district.server.async-db/release-connection conn)
+          (when (fn? callback) (async/take! result-chan callback)))))))
 
 
 (defn ready-state?

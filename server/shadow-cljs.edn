@@ -18,6 +18,19 @@
            {:compiler-options {:optimizations :simple
                                :source-map true}}}
 
+          :new-syncer
+          {:target :node-script
+           :main ethlance.server.new-syncer/-main
+           :output-dir "out-syncer/"
+           :output-to "out-syncer/new-syncer.js"
+           :optimizations :none
+           :source-map true
+           :source-map-timestamp true
+           :closure-defines {goog.DEBUG true}
+
+           :release
+           {:compiler-options {:optimizations :simple
+                               :source-map true}}}
           :server-tests
           {:target :node-test
            :js-options {:js-package-dirs ["./server/node_modules"]}
