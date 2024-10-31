@@ -14,8 +14,16 @@ let Job = artifacts.require("Job");
 let EthlanceStructs = artifacts.require("EthlanceStructs");
 let EthlanceProxy = artifacts.require("EthlanceProxy");
 let MutableForwarder = artifacts.require("MutableForwarder");
-// copy("EthlanceProxy", "EthlanceProxy", contracts_build_directory);
-// let EthlanceProxy = artifacts.require("EthlanceProxy");
+
+let deployedContracts = {};
+
+function getDeployedAddress(contractName) {
+  const address = deployedContracts[contractName];
+  if (address == null) {
+    throw new Error("Contract with" + contractName + " not founc in deployedContracts");
+  }
+  return address;
+}
 
 // Deployment Functions
 
@@ -68,6 +76,10 @@ async function deploy_proxies(deployer, opts) {
 }
 
 async function deploy_Job(deployer, opts){
+  jobHelpersInstance = await JobHelpers.at(getDeployedAddress("JobHelpers"));
+  ethlanceStructsInstance = await EthlanceStructs.at(getDeployedAddress("EthlanceStructs"));
+  deployer.link(jobHelpersInstance, Job);
+  deployer.link(ethlanceStructsInstance, Job);
   let job = await deployer.deploy(Job, {...opts, gas: 18e6});
   assignContract(job, "Job", "job");
 }
@@ -78,6 +90,7 @@ async function deploy_all(deployer, opts) {
   await deploy_TestMultiToken(deployer, opts);
   await deploy_EthlanceStructs(deployer, opts);
   await deploy_JobHelpers(deployer, opts);
+
   await deploy_Job(deployer, opts);
   await deploy_proxies(deployer, opts);
 }
@@ -94,6 +107,7 @@ let smart_contract_listing = [];
  */
 function assignContract(contract_instance, contract_name, contract_key, opts) {
   console.log("- Assigning '" + contract_name + "' to smart contract listing...");
+  deployedContracts[contract_name] = contract_instance.address;
   opts = opts || {};
   smart_contract_listing = smart_contract_listing.concat(
     encodeContractEDN(contract_instance, contract_name, contract_key, opts));
