@@ -41,7 +41,7 @@ jobs:
           repository: district0x/ethlance-config
           path: ethlance-config
           token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
-          ref: master
+          ref: docker_build
 
       - name: Run ganache service
         run: |
