@@ -193,7 +193,8 @@
                           :placeholder "Briefly describe to what and why you're inviting the candidate"
                           :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
        [c-button {:color :primary
-                  :disabled? job-story-exists?
+                  :style {:margin-top "1em"}
+                  :active? (not job-story-exists?)
                   :on-click (fn []
                               (when-not job-story-exists?
                                 (re/dispatch [:page.profile/invite-candidate
@@ -392,7 +393,8 @@
                         :placeholder "Briefly describe to what and why you're inviting the arbiter"
                         :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
      [c-button {:color :primary
-                :disabled? job-story-exists?
+                :style {:margin-top "1em"}
+                :active? (not job-story-exists?)
                 :on-click (fn []
                             (when-not job-story-exists?
                               (re/dispatch [:page.profile/invite-arbiter

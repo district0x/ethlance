@@ -211,7 +211,7 @@
 (defn c-invite-to-create-employer-profile
   []
   [c-main-layout {:container-opts {:class :new-job-main-container}}
-   [:div "Set up your employer profile to be able to create new jobs"]
+   [:div {:style {:margin "2em"}} "Set up your employer profile to be able to create new jobs"]
    [:div.button
     {:on-click (navigation/create-handler {:route :route.me/sign-up :query {:tab "employer"}})}
     "Go to employer profile page"]])

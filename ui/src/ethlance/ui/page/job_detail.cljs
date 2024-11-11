@@ -180,7 +180,7 @@
            :disabled (not can-send-proposals?)
            :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount %])}]
          [:label.post-label token-display-name]]
-        [:label "The amount is for payment type: " (util.job/get-in-pair-vector util.job/bid-option *bid-option)]
+        [:label {:style {:margin-top "1em" :margin-bottom "1em"}} (util.job/get-in-pair-vector util.job/bid-option *bid-option)]
         [:div.description-input
          [c-textarea-input
           {:disabled (not can-send-proposals?)
@@ -243,18 +243,18 @@
     [:div.proposal-form
      [:div.label "Accept arbiter quote"]
      [:div.amount-input
-      [:div.label "Arbiter: "]
+      [:div.label {:style {:margin-right "1em"}} "Arbiter: "]
       [c-text-input
        {:placeholder ""
         :disabled true
         :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
      [:div.amount-input
-      [:div.label "Amount: "]
+      [:div.label {:style {:margin-right "1em"}} "Amount: "]
       [c-text-input
        {:placeholder ""
         :disabled true
         :value (token-utils/human-amount (get arbitration-to-accept :arbitration/fee) :eth)}]
-      [:label "ETH (Ether)"]]
+      [:label "ETH"]]
 
      (when arbiter-to-be-assigned?
        [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
@@ -524,6 +524,7 @@
                                        token-details
                                        token-id
                                        (:token-amount amount)])))
+                  :style {:margin-top "1em"}
                   :disabled? @add-funds-tx-in-progress?
                   :size :small}
         [c-button-label "Confirm"]]]

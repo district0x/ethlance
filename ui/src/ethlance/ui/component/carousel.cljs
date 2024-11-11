@@ -72,7 +72,7 @@
 
 (defn c-carousel
   [{:keys []} & children]
-  [:div.ethlance-new-carousel
+  [:div.ethlance-new-carousel {:style {:height "22em"}}
    [:> react-carousel/CarouselProvider {:natural-slide-width 388
                                         :natural-slide-height 300
                                         :total-slides (count children)
