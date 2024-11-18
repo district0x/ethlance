@@ -7,7 +7,7 @@
     [district.ui.graphql.subs :as gql]
     [ethlance.shared.utils :refer [ilike!= ilike=]]
     [ethlance.ui.component.button :refer [c-button c-button-label]]
-    [ethlance.ui.component.carousel :refer [c-carousel-old c-feedback-slide]]
+    [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
     [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -93,8 +93,10 @@
                              [:items [:feedback/rating
                                       :feedback/text
                                       :feedback/date-created
-                                      [:feedback/from-user [:user/name
-                                                            :user/profile-image]]]]]]]]]]
+                                      [:feedback/from-user
+                                       [:user/id
+                                        :user/name
+                                        :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [feedback-query]}])
         feedback-raw (get-in result [:job :job/employer :employer/feedback :items])
 
@@ -103,13 +105,16 @@
                          :rating (:feedback/rating feedback)
                          :text (:feedback/text feedback)
                          :author (-> feedback :feedback/from-user :user/name)
-                         :image-url (-> feedback :feedback/from-user :user/profile-image)})
+                         :image-url (-> feedback :feedback/from-user :user/profile-image)
+                         :link-params (link-params
+                                        {:route :route.user/profile
+                                         :params {:address (get-in feedback [:feedback/from-user :user/id])}})})
                       feedback-raw)]
     [:div.feedback-listing
      [:div.label "Feedback for employer"]
      (if (empty? feedback)
        [:label "No feedback yet for this employer"]
-       (into [c-carousel-old {}] (map #(c-feedback-slide %) feedback)))]))
+       (into [c-carousel {}] (map #(c-feedback-slide %) feedback)))]))
 
 
 (defn c-proposals-section

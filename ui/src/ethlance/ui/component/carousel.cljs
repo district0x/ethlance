@@ -60,14 +60,18 @@
 
 
 (defn c-feedback-slide
-  [{:keys [id rating author text image-url class]}]
-  [:div.feedback-slide
-   ;; FIXME: use better unique key
-   {:key (str "feedback-" id "-" rating) :class class}
-   [:div.profile-image [c-profile-image {:src image-url}]]
-   [:div.rating [c-rating {:rating rating :color :white}]]
-   [:div.message text]
-   [:div.name author]])
+  [{:keys [id rating author text image-url class link-params]}]
+  (let [slide-content [:div.feedback-slide
+                       ;; FIXME: use better unique key
+                       {:key (str "feedback-" id "-" rating) :class class}
+                       [:div.profile-image [c-profile-image {:src image-url}]]
+                       [:div.rating [c-rating {:rating rating :color :white}]]
+                       [:div.message text]
+                       [:div.name author]]]
+    (if link-params
+      [:a link-params slide-content]
+      slide-content))
+  )
 
 
 (defn c-carousel

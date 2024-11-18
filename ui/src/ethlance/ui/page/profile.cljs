@@ -227,7 +227,8 @@
   {:rating (:feedback/rating item)
    :text (:feedback/text item)
    :image-url (-> item :feedback/from-user :user/profile-image)
-   :author (get-in item [:feedback/from-user :user/name])})
+   :author (get-in item [:feedback/from-user :user/name])
+   :link-params (navigation/link-params {:route :route.user/profile :params {:address (get-in item [:feedback/from-user :user/id])}})})
 
 
 (defn c-missing-profile-notification
@@ -266,7 +267,8 @@
                     :feedback/text
                     :feedback/rating
                     [:feedback/from-user
-                     [:user/name
+                     [:user/id
+                      :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:candidate :user :user/name])
@@ -318,7 +320,8 @@
                     :feedback/text
                     :feedback/rating
                     [:feedback/from-user
-                     [:user/name
+                     [:user/id
+                      :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:employer :user :user/name])
@@ -429,7 +432,8 @@
                     :feedback/text
                     :feedback/rating
                     [:feedback/from-user
-                     [:user/name
+                     [:user/id
+                      :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:arbiter :user :user/name])
