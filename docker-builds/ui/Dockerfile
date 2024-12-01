@@ -16,15 +16,18 @@ ENV ETHLANCE_CONFIG_PATH="/build/ethlance/config/${ETHLANCE_COMPONENT}-config-${
 WORKDIR /build/ethlance
 COPY . .
 
-RUN cat shared/src/ethlance/shared/smart_contracts_${ETHLANCE_ENV}.cljs
+RUN cat "${SMART_CONTRACTS_PATH}"
 
-WORKDIR /build/ethlance-config
-COPY config .
+# WORKDIR /build/ethlance-config
+# COPY config .
 
-# WORKDIR /build
-# RUN git clone https://github.com/district0x/d0x-libs
+WORKDIR /build
+COPY ethlance-config/config  /build/ethlance/config
+RUN git clone https://github.com/district0x/d0x-libs
 
 
+ARG BUILD_ENV=qa
+ARG ETHLANCE_ENV=qa
 FROM init as build_stage
 ENV ETHLANCE_ENV=qa
 WORKDIR $ETHLANCE_SOURCE_ROOT
