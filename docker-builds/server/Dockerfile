@@ -20,10 +20,11 @@ COPY . .
 
 RUN cat "${SMART_CONTRACTS_PATH}"
 
-WORKDIR /build/ethlance-config/
-COPY ethlance-config .
-
+# WORKDIR /build/ethlance-config/
+# COPY ethlance-config .
 WORKDIR /build
+COPY ethlance-config/config  /build/ethlance/config
+# RUN cp /build/ethlance/ethlance-config/config  /build/ethlance/
 RUN git clone https://github.com/district0x/d0x-libs
 
 FROM init as build_server
@@ -51,8 +52,8 @@ ENV UI_CONFIG_PATH="/deploy/resources/config/ui-config-${BUILD_ENV}.edn"
 ENV SERVER_CONFIG_PATH="/deploy/resources/config/server-config-${BUILD_ENV}.edn"
 WORKDIR "${ETHLANCE_SERVER_ROOT}"
 
-COPY --from=build_server /build/ethlance-config/ui-config-${ETHLANCE_ENV}.edn /deploy/resources/config/ui-config-${ETHLANCE_ENV}.edn
-COPY --from=build_server /build/ethlance-config/server-config-${ETHLANCE_ENV}.edn /deploy/resources/config/server-config-${ETHLANCE_ENV}.edn
+COPY --from=build_server /build/ethlance/config/ui-config-${ETHLANCE_ENV}.edn /deploy/resources/config/ui-config-${ETHLANCE_ENV}.edn
+COPY --from=build_server /build/ethlance/config/server-config-${ETHLANCE_ENV}.edn /deploy/resources/config/server-config-${ETHLANCE_ENV}.edn
 COPY --from=build_server /build/ethlance/resources /deploy/resources
 COPY --from=build_server /build/ethlance/server/node_modules /deploy/server/node_modules/
 COPY --from=build_server /build/ethlance/server/package.json /build/ethlance/server/out/ethlance_server* /deploy/server/
