@@ -56,6 +56,8 @@
             tab-options (map-indexed #(-> %2 first (assoc :index %1)) tab-parts)
             tab-children (mapv second tab-parts)
             tab-count-class (str "tab-count-" (count tab-children))]
+        (when (>= @*active-tab-index (count tab-parts))
+          (reset! *active-tab-index (or default-tab 0)))
         [:div.tabular-layout opts
          [:div.tab-listing
           {:class tab-count-class}

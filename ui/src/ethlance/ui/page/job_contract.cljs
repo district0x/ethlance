@@ -222,7 +222,12 @@
 
         messages-result (re/subscribe [::gql/query {:queries [messages-query]}
                                        {:refetch-on #{:page.job-contract/refetch-messages}}])
-        graphql-data-ready? (get-in @messages-result [:job-story :job-story/invoices])]
+        ; Heuristic to know that exactly the data for this query arrived
+        ; This is because the different GQL requests made from the same
+        ; page trigger the same ratoms
+        message-fields-to-check [:proposal-message :invitation-message]
+        graphql-data-ready? (some (comp not nil?)
+                                  (map #(get-in @messages-result [:job-story %]) message-fields-to-check))]
     (when graphql-data-ready?
       [c-chat-log (extract-chat-messages (:job-story @messages-result) active-user involved-users)])))
 
@@ -396,7 +401,6 @@
      [c-button {:color :primary
                 :on-click #(re/dispatch [:page.job-contract/accept-invitation
                                          {:text @text
-                                          :to (:employer message-params)
                                           :job-story/id @job-story-id}])}
       [c-button-label "Accept Invitation"]]]))
 
@@ -664,14 +668,17 @@
       (let [job-story-id (-> @*active-page-params :job-story-id parse-int)
             active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
             query [:job-story {:job-story/id job-story-id}
-                   [:job/id
+                   [:job-story/proposal-rate
+                    :job/id
                     :job-story/id
                     :job-story/status
                     [:candidate
                      [:user/id
                       [:user [:user/name]]]]
                     [:proposal-message
-                     [:message/id :message/text]]
+                     [:message/id
+                      :message/text
+                      [:creator [:user/id :user/name :user/profile-image]]]]
                     [:job
                      [:job/title
                       :balance

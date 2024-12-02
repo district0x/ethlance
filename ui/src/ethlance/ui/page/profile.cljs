@@ -193,7 +193,8 @@
                           :placeholder "Briefly describe to what and why you're inviting the candidate"
                           :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
        [c-button {:color :primary
-                  :disabled? job-story-exists?
+                  :style {:margin-top "1em"}
+                  :active? (not job-story-exists?)
                   :on-click (fn []
                               (when-not job-story-exists?
                                 (re/dispatch [:page.profile/invite-candidate
@@ -226,7 +227,8 @@
   {:rating (:feedback/rating item)
    :text (:feedback/text item)
    :image-url (-> item :feedback/from-user :user/profile-image)
-   :author (get-in item [:feedback/from-user :user/name])})
+   :author (get-in item [:feedback/from-user :user/name])
+   :link-params (navigation/link-params {:route :route.user/profile :params {:address (get-in item [:feedback/from-user :user/id])}})})
 
 
 (defn c-missing-profile-notification
@@ -265,7 +267,8 @@
                     :feedback/text
                     :feedback/rating
                     [:feedback/from-user
-                     [:user/name
+                     [:user/id
+                      :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:candidate :user :user/name])
@@ -317,7 +320,8 @@
                     :feedback/text
                     :feedback/rating
                     [:feedback/from-user
-                     [:user/name
+                     [:user/id
+                      :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:employer :user :user/name])
@@ -392,7 +396,8 @@
                         :placeholder "Briefly describe to what and why you're inviting the arbiter"
                         :on-change #(re/dispatch [:page.profile/set-invitation-text %])}]
      [c-button {:color :primary
-                :disabled? job-story-exists?
+                :style {:margin-top "1em"}
+                :active? (not job-story-exists?)
                 :on-click (fn []
                             (when-not job-story-exists?
                               (re/dispatch [:page.profile/invite-arbiter
@@ -427,7 +432,8 @@
                     :feedback/text
                     :feedback/rating
                     [:feedback/from-user
-                     [:user/name
+                     [:user/id
+                      :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
         name (get-in @results [:arbiter :user :user/name])

@@ -7,6 +7,7 @@
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
     [ethlance.shared.smart-contracts-qa :as smart-contracts-qa]
+    [ethlance.shared.smart-contracts-qa-base :as smart-contracts-qa-base]
     [ethlance.shared.utils :include-macros true :as shared-utils]))
 
 
@@ -32,7 +33,10 @@
   (condp = environment
     "prod" smart-contracts-prod/smart-contracts
     "qa" smart-contracts-qa/smart-contracts
-    "dev" smart-contracts-dev/smart-contracts))
+    "qa-base" smart-contracts-qa-base/smart-contracts
+    "dev" smart-contracts-dev/smart-contracts
+    ; "dev" smart-contracts-qa-base/smart-contracts
+    ))
 
 
 (def default-config
@@ -61,10 +65,6 @@
                      :load-method :request
                      :contracts contracts-var}
    :root-url "http://d0x-vm:6500"
-   :github
-   {:client-id "83e6a6043ca4ae50f8b0"}
-   :linkedin
-   {:client-id "86csctqngadad5"}
    :conversion-rates {:from-currencies [:ETH :USD]
                       :to-currencies [:USD :ETH]}})
 
@@ -77,6 +77,10 @@
 
 (def config-qa
   {:server-config {:url "https://ethlance-api.qa.district0x.io/config"}})
+
+(def config-qa-base
+  {:server-config {:url "https://ethlance-qa.mad.is/config"}})
+
 
 
 (def config-prod
@@ -91,4 +95,5 @@
      (case env
        "dev" config-dev
        "qa" config-qa
+       "qa-base" config-qa-base
        "prod" config-prod))))

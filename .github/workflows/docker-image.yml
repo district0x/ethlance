@@ -41,11 +41,11 @@ jobs:
           repository: district0x/ethlance-config
           path: ethlance-config
           token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
-          ref: master
+          ref: docker_build
 
       - name: Run ganache service
         run: |
-          docker run --rm -d --name ganache -p 8550:8550 trufflesuite/ganache:v7.9.1 -v -m "easy leave proof verb wait patient fringe laptop intact opera slab shine" -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
+          docker run --rm -d --name ganache -p 8550:8550 trufflesuite/ganache:v7.9.1 -v -m '${{vars.ETHLANCE_DEPLOY_SEED}}' -p 8550 -b 0.5 --chain.allowUnlimitedContractSize=true
 
       - name: Restore Top level cache directory for Ethlance
         uses: actions/cache@v3
@@ -76,6 +76,8 @@ jobs:
           cd ..
 
       - name: Deploy contracts to ganache-test
+        env:
+          ETHLANCE_DEPLOY_SEED: ${{ vars.ETHLANCE_DEPLOY_SEED }}
         run: |
           npx truffle migrate --network ganache-test --reset
 

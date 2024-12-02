@@ -7,7 +7,7 @@
     [district.ui.graphql.subs :as gql]
     [ethlance.shared.utils :refer [ilike!= ilike=]]
     [ethlance.ui.component.button :refer [c-button c-button-label]]
-    [ethlance.ui.component.carousel :refer [c-carousel-old c-feedback-slide]]
+    [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
     [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -93,8 +93,10 @@
                              [:items [:feedback/rating
                                       :feedback/text
                                       :feedback/date-created
-                                      [:feedback/from-user [:user/name
-                                                            :user/profile-image]]]]]]]]]]
+                                      [:feedback/from-user
+                                       [:user/id
+                                        :user/name
+                                        :user/profile-image]]]]]]]]]]
         result @(re/subscribe [::gql/query {:queries [feedback-query]}])
         feedback-raw (get-in result [:job :job/employer :employer/feedback :items])
 
@@ -103,13 +105,16 @@
                          :rating (:feedback/rating feedback)
                          :text (:feedback/text feedback)
                          :author (-> feedback :feedback/from-user :user/name)
-                         :image-url (-> feedback :feedback/from-user :user/profile-image)})
+                         :image-url (-> feedback :feedback/from-user :user/profile-image)
+                         :link-params (link-params
+                                        {:route :route.user/profile
+                                         :params {:address (get-in feedback [:feedback/from-user :user/id])}})})
                       feedback-raw)]
     [:div.feedback-listing
      [:div.label "Feedback for employer"]
      (if (empty? feedback)
        [:label "No feedback yet for this employer"]
-       (into [c-carousel-old {}] (map #(c-feedback-slide %) feedback)))]))
+       (into [c-carousel {}] (map #(c-feedback-slide %) feedback)))]))
 
 
 (defn c-proposals-section
@@ -180,7 +185,7 @@
            :disabled (not can-send-proposals?)
            :on-change #(re/dispatch [:page.job-detail/set-proposal-token-amount %])}]
          [:label.post-label token-display-name]]
-        [:label "The amount is for payment type: " (util.job/get-in-pair-vector util.job/bid-option *bid-option)]
+        [:label {:style {:margin-top "1em" :margin-bottom "1em"}} (util.job/get-in-pair-vector util.job/bid-option *bid-option)]
         [:div.description-input
          [c-textarea-input
           {:disabled (not can-send-proposals?)
@@ -243,18 +248,18 @@
     [:div.proposal-form
      [:div.label "Accept arbiter quote"]
      [:div.amount-input
-      [:div.label "Arbiter: "]
+      [:div.label {:style {:margin-right "1em"}} "Arbiter: "]
       [c-text-input
        {:placeholder ""
         :disabled true
         :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
      [:div.amount-input
-      [:div.label "Amount: "]
+      [:div.label {:style {:margin-right "1em"}} "Amount: "]
       [c-text-input
        {:placeholder ""
         :disabled true
         :value (token-utils/human-amount (get arbitration-to-accept :arbitration/fee) :eth)}]
-      [:label "ETH (Ether)"]]
+      [:label "ETH"]]
 
      (when arbiter-to-be-assigned?
        [c-button {:style (when (nil? arbitration-to-accept) {:background :gray})
@@ -524,6 +529,7 @@
                                        token-details
                                        token-id
                                        (:token-amount amount)])))
+                  :style {:margin-top "1em"}
                   :disabled? @add-funds-tx-in-progress?
                   :size :small}
         [c-button-label "Confirm"]]]

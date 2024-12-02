@@ -1,5 +1,5 @@
 ARG BUILD_ENV=qa
-FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0
+FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.20.1
 USER root
 
 RUN npm i -g truffle@v5.11
@@ -12,7 +12,7 @@ WORKDIR /build/ethlance
 COPY . .
 
 WORKDIR /build/ethlance-config
-COPY config .
+COPY ethlance-config .
 
 WORKDIR /build
 RUN git clone https://github.com/district0x/d0x-libs
