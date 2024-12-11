@@ -252,12 +252,14 @@
       [c-text-input
        {:placeholder ""
         :disabled true
+        :style {:cursor "not-allowed"}
         :value (get-in arbitration-to-accept [:arbiter :user :user/name])}]]
      [:div.amount-input
       [:div.label {:style {:margin-right "1em"}} "Amount: "]
       [c-text-input
        {:placeholder ""
         :disabled true
+        :style {:cursor "not-allowed"}
         :value (token-utils/human-amount (get arbitration-to-accept :arbitration/fee) :eth)}]
       [:label "ETH"]]
 

@@ -65,10 +65,11 @@
 
 
 (defn c-information
-  [text]
+  [& text-or-children]
   [:div.feedback-input-container {:style {:opacity "50%"}}
-   [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
-    text]])
+   (into
+     [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}]
+     text-or-children)])
 
 
 (defn common-chat-fields
@@ -499,7 +500,9 @@
      (when job-active? {:label "Create Invoice"})
      (when job-active?
        [:div.message-input-container
-        [:div.info-message "Click here to create new invoice for this job"]
+        [:div {:style {:height "10em" :display "flex" :align-items "center" :justify-content "center"}}
+         [:div.message "Click here to create new invoice for this job"]]
+        [:div {:style {:flex-basis "100%" :height 0}}]
         [c-button {:color :primary
                    :on-click (util.navigation/create-handler {:route :route.invoice/new})}
          [c-button-label "Go to create invoice"]]])

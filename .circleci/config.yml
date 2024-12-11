@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/ethlance
     docker:
       # Primary container image where all steps run.
-      - image: 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.17.0
+      - image: 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-20.18.1
         environment:
           ETHLANCE_ENV: qa
       # Secondary container images on common network.
