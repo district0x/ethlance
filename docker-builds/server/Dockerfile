@@ -1,4 +1,4 @@
-FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-18.20.1 as init
+FROM --platform=amd64 487920318758.dkr.ecr.us-west-2.amazonaws.com/cljs-web3-ci:node-20.18.1 as init
 ARG BUILD_ENV=qa
 ARG ETHLANCE_DEPLOY_SEED="sign bachelor state zoo expire boat morning situate scene unveil oven crew"
 USER root
@@ -43,7 +43,7 @@ RUN yarn && npx shadow-cljs release dev-server
 
 ARG BUILD_ENV=qa
 ARG ETHLANCE_ENV=qa
-FROM node:18
+FROM node:20
 ENV ETHLANCE_SOURCE_ROOT=/deploy
 ENV ETHLANCE_SERVER_ROOT=/deploy/server
 ENV ETHLANCE_ENV=qa

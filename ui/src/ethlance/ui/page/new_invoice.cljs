@@ -10,6 +10,19 @@
     [re-frame.core :as re]))
 
 
+(defn truncate [length ending string]
+  (cond
+    (nil? string)
+    ""
+
+    (< (count string) (+ length 3))
+    string
+
+    :else
+    (str
+      (subs string 0 (min (count string) length))
+      ending)))
+
 (defmethod page :route.invoice/new []
   (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
         query [:candidate {:user/id active-user}
@@ -66,7 +79,9 @@
            [c-select-input
             {:selections *job-listing
              :value-fn (fn [job-story] (str (:job/id job-story) "-" (:job-story/id job-story)))
-             :label-fn (comp :job/title :job)
+             :label-fn (comp #(truncate 50 "..." %)
+                             :job/title
+                             :job)
              :selection @*invoiced-job
              :on-select #(re/dispatch [:page.new-invoice/set-invoiced-job %])}]]
           [:div.input-stripe {:on-click (partial focus-on-element "invoice-hours-input")}

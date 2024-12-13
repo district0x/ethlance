@@ -61,7 +61,7 @@
       > .ethlance-chip-search-input {
         margin: 2em;
         max-width: 100vw;
-        
+
         @media #media[tablet-query] {
           margin: 1.5em;
         }
@@ -181,6 +181,7 @@
           > .name {
             grid-area: name;
             display: flex;
+            margin: 1em 0;
             align-items: center;
             font-weight: 700;
           }
@@ -205,11 +206,13 @@
           }
 
           > .location {
+            margin: 1em 0;
             grid-area: location;
           }
 
           > .ethlance-inline-svg {
             position: absolute;
+            margin: 1em 0;
             top: 0em;
             left: -1.5em;
             width: 16px;
@@ -227,12 +230,12 @@
         align-items: flex-start;
         padding-top: 1em;
         grid-area: details;
-        
+
         @media #media[mobile-query] {
           align-items: center;
           margin-bottom: 2em;
         }
-        
+
         > .job-detail-table {
           #mixin.detail-table();
           width: 90%;
