@@ -445,7 +445,6 @@
     [:div.proposal-listing
      [:div.label "Arbitrations"]
      [c-scrollable
-      {:forceVisible true :autoHide false}
       (into [c-table {:headers ["" "Arbiter" "Rate" "Accepted at" "Status" ""]}]
             (map (fn [arbitration]
                    [[:span (cond
