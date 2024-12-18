@@ -9,6 +9,7 @@
     [ethlance.shared.utils :refer [ilike=]]
     [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
+    [ethlance.ui.component.loading-spinner :refer [c-spinner-until-data-ready]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :refer [c-pagination-ends]]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -271,6 +272,7 @@
                       :user/name
                       :user/profile-image]]]]]]]]
         results (re/subscribe [::gql/query {:queries [query]}])
+        [loading? processing?] (map @results [:graphql/loading? :graphql/preprocessing?])
         name (get-in @results [:candidate :user :user/name])
         location (get-in @results [:candidate :user :user/country])
         professional-title (get-in @results [:candidate :candidate/professional-title])
@@ -282,21 +284,22 @@
         rating {:average (get-in @results [:candidate :candidate/rating]) :count (count feedback-list)}
         has-candidate-profile? (not (nil? biography))]
     [:<>
-     (if has-candidate-profile?
-       [:div.candidate-profile
-        [:div.title
-         [:div.profile-image
-          [c-profile-image {:src image-url}]]
-         [:div.name name]
-         [:div.detail professional-title]]
-        [:div.biography biography]
-        [c-rating-box rating]
-        [:div.location location]
-        [:div.detail-listing
-         [c-tag-list "Languages" languages]
-         [c-tag-list "Skills" skills]]]
+     [c-spinner-until-data-ready [loading? processing?]
+      (if has-candidate-profile?
+        [:div.candidate-profile
+         [:div.title
+          [:div.profile-image
+           [c-profile-image {:src image-url}]]
+          [:div.name name]
+          [:div.detail professional-title]]
+         [:div.biography biography]
+         [c-rating-box rating]
+         [:div.location location]
+         [:div.detail-listing
+          [c-tag-list "Languages" languages]
+          [c-tag-list "Skills" skills]]]
 
-       [c-missing-profile-notification :candidate])
+        [c-missing-profile-notification :candidate])]
      (when has-candidate-profile? (c-job-activity :candidate))
      (when has-candidate-profile? [c-invite-candidate])
      (c-feedback-listing professional-title feedback-list)]))

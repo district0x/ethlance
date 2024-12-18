@@ -1,6 +1,12 @@
 (ns ethlance.ui.component.mobile-navigation-bar
   (:require
+    [district.format :as format]
     [district.ui.router.subs :as ui.router.subs]
+    [district.ui.conversion-rates.subs :as conversion-subs]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.web3-account-balances.subs :as balances-subs]
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [district.web3-utils :as web3-utils]
     ;; Ethlance Components
     [ethlance.ui.component.ethlance-logo :refer [c-ethlance-logo]]
     [ethlance.ui.component.icon :refer [c-icon]]
@@ -39,13 +45,25 @@
 
 (defn c-mobile-account-page
   []
-  [:div.mobile-account-page
-   [:div.account-profile
-    [c-profile-image {}]
-    [:span.name "Brian Curran"]]
-   [:div.account-balance
-    [:span.token-value "9.20 ETH"]
-    [:span.usd-value "$1,337.00"]]])
+  (let [active-account @(re/subscribe [::accounts-subs/active-account])
+        query [:user {:user/id active-account}
+               [:user/id
+                :user/name
+                :user/email
+                :user/profile-image]]
+        result (re/subscribe [::gql/query {:queries [query]} {:refetch-on #{:ethlance.user-profile-updated}}])
+        active-account (re/subscribe [::accounts-subs/active-account])
+        balance-eth (re/subscribe [::balances-subs/active-account-balance])
+        eth-balance (web3-utils/wei->eth-number (or @balance-eth 0))]
+    [:div.mobile-account-page
+     (when @active-account
+       [:div.account-profile
+        [c-profile-image {:size :small :src (get-in @result [:user :user/profile-image])}]
+        [:span.name (get-in @result [:user :user/name])]])
+     [:div.account-balance
+      [:span.token-value (format/format-eth eth-balance)]
+      [:span.usd-value (-> @(re/subscribe [::conversion-subs/convert :ETH :USD eth-balance])
+                              (format/format-currency {:currency "USD"}))]]]))
 
 
 (defn c-mobile-navigation-bar

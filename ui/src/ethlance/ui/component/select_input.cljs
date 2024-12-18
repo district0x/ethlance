@@ -81,7 +81,7 @@
          [:div.main
           {:title (or (label-fn current-selection) label)
            :on-click #(swap! *open? not)}
-          [:span.label (or (label-fn current-selection) label)]
+          [:span.label.selected-value (or (label-fn @*current-default-selection) label)]
           [c-icon {:class "icon"
                    :name (if @*open? :ic-arrow-up :ic-arrow-down)
                    :color icon-color
