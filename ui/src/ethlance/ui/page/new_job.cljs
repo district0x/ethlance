@@ -4,6 +4,7 @@
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
     [ethlance.shared.constants :as constants]
+    [ethlance.shared.utils :refer [ilike!=]]
     [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.icon :refer [c-icon]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
@@ -79,7 +80,10 @@
         *token-id (re/subscribe [:page.new-job/token-id])
         tx-in-progress? (re/subscribe [:page.new-job/tx-in-progress?])]
     (fn []
-      (let [arbiters (get-in @arbiters-result [:arbiter-search :items])
+      (let [active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+
+            all-but-current-user (fn [a] (ilike!= (:user/id a) active-user))
+            arbiters (filter all-but-current-user (get-in @arbiters-result [:arbiter-search :items] []))
             with-token? (#{:erc20 :erc721 :erc1155} @*token-type)
             token-with-amount? (#{:erc20 :erc1155 :eth} @*token-type)
             token-with-id? (#{:erc721 :erc1155} @*token-type)
