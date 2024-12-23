@@ -9,7 +9,7 @@
     [ethlance.ui.component.button :refer [c-button c-button-label]]
     [ethlance.ui.component.carousel :refer [c-carousel c-feedback-slide]]
     [ethlance.ui.component.info-message :refer [c-info-message]]
-    [ethlance.ui.component.loading-spinner :refer [c-loading-spinner]]
+    [ethlance.ui.component.loading-spinner :refer [c-spinner-until-data-ready]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.pagination :as pagination]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -28,12 +28,6 @@
     [ethlance.ui.util.tokens :as token-utils]
     [re-frame.core :as re]))
 
-
-(defn spinner-until-data-ready
-  [loading-states component-when-loading-finished]
-  (if (not-every? false? loading-states)
-    [c-loading-spinner]
-    component-when-loading-finished))
 
 (defn hidden-until-data-ready
   [loading-states component-when-loading-finished]
@@ -445,7 +439,6 @@
     [:div.proposal-listing
      [:div.label "Arbitrations"]
      [c-scrollable
-      {:forceVisible true :autoHide false}
       (into [c-table {:headers ["" "Arbiter" "Rate" "Accepted at" "Status" ""]}]
             (map (fn [arbitration]
                    [[:span (cond
@@ -680,7 +673,7 @@
           [loading? processing?] (map @query-results [:graphql/loading? :graphql/preprocessing?])
           results (:job @query-results)]
       [c-main-layout {:container-opts {:class :job-detail-main-container}}
-       [spinner-until-data-ready [loading? processing?]
+       [c-spinner-until-data-ready [loading? processing?]
         [c-job-info-section results]]
        [hidden-until-data-ready [loading? processing?] [c-proposals-section results]]
        [hidden-until-data-ready [loading? processing?] [c-arbitrations-section contract-address]]

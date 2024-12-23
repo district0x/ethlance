@@ -41,10 +41,13 @@
        (fn [_ child]
          [:div.scrollable {:ref react-ref} child])})))
 
+(defn- c-scrollable-css
+  [& [opts body]]
+  [:div {:style {:overflow-x "auto"}} (or body opts)])
 
 (defn c-scrollable
   [opts val]
-  (let [use-noop true] ; Using noop implementation until can make the simplebar work
-    (if use-noop
-      (c-scrollable-noop opts val)
+  (let [alternative-implementation true] ; Using basic CSS implementation to make wide tables scroll horizontally
+    (if alternative-implementation
+      (c-scrollable-css opts val)
       (c-scrollable-real opts val))))
