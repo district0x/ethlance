@@ -43,8 +43,8 @@
                              :decimals 18}]
       (when (not (<? (ethlance-db/get-token conn token-address)))
         (if (= :eth token-type)
-          (ethlance-db/store-token-details conn eth-token-details)
-          (ethlance-db/store-token-details conn (<! (token-utils/get-token-details token-type token-address))))))))
+          (<! (ethlance-db/store-token-details conn eth-token-details))
+          (<! (ethlance-db/store-token-details conn (<! (token-utils/get-token-details token-type token-address)))))))))
 
 (defn handle-job-created
   [conn _ {:keys [args] :as event}]
@@ -291,7 +291,7 @@
                                    {:job-funding/amount (movement-sign-fn (:token-amount tv))
                                     :token-detail/id (:token-address tv)}))
                                funds-map)]
-      (doseq [[token-type token-address] tokens-info] (ensure-db-token-details token-type token-address conn))
+      (doseq [[token-type token-address] tokens-info] (<! (ensure-db-token-details token-type token-address conn)))
       (doseq [funding funding-updates]
         (<? (ethlance-db/insert-row! conn :JobFunding funding :ignore-conflict-on [:tx]))))))
 
