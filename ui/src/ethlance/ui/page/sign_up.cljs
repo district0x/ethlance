@@ -154,7 +154,7 @@
           :error? (not (:candidate/rate form-validation))
           :on-change #(>evt [:page.sign-up/set-candidate-rate (js/parseInt %)])}]]
        [c-user-country-input
-        {:form-values form-values}]]
+        {:form-values (select-keys form-values [:user/country])}]]
       [:div.second-forms
        [c-user-languages-input
         {:form-values form-values}]
