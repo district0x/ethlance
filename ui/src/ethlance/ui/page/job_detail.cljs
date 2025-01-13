@@ -148,7 +148,9 @@
         candidate-role? (and
                           (get-in result [:user :user/is-registered-candidate])
                           (not (ilike= active-user *employer-address))
-                          (not (some #(ilike= active-user (:user/id %)) (get-in result [:job :arbitrations :items]))))]
+                          (not (some #(ilike= active-user (:user/id %)) (get-in result [:job :arbitrations :items]))))
+        proposal-ready? (and (< 0 (get @*proposal-token-amount :token-amount))
+                                     (not (empty? @*proposal-text)))]
     [:div.proposal-listing
      [:div.label "Proposals"]
      [c-scrollable
@@ -193,6 +195,7 @@
            [c-button-label "Remove"]])
         (when (not my-proposal?)
           [c-button {:style (when (not can-send-proposals?) {:background :gray})
+                     :disabled? (not proposal-ready?)
                      :on-click (fn []
                                  (when can-send-proposals?
                                    (>evt [:page.job-proposal/send contract-address *job-token-type])))
