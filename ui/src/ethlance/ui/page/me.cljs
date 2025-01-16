@@ -17,6 +17,30 @@
     [re-frame.core :as re]))
 
 
+(defn active-sidebar-element
+  []
+  (let [*active-page (re/subscribe [::router.subs/active-page])
+        {active-query :query} @*active-page
+        active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+        default-active {"candidate" :my-candidate-contract-listing
+                        "employer" :my-employer-job-listing
+                        "arbiter" :my-arbiter-dispute-listing}
+        query [:user {:user/id active-user}
+               [:user/is-registered-candidate
+                :user/is-registered-arbiter
+                :user/is-registered-employer]]
+
+        results @(re/subscribe [::gql/query {:queries [query]}])
+        sidebar-choice-from-url (keyword (:sidebar active-query))
+        user-role (some (fn [[role-name has-it?]] (if has-it? role-name false))
+                        [["employer" (get-in results [:user :user/is-registered-employer])]
+                         ["candidate" (get-in results [:user :user/is-registered-candidate])]
+                         ["arbiter" (get-in results [:user :user/is-registered-arbiter])]])
+        default-for-user-type (get default-active user-role)
+        default :my-employer-job-listing]
+    (or sidebar-choice-from-url default-for-user-type default)))
+
+
 (defn c-nav-sidebar-element
   [label id-value]
   (let [*active-page (re/subscribe [::router.subs/active-page])]
@@ -24,31 +48,7 @@
       (let [{active-page :name
              active-params :param
              active-query :query} @*active-page
-            active-user (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
-            default-active {"candidate" :my-candidate-contract-listing
-                            "employer" :my-employer-job-listing
-                            "arbiter" :my-arbiter-dispute-listing}
-            query [:user {:user/id active-user}
-                   [:user/is-registered-candidate
-                    :user/is-registered-arbiter
-                    :user/is-registered-employer]]
-
-            results @(re/subscribe [::gql/query {:queries [query]}])
-            *current-sidebar-choice (keyword (:sidebar active-query))
-            user-role (some (fn [[role-name has-it?]]
-                              (if has-it?
-                                role-name
-                                false))
-                            [["candidate" (get-in results [:user :user/is-registered-candidate])]
-                             ["employer" (get-in results [:user :user/is-registered-employer])]
-                             ["arbiter" (get-in results [:user :user/is-registered-arbiter])]])
-            tab-active-from-url? (= *current-sidebar-choice id-value)
-            active-for-role-by-default? (and
-                                          (= id-value (get default-active user-role))
-                                          (not (contains? active-query :sidebar)))
-            active? (if tab-active-from-url?
-                      tab-active-from-url?
-                      active-for-role-by-default?)
+            active? (= id-value (active-sidebar-element))
             updated-query (-> (or active-query {})
                               (assoc  :sidebar id-value)
                               (dissoc :tab))]
@@ -502,28 +502,24 @@
 
 (defn c-listing
   []
-  (let [active-page (re/subscribe [::router.subs/active-page])]
-    (fn []
-      (let [{query :query} @active-page
-            *current-sidebar-choice (or (keyword (:sidebar query)) :my-employer-job-listing)]
-        [:div.listing
-         (case *current-sidebar-choice
-           ;; Employer
-           :my-employer-job-listing [c-my-employer-job-listing]
-           :my-employer-contract-listing [c-my-employer-contract-listing]
-           :my-employer-invoice-listing [c-my-employer-invoice-listing]
-           :my-employer-dispute-listing [c-my-employer-dispute-listing]
+  [:div.listing
+   (case (active-sidebar-element)
+     ;; Employer
+     :my-employer-job-listing [c-my-employer-job-listing]
+     :my-employer-contract-listing [c-my-employer-contract-listing]
+     :my-employer-invoice-listing [c-my-employer-invoice-listing]
+     :my-employer-dispute-listing [c-my-employer-dispute-listing]
 
-           ;; Candidate
-           :my-candidate-contract-listing [c-my-candidate-contract-listing]
-           :my-candidate-invoice-listing [c-my-candidate-invoice-listing]
-           :my-candidate-dispute-listing [c-my-candidate-dispute-listing]
+     ;; Candidate
+     :my-candidate-contract-listing [c-my-candidate-contract-listing]
+     :my-candidate-invoice-listing [c-my-candidate-invoice-listing]
+     :my-candidate-dispute-listing [c-my-candidate-dispute-listing]
 
-           ;; Arbiter
-           :my-arbiter-job-listing [c-my-arbiter-job-listing]
-           :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
+     ;; Arbiter
+     :my-arbiter-job-listing [c-my-arbiter-job-listing]
+     :my-arbiter-dispute-listing [c-my-arbiter-dispute-listing]
 
-           (throw (ex-info "Unable to determine sidebar choice" {:current-sidebar-choice *current-sidebar-choice})))]))))
+     (throw (js/Error. "Unable to determine sidebar choice")))])
 
 
 (defmethod page :route.me/index []
