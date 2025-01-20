@@ -3,6 +3,7 @@
     [clojure.string]
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
+    [ethlance.shared.utils :refer [ilike=]]
     [ethlance.ui.component.icon :refer [c-icon]]
     [ethlance.ui.component.main-layout :refer [c-main-layout]]
     [ethlance.ui.component.profile-image :refer [c-profile-image]]
@@ -90,6 +91,9 @@
                           :payer (:user/id employer)
                           :receiver (:user/id candidate)}
 
+          employer-id (get-in job [:job/employer :user/id])
+          current-user-id (:user/id @(re/subscribe [:ethlance.ui.subscriptions/active-session]))
+          viewed-by-employer? (ilike= current-user-id employer-id)
           invoice-payable? (not= "paid" (get invoice :invoice/status))
           info-panel [["Invoiced Amount" (when-not (:graphql/loading? result)
                                            [c-token-info (:invoice/amount-requested invoice)
@@ -112,9 +116,10 @@
         [:div.ethlance-table
          [:table (into [:tbody] (map (fn [[label content]] [:tr [:th label] [:td content]]) info-panel))]]]
 
-       (if invoice-payable?
-         [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}
-          [:span "Pay Invoice"]
-          [c-icon {:name :ic-arrow-right :size :small :color :white}]]
-         [:div.button {:style {:background-color :gray}}
-          [:span "Invoice Paid"]])])))
+       (when viewed-by-employer?
+         (if invoice-payable?
+           [:div.button {:on-click #(re/dispatch [:page.invoices/pay invoice-to-pay])}
+            [:span "Pay Invoice"]
+            [c-icon {:name :ic-arrow-right :size :small :color :white}]]
+           [:div.button {:style {:background-color :gray}}
+            [:span "Invoice Paid"]]))])))

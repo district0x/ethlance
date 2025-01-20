@@ -67,6 +67,7 @@
               "Component has both controlled `selection` and uncontrolled `default-selection` attributes set.")
       (let [value-fn (or value-fn identity)
             label-fn (or label-fn identity)
+            current-selection (if (contains? opts :default-selection) @*current-default-selection selection)
             opts (dissoc opts
                          :label :selections
                          :on-select :default-selection
@@ -75,8 +76,9 @@
                          :default-search-text
                          :size
                          :value-fn
-                         :label-fn)
-            current-selection (if (contains? opts :default-selection) @*current-default-selection selection)]
+                         :label-fn)]
+        (when (nil? @*current-default-selection)
+          (reset! *current-default-selection (or default-selection selection)))
         [:div.ethlance-select-input (merge {:class [color-class size-class]} opts)
          [:div.main
           {:title (or (label-fn current-selection) label)

@@ -408,18 +408,39 @@
 
 (defn c-employer-options
   [message-params]
-  [c-tabular-layout
-   {:key "employer-tabular-layout"
-    :default-tab 1}
+  (let [*active-page-params (re/subscribe [::router.subs/active-page-params])
+        job-story-id (-> @*active-page-params :job-story-id parse-int)
 
-   {:label "Send Message"}
-   [c-direct-message]
+        invoice-query [:job-story {:job-story/id job-story-id}
+                       [[:job-story/invoices
+                         [:total-count
+                          [:items
+                           [:id
+                            :job/id
+                            :job-story/id
+                            :invoice/status
+                            :invoice/id
+                            :invoice/date-paid
+                            :invoice/amount-requested
+                            :invoice/amount-paid]]]]]]
+        invoice-result (re/subscribe [::gql/query {:queries [invoice-query]} {:refetch-on #{:page.job-contract/refetch-messages}}])
+        invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
+        all-paid? (and (< 0 (count invoices))
+                       (every? (fn [invoice] (= (get invoice :invoice/status) "paid")) invoices))]
+    [c-tabular-layout
+     {:key "employer-tabular-layout"
+      :default-tab 1}
 
-   {:label "Accept Proposal"}
-   [c-accept-proposal-message message-params]
+     {:label "Send Message"}
+     [c-direct-message]
 
-   {:label "Leave Feedback"}
-   [c-feedback-panel :employer]])
+     {:label "Accept Proposal"}
+     [c-accept-proposal-message message-params]
+
+     {:label "Leave Feedback"}
+     (if all-paid?
+       [c-feedback-panel :employer]
+       [c-information "Feedback can be sent after last invoice has been paid"])]))
 
 
 (defn c-candidate-options
@@ -468,10 +489,13 @@
                                 (not (nil? invitation-message))
                                 (nil? invitation-accepted-message))
         invoices (get-in @invoice-result [:job-story :job-story/invoices :items])
+        all-paid? (and (< 0 (count invoices))
+                       (every? (fn [invoice] (= (get invoice :invoice/status) "paid")) invoices))
         latest-unpaid-invoice (->> invoices
                                    (filter #(= "created" (:invoice/status %)) ,,,)
                                    (sort-by #(get-in % [:creation-message :message/date-created]) > ,,,)
                                    first)
+
         token-symbol (get-in @invoice-result [:job-story :job :token-details :token-detail/symbol])
         token-type (keyword (get-in @invoice-result [:job-story :job :job/token-type]))
         decimals (get-in @invoice-result [:job-story :job :token-details :token-detail/decimals])
@@ -535,7 +559,9 @@
        [c-information dispute-unavailable-message])
 
      {:label "Leave Feedback"}
-     [c-feedback-panel :candidate]]))
+     (if all-paid?
+       [c-feedback-panel :candidate]
+       [c-information "Feedback can be sent after last invoice has been paid"])]))
 
 
 (defn c-arbiter-options
