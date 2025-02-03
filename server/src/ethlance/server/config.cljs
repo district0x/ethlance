@@ -1,5 +1,6 @@
 (ns ethlance.server.config
   (:require
+    [taoensso.timbre :as log]
     [ethlance.server.db :as server-db]
     [ethlance.server.new-syncer.handlers :as new-syncer.handlers]
     [ethlance.server.new-syncer :as new-syncer]
@@ -28,7 +29,16 @@
 
 
 (def default-config
-  {:web3 {:url  "ws://127.0.0.1:8549"}
+  {:web3
+   {:url  "ws://127.0.0.1:8549"
+    :on-offline (fn [] (log/info "Went OFFLINE"))
+    :on-online (fn [] (log/info "Back ONLINE"))
+    :top-level-opts
+    {:reconnect
+     {:auto true
+      :delay 2000
+      :max-attempts 5
+      :on-timeout true}}}
    :new-syncer {:auto-start-listening-new-events? false
                 :handlers new-syncer.handlers/handlers
                 :save-checkpoint server-db/save-processed-events-checkpoint}
