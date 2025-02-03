@@ -33,6 +33,7 @@
                                 {:env-name "SERVER_CONFIG_PATH"
                                  :default (server-config/env-config server-config/environment)}})
                              (mount/start))]
+        (js/setTimeout district.server.web3/ping-start 5000)
         (log/warn "Started" {:components start-result :config @district-config/config}))
       (catch js/Error e
         (log/error "Something went wrong when starting the application" {:error e})))))
