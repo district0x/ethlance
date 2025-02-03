@@ -13,6 +13,11 @@
 
 (defonce connection-history (atom []))
 
+(defn print-connection-status
+  [web3-instance]
+  (web3-eth/connected? web3-instance (fn [err connected]
+                                       (println "web3 status:" {:err (when (not (nil? err)) (.-message err))
+                                                                :connected connected}))))
 (defn add-data
   []
   (web3-eth/connected?
