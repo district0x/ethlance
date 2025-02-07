@@ -66,13 +66,14 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block 1000
+                 :from-block 103
                  :block-step 5 ; 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
                  :skip-past-events-replay? false
-                 :load-checkpoint server-db/load-processed-events-checkpoint
-                 :save-checkpoint server-db/save-processed-events-checkpoint
+                 :checkpoint-file "blockchain-sync-checkpoint.txt"
+                 ; :load-checkpoint server-db/load-processed-events-checkpoint
+                 ; :save-checkpoint server-db/save-processed-events-checkpoint
                  ; :callback-after-past-events new-syncer/start-listening-new-events
                  }
    :smart-contracts {:contracts-var contracts-var

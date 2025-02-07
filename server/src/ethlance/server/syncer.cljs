@@ -116,6 +116,7 @@
 
 (defn reload-timeout-stop []
   (js/clearInterval @reload-timeout))
+
 (defn start
   [opts]
   (log/debug "Starting Syncer...")
