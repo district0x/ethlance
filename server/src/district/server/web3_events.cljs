@@ -57,6 +57,7 @@
       (update-checkpoint-atom! block-number transaction-index log-index))))
 
 (defn register-callback! [event-key callback & [callback-id]]
+  (log/info ">>> register-callback" {:event-key event-key :callback-id callback-id})
   (let [[contract-key event] (if-not (= event-key ::after-past-events-dummy-key)
                                (get (:events @web3-events) event-key)
                                [::after-past-events-dummy-contract ::after-past-events-dummy-event])
@@ -77,6 +78,8 @@
   (doseq [callback-id callback-ids]
     (let [path (get-in @(:callbacks @web3-events) [:callback-id->path callback-id])]
       (swap! (:callbacks @web3-events) (fn [callbacks]
+
+                                         (log/info ">>> UN-register-callback" {:path (into path [callback-id])})
                                          (-> callbacks
                                              (medley/dissoc-in (into path [callback-id]))
                                              (medley/dissoc-in [:callback-id->path callback-id]))))))
@@ -120,6 +123,7 @@
         callback-ids (keys callbacks)]
     (doseq [callback callback-fns]
       (callback))
+    (log/info ">>> unregistering" callback-ids)
     (unregister-callbacks! callback-ids)))
 
 (defn start
