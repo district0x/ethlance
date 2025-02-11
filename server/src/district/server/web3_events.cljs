@@ -173,7 +173,9 @@
                       ; This is not the case for FundsIn/FundsOut and some other messages in Ethlance for example
                       next-block-to-process (max 0 (- last-processed-block backtrack))]
                   (if skip-past-events-replay?
-                    (start-dispatching-latest-events! events (inc last-block-number))
+                    (do
+                      (dispatch-after-past-events-callbacks!)
+                      (start-dispatching-latest-events! events (inc last-block-number)))
                     (smart-contracts/replay-past-events-in-order
                       events
                       dispatch
