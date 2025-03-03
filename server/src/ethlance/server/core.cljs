@@ -16,7 +16,7 @@
     [ethlance.server.graphql.server]
     [ethlance.server.ipfs]
     [ethlance.server.syncer]
-    [ethlance.server.new-syncer]
+    ; [ethlance.server.new-syncer]
     [mount.core :as mount]
     [taoensso.timbre :refer [merge-config!] :as log]))
 

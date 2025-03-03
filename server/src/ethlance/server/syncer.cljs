@@ -3,14 +3,19 @@
     [bignumber.core :as bn]
     [camel-snake-kebab.core :as camel-snake-kebab]
     [cljs.core.async.impl.protocols :refer [ReadPort]]
+    [cljs-web3-next.eth :as web3-eth]
+    [cljs-web3-next.core :as web3-core]
     [clojure.core.async :as async :refer [<!] :include-macros true]
     [district.server.async-db :as db]
     [district.server.smart-contracts :as smart-contracts]
+    [district.time :as time]
+    [district.server.web3 :refer [ping-start ping-stop web3]]
     [district.server.web3-events :as web3-events]
     [district.shared.async-helpers :refer [<? safe-go]]
     [ethlance.server.event-replay-queue :as replay-queue]
     [ethlance.server.tracing.api :as t-api]
     [ethlance.server.syncer.handlers :as handlers]
+    [ethlance.shared.utils :as shared-utils]
     [mount.core :as mount :refer [defstate]]
     [taoensso.timbre :as log]))
 
@@ -19,8 +24,8 @@
 
 
 (defstate ^{:on-reload :noop} syncer
-  :start (start)
-  :stop (stop))
+  :start (start {})
+  :stop (stop syncer))
 
 
 ;;
@@ -93,8 +98,27 @@
               (db/release-connection conn))))))))
 
 
+(defn- reload-handler [interval]
+  (js/setInterval
+    (fn []
+      (safe-go
+        (let [connected? (true? (<! (web3-eth/is-listening? @web3)))]
+          (when connected?
+            (do
+              (log/debug (str "disconnecting from provider to force reload. Last block: " @last-block-number))
+              (web3-core/disconnect @web3))))))
+    interval))
+
+(defonce reload-timeout (atom nil))
+
+(defn reload-timeout-start [{:keys [:reload-interval]}]
+  (reset! reload-timeout (reload-handler reload-interval)))
+
+(defn reload-timeout-stop []
+  (js/clearInterval @reload-timeout))
+
 (defn start
-  []
+  [opts]
   (log/debug "Starting Syncer...")
   (let [event-callbacks {:ethlance/job-created handlers/handle-job-created
                          :ethlance/candidate-added handlers/handle-candidate-added
@@ -112,14 +136,22 @@
         dispatcher (build-dispatcher (:events @district.server.web3-events/web3-events) event-callbacks)
         callback-ids (doall (for [[event-key] event-callbacks]
                               (web3-events/register-callback! event-key dispatcher)))]
+        (web3-events/register-after-past-events-dispatched-callback!
+          (fn []
+            (log/warn "Syncing past events finished" (time/time-units (- (shared-utils/now) start-time)) ::start)
+            (ping-start {:ping-interval 10000})
+            (when (> (:reload-interval opts) 0)
+              (reload-timeout-start (select-keys opts [:reload-interval])))))
     (log/debug "Syncer started")
-    {:callback-ids callback-ids
-     :dispatcher dispatcher}))
+    (merge opts
+           {:callback-ids callback-ids
+            :dispatcher dispatcher})))
 
 
 (defn stop
   "Stop the syncer mount component."
   []
   (log/debug "Stopping Syncer...")
-  #_(unregister-callbacks!
-     [::EthlanceEvent]))
+  (reload-timeout-stop)
+  (ping-stop)
+  (web3-events/unregister-callbacks! (:callback-ids @syncer)))

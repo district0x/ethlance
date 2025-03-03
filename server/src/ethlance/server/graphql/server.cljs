@@ -7,6 +7,7 @@
     [ethlance.server.graphql.middlewares :as middlewares]
     [ethlance.server.graphql.resolvers :as resolvers]
     [ethlance.server.ui-config :as ui-config]
+    [ethlance.server.debug :as server-debug]
     [ethlance.shared.graphql.schema :as schema]
     [ethlance.shared.utils :as shared-utils]
     [mount.core :as mount :refer [defstate]]
@@ -34,6 +35,7 @@
 
 (defn start
   [opts]
+  (server-debug/start-collecting 5)
   (let [executable-schema (makeExecutableSchema (clj->js {:typeDefs (gql schema/schema)
                                                           :resolvers resolvers/resolvers-map}))
         schema-with-middleware (applyMiddleware executable-schema
@@ -62,6 +64,11 @@
                                             (fn [config]
                                               (.setHeader res "Access-Control-Allow-Origin", "*")
                                               (.json res (clj->js config))))))
+    (js-invoke app "get" "/debug" (fn [_req res]
+                                     (.then (server-debug/collect)
+                                            (fn [debug-data]
+                                              (.setHeader res "Access-Control-Allow-Origin", "*")
+                                              (.json res (clj->js debug-data))))))
     (js-invoke server "applyMiddleware" (clj->js {:app app}))
     (js-invoke app "listen" (clj->js opts)
                (fn [url]

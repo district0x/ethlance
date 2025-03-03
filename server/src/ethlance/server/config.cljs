@@ -1,8 +1,11 @@
 (ns ethlance.server.config
   (:require
+    [taoensso.timbre :as log]
+    [mount.core :as mount]
     [ethlance.server.db :as server-db]
-    [ethlance.server.new-syncer.handlers :as new-syncer.handlers]
-    [ethlance.server.new-syncer :as new-syncer]
+    ; [ethlance.server.new-syncer.handlers :as new-syncer.handlers]
+    ; [ethlance.server.new-syncer :as new-syncer]
+    [ethlance.server.syncer]
     [ethlance.shared.config :as shared-config]
     [ethlance.shared.smart-contracts-dev :as smart-contracts-dev]
     [ethlance.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -28,10 +31,27 @@
 
 
 (def default-config
-  {:web3 {:url  "ws://127.0.0.1:8549"}
-   :new-syncer {:auto-start-listening-new-events? false
-                :handlers new-syncer.handlers/handlers
-                :save-checkpoint server-db/save-processed-events-checkpoint}
+  {:web3
+   {:url  "ws://127.0.0.1:8549"
+    ; :on-offline (fn [] (log/info "Went OFFLINE"))
+    ; :on-online (fn [] (log/info "Back ONLINE"))
+    :on-offline (fn []
+                  (log/warn "Ethereum node went offline, stopping syncing modules")
+                  (mount/stop #'district.server.web3-events/web3-events
+                              #'ethlance.server.syncer/syncer))
+    :on-online (fn []
+                 (log/warn "Ethereum node came online again, starting syncing modules")
+                 (mount/start #'district.server.web3-events/web3-events
+                              #'ethlance.server.syncer/syncer))
+    :top-level-opts
+    {:reconnect
+     {:auto true
+      :delay 2000
+      :max-attempts 5
+      :on-timeout true}}}
+   ; :new-syncer {:auto-start-listening-new-events? false
+   ;              :handlers new-syncer.handlers/handlers
+   ;              :save-checkpoint server-db/save-processed-events-checkpoint}
    :web3-events {:events
                  {:ethlance/job-created [:ethlance :JobCreated]
                   :ethlance/invoice-created [:ethlance :InvoiceCreated]
@@ -46,14 +66,15 @@
                   :ethlance/funds-in [:ethlance :FundsIn]
                   :ethlance/funds-out [:ethlance :FundsOut]
                   :ethlance/test-event [:ethlance :TestEvent]}
-                 :from-block 1000
+                 :from-block 103
                  :block-step 5 ; 1000
                  :dispatch-logging? true
                  :crash-on-event-fail? true
                  :skip-past-events-replay? false
-                 :load-checkpoint server-db/load-processed-events-checkpoint
-                 :save-checkpoint server-db/save-processed-events-checkpoint
-                 :callback-after-past-events new-syncer/start-listening-new-events
+                 :checkpoint-file "blockchain-sync-checkpoint.txt"
+                 ; :load-checkpoint server-db/load-processed-events-checkpoint
+                 ; :save-checkpoint server-db/save-processed-events-checkpoint
+                 ; :callback-after-past-events new-syncer/start-listening-new-events
                  }
    :smart-contracts {:contracts-var contracts-var
                      :contracts-build-path "../resources/public/contracts/build"
