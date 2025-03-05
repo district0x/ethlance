@@ -381,10 +381,16 @@
                                      message-id (:message/id feedback)
                                      arbiter-status "accepted"
                                      job-story-id (:job-story/id feedback)
-                                     where-condition [:and
-                                                      [:= message-id :jsfm.message/id]
-                                                      [:= job-story-id :js.job-story/id]
-                                                      [:= arbiter-status :ja.job-arbiter/status]]
+                                     where-condition [:or
+                                                      [:and
+                                                       [:= message-id :jsfm.message/id]
+                                                       [:= job-story-id :js.job-story/id]
+                                                       [:!= :ja.job/id nil]
+                                                       [:= arbiter-status :ja.job-arbiter/status]]
+                                                      [:and
+                                                       [:= message-id :jsfm.message/id]
+                                                       [:= job-story-id :js.job-story/id]
+                                                       [:!= :ja.job/id nil]]]
                                      q (sql-helpers/merge-where feedback-user-type-query where-condition)]
                                  (log/debug "feedback->user-type-resolver" user-type-column feedback)
                                  (user-type-column (<? (db/get conn q))))))

@@ -263,7 +263,7 @@
         participants {:employer (get-in results [:job-story :job :job/employer :user])
                       :candidate (get-in results [:job-story :candidate :user])
                       :arbiter (get-in results [:job-story :job :job/arbiter :user])}
-
+        accepted-arbiter (get-in results [:job-story :job :job/arbiter :user])
         normalized-feedback-users (map (fn [fb]
                                          [(:feedback/from-user-type fb)
                                           (:feedback/to-user-type fb)])
@@ -279,7 +279,8 @@
 
                                    (and
                                      (given-feedback? :employer :candidate)
-                                     (not (given-feedback? :employer :arbiter)))
+                                     (not (given-feedback? :employer :arbiter))
+                                     (not (nil? accepted-arbiter)))
                                    :arbiter)
 
                                  :candidate
@@ -289,7 +290,8 @@
 
                                    (and
                                      (given-feedback? :candidate :employer)
-                                     (not (given-feedback? :candidate :arbiter)))
+                                     (not (given-feedback? :candidate :arbiter))
+                                     (not (nil? accepted-arbiter)))
                                    :arbiter)
 
                                  :arbiter
