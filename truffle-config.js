@@ -59,8 +59,8 @@ module.exports = {
     },
 
     ganache: {
-      host: 'localhost',
-      port: 8549,
+      provider: function () {
+        return new HDWalletProvider(DEFAULT_DEV_MNEMONIC, "http://localhost:8549")},
       from: "0xeba108B12593336bBa461b8a6e7DC5A4b597Bc7E", // 6th address
       gas: 10e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
@@ -75,29 +75,10 @@ module.exports = {
       network_id: '*'
     },
 
-    "ethlance.mad.is-testnet": {
-      host: 'ethlance.mad.is',
-      port: 8545,
-      gas: 6e6, // gas limit
-      gasPrice: 20e9, // 20 gwei, default for ganache
-      network_id: '*',
-      from: "0xeba108B12593336bBa461b8a6e7DC5A4b597Bc7E" // 6) address
-    },
-
-    "arbitrum-sepolia": {
-      provider: new HDWalletProvider({mnemonic: {phrase: mnemonic},
-                                      providerOrUrl: ETHLANCE_ETH_NODE_ADDRESS ||  'https://sepolia-rollup.arbitrum.io/rpc'
-                                     }),
-      gas: 6e6, // gas limit
-      gasPrice: 20e9, // 20 gwei, default for ganache
-      network_id: 421614,
-      from: "0x642fAE80d3C74559A18B0558A518cDBF6b047968" // 1st address
-    },
-
     "base-sepolia": {
-      provider: new HDWalletProvider({mnemonic: {phrase: ETHLANCE_DEPLOY_SEED},
-                                      providerOrUrl: ETHLANCE_ETH_NODE_ADDRESS ||  'https://sepolia.base.org'
-                                     }),
+      provider: function () {
+        return new HDWalletProvider({mnemonic: {phrase: ETHLANCE_DEPLOY_SEED},
+                                     providerOrUrl: ETHLANCE_ETH_NODE_ADDRESS ||  'https://sepolia.base.org'})},
       gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: 84532,

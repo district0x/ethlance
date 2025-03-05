@@ -9,57 +9,51 @@ change before final release*
 
 ## Prerequisites
 
-1. Node.js >= 16.15.1
+1. Node.js >= 20.18.1 (it's defined in `.tool-versions` and [asdf](https://github.com/asdf-vm/asdf-nodejs) is a good way to install it)
 2. Java JDK >= 18 (for Clojure)
-3. Babashka
-4. PostgreSQL (tested with 14.6)
+3. [Babashka](https://github.com/babashka/babashka#installation)
+4. PostgreSQL (tested with 17.3)
 5. IPFS daemon
 6. Ethereum testnet (e.g. ganache)
 
 ## Running the system
 
-1. Start IPFS
-2. Start ganache
-3. Migrate Solidity contracts to testnet: `npx truffle migrate --network ganache --reset`
-3. Start server build `bb watch-server`
-4. Start server (to serve the API) `bb run-server`
-4. Start UI build `bb watch-ui`
-  - this also starts serving the UI assets & smart contract assets on port `6500`
+Clojure gets its missing dependencies automatically during compilation.
+Node.js dependencies need to be installed manually. There are 3 places for it:
+1. Testnet & smart contract node deps at the project root:
+  - `yarn install`
+2. UI node dependencies
+  - `cd ui && yarn install`
+3. Server node dependencies
+  - `cd server && yarn install`
 
-### First steps, showing example data
-
-In order for the front-end to be able to have the JWT token (kept in LocalStorage), you must sign a transaction. Currently it can be done manually. Open REPL for UI:
-```
-lein repl :connect 54200
-(shadow/repl :dev-ui)
-(in-ns 'ethlance.ui.event.sign-in)
-(re/dispatch [:user/sign-in])
-```
-  - this will show a pop up and using MetaMask you can create a transaction
-  - after doing this successfully the UI graphql requests will have proper `Authorization: Bearer ...` header
-
-Then to generate some example data you can use server REPL:
-```
-lein repl :connect 54100
-(shadow/repl :dev-server)
-(in-ns 'tests.graphql.generator)
-(generate-for-address "0xafcf1a2bc71acf041c93012a2e552e31026dfeab")
-```
-  - for that the test namespace must be included in the server build (e.g. by adding `[tests.graphql.generator :as test-data-generator]` to `ethlance.server.core`)
-  - alternatively you can submit the data manually through the forms
-
-## Tips & troubleshooting
-
-### Postgres setup
-
-Start postgres console `psql -d postgres`
-
+Also a database needs to exist (configured in `config/server-config-dev.edn` under `:district/db` key).
+Here's some SQL to do it (via the `psql` command)
 ```sql
-CREATE USER ethlanceuser WITH ENCRYPTED PASSWORD 'pass';
-CREATE DATABASE ethlance WITH OWNER ethlanceuser;
--- alternatively if you created the database earlier, give access with:
-GRANT ALL PRIVILEGES On ethlance TO ethlanceuser;
+CREATE DATABASE ethlance_new;
+CREATE USER ethlanceuser_new WITH PASSWORD 'pass_new';
+GRANT ALL PRIVILEGES ON DATABASE ethlance_new TO ethlanceuser_new;
+\c ethlance_new
+GRANT ALL ON SCHEMA public TO ethlanceuser_new;
+ALTER DATABASE ethlance_new OWNER TO ethlanceuser_new; -- Optional
 ```
+
+> _The database schema gets created automatically when server is started._
+
+After this you can start all necessary services at once from the terminal with `overmind start`
+  - the processes to be started are defined in `Procfile`
+  - [Overmind](https://github.com/DarthSim/overmind)
+  - *TIP* for development it's better to run the `bb run-server` separately because although shadow-cljs recompiles the code on file saves, the node process doesn't reload it and for that manual restart is required to reload the updated code.
+
+Or you can start them one by one (check the `Procfile` for respective commands):
+1. Start IPFS
+  - this is optional if the `:ipfs` config points to external node
+2. Start ganache `bb testnet-dev`
+3. Migrate Solidity contracts to testnet: `npx truffle migrate --network ganache --reset`
+4. Start server build `bb watch-server`
+5. Start server (to serve the API) `bb run-server`
+6. Start UI build `bb watch-ui`
+  - this also starts serving the UI assets & smart contract assets on port `6500`
 
 ### IPFS Server
 
