@@ -247,7 +247,11 @@
   [root {:keys [:limit :offset] :as args} _]
   (db/with-async-resolver-conn conn
                                (let [{:keys [:user/id] :as employer} (graphql-utils/gql->clj root)
-                                     query (sql-helpers/merge-where user-feedback-query [:ilike id :JobStoryFeedbackMessage.user/id])]
+                                     query (sql-helpers/merge-where
+                                             user-feedback-query
+                                             [:and
+                                              [:ilike id :JobStoryFeedbackMessage.user/id]
+                                              [:= "employer" :JobStoryFeedbackMessage.feedback/receiver-role]])]
                                  (log/debug "employer->feedback-resolver" {:employer employer :args args})
                                  (<? (paged-query conn query limit offset)))))
 
@@ -341,7 +345,11 @@
   (db/with-async-resolver-conn conn
                                (let [arbiter (graphql-utils/gql->clj root)
                                      user-id (:user/id arbiter)
-                                     query (sql-helpers/merge-where user-feedback-query [:ilike user-id :JobStoryFeedbackMessage.user/id])]
+                                     query (sql-helpers/merge-where
+                                             user-feedback-query
+                                             [:and
+                                              [:ilike user-id :JobStoryFeedbackMessage.user/id]
+                                              [:= "arbiter" :JobStoryFeedbackMessage.feedback/receiver-role]])]
                                  (log/debug "arbiter->feedback-resolver" {:arbiter arbiter :args args})
                                  (<? (paged-query conn query limit offset)))))
 
@@ -652,7 +660,9 @@
   (db/with-async-resolver-conn conn
                                (let [{:keys [:user/id] :as candidate} (graphql-utils/gql->clj root)
                                      query (-> user-feedback-query
-                                               (sql-helpers/merge-where [:= id :JobStoryFeedbackMessage.user/id]))]
+                                               (sql-helpers/merge-where [:and
+                                                                         [:= id :JobStoryFeedbackMessage.user/id]
+                                                                         [:= "candidate" :JobStoryFeedbackMessage.feedback/receiver-role]]))]
                                  (log/debug "candidate->feedback-resolver" {:candidate candidate :args args})
                                  (<? (paged-query conn query limit offset)))))
 
@@ -1092,7 +1102,7 @@
 
 
 (defn leave-feedback-mutation
-  [_ {:keys [:job-story/id :text :rating :to]} {:keys [current-user timestamp]}]
+  [_ {:keys [:job-story/id :text :rating :to :receiver-role]} {:keys [current-user timestamp]}]
   ;; Change JobStory status to "ended-by-feedback" when employer or candidate sends feedback
   (db/with-async-resolver-tx conn
                              (let [job-story-id id
@@ -1118,6 +1128,7 @@
                                                                   :message/creator current-user-id
                                                                   :message/text text
                                                                   :feedback/rating rating
+                                                                  :feedback/receiver-role receiver-role
                                                                   :user/id to}))
                                (re-calculate-user-average-rating to job-story-id)
 

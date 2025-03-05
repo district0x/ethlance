@@ -349,6 +349,7 @@
                                             {:job-story/id @job-story-id
                                              :text @feedback-text
                                              :rating @feedback-rating
+                                             :receiver-role feedback-receiver-role
                                              :to (:user/id next-feedback-receiver)}])}
          [c-button-label "Send Feedback"]]])]))
 

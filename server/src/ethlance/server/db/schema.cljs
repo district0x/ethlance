@@ -336,6 +336,7 @@
     [[:job-story/id :integer not-nil]
      [:message/id :integer not-nil]
      [:feedback/rating :integer not-nil]
+     [:feedback/receiver-role :varchar]
      [:user/id :varchar not-nil]
 
      ;; PK
