@@ -267,6 +267,7 @@
                                                            :job-story-message/type :feedback
                                                            :job-story/id story-id
                                                            :feedback/rating (rand-int 5)
+                                                           :feedback/receiver-role "candidate"
                                                            :user/id candidate})))
 
       ;; feedback from the candidate to the employer
@@ -275,6 +276,7 @@
                                                            :job-story-message/type :feedback
                                                            :job-story/id story-id
                                                            :feedback/rating (rand-int 5)
+                                                           :feedback/receiver-role "employer"
                                                            :user/id employer}))))))
 
 

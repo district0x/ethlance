@@ -80,9 +80,11 @@
         text (:text params)
         rating (:rating params)
         to (:to params)
+        receiver-role (:receiver-role params)
         mutation-params {:job-story/id job-story-id
                          :text text
                          :rating rating
+                         :receiver-role receiver-role
                          :to to}]
     {:fx [[:dispatch [::gql-events/mutation {:queries [[:leave-feedback mutation-params]]
                                              :on-success [::graphql-mutation-success]
