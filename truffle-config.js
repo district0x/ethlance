@@ -4,6 +4,7 @@ const ETHLANCE_MNEMONIC = process.env.ETHLANCE_MNEMONIC;
 const ETHLANCE_ETH_NODE_ADDRESS = process.env.ETHLANCE_ETH_NODE_ADDRESS;
 const ETHLANCE_DEPLOYER_ADDRESS = process.env.ETHLANCE_DEPLOYER_ADDRESS
 const ETHLANCE_DEPLOY_SEED = process.env.ETHLANCE_DEPLOY_SEED
+const ETHLANCE_INFURA_API_KEY = process.env.ETHLANCE_INFURA_API_KEY || "fc19514210574bf580fbc13f58f65819";
 
 const smartContractsPaths = {
   "dev" : '/shared/src/ethlance/shared/smart_contracts_dev.cljs',
@@ -83,6 +84,17 @@ module.exports = {
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: 84532,
       from: ETHLANCE_DEPLOYER_ADDRESS
+    },
+    "production": {
+      provider: function () {
+        return new HDWalletProvider({mnemonic: {phrase: ETHLANCE_DEPLOY_SEED},
+                                    providerOrUrl: `https://base-mainnet.infura.io/v3/${ETHLANCE_INFURA_API_KEY}`})},
+      gas: 3000000,
+      gasPrice: 0.004 * 1e9,
+      network_id: 8453,
+      from: ETHLANCE_DEPLOYER_ADDRESS,
+      timeoutBlocks: 200,
+      confirmations: 2
     }
   }
 }

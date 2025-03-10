@@ -1,14 +1,4 @@
 (ns ethlance.shared.smart-contracts-prod)
 
-;; FIXME: currently copied from smart-contracts-qa-base.
-;;        To be replaced during smart contract deployment to prod environment
 (def smart-contracts
-  {:token {:name "TestToken" :address "0xEC0eBe108Cb18E2e3E086D95ec0e54186515D28c"}
-   :test-nft {:name "TestNft" :address "0xba626CF0E8DE6589DCC3366a83A328c2EfF1aB16"}
-   :test-multi-token {:name "TestMultiToken" :address "0x1427FFB41C054FE0a46Fd815eEa38A25D853c89F"}
-   :ethlance-structs {:name "EthlanceStructs" :address "0xB7BD1c448b5Bf92C3Bb6Fa67b972fa4a822e9C4D"}
-   :job-helpers {:name "JobHelpers" :address "0x997A67E6Ca104bbFB441cb852aDC1d9f93a330Ba"}
-   :job {:name "Job" :address "0xf886242c1A9767189eFc95d9863706dD86698CA8"}
-   :mutable-forwarder {:name "MutableForwarder" :address "0xB220d6e2f1CCFa96f197bf735368b06B9587a48f"}
-   :ethlance {:name "EthlanceProxy" :address "0x7118b32BFCB003deB251f4265bfC2783C64696a8" :forwards-to :ethlance-impl}
-   :ethlance-impl {:name "Ethlance" :address "0x9cDb54eF2e9bC741be383Aed1A9cD63e1537DBFd"}})
+  {:token {:name "TestToken" :address "0x9ACEe8196152753A0D533Df23049b5F820da1582"} :test-nft {:name "TestNft" :address "0x946565dE6f662f15a0EC7C3609692F73Cb818690"} :test-multi-token {:name "TestMultiToken" :address "0x7Bd7f70D8dE863a0fb66B6d3B637123953e027B2"} :ethlance-structs {:name "EthlanceStructs" :address "0x4e2C1c915662754cD1c5De6da7452fEf35cCa27d"} :job-helpers {:name "JobHelpers" :address "0xCb14DdC573D5954df4E98c7120F5D33B88Dc835d"} :job {:name "Job" :address "0x3c058F797e6e948aCE2dEa30c9F2768BC84D3055"} :mutable-forwarder {:name "MutableForwarder" :address "0x613362686321Ca5596cd97Dd65fFb15d26974FD5"} :ethlance {:name "EthlanceProxy" :address "0x84b79AE216130Bb191108D36F86C3AEB166BbAd6" :forwards-to :ethlance-impl} :ethlance-impl {:name "Ethlance" :address "0x281b0758680D1E8E621Ca27a09b32C3353C83475"}})
