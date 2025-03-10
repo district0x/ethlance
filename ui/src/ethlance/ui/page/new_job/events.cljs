@@ -100,35 +100,25 @@
     (assoc-in db [state-key :job/token-decimals] decimals)))
 
 
-;; Implementation to auto-fill testnet token data with address
 (re/reg-event-fx
   :page.new-job/set-token-type
-  (fn [{:keys [db] :as cofx} [_ token-type]]
-    (let [token-type->contract-name {:erc20 :token
-                                     :erc721 :test-nft
-                                     :erc1155 :test-multi-token}
-          token-address (fn [token-type]
-                          (when (token-type token-type->contract-name)
-                            (district.ui.smart-contracts.queries/contract-address
-                              (:db cofx)
-                              (token-type token-type->contract-name))))
-          erc20-decimals (fn []
-                           [:web3/call
-                            {:fns
-                             [{:instance (w3n-eth/contract-at
-                                           (district.ui.web3.queries/web3 db)
-                                           (ethlance.shared.contract-constants/abi token-type)
-                                           (token-address token-type))
-                               :fn :decimals
-                               :args []
-                               :on-success [:page.new-job/decimals-response]
-                               :on-error [:page.new-job/decimals-response]}]}])
-          default-decimals (if (= token-type :eth) 18 0)
-          other-token-decimals (fn [] [:dispatch [:page.new-job/decimals-response default-decimals]])
-          decimals-fx-fn (if (= :erc20 token-type) erc20-decimals other-token-decimals)]
+  (fn [{:keys [db] :as _cofx} [_ token-type]]
+    (let [default-decimals (if (= token-type :eth) 18 0)
+          decimals-fx-fn (if (= :erc20 token-type)
+                          (fn []
+                            [:web3/call
+                             {:fns
+                              [{:instance (w3n-eth/contract-at
+                                          (district.ui.web3.queries/web3 db)
+                                          (ethlance.shared.contract-constants/abi token-type)
+                                          (get-in db [state-key :job/token-address]))
+                                :fn :decimals
+                                :args []
+                                :on-success [:page.new-job/decimals-response]
+                                :on-error [:page.new-job/decimals-response]}]}])
+                          (fn [] [:dispatch [:page.new-job/decimals-response default-decimals]]))]
       {:fx [(decimals-fx-fn)]
        :db (-> db
-               (assoc-in ,,, [state-key :job/token-address] (token-address token-type))
                (assoc-in ,,, [state-key :job/token-amount] 1)
                (assoc-in ,,, [state-key :job/token-type] token-type))})))
 
