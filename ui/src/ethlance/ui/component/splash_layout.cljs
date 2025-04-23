@@ -313,6 +313,6 @@
         :href (util.navigation/resolve-route {:route :route.me/sign-up :query {:tab :arbiter}})}
        [c-button-label [:span "Become an " [:b "Arbiter"]]]]]
      [:div.footer-section
-      [:span "Copyright © 2020 Ethlance.com. All rights reserved."]]
+      [:span "Copyright © 2020 ethlance.io. All rights reserved."]]
      [:div.modals
       [c-sign-in-dialog]]]]])

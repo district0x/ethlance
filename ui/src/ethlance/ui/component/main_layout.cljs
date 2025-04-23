@@ -58,7 +58,7 @@
           (into [:div.main-container container-opts] children)]
          [:div.footer
           [:div.copyright
-           [:span "Copyright © 2019 Ethlance.com"]
+           [:span "Copyright © 2019 ethlance.io"]
            [:div.spacer "|"]
            [:span "All rights reserved."]]
           [:div.social

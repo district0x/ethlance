@@ -1,6 +1,7 @@
 .lein-repl-history
 .shadow-cljs
 node_modules
+ethlance-config
 .cpcache
 ui/out/**
 server/out/**

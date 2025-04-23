@@ -130,7 +130,7 @@
 		<div class="content-center">
 			<div class="flex">
 					<div class="copyright">
-						<p>Copyright © 2019 Ethlance.com<span class="only-desktop">|</span><br class="only-mobile"/>All rights reserved.</p>
+						<p>Copyright © 2019 ethlance.io<span class="only-desktop">|</span><br class="only-mobile"/>All rights reserved.</p>
 					</div>
 					<nav class="redes-sociais">
 						<div class="flex">

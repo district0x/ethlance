@@ -542,7 +542,7 @@
                 </div>
 			</div>
 			<div class="copyright">
-				<p>Copyright © 2017 Ethlance.com. All rights reserved.</p>
+				<p>Copyright © 2017 ethlance.io. All rights reserved.</p>
 			</div>
 		</div>
 	</footer>

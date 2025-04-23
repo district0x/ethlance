@@ -81,11 +81,9 @@
 (def config-qa-base
   {:server-config {:url "https://ethlance-qa.mad.is/config"}})
 
-
-
 (def config-prod
-  {:server-config {:url "http://api.ethlance.com"}})
-
+  {:logging {:level :debug}
+   :server-config {:url "https://api.ethlance.io/config" :format :json}})
 
 (defn get-config
   ([] (get-config environment))
