@@ -1,22 +1,22 @@
-ETHLANCE_SOURCE_ROOT=/home/madis/code/district0x/ethlance
-export ETHLANCE_ENV=qa
-DEPLOY_TARGET=mad.is:~/www/ethlance
+export ETHLANCE_SOURCE_ROOT=/home/ubuntu/proj/0x/git/ethlance
+export ETHLANCE_ENV=prod
+export DEPLOY_TARGET=/home/ubuntu/www/ethlance
 
 ## Smart contracts
 cd $ETHLANCE_SOURCE_ROOT
-ETHLANCE_ENV=qa npx truffle migrate --network ethlance.mad.is-testnet --reset
+ETHLANCE_ENV=prod npx truffle migrate --network ethlance.mad.is-testnet --reset
 
 #####################
 ## UI: prepare assets
 #####################
 cd $ETHLANCE_SOURCE_ROOT/ui && yarn
 rm -rf .cpcache/* .shadow-cljs/*
-export ETHLANCE_CONFIG_PATH=/home/madis/code/district0x/ethlance-config/config/ui-config-qa.edn
-export SMART_CONTRACTS_BUILD_PATH=/home/madis/code/district0x/ethlance/resources/public/contracts/build
-export SMART_CONTRACTS=/home/madis/code/district0x/ethlance/shared/src/ethlance/shared/smart_contracts_qa.cljs
-cd $ETHLANCE_SOURCE_ROOT/ui && ETHLANCE_ENV=qa npx shadow-cljs release dev-ui
+export ETHLANCE_CONFIG_PATH=/home/ubuntu/proj/0x/git/ethlance/ethlance-config/config/ui-config-prod.edn
+export SMART_CONTRACTS_BUILD_PATH=${ETHLANCE_SOURCE_ROOT}/resources/public/contracts/build
+export SMART_CONTRACTS=${ETHLANCE_SOURCE_ROOT}/shared/src/ethlance/shared/smart_contracts_prod.cljs
+cd $ETHLANCE_SOURCE_ROOT/ui && ETHLANCE_ENV=prod npx shadow-cljs release dev-ui
 # To compile with local dependencies defined under :local-deps alias
-ETHLANCE_ENV=qa clj -A:dev:shadow-cljs:local-deps release dev-ui
+ETHLANCE_ENV=prod clj -A:dev:shadow-cljs:local-deps release dev-ui
 
 cd $ETHLANCE_SOURCE_ROOT/ui && ./node_modules/less/bin/lessc resources/public/less/main.less resources/public/css/main.css --verbose
 
@@ -26,7 +26,7 @@ rsync --progress -ru resources/public/{css,images,index.html,js} ../resources/pu
 ##################
 ## Server: compile
 ##################
-ETHLANCE_SERVER_ROOT=/home/madis/temp/ethlance/server
+ETHLANCE_SERVER_ROOT=${DEPLOY_TARGET}/server
 
 cd $ETHLANCE_SOURCE_ROOT/server
 # Need to clear shadow-cljs cache to force the slurp macro to be evaluated again
@@ -35,10 +35,10 @@ cd $ETHLANCE_SOURCE_ROOT/server
 rm -rf .shadow-cljs/* .cpcache/* out/*
 
 # Release deployment
-export ETHLANCE_CONFIG_PATH=/home/madis/code/district0x/ethlance-config/config/server-config-qa.edn
-ETHLANCE_ENV=qa npx shadow-cljs release dev-server
+export ETHLANCE_CONFIG_PATH=${ETHLANCE_SOURCE_ROOT}-config/config/server-config-prod.edn
+ETHLANCE_ENV=prod npx shadow-cljs release dev-server
 # To compile including local changes to  libraries:
-ETHLANCE_ENV=qa clj -A:dev:shadow-cljs:local-deps release dev-server
+ETHLANCE_ENV=prod clj -A:dev:shadow-cljs:local-deps release dev-server
 rsync --progress -ru out/ethlance_server.js out/ethlance_server.js.map package.json $DEPLOY_TARGET/server
 
 ## Start server (on remote machine/container)
@@ -46,8 +46,8 @@ cd $ETHLANCE_SERVER_ROOT && yarn
 cd $ETHLANCE_SERVER_ROOT && node ethlance_server.js
 
 ## Server Postgres
-sudo -u postgres psql <<EOS
-CREATE DATABASE ethlance;
-CREATE USER ethlanceuser WITH ENCRYPTED PASSWORD 'pass';
-GRANT ALL PRIVILEGES ON DATABASE ethlance TO ethlanceuser;
-EOS
+# sudo -u postgres psql <<EOS
+# CREATE DATABASE ethlance;
+# CREATE USER ethlanceuser WITH ENCRYPTED PASSWORD 'pass';
+# GRANT ALL PRIVILEGES ON DATABASE ethlance TO ethlanceuser;
+# EOS

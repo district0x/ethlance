@@ -42,7 +42,7 @@
 (def default-config
   ;; config of https://github.com/district0x/district-ui-smart-contracts
   {:logging
-   {:level :info
+   {:level :debug
     :console? true}
    :reagent-render
    {:id "app"
@@ -57,14 +57,14 @@
    :web3-tx {:disable-using-localstorage? true}
    :graphql
    {:schema schema
-    :url "http://d0x-vm:6300/graphql"
+    :url "https://api.ethlance.io/graphql"
     :jwt-sign-secret "SECRET"
     :gql-name->kw token-type-fixed-gql-name->kw}
 
    :smart-contracts {:format :truffle-json
                      :load-method :request
                      :contracts contracts-var}
-   :root-url "http://d0x-vm:6500"
+   :root-url "https://ethlance.io"
    :conversion-rates {:from-currencies [:ETH :USD]
                       :to-currencies [:USD :ETH]}})
 
@@ -72,8 +72,7 @@
 (def config-dev
   {:logging {:level :debug}
    :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
-   :server-config {:url "http://d0x-vm:6300/config" :format :json}})
-
+   :server-config {:url "https://api.ethlance.io/config" :format :json}})
 
 (def config-qa
   {:server-config {:url "https://ethlance-api.qa.district0x.io/config"}})

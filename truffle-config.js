@@ -1,5 +1,6 @@
 'use strict';
 const ETHLANCE_ENV = process.env.ETHLANCE_ENV || "dev";
+const ETHLANCE_SOURCE_ROOT = process.env.ETHLANCE_SOURCE_ROOT;;
 const ETHLANCE_MNEMONIC = process.env.ETHLANCE_MNEMONIC;
 const ETHLANCE_ETH_NODE_ADDRESS = process.env.ETHLANCE_ETH_NODE_ADDRESS;
 const ETHLANCE_DEPLOYER_ADDRESS = process.env.ETHLANCE_DEPLOYER_ADDRESS
@@ -7,10 +8,10 @@ const ETHLANCE_DEPLOY_SEED = process.env.ETHLANCE_DEPLOY_SEED
 const ETHLANCE_INFURA_API_KEY = process.env.ETHLANCE_INFURA_API_KEY || "fc19514210574bf580fbc13f58f65819";
 
 const smartContractsPaths = {
-  "dev" : '/shared/src/ethlance/shared/smart_contracts_dev.cljs',
-  "qa" : '/shared/src/ethlance/shared/smart_contracts_qa.cljs',
-  "qa-base" : '/shared/src/ethlance/shared/smart_contracts_qa_base.cljs',
-  "prod" :'/shared/src/ethlance/shared/smart_contracts_prod.cljs'
+  "dev" : `${ETHLANCE_SOURCE_ROOT}/shared/smart_contracts_dev.cljs`,
+  "qa" : `${ETHLANCE_SOURCE_ROOT}/shared/smart_contracts_qa.cljs`,
+  "qa-base" : `${ETHLANCE_SOURCE_ROOT}/shared/smart_contracts_qa_base.cljs`,
+  "prod" :`${ETHLANCE_SOURCE_ROOT}/shared/smart_contracts_prod.cljs`
 };
 
 
