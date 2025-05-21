@@ -1,0 +1,14 @@
+{:district/db {:adapter "postgresql"
+                  :database-name "ethlance_new"
+                  :username "ethlanceuser_new"
+                  :password "pass_new"
+                  :server-name "localhost"
+                  :port-number 5432}
+ :ipfs {:host "localhost"
+        :port 5001
+        :gateway "http://localhost:8080"
+        :endpoint "/api/v0"}
+ :smart-contracts {:contracts-build-path "resources/public/contracts/build/"}
+ :graphql {:port 6300}
+ :logging {:level :info
+           :console? true}}

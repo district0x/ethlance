@@ -3,10 +3,12 @@ services:
     db-postgresql:
         image: postgres
         restart: always
+        ports:
+            - 5432:5432
         environment:
-            POSTGRES_USER: test
-            POSTGRES_PASSWORD: test
-            POSTGRES_DB: test
+            POSTGRES_USER: ethlanceuser_new
+            POSTGRES_PASSWORD: pass_new
+            POSTGRES_DB: ethlance_new
     server:
         image: ethlance-server:latest
         container_name: ethlance-server
@@ -14,12 +16,14 @@ services:
             context: .
             dockerfile: "docker-builds/server/Dockerfile"
             args:
-                ETHLANCE_ENV: "qa"
+                ETHLANCE_ENV: "dev"
         ports:
             - 6300:6300
         command: ["node", "ethlance_server.js"]
         environment:
-            ETHLANCE_ENV: "qa"
+            ETHLANCE_ENV: "dev"
+        depends_on:
+            - db-postgresql
     ui:
         image: ethlance-ui:latest
         container_name: ethlance-ui
@@ -29,11 +33,11 @@ services:
             context: .
             dockerfile: "docker-builds/ui/Dockerfile"
             args:
-                ETHLANCE_ENV: "qa"
+                ETHLANCE_ENV: "dev"
         depends_on:
             - server
         environment:
-            ETHLANCE_ENV: "qa"
+            ETHLANCE_ENV: "dev"
 
     #  Collect deps, compiles and deploys contracts
     base:
@@ -44,6 +48,6 @@ services:
             context: .
             dockerfile: "docker-builds/base/Dockerfile"
             args:
-                ETHLANCE_ENV: "qa"
+                ETHLANCE_ENV: "dev"
         environment:
-            ETHLANCE_ENV: "qa"
+            ETHLANCE_ENV: "dev"
