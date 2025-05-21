@@ -16,3 +16,6 @@ temp
 release
 .clj-kondo
 .lsp
+
+# Repomix output
+ethlance_codebase.md
