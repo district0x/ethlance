@@ -62,7 +62,7 @@ module.exports = {
     ganache: {
       provider: function () {
         return new HDWalletProvider(DEFAULT_DEV_MNEMONIC, "http://localhost:8545")},
-      from: "0x59a7930bD5fD51714a4cEa6F74aDE63B5F4A37F4", // First account from our Ganache instance
+      from: "0x0935d2ec65144343df67bd3c7399c37beb1bbce0", // First account from our Ganache instance
       gas: 10e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'

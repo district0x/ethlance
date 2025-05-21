@@ -1,0 +1,67 @@
+version: "3.8"
+services:
+  # Infrastructure
+  ganache:
+    image: trufflesuite/ganache:latest
+    ports:
+      - "8545:8545"
+    command:
+      - "--mnemonic=easy leave proof verb wait patient fringe laptop intact opera slab shine"
+      - "--host=0.0.0.0"
+      - "--port=8545"
+      - "--miner.blockGasLimit=20000000"
+      - "--chain.allowUnlimitedContractSize=true"
+      - "--miner.blockTime=0"
+      - "--chain.vmErrorsOnRPCResponse=true"
+      - "--chain.chainId=1337"
+      - "--logging.verbose"
+
+  ipfs:
+    image: ipfs/kubo:latest
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ethlanceuser_new
+      POSTGRES_PASSWORD: pass_new
+      POSTGRES_DB: ethlance_new
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Application Components
+  contracts-deployer:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - .:/app
+    depends_on:
+      - ganache
+    command: >
+      bash -c "cd /app && 
+      npm install && 
+      npx truffle compile && 
+      echo 'Smart contracts compiled. To deploy them, you would run: npx truffle migrate --network ganache --reset'"
+
+  # Static file server for exploring UI
+  static-server:
+    image: nginx:alpine
+    ports:
+      - "6500:80"
+    volumes:
+      - ./ui/resources/public:/usr/share/nginx/html
+      - ./resources/public:/usr/share/nginx/html/resources
+    depends_on:
+      - contracts-deployer
+
+volumes:
+  ipfs_data:
+  postgres_data:

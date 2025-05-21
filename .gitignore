@@ -19,4 +19,8 @@ release
 
 # Repomix output
 ethlance_codebase.md
-ethlance_codebase.md
+
+# Script-generated files
+logs/
+.config-server.pid
+.DS_Store

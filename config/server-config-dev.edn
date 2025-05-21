@@ -1,7 +1,7 @@
 {:district/db {:adapter "postgresql"
-                  :database-name "ethlance_new"
-                  :username "ethlanceuser_new"
-                  :password "pass_new"
+                  :database-name "postgres"
+                  :username "postgres"
+                  :password "postgres"
                   :server-name "localhost"
                   :port-number 5432}
  :ipfs {:host "localhost"

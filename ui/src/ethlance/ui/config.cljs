@@ -57,22 +57,22 @@
    :web3-tx {:disable-using-localstorage? true}
    :graphql
    {:schema schema
-    :url "http://d0x-vm:6300/graphql"
+    :url "http://localhost:6300/graphql"
     :jwt-sign-secret "SECRET"
     :gql-name->kw token-type-fixed-gql-name->kw}
 
    :smart-contracts {:format :truffle-json
                      :load-method :request
                      :contracts contracts-var}
-   :root-url "http://d0x-vm:6500"
+   :root-url "http://localhost:6500"
    :conversion-rates {:from-currencies [:ETH :USD]
                       :to-currencies [:USD :ETH]}})
 
 
 (def config-dev
   {:logging {:level :debug}
-   :web3 {:url "http://d0x-vm:8549"} ; "https://mainnet.infura.io/"
-   :server-config {:url "http://d0x-vm:6300/config" :format :json}})
+   :web3 {:url "http://localhost:8545"} ; "https://mainnet.infura.io/"
+   :server-config {:url "http://localhost:6300/config" :format :json}})
 
 
 (def config-qa

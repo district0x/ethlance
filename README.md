@@ -7,6 +7,25 @@ change before final release*
 
 # Development
 
+## Quick Start (Turn-key Setup)
+
+We now provide a turn-key setup process for getting Ethlance running locally with minimal effort:
+
+1. **Run the setup script:**
+   ```bash
+   ./setup.sh
+   ```
+
+2. **Start Ethlance:**
+   ```bash
+   ./start.sh
+   ```
+
+3. **Access in your browser:**
+   http://localhost:6500/index.html
+
+For complete details, see our [Detailed Setup Guide](./DETAILED_SETUP_GUIDE.md) which walks through every step of the process.
+
 ## Prerequisites
 
 1. Node.js >= 20.18.1 (it's defined in `.tool-versions` and [asdf](https://github.com/asdf-vm/asdf-nodejs) is a good way to install it)
