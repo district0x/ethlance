@@ -168,9 +168,6 @@
               @web3
               (fn [_err-block last-block-number]
                 (let [{:keys [last-processed-block processed-log-indexes]} checkpoint
-                      ; Current backtrack parameter is not considered (and therefore next-block-to-process neither)
-                      ; If want to use it, it needs to be made sure that event handlers are idempotent (i.e. can be run twice without the DB changing)
-                      ; This is not the case for FundsIn/FundsOut and some other messages in Ethlance for example
                       next-block-to-process (max 0 (- last-processed-block backtrack))]
                   (if skip-past-events-replay?
                     (do
@@ -179,7 +176,7 @@
                     (smart-contracts/replay-past-events-in-order
                       events
                       dispatch
-                      {:from-block (max last-processed-block from-block 0)
+                      {:from-block (max next-block-to-process from-block 0)
                        :crash-on-event-fail? crash-on-event-fail?
                        :skip-log-indexes processed-log-indexes
                        :to-block last-block-number
