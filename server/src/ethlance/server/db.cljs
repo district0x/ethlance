@@ -645,6 +645,27 @@
                       :token-detail/decimals (:decimals token-details)}))))
 
 
+(defn get-last-event
+  [conn contract-key event-name]
+  (safe-go
+    (<? (db/get conn {:select [:event/last-log-index :event/last-block-number :event/count]
+                      :from [:Event]
+                      :where [:and
+                              [:= :event/contract-key contract-key]
+                              [:= :event/event-name event-name]]}))))
+
+
+(defn upsert-event!
+  [conn event]
+  (safe-go
+    (<?
+      (db/run! conn {:insert-into :Event
+                :values [(select-keys event (get-table-column-names :Event))]
+                :upsert (array-map
+                          :on-conflict [:event/event-name :event/contract-key]
+                          :do-update-set (keys event))}))))
+
+
 (def get-checkpoint-query
   {:select [:*]
    :from [:ContractEventCheckpoint]

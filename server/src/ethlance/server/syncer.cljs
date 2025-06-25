@@ -13,6 +13,7 @@
     [district.server.web3 :refer [ping-start ping-stop web3]]
     [district.server.web3-events :as web3-events]
     [district.shared.async-helpers :refer [<? safe-go]]
+    [ethlance.server.db :as ethlance-db]
     [ethlance.server.event-replay-queue :as replay-queue]
     [ethlance.server.tracing.api :as t-api]
     [ethlance.server.syncer.handlers :as handlers]
@@ -62,6 +63,8 @@
       (async/go
         (let [contract-key (-> event :contract :contract-key)
               event-key (-> event :event)
+              event-name (name event-key)
+              log-index (-> event :log-index)
               handler (get contract-ev->handler [contract-key event-key])
               span (t-api/start-span (str (name (or contract-key "UnnamedContract")) "." (name (or event-key "UnnamedEvent"))))
               conn (<? (db/get-connection))]
@@ -74,21 +77,35 @@
                                                                 (if timestamp
                                                                   (bn/number timestamp)
                                                                   block-timestamp))))
-                  _ (db/begin-tx conn)
-                  res (t-api/with-span-context span #(handler conn err event))
-                  _ (db/commit-tx conn)]
-              (t-api/set-span-ok! span)
-              ;; Calling a handler can throw or return a go block (when using safe-go)
-              ;; in the case of async ones, the go block will return the js/Error.
-              ;; In either cases push the event to the queue, so it can be replayed later
-              (when (satisfies? ReadPort res)
-                (let [r (<! res)]
-                  (when (instance? js/Error r)
-                    (throw r))
+                  {:keys [:event/last-block-number :event/last-log-index :event/count]
+                   :or {last-block-number -1
+                        last-log-index -1
+                        count 0}} (<? (ethlance-db/get-last-event conn (name contract-key) event-name))]
+              (log/debug "Handling event..." event)
+              (if (or (> block-number last-block-number)
+                      (and (= block-number last-block-number) (> log-index last-log-index)))
+                (let [_ (db/begin-tx conn)
+                      res (t-api/with-span-context span #(handler conn err event))
+                      _ (<? (ethlance-db/upsert-event! conn {:event/last-log-index log-index
+                                                             :event/last-block-number block-number
+                                                             :event/count (inc count)
+                                                             :event/event-name event-name
+                                                             :event/contract-key (name contract-key)}))
+                      _ (db/commit-tx conn)]
+                  (log/info "Handled new event" event)
                   (t-api/set-span-ok! span)
-                  (t-api/end-span! span)
-                  (log/info "Syncer: OK" r)
-                  r)))
+                  ;; Calling a handler can throw or return a go block (when using safe-go)
+                  ;; in the case of async ones, the go block will return the js/Error.
+                  ;; In either cases push the event to the queue, so it can be replayed later
+                  (when (satisfies? ReadPort res)
+                    (let [r (<! res)]
+                      (when (instance? js/Error r)
+                        (throw r))
+                      (t-api/set-span-ok! span)
+                      (t-api/end-span! span)
+                      (log/info "Syncer: OK" r)
+                      r)))
+                (log/info "Skipping handling of a persisted event" event)))
             (catch js/Error error
               (log/error "Syncer: ERROR" error)
               (replay-queue/push-event conn event)
