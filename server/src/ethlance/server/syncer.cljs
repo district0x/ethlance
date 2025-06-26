@@ -9,6 +9,7 @@
     [district.server.async-db :as db]
     [district.server.smart-contracts :as smart-contracts]
     [district.time :as time]
+    [district.server.config :refer [config]]
     [district.server.web3 :refer [ping-start ping-stop web3]]
     [district.server.web3-events :as web3-events]
     [district.shared.async-helpers :refer [<? safe-go]]
@@ -24,8 +25,9 @@
 
 
 (defstate ^{:on-reload :noop} syncer
-  :start (start {})
-  :stop (stop syncer))
+  :start (start (merge (:syncer @config)
+                       (:syncer (mount/args))))
+  :stop (stop))
 
 
 ;;
@@ -105,7 +107,7 @@
         (let [connected? (true? (<! (web3-eth/is-listening? @web3)))]
           (when connected?
             (do
-              (log/debug (str "disconnecting from provider to force reload. Last block: " @last-block-number))
+              (log/debug (str "disconnecting from provider to force reload"))
               (web3-core/disconnect @web3))))))
     interval))
 
