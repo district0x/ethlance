@@ -414,4 +414,14 @@
     [[:id :serial]
      [:checkpoint :json]
      [:created-at :timestamp]
-     [(sql/call :primary-key :id)]]}])
+     [(sql/call :primary-key :id)]]}
+
+   {:table-name :Event
+    :table-columns
+    [[:event/contract-key :varchar not-nil]
+     [:event/event-name :varchar not-nil]
+     [:event/last-log-index :integer not-nil]
+     [:event/last-block-number :integer not-nil]
+     [:event/count :integer not-nil]
+     ;; PK
+     [(sql/call :primary-key :event/contract-key :event/event-name)]]}])
