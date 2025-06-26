@@ -85,14 +85,7 @@
               (if (or (> block-number last-block-number)
                       (and (= block-number last-block-number) (> log-index last-log-index)))
                 (let [_ (db/begin-tx conn)
-                      res (t-api/with-span-context span #(handler conn err event))
-                      _ (<? (ethlance-db/upsert-event! conn {:event/last-log-index log-index
-                                                             :event/last-block-number block-number
-                                                             :event/count (inc count)
-                                                             :event/event-name event-name
-                                                             :event/contract-key (name contract-key)}))
-                      _ (db/commit-tx conn)]
-                  (log/info "Handled new event" event)
+                      res (t-api/with-span-context span #(handler conn err event))]
                   (t-api/set-span-ok! span)
                   ;; Calling a handler can throw or return a go block (when using safe-go)
                   ;; in the case of async ones, the go block will return the js/Error.
@@ -101,6 +94,13 @@
                     (let [r (<! res)]
                       (when (instance? js/Error r)
                         (throw r))
+                      (<? (ethlance-db/upsert-event! conn {:event/last-log-index log-index
+                                                           :event/last-block-number block-number
+                                                           :event/count (inc count)
+                                                           :event/event-name event-name
+                                                           :event/contract-key (name contract-key)}))
+                      (db/commit-tx conn)
+                      (log/info "Handled new event" event)
                       (t-api/set-span-ok! span)
                       (t-api/end-span! span)
                       (log/info "Syncer: OK" r)
