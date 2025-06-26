@@ -166,7 +166,9 @@
           (fn [err checkpoint]
             (web3-eth/get-block-number
               @web3
-              (fn [_err-block last-block-number]
+              (fn [err-block last-block-number]
+                (when (or err-block (nil? last-block-number))
+                  (throw (js/Error. "Failed to get current block number")))
                 (let [{:keys [last-processed-block processed-log-indexes]} checkpoint
                       next-block-to-process (max 0 (- last-processed-block backtrack))]
                   (if skip-past-events-replay?
