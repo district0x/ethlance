@@ -409,17 +409,22 @@ contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
     return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
   }
 
-
   /**
    * @dev This function is called automatically when this contract receives ETH
    * It calls {_createJob} where:
    * - passed `_offerer` is `msg.sender`
    * - passed `_offeredValues` are constructed from `msg.value`
    * - rest of arguments is obtained by decoding `msg.data`
-   * TODO: Needs implementation
    */
-  receive(
-  ) external payable {
+  receive() external payable {
+      EthlanceStructs.TokenValue[] memory offeredValues = new EthlanceStructs.TokenValue[](1);
+      offeredValues[0] = EthlanceStructs.TokenValue({
+          token: address(0),
+          value: msg.value
+      });
+  
+      bytes memory data = msg.data;
+      _createJobWithPassedData(data);
   }
 
   function supportsInterface(bytes4 interfaceId) external override pure returns (bool) {
