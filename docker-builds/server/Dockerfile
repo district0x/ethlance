@@ -82,4 +82,4 @@ COPY --from=builder /build /build
 RUN echo -n "{:last-processed-block 27409455}" > ethlance-events.log
 
 EXPOSE 6300
-CMD ["node", "ethlance_server.js"]
+CMD ["node", "out/ethlance_server.js"]
