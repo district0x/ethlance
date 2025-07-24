@@ -45,7 +45,7 @@
 
         ;; NOTE: the order off how we are applying middlewares matter
         app (doto (express)
-              (.use (.json body-parser))
+              (.use (.json body-parser #js {:limit "2mb"}))
               (.use middlewares/current-user-express-middleware))
 
         server (new ApolloServer

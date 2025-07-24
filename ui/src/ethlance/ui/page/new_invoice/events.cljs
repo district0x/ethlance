@@ -102,11 +102,10 @@
                         :message/text (:message db-invoice)
                         :job/id (-> db-invoice :invoiced-job :job/id)
                         :job-story/id (-> db-invoice :invoiced-job :job-story/id parse-int)}]
-      {:fx [[:dispatch [::set-tx-in-progress true]]
-            [:ipfs/call {:func "add"
-                         :args [(js/Blob. [ipfs-invoice])]
-                         :on-success [::invoice-to-ipfs-success ipfs-invoice]
-                         :on-error [::invoice-to-ipfs-failure ipfs-invoice]}]]})))
+      {:fx [[:dispatch [::set-tx-in-progress true]]]
+       :data/upload {:data ipfs-invoice
+                     :on-success [::invoice-to-ipfs-success ipfs-invoice]
+                     :on-error [::invoice-to-ipfs-failure ipfs-invoice]}})))
 
 
 (re/reg-event-fx

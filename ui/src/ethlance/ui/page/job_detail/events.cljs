@@ -216,10 +216,9 @@
                                        :job-arbiter/fee
                                        :job-arbiter/fee-currency-id])]
     {:fx [[:dispatch [::set-arbiter-tx-in-progress true]]]
-     :ipfs/call {:func "add"
-                 :args [(js/Blob. [ipfs-arbitration])]
-                 :on-success [:page.job-detail/arbitration-to-ipfs-success event]
-                 :on-error [::arbitration-to-ipfs-failed]}}))
+     :data/upload {:data ipfs-arbitration
+                   :on-success [:page.job-detail/arbitration-to-ipfs-success event]
+                   :on-error [::arbitration-to-ipfs-failed]}}))
 
 
 (re/reg-event-fx

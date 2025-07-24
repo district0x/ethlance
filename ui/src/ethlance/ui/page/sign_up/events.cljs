@@ -161,10 +161,9 @@
   :page.sign-up/upload-user-image
   [interceptors]
   (fn [_ [{:keys [:file-info] :as data}]]
-    {:ipfs/call {:func "add"
-                 :args [(:file file-info)]
-                 :on-success [::upload-user-image-success data]
-                 :on-error [::logging/error "Error uploading user image" {:data data}]}}))
+    {:data/upload {:data (-> file-info :selected-file :url-data)
+                   :on-success [::upload-user-image-success data]
+                   :on-error [::logging/error "Error uploading user image" {:data data}]}}))
 
 
 (re/reg-event-fx
