@@ -144,10 +144,9 @@
                       :job-story/id job-story-id
                       :invoice/id invoice-id}]
     {:fx [[:dispatch [::set-buttons-disabled true]]]
-     :ipfs/call {:func "add"
-                 :args [(js/Blob. [ipfs-dispute])]
-                 :on-success [:page.job-contract/raise-dispute-to-ipfs-success ipfs-dispute]
-                 :on-error [::dispute-to-ipfs-failure invoice-id]}}))
+     :data/upload {:data ipfs-dispute
+                   :on-success [:page.job-contract/raise-dispute-to-ipfs-success ipfs-dispute]
+                   :on-error [::dispute-to-ipfs-failure invoice-id]}}))
 
 
 (re/reg-event-fx
@@ -186,10 +185,9 @@
                    :message/creator (:employer proposal-data)
                    :text (:text proposal-data)}]
       {:fx [[:dispatch [::set-buttons-disabled true]]]
-       :ipfs/call {:func "add"
-                   :args [(js/Blob. [to-ipfs])]
-                   :on-success [:accept-proposal-to-ipfs-success to-ipfs]
-                   :on-error [::accept-proposal-to-ipfs-failure to-ipfs]}})))
+       :data/upload {:data to-ipfs
+                     :on-success [:accept-proposal-to-ipfs-success to-ipfs]
+                     :on-error [::accept-proposal-to-ipfs-failure to-ipfs]}})))
 
 
 (re/reg-event-fx
@@ -273,10 +271,9 @@
                       :job/id job-id
                       :job-story/id job-story-id
                       :invoice/id invoice-id}]
-    {:ipfs/call {:func "add"
-                 :args [(js/Blob. [ipfs-dispute])]
-                 :on-success [:page.job-contract/resolve-dispute-to-ipfs-success event]
-                 :on-error [::dispute-to-ipfs-failure event]}}))
+    {:data/upload {:data ipfs-dispute
+                   :on-success [:page.job-contract/resolve-dispute-to-ipfs-success event]
+                   :on-error [::dispute-to-ipfs-failure event]}}))
 
 
 (defn send-resolve-dispute-tx

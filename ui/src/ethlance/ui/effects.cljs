@@ -1,6 +1,8 @@
 (ns ethlance.ui.effects
   (:require
     [cljs-web3.core :as web3]
+    [district.ui.graphql.events :as gql-events]
+    [ethlance.ui.events]
     [re-frame.core :as re]))
 
 
@@ -16,3 +18,12 @@
                   (if err
                     (re/dispatch (conj on-error err))
                     (re/dispatch (conj on-success (aget result "result"))))))))
+
+
+(re/reg-fx
+  :data/upload
+  (fn [{:keys [:data :on-success :on-error]}]
+    (re/dispatch [::gql-events/mutation
+                  {:queries [[:upload-data {:data (if (string? data) data (pr-str data))}]]
+                   :on-success [:ethlance/data-upload-success on-success]
+                   :on-error on-error}])))

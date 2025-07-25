@@ -1,6 +1,7 @@
 (ns ethlance.server.graphql.resolvers
   (:require
     [camel-snake-kebab.core]
+    [cljs-ipfs-api.files :as ipfs-files]
     [clojure.string :as string]
     [district.graphql-utils :as graphql-utils]
     [district.server.async-db :as db :include-macros true]
@@ -9,6 +10,7 @@
     [ethlance.server.db :as ethlance-db]
     [ethlance.server.event-replay-queue :as replay-queue]
     [ethlance.server.graphql.authorization :as authorization]
+    [ethlance.server.ipfs :as ipfs]
     [ethlance.server.syncer :as syncer]
     [ethlance.shared.spec :refer [validate-keys]]
     [honeysql.core :as sql]
@@ -1261,6 +1263,30 @@
                                  user)))
 
 
+(defn data-to-buffer [data]
+  (let [matcher (re-matches #"data:(\w+/\w+);base64,(.+)" data)]
+    (if matcher
+      (let [base64-image (get matcher 2)]
+        (js/Buffer.from base64-image "base64"))
+      (ipfs/to-buffer data))))
+
+
+(defn upload-data-mutation
+  [_ {:keys [data]} _]
+  (js/Promise.
+    (fn [resolve reject]
+      (ipfs-files/add (data-to-buffer data)
+                      (fn [error result]
+                        (if (or error (empty? result))
+                          (let [err-txt "Error when adding data to ipfs"]
+                            (log/error err-txt {:result result
+                                                :error error
+                                                :data data}
+                                       :upload-data-mutation)
+                            (println ">>> upload-data-mutation REJECT")
+                            (reject err-txt))
+                          (resolve (:Hash result))))))))
+
 (defn replay-events
   [_ _ _]
   (db/with-async-resolver-tx conn
@@ -1363,6 +1389,7 @@
               :removeJobProposal (require-auth remove-job-proposal-mutation)
               :replayEvents replay-events
               :githubSignUp (require-auth github-signup-mutation)
-              :linkedinSignUp (require-auth linkedin-signup-mutation)}
+              :linkedinSignUp (require-auth linkedin-signup-mutation)
+              :uploadData (require-auth upload-data-mutation)}
    ;; :Date ; TODO: https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/#example-the-date-scalar
    })

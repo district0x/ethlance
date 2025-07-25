@@ -194,6 +194,7 @@
     replayEvents: Boolean!,
     githubSignUp(input: githubSignUpInput!): githubSignUpPayload!
     linkedinSignUp(input: linkedinSignUpInput!): linkedinSignUpPayload!
+    uploadData(data: String!): ID!
   }
 
   # mutation result types

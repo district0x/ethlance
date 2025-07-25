@@ -32,10 +32,9 @@
 (re/reg-event-fx
   :page.invoices/pay
   (fn [_ [_ invoice]]
-    {:ipfs/call {:func "add"
-                 :args [(js/Blob. [invoice])]
-                 :on-success [::invoice-to-ipfs-success invoice]
-                 :on-error [::invoice-to-ipfs-failure invoice]}}))
+    {:data/upload {:data invoice
+                   :on-success [::invoice-to-ipfs-success invoice]
+                   :on-error [::invoice-to-ipfs-failure invoice]}}))
 
 
 (re/reg-event-fx

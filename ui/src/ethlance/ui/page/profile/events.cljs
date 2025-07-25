@@ -55,10 +55,9 @@
                            :job/id (get-in invitation-data [:job :job/id])
                            :message/creator (:employer invitation-data)
                            :text (:text invitation-data)}]
-      {:ipfs/call {:func "add"
-                   :args [(js/Blob. [ipfs-invitation])]
-                   :on-success [:invitation-to-ipfs-success ipfs-invitation]
-                   :on-error [:invitation-to-ipfs-failure ipfs-invitation]}})))
+      {:data/upload {:data ipfs-invitation
+                     :on-success [:invitation-to-ipfs-success ipfs-invitation]
+                     :on-error [:invitation-to-ipfs-failure ipfs-invitation]}})))
 
 
 (re/reg-event-fx

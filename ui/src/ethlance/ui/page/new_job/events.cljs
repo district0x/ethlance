@@ -206,10 +206,9 @@
   (fn [{:keys [db]}]
     (let [db-job (get db state-key)
           ipfs-job (reduce-kv (partial db-job->ipfs-job db-job) {} db->ipfs-mapping)]
-      {:fx [[:ipfs/call {:func "add"
-                         :args [(js/Blob. [ipfs-job])]
-                         :on-success [::job-to-ipfs-success]
-                         :on-error [::job-to-ipfs-failure]}]]})))
+      {:data/upload {:data ipfs-job
+                     :on-success [::job-to-ipfs-success]
+                     :on-error [::job-to-ipfs-failure]}})))
 
 
 (re/reg-event-fx

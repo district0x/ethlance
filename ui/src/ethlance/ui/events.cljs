@@ -57,3 +57,8 @@
         [:page.invoices/initialize-page]
         [:page.new-invoice/initialize-page]]
        :dispatch-later [{:ms 1000 :dispatch [::listen-account-changes]}]})))
+
+(re/reg-event-fx
+  :ethlance/data-upload-success
+  (fn [_ [_ on-success result]]
+    {:dispatch (conj on-success {:Hash (:upload-data result)})}))
