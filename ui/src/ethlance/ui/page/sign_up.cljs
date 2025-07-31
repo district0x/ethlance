@@ -9,7 +9,6 @@
     [district.ui.router.subs :as router.subs]
     [ethlance.shared.constants :as constants]
     [ethlance.shared.spec :refer [validate-keys]]
-    [ethlance.ui.component.button :refer [c-button c-button-icon-label]]
     [ethlance.ui.component.currency-input :refer [c-currency-input]]
     [ethlance.ui.component.email-input :refer [c-email-input]]
     [ethlance.ui.component.file-drag-input :refer [c-file-drag-input]]
@@ -24,7 +23,7 @@
     [ethlance.ui.page.sign-up.events :as sign-up.events]
     [ethlance.ui.page.sign-up.subscriptions]
     [ethlance.ui.util.component :refer [>evt]]
-    [ethlance.ui.util.navigation :as navigation-utils]
+    [ethlance.ui.util.urls :as util.urls]
     [re-frame.core :as re]
     [reagent.core :as r]
     [taoensso.timbre :as log]))
@@ -33,11 +32,12 @@
 (defn- c-upload-image
   []
   (let [form-data (r/atom {})]
-    (fn []
+    (fn [{:keys [:form-values]}]
       [:div.upload-image
        [c-file-drag-input
         {:form-data form-data
          :id :file-info
+         :current-src (-> form-values :user/profile-image util.urls/ipfs-hash->gateway-url)
          :label "Upload file"
          :file-accept-pred (fn [{:keys [name type size]}]
                              (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
@@ -132,7 +132,7 @@
       [:div.label "Sign Up"]
       [:div.first-forms
        [:div.form-image
-        [c-upload-image]]
+        [c-upload-image {:form-values form-values}]]
        [c-user-name-input
         {:form-values form-values
          :form-validation form-validation}]
@@ -200,7 +200,7 @@
       [:div.label "Sign Up"]
       [:div.first-forms
        [:div.form-image
-        [c-upload-image]]
+        [c-upload-image {:form-values form-values}]]
        [c-user-name-input
         {:form-values form-values
          :form-validation form-validation}]
@@ -242,7 +242,7 @@
       [:div.label "Sign Up"]
       [:div.first-forms
        [:div.form-image
-        [c-upload-image]]
+        [c-upload-image {:form-values form-values}]]
        [c-user-name-input
         {:form-values form-values
          :form-validation form-validation}]

@@ -40,25 +40,26 @@
                                       (.readAsArrayBuffer ab-reader f))
                                     (when on-file-rejected
                                       (on-file-rejected fprops))))))]
-    (fn [{:keys [form-data id]
+    (fn [{:keys [form-data id current-src]
           :as opts}]
-      (let [{:keys [url-data]} (get-in @form-data [id :selected-file])]
-        [:div.dropzone
-         {:on-drag-over allow-drop
+      (let [{:keys [url-data]} (get-in @form-data [id :selected-file])
+            file-input-id (id-for-path id)]
+        [:label.dropzone
+         {:htmlFor file-input-id
+          :on-drag-over allow-drop
           :on-drop #(do
                       (.preventDefault %)
                       (handle-files-select (.. % -dataTransfer -files)))
           :on-drag-enter allow-drop}
 
-         [:img {:src (or url-data empty-img-src)}]
+         [:img {:src (or url-data current-src empty-img-src)}]
 
-         (when (not url-data)
-           [:label.file-input-label
-            {:for (id-for-path id)}
+         (when (not (or url-data current-src))
+           [:div.file-input-label
             [c-icon {:name :ic-upload :color :dark-blue :inline? false}]
             [:div (get opts :label "File...")]])
 
          [:input {:type :file
-                  :id (id-for-path id)
+                  :id file-input-id
                   :on-change (fn [e]
                                (handle-files-select (-> e .-target .-files)))}]]))))
