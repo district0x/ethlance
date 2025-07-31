@@ -43,12 +43,13 @@
       }
 
       > .title {
+        width: 100%;
         grid-area: title;
         display: grid;
         grid-template-areas:
-          'profile-image name'
-          'profile-image detail';
-        grid-template-columns: 72px auto;
+          'profile-image name edit-button'
+          'profile-image detail edit-button';
+        grid-template-columns: 72px auto max-content;
         grid-template-rows: auto auto;
 
         @media #media[tablet-query] {
@@ -73,6 +74,13 @@
           font-weight: 300;
           padding: 0.5em 1.4em;
 
+        }
+
+        > .edit-button {
+          grid-area: edit-button;
+          align-self: start;
+          justify-self: end;
+          padding-top: 0.5em;
         }
       }
 
