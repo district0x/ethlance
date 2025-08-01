@@ -4,6 +4,7 @@
     [cljs.spec.alpha :as s]
     [cljs.pprint]
     [clojure.set :as set]
+    [clojure.string :as str]
     [district.validation :refer [length? email? not-neg?]]
     [ethlance.shared.constants :as constants]
     [medley.core :refer [map-kv-vals]]))
@@ -73,9 +74,15 @@
 (s/def :job/title (s/and string? (comp not empty?)))
 (s/def :job/required-skills (comp not empty?))
 
+(s/def ::token-amount not-neg?)
+(s/def ::human-amount (s/and string? #(not (clojure.string/blank? %))))
+(s/def ::decimals not-neg?)
+
+(s/def :job/token-amount
+  (s/keys :req-un [::token-amount ::human-amount ::decimals]))
 
 (s/def :page.new-job/create
-  (s/keys :req [:job/title :job/required-skills]))
+  (s/keys :req [:job/title :job/required-skills :job/token-amount]))
 
 
 (s/def :page.sign-up/update-candidate
