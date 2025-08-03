@@ -16,3 +16,4 @@ temp
 release
 .clj-kondo
 .lsp
+.env

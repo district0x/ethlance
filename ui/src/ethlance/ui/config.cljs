@@ -84,7 +84,7 @@
 
 
 (def config-prod
-  {:server-config {:url "http://api.ethlance.com"}})
+  {:server-config {:url "https://api.ethlance.io/config"}})
 
 
 (defn get-config

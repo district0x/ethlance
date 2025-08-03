@@ -8,20 +8,22 @@ services:
             POSTGRES_PASSWORD: test
             POSTGRES_DB: test
     server:
-        image: ethlance-server:latest
+        image: ${DOCKER_REGISTRY}/ethlance-server:latest
         container_name: ethlance-server
         build:
             context: .
             dockerfile: "docker-builds/server/Dockerfile"
             args:
-                ETHLANCE_ENV: "qa"
+                ETHLANCE_ENV: ${ETHLANCE_ENV}
+                DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+                ETHLANCE_DEPLOY_SEED: ${ETHLANCE_DEPLOY_SEED}
         ports:
             - 6300:6300
         command: ["node", "ethlance_server.js"]
         environment:
-            ETHLANCE_ENV: "qa"
+            ETHLANCE_ENV: ${ETHLANCE_ENV}
     ui:
-        image: ethlance-ui:latest
+        image: ${DOCKER_REGISTRY}/ethlance-ui:latest
         container_name: ethlance-ui
         ports:
             - 9080:80
@@ -29,21 +31,10 @@ services:
             context: .
             dockerfile: "docker-builds/ui/Dockerfile"
             args:
-                ETHLANCE_ENV: "qa"
+                ETHLANCE_ENV: ${ETHLANCE_ENV}
+                DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+                ETHLANCE_DEPLOY_SEED: ${ETHLANCE_DEPLOY_SEED}
         depends_on:
             - server
         environment:
-            ETHLANCE_ENV: "qa"
-
-    #  Collect deps, compiles and deploys contracts
-    base:
-        image: ethlance-base:local
-        container_name: ethlance-base
-        command: ["exit", "0"]
-        build:
-            context: .
-            dockerfile: "docker-builds/base/Dockerfile"
-            args:
-                ETHLANCE_ENV: "qa"
-        environment:
-            ETHLANCE_ENV: "qa"
+            ETHLANCE_ENV: ${ETHLANCE_ENV}

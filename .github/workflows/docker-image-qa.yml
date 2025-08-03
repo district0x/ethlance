@@ -1,9 +1,8 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ "master", "main", "newlance"]
   pull_request:
+    branches: ["master"]
 
 permissions:
   contents: read
@@ -123,7 +122,7 @@ jobs:
 
       - name: Set up QEMU
         id: setup-qemu
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         id: setup-buildx
@@ -148,29 +147,40 @@ jobs:
           token: ${{ secrets.ETHLANCE_CONFIG_PAT }}
           ref: master
 
-      - name: Copy configs
+      - name: check configs
         run: |
-          cp -r ethlance-config/config .
-          ls -lah config/
-
-      - name: Build and push UI
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64
-          builder: ${{ steps.setup-buildx.outputs.name }}
-          file: docker-builds/ui/Dockerfile
-          build-args: BUILD_ENV=${{ matrix.env }}
-          push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-ui:latest-${{ matrix.env }}
+          # cp -r ethlance-config/config .
+          ls -lah
+          ls -lah ethlance-config
 
       - name: Build and push Server
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           builder: ${{ steps.setup-buildx.outputs.name }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           file: docker-builds/server/Dockerfile
-          build-args: BUILD_ENV=${{ matrix.env }}
+          build-args: |
+            ETHLANCE_ENV=${{ matrix.env }}
+            ETHLANCE_DEPLOY_SEED=${{ secrets.ETHLANCE_DEPLOY_SEED }}
+            DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}
           push: true
-          tags: ${{ secrets.ECR_REGISTRY }}/ethlance-server:latest-${{ matrix.env }}
+          tags: |
+            ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.env }}-server:${{ github.sha }}
+            ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.env }}-server:latest
+
+      - name: Build and push UI
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          file: docker-builds/ui/Dockerfile
+          build-args: |
+            ETHLANCE_ENV=${{ matrix.env }}
+            ETHLANCE_DEPLOY_SEED=${{ secrets.ETHLANCE_DEPLOY_SEED }}
+            DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}
+          push: true
+          tags: |
+            ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.env }}-ui:${{ github.sha }}
+            ${{ secrets.ECR_REGISTRY }}/ethlance-${{ matrix.env }}-ui:latest
