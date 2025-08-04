@@ -28,20 +28,21 @@
 
 (def interceptors [re/trim-v])
 
+(def default-token-amount
+  {:token-amount 0 :human-amount "0" :decimals 18})
 
 (def state-default
-  {:job/title "Rauamaak on meie saak"
-   :job/description "Tee t88d ja n2e vaeva"
-   :job/category "Admin Support"
+  {:job/title ""
+   :job/description ""
+   :job/category ""
    :job/bid-option :hourly-rate
    :job/required-experience-level :intermediate
    :job/estimated-project-length :day
    :job/required-availability :full-time
-   :job/required-skills (set (repeatedly 2 #(rand-nth constants/skills)))
+   :job/required-skills #{}
    :job/token-type :eth
-   :job/token-amount 0.69
-   :job/token-address "0x1111111111111111111111111111111111111111"
-   :job/token-id 0
+   :job/token-address ""
+   :job/token-amount default-token-amount
    :job/with-arbiter? false
    :job/invited-arbiters #{}
    :job/token-decimals 18})
@@ -119,7 +120,7 @@
                           (fn [] [:dispatch [:page.new-job/decimals-response default-decimals]]))]
       {:fx [(decimals-fx-fn)]
        :db (-> db
-               (assoc-in ,,, [state-key :job/token-amount] 1)
+               (assoc-in ,,, [state-key :job/token-amount] default-token-amount)
                (assoc-in ,,, [state-key :job/token-type] token-type))})))
 
 
@@ -215,11 +216,12 @@
   ::send-create-job-tx
   (fn [{:keys [db]} _]
     (let [employer (get-job-creation-param db :employer)
-          offered-value (get-job-creation-param db :offered-value)
+          token-type (get-job-creation-param db :token-type)
+          offered-value (cond-> (get-job-creation-param db :offered-value)
+                                (#{:eth :erc20} token-type) (assoc-in [:token :tokenId] 0))
           ipfs-hash (get-job-creation-param db :ipfs-hash)
           arbiters (get-job-creation-param db :arbiters)
           tx-opts-base {:from employer}
-          token-type (get-job-creation-param db :token-type)
           tx-opts (if (= token-type :eth)
                     (assoc tx-opts-base :value (:value offered-value))
                     tx-opts-base)]

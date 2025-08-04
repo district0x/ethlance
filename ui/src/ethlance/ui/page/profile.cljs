@@ -291,6 +291,10 @@
           [:div.profile-image
            [c-profile-image {:src image-url}]]
           [:div.name name]
+          [:div.edit-button
+           [c-button (merge {:size :small} (navigation/link-params {:route :route.me/sign-up
+                                                                    :query {:tab :candidate}}))
+            [c-button-label "Edit Profile"]]]
           [:div.detail professional-title]]
          [:div.biography biography]
          [c-rating-box rating]
@@ -343,6 +347,10 @@
          [:div.profile-image
           [c-profile-image {:src image-url}]]
          [:div.name name]
+         [:div.edit-button
+          [c-button (merge {:size :small} (navigation/link-params {:route :route.me/sign-up
+                                                                    :query {:tab :employer}}))
+           [c-button-label "Edit Profile"]]]
          [:div.detail professional-title]]
         [:div.biography biography]
         [c-rating-box rating]
@@ -456,6 +464,10 @@
          [:div.profile-image
           [c-profile-image {:src image-url}]]
          [:div.name name]
+         [:div.edit-button
+          [c-button (merge {:size :small} (navigation/link-params {:route :route.me/sign-up
+                                                                   :query {:tab :arbiter}}))
+           [c-button-label "Edit Profile"]]]
          [:div.detail professional-title]]
         [:div.biography biography]
         [c-rating-box rating]
