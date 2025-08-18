@@ -7,6 +7,7 @@
     [ethlance.ui.component.select-input :refer [c-select-input]]
     [ethlance.ui.component.textarea-input :refer [c-textarea-input]]
     [ethlance.ui.component.token-amount-input :refer [c-token-amount-input]]
+    [ethlance.ui.component.token-info :refer [c-token-info]]
     [re-frame.core :as re]))
 
 
@@ -40,6 +41,7 @@
                       :job/token-amount
                       :job/token-type
                       :job/token-id
+                      :balance-left
                       [:token-details
                        [:token-detail/id
                         :token-detail/type
@@ -65,7 +67,10 @@
                               (sort-by :job-story/date-created ,,,)
                               reverse)
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
-            job-token-decimals (get-in @*invoiced-job [:job :token-details :token-detail/decimals])
+            job-token-details (get-in @*invoiced-job [:job :token-details])
+            job-token-decimals (:token-detail/decimals job-token-details)
+            balance-left (get-in @*invoiced-job [:job :balance-left])
+            show-balance-left? (not (nil? balance-left))
             no-job-selected? (nil? @*invoiced-job)
             focus-on-element (fn [id _event] (.focus (.getElementById js/document id)))
             validations (re/subscribe [:page.new-invoice/validations])
@@ -113,8 +118,9 @@
              :disabled no-job-selected?
              :on-change #(re/dispatch [:page.new-invoice/set-invoice-amount %])}]
            [:div.post-label token-display-name]]
-          [:div.usd-estimate @estimated-usd]]
-
+          [:div.usd-estimate @estimated-usd]
+          (when show-balance-left?
+            [:div.max-available "Max available:" [c-token-info balance-left job-token-details]])]
          [:div.right-form
           [:div.label "Message"]
           [c-textarea-input

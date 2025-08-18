@@ -571,6 +571,7 @@
         has-accepted-arbiter? (not (nil? (get results :job/arbiter)))
         token-details (get results :token-details)
         job-balance (get results :balance)
+        job-balance-left (get results :balance-left)
 
         invoices (get-in results [:invoices :items])
         unpaid-invoices (filter #(= "created" (:invoice/status %)) invoices)
@@ -594,7 +595,9 @@
       [:div.ticket-listing
        [:div.ticket
         [:div.label "Available Funds"]
-        [c-token-info job-balance token-details]]]
+        [c-token-info job-balance token-details]
+        [:div.label "Without unpaid invoices"]
+        [c-token-info job-balance-left token-details]]]
 
       (when job-ongoing? [c-add-funds contract-address (:job/token-id results) token-details])
       [:div.profiles
@@ -654,6 +657,7 @@
                       :job/token-address
                       :job/token-id
                       :balance
+                      :balance-left
 
                       [:token-details
                        [:token-detail/id
