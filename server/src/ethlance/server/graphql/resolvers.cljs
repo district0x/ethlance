@@ -1059,6 +1059,27 @@
                                  (:sum result))))
 
 
+(defn job->balance-left-resolver
+  [root _args _]
+  (db/with-async-resolver-conn conn
+                               (let [parsed-root (graphql-utils/gql->clj root)
+                                     job-id (:job/id parsed-root)
+                                     query-funding {:select [[(sql/call :sum :job-funding/amount) :amount]]
+                                                    :from [:JobFunding]
+                                                    :where [:= :JobFunding.job/id job-id]}
+                                     query-invoices {:select [[(sql/call :* -1 :JobStoryInvoiceMessage.invoice/amount-requested) :amount]]
+                                                     :from [:JobStoryInvoiceMessage]
+                                                     :join [:jobStory [:= :JobStory.job-story/id :JobStoryInvoiceMessage.job-story/id]]
+                                                     :where [:and
+                                                             [:= :JobStory.job/id job-id]
+                                                             [:in :JobStoryInvoiceMessage.invoice/status ["created" "dispute-raised"]]]}
+                                     query {:select [[(sql/call :coalesce (sql/call :sum :t.amount) 0) :result]]
+                                            :from [[{:union-all [query-funding query-invoices]} :t]]}
+                                     result (:result (<? (db/get conn query)))]
+                                 (log/debug (str "job->balance-left-resolver " job-id " | " result))
+                                 result)))
+
+
 (defn sign-in-mutation
   [_ {:keys [:data :data-signature] :as input} {:keys [config]}]
   (try-catch-throw
@@ -1329,6 +1350,7 @@
          :invoices job->invoices-resolver
          :invoice invoice-resolver
          :balance job->balance-resolver
+         :balanceLeft job->balance-left-resolver
          :job_requiredSkills job->required-skills-resolver}
    :JobStory {:jobStory_employerFeedback job-story->employer-feedback-resolver
               :jobStory_candidateFeedback job-story->candidate-feedback-resolver

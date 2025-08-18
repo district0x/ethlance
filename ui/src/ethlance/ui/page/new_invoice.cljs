@@ -41,7 +41,7 @@
                       :job/token-amount
                       :job/token-type
                       :job/token-id
-                      :balance
+                      :balance-left
                       [:token-details
                        [:token-detail/id
                         :token-detail/type
@@ -69,7 +69,7 @@
             token-display-name (name (or (@job-token :symbol) (@job-token :type) ""))
             job-token-details (get-in @*invoiced-job [:job :token-details])
             job-token-decimals (:token-detail/decimals job-token-details)
-            balance-left (get-in @*invoiced-job [:job :balance])
+            balance-left (get-in @*invoiced-job [:job :balance-left])
             show-balance-left? (not (nil? balance-left))
             no-job-selected? (nil? @*invoiced-job)
             focus-on-element (fn [id _event] (.focus (.getElementById js/document id)))
