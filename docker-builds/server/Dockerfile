@@ -52,7 +52,6 @@ WORKDIR ${ETHLANCE_SERVER_ROOT}
 COPY --from=builder /build /build
 # Initialize events log
 RUN echo -n "{:last-processed-block 27409455}" > ethlance-events.log
-RUN npx pm2 install pm2-logrotate
 
 EXPOSE 6300
 CMD ["npx", "pm2-runtime", "out/ethlance_server.js"]
