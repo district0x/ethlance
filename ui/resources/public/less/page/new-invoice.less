@@ -95,9 +95,17 @@
       }
     }
 
-    > .max-available > div {
-      display: inline;
-      margin-left: 0.3rem;
+    > .max-available {
+      &.not-enough {
+        color: red;
+      }
+      > div {
+        margin-bottom: 0.3rem;
+        > div {
+          display: inline;
+          margin-left: 0.3rem;
+        }
+      }
     }
   }
 

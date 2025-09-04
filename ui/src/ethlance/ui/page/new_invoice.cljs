@@ -74,6 +74,7 @@
             no-job-selected? (nil? @*invoiced-job)
             focus-on-element (fn [id _event] (.focus (.getElementById js/document id)))
             validations (re/subscribe [:page.new-invoice/validations])
+            enough-funding? (:invoice-amount-enough @validations)
             tx-in-progress? @(re/subscribe [:page.new-invoice/tx-in-progress?])
             button-disabled? (not (every? true? (vals @validations)))]
         [c-main-layout {:container-opts {:class :new-invoice-main-container}}
@@ -120,7 +121,12 @@
            [:div.post-label token-display-name]]
           [:div.usd-estimate @estimated-usd]
           (when show-balance-left?
-            [:div.max-available "Max available:" [c-token-info balance-left job-token-details]])]
+            [:div.max-available
+             {:class (when-not enough-funding? "not-enough")}
+             [:div "Max available:" [c-token-info balance-left job-token-details]]
+             [:div.warning
+              {:style {:visibility (if enough-funding? "hidden" "visible")}}
+              "You cannot create an invoice that exceeds the available funds for the job."]])]
          [:div.right-form
           [:div.label "Message"]
           [c-textarea-input
