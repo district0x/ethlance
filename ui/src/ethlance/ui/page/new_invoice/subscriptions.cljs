@@ -64,8 +64,10 @@
   :page.new-invoice/validations
   :<- [::form-fields]
   (fn [{:keys [invoiced-job invoice-amount]}]
-    (let [balance-left (get-in invoiced-job [:job :balance-left])]
+    (let [balance-left (get-in invoiced-job [:job :balance-left])
+          positive-invoice-amount? (and (not (nil? (get invoice-amount :token-amount)))
+                                    (> (:token-amount invoice-amount) 0))]
       {:invoiced-job (not (nil? invoiced-job))
-       :invoice-amount (and (not (nil? (get invoice-amount :token-amount)))
-                            (> (:token-amount invoice-amount) 0)
-                            (<= (:token-amount invoice-amount) balance-left))})))
+       :invoice-amount positive-invoice-amount?
+       :invoice-amount-enough (or (not positive-invoice-amount?)
+                                  (<= (:token-amount invoice-amount) balance-left))})))
