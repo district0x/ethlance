@@ -1,6 +1,6 @@
 (ns ethlance.ui.page.new-job.events
   (:require
-    [cljs.core.async :as async :refer [<!] :refer-macros [go]]
+    [cljs-web3-next.core :as web3]
     [cljs-web3-next.eth :as w3n-eth]
     [district.ui.notification.events :as notification.events]
     [district.ui.router.effects :as router.effects]
@@ -9,12 +9,12 @@
     [district.ui.web3-accounts.queries :as accounts-queries]
     [district.ui.web3-tx.events :as web3-events]
     [district.ui.web3.queries :as web3-queries]
-    [ethlance.shared.constants :as constants]
     [ethlance.shared.contract-constants :as contract-constants]
     [ethlance.shared.utils :refer [base58->hex js-obj->clj-map]]
     [ethlance.ui.event.utils :as event.utils]
     [ethlance.ui.util.tokens :as util.tokens]
-    [re-frame.core :as re]))
+    [re-frame.core :as re]
+    [taoensso.timbre :as log]))
 
 
 (def state-key :page.new-job)
@@ -100,32 +100,50 @@
   (fn [db [_ decimals]]
     (assoc-in db [state-key :job/token-decimals] decimals)))
 
+(re/reg-event-db
+  :page.new-job/decimals-response-error
+  (fn [db [_ error]]
+    (log/error "Failed to retrieve token decimals" {:error error})
+    (assoc-in db [state-key :job/token-decimals] 0)))
+
+
+(defn get-decimals-fx-fn [db token-type token-address]
+  (let [default-decimals (if (= token-type :eth) 18 0)]
+    (if (and (= :erc20 token-type)
+             (web3/address? token-address))
+      (fn []
+        [:web3/call
+         {:fns
+          [{:instance (w3n-eth/contract-at
+                        (district.ui.web3.queries/web3 db)
+                        (ethlance.shared.contract-constants/abi token-type)
+                        token-address)
+            :fn :decimals
+            :args []
+            :on-success [:page.new-job/decimals-response]
+            :on-error [:page.new-job/decimals-response-error]}]}])
+      (fn [] [:dispatch [:page.new-job/decimals-response default-decimals]]))))
+
 
 (re/reg-event-fx
   :page.new-job/set-token-type
   (fn [{:keys [db] :as _cofx} [_ token-type]]
-    (let [default-decimals (if (= token-type :eth) 18 0)
-          decimals-fx-fn (if (= :erc20 token-type)
-                          (fn []
-                            [:web3/call
-                             {:fns
-                              [{:instance (w3n-eth/contract-at
-                                          (district.ui.web3.queries/web3 db)
-                                          (ethlance.shared.contract-constants/abi token-type)
-                                          (get-in db [state-key :job/token-address]))
-                                :fn :decimals
-                                :args []
-                                :on-success [:page.new-job/decimals-response]
-                                :on-error [:page.new-job/decimals-response]}]}])
-                          (fn [] [:dispatch [:page.new-job/decimals-response default-decimals]]))]
+    (let [decimals-fx-fn (get-decimals-fx-fn db token-type (get-in db [state-key :job/token-address]))]
       {:fx [(decimals-fx-fn)]
        :db (-> db
                (assoc-in ,,, [state-key :job/token-amount] default-token-amount)
                (assoc-in ,,, [state-key :job/token-type] token-type))})))
 
 
+(re/reg-event-fx
+  :page.new-job/set-token-address
+  (fn [{:keys [db] :as _cofx} [_ token-address]]
+    (let [decimals-fx-fn (get-decimals-fx-fn db (get-in db [state-key :job/token-type]) token-address)]
+      {:fx [(decimals-fx-fn)]
+       :db (-> db
+               (assoc-in ,,, [state-key :job/token-address] token-address))})))
+
 (re/reg-event-fx :page.new-job/set-token-amount (create-assoc-handler :job/token-amount))
-(re/reg-event-fx :page.new-job/set-token-address (create-assoc-handler :job/token-address))
 (re/reg-event-fx :page.new-job/set-token-id (create-assoc-handler :job/token-id))
 
 
