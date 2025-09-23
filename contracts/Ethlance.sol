@@ -455,11 +455,9 @@ contract Ethlance is IERC721Receiver, IERC1155Receiver, DSAuth {
     createJob(creator, offeredValues, invitedArbiters, ipfsData);
   }
 
-  // TODO: how to optimize so that multiple calls to this method wouldn't
-  //       redo the work multiple times (and thus spend gas) during one
-  //       contract execution
   function _decodeJobCreationData(bytes calldata _data) internal pure returns(OperationType, address, EthlanceStructs.TokenValue[] memory, address[] memory, bytes memory) {
-    return abi.decode(_data[4:], (OperationType, address, EthlanceStructs.TokenValue[], address[], bytes));
+      bytes memory data = _data[4:]; // Extract relevant data once
+      return abi.decode(data, (OperationType, address, EthlanceStructs.TokenValue[], address[], bytes));
   }
 
   function isCalledForOneStepJobCreation(bytes calldata _data) internal pure returns(bool) {
