@@ -1,5 +1,5 @@
 ARG DOCKER_REGISTRY
-FROM $DOCKER_REGISTRY/cljs-web3-ci:node-20.18.1 AS builder
+FROM $DOCKER_REGISTRY/cljs-web3-ci:node-24.22.1 AS builder
 
 ARG ETHLANCE_ENV
 ARG ETHLANCE_DEPLOY_SEED
@@ -37,7 +37,7 @@ WORKDIR "${ETHLANCE_SOURCE_ROOT}/server"
 RUN yarn && npx shadow-cljs release dev-server
 
 # Final stage - minimal runtime image
-FROM node:20-slim
+FROM node:24-slim
 ARG ETHLANCE_ENV
 ENV ETHLANCE_ENV=$ETHLANCE_ENV \
     ETHLANCE_SOURCE_ROOT=/build/ethlance
