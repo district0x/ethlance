@@ -9,7 +9,7 @@ change before final release*
 
 ## Prerequisites
 
-1. Node.js >= 20.18.1 (it's defined in `.tool-versions` and [asdf](https://github.com/asdf-vm/asdf-nodejs) is a good way to install it)
+1. Node.js >= 24.22.1 (it's defined in `.tool-versions` and [asdf](https://github.com/asdf-vm/asdf-nodejs) is a good way to install it)
 2. Java JDK >= 18 (for Clojure)
 3. [Babashka](https://github.com/babashka/babashka#installation)
 4. PostgreSQL (tested with 17.3)
